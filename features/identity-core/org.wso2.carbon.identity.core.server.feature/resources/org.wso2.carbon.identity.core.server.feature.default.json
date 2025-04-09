@@ -157,6 +157,7 @@
   "oauth.grant_type.password.enable": true,
   "oauth.grant_type.password.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.PasswordGrantHandler",
   "oauth.grant_type.password.allow_public_client": true,
+  "oauth.grant_type.password.show_auth_failure_reason": false,
   "oauth.grant_type.refresh_token.enable": true,
   "oauth.grant_type.refresh_token.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.RefreshGrantHandler",
   "oauth.grant_type.refresh_token.allow_public_client": true,
@@ -261,7 +262,7 @@
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
   "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
-  "oauth.oidc.token_endpoint.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
+  "oauth.oidc.token_endpoint.signing_algorithms": ["PS256", "ES256", "ES384", "RS384", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.id_token.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
@@ -400,7 +401,7 @@
   "identity_mgt.password_reset_email.otp.use_lowercase_in_otp": true,
   "identity_mgt.password_reset_email.otp.use_numeric_in_otp": true,
   "identity_mgt.password_reset_email.otp.otp_length": "6",
-  "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": "false",
+  "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": "true",
   "identity_mgt.password_reset_sms.sms_otp_regex": "[a-zA-Z0-9]{6}",
   "identity_mgt.password_reset_email.enable_recaptcha": false,
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
@@ -1671,7 +1672,8 @@
     "profile",
     "openid"
   ],
-
+  "ui.is_cookie_consent_banner_enabled": true,
+  
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],

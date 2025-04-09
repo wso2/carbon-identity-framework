@@ -735,6 +735,11 @@ public class SessionDataStore {
         }
     }
 
+    public boolean isSessionDataCleanupEnabled() {
+
+        return sessionDataCleanupEnabled;
+    }
+
     private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
             throws SQLException, IOException, SessionSerializerException {
         if (value != null) {

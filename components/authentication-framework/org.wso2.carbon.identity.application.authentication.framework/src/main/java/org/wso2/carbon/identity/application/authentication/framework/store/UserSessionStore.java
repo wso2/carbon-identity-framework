@@ -1282,7 +1282,7 @@ public class UserSessionStore {
      */
     public int getActiveSessionCount(String tenantDomain) throws UserSessionException {
 
-        int activeSessionCount = 0;
+        Set<String> activeSessionIds = new HashSet<>();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         long idleSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
         long currentTime = System.currentTimeMillis();
@@ -1290,16 +1290,24 @@ public class UserSessionStore {
 
         try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
             String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
-                    ? SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT_H2
-                    : SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT;
+                    ? SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT_H2
+                    : SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT;
             try (PreparedStatement preparedStatement = connection.prepareStatement(sqlStmt)) {
-                preparedStatement.setString(1, SessionMgtConstants.LAST_ACCESS_TIME);
-                preparedStatement.setString(2, String.valueOf(minTimestamp));
-                preparedStatement.setString(3, String.valueOf(currentTime));
-                preparedStatement.setInt(4, tenantId);
+                preparedStatement.setInt(1, tenantId);
+                preparedStatement.setString(2, SessionMgtConstants.LAST_ACCESS_TIME);
+                preparedStatement.setString(3, String.valueOf(minTimestamp));
+                preparedStatement.setString(4, String.valueOf(currentTime));
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if (resultSet.next()) {
-                        activeSessionCount = resultSet.getInt(1);
+                    while (resultSet.next()) {
+                        String sessionId = resultSet.getString(1);
+                        String operation = resultSet.getString(2);
+
+                        if (StringUtils.equalsIgnoreCase(operation, "DELETE")) {
+                            // If the session is already logged out, remove it from the active session set.
+                            activeSessionIds.remove(sessionId);
+                            continue;
+                        }
+                        activeSessionIds.add(sessionId);
                     }
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -1308,7 +1316,7 @@ public class UserSessionStore {
             throw new UserSessionException("Error while retrieving active session count of the tenant domain, " +
                     tenantDomain, e);
         }
-        return activeSessionCount;
+        return activeSessionIds.size();
     }
 
     /**

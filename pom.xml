@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015-2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2015-2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.80-SNAPSHOT</version>
+    <version>7.8.104-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -43,6 +43,7 @@
         <module>test-utils/org.wso2.carbon.identity.testutil</module>
         <module>service-stubs/identity</module>
         <module>components/authentication-framework</module>
+        <module>components/authorization-framework</module>
         <module>components/identity-core</module>
         <module>components/application-mgt</module>
         <module>components/user-mgt</module>
@@ -86,6 +87,7 @@
         <module>features/identity-event</module>
         <module>features/identity-mgt</module>
         <module>features/authentication-framework</module>
+        <module>features/authorization-framework</module>
         <module>features/application-mgt</module>
         <module>features/provisioning</module>
         <module>features/notification-mgt</module>
@@ -1002,6 +1004,12 @@
                 <version>${bcpkix-jdk18.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.authorization.framework</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!--OpenSAML3 dependencies-->
             <dependency>
                 <groupId>org.opensaml</groupId>
@@ -1916,7 +1924,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.36</carbon.kernel.version>
+        <carbon.kernel.version>4.10.44</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>

@@ -91,6 +91,14 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                         UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX);
                 throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
             }
+            if (roleName == null || roleName.isEmpty()) {
+                String errorMessage = "Role name cannot be empty.";
+                throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
+            }
+            if (roleName.length() > 255) {
+                String errorMessage = "Provided role name exceeds the maximum length of 255 characters.";
+                throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
+            }
             if (isDomainSeparatorPresent(roleName)) {
                 // SCIM2 API only adds roles to the internal domain.
                 throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
@@ -346,6 +354,15 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreUpdateRoleNameWithException(roleId, newRoleName, tenantDomain);
+
+        if (newRoleName == null || newRoleName.isEmpty()) {
+            String errorMessage = "Role name cannot be empty.";
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
+        }
+        if (newRoleName.length() > 255) {
+            String errorMessage = "Provided role name exceeds the maximum length of 255 characters.";
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
+        }
         if (isDomainSeparatorPresent(newRoleName)) {
             // SCIM2 API only adds roles to the internal domain.
             throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "

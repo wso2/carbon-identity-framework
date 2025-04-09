@@ -41,7 +41,11 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Map;
 
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PRESERVE_LOCALLY_ADDED_CLAIMS;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY;
 
 public class IdPManagementUtil {
 
@@ -284,20 +288,25 @@ public class IdPManagementUtil {
     public static void validatePasswordRecoveryPropertyValues(Map<String, String> configurationDetails)
             throws IdentityProviderManagementClientException {
 
-        if (configurationDetails.containsKey(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY) ||
-                configurationDetails.containsKey(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
-                configurationDetails.containsKey(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY)) {
+        if (configurationDetails.containsKey(NOTIFICATION_PASSWORD_ENABLE_PROPERTY) ||
+                configurationDetails.containsKey(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(SMS_OTP_PASSWORD_RECOVERY_PROPERTY)) {
             // Perform process only if notification based password recovery connector or options are updated.
-            String recNotPwProp = configurationDetails.get(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
-            String emailLinkPwRecProp = configurationDetails.get(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
-            String smsOtpPwRecProp = configurationDetails.get(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
-            boolean recoveryNotificationPasswordProperty = Boolean.parseBoolean(recNotPwProp);
-            boolean smsOtpPasswordRecoveryProperty = Boolean.parseBoolean(emailLinkPwRecProp);
-            boolean emailLinkPasswordRecoveryProperty = Boolean.parseBoolean(smsOtpPwRecProp);
+            String recoveryNotificationPasswordProp = configurationDetails.get(NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
+            String emailLinkForPasswordRecoveryProp = configurationDetails.get(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+            String emailOtpForPasswordRecoveryProp = configurationDetails.get(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+            String smsOtpForPasswordRecoveryProp = configurationDetails.get(SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
 
-            if (recoveryNotificationPasswordProperty &&
-                    StringUtils.isNotBlank(emailLinkPwRecProp) && !emailLinkPasswordRecoveryProperty &&
-                    StringUtils.isNotBlank(smsOtpPwRecProp) && !smsOtpPasswordRecoveryProperty) {
+            boolean isRecoveryNotificationPasswordEnabled = Boolean.parseBoolean(recoveryNotificationPasswordProp);
+            boolean isEmailLinkPasswordRecoveryEnabled = Boolean.parseBoolean(emailLinkForPasswordRecoveryProp);
+            boolean isEmailOtpPasswordRecoveryEnabled = Boolean.parseBoolean(emailOtpForPasswordRecoveryProp);
+            boolean isSmsOtpPasswordRecoveryEnabled = Boolean.parseBoolean(smsOtpForPasswordRecoveryProp);
+
+            if (isRecoveryNotificationPasswordEnabled &&
+                    StringUtils.isNotBlank(emailLinkForPasswordRecoveryProp) && !isEmailLinkPasswordRecoveryEnabled &&
+                    StringUtils.isNotBlank(emailOtpForPasswordRecoveryProp) && !isEmailOtpPasswordRecoveryEnabled &&
+                    StringUtils.isNotBlank(smsOtpForPasswordRecoveryProp) && !isSmsOtpPasswordRecoveryEnabled) {
                 // Disabling all recovery options when recovery connector is enabled is not allowed.
                 // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
                 // this behaviour.
@@ -306,8 +315,9 @@ public class IdPManagementUtil {
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                                 "Disabling all recovery options when recovery connector is enabled, is not allowed.");
             }
-            if (StringUtils.isNotBlank(recNotPwProp) && !recoveryNotificationPasswordProperty &&
-                    (emailLinkPasswordRecoveryProperty || smsOtpPasswordRecoveryProperty)) {
+            if (StringUtils.isNotBlank(recoveryNotificationPasswordProp) && !isRecoveryNotificationPasswordEnabled &&
+                    (isEmailLinkPasswordRecoveryEnabled || isSmsOtpPasswordRecoveryEnabled ||
+                            isEmailOtpPasswordRecoveryEnabled)) {
                 // Enabling any recovery options when connector is disabled is not allowed.
                 // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
                 // this behaviour.
@@ -316,8 +326,60 @@ public class IdPManagementUtil {
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                                 "Enabling recovery options when connector is disabled, is not allowed.");
             }
+            if (isEmailLinkPasswordRecoveryEnabled && isEmailOtpPasswordRecoveryEnabled) {
+                throw IdPManagementUtil.handleClientException(
+                        IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                        "Enabling both email link and email otp options are not allowed.");
+            }
         }
     }
+
+    public static void validatePasswordRecoveryWithCurrentAndPreviousConfigs(Map<String, String> configurationDetails,
+                                                                   IdentityProviderProperty[] identityMgtProperties)
+            throws IdentityProviderManagementClientException {
+
+        // Validate updating configs.
+        validatePasswordRecoveryPropertyValues(configurationDetails);
+
+
+        // Check weather current configurations include email OTP or Link since enabling both at same time is not
+        // allowed.
+        if (configurationDetails.containsKey(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY)) {
+
+            String emailLinkForPasswordRecoveryProp = configurationDetails.get(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+            String emailOtpForPasswordRecoveryProp = configurationDetails.get(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+
+            boolean isEmailLinkPasswordRecoveryEnabled = Boolean.parseBoolean(emailLinkForPasswordRecoveryProp);
+            boolean isEmailOtpPasswordRecoveryEnabled = Boolean.parseBoolean(emailOtpForPasswordRecoveryProp);
+
+            // Checks for already existing configurations.
+            boolean isEmailLinkCurrentlyEnabled = false;
+            boolean isEmailOtpCurrentlyEnabled = false;
+
+            for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+                if (EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY.equals(identityMgtProperty.getName())) {
+                    isEmailLinkCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
+                } else if (EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY.equals(identityMgtProperty.getName())) {
+                    isEmailOtpCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
+                }
+            }
+
+            if (((isEmailLinkCurrentlyEnabled && StringUtils.isBlank(emailLinkForPasswordRecoveryProp)) ||
+                    isEmailLinkPasswordRecoveryEnabled) && isEmailOtpPasswordRecoveryEnabled) {
+                throw IdPManagementUtil.handleClientException(
+                        IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                        "Enabling email OTP while email link is enabled is not allowed.");
+            }
+            if (((isEmailOtpCurrentlyEnabled && StringUtils.isBlank(emailOtpForPasswordRecoveryProp)) ||
+                    isEmailOtpPasswordRecoveryEnabled) && isEmailLinkPasswordRecoveryEnabled) {
+                throw IdPManagementUtil.handleClientException(
+                        IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                        "Enabling email link while email OTP is enabled is not allowed.");
+            }
+        }
+    }
+
 
     /**
      * This method is used to validate the username recovery property values.

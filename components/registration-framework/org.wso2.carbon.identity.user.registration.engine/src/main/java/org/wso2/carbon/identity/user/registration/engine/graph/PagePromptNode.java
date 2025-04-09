@@ -37,7 +37,7 @@ public class PagePromptNode implements Node {
     public Response execute(RegistrationContext context, NodeConfig nodeConfig)
             throws RegistrationEngineException {
 
-        if (nodeConfig.getEdges() != null) {
+        if (nodeConfig.getEdges() != null && !nodeConfig.getEdges().isEmpty()) {
             nodeConfig.setNextNodeId(nodeConfig.getEdges().get(0).getTargetNodeId());
         }
         return new Response.Builder().status(STATUS_PROMPT_ONLY).build();

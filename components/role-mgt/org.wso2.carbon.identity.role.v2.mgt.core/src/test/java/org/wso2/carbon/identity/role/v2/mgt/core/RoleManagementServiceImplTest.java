@@ -67,6 +67,7 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
 
     private static final String USERNAME = "user";
+    private static final String tenantDomain = "tenantDomain";
     private static final String audienceId = "testId";
     private static final String roleId = "testRoleId";
 
@@ -148,6 +149,47 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
             } else {
                 fail("An exception should not have been thrown.");
             }
+        }
+    }
+
+    @DataProvider(name = "invalidRoleNames")
+    public Object[][] invalidRoleNames() {
+        return new Object[][] {
+                { null, "Role name cannot be empty." },
+                { "", "Role name cannot be empty." },
+                { StringUtils.repeat("K", 256),
+                        "Provided role name exceeds the maximum length of 255 characters." }
+        };
+    }
+
+    @Test(dataProvider = "invalidRoleNames", expectedExceptions = IdentityRoleManagementClientException.class)
+    public void testAddRoleInvalidRoleName(String roleName, String expectedMessage) throws Exception {
+
+        String audience = "APPLICATION";
+        String audienceId = "application_id_01";
+
+        try {
+            roleManagementService.addRole(roleName, new ArrayList<>(), new ArrayList<>(),
+                    new ArrayList<>(), audience, audienceId, tenantDomain);
+        } catch (IdentityRoleManagementClientException e) {
+            assertEquals(e.getMessage(), expectedMessage);
+            throw e;
+        }
+    }
+
+    @Test(dataProvider = "invalidRoleNames", expectedExceptions = IdentityRoleManagementClientException.class)
+    public void testUpdateRoleInvalidRoleName(String roleName, String expectedMessage) throws Exception {
+
+        RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy =
+                mock(RoleManagementEventPublisherProxy.class);
+        roleManagementEventPublisherProxy.when(RoleManagementEventPublisherProxy::getInstance)
+                .thenReturn(mockRoleMgtEventPublisherProxy);
+
+        try {
+            roleManagementService.updateRoleName(roleId, roleName, tenantDomain);
+        } catch (IdentityRoleManagementClientException e) {
+            assertEquals(e.getMessage(), expectedMessage);
+            throw e;
         }
     }
 
