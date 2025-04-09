@@ -290,8 +290,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
 
         if (claim != null && claim.isMultiValued()) {
-            return isMultiValuedClaimDuplicated(username, claimUri, claimValue, profile, userStoreMgrFromRealm, domainName,
-                    uniquenessScope);
+            return isMultiValuedClaimDuplicated(username, claimUri, claimValue, profile, userStoreMgrFromRealm,
+                    domainName, uniquenessScope);
         }
 
         if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
