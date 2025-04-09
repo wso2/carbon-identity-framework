@@ -478,10 +478,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             if (userList.length > 1) {
                 return true;
             }
-            if (userList.length == 1) {
-                if (!usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+            if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
                     return true;
-                }
             }
         }
         return false;
