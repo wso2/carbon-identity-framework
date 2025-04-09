@@ -119,7 +119,7 @@ public class ActionDTO {
         if (properties.get(propertyName) instanceof ActionPropertyForService) {
             return (ActionPropertyForService) properties.get(propertyName);
         } else {
-            throw new IllegalArgumentException("Property " + propertyName + " is not of type ActionPropertyForService");
+            throw new IllegalStateException("Only ActionPropertyForServiceTypes are allowed to be retrieved.");
         }
     }
 
@@ -131,7 +131,7 @@ public class ActionDTO {
         if (properties.get(propertyName) instanceof ActionPropertyForDAO) {
             return (ActionPropertyForDAO) properties.get(propertyName);
         } else {
-            throw new IllegalArgumentException("Property " + propertyName + " is not of type ActionPropertyForDAO");
+            throw new IllegalStateException("Only ActionPropertyForDAOTypes are allowed to be retrieved.");
         }
     }
 
@@ -208,22 +208,6 @@ public class ActionDTO {
             this.endpoint = actionDTO.getEndpoint();
             this.rule = actionDTO.getActionRule();
             this.properties = properties;
-//            if (actionDTO.getProperties() != null) {
-//                this.properties = actionDTO.getProperties().entrySet().stream()
-//                        .collect(Collectors.toMap(
-//                                Map.Entry::getKey,
-//                                entry -> {
-//                                    if (entry.getValue() instanceof ActionPropertyForService) {
-//                                        return (ActionPropertyForService) entry.getValue();
-//                                    } else {
-//                                        throw new IllegalArgumentException("Properties contain values that are not " +
-//                                                "of type ActionPropertyForService");
-//                                    }
-//                                }
-//                        ));
-//            } else {
-//                this.properties = new HashMap<>();
-//            }
         }
 
         public BuilderForService(Action action) {
@@ -273,22 +257,6 @@ public class ActionDTO {
             this.endpoint = actionDTO.getEndpoint();
             this.rule = actionDTO.getActionRule();
             this.properties = properties;
-//            if (actionDTO.getProperties() != null) {
-//                this.properties = actionDTO.getProperties().entrySet().stream()
-//                        .collect(Collectors.toMap(
-//                                Map.Entry::getKey,
-//                                entry -> {
-//                                    if (entry.getValue() instanceof ActionPropertyForDAO) {
-//                                        return (ActionPropertyForDAO) entry.getValue();
-//                                    } else {
-//                                        throw new IllegalArgumentException("Properties contain values that are not " +
-//                                                "of type ActionPropertyForDAO");
-//                                    }
-//                                }
-//                        ));
-//            } else {
-//                this.properties = new HashMap<>();
-//            }
         }
 
         public BuilderForData properties(Map<String, ActionPropertyForDAO> properties) {

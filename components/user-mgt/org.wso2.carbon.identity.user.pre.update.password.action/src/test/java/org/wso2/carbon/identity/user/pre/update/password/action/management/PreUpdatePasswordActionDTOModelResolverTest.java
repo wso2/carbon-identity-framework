@@ -275,20 +275,6 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
         verify(certificateManagementService, never()).getCertificate(anyString(), anyString());
     }
 
-//    @Test(expectedExceptions = ActionDTOModelResolverServerException.class,
-//            expectedExceptionsMessageRegExp = "Unable to retrieve the certificate.")
-//    public void testResolveForGetOperationWithWrongTypeCertificateId() throws Exception {
-//
-//        Map<String, ActionProperty> properties = new HashMap<>();
-//        properties.put(PASSWORD_SHARING_FORMAT,
-//        new ActionPropertyForDAO(PasswordSharing.Format.SHA256_HASHED.name()));
-//        properties.put(CERTIFICATE, new ActionPropertyFor10);
-//        ActionDTO actionDTO = new ActionDTO.Builder(action)
-//                .properties(properties)
-//                .build();
-//        resolver.resolveForGetOperation(actionDTO, TENANT_DOMAIN);
-//    }
-
     @Test(expectedExceptions = ActionDTOModelResolverServerException.class,
             expectedExceptionsMessageRegExp = "Error while retrieving the password sharing format.")
     public void testResolveForGetOperationWithMissingPasswordSharingFormat() throws Exception {
