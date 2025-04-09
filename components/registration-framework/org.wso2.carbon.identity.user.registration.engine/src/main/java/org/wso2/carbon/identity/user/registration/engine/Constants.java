@@ -127,6 +127,9 @@ public class Constants {
         ERROR_CODE_REDIRECTION_URL_NOT_FOUND("65014",
                 "Redirection URL not found.",
                 "Error occurred while resolving the redirection URL."),
+        ERROR_CODE_CAPTCHA_VERIFICATION_FAILURE("65015",
+                "Error occurred during captcha verification.",
+                "Error occurred while verifying the captcha for the registration request of flow id: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
@@ -156,6 +159,9 @@ public class Constants {
         ERROR_CODE_INVALID_ACTION_ID("60009",
                 "Invalid action id.",
                 "The provided action id: %s is invalid."),
+        ERROR_CODE_INVALID_CAPTCHA("60010",
+                "Invalid captcha provided.",
+                "Invalid captcha provided in the registration request of flow id: %s."),
         ;
 
         private static final String ERROR_PREFIX = "RFE";
