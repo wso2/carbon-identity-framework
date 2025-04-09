@@ -28,9 +28,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
-import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
@@ -117,7 +117,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
                         .build())
                 .build();
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         properties.put(ATTRIBUTES, new ActionPropertyForService(TEST_ATTRIBUTES));
         existingActionDTO = new ActionDTO.Builder(action).properties(properties).build();
         existingActionDTOWithoutProperties = new ActionDTO.Builder(action).build();
@@ -165,18 +165,16 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
         assertNotNull(result);
         verifyCommonFields(actionDTO, result);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
+        assertTrue(result.getDAOProperty(ATTRIBUTES).getValue() instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue())
                 .getJSONString()), TEST_ATTRIBUTES);
     }
 
     @Test
     public void testResolveForAddOperationWithoutAttributes() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -236,11 +234,10 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
         assertNotNull(result);
         verifyCommonFields(actionDTO, result);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
+        assertTrue(result.getDAOProperty(ATTRIBUTES).getValue() instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue())
                 .getInputStream());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
+        assertEquals(getAttributes(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue())
                 .getJSONString()), Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
     }
 
@@ -271,7 +268,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     @Test
     public void testResolveForGetOperation() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
 
         properties.put(ATTRIBUTES, new ActionPropertyForDAO(getBinaryObject(TEST_ATTRIBUTES)));
         ActionDTO actionDTO = new ActionDTO.Builder(action)
@@ -282,28 +279,13 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
         assertNotNull(result);
         verifyCommonFields(actionDTO, result);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForService);
-        assertEquals(((ActionPropertyForService) result.getProperty(ATTRIBUTES)).getValue(), TEST_ATTRIBUTES);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverServerException.class,
-            expectedExceptionsMessageRegExp = "Unable to retrieve attributes.")
-    public void testResolveForGetOperationWithInvalidPropertyValue() throws Exception {
-
-        Map<String, Object> properties = new HashMap<>();
-
-        properties.put(ATTRIBUTES, TEST_ATTRIBUTES);
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
-                .properties(properties)
-                .build();
-
-        resolver.resolveForGetOperation(actionDTO, TENANT_DOMAIN);
+        assertEquals(result.getServiceProperty(ATTRIBUTES).getValue(), TEST_ATTRIBUTES);
     }
 
     @Test
     public void testResolveForGetOperationForActionList() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         properties.put(ATTRIBUTES, new ActionPropertyForDAO(getBinaryObject(TEST_ATTRIBUTES)));
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
@@ -314,8 +296,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(result);
         for (ActionDTO dto : result) {
             verifyCommonFields(actionDTO, dto);
-            assertTrue(dto.getProperty(ATTRIBUTES) instanceof ActionPropertyForService);
-            assertEquals(((ActionPropertyForService) dto.getProperty(ATTRIBUTES)).getValue(), TEST_ATTRIBUTES);
+            assertEquals(dto.getServiceProperty(ATTRIBUTES).getValue(), TEST_ATTRIBUTES);
         }
     }
 
@@ -332,11 +313,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(result);
         verifyCommonFields(updatingActionDTO, result);
         assertEquals(result.getProperties().size(), 1);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
+        assertTrue(result.getDAOProperty(ATTRIBUTES).getValue() instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue())
                 .getJSONString()), UPDATED_TEST_ATTRIBUTES);
     }
 
@@ -353,7 +332,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(result);
         verifyCommonFields(updatingActionDTO, result);
         assertEquals(result.getProperties().size(), 0);
-        assertNull(result.getProperty(ATTRIBUTES));
+        assertNull(result.getDAOProperty(ATTRIBUTES));
     }
 
     @Test
@@ -370,12 +349,10 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         verifyCommonFields(updatingActionDTO, result);
         // Since no attributes are updated, the existing attributes in ActionDTO should be verified.
         assertEquals(result.getProperties().size(), existingActionDTO.getProperties().size());
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString()), ((ActionPropertyForService) existingActionDTO.getProperty(ATTRIBUTES)).getValue());
+        assertTrue(result.getDAOProperty(ATTRIBUTES).getValue() instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue())
+                .getJSONString()), existingActionDTO.getServiceProperty(ATTRIBUTES).getValue());
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
@@ -402,12 +379,10 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
         assertNotNull(result);
         verifyCommonFields(actionDTO, result);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString()), Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
+        assertTrue(result.getDAOProperty(ATTRIBUTES).getValue() instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getInputStream());
+        assertEquals(getAttributes(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getJSONString()),
+                Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
@@ -447,12 +422,10 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         verifyCommonFields(updatingActionDTO, result);
         // Since no attributes are updated, the existing attributes in ActionDTO should be verified.
         assertEquals(result.getProperties().size(), existingActionDTO.getProperties().size());
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString()), ((ActionPropertyForService) existingActionDTO.getProperty(ATTRIBUTES)).getValue());
+        assertTrue(result.getDAOProperty(ATTRIBUTES).getValue() instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getJSONString()),
+                existingActionDTO.getServiceProperty(ATTRIBUTES).getValue());
     }
 
     @Test
@@ -469,12 +442,10 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(result);
         verifyCommonFields(updatingActionDTO, result);
         assertEquals(result.getProperties().size(), 1);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getJSONString()), TEST_ATTRIBUTES);
+        assertTrue(result.getDAOProperty(ATTRIBUTES).getValue() instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getDAOProperty(ATTRIBUTES).getValue()).getJSONString()),
+                TEST_ATTRIBUTES);
     }
 
     @Test

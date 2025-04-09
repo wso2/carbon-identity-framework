@@ -24,6 +24,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -155,7 +156,7 @@ public class ActionManagementAuditLogger {
      * @param properties Properties to be logged.
      * @return properties data.
      */
-    private JSONObject getPropertiesData(Map<String, Object> properties) {
+    private JSONObject getPropertiesData(Map<String, ActionProperty> properties) {
 
         JSONObject propertiesData = new JSONObject();
         properties.forEach((key, value) -> propertiesData.put(key, LoggerUtils.getMaskedContent(value.toString())));

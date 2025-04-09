@@ -537,7 +537,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      */
     private void addProperties(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 
-        Map<String, Object> propertiesMap = actionDTO.getProperties();
+        Map<String, ActionProperty> propertiesMap = actionDTO.getProperties();
         if (propertiesMap == null || propertiesMap.isEmpty()) {
             return;
         }
@@ -562,7 +562,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private void updateProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
                                   Integer tenantId) throws ActionMgtException {
 
-        Map<String, Object> propertiesMap = updatingActionDTO.getProperties();
+        Map<String, ActionProperty> propertiesMap = updatingActionDTO.getProperties();
         if (propertiesMap == null) {
             return;
         }

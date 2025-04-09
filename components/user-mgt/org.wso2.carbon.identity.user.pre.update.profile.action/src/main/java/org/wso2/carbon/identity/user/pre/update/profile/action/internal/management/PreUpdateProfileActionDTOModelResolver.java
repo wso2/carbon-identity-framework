@@ -70,8 +70,8 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
             throws ActionDTOModelResolverException {
 
         Map<String, ActionPropertyForDAO> properties = new HashMap<>();
-        Object attributes = actionDTO.getProperty(ATTRIBUTES) == null ? null :
-                ((ActionPropertyForService) actionDTO.getProperty(ATTRIBUTES)).getValue();
+        Object attributes = actionDTO.getServiceProperty(ATTRIBUTES) == null ? null :
+                actionDTO.getServiceProperty(ATTRIBUTES).getValue();
         // Attributes is an optional field.
         if (attributes != null) {
             List<String> validatedAttributes = validateAttributes(attributes, tenantDomain);
@@ -79,8 +79,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
             properties.put(ATTRIBUTES, attributesObject);
         }
 
-        return new ActionDTO.BuilderForData(actionDTO)
-                .properties(properties)
+        return new ActionDTO.BuilderForData(actionDTO, properties)
                 .build();
     }
 
@@ -90,18 +89,13 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
         Map<String, ActionPropertyForService> properties = new HashMap<>();
         // Attributes is an optional field.
-        if (actionDTO.getProperty(ATTRIBUTES) != null) {
-            if (!(actionDTO.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO)) {
-                throw new ActionDTOModelResolverServerException("Unable to retrieve attributes.",
-                        "Invalid action property provided to retrieve attributes.");
-            }
-            properties.put(ATTRIBUTES, getAttributes(((BinaryObject) ((ActionPropertyForDAO) actionDTO
-                    .getProperty(ATTRIBUTES)).getValue()).getJSONString()));
+        if (actionDTO.getDAOProperty(ATTRIBUTES) != null) {
+
+            properties.put(ATTRIBUTES, getAttributes(((BinaryObject) actionDTO
+                    .getDAOProperty(ATTRIBUTES).getValue()).getJSONString()));
         }
 
-        return new ActionDTO.BuilderForService(actionDTO)
-                .properties(properties)
-                .build();
+        return new ActionDTO.BuilderForService(actionDTO, properties).build();
     }
 
     @Override
@@ -139,8 +133,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         if (!attributes.isEmpty()) {
             properties.put(ATTRIBUTES, createActionProperty(attributes));
         }
-        return new ActionDTO.BuilderForData(updatingActionDTO)
-                .properties(properties)
+        return new ActionDTO.BuilderForData(updatingActionDTO, properties)
                 .build();
     }
 
@@ -154,14 +147,13 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                                                        ActionDTO existingActionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        if (updatingActionDTO.getProperty(ATTRIBUTES) != null && ((ActionPropertyForService)
-                updatingActionDTO.getProperty(ATTRIBUTES)).getValue() != null) {
+        if (updatingActionDTO.getServiceProperty(ATTRIBUTES) != null &&
+                updatingActionDTO.getServiceProperty(ATTRIBUTES).getValue() != null) {
             // return updating attributes after validation
-            return validateAttributes(((ActionPropertyForService) updatingActionDTO.getProperty(ATTRIBUTES)).getValue(),
-                    tenantDomain);
-        } else if (existingActionDTO.getProperty(ATTRIBUTES) != null) {
+            return validateAttributes(updatingActionDTO.getServiceProperty(ATTRIBUTES).getValue(), tenantDomain);
+        } else if (existingActionDTO.getServiceProperty(ATTRIBUTES) != null) {
             // return existing attributes
-            return (List<String>) ((ActionPropertyForService) existingActionDTO.getProperty(ATTRIBUTES)).getValue();
+            return (List<String>) existingActionDTO.getServiceProperty(ATTRIBUTES).getValue();
         }
         // if attributes are not getting updated or not configured earlier, return empty list.
         return emptyList();

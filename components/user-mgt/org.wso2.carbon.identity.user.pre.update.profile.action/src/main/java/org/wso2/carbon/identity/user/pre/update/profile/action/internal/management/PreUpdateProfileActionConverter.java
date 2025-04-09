@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.user.pre.update.profile.action.internal.managem
 
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.user.pre.update.profile.action.api.model.PreUpdateProfileAction;
@@ -66,10 +67,10 @@ public class PreUpdateProfileActionConverter implements ActionConverter {
     @Override
     public Action buildAction(ActionDTO actionDTO) {
 
-        Map<String, Object> properties = actionDTO.getProperties();
+        Map<String, ActionProperty> properties = actionDTO.getProperties();
         List<String> attributes = null;
         if (properties.get(ATTRIBUTES) != null) {
-             attributes = (List<String>) ((ActionPropertyForService) properties.get(ATTRIBUTES)).getValue();
+             attributes = (List<String>) properties.get(ATTRIBUTES).getValue();
         }
 
         return new PreUpdateProfileAction.ResponseBuilder()

@@ -31,6 +31,8 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
+import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.model.ActionRule;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
@@ -117,11 +119,12 @@ public class ActionManagementAuditLoggerTest {
         loggerUtilsMockedStatic.when(() -> LoggerUtils.jsonObjectToMap(any(JSONObject.class))).thenCallRealMethod();
         loggerUtilsMockedStatic.when(() -> LoggerUtils.getMaskedContent(any(String.class))).thenCallRealMethod();
 
-        Map<String, Object> actionProperties = new HashMap<>();
-        actionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE);
-        actionProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
+        Map<String, ActionProperty> actionProperties = new HashMap<>();
+        actionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
+                new ActionPropertyForService(TEST_PASSWORD_SHARING_TYPE));
+        actionProperties.put(CERTIFICATE_PROPERTY_NAME, new ActionPropertyForService(new Certificate.Builder()
                 .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
-                .certificateContent(TEST_CERTIFICATE).build());
+                .certificateContent(TEST_CERTIFICATE).build()));
 
         actionDTO = new ActionDTOBuilder()
                 .id(PRE_UPDATE_PASSWORD_ACTION_ID)
@@ -151,17 +154,19 @@ public class ActionManagementAuditLoggerTest {
     @DataProvider
     public Object[][] actionDataProvider() {
 
-        Map<String, Object> actionProperties = new HashMap<>();
-        actionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE);
-        actionProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
+        Map<String, ActionProperty> actionProperties = new HashMap<>();
+        actionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
+                new ActionPropertyForService(TEST_PASSWORD_SHARING_TYPE));
+        actionProperties.put(CERTIFICATE_PROPERTY_NAME, new ActionPropertyForService(new Certificate.Builder()
                 .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
-                .certificateContent(TEST_CERTIFICATE).build());
+                .certificateContent(TEST_CERTIFICATE).build()));
 
-        Map<String, Object> updatedActionProperties = new HashMap<>();
-        updatedActionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE_UPDATED);
-        updatedActionProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
+        Map<String, ActionProperty> updatedActionProperties = new HashMap<>();
+        updatedActionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
+                new ActionPropertyForService(TEST_PASSWORD_SHARING_TYPE_UPDATED));
+        updatedActionProperties.put(CERTIFICATE_PROPERTY_NAME, new ActionPropertyForService(new Certificate.Builder()
                 .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
-                .certificateContent(TEST_CERTIFICATE_UPDATED).build());
+                .certificateContent(TEST_CERTIFICATE_UPDATED).build()));
 
         return new Object[][]{
                 // Create object with all the fields.
@@ -406,13 +411,14 @@ public class ActionManagementAuditLoggerTest {
             }
         }
 
-        if (actionDTO.getProperties() != null && actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME) != null) {
+        if (actionDTO.getProperties() != null &&
+                actionDTO.getServiceProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME) != null) {
             assertField(propertiesMap.get(PASSWORD_SHARING_TYPE_PROPERTY_NAME) != null, propertiesMap,
                     PASSWORD_SHARING_TYPE_PROPERTY_NAME, LoggerUtils.getMaskedContent(actionDTO.getProperties()
                             .get(PASSWORD_SHARING_TYPE_PROPERTY_NAME).toString()));
         }
 
-        if (actionDTO.getProperties() != null && actionDTO.getProperty(CERTIFICATE_PROPERTY_NAME) != null) {
+        if (actionDTO.getProperties() != null && actionDTO.getServiceProperty(CERTIFICATE_PROPERTY_NAME) != null) {
             assertField(propertiesMap.get(CERTIFICATE_PROPERTY_NAME) != null, propertiesMap,
                     CERTIFICATE_PROPERTY_NAME, LoggerUtils.getMaskedContent(actionDTO.getProperties()
                             .get(CERTIFICATE_PROPERTY_NAME).toString()));

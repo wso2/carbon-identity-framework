@@ -59,8 +59,8 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
 
         Map<String, ActionPropertyForDAO> properties = new HashMap<>();
 
-        Object passwordSharingFormat = actionDTO.getProperty(PASSWORD_SHARING_FORMAT) == null ? null :
-                ((ActionPropertyForService) actionDTO.getProperty(PASSWORD_SHARING_FORMAT)).getValue();
+        Object passwordSharingFormat = actionDTO.getServiceProperty(PASSWORD_SHARING_FORMAT) == null ? null :
+                 actionDTO.getServiceProperty(PASSWORD_SHARING_FORMAT).getValue();
         // Password sharing format is a required field.
         if (passwordSharingFormat == null) {
             throw new ActionDTOModelResolverClientException("Invalid Request",
@@ -74,8 +74,8 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
                 passwordSharingFormat).name()));
 
         // Certificate is an optional field.
-        Object certificate = actionDTO.getProperty(CERTIFICATE) == null ? null : ((ActionPropertyForService) actionDTO
-                .getProperty(CERTIFICATE)).getValue();
+        Object certificate = actionDTO.getServiceProperty(CERTIFICATE) == null ? null : actionDTO
+                .getServiceProperty(CERTIFICATE).getValue();
         if (certificate != null) {
             if (!(certificate instanceof Certificate)) {
                 throw new ActionDTOModelResolverClientException("Invalid Certificate.",
@@ -87,8 +87,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
             properties.put(CERTIFICATE, new ActionPropertyForDAO(certificateId));
         }
 
-        return new ActionDTO.BuilderForData(actionDTO)
-                .properties(properties)
+        return new ActionDTO.BuilderForData(actionDTO, properties)
                 .build();
     }
 
@@ -98,27 +97,22 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
 
         Map<String, ActionPropertyForService> properties = new HashMap<>();
 
-        if (!(actionDTO.getProperty(PASSWORD_SHARING_FORMAT) instanceof ActionPropertyForDAO)) {
+        if (actionDTO.getDAOProperty(PASSWORD_SHARING_FORMAT) == null) {
             throw new ActionDTOModelResolverServerException("Error while retrieving the password sharing format.",
                     "Unable to retrieve the password sharing format from the system");
         }
         properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format
-                .valueOf(((ActionPropertyForDAO) actionDTO.getProperty(PASSWORD_SHARING_FORMAT)).getValue()
+                .valueOf(actionDTO.getDAOProperty(PASSWORD_SHARING_FORMAT).getValue()
                         .toString())));
 
         // Certificate is an optional field.
-        if (actionDTO.getProperty(CERTIFICATE) != null) {
-            if (!(actionDTO.getProperty(CERTIFICATE) instanceof ActionPropertyForDAO)) {
-                throw new ActionDTOModelResolverServerException("Unable to retrieve the certificate.",
-                        "Invalid certificate property provided to retrieve the certificate.");
-            }
-            Certificate certificate = getCertificate((String) ((ActionPropertyForDAO) actionDTO
-                    .getProperty(CERTIFICATE)).getValue(), tenantDomain);
+        if (actionDTO.getDAOProperty(CERTIFICATE) != null) {
+            Certificate certificate = getCertificate((String) actionDTO
+                    .getDAOProperty(CERTIFICATE).getValue(), tenantDomain);
             properties.put(CERTIFICATE, new ActionPropertyForService(certificate));
         }
 
-        return new ActionDTO.BuilderForService(actionDTO)
-                .properties(properties)
+        return new ActionDTO.BuilderForService(actionDTO, properties)
                 .build();
     }
 
@@ -153,8 +147,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         resolveCertificateUpdate(updatingActionDTO, existingActionDTO, properties, tenantDomain);
         resolvePasswordSharingFormatUpdate(updatingActionDTO, existingActionDTO, properties);
 
-        return new ActionDTO.BuilderForData(updatingActionDTO)
-                .properties(properties)
+        return new ActionDTO.BuilderForData(updatingActionDTO, properties)
                 .build();
     }
 
@@ -162,11 +155,8 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
     public void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        if (deletingActionDTO.getProperty(CERTIFICATE) instanceof ActionPropertyForService &&
-                ((ActionPropertyForService) deletingActionDTO.getProperty(CERTIFICATE)).getValue() instanceof
-                        Certificate) {
-            Certificate certificate = (Certificate) ((ActionPropertyForService) deletingActionDTO
-                    .getProperty(CERTIFICATE)).getValue();
+        if (deletingActionDTO.getServiceProperty(CERTIFICATE).getValue() instanceof Certificate) {
+            Certificate certificate = (Certificate) deletingActionDTO.getServiceProperty(CERTIFICATE).getValue();
             deleteCertificate(certificate.getId(), tenantDomain);
         }
     }
@@ -182,14 +172,14 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
     private void resolvePasswordSharingFormatUpdate(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
                                                     Map<String, ActionPropertyForDAO> properties) {
 
-        if (updatingActionDTO.getProperty(PASSWORD_SHARING_FORMAT) != null) {
+        if (updatingActionDTO.getServiceProperty(PASSWORD_SHARING_FORMAT) != null) {
             properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForDAO(
-                    ((PasswordSharing.Format) ((ActionPropertyForService) updatingActionDTO
-                            .getProperty(PASSWORD_SHARING_FORMAT)).getValue()).name()));
+                    ((PasswordSharing.Format) updatingActionDTO.getServiceProperty(PASSWORD_SHARING_FORMAT)
+                            .getValue()).name()));
         } else {
             properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForDAO(
-                    ((PasswordSharing.Format) ((ActionPropertyForService) existingActionDTO
-                            .getProperty(PASSWORD_SHARING_FORMAT)).getValue()).name()));
+                    ((PasswordSharing.Format) existingActionDTO.getServiceProperty(PASSWORD_SHARING_FORMAT)
+                            .getValue()).name()));
         }
     }
 
@@ -197,10 +187,10 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
                                           Map<String, ActionPropertyForDAO> properties, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        Certificate updatingCertificate = updatingActionDTO.getProperty(CERTIFICATE) == null ? null :
-                (Certificate) ((ActionPropertyForService) updatingActionDTO.getProperty(CERTIFICATE)).getValue();
-        Certificate existingCertificate = existingActionDTO.getProperty(CERTIFICATE) == null ? null :
-                (Certificate) ((ActionPropertyForService) existingActionDTO.getProperty(CERTIFICATE)).getValue();
+        Certificate updatingCertificate = updatingActionDTO.getServiceProperty(CERTIFICATE) == null ? null :
+                (Certificate) updatingActionDTO.getServiceProperty(CERTIFICATE).getValue();
+        Certificate existingCertificate = existingActionDTO.getServiceProperty(CERTIFICATE) == null ? null :
+                (Certificate) existingActionDTO.getServiceProperty(CERTIFICATE).getValue();
 
         if (isAddingNewCertificate(updatingCertificate, existingCertificate)) {
             Certificate certToBeAdded = buildCertificate(updatingActionDTO.getId(), updatingCertificate);

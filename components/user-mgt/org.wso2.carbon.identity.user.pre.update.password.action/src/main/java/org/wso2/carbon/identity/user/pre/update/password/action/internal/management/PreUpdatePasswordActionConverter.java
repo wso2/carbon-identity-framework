@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.user.pre.update.password.action.internal.manage
 
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
@@ -72,13 +73,12 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
     @Override
     public Action buildAction(ActionDTO actionDTO) {
 
-        Map<String, Object> properties = actionDTO.getProperties();
+        Map<String, ActionProperty> properties = actionDTO.getProperties();
         PasswordSharing.Builder passwordSharingBuilder = new PasswordSharing.Builder();
-        passwordSharingBuilder.format((PasswordSharing.Format) ((ActionPropertyForService) actionDTO.getProperties()
-                .get(PASSWORD_SHARING_FORMAT)).getValue());
+        passwordSharingBuilder.format((PasswordSharing.Format) actionDTO.getProperties()
+                .get(PASSWORD_SHARING_FORMAT).getValue());
         if (properties.get(CERTIFICATE) != null) {
-            passwordSharingBuilder.certificate((Certificate) ((ActionPropertyForService) actionDTO.getProperties()
-                    .get(CERTIFICATE)).getValue());
+            passwordSharingBuilder.certificate((Certificate) actionDTO.getProperties().get(CERTIFICATE).getValue());
         }
 
         return new PreUpdatePasswordAction.ResponseBuilder()

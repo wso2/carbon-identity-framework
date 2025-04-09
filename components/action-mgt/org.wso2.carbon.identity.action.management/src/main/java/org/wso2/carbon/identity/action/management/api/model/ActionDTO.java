@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.action.management.api.model;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Action Data Transfer Object.
@@ -33,7 +33,7 @@ public class ActionDTO {
     private final Action.Status status;
     private final EndpointConfig endpoint;
     private final ActionRule rule;
-    private final Map<String, Object> properties;
+    private final Map<String, ActionProperty> properties;
 
     public ActionDTO(Builder builder) {
 
@@ -56,7 +56,7 @@ public class ActionDTO {
         this.status = builder.status;
         this.endpoint = builder.endpoint;
         this.rule = builder.rule;
-        this.properties = builder.properties;
+        this.properties = new HashMap<>(builder.properties);
     }
 
     public ActionDTO(BuilderForData builder) {
@@ -68,7 +68,7 @@ public class ActionDTO {
         this.status = builder.status;
         this.endpoint = builder.endpoint;
         this.rule = builder.rule;
-        this.properties = builder.properties;
+        this.properties = new HashMap<>(builder.properties);
     }
 
     public String getId() {
@@ -106,18 +106,33 @@ public class ActionDTO {
         return rule;
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, ActionProperty> getProperties() {
 
         return properties;
     }
 
-    public Object getProperty(String propertyName) {
+    public ActionPropertyForService getServiceProperty(String propertyName) {
 
-        if (properties == null) {
+        if (properties == null || properties.get(propertyName) == null) {
             return null;
         }
+        if (properties.get(propertyName) instanceof ActionPropertyForService) {
+            return (ActionPropertyForService) properties.get(propertyName);
+        } else {
+            throw new IllegalArgumentException("Property " + propertyName + " is not of type ActionPropertyForService");
+        }
+    }
 
-        return properties.get(propertyName);
+    public ActionPropertyForDAO getDAOProperty(String propertyName) {
+
+        if (properties == null || properties.get(propertyName) == null) {
+            return null;
+        }
+        if (properties.get(propertyName) instanceof ActionPropertyForDAO) {
+            return (ActionPropertyForDAO) properties.get(propertyName);
+        } else {
+            throw new IllegalArgumentException("Property " + propertyName + " is not of type ActionPropertyForDAO");
+        }
     }
 
     /**
@@ -132,7 +147,7 @@ public class ActionDTO {
         private final Action.Status status;
         private final EndpointConfig endpoint;
         private final ActionRule rule;
-        private Map<String, Object> properties;
+        private Map<String, ActionProperty> properties;
 
         public Builder(ActionDTO actionDTO) {
 
@@ -157,7 +172,7 @@ public class ActionDTO {
             this.rule = action.getActionRule();
         }
 
-        public Builder properties(Map<String, Object> properties) {
+        public Builder properties(Map<String, ActionProperty> properties) {
 
             this.properties = properties;
             return this;
@@ -181,9 +196,9 @@ public class ActionDTO {
         private final Action.Status status;
         private final EndpointConfig endpoint;
         private final ActionRule rule;
-        private Map<String, Object> properties;
+        private Map<String, ActionPropertyForService> properties;
 
-        public BuilderForService(ActionDTO actionDTO) {
+        public BuilderForService(ActionDTO actionDTO, Map<String, ActionPropertyForService> properties) {
 
             this.id = actionDTO.getId();
             this.type = actionDTO.getType();
@@ -192,7 +207,23 @@ public class ActionDTO {
             this.status = actionDTO.getStatus();
             this.endpoint = actionDTO.getEndpoint();
             this.rule = actionDTO.getActionRule();
-            this.properties = actionDTO.getProperties();
+            this.properties = properties;
+//            if (actionDTO.getProperties() != null) {
+//                this.properties = actionDTO.getProperties().entrySet().stream()
+//                        .collect(Collectors.toMap(
+//                                Map.Entry::getKey,
+//                                entry -> {
+//                                    if (entry.getValue() instanceof ActionPropertyForService) {
+//                                        return (ActionPropertyForService) entry.getValue();
+//                                    } else {
+//                                        throw new IllegalArgumentException("Properties contain values that are not " +
+//                                                "of type ActionPropertyForService");
+//                                    }
+//                                }
+//                        ));
+//            } else {
+//                this.properties = new HashMap<>();
+//            }
         }
 
         public BuilderForService(Action action) {
@@ -208,8 +239,7 @@ public class ActionDTO {
 
         public BuilderForService properties(Map<String, ActionPropertyForService> properties) {
 
-            this.properties = properties.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                    Map.Entry::getValue));
+            this.properties = properties;
             return this;
         }
 
@@ -231,9 +261,9 @@ public class ActionDTO {
         private final Action.Status status;
         private final EndpointConfig endpoint;
         private final ActionRule rule;
-        private Map<String, Object> properties;
+        private Map<String, ActionPropertyForDAO> properties;
 
-        public BuilderForData(ActionDTO actionDTO) {
+        public BuilderForData(ActionDTO actionDTO, Map<String, ActionPropertyForDAO> properties) {
 
             this.id = actionDTO.getId();
             this.type = actionDTO.getType();
@@ -242,13 +272,28 @@ public class ActionDTO {
             this.status = actionDTO.getStatus();
             this.endpoint = actionDTO.getEndpoint();
             this.rule = actionDTO.getActionRule();
-            this.properties = actionDTO.getProperties();
+            this.properties = properties;
+//            if (actionDTO.getProperties() != null) {
+//                this.properties = actionDTO.getProperties().entrySet().stream()
+//                        .collect(Collectors.toMap(
+//                                Map.Entry::getKey,
+//                                entry -> {
+//                                    if (entry.getValue() instanceof ActionPropertyForDAO) {
+//                                        return (ActionPropertyForDAO) entry.getValue();
+//                                    } else {
+//                                        throw new IllegalArgumentException("Properties contain values that are not " +
+//                                                "of type ActionPropertyForDAO");
+//                                    }
+//                                }
+//                        ));
+//            } else {
+//                this.properties = new HashMap<>();
+//            }
         }
 
         public BuilderForData properties(Map<String, ActionPropertyForDAO> properties) {
 
-            this.properties = properties.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                    Map.Entry::getValue));
+            this.properties = properties;
             return this;
         }
 

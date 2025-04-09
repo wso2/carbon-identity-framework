@@ -22,6 +22,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
@@ -99,10 +100,10 @@ public class PreUpdateProfileActionConverterTest {
                 action.getEndpoint().getAuthentication().getProperty(Authentication.Property.PASSWORD));
 
         // Verify properties map
-        Map<String, Object> properties = dto.getProperties();
+        Map<String, ActionProperty> properties = dto.getProperties();
         assertNotNull(properties);
         assertTrue(properties.get(ATTRIBUTES) instanceof ActionPropertyForService);
-        assertEquals(((ActionPropertyForService) properties.get(ATTRIBUTES)).getValue(), action.getAttributes());
+        assertEquals(properties.get(ATTRIBUTES).getValue(), action.getAttributes());
     }
 
     @Test(description = "Test ActionConverter returns action dto with all the properties ")
@@ -170,6 +171,6 @@ public class PreUpdateProfileActionConverterTest {
         assertNotNull(dto.getProperties());
         assertEquals(dto.getProperties().size(), 1);
         assertTrue(dto.getProperties().get(ATTRIBUTES) instanceof ActionPropertyForService);
-        assertEquals(((ActionPropertyForService) dto.getProperties().get(ATTRIBUTES)).getValue(), TEST_ATTRIBUTES);
+        assertEquals(dto.getProperties().get(ATTRIBUTES).getValue(), TEST_ATTRIBUTES);
     }
 }
