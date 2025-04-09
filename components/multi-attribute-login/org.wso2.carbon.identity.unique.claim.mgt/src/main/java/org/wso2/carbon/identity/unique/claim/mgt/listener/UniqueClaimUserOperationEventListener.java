@@ -285,13 +285,15 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(
                 UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
         Claim claim = getClaimObject(userStoreManager, claimUri);
-        if (claim != null && claim.isMultiValued()) {
-            return isMultiValuedClaimDuplicated(username, claimUri, claimValue, profile, userStoreManager, domainName,
-                    uniquenessScope);
-        }
         String[] userList;
         // Get UserStoreManager from realm since the received one might be for a secondary user store
         UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
+
+        if (claim != null && claim.isMultiValued()) {
+            return isMultiValuedClaimDuplicated(username, claimUri, claimValue, profile, userStoreMgrFromRealm, domainName,
+                    uniquenessScope);
+        }
+
         if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
             String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
             userList = userStoreMgrFromRealm.getUserList(claimUri, claimValueWithDomain, profile);
@@ -452,7 +454,9 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         String multiAttributeSeparator = userStoreManager.getSecondaryUserStoreManager(domainName)
                 .getRealmConfiguration().getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
 
-        String existingUserClaimValue = userStoreManager.getUserClaimValues(username, new String[] {claimUri},
+        String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+        String existingUserClaimValue = userStoreManager.getUserClaimValues(usernameWithUserStoreDomain,
+                new String[] {claimUri},
                 UserCoreConstants.DEFAULT_PROFILE).get(claimUri);
         List<String> existingClaimValues = new ArrayList<>();
         if (StringUtils.isNotEmpty(existingUserClaimValue)) {
@@ -475,7 +479,6 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                 return true;
             }
             if (userList.length == 1) {
-                String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
                 if (!usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
                     return true;
                 }
