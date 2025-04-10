@@ -275,6 +275,14 @@ public class ApplicationAuthenticatorServiceTest {
         Assert.assertEquals(authenticatorsList.size(), 2);
     }
 
+    @Test(priority = 10)
+    public void testGetAllSystemDefinedLocalAuthenticators() throws Exception {
+
+        List<LocalAuthenticatorConfig> authenticatorsList = ApplicationCommonServiceDataHolder.getInstance()
+                .getApplicationAuthenticatorService().getAllSystemDefinedLocalAuthenticators(tenantDomain);
+        Assert.assertEquals(authenticatorsList.size(), 2);
+    }
+
     @DataProvider(name = "authenticatorConfigToModify")
     public Object[][] authenticatorConfigToModify() {
 

@@ -35,7 +35,9 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByTyp
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildClientException;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildRuntimeServerException;
@@ -98,8 +100,37 @@ public class ApplicationAuthenticatorService {
             throws AuthenticatorMgtException {
 
         List<LocalAuthenticatorConfig> configList = new ArrayList<>(getAllUserDefinedLocalAuthenticators(tenantDomain));
-        configList.addAll(localAuthenticators);
+        List<LocalAuthenticatorConfig> systemLocalAuthenticators = getAllSystemDefinedLocalAuthenticators(tenantDomain);
+        configList.addAll(resultantSystemDefinedAuthenticators(systemLocalAuthenticators));
         return configList;
+    }
+
+    //Merge the 'localAuthenticators' and the system defined local authenticators already persisted on the database.
+    private List<LocalAuthenticatorConfig> resultantSystemDefinedAuthenticators(
+            List<LocalAuthenticatorConfig> systemAuthenticators) {
+
+        List<LocalAuthenticatorConfig> mergedLocalAuthenticators = new ArrayList<>();
+        Map<String, LocalAuthenticatorConfig> localAuthenticatorsInDB = new HashMap<>();
+        for (LocalAuthenticatorConfig localAuthenticator : systemAuthenticators) {
+            localAuthenticatorsInDB.put(localAuthenticator.getName(), localAuthenticator);
+        }
+
+        for (LocalAuthenticatorConfig config : localAuthenticators) {
+            if (localAuthenticatorsInDB.containsKey(config.getName())) {
+                LocalAuthenticatorConfig localAuthenticatorConfig = localAuthenticatorsInDB.get(config.getName());
+                String amrValue = localAuthenticatorConfig.getAmrValue() != null ?
+                        localAuthenticatorConfig.getAmrValue() : config.getAmrValue();
+                LocalAuthenticatorConfig mergedAuthenticatorConfig = new LocalAuthenticatorConfig(
+                        localAuthenticatorConfig.getName(), localAuthenticatorConfig.getDisplayName(),
+                        localAuthenticatorConfig.getEnabled(), localAuthenticatorConfig.getTags(),
+                        localAuthenticatorConfig.getDefinedByType(), amrValue
+                );
+                mergedLocalAuthenticators.add(mergedAuthenticatorConfig);
+            } else {
+                mergedLocalAuthenticators.add(config);
+            }
+        }
+        return mergedLocalAuthenticators;
     }
 
     /**
@@ -112,6 +143,17 @@ public class ApplicationAuthenticatorService {
             throws AuthenticatorMgtException {
 
         return dao.getAllUserDefinedLocalAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * This returns system defined local authenticators.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    public List<LocalAuthenticatorConfig> getAllSystemDefinedLocalAuthenticators(String tenantDomain)
+            throws AuthenticatorMgtException {
+        return dao.getAllSystemLocalAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     public List<FederatedAuthenticatorConfig> getFederatedAuthenticators() {

@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.application.common.cache.AuthenticatorCacheKey;
 import org.wso2.carbon.identity.application.common.cache.SystemDefinedAuthenticatorCache;
 import org.wso2.carbon.identity.application.common.cache.SystemDefinedAuthenticatorCacheEntry;
 import org.wso2.carbon.identity.application.common.cache.SystemDefinedAuthenticatorCacheKey;
+import org.wso2.carbon.identity.application.common.cache.SystemDefinedAuthenticatorsCache;
+import org.wso2.carbon.identity.application.common.cache.SystemDefinedAuthenticatorsCacheEntry;
+import org.wso2.carbon.identity.application.common.cache.SystemDefinedAuthenticatorsCacheKey;
 import org.wso2.carbon.identity.application.common.cache.UserDefinedLocalAuthenticatorsCache;
 import org.wso2.carbon.identity.application.common.cache.UserDefinedLocalAuthenticatorsCacheEntry;
 import org.wso2.carbon.identity.application.common.cache.UserDefinedLocalAuthenticatorsCacheKey;
@@ -44,6 +47,7 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
     private static final Log LOG = LogFactory.getLog(CacheBackedAuthenticatorMgtDAO.class);
     private final AuthenticatorCache authenticatorCache;
     private final SystemDefinedAuthenticatorCache systemDefinedAuthenticatorCache;
+    private final SystemDefinedAuthenticatorsCache systemDefinedAuthenticatorsCache;
     private final UserDefinedLocalAuthenticatorsCache userDefinedLocalAuthenticatorsCache;
     private final AuthenticatorManagementFacade authenticatorMgtFacade;
 
@@ -53,6 +57,7 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         authenticatorCache = AuthenticatorCache.getInstance();
         userDefinedLocalAuthenticatorsCache = UserDefinedLocalAuthenticatorsCache.getInstance();
         systemDefinedAuthenticatorCache = SystemDefinedAuthenticatorCache.getInstance();
+        systemDefinedAuthenticatorsCache = SystemDefinedAuthenticatorsCache.getInstance();
     }
 
     @Override
@@ -203,5 +208,32 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
                 createdConfig), tenantId);
         LOG.debug("Added cache entry for newly created authenticator " + authenticatorConfig.getName());
         return createdConfig;
+    }
+
+    @Override
+    public List<LocalAuthenticatorConfig> getAllSystemLocalAuthenticators(int tenantId)
+            throws AuthenticatorMgtException {
+
+        SystemDefinedAuthenticatorsCacheKey cacheKey = new SystemDefinedAuthenticatorsCacheKey(tenantId);
+        SystemDefinedAuthenticatorsCacheEntry entry =
+                systemDefinedAuthenticatorsCache.getValueFromCache(cacheKey, tenantId);
+
+        if (entry != null) {
+            LOG.debug("Cache entry found for all system local authenticators of tenant id: " + tenantId);
+            return entry.getSystemDefinedLocalAuthenticators();
+        }
+
+        LOG.debug("Cache entry not found for all system local authenticators of tenant id: " + tenantId +
+                ". Fetching from DB.");
+        List<LocalAuthenticatorConfig> systemDefinedLocalAuthenticators =
+                authenticatorMgtFacade.getAllSystemLocalAuthenticators(tenantId);
+
+        if (systemDefinedLocalAuthenticators != null) {
+            systemDefinedAuthenticatorsCache.addToCache(cacheKey,
+                    new SystemDefinedAuthenticatorsCacheEntry(systemDefinedLocalAuthenticators), tenantId);
+            LOG.debug("Entry fetched from DB for all system local authenticators of tenant id: " + tenantId +
+                    ". Adding cache entry.");
+        }
+        return systemDefinedLocalAuthenticators;
     }
 }

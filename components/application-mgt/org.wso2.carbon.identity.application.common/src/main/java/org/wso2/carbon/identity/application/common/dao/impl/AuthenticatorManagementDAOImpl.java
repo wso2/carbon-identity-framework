@@ -297,6 +297,42 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         }
     }
 
+    @Override
+    public List<LocalAuthenticatorConfig> getAllSystemLocalAuthenticators(int tenantId)
+            throws AuthenticatorMgtException {
+
+        try {
+            NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+            List<LocalAuthenticatorConfig> allLocalAuthenticatorConfigs = new ArrayList<>();
+            List<SystemDefinedLocalAuthenticatorConfigDaoModel> configDaoModels = jdbcTemplate.executeQuery(
+                    Query.GET_ALL_SYSTEM_DEFINED_AUTHENTICATORS, (resultSet, rowNumber) -> {
+                        LocalAuthenticatorConfig config = new LocalAuthenticatorConfig();
+                        config.setName(resultSet.getString(Column.NAME));
+                        config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                        config.setAmrValue(resultSet.getString(Column.AMR_VALUE));
+                        config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
+                        config.setDefinedByType(DefinedByType.valueOf(resultSet.getString(Column.DEFINED_BY)));
+                        return new SystemDefinedLocalAuthenticatorConfigDaoModel(
+                                resultSet.getInt(Column.ID), config);
+                    },
+                    statement -> {
+                        statement.setString(Column.DEFINED_BY, DefinedByType.SYSTEM.toString());
+                        statement.setInt(Column.TENANT_ID, tenantId);
+                        statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
+                    });
+            for (SystemDefinedLocalAuthenticatorConfigDaoModel config : configDaoModels) {
+                LocalAuthenticatorConfig retrievedConfigs = config.getConfig();
+                retrievedConfigs.setProperties(getAuthenticatorProperties(config.getEntryId(), tenantId));
+                allLocalAuthenticatorConfigs.add(retrievedConfigs);
+            }
+            return allLocalAuthenticatorConfigs;
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
+        }
+    }
+
 
     private UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticatorByName(String authenticatorConfigName,
             int tenantId) throws TransactionException {

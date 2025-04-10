@@ -252,6 +252,19 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     }
 
     /**
+     * Get all system local authenticators.
+     * @param tenantId Tenant Id.
+     * @return List of system local authenticators.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving all system local authenticators.
+     */
+    @Override
+    public List<LocalAuthenticatorConfig> getAllSystemLocalAuthenticators(int tenantId)
+            throws AuthenticatorMgtException {
+
+        return dao.getAllSystemLocalAuthenticators(tenantId);
+    }
+
+    /**
      * Handle the authenticator management client exception.
      *
      * @param throwable Throwable object.

@@ -126,4 +126,14 @@ public interface AuthenticatorManagementDAO {
      */
     LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId)
             throws AuthenticatorMgtException;
+
+    /**
+     * Update a system local authenticator configuration.
+     *
+     * @param tenantId Tenant Id.
+     * @return All System Defined LocalAuthenticatorConfigs.
+     * @throws AuthenticatorMgtException If an error occurs while updating the authenticator configuration.
+     */
+    List<LocalAuthenticatorConfig> getAllSystemLocalAuthenticators(int tenantId)
+            throws AuthenticatorMgtException;
 }

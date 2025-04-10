@@ -110,6 +110,13 @@ public class AuthenticatorMgtSQLConstants {
                         "WHERE DEFINED_BY = :DEFINED_BY; AND TENANT_ID = :TENANT_ID; " +
                         "AND IDP_ID IN (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; " +
                         "AND IDP.TENANT_ID = :TENANT_ID;)";
+        public static final String GET_ALL_SYSTEM_DEFINED_AUTHENTICATORS =
+                "SELECT AUTHENTICATION_TYPE, NAME, DISPLAY_NAME, AMR_VALUE, IMAGE_URL, DESCRIPTION, IS_ENABLED, " +
+                        "DEFINED_BY, ID " +
+                        "FROM IDP_AUTHENTICATOR " +
+                        "WHERE DEFINED_BY = :DEFINED_BY; AND TENANT_ID = :TENANT_ID; " +
+                        "AND IDP_ID IN (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; " +
+                        "AND IDP.TENANT_ID = :TENANT_ID;)";
         public static final String DELETE_AUTHENTICATOR_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE NAME = :NAME; " +
                 " AND TENANT_ID = :TENANT_ID;";
         public static final String GET_AUTHENTICATOR_ID_SQL = "SELECT ID FROM IDP_AUTHENTICATOR " +
