@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.user.pre.update.profile.action.internal.managem
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
-import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.user.pre.update.profile.action.api.model.PreUpdateProfileAction;
 
@@ -54,12 +53,12 @@ public class PreUpdateProfileActionConverter implements ActionConverter {
         PreUpdateProfileAction preUpdateProfileAction = (PreUpdateProfileAction) action;
         List<String> attributes = preUpdateProfileAction.getAttributes();
 
-        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         if (attributes != null) {
-            properties.put(ATTRIBUTES, new ActionPropertyForService(attributes));
+            properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(attributes).build());
         }
 
-        return new ActionDTO.BuilderForService(preUpdateProfileAction)
+        return new ActionDTO.Builder(preUpdateProfileAction)
                 .properties(properties)
                 .build();
     }
@@ -67,11 +66,7 @@ public class PreUpdateProfileActionConverter implements ActionConverter {
     @Override
     public Action buildAction(ActionDTO actionDTO) {
 
-        Map<String, ActionProperty> properties = actionDTO.getProperties();
-        List<String> attributes = null;
-        if (properties.get(ATTRIBUTES) != null) {
-             attributes = (List<String>) properties.get(ATTRIBUTES).getValue();
-        }
+        List<String> attributes = (List<String>) actionDTO.getPropertyValue(ATTRIBUTES);
 
         return new PreUpdateProfileAction.ResponseBuilder()
                 .id(actionDTO.getId())
