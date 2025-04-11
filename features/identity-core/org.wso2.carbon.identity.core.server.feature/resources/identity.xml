@@ -606,6 +606,14 @@
             -->
             <LogoutTokenExpiration>120</LogoutTokenExpiration>
 
+            <!-- Logout request sender configurations. Time configs are in milliseconds. -->
+            <LogoutRequestSender>
+                <PoolSize>2</PoolSize>
+                <KeepAliveTime>60000</KeepAliveTime>
+                <HttpConnectTimeout>10000</HttpConnectTimeout>
+                <HttpSocketTimeout>20000</HttpSocketTimeout>
+            </LogoutRequestSender>
+
             <!--
                 OIDC Request Object builder implementation.
                 Supported versions: IS 5.4.0 onwards
