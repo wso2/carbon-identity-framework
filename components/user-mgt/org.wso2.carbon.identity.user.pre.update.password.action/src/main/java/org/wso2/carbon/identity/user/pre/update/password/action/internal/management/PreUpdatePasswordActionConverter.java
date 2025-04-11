@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.user.pre.update.password.action.internal.manage
 
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
@@ -55,12 +56,13 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
         PreUpdatePasswordAction preUpdatePasswordAction = (PreUpdatePasswordAction) action;
         PasswordSharing passwordSharing = preUpdatePasswordAction.getPasswordSharing();
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         if (passwordSharing != null && passwordSharing.getFormat() != null) {
-            properties.put(PASSWORD_SHARING_FORMAT, passwordSharing.getFormat());
+            properties.put(PASSWORD_SHARING_FORMAT, new ActionProperty.BuilderForService(passwordSharing.getFormat())
+                    .build());
         }
         if (passwordSharing != null && passwordSharing.getCertificate() != null) {
-            properties.put(CERTIFICATE, passwordSharing.getCertificate());
+            properties.put(CERTIFICATE, new ActionProperty.BuilderForService(passwordSharing.getCertificate()).build());
         }
 
         return new ActionDTO.Builder(preUpdatePasswordAction)
@@ -71,12 +73,10 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
     @Override
     public Action buildAction(ActionDTO actionDTO) {
 
-        Map<String, Object> properties = actionDTO.getProperties();
-        PasswordSharing.Builder passwordSharingBuilder = new PasswordSharing.Builder();
-        passwordSharingBuilder.format((PasswordSharing.Format) actionDTO.getProperties().get(PASSWORD_SHARING_FORMAT));
-        if (properties.get(CERTIFICATE) != null) {
-            passwordSharingBuilder.certificate((Certificate) actionDTO.getProperties().get(CERTIFICATE));
-        }
+        PasswordSharing passwordSharing = new PasswordSharing.Builder()
+                .format((PasswordSharing.Format) actionDTO.getPropertyValue(PASSWORD_SHARING_FORMAT))
+                .certificate((Certificate) actionDTO.getPropertyValue(CERTIFICATE))
+                .build();
 
         return new PreUpdatePasswordAction.ResponseBuilder()
                 .id(actionDTO.getId())
@@ -85,7 +85,7 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
                 .description(actionDTO.getDescription())
                 .status(actionDTO.getStatus())
                 .endpoint(actionDTO.getEndpoint())
-                .passwordSharing(passwordSharingBuilder.build())
+                .passwordSharing(passwordSharing)
                 .rule(actionDTO.getActionRule())
                 .build();
     }

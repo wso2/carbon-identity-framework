@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionMgtExcepti
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.ActionRule;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
@@ -262,9 +263,11 @@ public class ActionManagementDAOFacadeTest {
                         .uri(TEST_ACTION_URI_UPDATED)
                         .authentication(TestUtil.buildMockBearerAuthentication(TEST_ACCESS_TOKEN))
                         .build())
-                .property(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE_UPDATED)
+                .property(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
+                        new ActionProperty.BuilderForService(TEST_PASSWORD_SHARING_TYPE_UPDATED).build())
                 .property(CERTIFICATE_PROPERTY_NAME,
-                        new Certificate.Builder().certificateContent(StringUtils.EMPTY).build())
+                        new ActionProperty.BuilderForService(
+                                new Certificate.Builder().certificateContent(StringUtils.EMPTY).build()).build())
                 .build();
 
         try {
@@ -295,9 +298,9 @@ public class ActionManagementDAOFacadeTest {
 
         Assert.assertTrue(updatingAction.getProperties().containsKey(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
         Assert.assertTrue(updatingAction.getProperties().containsKey(CERTIFICATE_PROPERTY_NAME));
-        Assert.assertEquals(result.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME),
-                updatingAction.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
-        Assert.assertNull(result.getProperty(CERTIFICATE_PROPERTY_NAME));
+        Assert.assertEquals(result.getPropertyValue(PASSWORD_SHARING_TYPE_PROPERTY_NAME),
+                updatingAction.getPropertyValue(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
+        Assert.assertNull(result.getPropertyValue(CERTIFICATE_PROPERTY_NAME));
         actionDTORetrieved = result;
     }
 
@@ -589,9 +592,11 @@ public class ActionManagementDAOFacadeTest {
                         .uri(TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD))
                         .build())
-                .property(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE)
+                .property(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
+                        new ActionProperty.BuilderForService(TEST_PASSWORD_SHARING_TYPE).build())
                 .property(CERTIFICATE_PROPERTY_NAME,
-                        new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build());
+                        new ActionProperty.BuilderForService(new Certificate.Builder()
+                                .certificateContent(TEST_CERTIFICATE).build()).build());
     }
 
     private void verifyActionDTO(ActionDTO actualActionDTO, ActionDTO expectedActionDTO) {
@@ -617,8 +622,8 @@ public class ActionManagementDAOFacadeTest {
 
         Assert.assertEquals(actualActionDTO.getProperties().size(), expectedActionDTO.getProperties().size());
         Assert.assertTrue(actualActionDTO.getProperties().containsKey(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
-        Assert.assertEquals(actualActionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME),
-                expectedActionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
+        Assert.assertEquals(actualActionDTO.getPropertyValue(PASSWORD_SHARING_TYPE_PROPERTY_NAME),
+                expectedActionDTO.getPropertyValue(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
     }
 
     private void verifyActionDTORule(ActionDTO actualActionDTO, ActionDTO expectedActionDTO)
