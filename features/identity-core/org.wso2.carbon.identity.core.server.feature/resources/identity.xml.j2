@@ -1009,6 +1009,14 @@
             -->
             <LogoutTokenExpiration>{{oauth.oidc.token_validation.logout_token_validity}}</LogoutTokenExpiration>
 
+            <!-- Logout request sender configurations. Time configs are in milliseconds. -->
+            <LogoutRequestSender>
+                <PoolSize>{{oauth.oidc.logout_request_sender.pool_size}}</PoolSize>
+                <KeepAliveTime>{{oauth.oidc.logout_request_sender.keep_alive_time}}</KeepAliveTime>
+                <HttpConnectTimeout>{{oauth.oidc.logout_request_sender.http_connect_timeout}}</HttpConnectTimeout>
+                <HttpSocketTimeout>{{oauth.oidc.logout_request_sender.http_socket_timeout}}</HttpSocketTimeout>
+            </LogoutRequestSender>
+
             <!--
                 OIDC Request Object builder implementation.
                 Supported versions: IS 5.4.0 onwards
