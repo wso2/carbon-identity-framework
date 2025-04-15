@@ -1760,7 +1760,7 @@
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
-  "oauth.enable_user_session_impersonation": false,
+  "oauth.enable_user_session_impersonation": true,
 
   "system_applications.system_portals": ["Console", "My Account"],
 
