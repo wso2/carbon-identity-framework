@@ -609,6 +609,7 @@
             <!-- Logout request sender configurations. Time configs are in milliseconds. -->
             <LogoutRequestSender>
                 <PoolSize>20</PoolSize>
+                <WorkQueueSize>1000</WorkQueueSize>
                 <KeepAliveTime>60000</KeepAliveTime>
                 <HttpConnectTimeout>10000</HttpConnectTimeout>
                 <HttpSocketTimeout>20000</HttpSocketTimeout>
