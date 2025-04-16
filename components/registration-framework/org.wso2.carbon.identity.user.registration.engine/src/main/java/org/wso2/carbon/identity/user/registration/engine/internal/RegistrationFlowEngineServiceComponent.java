@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.registration.engine.UserRegistrationFlowService;
 import org.wso2.carbon.identity.user.registration.engine.graph.Executor;
@@ -148,6 +149,22 @@ public class RegistrationFlowEngineServiceComponent {
 
         LOG.debug("Unsetting the Input Validation Mgt Service in the Registration Flow Engine component.");
         RegistrationFlowEngineDataHolder.getInstance().setInputValidationManagementService(null);
+    }
+
+    @Reference(
+            service = ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationManagement"
+    )
+    public void setApplicationManagement(ApplicationManagementService applicationManagement) {
+
+        RegistrationFlowEngineDataHolder.getInstance().setApplicationManagementService(applicationManagement);
+    }
+
+    public void unsetApplicationManagement(ApplicationManagementService applicationManagementService) {
+
+        RegistrationFlowEngineDataHolder.getInstance().setApplicationManagementService(null);
     }
 
     @Reference(

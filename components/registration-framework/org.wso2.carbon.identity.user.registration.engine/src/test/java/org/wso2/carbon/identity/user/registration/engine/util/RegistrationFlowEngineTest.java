@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.user.registration.engine.util;
 
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -31,6 +32,7 @@ import org.wso2.carbon.identity.user.registration.mgt.model.*;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
@@ -103,7 +105,9 @@ public class RegistrationFlowEngineTest {
     @Test(dependsOnMethods = {"testContinueAfterPrompt"})
     public void testContinueTaskExecution() throws Exception {
 
-        try (MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedStatic<RegistrationFlowEngineUtils> utilsMockedStatic = mockStatic(
+                RegistrationFlowEngineUtils.class);
+                MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          Response response = new Response.Builder()
                                  .status("COMPLETE")
@@ -111,6 +115,8 @@ public class RegistrationFlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(response);
                      })) {
 
+            utilsMockedStatic.when(() -> RegistrationFlowEngineUtils.resolveCompletionRedirectionUrl(context))
+                    .thenReturn("https://localhost:3000/myapp/callback");
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
 
             assertNotNull(step);
