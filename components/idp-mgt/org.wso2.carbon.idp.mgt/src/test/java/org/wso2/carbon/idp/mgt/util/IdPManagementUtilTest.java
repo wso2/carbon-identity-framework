@@ -551,7 +551,7 @@ public class IdPManagementUtilTest {
     }
 
     private HashMap<String, String> getAdminPasswordResetConfigs(Boolean isEmailLinkEnabled,
-                                                                 Boolean isEmailOtpEnabled, Boolean isOffilneEnabled,
+                                                                 Boolean isEmailOtpEnabled, Boolean isOfflineEnabled,
                                                                  Boolean isSmsOtpEnabled) {
 
         HashMap<String, String> configs = new HashMap<>();
@@ -563,9 +563,9 @@ public class IdPManagementUtilTest {
             configs.put(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY,
                     isEmailOtpEnabled ? TRUE_STRING : FALSE_STRING);
         }
-        if (isOffilneEnabled != null) {
+        if (isOfflineEnabled != null) {
             configs.put(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY,
-                    isOffilneEnabled ? TRUE_STRING : FALSE_STRING);
+                    isOfflineEnabled ? TRUE_STRING : FALSE_STRING);
         }
         if (isSmsOtpEnabled != null) {
             configs.put(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY,
