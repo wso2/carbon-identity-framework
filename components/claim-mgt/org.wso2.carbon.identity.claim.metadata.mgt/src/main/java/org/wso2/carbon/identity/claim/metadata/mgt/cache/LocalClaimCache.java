@@ -38,44 +38,4 @@ public class LocalClaimCache extends BaseCache<Integer, ArrayList<LocalClaim>> {
     public static LocalClaimCache getInstance() {
         return instance;
     }
-
-    /**
-     * Add a cache entry. Avoid adding entry if the current entry value is the same.
-     *
-     * @param key      Key which cache entry is indexed.
-     * @param entry    Actual object where cache entry is placed.
-     * @param tenantId The tenant Id where the cache is maintained.
-     */
-    @Override
-    public void addToCache(Integer key, ArrayList<LocalClaim> entry, int tenantId) {
-
-        if (key == null ) {
-            return;
-        }
-        ArrayList<LocalClaim> currentEntry = getValueFromCache(key, tenantId);
-        if (currentEntry != null && currentEntry.equals(entry)) {
-            return;
-        }
-        super.addToCache(key, entry, tenantId);
-    }
-
-    /**
-     * Add a cache entry. Avoid adding entry if the current entry value is the same.
-     *
-     * @param key      Key which cache entry is indexed.
-     * @param entry    Actual object where cache entry is placed.
-     * @param tenantDomain The tenant domain where the cache is maintained.
-     */
-    @Override
-    public void addToCache(Integer key, ArrayList<LocalClaim> entry, String tenantDomain) {
-
-        if (key == null ) {
-            return;
-        }
-        ArrayList<LocalClaim> currentEntry = getValueFromCache(key, tenantDomain);
-        if (currentEntry != null && currentEntry.equals(entry)) {
-            return;
-        }
-        super.addToCache(key, entry, tenantDomain);
-    }
 }
