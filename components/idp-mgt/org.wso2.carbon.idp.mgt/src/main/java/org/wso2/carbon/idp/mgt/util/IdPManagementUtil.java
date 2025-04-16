@@ -563,9 +563,6 @@ public class IdPManagementUtil {
     private static boolean isMultipleConfigsEnabled(List<Boolean> configs) {
 
         long enabledCount = configs.stream().filter(Boolean::booleanValue).count();
-        if (enabledCount > 1) {
-            return true;
-        }
-        return false;
+        return enabledCount > 1;
     }
 }

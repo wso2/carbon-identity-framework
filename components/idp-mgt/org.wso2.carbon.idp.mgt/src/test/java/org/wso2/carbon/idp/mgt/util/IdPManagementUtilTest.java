@@ -397,7 +397,7 @@ public class IdPManagementUtilTest {
         HashMap<String, String> adminPasswordResetConfig12 = getAdminPasswordResetConfigs(null, null, null, true);
 
         return new Object[][]{
-                // {configs, identityProviderProperties, isValid}
+                // configs, identityProviderProperties, isValid
                 {adminPasswordResetConfig1, adminPasswordResetIdentityPropsAllFalse, true},
                 {adminPasswordResetConfig2, adminPasswordResetIdentityPropsAllFalse, true},
                 {adminPasswordResetConfig3, adminPasswordResetIdentityPropsAllFalse, true},
