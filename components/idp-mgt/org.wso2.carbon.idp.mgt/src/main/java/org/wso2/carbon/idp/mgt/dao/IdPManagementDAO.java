@@ -1011,6 +1011,11 @@ public class IdPManagementDAO {
         boolean isEmailUsernameRecoveryEnabled = false;
         boolean isSmsUsernameRecoveryEnabled = false;
 
+        boolean isAdminForcePasswordResetEmailLinkEnabled = false;
+        boolean isAdminForcePasswordResetEmailOTPEnabled = false;
+        boolean isAdminForcePasswordResetSMSOTPEnabled = false;
+        boolean isAdminForcePasswordResetOfflineEnabled = false;
+
         try {
             String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
                     IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
@@ -1041,6 +1046,22 @@ public class IdPManagementDAO {
                 if (IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
                     isSmsUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
                 }
+                if(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(property.getName())) {
+                    isAdminForcePasswordResetEmailLinkEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(property.getName())) {
+                    isAdminForcePasswordResetEmailOTPEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY.equals(property.getName())) {
+                    isAdminForcePasswordResetSMSOTPEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(property.getName())) {
+                    isAdminForcePasswordResetOfflineEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
@@ -1053,6 +1074,12 @@ public class IdPManagementDAO {
             // If username recovery configs are inconsistent, correct the configurations.
             if (isUsernameRecoveryEnabled && !isEmailUsernameRecoveryEnabled && !isSmsUsernameRecoveryEnabled) {
                 performConfigCorrectionForUsernameRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
+            }
+            // If admin force password reset configs are inconsistent, correct the configurations.
+            if (!isAdminForcePasswordResetEmailLinkEnabled && !isAdminForcePasswordResetEmailOTPEnabled
+                    && !isAdminForcePasswordResetSMSOTPEnabled && !isAdminForcePasswordResetOfflineEnabled) {
+                performConfigCorrectionForAdminForcedPasswordResetConfigs(dbConnection, tenantId, idpId,
+                        idpProperties);
             }
         } catch (DataAccessException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
@@ -6201,6 +6228,24 @@ public class IdPManagementDAO {
                                 idpProperties.add(identityProviderProperty);
                             });
         }
+        updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
+    }
+
+    private void performConfigCorrectionForAdminForcedPasswordResetConfigs(Connection dbConnection, int tenantId,
+                                       int idpId, List<IdentityProviderProperty> idpProperties) throws SQLException {
+
+        // Enable email link option as the default option when all other options are disabled.
+        idpProperties.stream().filter(
+                idp -> IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(idp.getName())).findFirst()
+                .ifPresentOrElse(
+                        adminForcedPasswordResetProperty -> adminForcedPasswordResetProperty.setValue(String.valueOf(true)),
+                        () -> {
+                            IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                            identityProviderProperty.setName(
+                                    IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
+                            identityProviderProperty.setValue(String.valueOf(true));
+                            idpProperties.add(identityProviderProperty);
+                        });
         updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
     }
 

@@ -361,41 +361,43 @@ public class IdPManagementUtilTest {
     public Object[][] setAdminPasswordResetConfigs() {
 
         IdentityProviderProperty[] adminPasswordResetIdentityPropsAllFalse =
-                getAdminPasswordResetIdentityProviderProperties(false,
-                        false, false);
+                getAdminPasswordResetIdentityProviderProperties(false, false, false, false);
 
         IdentityProviderProperty[] adminPasswordResetIdentityPropsEmailLinkEnabled =
-                getAdminPasswordResetIdentityProviderProperties(true, false, false);
+                getAdminPasswordResetIdentityProviderProperties(true, false, false, false);
 
         IdentityProviderProperty[] adminPasswordResetIdentityPropsEmailOtpEnabled =
-                getAdminPasswordResetIdentityProviderProperties(false, true, false);
+                getAdminPasswordResetIdentityProviderProperties(false, true, false, false);
 
         IdentityProviderProperty[] adminPasswordResetIdentityPropsOfflineEnabled =
-                getAdminPasswordResetIdentityProviderProperties(false, false, true);
+                getAdminPasswordResetIdentityProviderProperties(false, false, true, false);
 
-        HashMap<String, String> adminPasswordResetConfig1 = getAdminPasswordResetConfigs(true, null, null);
+        HashMap<String, String> adminPasswordResetConfig1 = getAdminPasswordResetConfigs(true, null, null, null);
 
-        HashMap<String, String> adminPasswordResetConfig2 = getAdminPasswordResetConfigs(null, true, null);
+        HashMap<String, String> adminPasswordResetConfig2 = getAdminPasswordResetConfigs(null, true, null, null);
 
-        HashMap<String, String> adminPasswordResetConfig3 = getAdminPasswordResetConfigs(null, null, true);
+        HashMap<String, String> adminPasswordResetConfig3 = getAdminPasswordResetConfigs(null, null, true, null);
 
-        HashMap<String, String> adminPasswordResetConfig4 = getAdminPasswordResetConfigs(null, null, null);
+        HashMap<String, String> adminPasswordResetConfig4 = getAdminPasswordResetConfigs(null, null, null, null);
 
-        HashMap<String, String> adminPasswordResetConfig5 = getAdminPasswordResetConfigs(true, true, null);
+        HashMap<String, String> adminPasswordResetConfig5 = getAdminPasswordResetConfigs(true, true, null, null);
 
-        HashMap<String, String> adminPasswordResetConfig6 = getAdminPasswordResetConfigs(null, true, null);
+        HashMap<String, String> adminPasswordResetConfig6 = getAdminPasswordResetConfigs(null, true, null, null);
 
-        HashMap<String, String> adminPasswordResetConfig7 = getAdminPasswordResetConfigs(null, null, true);
+        HashMap<String, String> adminPasswordResetConfig7 = getAdminPasswordResetConfigs(null, null, true, null);
 
-        HashMap<String, String> adminPasswordResetConfig8 = getAdminPasswordResetConfigs(false, true, null);
+        HashMap<String, String> adminPasswordResetConfig8 = getAdminPasswordResetConfigs(false, true, null, null);
 
-        HashMap<String, String> adminPasswordResetConfig9 = getAdminPasswordResetConfigs(false, null, null);
+        HashMap<String, String> adminPasswordResetConfig9 = getAdminPasswordResetConfigs(false, null, null, null);
 
-        HashMap<String, String> adminPasswordResetConfig10 = getAdminPasswordResetConfigs(null, null, true);
+        HashMap<String, String> adminPasswordResetConfig10 = getAdminPasswordResetConfigs(null, null, true, null);
 
-        HashMap<String, String> adminPasswordResetConfig11 = getAdminPasswordResetConfigs(true, null, null);
+        HashMap<String, String> adminPasswordResetConfig11 = getAdminPasswordResetConfigs(true, null, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig12 = getAdminPasswordResetConfigs(null, null, null, true);
 
         return new Object[][]{
+                // {configs, identityProviderProperties, isValid}
                 {adminPasswordResetConfig1, adminPasswordResetIdentityPropsAllFalse, true},
                 {adminPasswordResetConfig2, adminPasswordResetIdentityPropsAllFalse, true},
                 {adminPasswordResetConfig3, adminPasswordResetIdentityPropsAllFalse, true},
@@ -406,7 +408,9 @@ public class IdPManagementUtilTest {
                 {adminPasswordResetConfig8, adminPasswordResetIdentityPropsEmailLinkEnabled, true},
                 {adminPasswordResetConfig9, adminPasswordResetIdentityPropsEmailLinkEnabled, true},
                 {adminPasswordResetConfig10, adminPasswordResetIdentityPropsEmailOtpEnabled, false},
-                {adminPasswordResetConfig11, adminPasswordResetIdentityPropsOfflineEnabled, false}
+                {adminPasswordResetConfig11, adminPasswordResetIdentityPropsOfflineEnabled, false},
+                {adminPasswordResetConfig12, adminPasswordResetIdentityPropsAllFalse, true},
+                {adminPasswordResetConfig12, adminPasswordResetIdentityPropsEmailOtpEnabled, false}
         };
     }
 
@@ -547,7 +551,8 @@ public class IdPManagementUtilTest {
     }
 
     private HashMap<String, String> getAdminPasswordResetConfigs(Boolean isEmailLinkEnabled,
-                                                                 Boolean isEmailOtpEnabled, Boolean isOffilneEnabled) {
+                                                                 Boolean isEmailOtpEnabled, Boolean isOffilneEnabled,
+                                                                 Boolean isSmsOtpEnabled) {
 
         HashMap<String, String> configs = new HashMap<>();
         if (isEmailLinkEnabled != null) {
@@ -562,11 +567,15 @@ public class IdPManagementUtilTest {
             configs.put(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY,
                     isOffilneEnabled ? TRUE_STRING : FALSE_STRING);
         }
+        if (isSmsOtpEnabled != null) {
+            configs.put(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY,
+                    isSmsOtpEnabled ? TRUE_STRING : FALSE_STRING);
+        }
         return configs;
     }
 
     private IdentityProviderProperty[] getAdminPasswordResetIdentityProviderProperties(
-            boolean isEmailLinkEnabled, boolean isEmailOtpEnabled, boolean isOfflineEnabled) {
+            boolean isEmailLinkEnabled, boolean isEmailOtpEnabled, boolean isOfflineEnabled, boolean isSmsOtpEnabled) {
 
         IdentityProviderProperty identityProviderProperty1 = new IdentityProviderProperty();
         identityProviderProperty1.setName(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
@@ -580,10 +589,15 @@ public class IdPManagementUtilTest {
         identityProviderProperty3.setName(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY);
         identityProviderProperty3.setValue(isOfflineEnabled ? TRUE_STRING : FALSE_STRING);
 
+        IdentityProviderProperty identityProviderProperty4 = new IdentityProviderProperty();
+        identityProviderProperty4.setName(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY);
+        identityProviderProperty4.setValue(isSmsOtpEnabled ? TRUE_STRING : FALSE_STRING);
+
         return new IdentityProviderProperty[]{
                 identityProviderProperty1,
                 identityProviderProperty2,
-                identityProviderProperty3
+                identityProviderProperty3,
+                identityProviderProperty4
         };
     }
 

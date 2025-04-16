@@ -136,11 +136,7 @@ public class IdPManagementConstants {
     public static final String ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY = "Recovery.AdminPasswordReset.OTP";
     public static final String ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY = "Recovery.AdminPasswordReset" +
             ".RecoveryLink";
-
-    // Resident IDP forced password reset options.
-    public static final String EMAIL_OTP = "Email OTP";
-    public static final String EMAIL_LINK = "Email Link";
-    public static final String OFFLINE = "Offline";
+    public static final String ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY = "Recovery.AdminPasswordReset.SMSOTP";
 
     // User defined federated authenticator related constants.
     public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";

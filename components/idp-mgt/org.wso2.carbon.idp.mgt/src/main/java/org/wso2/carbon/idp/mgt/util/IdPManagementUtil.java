@@ -39,17 +39,17 @@ import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_LINK;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.OFFLINE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PRESERVE_LOCALLY_ADDED_CLAIMS;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY;
 
@@ -448,7 +448,8 @@ public class IdPManagementUtil {
 
         if (configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY) ||
                 configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY) ||
-                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY)) {
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY) ||
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY)) {
 
             String adminPasswordResetOfflineProp =
                     configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY);
@@ -456,67 +457,23 @@ public class IdPManagementUtil {
                     configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY);
             String adminPasswordResetEmailLinkProp =
                     configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
+            String adminPasswordResetSmsOtpProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY);
 
             boolean isAdminPasswordResetOfflineEnabled = Boolean.parseBoolean(adminPasswordResetOfflineProp);
             boolean isAdminPasswordResetEmailOtpEnabled = Boolean.parseBoolean(adminPasswordResetEmailOtpProp);
             boolean isAdminPasswordResetEmailLinkEnabled = Boolean.parseBoolean(adminPasswordResetEmailLinkProp);
+            boolean isAdminPasswordResetSmsOtpEnabled = Boolean.parseBoolean(adminPasswordResetSmsOtpProp);
 
             validateAdminPasswordResetCurrentConfigs(isAdminPasswordResetOfflineEnabled,
-                    isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled);
+                    isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                    isAdminPasswordResetSmsOtpEnabled);
 
-            // Validate with previous configurations.
-            boolean isAdminPasswordResetOfflineCurrentlyEnabled = false;
-            boolean isAdminPasswordResetEmailOtpCurrentlyEnabled = false;
-            boolean isAdminPasswordResetEmailLinkCurrentlyEnabled = false;
-
-            for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
-                if (ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(identityMgtProperty.getName())) {
-                    isAdminPasswordResetOfflineCurrentlyEnabled =
-                            Boolean.parseBoolean(identityMgtProperty.getValue());
-                } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
-                    isAdminPasswordResetEmailOtpCurrentlyEnabled =
-                            Boolean.parseBoolean(identityMgtProperty.getValue());
-                } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(identityMgtProperty.getName())) {
-                    isAdminPasswordResetEmailLinkCurrentlyEnabled =
-                            Boolean.parseBoolean(identityMgtProperty.getValue());
-                }
-            }
-
-            // case 1: Enabling admin password reset with email OTP while not disabling email Link when email Link is
-            // already enabled is not allowed.
-            validateConflictingAdminPasswordResetConfig(isAdminPasswordResetEmailOtpEnabled, EMAIL_OTP,
-                    isAdminPasswordResetEmailLinkEnabled, isAdminPasswordResetEmailLinkCurrentlyEnabled,
-                    adminPasswordResetEmailLinkProp, EMAIL_LINK);
-
-            // case 2: Enabling admin password reset with email OTP while not disabling offline when offline is
-            // already enabled is not allowed.
-            validateConflictingAdminPasswordResetConfig(isAdminPasswordResetEmailOtpEnabled, EMAIL_OTP,
-                    isAdminPasswordResetOfflineEnabled, isAdminPasswordResetOfflineCurrentlyEnabled,
-                    adminPasswordResetOfflineProp, OFFLINE);
-
-            // case 3: Enabling admin password reset with email Link while not disabling email OTP when email OTP is
-            // already enabled is not allowed.
-            validateConflictingAdminPasswordResetConfig(isAdminPasswordResetEmailLinkEnabled, EMAIL_LINK,
-                    isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailOtpCurrentlyEnabled,
-                    adminPasswordResetEmailOtpProp, EMAIL_OTP);
-
-            // case 4: Enabling admin password reset with email Link while not disabling offline when offline is
-            // already enabled is not allowed.
-            validateConflictingAdminPasswordResetConfig(isAdminPasswordResetEmailLinkEnabled, EMAIL_LINK,
-                    isAdminPasswordResetOfflineEnabled, isAdminPasswordResetOfflineCurrentlyEnabled,
-                    adminPasswordResetOfflineProp, OFFLINE);
-
-            // case 5: Enabling admin password reset with offline while not disabling email OTP when email OTP is
-            // already enabled is not allowed.
-            validateConflictingAdminPasswordResetConfig(isAdminPasswordResetOfflineEnabled, OFFLINE,
-                    isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailOtpCurrentlyEnabled,
-                    adminPasswordResetEmailOtpProp, EMAIL_OTP);
-
-            // case 6: Enabling admin password reset with offline while not disabling email Link when email Link is
-            // already enabled is not allowed.
-            validateConflictingAdminPasswordResetConfig(isAdminPasswordResetOfflineEnabled, OFFLINE,
-                    isAdminPasswordResetEmailLinkEnabled, isAdminPasswordResetEmailLinkCurrentlyEnabled,
-                    adminPasswordResetEmailLinkProp, EMAIL_LINK);
+            validateAdminPasswordResetWithExistingConfigs(identityMgtProperties,
+                    isAdminPasswordResetOfflineEnabled, adminPasswordResetOfflineProp,
+                    isAdminPasswordResetEmailOtpEnabled, adminPasswordResetEmailOtpProp,
+                    isAdminPasswordResetEmailLinkEnabled, adminPasswordResetEmailLinkProp,
+                    isAdminPasswordResetSmsOtpEnabled, adminPasswordResetSmsOtpProp);
         }
     }
 
@@ -526,55 +483,89 @@ public class IdPManagementUtil {
      * @param isAdminPasswordResetOfflineEnabled is admin password reset offline enabled.
      * @param isAdminPasswordResetEmailOtpEnabled is admin password reset email OTP enabled.
      * @param isAdminPasswordResetEmailLinkEnabled is admin password reset email link enabled.
+     * @param isAdminPasswordResetSmsOtpEnabled is admin password reset sms OTP enabled.
      * @throws IdentityProviderManagementClientException when more than one admin password reset option is enabled.
      */
     private static void validateAdminPasswordResetCurrentConfigs(boolean isAdminPasswordResetOfflineEnabled,
                                                                  boolean isAdminPasswordResetEmailOtpEnabled,
-                                                                 boolean isAdminPasswordResetEmailLinkEnabled)
+                                                                 boolean isAdminPasswordResetEmailLinkEnabled,
+                                                                 boolean isAdminPasswordResetSmsOtpEnabled)
             throws IdentityProviderManagementClientException {
 
-        int enabledCount = 0;
+        List<Boolean> configs = Arrays.asList(isAdminPasswordResetOfflineEnabled,
+                isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                isAdminPasswordResetSmsOtpEnabled);
 
-        if (isAdminPasswordResetOfflineEnabled) enabledCount++;
-        if (isAdminPasswordResetEmailOtpEnabled) enabledCount++;
-        if (isAdminPasswordResetEmailLinkEnabled) enabledCount++;
-
-        if (enabledCount > 1) {
+        if (isMultipleConfigsEnabled(configs)) {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                     "Enabling more than one admin password reset option is not allowed");
         }
     }
 
-    /**
-     * This method is used to validate the given admin password reset config with the existing configs.
-     *
-     * @param isValidatingConfigEnabled is validating config enabled.
-     * @param validatingConfigName validating config name.
-     * @param isOtherConfigEnabled is other config enabled.
-     * @param isExistingOtherConfigEnabled is existing other config enabled.
-     * @param existingOtherConfigProp existing other config property value.
-     * @param existingOtherConfigName existing other config name.
-     * @throws IdentityProviderManagementClientException when more than one admin password reset option is enabled at
-     *                                                   a given time
-     */
-    private static void validateConflictingAdminPasswordResetConfig(boolean isValidatingConfigEnabled,
-                                                                    String validatingConfigName,
-                                                                    boolean isOtherConfigEnabled,
-                                                                    boolean isExistingOtherConfigEnabled,
-                                                                    String existingOtherConfigProp,
-                                                                    String existingOtherConfigName)
+    private static void validateAdminPasswordResetWithExistingConfigs(IdentityProviderProperty[] identityMgtProperties,
+                                                                      boolean isAdminPasswordResetOfflineEnabled,
+                                                                      String adminPasswordResetOfflineProp,
+                                                                      boolean isAdminPasswordResetEmailOtpEnabled,
+                                                                      String adminPasswordResetEmailOtpProp,
+                                                                      boolean isAdminPasswordResetEmailLinkEnabled,
+                                                                      String adminPasswordResetEmailLinkProp,
+                                                                      boolean isAdminPasswordResetSmsOtpEnabled,
+                                                                      String adminPasswordResetSmsOtpProp)
             throws IdentityProviderManagementClientException {
 
-        // Enabling validating config while not disabling other config and when other config is already enabled is not
-        // allowed.
-        if (isValidatingConfigEnabled && (isOtherConfigEnabled ||
-                (StringUtils.isBlank(existingOtherConfigProp) && isExistingOtherConfigEnabled))) {
+        boolean isAdminPasswordResetOfflineCurrentlyEnabled = false;
+        boolean isAdminPasswordResetEmailOtpCurrentlyEnabled = false;
+        boolean isAdminPasswordResetEmailLinkCurrentlyEnabled = false;
+        boolean isAdminPasswordResetSmsOtpCurrentlyEnabled = false;
 
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            if (ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetOfflineCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetEmailOtpCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetEmailLinkCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetSmsOtpCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            }
+        }
+
+        // Update the admin password reset config values based on the existing config values.
+        if (StringUtils.isBlank(adminPasswordResetOfflineProp)) {
+            isAdminPasswordResetOfflineEnabled = isAdminPasswordResetOfflineCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetEmailLinkProp)) {
+            isAdminPasswordResetEmailLinkEnabled = isAdminPasswordResetEmailLinkCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetEmailOtpProp)) {
+            isAdminPasswordResetEmailOtpEnabled = isAdminPasswordResetEmailOtpCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetSmsOtpProp)) {
+            isAdminPasswordResetSmsOtpEnabled = isAdminPasswordResetSmsOtpCurrentlyEnabled;
+        }
+
+        List<Boolean> configs = Arrays.asList(isAdminPasswordResetOfflineEnabled,
+                isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                isAdminPasswordResetSmsOtpEnabled);
+
+        if(isMultipleConfigsEnabled(configs)) {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
-                    "Enabling " + validatingConfigName + "admin password reset option while " + existingOtherConfigName
-                            + " option is enabled is not allowed");
+                    "Enabling admin forced password reset option while other options are enabled is not allowed");
         }
+    }
+
+    private static boolean isMultipleConfigsEnabled(List<Boolean> configs) {
+
+        long enabledCount = configs.stream().filter(Boolean::booleanValue).count();
+        if (enabledCount > 1) {
+            return true;
+        }
+        return false;
     }
 }
