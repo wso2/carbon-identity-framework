@@ -34,7 +34,6 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -42,6 +41,7 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.BufferedReader;
@@ -375,7 +375,7 @@ public class AuthenticationEndpointUtil {
      */
     public static String sendGetRequest(String backendURL) {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
 
             HttpGet httpGet = new HttpGet(backendURL);
             setAuthorizationHeader(httpGet);

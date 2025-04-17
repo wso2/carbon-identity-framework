@@ -29,9 +29,9 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -57,7 +57,7 @@ public class CommonDataRetrievalClient {
                                         boolean defaultValue, boolean isEndpointTenantAware)
             throws CommonDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
 
             String uri = getEndpoint(tenantDomain, apiContextPath, isEndpointTenantAware);
             HttpGet get = new HttpGet(uri);

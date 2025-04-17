@@ -29,9 +29,9 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -66,7 +66,7 @@ public class AuthenticatorDataRetrievalClient {
 
         Map<String, String> authenticatorConfig = new HashMap<>();
         String authenticatorId = base64URLEncode(authenticatorIdentifier);
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             HttpGet request = new HttpGet(getAuthenticatorEndpoint(tenant) + "/" + authenticatorId);
             setAuthorizationHeader(request);
 

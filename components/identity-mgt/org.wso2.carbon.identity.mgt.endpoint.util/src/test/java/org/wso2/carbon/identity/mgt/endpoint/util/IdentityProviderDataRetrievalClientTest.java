@@ -22,9 +22,9 @@ import org.locationtech.jts.util.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.IdentityProviderDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.IdentityProviderDataRetrievalClientException;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
@@ -50,10 +50,10 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HttpClientImpl> httpclientImpl = mockStatic(HttpClientImpl.class)) {
+             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
             String imageKey = identityProviderDataRetrievalClient.getIdPImage(SUPER_TENANT_DOMAIN, idpName);
             Assert.equals("assets/images/logos/enterprise.svg", imageKey);
         }
@@ -64,10 +64,10 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HttpClientImpl> httpclientImpl = mockStatic(HttpClientImpl.class)) {
+             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
 
             identityProviderDataRetrievalClient.getFederatedIdpConfigs(SUPER_TENANT_DOMAIN, "idp-code", idpName,
                     Stream.of("key").collect(Collectors.toList()));

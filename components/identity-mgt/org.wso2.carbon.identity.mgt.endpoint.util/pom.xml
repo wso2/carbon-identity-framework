@@ -250,16 +250,16 @@
             <artifactId>org.wso2.carbon.utils</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.http.client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpcore5</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpclient5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.utils</artifactId>
         </dependency>
     </dependencies>
 
@@ -305,7 +305,6 @@
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.http.client; version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.identity.application.common.model;
                             version="${carbon.identity.package.import.version.range}",

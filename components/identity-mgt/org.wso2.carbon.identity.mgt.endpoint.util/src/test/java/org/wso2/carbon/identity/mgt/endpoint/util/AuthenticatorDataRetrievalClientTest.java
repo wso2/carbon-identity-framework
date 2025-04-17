@@ -22,9 +22,9 @@ import org.locationtech.jts.util.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.AuthenticatorDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.AuthenticatorDataRetrievalClientException;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -52,10 +52,10 @@ public class AuthenticatorDataRetrievalClientTest extends RetrievalClientBaseTes
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HttpClientImpl> httpClientImpl = mockStatic(HttpClientImpl.class)) {
+             MockedStatic<HTTPClientUtils> httpClientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpClientImpl.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpClientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
 
             Map<String, String> configs = authenticatorDataRetrievalClient.getAuthenticatorConfig(SUPER_TENANT_DOMAIN,
                     AUTHENTICATOR_IDENTIFIER);

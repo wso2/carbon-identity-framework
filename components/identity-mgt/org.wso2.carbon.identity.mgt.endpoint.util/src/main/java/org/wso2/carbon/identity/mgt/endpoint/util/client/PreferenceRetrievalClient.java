@@ -33,10 +33,10 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -376,7 +376,7 @@ public class PreferenceRetrievalClient {
                                              String propertyName)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             String endpoint = getUserGovernanceEndpoint(tenant);
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
@@ -447,7 +447,7 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -499,7 +499,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);

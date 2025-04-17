@@ -33,10 +33,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
-import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -76,7 +75,7 @@ public class IdentityProviderDataRetrievalClient {
     public String getIdPImage(String tenant, String idpName)
             throws IdentityProviderDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             HttpGet request = new HttpGet(getIdPEndpoint(tenant) + IDP_FILTER +
                             Encode.forUriComponent(idpName));
             setAuthorizationHeader(request);
@@ -210,7 +209,7 @@ public class IdentityProviderDataRetrievalClient {
      */
     private JSONObject executePath(String tenant, String path) throws IdentityProviderDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             String url = getEndpoint(tenant, path);
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);

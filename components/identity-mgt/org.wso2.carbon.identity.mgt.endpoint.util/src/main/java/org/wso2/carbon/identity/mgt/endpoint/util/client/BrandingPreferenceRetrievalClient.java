@@ -31,10 +31,10 @@ import org.apache.hc.core5.net.URIBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -70,7 +70,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getPreference(String tenant, String type, String name, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
 
             String uri = getBrandingPreferenceEndpoint(tenant);
 
@@ -140,7 +140,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getCustomTextPreference(String tenant, String type, String name, String screen, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
 
             String uri = getCustomTextPreferenceEndpoint(tenant);
 

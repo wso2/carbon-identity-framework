@@ -22,8 +22,8 @@ import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.OrganizationDiscoveryConfigDataRetrievalClient;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -49,10 +49,10 @@ public class OrganizationDiscoveryConfigDataRetrievalClientTest extends Retrieva
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HttpClientImpl> httpclientImpl = mockStatic(HttpClientImpl.class)) {
+             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
             Map<String, String> result =
                     orgDiscoveryConfigDataRetrievalClient.getDiscoveryConfiguration(SUPER_TENANT_DOMAIN);
             Assert.assertEquals(result.size(), 2);

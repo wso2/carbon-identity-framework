@@ -25,8 +25,8 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -52,7 +52,7 @@ public class AdminAdvisoryDataRetrievalClient {
      */
     public JSONObject getAdminAdvisoryBannerData(String tenant) throws AdminAdvisoryDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
 
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
             HttpGet request = new HttpGet(uri);

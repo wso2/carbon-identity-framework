@@ -23,9 +23,9 @@ import org.locationtech.jts.util.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.BrandingPreferenceRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.BrandingPreferenceRetrievalClientException;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 
@@ -47,10 +47,10 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HttpClientImpl> httpclientImpl = mockStatic(HttpClientImpl.class)) {
+             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
             JSONObject jsonObject = preferenceRetrievalClient.getPreference(SUPER_TENANT_DOMAIN, "ORG", null, "en-US");
             Assert.equals("centered",
                     ((JSONObject) ((JSONObject) jsonObject.get("preference")).get("layout")).get("activeLayout")
@@ -63,10 +63,10 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HttpClientImpl> httpclientImpl = mockStatic(HttpClientImpl.class)) {
+             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
             preferenceRetrievalClient.getCustomTextPreference(SUPER_TENANT_DOMAIN, "ORG", "", "", "en-US");
         }
     }

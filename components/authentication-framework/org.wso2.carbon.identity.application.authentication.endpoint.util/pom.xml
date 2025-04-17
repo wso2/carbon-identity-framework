@@ -138,10 +138,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.http.client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpcore5</artifactId>
         </dependency>
@@ -188,7 +184,6 @@
                             org.json; version="${json.wso2.version.range}",
                             org.wso2.carbon.identity.user.registration.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.apache.axis2.*;version="${axis2.osgi.version.range}",
-                            org.wso2.carbon.http.client; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.core.util;resolution:=optional;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",

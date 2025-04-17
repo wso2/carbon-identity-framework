@@ -26,9 +26,9 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -62,7 +62,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
 
         Map<String, String> organizationDiscoveryConfig = new HashMap<>();
 
-        try (CloseableHttpClient httpClient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             HttpGet request = new HttpGet(getOrganizationDiscoveryConfigEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 

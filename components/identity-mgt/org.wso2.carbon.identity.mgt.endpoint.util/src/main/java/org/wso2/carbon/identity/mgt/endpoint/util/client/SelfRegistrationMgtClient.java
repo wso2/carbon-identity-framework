@@ -35,11 +35,11 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -155,7 +155,7 @@ public class SelfRegistrationMgtClient {
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
 
@@ -254,7 +254,7 @@ public class SelfRegistrationMgtClient {
                     + ". SkipSignUpCheck flag is set to " + skipSignUpCheck);
         }
 
-        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
             JSONObject userObject = new JSONObject();
             userObject.put(USERNAME, user.getUsername());
 
