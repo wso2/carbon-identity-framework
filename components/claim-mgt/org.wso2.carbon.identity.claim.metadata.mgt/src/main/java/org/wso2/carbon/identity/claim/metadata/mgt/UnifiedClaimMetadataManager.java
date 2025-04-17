@@ -38,17 +38,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_DELETE_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_DELETE_SYSTEM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_RENAME_SYSTEM_DIALECT;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY;
 
 /**
  * Unified claim metadata manager.
- *
  * This class provides a unified view of claim metadata from the system default claim metadata manager and the
  * database-based claim metadata manager.
  */
@@ -173,11 +174,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             });
         });
 
+        // If certain claim properties are missing in localClaimsInDB, set them to default values.
         for (LocalClaim localClaim : localClaimMap.values()) {
-            // If FlowInitiator claim property is present in localClaimsInDB, set it to system value.
             setFlowInitiatorClaimProperty(localClaim.getClaimURI(), tenantId, localClaim);
-            // If SharedProfileValueResolvingMethod is missing in localClaimsInDB, set it to default value.
             setDefaultSharedProfileValueResolvingMethod(localClaim.getClaimURI(), tenantId, localClaim);
+            setDefaultValueForSignInAssertionProfile(localClaim);
         }
 
         return new ArrayList<>(localClaimMap.values());
@@ -200,11 +201,13 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             }
             // If SharedProfileValueResolvingMethod is missing in DB, set it to default value.
             setDefaultSharedProfileValueResolvingMethod(localClaimURI, tenantId, localClaimInDB.get());
+            setDefaultValueForSignInAssertionProfile(localClaimInDB.get());
             return localClaimInDB;
         }
         Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
         if (localClaimInSystem.isPresent()) {
             markAsSystemClaim(localClaimInSystem.get());
+            setDefaultValueForSignInAssertionProfile(localClaimInSystem.get());
             return localClaimInSystem;
         }
         return Optional.empty();
@@ -257,6 +260,16 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             if (StringUtils.isNotBlank(flowInitiatorProperty)) {
                 localClaimInDB.setClaimProperty(ClaimConstants.FLOW_INITIATOR, flowInitiatorProperty);
             }
+        }
+    }
+
+    private void setDefaultValueForSignInAssertionProfile(LocalClaim localClaim) {
+
+        String claimPropertyName = PROFILES_CLAIM_PROPERTY_PREFIX +
+                ClaimConstants.DefaultAllowedClaimProfile.SIGN_IN_ASSERTION.getProfileName() +
+                CLAIM_PROFILE_PROPERTY_DELIMITER + SUPPORTED_BY_DEFAULT_PROPERTY;
+        if (localClaim.getClaimProperty(claimPropertyName) == null) {
+            localClaim.setClaimProperty(claimPropertyName, Boolean.TRUE.toString());
         }
     }
 

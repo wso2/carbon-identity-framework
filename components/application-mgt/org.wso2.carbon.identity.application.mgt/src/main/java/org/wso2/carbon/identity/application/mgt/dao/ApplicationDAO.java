@@ -357,6 +357,21 @@ public interface ApplicationDAO {
     }
 
     /**
+     * Method that checks whether a claim is requested (or mandatory) by any service provider.
+     *
+     * @param dbConnection  Optional DB connection.
+     * @param claimUri      Claim URI.
+     * @param tenantId      ID of the tenant.
+     * @return  True if claim is requested (or mandatory) by a service provider.
+     * @throws IdentityApplicationManagementException   Error when obtaining requested claims.
+     */
+    default boolean isClaimRequestedByAnySp(Connection dbConnection, String claimUri, int tenantId)
+        throws IdentityApplicationManagementException {
+
+        return false;
+    }
+
+    /**
      * Method that returns service provider with required attributes.
      *
      * @param applicationId       Application identifier.

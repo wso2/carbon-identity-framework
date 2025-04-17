@@ -120,6 +120,8 @@ public class ClaimConstants {
                 "Adding claims to dialect %s is not allowed"),
         ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY("CMT-60017",
                 "Cannot change flow initiator property of the system claim: %s"),
+        ERROR_CODE_LOCAL_CLAIM_REQUESTED_IN_APPLICATIONS("CMT-60018", "Unable to disable sign-in " +
+                "assertion profile for claim %s as it is requested by applications."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
@@ -198,7 +200,8 @@ public class ClaimConstants {
 
         CONSOLE("console"),
         END_USER("endUser"),
-        SELF_REGISTRATION("selfRegistration");
+        SELF_REGISTRATION("selfRegistration"),
+        SIGN_IN_ASSERTION("signInAssertion");
 
         private final String profileName;
 

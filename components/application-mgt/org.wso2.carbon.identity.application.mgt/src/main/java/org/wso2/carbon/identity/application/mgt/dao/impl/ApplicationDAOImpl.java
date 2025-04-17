@@ -6138,6 +6138,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
+    public boolean isClaimRequestedByAnySp(Connection dbConnection, String claimUri, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        boolean dbConnInitialized = true;
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        boolean isClaimRequested = false;
+        if (dbConnection == null) {
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        } else {
+            dbConnInitialized = false;
+        }
+
+        try {
+            String sqlStmt = ApplicationMgtDBQueries.GET_REQUESTED_SP_CLAIM_USAGES;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, claimUri);
+            rs = prepStmt.executeQuery();
+
+            if (rs.next()) {
+                isClaimRequested = rs.getInt(1) > 0;
+            }
+            return isClaimRequested;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error occurred while retrieving application usages of " +
+                    "the claim " + claimUri, e);
+        } finally {
+            if (dbConnInitialized) {
+                IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
+            } else {
+                IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+            }
+        }
+    }
+
+    @Override
     public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {

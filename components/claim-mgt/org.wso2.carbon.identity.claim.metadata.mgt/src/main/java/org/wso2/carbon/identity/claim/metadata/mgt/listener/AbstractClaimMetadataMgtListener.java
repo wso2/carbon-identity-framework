@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt.listener;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -65,6 +66,12 @@ public abstract class AbstractClaimMetadataMgtListener  implements ClaimMetadata
 
     @Override
     public boolean doPostDeleteClaim(String claimUri, String tenantDomain) throws ClaimMetadataException {
+
+        return true;
+    }
+
+    @Override
+    public boolean doPreUpdateLocalClaim(LocalClaim localClaim, String tenantDomain) throws ClaimMetadataException {
 
         return true;
     }

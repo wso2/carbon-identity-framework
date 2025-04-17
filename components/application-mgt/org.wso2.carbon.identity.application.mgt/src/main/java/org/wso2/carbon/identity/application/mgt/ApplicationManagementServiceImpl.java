@@ -1094,6 +1094,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
+    public List<LocalClaim> getAllLocalClaims(String tenantDomain) throws IdentityApplicationManagementException {
+
+        try {
+            return ApplicationManagementServiceComponentHolder.getInstance()
+                    .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+        } catch (Exception e) {
+            String error = "Error while reading system claims" + ". " + e.getMessage();
+            throw new IdentityApplicationManagementException(error, e);
+        }
+    }
+
+    @Override
     public String getServiceProviderNameByClientIdExcludingFileBasedSPs(String clientId, String type, String
             tenantDomain) throws IdentityApplicationManagementException {
 

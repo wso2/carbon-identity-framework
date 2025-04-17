@@ -44,6 +44,7 @@ import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -378,6 +379,14 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         validateSharedProfileValueResolvingMethodChange(localClaim, existingLocalClaim.get(), tenantId);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateLocalClaim(tenantId, localClaim);
+
+        Collection<ClaimMetadataMgtListener> listeners =
+                IdentityClaimManagementServiceComponent.getClaimMetadataMgtListeners();
+        for (ClaimMetadataMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreUpdateLocalClaim(localClaim, tenantDomain)) {
+                return;
+            }
+        }
 
         this.unifiedClaimMetadataManager.updateLocalClaim(localClaim, tenantId);
 
@@ -793,8 +802,14 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         boolean isAllProfilesHaveSameValue = true;
         boolean isAtLeastOneProfileValueMatchingGlobal = false;
         String commonProfileValue = null;
+        List<String> excludedProfilesFromSync = Arrays.asList(
+                ClaimConstants.DefaultAllowedClaimProfile.SIGN_IN_ASSERTION.getProfileName(),
+                ClaimConstants.DefaultAllowedClaimProfile.JIT_PROVISIONING.getProfileName());
 
         for (String profileName : allowedClaimProfiles) {
+            if (excludedProfilesFromSync.contains(profileName)) {
+                continue;
+            }
             String profilePropertyKey = buildAttributeProfilePropertyKey(profileName, propertyKey);
             String profilePropertyValue = claimProperties.get(profilePropertyKey);
 
