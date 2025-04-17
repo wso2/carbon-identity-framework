@@ -496,7 +496,9 @@ public class IdPManagementUtil {
                 isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
                 isAdminPasswordResetSmsOtpEnabled);
 
-        if (isMultipleConfigsEnabled(configs)) {
+        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
+
+        if (enabledConfigCount > 1) {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                     "Enabling more than one admin password reset option is not allowed");
@@ -553,16 +555,17 @@ public class IdPManagementUtil {
                 isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
                 isAdminPasswordResetSmsOtpEnabled);
 
-        if(isMultipleConfigsEnabled(configs)) {
+        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
+
+        if(enabledConfigCount > 1) {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                     "Enabling admin forced password reset option while other options are enabled is not allowed");
         }
-    }
-
-    private static boolean isMultipleConfigsEnabled(List<Boolean> configs) {
-
-        long enabledCount = configs.stream().filter(Boolean::booleanValue).count();
-        return enabledCount > 1;
+        else if (enabledConfigCount == 0) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Disabling all admin forced password reset options is not allowed");
+        }
     }
 }

@@ -406,7 +406,7 @@ public class IdPManagementUtilTest {
                 {adminPasswordResetConfig6, adminPasswordResetIdentityPropsEmailLinkEnabled, false},
                 {adminPasswordResetConfig7, adminPasswordResetIdentityPropsEmailLinkEnabled, false},
                 {adminPasswordResetConfig8, adminPasswordResetIdentityPropsEmailLinkEnabled, true},
-                {adminPasswordResetConfig9, adminPasswordResetIdentityPropsEmailLinkEnabled, true},
+                {adminPasswordResetConfig9, adminPasswordResetIdentityPropsEmailLinkEnabled, false},
                 {adminPasswordResetConfig10, adminPasswordResetIdentityPropsEmailOtpEnabled, false},
                 {adminPasswordResetConfig11, adminPasswordResetIdentityPropsOfflineEnabled, false},
                 {adminPasswordResetConfig12, adminPasswordResetIdentityPropsAllFalse, true},
