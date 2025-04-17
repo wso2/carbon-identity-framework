@@ -18,14 +18,21 @@
 
 package org.wso2.carbon.identity.application.mgt.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.AbstractClaimMetadataMgtListener;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_APPLICATION;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_REQUESTED_IN_APPLICATIONS;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY;
 
 /**
  * Internal implementation of {@link AbstractClaimMetadataMgtListener} to listen to claim CRUD events.
@@ -52,6 +59,29 @@ public class ApplicationClaimMgtListener extends AbstractClaimMetadataMgtListene
             }
         } catch (IdentityApplicationManagementException e) {
             throw new ClaimMetadataException("Error when deleting claim.", e);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean doPreUpdateLocalClaim(LocalClaim localClaim, String tenantDomain) throws ClaimMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        String isSignInAssertionSupportedByDefault = localClaim.getClaimProperty(PROFILES_CLAIM_PROPERTY_PREFIX +
+                ClaimConstants.DefaultAllowedClaimProfile.SIGN_IN_ASSERTION.getProfileName() +
+                CLAIM_PROFILE_PROPERTY_DELIMITER + SUPPORTED_BY_DEFAULT_PROPERTY);
+        if (StringUtils.isBlank(isSignInAssertionSupportedByDefault)
+                || Boolean.parseBoolean(isSignInAssertionSupportedByDefault)) {
+            return true;
+        }
+        try {
+            if (applicationDAO.isClaimRequestedByAnySp(null, localClaim.getClaimURI(), tenantId)) {
+                throw new ClaimMetadataClientException(ERROR_CODE_LOCAL_CLAIM_REQUESTED_IN_APPLICATIONS.getCode(),
+                        String.format(ERROR_CODE_LOCAL_CLAIM_REQUESTED_IN_APPLICATIONS.getMessage(),
+                                localClaim.getClaimURI()));
+            }
+        } catch (IdentityApplicationManagementException e) {
+            throw new ClaimMetadataException("Error when updating claim.", e);
         }
         return true;
     }

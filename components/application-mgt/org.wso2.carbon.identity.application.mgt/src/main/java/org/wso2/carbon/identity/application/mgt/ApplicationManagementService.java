@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
@@ -232,6 +233,16 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public abstract String[] getAllLocalClaimUris(String tenantDomain) throws IdentityApplicationManagementException;
+
+    /**
+     * Get All local claims.
+     *
+     * @param tenantDomain      Tenant Domain
+     * @return List<LocalClaim> All Local Claims
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public abstract List<LocalClaim> getAllLocalClaims(String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     public abstract String getServiceProviderNameByClientIdExcludingFileBasedSPs(String clientId, String type, String
             tenantDomain)

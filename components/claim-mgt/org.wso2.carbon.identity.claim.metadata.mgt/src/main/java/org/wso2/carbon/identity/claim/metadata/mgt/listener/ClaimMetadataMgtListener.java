@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.claim.metadata.mgt.listener;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
 /**
  * Definition for the listeners which listens to Claim CRUD events.
@@ -65,4 +66,14 @@ public interface ClaimMetadataMgtListener {
      * @throws ClaimMetadataException   ClaimMetadataException error.
      */
     boolean doPostDeleteClaim(String claimUri, String tenantDomain) throws ClaimMetadataException;
+
+    /**
+     * Method which carries out tasks which should run before updating a claim.
+     *
+     * @param localClaim    Local claim.
+     * @param tenantDomain  Tenant domain.
+     * @return  True if method executes successfully.
+     * @throws ClaimMetadataException   ClaimMetadataException error.
+     */
+    boolean doPreUpdateLocalClaim(LocalClaim localClaim, String tenantDomain) throws ClaimMetadataException;
 }
