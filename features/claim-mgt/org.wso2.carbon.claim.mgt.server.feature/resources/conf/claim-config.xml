@@ -479,7 +479,7 @@
 				<AttributeID>verifyEmail</AttributeID>
 				<Description>Temporary claim to invoke email verified feature</Description>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
-				<Transactional>True</Transactional>
+				<FlowInitiator>True</FlowInitiator>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/askPassword</ClaimURI>
@@ -489,7 +489,7 @@
 				<AttributeID>askPassword</AttributeID>
 				<Description>Temporary claim to invoke email ask Password feature</Description>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
-				<Transactional>True</Transactional>
+				<FlowInitiator>True</FlowInitiator>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/tenantAdminAskPassword</ClaimURI>
@@ -508,7 +508,7 @@
 				<AttributeID>forcePasswordReset</AttributeID>
 				<Description>Temporary claim to invoke email force password feature</Description>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
-				<Transactional>True</Transactional>
+				<FlowInitiator>True</FlowInitiator>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/entitlements</ClaimURI>
@@ -832,7 +832,7 @@
 				<AttributeID>verifyMobile</AttributeID>
 				<Description>Temporary claim to invoke mobile verification feature</Description>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
-				<Transactional>True</Transactional>
+				<FlowInitiator>True</FlowInitiator>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/userSourceId</ClaimURI>

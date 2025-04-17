@@ -173,13 +173,9 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             });
         });
 
-        //If Transactional claim property is missing in localClaimsInDB, set it to default value.
+        // If SharedProfileValueResolvingMethod, FlowInitiator claim property are missing in localClaimsInDB, set it to default value.
         for (LocalClaim localClaim : localClaimMap.values()) {
-            setTransactionalAttributeProperty(localClaim.getClaimURI(), tenantId, localClaim);
-        }
-
-        // If SharedProfileValueResolvingMethod is missing in localClaimsInDB, set it to default value.
-        for (LocalClaim localClaim : localClaimMap.values()) {
+            setFlowInitiatorClaimProperty(localClaim.getClaimURI(), tenantId, localClaim);
             setDefaultSharedProfileValueResolvingMethod(localClaim.getClaimURI(), tenantId, localClaim);
         }
 
@@ -245,28 +241,17 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         }
     }
 
-    private void setTransactionalAttributeProperty(String localClaimURI, int tenantId,
-                                                   LocalClaim localClaimInDB) throws ClaimMetadataException {
+    private void setFlowInitiatorClaimProperty(String localClaimURI, int tenantId,
+                                               LocalClaim localClaimInDB) throws ClaimMetadataException {
 
-        String transactionalAttribute = localClaimInDB.getClaimProperty(ClaimConstants.TRANSACTIONAL);
-        if (StringUtils.isNotBlank(transactionalAttribute)) {
-            return;
-        }
         // If the claim is a system claim, get the default value set in the system default claim metadata.
         if (isSystemDefaultLocalClaim(localClaimURI, tenantId)) {
             Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(
                     localClaimURI, tenantId);
             if (localClaimInSystem.isPresent()) {
-                String systemDefaultTransactionalAttribute = localClaimInSystem.get()
-                        .getClaimProperty(ClaimConstants.TRANSACTIONAL);
-                if (StringUtils.isNotBlank(systemDefaultTransactionalAttribute)) {
-                    localClaimInDB.setClaimProperty(ClaimConstants.TRANSACTIONAL,
-                            systemDefaultTransactionalAttribute);
-                } else {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format("Transactional property is not defined for the system " +
-                                "claim: %s", localClaimURI));
-                    }
+                String flowInitiatorProperty = localClaimInSystem.get().getClaimProperty(ClaimConstants.FLOW_INITIATOR);
+                if (StringUtils.isNotBlank(flowInitiatorProperty)) {
+                    localClaimInDB.setClaimProperty(ClaimConstants.FLOW_INITIATOR, flowInitiatorProperty);
                 }
             }
         }
@@ -281,7 +266,6 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
      */
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
-        localClaim.getClaimProperties().remove(ClaimConstants.IS_SYSTEM_CLAIM);
         validateNonModifiableClaimProperties(localClaim);
         if (!isClaimDialectInDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId)) {
             addSystemDefaultDialectToDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
@@ -298,7 +282,6 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
      */
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
-        localClaim.getClaimProperties().remove(ClaimConstants.IS_SYSTEM_CLAIM);
         validateNonModifiableClaimProperties(localClaim);
         if (isLocalClaimInDB(localClaim.getClaimURI(), tenantId)) {
             this.dbBasedClaimMetadataManager.updateLocalClaim(localClaim, tenantId);
@@ -672,10 +655,12 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
     private void validateNonModifiableClaimProperties(LocalClaim localClaim) throws ClaimMetadataClientException {
 
-        if (localClaim.getClaimProperty(ClaimConstants.TRANSACTIONAL) != null) {
+        //isSystemClaim is removed without throwing an exception to make it non-modifiable to preserve backward compatibility.
+        localClaim.getClaimProperties().remove(ClaimConstants.IS_SYSTEM_CLAIM);
+        if (localClaim.getClaimProperty(ClaimConstants.FLOW_INITIATOR) != null) {
             throw new ClaimMetadataClientException(
-                    ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_MODIFY_TRANSACTIONAL_CLAIM_PROPERTY.getCode(),
-                    String.format(ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_MODIFY_TRANSACTIONAL_CLAIM_PROPERTY
+                    ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY.getCode(),
+                    String.format(ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY
                                     .getMessage(), localClaim.getClaimURI()));
         }
 
