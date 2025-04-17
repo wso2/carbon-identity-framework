@@ -564,7 +564,6 @@ public class AuthenticationService {
         }
     }
 
-
     /**
      * Retrieves the session data cache key from the authentication context associated with the given request.
      * Can be used for session tracking and restoration purposes.
@@ -574,6 +573,7 @@ public class AuthenticationService {
      * @throws AuthServiceException If the request is invalid
      */
     public Optional<String> getSessionDataCacheKey(AuthServiceRequest authRequest) throws AuthServiceException {
+
         if (authRequest == null || authRequest.getRequest() == null) {
             throw new AuthServiceException("Invalid authentication request: request cannot be null.");
         }
