@@ -18,11 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import java.util.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceException;
@@ -560,5 +562,25 @@ public class AuthenticationService {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Retrieves the session data cache key from the authentication context associated with the given request.
+     * Can be used for session tracking and restoration purposes.
+     *
+     * @param authRequest The authentication service request containing HTTP request and parameters
+     * @return An Optional containing the session data cache key.
+     * @throws AuthServiceException If the request is invalid
+     */
+    public Optional<String> getSessionDataCacheKey(AuthServiceRequest authRequest) throws AuthServiceException {
+
+        if (authRequest == null || authRequest.getRequest() == null) {
+            throw new AuthServiceException("Invalid authentication request: request cannot be null.");
+        }
+
+        AuthServiceRequestWrapper wrappedRequest = getWrappedRequest(authRequest.getRequest(), authRequest.getParameters());
+        AuthenticationContext context = FrameworkUtils.getContextData(wrappedRequest);
+
+        return Optional.ofNullable(context).map(AuthenticationContext::getCallerSessionKey);
     }
 }
