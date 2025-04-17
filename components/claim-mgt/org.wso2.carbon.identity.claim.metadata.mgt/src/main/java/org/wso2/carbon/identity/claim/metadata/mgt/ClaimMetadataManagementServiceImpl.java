@@ -803,8 +803,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         boolean isAtLeastOneProfileValueMatchingGlobal = false;
         String commonProfileValue = null;
         List<String> excludedProfilesFromSync = Arrays.asList(
-                ClaimConstants.DefaultAllowedClaimProfile.SIGN_IN_ASSERTION.getProfileName(),
-                ClaimConstants.DefaultAllowedClaimProfile.JIT_PROVISIONING.getProfileName());
+                ClaimConstants.DefaultAllowedClaimProfile.SIGN_IN_ASSERTION.getProfileName());
 
         for (String profileName : allowedClaimProfiles) {
             if (excludedProfilesFromSync.contains(profileName)) {
