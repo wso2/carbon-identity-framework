@@ -69,6 +69,7 @@ public class Claim implements Serializable {
     }
 
     public boolean getFlowInitiator() {
+
         return Boolean.parseBoolean(this.getClaimProperties().get(ClaimConstants.FLOW_INITIATOR));
     }
 

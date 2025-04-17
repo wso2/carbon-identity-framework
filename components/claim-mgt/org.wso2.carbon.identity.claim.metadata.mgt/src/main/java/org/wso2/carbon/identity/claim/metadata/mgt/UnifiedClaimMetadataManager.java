@@ -173,9 +173,10 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             });
         });
 
-        // If SharedProfileValueResolvingMethod, FlowInitiator claim property are missing in localClaimsInDB, set it to default value.
         for (LocalClaim localClaim : localClaimMap.values()) {
+            // If FlowInitiator claim property is present in localClaimsInDB, set it to system value.
             setFlowInitiatorClaimProperty(localClaim.getClaimURI(), tenantId, localClaim);
+            // If SharedProfileValueResolvingMethod is missing in localClaimsInDB, set it to default value.
             setDefaultSharedProfileValueResolvingMethod(localClaim.getClaimURI(), tenantId, localClaim);
         }
 
@@ -244,15 +245,17 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     private void setFlowInitiatorClaimProperty(String localClaimURI, int tenantId,
                                                LocalClaim localClaimInDB) throws ClaimMetadataException {
 
+        if (!isSystemDefaultLocalClaim(localClaimURI, tenantId)) {
+            return;
+        }
+
         // If the claim is a system claim, get the default value set in the system default claim metadata.
-        if (isSystemDefaultLocalClaim(localClaimURI, tenantId)) {
-            Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(
-                    localClaimURI, tenantId);
-            if (localClaimInSystem.isPresent()) {
-                String flowInitiatorProperty = localClaimInSystem.get().getClaimProperty(ClaimConstants.FLOW_INITIATOR);
-                if (StringUtils.isNotBlank(flowInitiatorProperty)) {
-                    localClaimInDB.setClaimProperty(ClaimConstants.FLOW_INITIATOR, flowInitiatorProperty);
-                }
+        Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(
+                localClaimURI, tenantId);
+        if (localClaimInSystem.isPresent()) {
+            String flowInitiatorProperty = localClaimInSystem.get().getClaimProperty(ClaimConstants.FLOW_INITIATOR);
+            if (StringUtils.isNotBlank(flowInitiatorProperty)) {
+                localClaimInDB.setClaimProperty(ClaimConstants.FLOW_INITIATOR, flowInitiatorProperty);
             }
         }
     }
