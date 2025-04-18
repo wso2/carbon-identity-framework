@@ -1078,8 +1078,7 @@ public class IdPManagementDAO {
             // If admin force password reset configs are inconsistent, correct the configurations.
             if (!isAdminForcePasswordResetEmailLinkEnabled && !isAdminForcePasswordResetEmailOTPEnabled
                     && !isAdminForcePasswordResetSMSOTPEnabled && !isAdminForcePasswordResetOfflineEnabled) {
-                performConfigCorrectionForAdminForcedPasswordResetConfigs(dbConnection, tenantId, idpId,
-                        idpProperties);
+                performConfigCorrectionForAdminForcedPasswordResetConfigs(idpProperties);
             }
         } catch (DataAccessException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
@@ -6231,14 +6230,19 @@ public class IdPManagementDAO {
         updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
     }
 
-    private void performConfigCorrectionForAdminForcedPasswordResetConfigs(Connection dbConnection, int tenantId,
-                                       int idpId, List<IdentityProviderProperty> idpProperties) throws SQLException {
+    private void performConfigCorrectionForAdminForcedPasswordResetConfigs(
+            List<IdentityProviderProperty> idpProperties) {
 
-        // Enable email link option as the default option when all other options are disabled.
+        /*
+         * Enable email link option as the default option when all other options are disabled.
+         * This config value will not update the database and only do the correction when getting the idp properties.
+         * */
         idpProperties.stream().filter(
-                idp -> IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(idp.getName())).findFirst()
+                        idp -> IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(idp.getName()))
+                .findFirst()
                 .ifPresentOrElse(
-                        adminForcedPasswordResetProperty -> adminForcedPasswordResetProperty.setValue(String.valueOf(true)),
+                        adminForcedPasswordResetProperty -> adminForcedPasswordResetProperty.setValue(
+                                String.valueOf(true)),
                         () -> {
                             IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                             identityProviderProperty.setName(
@@ -6246,7 +6250,6 @@ public class IdPManagementDAO {
                             identityProviderProperty.setValue(String.valueOf(true));
                             idpProperties.add(identityProviderProperty);
                         });
-        updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
     }
 
     private FederatedAuthenticatorConfig createFederatedAuthenticatorConfig(AuthenticatorPropertyConstants.DefinedByType
