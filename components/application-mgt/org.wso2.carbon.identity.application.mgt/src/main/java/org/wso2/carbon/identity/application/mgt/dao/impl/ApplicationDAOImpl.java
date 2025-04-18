@@ -1589,7 +1589,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                         ApplicationConstants.LOCAL_IDP_NAME,
                                         lclAuthenticator.getName(),
                                         lclAuthenticator.getDisplayName(),
-                                        DefinedByType.SYSTEM.toString());
+                                        DefinedByType.SYSTEM.toString(),
+                                        lclAuthenticator.getAmrValue());
                             }
                             if (authenticatorId > 0) {
                                 // ID, TENANT_ID, AUTHENTICATOR_ID
@@ -3142,6 +3143,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     localAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
+                    localAuthenticator.setAmrValue(authenticatorInfo
+                            .get(ApplicationConstants.IDP_AUTHENTICATOR_AMR));
                     localAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
                     stepLocalAuth.get(step).add(localAuthenticator);
@@ -3164,6 +3167,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
                     fedAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
+                    fedAuthenticator.setAmrValue(authenticatorInfo
+                            .get(ApplicationConstants.IDP_AUTHENTICATOR_AMR));
                     idpAuths.add(fedAuthenticator);
                 }
 
@@ -5066,7 +5071,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        String sqlStmt = ApplicationMgtDBQueries.LOAD_IDP_AND_AUTHENTICATOR_NAMES;
+        String sqlStmt = ApplicationMgtDBQueries.LOAD_IDP_AND_AUTHENTICATOR_NAMES_WITH_AMR;
         Map<String, String> returnData = new HashMap<String, String>();
         try {
             prepStmt = conn.prepareStatement(sqlStmt);
@@ -5082,6 +5087,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 returnData
                         .put(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME, rs.getString(3));
                 returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE, rs.getString(4));
+                returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_AMR, rs.getString(5));
             }
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
@@ -5099,12 +5105,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @throws SQLException
      */
     private int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
-                                 String authenticatorDispalyName, String definedByType) throws SQLException {
+                                 String authenticatorDispalyName, String definedByType, String amrValue)
+                                 throws SQLException {
 
         int authenticatorId = -1;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR;
+        String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR_WITH_AMR;
         try {
             String dbProductName = conn.getMetaData().getDatabaseProductName();
             prepStmt = conn.prepareStatement(sqlStmt, new String[] {
@@ -5118,6 +5125,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             prepStmt.setString(7, definedByType);
             // By default, unless specified, the authentication type is 'IDENTIFICATION' for local authenticators.
             prepStmt.setString(8, AuthenticationType.IDENTIFICATION.toString());
+            prepStmt.setString(9, amrValue);
             prepStmt.execute();
             rs = prepStmt.getGeneratedKeys();
             if (rs.next()) {
