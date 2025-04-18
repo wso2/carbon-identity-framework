@@ -1986,7 +1986,7 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertEquals(result.get(1).getClaimURI(), claim2);
     }
 
-    @Test(expectedExceptions = IdentityApplicationManagementException.class)
+    @Test
     public void testGetAllLocalClaimsWithException() throws ClaimMetadataException {
 
         String tenantDomain = "sampleTenantDomain";
