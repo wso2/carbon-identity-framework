@@ -74,6 +74,8 @@ public class RegistrationFlowEngine {
     public RegistrationStep execute(RegistrationContext context)
             throws RegistrationEngineException {
 
+        //Manually set the flow context to recovery.
+        context.setProperty("flow", "recovery");
         RegistrationGraphConfig graph = context.getRegGraph();
 
         String tenantDomain = context.getTenantDomain();
