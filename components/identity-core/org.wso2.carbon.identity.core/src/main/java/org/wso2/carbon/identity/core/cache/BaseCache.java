@@ -183,6 +183,52 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
     }
 
     /**
+     * Add a cache entry if the same value is not already there.
+     *
+     * @param key   Key which cache entry is indexed.
+     * @param entry Actual object where cache entry is placed.
+     */
+    public void addToCacheIfNoDuplicate(K key, V entry, String tenantDomain) {
+
+        if (!isEnabled()) {
+            return;
+        }
+
+        try {
+            startTenantFlow(tenantDomain);
+            Cache<K, V> cache = getBaseCache();
+            if (cache != null) {
+                cache.putIfNoDuplicate(key, entry);
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    /**
+     * Add a cache entry if the same value is not already there.
+     *
+     * @param key   Key which cache entry is indexed.
+     * @param entry Actual object where cache entry is placed.
+     */
+    public void addToCacheIfNoDuplicate(K key, V entry, int tenantId) {
+
+        if (!isEnabled()) {
+            return;
+        }
+
+        try {
+            startTenantFlow(tenantId);
+            Cache<K, V> cache = getBaseCache();
+            if (cache != null) {
+                cache.putIfNoDuplicate(key, entry);
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    /**
      * Retrieves a cache entry.
      *
      * @param key CacheKey
