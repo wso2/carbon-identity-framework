@@ -380,11 +380,11 @@ public class IdPManagementUtil {
         }
     }
 
-
     /**
-     * This method is used to validate the username recovery property values.
+     * This method is used to validate the username recovery related property values.
      *
-     * @param configurationDetails Configuration updates for governance configuration.
+     * @param configurationDetails Configuration updates for governance configuration
+     * @throws IdentityProviderManagementClientException if configurations contain invalid configurations.
      */
     public static void validateUsernameRecoveryPropertyValues(Map<String, String> configurationDetails)
             throws IdentityProviderManagementClientException {
@@ -404,11 +404,12 @@ public class IdPManagementUtil {
             boolean usernameRecoverySmsProperty = Boolean.parseBoolean(usernameRecoverySmsProp);
 
             if (usernameRecoveryProperty &&
-                    StringUtils.isNotBlank(usernameRecoveryEmailProp) && !usernameRecoveryEmailProperty &&
-                    StringUtils.isNotBlank(usernameRecoverySmsProp) && !usernameRecoverySmsProperty) {
-                // Disabling all recovery options when recovery connector is enabled is not allowed.
-                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
-                // this behaviour.
+                    !usernameRecoveryEmailProperty && StringUtils.isNotBlank(usernameRecoveryEmailProp) &&
+                    !usernameRecoverySmsProperty && StringUtils.isNotBlank(usernameRecoverySmsProp)) {
+                /*
+                 Disabling all recovery options when recovery connector is enabled is not allowed.
+                 WARNING : Be mindful about compatibility of earlier recovery api versions when changing this behaviour.
+                 */
                 throw IdPManagementUtil
                         .handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
@@ -417,9 +418,11 @@ public class IdPManagementUtil {
             }
             if (StringUtils.isNotBlank(usernameRecoveryProp) && !usernameRecoveryProperty &&
                     (usernameRecoveryEmailProperty || usernameRecoverySmsProperty)) {
-                // Enabling any recovery options when connector is disabled is not allowed.
-                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
-                // this behaviour.
+                /*
+                 Enabling any recovery options when connector is disabled is not allowed.
+                 WARNING : Be mindful about compatibility of earlier recovery api versions when changing this behaviour.
+                 */
+
                 throw IdPManagementUtil
                         .handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
