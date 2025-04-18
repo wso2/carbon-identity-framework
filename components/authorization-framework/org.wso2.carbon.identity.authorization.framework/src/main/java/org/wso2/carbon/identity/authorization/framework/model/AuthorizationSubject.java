@@ -38,8 +38,19 @@ public class AuthorizationSubject {
      * @param subjectId   The id of the subject.
      */
     public AuthorizationSubject(String subjectType, String subjectId) {
+
         this.subjectType = subjectType;
         this.subjectId = subjectId;
+    }
+
+    /**
+     * Constructs an {@code AuthorizationSubject} object with the subject type for search requests.
+     *
+     * @param subjectType The type of the subject.
+     */
+    public AuthorizationSubject(String subjectType) {
+
+        this.subjectType = subjectType;
     }
 
     /**
