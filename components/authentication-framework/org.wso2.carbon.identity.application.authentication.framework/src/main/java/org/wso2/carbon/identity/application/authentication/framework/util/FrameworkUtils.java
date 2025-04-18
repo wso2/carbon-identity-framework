@@ -139,6 +139,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -3897,6 +3898,16 @@ public class FrameworkUtils {
         boolean isSaaSApp = serviceProvider.isSaasApp();
         String appTenantDomain = serviceProvider.getOwner().getTenantDomain();
 
+        // Get the application tenant domain when the request comes from tenant perspective.
+        try {
+            String appResidentTenantDomain = getAppResidentTenantDomain();
+            if (StringUtils.isNotEmpty(appResidentTenantDomain)) {
+                appTenantDomain = appResidentTenantDomain;
+            }
+        } catch (FrameworkException e) {
+            log.error("Error while getting the tenant domain of the application owner.", e);
+        }
+
         if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
             return username;
         }
@@ -4552,5 +4563,29 @@ public class FrameworkUtils {
             tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
         return tenantDomain;
+    }
+
+    /**
+     * Resolve the tenant domain from the application resident organization id which will be set when the resource
+     * is accessing from the tenanted endpoint.
+     *
+     * @return Application resident tenant domain.
+     * @throws FrameworkException When an error occurred while resolving the tenant domain.
+     */
+    private static String getAppResidentTenantDomain() throws FrameworkException {
+
+        String appResidentTenantDomain = null;
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().
+                getApplicationResidentOrganizationId();
+        if (StringUtils.isNotEmpty(appResidentOrgId)) {
+            try {
+                appResidentTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager().
+                        resolveTenantDomain(appResidentOrgId);
+            } catch (OrganizationManagementException e) {
+                throw new FrameworkException("Error occurred while resolving the tenant domain for the " +
+                        "organization id.", e);
+            }
+        }
+        return appResidentTenantDomain;
     }
 }
