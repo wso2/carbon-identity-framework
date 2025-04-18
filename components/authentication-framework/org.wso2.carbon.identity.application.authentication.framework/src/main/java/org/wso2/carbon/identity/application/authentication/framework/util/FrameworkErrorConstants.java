@@ -78,6 +78,8 @@ public class FrameworkErrorConstants {
         ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY("80031", "Error while encrypting TOTP secret key for user. %s"),
         ERROR_WHILE_CHECKING_PENDING_VERIFICATION_STATUS("80035",
                 "Error while checking the pending verification status for the user %s"),
+        ERROR_MISMATCHING_TENANT_DOMAIN("80036",
+                "Service Provider tenant domain must be equal to user tenant domain."),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");
