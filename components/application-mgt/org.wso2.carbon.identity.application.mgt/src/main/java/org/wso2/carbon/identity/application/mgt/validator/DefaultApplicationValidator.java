@@ -54,6 +54,8 @@ import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -94,6 +96,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available in the server " +
             "for tenantDomain:%s.";
     private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server " +
+            "for tenantDomain:%s.";
+    private static final String CLAIM_NOT_ALLOWED = "Local claim %s is not allowed in the sign-in assertion profile " +
             "for tenantDomain:%s.";
     private static final String SP_CLAIM_NOT_AVAILABLE = "Application Claim URI '%s' is not defined " +
             "for application:%s.";
@@ -552,15 +556,21 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
         String[] allLocalClaimUris = applicationMgtService.getAllLocalClaimUris(tenantDomain);
+        List<LocalClaim> allLocalClaims = applicationMgtService.getAllLocalClaims(tenantDomain);
         ArrayList<String> remoteClaimUris = new ArrayList<>();
 
         ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
         if (claimMappings != null) {
             for (ClaimMapping claimMapping : claimMappings) {
                 String claimUri = claimMapping.getLocalClaim().getClaimUri();
+                LocalClaim localClaim = allLocalClaims.stream()
+                        .filter(claim -> claim.getClaimURI().equals(claimUri)).findFirst().orElse(null);
                 remoteClaimUris.add(claimMapping.getRemoteClaim().getClaimUri());
                 if (!Arrays.asList(allLocalClaimUris).contains(claimUri)) {
                     validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, claimUri, tenantDomain));
+                }
+                if (!isSignInAssertionSupportedByDefault(localClaim)) {
+                    validationMsg.add(String.format(CLAIM_NOT_ALLOWED, claimUri, tenantDomain));
                 }
             }
         }
@@ -609,6 +619,17 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 validationMsg.add(String.format("Error in getting claim dialect for %s. ", tenantDomain));
             }
         }
+    }
+
+    private boolean isSignInAssertionSupportedByDefault(LocalClaim localClaim) {
+
+        String signInAssertionProfileClaimProperty = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX +
+                ClaimConstants.DefaultAllowedClaimProfile.SIGN_IN_ASSERTION.getProfileName() +
+                ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY;
+        if (localClaim != null) {
+            return Boolean.parseBoolean(localClaim.getClaimProperty(signInAssertionProfileClaimProperty));
+        }
+        return false;
     }
 
     /**

@@ -117,6 +117,8 @@ public class ClaimConstants {
         ERROR_CODE_INVALID_ATTRIBUTE_PROFILE("CMT-600015", "Invalid attribute profile name."),
         ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT("CMT-60016",
                 "Adding claims to dialect %s is not allowed"),
+        ERROR_CODE_LOCAL_CLAIM_REQUESTED_IN_APPLICATIONS("CMT-60017", "Unable to disable sign-in " +
+                "assertion profile for claim %s as it is requested by applications."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
@@ -195,7 +197,8 @@ public class ClaimConstants {
 
         CONSOLE("console"),
         END_USER("endUser"),
-        SELF_REGISTRATION("selfRegistration");
+        SELF_REGISTRATION("selfRegistration"),
+        SIGN_IN_ASSERTION("signInAssertion");
 
         private final String profileName;
 
