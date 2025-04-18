@@ -19,10 +19,17 @@
 package org.wso2.carbon.identity.user.registration.engine.util;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCache;
@@ -38,9 +45,12 @@ import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphCon
 
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.user.registration.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
 
@@ -103,13 +113,17 @@ public class RegistrationFlowEngineUtils {
     /**
      * Initiate the registration context.
      *
-     * @param tenantDomain Tenant domain.
+     * @param tenantDomain  Tenant domain.
+     * @param callbackUrl   Callback URL.
+     * @param applicationId Application ID.
      * @return Registration context.
+     * @throws RegistrationEngineException Registration framework exception.
      */
-    public static RegistrationContext initiateContext(String tenantDomain)
+    public static RegistrationContext initiateContext(String tenantDomain, String callbackUrl, String applicationId)
             throws RegistrationEngineException {
 
         try {
+            RegistrationContext context = new RegistrationContext();
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             RegistrationGraphConfig graphConfig =
                     RegistrationFlowEngineDataHolder.getInstance().getRegistrationFlowMgtService()
@@ -118,11 +132,19 @@ public class RegistrationFlowEngineUtils {
             if (graphConfig == null) {
                 throw handleServerException(ERROR_CODE_REG_FLOW_NOT_FOUND, tenantDomain);
             }
-            RegistrationContext context = new RegistrationContext();
             context.setTenantDomain(tenantDomain);
             context.setRegGraph(graphConfig);
             context.setContextIdentifier(UUID.randomUUID().toString());
+            context.setApplicationId(applicationId);
+            if (StringUtils.isNotEmpty(callbackUrl)) {
+                context.setCallbackUrl(callbackUrl);
+            } else {
+                context.setCallbackUrl(ServiceURLBuilder.create().addPath(DEFAULT_REGISTRATION_CALLBACK).build()
+                                               .getAbsolutePublicURL());
+            }
             return context;
+        } catch (URLBuilderException e) {
+            throw handleServerException(ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE, tenantDomain);
         } catch (IdentityRuntimeException e) {
             throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         } catch (RegistrationFrameworkException e) {
@@ -205,5 +227,49 @@ public class RegistrationFlowEngineUtils {
     public static String buildMyAccountAccessURL(String tenantDomain) {
 
         return ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig(tenantDomain);
+    }
+
+    /**
+     * Resolve the registration completion redirection URL.
+     *
+     * @param context   Registration context.
+     * @return  Redirection URL.
+     * @throws RegistrationEngineServerException    Registration framework exception.
+     */
+    public static String resolveCompletionRedirectionUrl(RegistrationContext context)
+            throws RegistrationEngineServerException {
+
+        String redirectionUrl = getApplicationAccessUrl(context.getTenantDomain(), context.getApplicationId());
+
+        // If the application access URL is not available, we will use the MyAccount access URL.
+        if (StringUtils.isEmpty(redirectionUrl)) {
+            redirectionUrl = buildMyAccountAccessURL(context.getTenantDomain());
+        }
+        return redirectionUrl;
+    }
+
+    /**
+     * Get the application access URL.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @param applicationId Application ID.
+     * @return Application access URL.
+     * @throws RegistrationEngineServerException Registration framework exception.
+     */
+    private static String getApplicationAccessUrl(String tenantDomain, String applicationId)
+            throws RegistrationEngineServerException {
+
+        ApplicationBasicInfo application;
+        ApplicationManagementService applicationManagementService =
+                RegistrationFlowEngineDataHolder.getInstance().getApplicationManagementService();
+        try {
+            application = applicationManagementService.getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
+            if (application != null) {
+                return application.getAccessUrl();
+            }
+        } catch (IdentityApplicationManagementException e) {
+            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, applicationId, tenantDomain);
+        }
+        return null;
     }
 }
