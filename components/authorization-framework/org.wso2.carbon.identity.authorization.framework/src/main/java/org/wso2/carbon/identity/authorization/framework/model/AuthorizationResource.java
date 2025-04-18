@@ -43,6 +43,16 @@ public class AuthorizationResource {
     }
 
     /**
+     * Constructs an {@code AuthorizationResource} object with the resource object type for search requests.
+     *
+     * @param resourceType The type of the resource object.
+     */
+    public AuthorizationResource(String resourceType) {
+
+        this.resourceType = resourceType;
+    }
+
+    /**
      * Sets the properties of the resource object.
      *
      * @param properties The properties of the resource object.
