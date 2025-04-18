@@ -24,10 +24,14 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
+import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.DiscoverableGroup;
 import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
@@ -36,7 +40,9 @@ import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
@@ -49,6 +55,7 @@ import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,6 +80,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  * Test class for ApplicationDAOImpl.
  */
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
+@WithCarbonHome
 public class ApplicationDAOImplTest {
 
     private static final String DEFAULT_USER_STORE_DOMAIN = "PRIMARY";
@@ -417,6 +425,82 @@ public class ApplicationDAOImplTest {
                 .getApplication("test-update-fragment-app", SUPER_TENANT_DOMAIN_NAME);
         assertEquals(serviceProvider2.getApplicationName(), "test-update-fragment-app");
         assertEquals(serviceProvider2.getAssociatedRolesConfig().getRoles().length, 0);
+    }
+
+    @Test(description = "Test isClaimRequestedByAnySp when the claim is requested by at least one SP using DAO methods")
+    public void testIsClaimRequestedByAnySpWhenRequestedClaimsExist() throws Exception {
+
+        String claimUri = "http://wso2.org/claims/email";
+
+        MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class);
+        PrivilegedCarbonContext mockedPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockedPrivilegedCarbonContext);
+        when(mockedPrivilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
+        when(mockedPrivilegedCarbonContext.getUsername()).thenReturn(USERNAME);
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("SampleApp");
+        serviceProvider.setDiscoverable(true);
+        serviceProvider.setApplicationVersion("v1.0.0");
+        serviceProvider.setApplicationID(applicationDAO.createApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
+
+        Claim claim = new Claim();
+        claim.setClaimUri(claimUri);
+
+        ClaimMapping claimMapping = new ClaimMapping();
+        claimMapping.setLocalClaim(claim);
+        claimMapping.setRemoteClaim(claim);
+        claimMapping.setRequested(true);
+
+        ClaimConfig claimConfig = new ClaimConfig();
+        claimConfig.setClaimMappings(new ClaimMapping[] { claimMapping });
+
+        serviceProvider.setClaimConfig(claimConfig);
+        applicationDAO.updateApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+
+        boolean result = applicationDAO.isClaimRequestedByAnySp(null, claimUri, SUPER_TENANT_ID);
+        assertTrue(result, "Expected the claim to be requested by at least one SP.");
+
+        applicationDAO.deleteApplication("SampleApp");
+        mockedCarbonContext.close();
+    }
+
+    @Test(description = "Test isClaimRequestedByAnySp when the claim is not requested by any SP using DAO methods")
+    public void testIsClaimRequestedByAnySpWhenClaimsAreNotRequested() throws Exception {
+
+        String claimUri = "http://wso2.org/claims/username";
+
+        MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class);
+        PrivilegedCarbonContext mockedPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockedPrivilegedCarbonContext);
+        when(mockedPrivilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
+        when(mockedPrivilegedCarbonContext.getUsername()).thenReturn(USERNAME);
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("SampleApp");
+        serviceProvider.setDiscoverable(true);
+        serviceProvider.setApplicationVersion("v1.0.0");
+        serviceProvider.setApplicationID(applicationDAO.createApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
+
+        boolean result = applicationDAO.isClaimRequestedByAnySp(null, claimUri, SUPER_TENANT_ID);
+        assertFalse(result, "Expected the claim not to be requested by any SP.");
+
+        applicationDAO.deleteApplication("SampleApp");
+        mockedCarbonContext.close();
+    }
+
+    @Test(description = "Test isClaimRequestedByAnySp when the database connection is null using DAO methods")
+    public void testIsClaimRequestedByAnySpWithConnection() throws Exception {
+
+        String claimUri = "http://wso2.org/claims/email";
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            boolean result = applicationDAO.isClaimRequestedByAnySp(connection, claimUri, SUPER_TENANT_ID);
+            assertFalse(result, "Expected the claim to be requested by at least one SP.");
+        }
     }
 
     /**
