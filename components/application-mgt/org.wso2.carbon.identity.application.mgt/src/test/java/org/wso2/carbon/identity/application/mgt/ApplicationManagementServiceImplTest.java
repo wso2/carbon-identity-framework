@@ -76,6 +76,9 @@ import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtE
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtServerException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.ApplicationCertificateManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
@@ -143,6 +146,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
@@ -222,6 +226,7 @@ public class ApplicationManagementServiceImplTest {
     private CertificateMgtServerException serverException;
     private CertificateMgtClientException clientException;
     private OrganizationManager organizationManager;
+    private ClaimMetadataManagementService claimMetadataManagementService;
     private String rootAppId;
     private String l1AppId;
     private String l2AppId;
@@ -266,6 +271,10 @@ public class ApplicationManagementServiceImplTest {
 
         organizationManager = mock(OrganizationManager.class);
         ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+
+        claimMetadataManagementService = mock(ClaimMetadataManagementService.class);
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setClaimMetadataManagementService(claimMetadataManagementService);
     }
 
     @DataProvider(name = "addApplicationDataProvider")
@@ -332,7 +341,7 @@ public class ApplicationManagementServiceImplTest {
     @Test(dataProvider = "addApplicationNullAppNameDataProvider")
     public void testAddApplicationWithNullAppName(Object serviceProvider, String tenantDomain, String username) {
 
-        Assert.assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
+        assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
                 addApplication((ServiceProvider) serviceProvider, tenantDomain, username));
     }
 
@@ -354,7 +363,7 @@ public class ApplicationManagementServiceImplTest {
     @Test(dataProvider = "addApplicationInvalidAppNameDataProvider")
     public void testAddApplicationWithInvalidAppName(Object serviceProvider, String tenantDomain, String username) {
 
-        Assert.assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
+        assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
                 addApplication((ServiceProvider) serviceProvider, tenantDomain, username));
     }
 
@@ -380,7 +389,7 @@ public class ApplicationManagementServiceImplTest {
         applicationManagementService.addApplication((ServiceProvider) serviceProvider, tenantDomain, username);
 
         try {
-            Assert.assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
+            assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
                     addApplication((ServiceProvider) newServiceProvider, tenantDomain, username));
         } finally {
             applicationManagementService.deleteApplication(((ServiceProvider) serviceProvider).getApplicationName(),
@@ -1841,20 +1850,20 @@ public class ApplicationManagementServiceImplTest {
         // Server exceptions while retrieving ancestor organization ids of level 2 organization.
         when(organizationManager.getAncestorOrganizationIds(L2_ORG_ID))
                 .thenThrow(OrganizationManagementServerException.class);
-        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+        assertThrows(IdentityApplicationManagementException.class, () -> {
             applicationManagementService.getAncestorAppIds(l2AppId, L2_ORG_ID);
         });
 
         // Server exceptions while retrieving ancestor organization ids of level 1 organization.
         when(organizationManager.getAncestorOrganizationIds(L1_ORG_ID))
                 .thenThrow(OrganizationManagementServerException.class);
-        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+        assertThrows(IdentityApplicationManagementException.class, () -> {
             applicationManagementService.getAncestorAppIds(l1AppId, L1_ORG_ID);
         });
 
         // Server exceptions while resolving tenant domain of root organization.
         when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenThrow(OrganizationManagementException.class);
-        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+        assertThrows(IdentityApplicationManagementException.class, () -> {
             applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
         });
     }
@@ -1957,6 +1966,36 @@ public class ApplicationManagementServiceImplTest {
                 assertEquals(userDomainArgumentCaptor.getValue(), DEFAULT_DOMAIN_NAME);
             }
         }
+    }
+    @Test
+    public void testGetAllLocalClaims() throws IdentityApplicationManagementException, ClaimMetadataException {
+
+        String tenantDomain = "sampleTenantDomain";
+        String claim1 = "http://wso2.org/claims/email";
+        String claim2 = "http://wso2.org/claims/username";
+        List<LocalClaim> mockClaims = Arrays.asList(
+                new LocalClaim(claim1),
+                new LocalClaim(claim2)
+        );
+        when(claimMetadataManagementService.getLocalClaims(tenantDomain)).thenReturn(mockClaims);
+
+        List<LocalClaim> result = applicationManagementService.getAllLocalClaims(tenantDomain);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.size(), 2);
+        Assert.assertEquals(result.get(0).getClaimURI(), claim1);
+        Assert.assertEquals(result.get(1).getClaimURI(), claim2);
+    }
+
+    @Test(expectedExceptions = IdentityApplicationManagementException.class)
+    public void testGetAllLocalClaimsWithException() throws ClaimMetadataException {
+
+        String tenantDomain = "sampleTenantDomain";
+        when(claimMetadataManagementService.getLocalClaims(tenantDomain))
+                .thenThrow(new IdentityApplicationManagementException("Error while reading system claims"));
+        assertThrows(
+                IdentityApplicationManagementException.class,
+                () -> applicationManagementService.getAllLocalClaims(tenantDomain)
+        );
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
