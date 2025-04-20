@@ -1046,19 +1046,19 @@ public class IdPManagementDAO {
                 if (IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
                     isSmsUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
                 }
-                if(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(property.getName())) {
+                if (IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(property.getName())) {
                     isAdminForcePasswordResetEmailLinkEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
                 }
-                if(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(property.getName())) {
+                if (IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(property.getName())) {
                     isAdminForcePasswordResetEmailOTPEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
                 }
-                if(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY.equals(property.getName())) {
+                if (IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY.equals(property.getName())) {
                     isAdminForcePasswordResetSMSOTPEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
                 }
-                if(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(property.getName())) {
+                if (IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(property.getName())) {
                     isAdminForcePasswordResetOfflineEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
                 }
