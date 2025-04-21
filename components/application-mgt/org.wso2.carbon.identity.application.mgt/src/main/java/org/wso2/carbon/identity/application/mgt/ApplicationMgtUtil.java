@@ -1129,6 +1129,32 @@ public class ApplicationMgtUtil {
     }
 
     /**
+     * This method use to replace the hostname and port with placeholders of URLs.
+     *
+     * @param absoluteUrl The absolute URL which need to be modified.
+     * @param appName     The application name.
+     * @return The URL which origin replaced placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String replaceUrlOriginWithPlaceholders(String absoluteUrl, String appName)
+            throws URLBuilderException {
+
+        if (StringUtils.isEmpty(appName)) {
+            return replaceUrlOriginWithPlaceholders(absoluteUrl);
+        }
+        String basePath = StringUtils.EMPTY;
+        if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
+            basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+        } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            basePath = IdentityUtil.getProperty(MYACCOUNT_ACCESS_ORIGIN);
+        }
+        if (StringUtils.isEmpty(basePath)) {
+            return replaceUrlOriginWithPlaceholders(absoluteUrl);
+        }
+        return StringUtils.replace(absoluteUrl, basePath, BASE_URL_PLACEHOLDER);
+    }
+
+    /**
      * This method use to replace placeholders with the hostname and port of URLs.
      *
      * @param absoluteUrl     The URL which need to resolve from placeholders.
