@@ -36,9 +36,12 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Client which retrieves application data required by endpoints.
@@ -73,37 +76,49 @@ public class ApplicationDataRetrievalClient {
                             Encode.forUriComponent(applicationName));
             setAuthorizationHeader(request);
 
-            return httpclient.execute(request, response -> {
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-
-                    JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
-                    if (applications.length() != 1) {
-                        return StringUtils.EMPTY;
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
                     }
+                }
+                return null;
+            });
 
-                    JSONObject application = (JSONObject) applications.get(0);
-                    if (application.has(ACCESS_URL_KEY)) {
-                        return application.getString(ACCESS_URL_KEY);
-                    }
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
+
+                JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
+                if (applications.length() != 1) {
+                    return StringUtils.EMPTY;
+                }
+
+                JSONObject application = (JSONObject) applications.get(0);
+                if (application.has(ACCESS_URL_KEY)) {
+                    return application.getString(ACCESS_URL_KEY);
+                }
 
                     /*
                     If access URL is not stored in the DB but resolved from a listener, need to get the access url by
                     invoking application get by id.
                      */
-                    if (application.has(APP_ID)) {
-                        try {
-                            return getApplicationAccessURLByAppId(tenant, application.getString(APP_ID));
-                        } catch (ApplicationDataRetrievalClientException e) {
-                            throw new RuntimeException(e);
-                        }
+                if (application.has(APP_ID)) {
+                    try {
+                        return getApplicationAccessURLByAppId(tenant, application.getString(APP_ID));
+                    } catch (ApplicationDataRetrievalClientException e) {
+                        throw new RuntimeException(e);
                     }
                 }
+            }
 
-                return StringUtils.EMPTY;
-            });
-
+            return StringUtils.EMPTY;
         } catch (RuntimeException | IOException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting access URL of " + applicationName + " in tenant : " + tenant;
@@ -131,23 +146,36 @@ public class ApplicationDataRetrievalClient {
                             Encode.forUriComponent(applicationName) + APP_ENABLED_STATE_QUERY);
             setAuthorizationHeader(request);
 
-            return httpclient.execute(request, response -> {
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
-                    if (applications.length() != 1) {
-                        return false;
-                    }
-
-                    JSONObject application = (JSONObject) applications.get(0);
-                    if (application.has(APP_ENABLED_STATE_KEY)) {
-                        return application.getBoolean(APP_ENABLED_STATE_KEY);
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
                     }
                 }
-                return false;
+                return null;
             });
 
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
+                JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
+                if (applications.length() != 1) {
+                    return false;
+                }
+
+                JSONObject application = (JSONObject) applications.get(0);
+                if (application.has(APP_ENABLED_STATE_KEY)) {
+                    return application.getBoolean(APP_ENABLED_STATE_KEY);
+                }
+            }
+
+            return false;
         } catch (IOException | JSONException e) {
             String msg = "Error while getting enabled status of " + applicationName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
@@ -172,14 +200,28 @@ public class ApplicationDataRetrievalClient {
             HttpGet request = new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
 
-            return httpclient.execute(request, response -> {
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    return jsonResponse.getString(ACCESS_URL_KEY);
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
                 }
-                return StringUtils.EMPTY;
+                return null;
             });
+
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
+                return jsonResponse.getString(ACCESS_URL_KEY);
+            }
+
+            return StringUtils.EMPTY;
         } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting access URL of " + applicationId + " in tenant : " + tenant;
@@ -206,14 +248,28 @@ public class ApplicationDataRetrievalClient {
                     new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
 
-            return httpclient.execute(request, response -> {
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    return jsonResponse.getString(APP_NAME);
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
                 }
-                return StringUtils.EMPTY;
+                return null;
             });
+
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
+                return jsonResponse.getString(APP_NAME);
+            }
+
+            return StringUtils.EMPTY;
         } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting application name for " + applicationId + " in tenant : " + tenant;
@@ -241,20 +297,34 @@ public class ApplicationDataRetrievalClient {
                             Encode.forUriComponent(applicationName));
             setAuthorizationHeader(request);
 
-            return httpclient.execute(request, response -> {
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
-                    if (applications.length() != 1) {
-                        return StringUtils.EMPTY;
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
                     }
-
-                    JSONObject application = (JSONObject) applications.get(0);
-                    return application.getString(APP_ID);
                 }
-                return StringUtils.EMPTY;
+                return null;
             });
+
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
+                JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
+                if (applications.length() != 1) {
+                    return StringUtils.EMPTY;
+                }
+
+                JSONObject application = (JSONObject) applications.get(0);
+                return application.getString(APP_ID);
+            }
+
+            return StringUtils.EMPTY;
         } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting application ID for " + applicationName + " in tenant : " + tenant;

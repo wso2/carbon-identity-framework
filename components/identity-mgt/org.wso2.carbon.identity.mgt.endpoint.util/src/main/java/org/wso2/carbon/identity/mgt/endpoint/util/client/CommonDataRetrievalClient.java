@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -33,7 +33,9 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -63,23 +65,34 @@ public class CommonDataRetrievalClient {
             HttpGet get = new HttpGet(uri);
             setAuthorizationHeader(get);
 
-            return httpclient.execute(get, response -> {
+            String responseString = httpclient.execute(get, response -> {
                 if (log.isDebugEnabled()) {
                     log.debug("Response code for the checkProperty call in tenant " + tenantDomain
                             + "for api " + apiContextPath + " is " + response.getCode());
                 }
+
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    HttpEntity entity = response.getEntity();
-                    if (entity != null) {
-                        JSONObject jsonResponse = new JSONObject(new JSONTokener(new InputStreamReader(
-                                response.getEntity().getContent(), StandardCharsets.UTF_8)));
-                        if (jsonResponse.has(propertyName)) {
-                            return jsonResponse.getBoolean(propertyName);
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
                         }
+                        return content.toString();
                     }
                 }
-                return defaultValue;
+                return null;
             });
+
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
+                if (jsonResponse.has(propertyName)) {
+                    return jsonResponse.getBoolean(propertyName);
+                }
+            }
+            return defaultValue;
         } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while checking property in tenant " + tenantDomain + "for api " + apiContextPath;

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -28,8 +29,11 @@ import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Client to interact with the Admin Advisory Management API.
@@ -57,16 +61,29 @@ public class AdminAdvisoryDataRetrievalClient {
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
             HttpGet request = new HttpGet(uri);
 
-            return httpclient.execute(request, response -> {
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    return new JSONObject(new JSONTokener(new InputStreamReader(response
-                            .getEntity().getContent())));
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
                 }
-                JSONObject defaultBanner = new JSONObject();
-                defaultBanner.put(ENABLE_BANNER, false);
-                defaultBanner.put(BANNER_CONTENT, DEFAULT_BANNER_CONTENT);
-                return defaultBanner;
+                return null;
             });
+
+            if (!StringUtils.isEmpty(responseString)) {
+                return new JSONObject(new JSONTokener(responseString));
+            }
+            JSONObject defaultBanner = new JSONObject();
+            defaultBanner.put(ENABLE_BANNER, false);
+            defaultBanner.put(BANNER_CONTENT, DEFAULT_BANNER_CONTENT);
+            return defaultBanner;
         } catch (IOException e) {
             String msg = "Error while getting admin advisory banner preference for tenant : " + tenant;
             LOG.debug(msg, e);

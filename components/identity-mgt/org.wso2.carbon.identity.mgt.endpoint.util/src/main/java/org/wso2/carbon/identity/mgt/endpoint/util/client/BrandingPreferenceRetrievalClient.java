@@ -36,10 +36,13 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Client to interact with the Tenant branding preferences API.
@@ -106,15 +109,28 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            return httpclient.execute(request, response -> {
-                JSONObject jsonResponse = new JSONObject();
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
                 }
-
-                return jsonResponse;
+                return null;
             });
+
+            JSONObject jsonResponse = new JSONObject();
+            if (!StringUtils.isEmpty(responseString)) {
+                jsonResponse = new JSONObject(new JSONTokener(responseString));
+            }
+
+            return jsonResponse;
         } catch (IOException e) {
             String msg = "Error while getting branding preference for tenant : " + tenant;
 
@@ -177,15 +193,28 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            return httpclient.execute(request, response -> {
-                JSONObject jsonResponse = new JSONObject();
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
                 }
-
-                return jsonResponse;
+                return null;
             });
+
+            JSONObject jsonResponse = new JSONObject();
+            if (!StringUtils.isEmpty(responseString)) {
+                jsonResponse = new JSONObject(new JSONTokener(responseString));
+            }
+
+            return jsonResponse;
         } catch (IOException e) {
             String msg = "Error while getting custom text preference for tenant : " + tenant;
 

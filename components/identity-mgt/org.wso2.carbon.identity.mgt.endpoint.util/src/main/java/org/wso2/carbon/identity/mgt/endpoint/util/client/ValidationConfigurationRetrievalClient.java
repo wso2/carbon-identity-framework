@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -34,9 +35,12 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Client which retrieves validation configurations.
@@ -80,14 +84,26 @@ public class ValidationConfigurationRetrievalClient {
             HttpGet request = new HttpGet(getValidationMgtEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 
-            return httpclient.execute(request, response -> {
+            String responseString = httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONArray jsonResponse = new JSONArray(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    return jsonResponse;
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
                 }
                 return null;
             });
+
+            if (!StringUtils.isEmpty(responseString)) {
+                return new JSONArray(new JSONTokener(responseString));
+            }
+            return null;
         } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting validation configurations for tenant: " + tenantDomain;

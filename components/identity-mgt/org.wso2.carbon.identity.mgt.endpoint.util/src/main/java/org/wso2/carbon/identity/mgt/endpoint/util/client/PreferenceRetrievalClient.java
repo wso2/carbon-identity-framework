@@ -382,7 +382,7 @@ public class PreferenceRetrievalClient {
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
-            String responseString = httpclient.execute(get, response -> {
+            String responseStringGet = httpclient.execute(get, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
                     try (InputStream inputStream = response.getEntity().getContent();
                          InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
@@ -400,9 +400,8 @@ public class PreferenceRetrievalClient {
 
             String governanceId = StringUtils.EMPTY;
 
-            if (responseString != null) {
-                JSONArray jsonResponse = new JSONArray(
-                        new JSONTokener(responseString));
+            if (!StringUtils.isEmpty(responseStringGet)) {
+                JSONArray jsonResponse = new JSONArray(new JSONTokener(responseStringGet));
                 for (int itemIndex = 0, totalObject = jsonResponse.length();
                      itemIndex < totalObject; itemIndex++) {
                     JSONObject config = jsonResponse.getJSONObject(itemIndex);
@@ -418,28 +417,42 @@ public class PreferenceRetrievalClient {
             HttpGet getConnectorConfig = new HttpGet(endpoint);
             setAuthorizationHeader(getConnectorConfig);
 
-            return httpclient.execute(getConnectorConfig, response -> {
+            String responseStringGetConnectorConfig = httpclient.execute(getConnectorConfig, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    JSONArray connectorArray = jsonResponse.getJSONArray(CONNECTORS);
-                    for (int itemIndex = 0, totalObject = connectorArray.length();
-                         itemIndex < totalObject; itemIndex++) {
-                        JSONObject config = connectorArray.getJSONObject(itemIndex);
-                        if (StringUtils.equalsIgnoreCase(config.getString(PROPERTY_NAME), connectorName)) {
-                            JSONArray responseProperties = config.getJSONArray(PROPERTIES);
-                            for (int propIndex = 0, totalProp = responseProperties.length();
-                                 propIndex < totalProp; propIndex++) {
-                                JSONObject property = responseProperties.getJSONObject(propIndex);
-                                if (StringUtils.equalsIgnoreCase(property.getString(PROPERTY_NAME), propertyName)) {
-                                    return Optional.ofNullable(property.getString(PROPERTY_VALUE));
-                                }
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
+                }
+                return null;
+            });
+
+            if (!StringUtils.isEmpty(responseStringGetConnectorConfig)) {
+                JSONObject jsonResponse = new JSONObject(
+                        new JSONTokener(responseStringGetConnectorConfig));
+                JSONArray connectorArray = jsonResponse.getJSONArray(CONNECTORS);
+                for (int itemIndex = 0, totalObject = connectorArray.length();
+                     itemIndex < totalObject; itemIndex++) {
+                    JSONObject config = connectorArray.getJSONObject(itemIndex);
+                    if (StringUtils.equalsIgnoreCase(config.getString(PROPERTY_NAME), connectorName)) {
+                        JSONArray responseProperties = config.getJSONArray(PROPERTIES);
+                        for (int propIndex = 0, totalProp = responseProperties.length();
+                             propIndex < totalProp; propIndex++) {
+                            JSONObject property = responseProperties.getJSONObject(propIndex);
+                            if (StringUtils.equalsIgnoreCase(property.getString(PROPERTY_NAME), propertyName)) {
+                                return Optional.ofNullable(property.getString(PROPERTY_VALUE));
                             }
                         }
                     }
                 }
-                return Optional.empty();
-            });
+            }
+            return Optional.empty();
 
         } catch (IOException e) {
             // Logging and throwing since this is a client.
@@ -494,7 +507,7 @@ public class PreferenceRetrievalClient {
             });
 
 
-            if (responseString != null) {
+            if (!StringUtils.isEmpty(responseString)) {
                 JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));
                 JSONObject connector = (JSONObject) jsonResponse.get(0);
                 JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
@@ -507,7 +520,6 @@ public class PreferenceRetrievalClient {
                     }
                 }
             }
-
             return defaultValue;
         } catch (IOException e) {
             // Logging and throwing since this is a client.
@@ -562,9 +574,8 @@ public class PreferenceRetrievalClient {
                 return null;
             });
 
-            if (responseString != null) {
-                JSONArray jsonResponse = new JSONArray(
-                        new JSONTokener(responseString));
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));
                 JSONObject connector = (JSONObject) jsonResponse.get(0);
                 JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
                 for (int itemIndex = 0, totalObject = responseProperties.length(); itemIndex < totalObject; itemIndex++) {
