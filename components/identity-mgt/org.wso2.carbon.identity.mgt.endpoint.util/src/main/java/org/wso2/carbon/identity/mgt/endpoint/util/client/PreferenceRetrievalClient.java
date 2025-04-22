@@ -38,14 +38,15 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Client which retrieves preferences.
@@ -376,27 +377,42 @@ public class PreferenceRetrievalClient {
                                              String propertyName)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             String endpoint = getUserGovernanceEndpoint(tenant);
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
-            String governanceId = httpclient.execute(get, response -> {
+            String responseString = httpclient.execute(get, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONArray jsonResponse = new JSONArray(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    for (int itemIndex = 0, totalObject = jsonResponse.length();
-                         itemIndex < totalObject; itemIndex++) {
-                        JSONObject config = jsonResponse.getJSONObject(itemIndex);
-                        if (StringUtils.equalsIgnoreCase(
-                                jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
-                            return config.getString(PROPERTY_ID);
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
                         }
+                        return content.toString();
                     }
                 }
-                return StringUtils.EMPTY;
+                return null;
             });
 
+            String governanceId = StringUtils.EMPTY;
+
+            if (responseString != null) {
+                JSONArray jsonResponse = new JSONArray(
+                        new JSONTokener(responseString));
+                for (int itemIndex = 0, totalObject = jsonResponse.length();
+                     itemIndex < totalObject; itemIndex++) {
+                    JSONObject config = jsonResponse.getJSONObject(itemIndex);
+                    if (StringUtils.equalsIgnoreCase(
+                            jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
+                        governanceId = config.getString(PROPERTY_ID);
+                        break;
+                    }
+                }
+            }
 
             endpoint = endpoint + "/" + governanceId;
             HttpGet getConnectorConfig = new HttpGet(endpoint);
@@ -447,7 +463,7 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -460,23 +476,39 @@ public class PreferenceRetrievalClient {
             post.setEntity(new StringEntity(main.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-            return httpclient.execute(post, response -> {
+
+            String responseString = httpclient.execute(post, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONArray jsonResponse = new JSONArray(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    JSONObject connector = (JSONObject) jsonResponse.get(0);
-                    JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
-                    for (int itemIndex = 0, totalObject = responseProperties.length();
-                         itemIndex < totalObject; itemIndex++) {
-                        JSONObject config = responseProperties.getJSONObject(itemIndex);
-                        if (StringUtils.equalsIgnoreCase(
-                                responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
-                            return Boolean.valueOf(config.getString(PROPERTY_VALUE));
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
                         }
+                        return content.toString();
                     }
                 }
-                return defaultValue;
+                return null;
             });
+
+
+            if (responseString != null) {
+                JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));
+                JSONObject connector = (JSONObject) jsonResponse.get(0);
+                JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
+                for (int itemIndex = 0, totalObject = responseProperties.length();
+                     itemIndex < totalObject; itemIndex++) {
+                    JSONObject config = responseProperties.getJSONObject(itemIndex);
+                    if (StringUtils.equalsIgnoreCase(
+                            responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
+                        return Boolean.valueOf(config.getString(PROPERTY_VALUE));
+                    }
+                }
+            }
+
+            return defaultValue;
         } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while checking preference for connector : " + connectorName + " in tenant : " + tenant;
@@ -499,7 +531,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -514,22 +546,36 @@ public class PreferenceRetrievalClient {
             post.setEntity(new StringEntity(requestBody.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
 
-            return httpclient.execute(post, response -> {
+            String responseString = httpclient.execute(post, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    JSONArray jsonResponse = new JSONArray(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    JSONObject connector = (JSONObject) jsonResponse.get(0);
-                    JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
-                    for (int itemIndex = 0, totalObject = responseProperties.length(); itemIndex < totalObject; itemIndex++) {
-                        JSONObject config = responseProperties.getJSONObject(itemIndex);
-                        if (Boolean.valueOf(config.getString(PROPERTY_VALUE))) {
-                            return true;
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
                         }
+                        return content.toString();
                     }
-                    return false;
                 }
-                return false;
+                return null;
             });
+
+            if (responseString != null) {
+                JSONArray jsonResponse = new JSONArray(
+                        new JSONTokener(responseString));
+                JSONObject connector = (JSONObject) jsonResponse.get(0);
+                JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
+                for (int itemIndex = 0, totalObject = responseProperties.length(); itemIndex < totalObject; itemIndex++) {
+                    JSONObject config = responseProperties.getJSONObject(itemIndex);
+                    if (Boolean.valueOf(config.getString(PROPERTY_VALUE))) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while check preference for connector : " + connectorName + " in tenant : " + tenant;
