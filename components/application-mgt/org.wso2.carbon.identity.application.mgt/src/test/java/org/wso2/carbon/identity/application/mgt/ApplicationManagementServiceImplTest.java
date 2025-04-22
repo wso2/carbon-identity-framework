@@ -1991,7 +1991,7 @@ public class ApplicationManagementServiceImplTest {
 
         String tenantDomain = "sampleTenantDomain";
         when(claimMetadataManagementService.getLocalClaims(tenantDomain))
-                .thenThrow(new IdentityApplicationManagementException("Error while reading system claims"));
+                .thenThrow(new ClaimMetadataException("Error while reading system claims"));
         assertThrows(
                 IdentityApplicationManagementException.class,
                 () -> applicationManagementService.getAllLocalClaims(tenantDomain)
