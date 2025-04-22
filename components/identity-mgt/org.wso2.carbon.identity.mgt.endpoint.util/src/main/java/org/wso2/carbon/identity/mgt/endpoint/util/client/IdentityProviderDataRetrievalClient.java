@@ -75,7 +75,7 @@ public class IdentityProviderDataRetrievalClient {
     public String getIdPImage(String tenant, String idpName)
             throws IdentityProviderDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             HttpGet request = new HttpGet(getIdPEndpoint(tenant) + IDP_FILTER +
                             Encode.forUriComponent(idpName));
             setAuthorizationHeader(request);
@@ -209,7 +209,7 @@ public class IdentityProviderDataRetrievalClient {
      */
     private JSONObject executePath(String tenant, String path) throws IdentityProviderDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             String url = getEndpoint(tenant, path);
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);

@@ -55,7 +55,7 @@ public class AuthenticatorDataRetrievalClientTest extends RetrievalClientBaseTes
              MockedStatic<HTTPClientUtils> httpClientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpClientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
+            httpClientImpl.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
 
             Map<String, String> configs = authenticatorDataRetrievalClient.getAuthenticatorConfig(SUPER_TENANT_DOMAIN,
                     AUTHENTICATOR_IDENTIFIER);

@@ -51,7 +51,7 @@ public class ValidationConfigurationRetrievalClientTest extends RetrievalClientB
             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
+            httpclientUtil.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
             JSONArray jsonArray = validationConfigurationRetrievalClient.getConfigurations(SUPER_TENANT_DOMAIN);
             JSONObject jsonObject = (JSONObject) jsonArray.get(0);
             jsonArray = (JSONArray) jsonObject.get("rules");

@@ -50,7 +50,7 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
              MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
             JSONObject jsonObject = preferenceRetrievalClient.getPreference(SUPER_TENANT_DOMAIN, "ORG", null, "en-US");
             Assert.equals("centered",
                     ((JSONObject) ((JSONObject) jsonObject.get("preference")).get("layout")).get("activeLayout")
@@ -66,7 +66,7 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
              MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
             preferenceRetrievalClient.getCustomTextPreference(SUPER_TENANT_DOMAIN, "ORG", "", "", "en-US");
         }
     }

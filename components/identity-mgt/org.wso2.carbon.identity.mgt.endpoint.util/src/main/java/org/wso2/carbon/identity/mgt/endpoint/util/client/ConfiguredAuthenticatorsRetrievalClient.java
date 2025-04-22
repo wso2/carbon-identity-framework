@@ -59,7 +59,7 @@ public class ConfiguredAuthenticatorsRetrievalClient {
     public JSONArray getConfiguredAuthenticators(String applicationId, String tenantDomain)
             throws ConfiguredAuthenticatorsRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenantDomain) + "/" + Encode.forUriComponent(applicationId) +
                             AUTHENTICATORS);

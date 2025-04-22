@@ -67,7 +67,7 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationAccessURL(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName));
@@ -125,7 +125,7 @@ public class ApplicationDataRetrievalClient {
     public boolean getApplicationEnabledStatus(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName) + APP_ENABLED_STATE_QUERY);
@@ -168,7 +168,7 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationAccessURLByAppId(String tenant, String applicationId)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             HttpGet request = new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
 
@@ -201,7 +201,7 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationName(String tenant, String applicationId)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
@@ -235,7 +235,7 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationID(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName));

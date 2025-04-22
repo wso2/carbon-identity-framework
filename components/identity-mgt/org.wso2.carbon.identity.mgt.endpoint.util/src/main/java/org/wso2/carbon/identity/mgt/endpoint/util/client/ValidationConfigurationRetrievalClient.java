@@ -76,7 +76,7 @@ public class ValidationConfigurationRetrievalClient {
     public JSONArray getConfigurations(String tenantDomain)
             throws ValidationConfigurationRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
             HttpGet request = new HttpGet(getValidationMgtEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 

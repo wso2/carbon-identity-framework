@@ -46,7 +46,7 @@ public class ConfiguredAuthenticatorsRetrievalClientTest extends RetrievalClient
              MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
             configuredAuthenticatorsRetrievalClient.getConfiguredAuthenticators("", SUPER_TENANT_DOMAIN);
         }
     }

@@ -52,7 +52,7 @@ public class AdminAdvisoryDataRetrievalClient {
      */
     public JSONObject getAdminAdvisoryBannerData(String tenant) throws AdminAdvisoryDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifierNew().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
 
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
             HttpGet request = new HttpGet(uri);

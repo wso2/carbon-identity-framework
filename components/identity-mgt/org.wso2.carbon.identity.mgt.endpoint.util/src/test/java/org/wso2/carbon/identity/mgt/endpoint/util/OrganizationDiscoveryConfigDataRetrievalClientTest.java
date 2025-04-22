@@ -52,7 +52,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClientTest extends Retrieva
              MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
             Map<String, String> result =
                     orgDiscoveryConfigDataRetrievalClient.getDiscoveryConfiguration(SUPER_TENANT_DOMAIN);
             Assert.assertEquals(result.size(), 2);

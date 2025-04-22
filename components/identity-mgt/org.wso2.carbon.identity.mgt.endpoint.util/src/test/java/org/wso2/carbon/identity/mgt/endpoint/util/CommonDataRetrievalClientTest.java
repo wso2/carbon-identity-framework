@@ -38,7 +38,7 @@ public class CommonDataRetrievalClientTest extends RetrievalClientBaseTest {
              MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifierNew).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
             commonDataRetrievalClient.checkBooleanProperty("", SUPER_TENANT_DOMAIN, "", false, true);
         }
     }
