@@ -1,6 +1,6 @@
 {
     "create": {
-        "image": "assets/images/logos/signicat.png",
+        "image": "assets/images/logos/signicat.svg",
         "header": "Signicat",
         "Subheading": "Login users with eIDs.",
         "documentation": "",

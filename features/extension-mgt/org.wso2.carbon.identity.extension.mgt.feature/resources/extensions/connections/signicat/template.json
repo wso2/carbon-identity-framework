@@ -1,6 +1,6 @@
 {
     "category": "DEFAULT",
-    "description": "Configure signicat eID provider with OpenID Connect",
+    "description": "Configure Signicat OpenID Connect",
     "docLink": "/guides/authentication/enterprise-login/",
     "templateGroup": "enterprise-protocols",
     "displayOrder": 5,
