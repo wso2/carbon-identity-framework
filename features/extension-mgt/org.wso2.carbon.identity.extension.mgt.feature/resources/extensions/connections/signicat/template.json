@@ -1,25 +1,25 @@
 {
-    "category": "DEFAULT",
-    "description": "Configure Signicat OpenID Connect",
-    "docLink": "/guides/authentication/enterprise-login/",
-    "templateGroup": "enterprise-protocols",
-    "displayOrder": 5,
     "id": "signicat",
-    "tags": [ "OIDC", "APIAuth", "eID" ],
+    "name": "Signicat",
+    "description": "Enable login for users with their eIDs.",
+    "docLink": "/guides/authentication/",
+    "image": "assets/images/logos/signicat.svg",
+    "category": "DEFAULT",
+    "displayOrder": 10,
+    "services": [],
+    "tags": [ "eID", "OIDC", "APIAuth" ],
     "idp": {
+        "name": "Signicat",
+        "description": "",
+        "image": "",
+        "isPrimary": false,
+        "isFederationHub": false,
+        "homeRealmIdentifier": "",
+        "certificate": {
+            "certificates": []
+        },
         "alias": "",
         "idpIssuerName": "",
-        "certificate": {},
-        "claims": {
-            "provisioningClaims": [],
-            "roleClaim": {
-                "uri": ""
-            },
-            "userIdClaim": {
-                "uri": ""
-            }
-        },
-        "description": "",
         "federatedAuthenticators": {
             "defaultAuthenticatorId": "T3BlbklEQ29ubmVjdEF1dGhlbnRpY2F0b3I",
             "authenticators": [
@@ -28,9 +28,35 @@
                     "isEnabled": true,
                     "properties": [
                         {
+                            "key": "commonAuthQueryParams",
+                            "displayName": "Additional Query Parameters",
+                            "description": "Additional query parameters. e.g: paramName1=value1",
+                            "type": "STRING",
+                            "displayOrder": 4,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "Scopes",
+                            "displayName": "Scope",
+                            "description": "Enter scope for the user access",
+                            "type": "STRING",
+                            "displayOrder": 3,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "openid",
+                            "subProperties": []
+                        },
+                        {
                             "key": "ClientId",
                             "displayName": "Client ID",
-                            "description": "Enter client identifier value",
+                            "description": "Enter Signicat IDP client identifier value",
                             "type": "STRING",
                             "displayOrder": 1,
                             "regex": ".*",
@@ -42,8 +68,8 @@
                         },
                         {
                             "key": "ClientSecret",
-                            "displayName": "Client Secret",
-                            "description": "Enter client secret value",
+                            "displayName": "Client secret",
+                            "description": "Enter Signicat IDP client secret value",
                             "type": "STRING",
                             "displayOrder": 2,
                             "regex": ".*",
@@ -54,7 +80,7 @@
                             "subProperties": []
                         },
                         {
-                            "key": "AuthenticationEndpointUrl",
+                            "key": "OAuth2AuthzEPUrl",
                             "displayName": "Authorization Endpoint URL",
                             "description": "Authorization Endpoint URL value",
                             "type": "STRING",
@@ -67,7 +93,7 @@
                             "subProperties": []
                         },
                         {
-                            "key": "TokenEndpointUrl",
+                            "key": "OAuth2TokenEPUrl",
                             "displayName": "Token Endpoint URL",
                             "description": "Token Endpoint URL value",
                             "type": "STRING",
@@ -82,20 +108,8 @@
                     ]
                 }
             ]
-        },
-        "homeRealmIdentifier": "",
-        "image": "",
-        "isFederationHub": false,
-        "isPrimary": false,
-        "name": "Signicat",
-        "roles": {
-            "mappings": [],
-            "outboundProvisioningRoles": []
         }
     },
-    "image": "signicat",
-    "name": "Signicat",
-    "services": [],
-    "disabled": false,
+    "type": "SOCIAL",
     "templateId": "signicat"
 }
