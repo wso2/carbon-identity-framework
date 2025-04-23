@@ -44,6 +44,9 @@ public interface CORSOriginDAO {
     List<CORSOrigin> getCORSOriginsByTenantId(int tenantId)
             throws CORSManagementServiceServerException;
 
+    List<CORSOrigin> getCORSOriginsByTenantDomain(String tenantDomain)
+            throws CORSManagementServiceServerException;
+
     /**
      * Get the CORS origins of a tenant that are associated with a specific application by application ID.
      *
