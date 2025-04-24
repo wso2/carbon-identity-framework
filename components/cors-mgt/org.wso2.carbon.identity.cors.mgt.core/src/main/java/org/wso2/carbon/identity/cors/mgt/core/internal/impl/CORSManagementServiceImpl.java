@@ -339,7 +339,6 @@ public class CORSManagementServiceImpl implements CORSManagementService {
                 mergedList.add(corsOrigin);
             }
         }
-
         return mergedList;
     }
 }
