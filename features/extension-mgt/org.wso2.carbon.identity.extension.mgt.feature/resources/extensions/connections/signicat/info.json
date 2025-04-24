@@ -1,0 +1,10 @@
+{
+    "id": "signicat",
+    "name": "Signicat",
+    "description": "Enable login for users with their eIDs.",
+    "image": "assets/images/logos/signicat.svg",
+    "category": "DEFAULT",
+    "displayOrder": 10,
+    "tags": [ "eID", "OIDC", "APIAuth" ],
+    "type": "identity-provider"
+}
