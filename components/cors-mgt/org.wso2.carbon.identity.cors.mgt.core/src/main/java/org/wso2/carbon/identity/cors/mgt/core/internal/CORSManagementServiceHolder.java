@@ -116,8 +116,7 @@ public class CORSManagementServiceHolder {
         return orgResourceResolverService;
     }
 
-    public void setOrgResourceResolverService(
-            OrgResourceResolverService orgResourceResolverService) {
+    public void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
 
         this.orgResourceResolverService = orgResourceResolverService;
     }
