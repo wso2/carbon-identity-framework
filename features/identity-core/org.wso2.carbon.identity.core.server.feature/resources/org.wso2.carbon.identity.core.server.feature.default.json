@@ -1403,9 +1403,9 @@
   "console.identity_providers.scopes.update": ["internal_idp_update"],
   "console.identity_providers.scopes.delete": ["internal_idp_delete"],
   "console.identity_providers.disabled_features": [
-    "connections.federationHub",
-    "connections.saml.artifactBinding",
-    "connections.saml.attributeConsumingServiceIndex"
+    "identityProviders.federationHub",
+    "identityProviders.saml.artifactBinding",
+    "identityProviders.saml.attributeConsumingServiceIndex"
   ],
   "console.identity_provider_groups.enabled": true,
   "console.identity_verification_providers.enabled": true,
