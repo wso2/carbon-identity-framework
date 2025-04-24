@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.cors.mgt.core.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceServerException;
 import org.wso2.carbon.identity.cors.mgt.core.internal.cache.CORSOriginByAppIdCache;
@@ -71,6 +72,17 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
         List<CORSOrigin> corsOrigins = corsOriginDAO.getCORSOriginsByTenantId(tenantId);
         addCORSOriginsToCache(corsOrigins.toArray(new CORSOrigin[0]), tenantId);
         return corsOrigins;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CORSOrigin> getCORSOriginsByTenantDomain(String tenantDomain)
+            throws CORSManagementServiceServerException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return getCORSOriginsByTenantId(tenantId);
     }
 
     /**
