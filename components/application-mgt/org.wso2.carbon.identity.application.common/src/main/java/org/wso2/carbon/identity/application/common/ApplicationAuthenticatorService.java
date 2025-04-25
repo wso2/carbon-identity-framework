@@ -153,6 +153,7 @@ public class ApplicationAuthenticatorService {
      */
     public List<LocalAuthenticatorConfig> getAllSystemDefinedLocalAuthenticators(String tenantDomain)
             throws AuthenticatorMgtException {
+
         return dao.getAllSystemLocalAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 

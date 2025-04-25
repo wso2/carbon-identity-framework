@@ -526,6 +526,8 @@ public class FrameworkServiceComponent {
             federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
             federatedAuthenticatorConfig.setTags(getTags(authenticator));
             federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+            AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
+            federatedAuthenticatorConfig.setAmrValue(fileBasedConfig.getAmrValue());
             ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
