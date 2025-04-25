@@ -114,18 +114,17 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     /**
      * Update the AMR value of the system local authenticator.
      *
-     * @param existingAuthenticatorConfig Existing local authenticator configuration.
-     * @param updatedConfig New local authenticator configuration.
+     * @param authenticatorName Name of the authenticator.
+     * @param amrValue Amr value of the authenticator.
      * @param tenantId Tenant ID.
-     * @return Updated local authenticator configuration.
      * @throws AuthenticatorMgtException If an error occurs while updating the local authenticator.
      */
     @Override
-    public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(
-            LocalAuthenticatorConfig existingAuthenticatorConfig, LocalAuthenticatorConfig updatedConfig, int tenantId)
+    public void updateSystemLocalAuthenticatorAmrValue(
+            String authenticatorName, String amrValue, int tenantId)
             throws AuthenticatorMgtException {
 
-        return dao.updateSystemLocalAuthenticatorAmrValue(existingAuthenticatorConfig, updatedConfig, tenantId);
+        dao.updateSystemLocalAuthenticatorAmrValue(authenticatorName, amrValue, tenantId);
     }
 
     /**

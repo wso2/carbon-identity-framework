@@ -113,25 +113,22 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     }
 
     @Override
-    public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(
-            LocalAuthenticatorConfig existingAuthenticatorConfig,
-            LocalAuthenticatorConfig updatedAuthenticatorConfig, int tenantId)
-            throws AuthenticatorMgtException {
+    public void updateSystemLocalAuthenticatorAmrValue(
+            String authenticatorName, String amrValue, int tenantId) throws AuthenticatorMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(Query.UPDATE_AUTHENTICATOR_AMR_VALUE_SQL,
                     statement -> {
-                        statement.setString(Column.AMR_VALUE, updatedAuthenticatorConfig.getAmrValue());
-                        statement.setString(Column.NAME, existingAuthenticatorConfig.getName());
+                        statement.setString(Column.AMR_VALUE, amrValue);
+                        statement.setString(Column.NAME, authenticatorName);
                         statement.setInt(Column.TENANT_ID, tenantId);
                     });
                 return null;
             });
 
-            return getSystemLocalAuthenticatorByName(updatedAuthenticatorConfig.getName(), tenantId);
-        } catch (TransactionException | DataAccessException e) {
+        } catch (TransactionException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e);
         }
     }
@@ -140,9 +137,9 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             throws TransactionException, DataAccessException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        SystemDefinedLocalAuthenticatorConfigDaoModel configDaoModel = jdbcTemplate.
-            fetchSingleRecord(Query.GET_SYSTEM_DEFINED_LOCAL_AUTHENTICATOR_SQL,
-                (resultSet, rowNumber) -> {
+        SystemDefinedLocalAuthenticatorConfigDaoModel configDaoModel = jdbcTemplate
+                .fetchSingleRecord(Query.GET_SYSTEM_DEFINED_LOCAL_AUTHENTICATOR_SQL,
+                (resultSet, rowNsystemAuthenticatorConfigForExceptionumber) -> {
                     LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
                     localAuthenticatorConfig.setName(resultSet.getString(Column.NAME));
                     localAuthenticatorConfig.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
@@ -276,7 +273,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template ->
-                template.executeInsert(Query.ADD_SYSTEM_LOCAL_AUTHENTICATOR_SQL,
+                template.executeInsert(Query.ADD_AUTHENTICATOR_SQL_WITH_AMR,
                     statement -> {
                         statement.setString(Column.NAME, authenticatorConfig.getName());
                         statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
@@ -287,6 +284,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         statement.setString(Column.AUTHENTICATION_TYPE, "IDENTIFICATION");
                         statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                         statement.setInt(Column.TENANT_ID, tenantId);
+                        statement.setString(Column.IMAGE_URL, (String) null);
+                        statement.setString(Column.DESCRIPTION, (String) null);
                     }, null, true));
 
             return getSystemLocalAuthenticatorByName(authenticatorConfig.getName(), tenantId);

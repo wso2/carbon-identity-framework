@@ -24,11 +24,11 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
 /**
  * Cache Entry for the system defined authenticator configurations.
  */
-public class SystemDefinedAuthenticatorCacheEntry extends CacheEntry {
+public class SystemDefinedLocalAuthenticatorCacheEntry extends CacheEntry {
 
     private LocalAuthenticatorConfig authenticatorConfig;
 
-    public SystemDefinedAuthenticatorCacheEntry(LocalAuthenticatorConfig authenticatorConfig) {
+    public SystemDefinedLocalAuthenticatorCacheEntry(LocalAuthenticatorConfig authenticatorConfig) {
 
         this.authenticatorConfig = authenticatorConfig;
     }

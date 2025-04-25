@@ -19,26 +19,26 @@
 package org.wso2.carbon.identity.application.common.cache;
 
 import org.wso2.carbon.identity.core.cache.BaseCache;
+import org.wso2.carbon.utils.CarbonUtils;
 
 /**
- * Cache for all system defined local authenticators.
+ * Cache for the system defined authenticator configurations.
  */
-public class SystemDefinedAuthenticatorsCache extends
-        BaseCache<SystemDefinedAuthenticatorsCacheKey, SystemDefinedAuthenticatorsCacheEntry> {
+public class SystemDefinedLocalAuthenticatorCache extends
+        BaseCache<SystemDefinedLocalAuthenticatorCacheKey, SystemDefinedLocalAuthenticatorCacheEntry> {
 
-    private static final String SYSTEM_DEFINED_AUTHENTICATORS_CACHE_NAME = "SystemDefinedAuthenticatorsCache";
-    private static final SystemDefinedAuthenticatorsCache INSTANCE = new SystemDefinedAuthenticatorsCache();
+    private static final String SYSTEM_DEFINED_AUTHENTICATOR_CACHE_NAME = "SystemDefinedAuthenticatorCache";
+    private static final SystemDefinedLocalAuthenticatorCache INSTANCE = new SystemDefinedLocalAuthenticatorCache();
 
-    private SystemDefinedAuthenticatorsCache() {
-        super(SYSTEM_DEFINED_AUTHENTICATORS_CACHE_NAME);
+    private SystemDefinedLocalAuthenticatorCache() {
+        super(SYSTEM_DEFINED_AUTHENTICATOR_CACHE_NAME);
     }
 
-    /**
-     * Get the instance of the SystemDefinedAuthenticatorsCache.
-     *
-     * @return SystemDefinedAuthenticatorsCache instance.
-     */
-    public static SystemDefinedAuthenticatorsCache getInstance() {
+    public static SystemDefinedLocalAuthenticatorCache getInstance() {
+
+        CarbonUtils.checkSecurity();
         return INSTANCE;
     }
+
+
 }

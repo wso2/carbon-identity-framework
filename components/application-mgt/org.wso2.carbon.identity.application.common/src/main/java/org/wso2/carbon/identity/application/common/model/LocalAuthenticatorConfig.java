@@ -75,16 +75,6 @@ public class LocalAuthenticatorConfig implements Serializable {
         definedByType = DefinedByType.SYSTEM;
     }
 
-    public LocalAuthenticatorConfig(String name, String displayName, boolean enabled,
-                                    String[] tags, DefinedByType definedByType, String amrValue) {
-        this.name = name;
-        this.displayName = displayName;
-        this.enabled = enabled;
-        this.tags = tags;
-        this.definedByType = definedByType;
-        this.amrValue = amrValue;
-    }
-
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
      * <Properties></Properties> </LocalAuthenticatorConfig>

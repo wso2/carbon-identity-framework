@@ -256,9 +256,11 @@ public class AuthenticatorManagementDAOImplTest {
     @Test(priority = 14)
     public void testUpdateAuthenticatorAmrValueWithValidAuthenticator() throws AuthenticatorMgtException {
 
+        authenticatorManagementDAO.updateSystemLocalAuthenticatorAmrValue(localAuthenticatorConfig1.getName(),
+                        systemLocalAuthenticatorForUpdate.getAmrValue(), tenantId);
+
         LocalAuthenticatorConfig updatedConfig = authenticatorManagementDAO
-                .updateSystemLocalAuthenticatorAmrValue(localAuthenticatorConfig1,
-                        systemLocalAuthenticatorForUpdate, tenantId);
+                .getSystemLocalAuthenticator(localAuthenticatorConfig1.getName(), tenantId);
 
         Assert.assertNotNull(updatedConfig, "Updated authenticator should not be null");
         Assert.assertEquals(updatedConfig.getName(), systemLocalAuthenticatorForUpdate.getName());
@@ -271,8 +273,8 @@ public class AuthenticatorManagementDAOImplTest {
     public void testUpdateAuthenticatorAmrValueForException() {
 
         AuthenticatorMgtException exception = assertThrows(AuthenticatorMgtException.class, () ->
-                authenticatorManagementDAO.updateSystemLocalAuthenticatorAmrValue(localAuthenticatorConfig1,
-                        systemLocalAuthenticatorForUpdateForException, tenantId));
+                authenticatorManagementDAO.updateSystemLocalAuthenticatorAmrValue(localAuthenticatorConfig1.getName(),
+                        systemLocalAuthenticatorForUpdateForException.getAmrValue(), tenantId));
         Assert.assertEquals(exception.getErrorCode(), ERROR_WHILE_UPDATING_AUTHENTICATOR.getCode());
     }
 

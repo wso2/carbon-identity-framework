@@ -21,36 +21,34 @@ package org.wso2.carbon.identity.application.common.cache;
 import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
- * Cache key for all system defined local authenticators.
+ * Cache key for the system defined authenticator configurations.
  */
-public class SystemDefinedAuthenticatorsCacheKey extends CacheKey {
+public class SystemDefinedLocalAuthenticatorCacheKey extends CacheKey {
 
-    private static final long serialVersionUID = 5431869043259837612L;
+    private final String authenticatorName;
 
-    private final int tenantId;
+    public SystemDefinedLocalAuthenticatorCacheKey(String authenticatorName) {
 
-    public SystemDefinedAuthenticatorsCacheKey(int tenantId) {
-
-        this.tenantId = tenantId;
+        this.authenticatorName = authenticatorName;
     }
 
-    public int getTenantId() {
+    public String getAuthenticatorName() {
 
-        return tenantId;
+        return authenticatorName;
     }
 
     @Override
     public boolean equals(Object o) {
 
-        if (!(o instanceof SystemDefinedAuthenticatorsCacheKey)) {
+        if (!(o instanceof SystemDefinedLocalAuthenticatorCacheKey)) {
             return false;
         }
-        return tenantId == ((SystemDefinedAuthenticatorsCacheKey) o).getTenantId();
+        return authenticatorName.equals(((SystemDefinedLocalAuthenticatorCacheKey) o).getAuthenticatorName());
     }
 
     @Override
     public int hashCode() {
 
-        return Integer.hashCode(tenantId);
+        return authenticatorName.hashCode();
     }
 }

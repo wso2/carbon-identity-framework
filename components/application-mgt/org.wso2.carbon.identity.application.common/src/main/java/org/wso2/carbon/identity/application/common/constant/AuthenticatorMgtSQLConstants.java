@@ -71,12 +71,6 @@ public class AuthenticatorMgtSQLConstants {
                 " (:TENANT_ID;, (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; AND IDP.TENANT_ID = :TENANT_ID;), " +
                 ":NAME;, :IS_ENABLED;, :DEFINED_BY;, :AMR_VALUE;, :AUTHENTICATION_TYPE;, :DISPLAY_NAME;, " +
                 ":IMAGE_URL;, :DESCRIPTION;)";
-        public static final String ADD_SYSTEM_LOCAL_AUTHENTICATOR_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
-                "(TENANT_ID, IDP_ID, NAME, IS_ENABLED, DEFINED_BY, AMR_VALUE, AUTHENTICATION_TYPE, DISPLAY_NAME) " +
-                "VALUES " +
-                "(:TENANT_ID;, " +
-                "(SELECT ID FROM IDP WHERE NAME = :IDP_NAME; AND TENANT_ID = :TENANT_ID;), " +
-                ":NAME;, :IS_ENABLED;, :DEFINED_BY;, :AMR_VALUE;, :AUTHENTICATION_TYPE;, :DISPLAY_NAME;)";
         public static final String UPDATE_AUTHENTICATOR_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED = " +
                 ":IS_ENABLED;, DISPLAY_NAME = :DISPLAY_NAME;, IMAGE_URL = :IMAGE_URL;, DESCRIPTION = :DESCRIPTION; " +
                 "WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";

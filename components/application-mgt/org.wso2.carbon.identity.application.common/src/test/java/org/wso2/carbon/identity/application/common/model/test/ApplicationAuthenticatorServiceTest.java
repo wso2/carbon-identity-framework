@@ -163,7 +163,7 @@ public class ApplicationAuthenticatorServiceTest {
 
     @DataProvider(name = "localAuthenticatorConfigForUpdate")
     public Object[][] localAuthenticatorConfigForUpdate() {
-
+        systemAuthenticatorConfig.setName("BasicAuthenticator");
         systemAuthenticatorConfig.setAmrValue("amrValue");
 
         return new Object[][]{
@@ -440,34 +440,17 @@ public class ApplicationAuthenticatorServiceTest {
                 .deleteUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig.getName(), tenantDomain);
     }
 
-    @Test(priority = 21, dataProvider = "localAuthenticatorConfigForAddition")
-    public void testAddSystemDefinedLocalAuthenticator(LocalAuthenticatorConfig config)
-            throws AuthenticatorMgtException {
-
-        LocalAuthenticatorConfig addedAuthenticator = ApplicationCommonServiceDataHolder.getInstance()
-                .getApplicationAuthenticatorService()
-                .addSystemDefinedLocalAuthenticator(config, tenantDomain);
-
-        Assert.assertNotNull(addedAuthenticator, "Added authenticator should not be null");
-        Assert.assertEquals(addedAuthenticator.getName(), config.getName());
-        Assert.assertEquals(addedAuthenticator.getDisplayName(), config.getDisplayName());
-        Assert.assertEquals(addedAuthenticator.isEnabled(), config.isEnabled());
-    }
-
-
-
     @Test(priority = 22, dataProvider = "localAuthenticatorConfigForUpdate")
     public void testUpdateSystemDefinedLocalAuthenticatorAmrValue(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
-        LocalAuthenticatorConfig updatedAuthenticator = ApplicationCommonServiceDataHolder.getInstance()
-                .getApplicationAuthenticatorService().updateAuthenticatorAmrValue(config,
-                         tenantDomain);
-        Assert.assertNotNull(updatedAuthenticator, "Updated authenticator should not be null");
-        Assert.assertEquals(updatedAuthenticator.getName(), config.getName());
-        Assert.assertEquals(updatedAuthenticator.getDisplayName(), config.getDisplayName());
-        Assert.assertEquals(updatedAuthenticator.isEnabled(), config.isEnabled());
-        Assert.assertEquals(updatedAuthenticator.getAmrValue(), config.getAmrValue());
+        ApplicationAuthenticatorService authenticatorService =
+                ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService();
+        authenticatorService.addLocalAuthenticator(config);
+        authenticatorService.updateAuthenticatorAmrValue(config, tenantDomain);
+        LocalAuthenticatorConfig updatedConfig = authenticatorService.getSystemLocalAuthenticator(
+                config.getName(), tenantDomain);
+        Assert.assertEquals(updatedConfig.getAmrValue(), config.getAmrValue());
     }
 
     @Test(priority = 23, expectedExceptions = AuthenticatorMgtException.class,
@@ -490,5 +473,18 @@ public class ApplicationAuthenticatorServiceTest {
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
                 .updateAuthenticatorAmrValue(updateSystemDefinedAuthenticatorConfig(
                         invalidConfig), tenantDomain);
+    }
+
+    @Test(priority = 25)
+    public void testGetSystemDefinedLocalAuthenticator() throws AuthenticatorMgtException {
+
+
+        LocalAuthenticatorConfig retrievedConfig = ApplicationCommonServiceDataHolder.getInstance()
+                .getApplicationAuthenticatorService().getSystemLocalAuthenticator(
+                        systemAuthenticatorConfig.getName(), tenantDomain);
+        Assert.assertNotNull(retrievedConfig);
+        Assert.assertEquals(retrievedConfig.getName(), systemAuthenticatorConfig.getName());
+        Assert.assertEquals(retrievedConfig.getDisplayName(), systemAuthenticatorConfig.getDisplayName());
+        Assert.assertEquals(retrievedConfig.isEnabled(), systemAuthenticatorConfig.isEnabled());
     }
 }
