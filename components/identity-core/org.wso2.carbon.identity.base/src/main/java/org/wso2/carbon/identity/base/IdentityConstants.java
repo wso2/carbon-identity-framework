@@ -100,6 +100,13 @@ public class IdentityConstants {
     public final static String EVENT_LISTENER_PROPERTY = "Property";
     public final static String EVENT_LISTENER_PROPERTY_NAME = "name";
 
+    // My Account impersonation allowed resource configs.
+    public final static String MY_ACCOUNT = "MyAccount";
+    public final static String IMPERSONATION = "Impersonation";
+    public final static String ALLOWED_RESOURCES = "AllowedResources";
+    public final static String RESOURCE = "Resource";
+    public final static String CONTEXT = "context";
+
 
     // Cache Config constants
     public final static String CACHE_CONFIG = "CacheConfig";
