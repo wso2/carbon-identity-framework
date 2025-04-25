@@ -1684,6 +1684,12 @@
     "profile",
     "openid"
   ],
+  "myaccount.impersonation.allowed_resources": [
+    "/api/server/v1/branding-preference",
+    "/scim2/Schemas",
+    "/api/users/v1/me/associations",
+    "/api/users/v1/me/applications"
+  ],
   "ui.is_cookie_consent_banner_enabled": true,
   
   "cors.allow_generic_http_requests": true,

@@ -4489,6 +4489,13 @@
         <AccessURL>{{myaccount.access_url}}</AccessURL>
         <AppBaseName>{{myaccount.app_base_name}}</AppBaseName>
         <Origin>{{myaccount.origin}}</Origin>
+        <Impersonation>
+            <AllowedResources>
+                {% for resource in myaccount.impersonation.allowed_resources %}
+                    <Resource context="{{resource}}"/>
+                {% endfor %}
+            </AllowedResources>
+        </Impersonation>
     </MyAccount>
 
     <!-- Configuration settings for the API responses. -->
