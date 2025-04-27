@@ -283,7 +283,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                                          AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        String retryURL = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+        String retryURL = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL(
+                context.getServiceProviderName());
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();

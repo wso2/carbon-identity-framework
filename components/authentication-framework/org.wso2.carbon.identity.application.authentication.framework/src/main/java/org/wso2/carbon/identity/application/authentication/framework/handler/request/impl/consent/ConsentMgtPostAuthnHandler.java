@@ -671,7 +671,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             mandatoryLocalClaims) throws URISyntaxException {
 
         String consentEndpointUrl = ConfigurationFacade.getInstance()
-                .getAuthenticationEndpointURL().replace(LOGIN_ENDPOINT, CONSENT_ENDPOINT);
+                .getAuthenticationEndpointURL(context.getServiceProviderName()).replace(
+                        LOGIN_ENDPOINT, CONSENT_ENDPOINT);
         URIBuilder uriBuilder;
         uriBuilder = new URIBuilder(consentEndpointUrl);
 

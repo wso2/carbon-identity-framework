@@ -57,6 +57,7 @@ public class IdentityTenantUtil {
     private static Log log = LogFactory.getLog(IdentityTenantUtil.class);
     private static TenantRegistryLoader tenantRegistryLoader;
     private static BundleContext bundleContext;
+    private static boolean consoleAppRequest = false;
     protected static ConcurrentHashMap<Integer,Boolean> tenantIdMap = new ConcurrentHashMap<Integer,Boolean>();
 
     public static TenantRegistryLoader getTenantRegistryLoader() {
@@ -466,6 +467,26 @@ public class IdentityTenantUtil {
     public static boolean isLegacySaaSAuthenticationEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_LEGACY_SAAS_AUTHENTICATION));
+    }
+
+    /**
+     * Sets whether the current request initiated from a console application.
+     *
+     * @param isConsoleRequest true if this is a console‐app request.
+     */
+    public static void setConsoleAppRequest(boolean isConsoleRequest) {
+
+        consoleAppRequest = isConsoleRequest;
+    }
+
+    /**
+     * Checks whether the current request initiated from a console application.
+     *
+     * @return true if this is a console‐app request.
+     */
+    public static boolean isConsoleAppRequest() {
+
+        return consoleAppRequest;
     }
 
     /**

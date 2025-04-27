@@ -199,6 +199,13 @@ public class ConfigurationFacade {
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointURLV2);
     }
 
+    public String getAuthenticationEndpointURL(String serviceProviderName) {
+
+        return buildUrl(AUTHENTICATION_ENDPOINT,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointURL,
+                serviceProviderName);
+    }
+
     public String getAuthenticationEndpointAbsoluteURL() {
 
         return buildAbsoluteUrl(AUTHENTICATION_ENDPOINT,
@@ -212,6 +219,13 @@ public class ConfigurationFacade {
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointRetryURLV2);
     }
 
+    public String getAuthenticationEndpointRetryURL(String serviceProviderName) {
+
+        return buildUrl(AUTHENTICATION_ENDPOINT_RETRY,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointRetryURL,
+                serviceProviderName);
+    }
+
     public String getAuthenticationEndpointErrorURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_ERROR,
@@ -219,11 +233,25 @@ public class ConfigurationFacade {
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointErrorURLV2);
     }
 
+    public String getAuthenticationEndpointErrorURL(String serviceProviderName) {
+
+        return buildUrl(AUTHENTICATION_ENDPOINT_ERROR,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointErrorURL,
+                serviceProviderName);
+    }
+
     public String getAuthenticationEndpointWaitURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_WAIT,
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointWaitURL,
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointWaitURLV2);
+    }
+
+    public String getAuthenticationEndpointWaitURL(String serviceProviderName) {
+
+        return buildUrl(AUTHENTICATION_ENDPOINT_WAIT,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointWaitURL,
+                serviceProviderName);
     }
 
     public String getAccountRecoveryEndpointAbsolutePath() {
@@ -236,6 +264,11 @@ public class ConfigurationFacade {
         return buildUrl(ACCOUNT_RECOVERY_ENDPOINT_PATH, this::readAccountRecoveryEndpointPath);
     }
 
+    public String getAccountRecoveryEndpointPath(String serviceProviderName) {
+
+        return buildUrl(ACCOUNT_RECOVERY_ENDPOINT_PATH, this::readAccountRecoveryEndpointPath, serviceProviderName);
+    }
+
     public String getIdentifierFirstConfirmationURL() {
 
         return buildUrl(IDENTIFIER_FIRST_CONFIRMATION,
@@ -243,11 +276,25 @@ public class ConfigurationFacade {
                 FileBasedConfigurationBuilder.getInstance()::getIdentifierFirstConfirmationURLV2);
     }
 
+    public String getIdentifierFirstConfirmationURL(String serviceProviderName) {
+
+        return buildUrl(IDENTIFIER_FIRST_CONFIRMATION,
+                FileBasedConfigurationBuilder.getInstance()::getIdentifierFirstConfirmationURL,
+                serviceProviderName);
+    }
+
     public String getAuthenticationEndpointPromptURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT,
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointPromptURL,
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointPromptURLV2);
+    }
+
+    public String getAuthenticationEndpointPromptURL(String serviceProviderName) {
+
+        return buildUrl(AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointPromptURL,
+                serviceProviderName);
     }
 
     /**
@@ -260,6 +307,13 @@ public class ConfigurationFacade {
         return buildUrl(AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT,
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointMissingClaimsURL,
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointMissingClaimsURLV2);
+    }
+
+    public String getAuthenticationEndpointMissingClaimsURL(String serviceProviderName) {
+
+        return buildUrl(AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointMissingClaimsURL,
+                serviceProviderName);
     }
 
     /**
@@ -355,6 +409,33 @@ public class ConfigurationFacade {
                     serviceURLBuilder.setSkipDomainBranding(true);
                 }
                 return serviceURLBuilder.build().getAbsolutePublicURL();
+            } catch (URLBuilderException e) {
+                throw new IdentityRuntimeException(
+                        "Error while building tenant qualified url for context: " + defaultContext, e);
+            }
+        } else {
+            String urlFromFileBasedConfig = getValueFromFileBasedConfig.get();
+            if (StringUtils.isNotBlank(urlFromFileBasedConfig)) {
+                // If the file based URL is set, then we have to return the file based URL.
+                return urlFromFileBasedConfig;
+            } else {
+                return defaultContext;
+            }
+        }
+    }
+
+    private String buildUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig,
+                            String serviceProviderName) {
+
+        IdentityTenantUtil.setConsoleAppRequest("Console".equalsIgnoreCase(serviceProviderName));
+
+        // Console applications in each tenant should continue to function in a multi-tenant environment even if
+        // tenant-qualified URLs are disabled.
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || IdentityTenantUtil.isConsoleAppRequest()) {
+            try {
+                String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+                return ServiceURLBuilder.create().addPath(defaultContext).setOrganization(organizationId).build()
+                        .getAbsolutePublicURL();
             } catch (URLBuilderException e) {
                 throw new IdentityRuntimeException(
                         "Error while building tenant qualified url for context: " + defaultContext, e);

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -153,8 +154,20 @@ public class ConsoleAuthorizedAPIListener extends AbstractAuthorizedAPIManagemen
     private String getConsoleAppId(String tenantDomain) throws IdentityApplicationManagementException {
 
         ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
-        return applicationManagementService.getApplicationResourceIDByInboundKey("CONSOLE",
+        String consoleInboundKey = buildConsoleInboundKey(tenantDomain);
+
+        return applicationManagementService.getApplicationResourceIDByInboundKey(consoleInboundKey,
                 "oauth2", tenantDomain);
+    }
+
+    private String buildConsoleInboundKey(String tenantDomain) {
+
+        String consoleInboundKeyDefault = "CONSOLE";
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || tenantDomain.equals("Carbon.super")) {
+            return consoleInboundKeyDefault;
+        } else {
+            return consoleInboundKeyDefault + "_" + tenantDomain;
+        }
     }
 
     private List<Scope> getScopes(String apiId, String tenantDomain) throws IdentityApplicationManagementException {
