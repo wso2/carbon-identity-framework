@@ -55,6 +55,7 @@ public class IdentityConfigParser {
 
     private static Map<String, Object> configuration = new HashMap<String, Object>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
+    private static final List<String> myAccountImpersonationAllowedResources = new ArrayList<>();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
     private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
@@ -205,6 +206,7 @@ public class IdentityConfigParser {
             buildReverseProxyConfig();
             buildCookiesToInvalidateConfig();
             buildStoreProcedureBasedDAOConfig();
+            buildImpersonateMyAccountResourceConfigs();
 
         } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
@@ -259,6 +261,45 @@ public class IdentityConfigParser {
 
                 cookiesToInvalidateConfigurationHolder.add(cookieName);
             }
+        }
+    }
+
+    /**
+     * Gets the list of resources allowed to be used during impersonating my account.
+     *
+     * @return List of resources allowed to be used during impersonating my account.
+     */
+    public static List<String> getImpersonateMyAccountResourceConfigs() {
+
+        return myAccountImpersonationAllowedResources;
+    }
+
+    private void buildImpersonateMyAccountResourceConfigs() {
+
+        OMElement myAccountElement = this.getConfigElement(IdentityConstants.MY_ACCOUNT);
+        if (myAccountElement == null) {
+            return;
+        }
+        OMElement impersonationElement = myAccountElement.getFirstChildWithName(
+                new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.IMPERSONATION));
+        if (impersonationElement == null) {
+            return;
+        }
+        OMElement allowedResources = impersonationElement.getFirstChildWithName(
+                new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.ALLOWED_RESOURCES));
+        if (allowedResources == null) {
+            return;
+        }
+        Iterator<OMElement> resources = allowedResources.getChildrenWithName(
+                new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.RESOURCE));
+        if (resources == null) {
+            return;
+        }
+        while (resources.hasNext()) {
+            OMElement resourceElement = resources.next();
+            String context = resourceElement.getAttributeValue(new QName(IdentityConstants.CONTEXT));
+
+            myAccountImpersonationAllowedResources.add(context);
         }
     }
 
