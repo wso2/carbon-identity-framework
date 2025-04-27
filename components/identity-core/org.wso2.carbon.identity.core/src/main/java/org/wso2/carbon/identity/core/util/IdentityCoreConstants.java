@@ -63,6 +63,8 @@ public class IdentityCoreConstants {
             "multi-attribute";
     public final static String ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_NAME =
             "MultiAttributeSeparator";
+    public final static String MULTI_ATTRIBUTE_SEPARATOR_PRESERVE_BACKWARD_COMPATIBILITY_ATTRIBUTE_NAME =
+            "PreserveExistingBehavior";
 
     public static final String XML_SIGNATURE_ALGORITHM_RSA_SHA256_URI = "http://www.w3.org/2001/04/xmldsig-more#rsa" +
             "-sha256";
