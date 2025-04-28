@@ -381,6 +381,11 @@ public class ApplicationAuthenticatorService {
         LocalAuthenticatorConfig localAuthenticatorConfig = dao.getSystemLocalAuthenticator(
                 authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
         if (localAuthenticatorConfig == null) {
+            for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
+                if (localAuthenticator.getName().equals(authenticatorName)) {
+                    return localAuthenticator;
+                }
+            }
             throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR,
                     authenticatorName);
         }
