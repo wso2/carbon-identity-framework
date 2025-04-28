@@ -50,6 +50,8 @@ public class RegistrationContext implements Serializable {
     private String currentActionId;
     private ExternalIdPConfig externalIdPConfig;
     private Response currentNodeResponse;
+    private String callbackUrl;
+    private String applicationId;
 
     public NodeConfig getCurrentNode() {
 
@@ -205,5 +207,25 @@ public class RegistrationContext implements Serializable {
     public void setCurrentNodeResponse(Response response) {
 
         this.currentNodeResponse = response;
+    }
+
+    public String getCallbackUrl() {
+
+        return callbackUrl;
+    }
+
+    public void setCallbackUrl(String callbackUrl) {
+
+        this.callbackUrl = callbackUrl;
+    }
+
+    public String getApplicationId() {
+
+        return applicationId;
+    }
+
+    public void setApplicationId(String applicationId) {
+
+        this.applicationId = applicationId;
     }
 }

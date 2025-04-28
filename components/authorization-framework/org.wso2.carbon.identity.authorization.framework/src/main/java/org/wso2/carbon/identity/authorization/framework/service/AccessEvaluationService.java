@@ -23,6 +23,12 @@ import org.wso2.carbon.identity.authorization.framework.model.AccessEvaluationRe
 import org.wso2.carbon.identity.authorization.framework.model.AccessEvaluationResponse;
 import org.wso2.carbon.identity.authorization.framework.model.BulkAccessEvaluationRequest;
 import org.wso2.carbon.identity.authorization.framework.model.BulkAccessEvaluationResponse;
+import org.wso2.carbon.identity.authorization.framework.model.SearchActionsRequest;
+import org.wso2.carbon.identity.authorization.framework.model.SearchActionsResponse;
+import org.wso2.carbon.identity.authorization.framework.model.SearchResourcesRequest;
+import org.wso2.carbon.identity.authorization.framework.model.SearchResourcesResponse;
+import org.wso2.carbon.identity.authorization.framework.model.SearchSubjectsRequest;
+import org.wso2.carbon.identity.authorization.framework.model.SearchSubjectsResponse;
 
 /**
  * The {@code AccessEvaluationService} interface provides method definitions for Access Evaluation.
@@ -81,5 +87,60 @@ public interface AccessEvaluationService {
      * @see BulkAccessEvaluationResponse
      */
     BulkAccessEvaluationResponse bulkEvaluate(BulkAccessEvaluationRequest bulkAccessEvaluationRequest)
+            throws AccessEvaluationException;
+
+    /**
+     * Searches and returns the resources based on the given criteria in the request.
+     * <p>
+     *     This method should be used when a search resource request is received. The resource here refers to an entity
+     *     that is protected by the authorization rules. The method should search for resources a subject (such as a
+     *     user or service) is authorized to access or perform specific actions on. The criteria provided in the
+     *     request typically include resource type, subject attributes, the desired action, and optionally contextual
+     *     or environmental conditions. Exceptions should be thrown if an error occurs while searching, whether it is a
+     *     configuration error or an error from the Authorization Engine.
+     * </p>
+     * @param searchResourcesRequest The request which contains the necessary information to search for resources.
+     * @return The search results containing the resources that match the criteria.
+     * @throws AccessEvaluationException If an error occurs while searching for resources.
+     * @see SearchResourcesRequest
+     * @see SearchResourcesResponse
+     */
+    SearchResourcesResponse searchResources(SearchResourcesRequest searchResourcesRequest)
+            throws AccessEvaluationException;
+
+    /**
+     * Searches and returns the subjects based on the given criteria in the request.
+     * <p>
+     *     This method should be used when a search subject request is received. The subject here refers to an entity
+     *     that requests access to a resource to perform actions on it. The method should search for subjects that are
+     *     authorized to perform specific actions on resources. The criteria provided in the request typically include
+     *     subject type, resource attributes, the desired action, and optionally contextual or environmental
+     *     conditions. Exceptions should be thrown if an error occurs while searching, whether it is a configuration
+     *     error or an error from the Authorization Engine.
+     * </p>
+     * @param searchSubjectsRequest The request which contains the necessary information to search for subjects.
+     * @return The search results containing the subjects that match the criteria.
+     * @throws AccessEvaluationException If an error occurs while searching for subjects.
+     * @see SearchSubjectsRequest
+     * @see SearchSubjectsResponse
+     */
+    SearchSubjectsResponse searchSubjects(SearchSubjectsRequest searchSubjectsRequest)
+            throws AccessEvaluationException;
+
+    /**
+     * Searches and returns the actions based on the given criteria in the request.
+     * <p>
+     *     This method should be used when a search action request is received. The action here refers to an operation
+     *     that can be performed on a resource. The method should search for actions that are authorized for a specific
+     *     subject on a specific resource. The criteria provided in the request typically include resource attributes,
+     *     subject attributes and optionally contextual or environmental conditions. Exceptions should be thrown if an
+     *     error occurs while searching, whether it is a configuration error or an error from the Authorization Engine.
+     * @param searchActionsRequest The request which contains the necessary information to search for actions.
+     * @return The search results containing the actions that match the criteria.
+     * @throws AccessEvaluationException If an error occurs while searching for actions.
+     * @see SearchActionsRequest
+     * @see SearchResourcesResponse
+     */
+    SearchActionsResponse searchActions(SearchActionsRequest searchActionsRequest)
             throws AccessEvaluationException;
 }

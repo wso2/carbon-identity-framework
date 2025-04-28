@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -130,6 +130,13 @@ public class IdPManagementConstants {
             "Recovery.Notification.Password.OTP.SendOTPInEmail";
     public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY
             = "Recovery.Notification.Password.smsOtp.Enable";
+
+    // Resident IDP forced password reset configs.
+    public static final String ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY = "Recovery.AdminPasswordReset.Offline";
+    public static final String ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY = "Recovery.AdminPasswordReset.OTP";
+    public static final String ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY = "Recovery.AdminPasswordReset" +
+            ".RecoveryLink";
+    public static final String ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY = "Recovery.AdminPasswordReset.SMSOTP";
 
     // User defined federated authenticator related constants.
     public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";
