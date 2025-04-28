@@ -1940,6 +1940,12 @@
         <AllowedAttributeProfiles>{{identity_mgt.user_claim_update.allowed_attribute_profiles}}</AllowedAttributeProfiles>
     </UserClaimUpdate>
 
+    <HiddenClaims>
+        {% for claimURI in identity_mgt.claims.hidden_claims %}
+            <HiddenClaim>{{claimURI}}</HiddenClaim>
+        {% endfor %}
+    </HiddenClaims>
+
      <AccountSuspension>
         <UseIdentityClaims>{{identity_mgt_account_suspension.use_identity_claims}}</UseIdentityClaims>
         <ExecuteTaskOnMasterNode>{{identity_mgt_account_suspension.execute_task_on_master_node}}</ExecuteTaskOnMasterNode>
