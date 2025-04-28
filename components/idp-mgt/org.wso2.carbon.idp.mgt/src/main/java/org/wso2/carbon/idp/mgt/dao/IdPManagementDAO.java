@@ -1176,7 +1176,8 @@ public class IdPManagementDAO {
 
                 authnConfig.setDisplayName(rs.getString("DISPLAY_NAME"));
 
-                authnConfig.setAmrValue(rs.getString("AMR_VALUE"));
+                String amrValue = rs.getString("AMR_VALUE");
+                authnConfig.setAmrValue(amrValue != null ? amrValue : authnConfig.getName());
 
                 if (defaultAuthName != null && authnConfig.getName().equals(defaultAuthName)) {
                     federatedIdp.getDefaultAuthenticatorConfig().setDisplayName(authnConfig.getDisplayName());

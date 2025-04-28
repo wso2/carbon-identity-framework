@@ -61,7 +61,6 @@
 
   "authentication.authenticator.basic.name": "BasicAuthenticator",
   "authentication.authenticator.basic.enable": true,
-  "authentication.authenticator.basic.amrValue": "basic",
   "authentication.authenticator.basic.parameters.AuthMechanism": "basic",
   "authentication.authenticator.basic.parameters.Tags": "Username-Password",
   "authentication.authenticator.basic.parameters.redirectToRetryPageOnAccountLock": "false",
@@ -69,44 +68,36 @@
 
   "authentication.authenticator.basic_request_path.name": "BasicAuthRequestPathAuthenticator",
   "authentication.authenticator.basic_request_path.enable": true,
-  "authentication.authenticator.basic_request_path.amrValue": "basic_request_path",
   "authentication.authenticator.basic_request_path.parameters.AuthMechanism": "basic",
   "authentication.authenticator.basic_request_path.parameters.Tags": "Request-Path",
 
   "authentication.authenticator.user_identifier.name": "IdentifierExecutor",
   "authentication.authenticator.user_identifier.enable": true,
-  "authentication.authenticator.user_identifier.amrValue": "user_identifier",
   "authentication.authenticator.user_identifier.parameters.ValidateUsername": "false",
 
   "authentication.authenticator.session_handler.name": "SessionExecutor",
   "authentication.authenticator.session_handler.enable": true,
-  "authentication.authenticator.session_handler.amrValue": "session_handler",
   "authentication.authenticator.session_handler.parameters.MaxSessionCount": "1",
 
   "authentication.authenticator.oauth_request_path.name": "OAuthRequestPathAuthenticator",
   "authentication.authenticator.oauth_request_path.enable": true,
-  "authentication.authenticator.oauth_request_path.amrValue": "oauth_request_path",
   "authentication.authenticator.oauth_request_path.parameters.Tags": "Request-Path",
 
   "authentication.authenticator.saml.name": "SAMLSSOAuthenticator",
   "authentication.authenticator.saml.enable": true,
-  "authentication.authenticator.saml.amrValue": "saml",
   "authentication.authenticator.saml.parameters.Tags": "SAML",
 
   "authentication.authenticator.iproov.name": "IproovAuthenticator",
-  "authentication.authenticator.iproov.amrValue": "iproov",
   "authentication.authenticator.iproov.parameters.Tags": "Passwordless,MFA",
 
   "authentication.authenticator.oidc.name": "OpenIDConnectAuthenticator",
   "authentication.authenticator.oidc.enable": true,
-  "authentication.authenticator.oidc.amrValue": "oidc",
   "authentication.authenticator.oidc.parameters.enableIatValidation": true,
   "authentication.authenticator.oidc.parameters.iatValidityPeriod": "300",
   "authentication.authenticator.oidc.parameters.Tags": "OIDC",
 
   "authentication.authenticator.google.name": "GoogleOIDCAuthenticator",
   "authentication.authenticator.google.enable": true,
-  "authentication.authenticator.google.amrValue": "google",
   "authentication.authenticator.google.parameters.GoogleTokenEndpoint": "https://accounts.google.com/o/oauth2/token",
   "authentication.authenticator.google.parameters.GoogleAuthzEndpoint": "https://accounts.google.com/o/oauth2/auth",
   "authentication.authenticator.google.parameters.GoogleUserInfoEndpoint": "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -116,7 +107,6 @@
 
   "authentication.authenticator.microsoft_live.name": "MicrosoftWindowsLive",
   "authentication.authenticator.microsoft_live.enable": true,
-  "authentication.authenticator.microsoft_live.amrValue": "microsoft_live",
   "authentication.authenticator.microsoft_live.parameters.AuthTokenEndpoint": "https://login.live.com/oauth20_token.srf",
   "authentication.authenticator.microsoft_live.parameters.AuthnEndpoint": "https://login.live.com/oauth20_authorize.srf",
   "authentication.authenticator.microsoft_live.parameters.UserInfoEndpoint": "https://apis.live.net/v5.0/me?access_token=",
@@ -124,7 +114,6 @@
 
   "authentication.authenticator.facebook.name": "FacebookAuthenticator",
   "authentication.authenticator.facebook.enable": true,
-  "authentication.authenticator.facebook.amrValue": "facebook",
   "authentication.authenticator.facebook.parameters.AuthTokenEndpoint": "https://graph.facebook.com/oauth/access_token",
   "authentication.authenticator.facebook.parameters.AuthnEndpoint": "http://www.facebook.com/dialog/oauth",
   "authentication.authenticator.facebook.parameters.UserInfoEndpoint": "https://graph.facebook.com/me",
@@ -132,14 +121,12 @@
 
   "authentication.authenticator.apple.name": "AppleOIDCAuthenticator",
   "authentication.authenticator.apple.enable": true,
-  "authentication.authenticator.apple.amrValue": "apple",
   "authentication.authenticator.apple.parameters.AppleTokenEndpoint": "https://appleid.apple.com/auth/token",
   "authentication.authenticator.apple.parameters.AppleAuthzEndpoint": "https://appleid.apple.com/auth/authorize",
   "authentication.authenticator.apple.parameters.Tags": "Social-Login",
 
   "authentication.authenticator.fido.name": "FIDOAuthenticator",
   "authentication.authenticator.fido.enable": true,
-  "authentication.authenticator.fido.amrValue": "fido",
   "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
   "authentication.authenticator.fido.parameters.Fido2Auth": "/authenticationendpoint/fido2-auth.jsp",
   "authentication.authenticator.fido.parameters.Fido2Enroll": "/authenticationendpoint/fido2-enroll.jsp",
@@ -149,21 +136,18 @@
 
   "authentication.authenticator.magiclink.name": "MagicLinkAuthenticator",
   "authentication.authenticator.magiclink.enable": true,
-  "authentication.authenticator.magiclink.amrValue": "magic_link",
   "authentication.authenticator.magiclink.ExpiryTime": "300",
   "authentication.authenticator.magiclink.parameters.Tags": "Passwordless",
   "authentication.authenticator.magiclink.parameters.MagicLinkAuthenticationEndpointURL": "authenticationendpoint/magic_link_notification.do",
 
   "authentication.authenticator.mobile_connect.name": "MobileConnectAuthenticator",
   "authentication.authenticator.mobile_connect.enable": true,
-  "authentication.authenticator.mobile_connect.amrValue": "mobile_connect",
   "authentication.authenticator.mobile_connect.parameters.MCAuthenticationEndpointURL": "mobileconnectauthenticationendpoint/mobileconnect.jsp",
   "authentication.authenticator.mobile_connect.parameters.MCDiscoveryAPIURL": "https://discover.mobileconnect.io/gsma/v2/discovery/",
   "authentication.authenticator.mobile_connect.parameters.redirectToMultiOptionPageOnFailure": "false",
 
   "authentication.authenticator.email_otp.name": "EmailOTP",
   "authentication.authenticator.email_otp.enable": true,
-  "authentication.authenticator.email_otp.amrValue": "email_otp",
   "authentication.authenticator.email_otp.parameters.EMAILOTPAuthenticationEndpointURL": "authenticationendpoint/email_otp.do",
   "authentication.authenticator.email_otp.parameters.EmailOTPAuthenticationEndpointErrorPage": "authenticationendpoint/email_otp_error.do",
   "authentication.authenticator.email_otp.parameters.EmailAddressRequestPage": "authenticationendpoint/email_capture.do",
@@ -187,7 +171,6 @@
 
   "authentication.authenticator.sms_otp.name": "SMSOTP",
   "authentication.authenticator.sms_otp.enable": true,
-  "authentication.authenticator.sms_otp.amrValue": "sms_otp",
   "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "authenticationendpoint/smsOtp.jsp",
   "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "authenticationendpoint/smsOtpError.jsp",
   "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "authenticationendpoint/mobile.jsp",
@@ -205,7 +188,6 @@
 
   "authentication.authenticator.totp.name": "totp",
   "authentication.authenticator.totp.enable": true,
-  "authentication.authenticator.totp.amrValue": "totp",
   "authentication.authenticator.totp.parameters.useEventHandlerBasedEmailSender": true,
   "authentication.authenticator.totp.parameters.encodingMethod": "Base32",
   "authentication.authenticator.totp.parameters.timeStepSize": "30",
@@ -226,7 +208,6 @@
 
   "authentication.authenticator.backup_code.name": "backup-code-authenticator",
   "authentication.authenticator.backup_code.enable": true,
-  "authentication.authenticator.backup_code.amrValue": "backup_code",
   "authentication.authenticator.backup_code.parameters.authenticationMandatory": true,
   "authentication.authenticator.backup_code.parameters.BackupCodeAuthenticationEndpointURL": "authenticationendpoint/backup_code.do",
   "authentication.authenticator.backup_code.parameters.BackupCodeAuthenticationEndpointErrorPage": "authenticationendpoint/backup_code_error.do",
@@ -235,43 +216,35 @@
 
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
   "authentication.authenticator.x509_certificate.enable": true,
-  "authentication.authenticator.x509_certificate.amrValue": "x509_certificate",
   "authentication.authenticator.x509_certificate.parameters.AuthenticationEndpoint": "https://localhost:8443/x509-certificate-servlet",
   "authentication.authenticator.x509_certificate.parameters.username": "CN",
 
   "authentication.authenticator.github.name": "GithubAuthenticator",
-  "authentication.authenticator.github.amrValue": "github",
   "authentication.authenticator.github.parameters.Tags": "Social-Login",
 
   "authentication.authenticator.twitter.name": "TwitterAuthenticator",
-  "authentication.authenticator.twitter.amrValue": "twitter",
   "authentication.authenticator.twitter.parameters.Tags": "Social-Login",
 
   "authentication.authenticator.office365.name": "Office365Authenticator",
-  "authentication.authenticator.office365.amrValue": "office365",
   "authentication.authenticator.office365.parameters.Tags": "OIDC",
 
   "authentication.authenticator.iwa_kerberos.name": "IWAKerberosAuthenticator",
-  "authentication.authenticator.iwa_kerberos.amrValue": "iwa_kerberos",
   "authentication.authenticator.iwa_kerberos.parameters.Tags": "Enterprise",
 
   "authentication.authenticator.email_otp_local.name": "email-otp-authenticator",
   "authentication.authenticator.email_otp_local.enable": true,
-  "authentication.authenticator.email_otp_local.amrValue": "email_otp_local",
   "authentication.authenticator.email_otp_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.email_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.email_otp_local.parameters.enableRetryFromAuthenticator": true,
 
   "authentication.authenticator.sms_otp_local.name": "sms-otp-authenticator",
   "authentication.authenticator.sms_otp_local.enable": true,
-  "authentication.authenticator.sms_otp_local.amrValue": "sms_otp_local",
   "authentication.authenticator.sms_otp_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.sms_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp_local.parameters.enableRetryFromAuthenticator": true,
 
   "authentication.authenticator.push_local.name": "push-notification-authenticator",
   "authentication.authenticator.push_local.enable": true,
-  "authentication.authenticator.push_local.amrValue": "push_local",
   "authentication.authenticator.push_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.push_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.push_local.parameters.enableRetryFromAuthenticator": true,

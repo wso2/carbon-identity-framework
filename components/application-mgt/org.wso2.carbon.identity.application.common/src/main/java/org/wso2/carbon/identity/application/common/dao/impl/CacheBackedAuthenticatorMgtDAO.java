@@ -95,10 +95,8 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         SystemDefinedLocalAuthenticatorCacheKey cacheKey =
                 new SystemDefinedLocalAuthenticatorCacheKey(authenticatorName);
         systemDefinedAuthenticatorCache.clearCacheEntry(cacheKey, tenantId);
-            LOG.debug(String.format(
-                    "Delete cache entry of updating authenticator %s.", authenticatorName));
-        authenticatorMgtFacade.updateSystemLocalAuthenticatorAmrValue(authenticatorName, amrValue,
-                tenantId);
+        LOG.debug(String.format("Deleted cache entry of updating authenticator %s.", authenticatorName));
+        authenticatorMgtFacade.updateSystemLocalAuthenticatorAmrValue(authenticatorName, amrValue, tenantId);
     }
 
     @Override
@@ -139,7 +137,7 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
                 authenticatorConfigName, tenantId);
         systemDefinedAuthenticatorCache.addToCache(cacheKey, new SystemDefinedLocalAuthenticatorCacheEntry(
                 authenticatorConfig), tenantId);
-            LOG.debug(String.format(
+        LOG.debug(String.format(
                     "Entry fetched from DB for authenticator %s. Adding cache entry.", authenticatorConfigName));
         return authenticatorConfig;
     }

@@ -81,6 +81,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
         authenticatorConfig.setName(this.name);
         authenticatorConfig.setEnabled(this.enabled);
+        authenticatorConfig.setAmrValue(this.amrValue);
         try {
             authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
                     .getApplicationAuthenticatorByName(this.name, tenantDomain));
@@ -100,7 +101,6 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         authenticatorConfig.setIdPs(idps);
         authenticatorConfig.setIdPNames(idpNames);
         authenticatorConfig.setTenantDomain(this.tenantDomain);
-        authenticatorConfig.setAmrValue(this.amrValue);
         return authenticatorConfig;
     }
 

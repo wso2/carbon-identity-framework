@@ -121,10 +121,8 @@ public class ApplicationAuthenticatorService {
                 String amrValue = localAuthenticatorConfig.getAmrValue() != null ?
                         localAuthenticatorConfig.getAmrValue() : config.getAmrValue();
                 config.setAmrValue(amrValue);
-                mergedLocalAuthenticators.add(config);
-            } else {
-                mergedLocalAuthenticators.add(config);
             }
+            mergedLocalAuthenticators.add(config);
         }
         return mergedLocalAuthenticators;
     }

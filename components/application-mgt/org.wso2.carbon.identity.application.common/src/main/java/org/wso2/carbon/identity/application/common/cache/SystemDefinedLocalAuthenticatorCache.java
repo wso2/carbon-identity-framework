@@ -31,6 +31,7 @@ public class SystemDefinedLocalAuthenticatorCache extends
     private static final SystemDefinedLocalAuthenticatorCache INSTANCE = new SystemDefinedLocalAuthenticatorCache();
 
     private SystemDefinedLocalAuthenticatorCache() {
+
         super(SYSTEM_DEFINED_AUTHENTICATOR_CACHE_NAME);
     }
 

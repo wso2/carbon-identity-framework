@@ -1032,7 +1032,7 @@ public class FileBasedConfigurationBuilder {
         OMAttribute amrAttr = authenticatorConfigElem.getAttribute(new QName(FrameworkConstants.Config
                 .ATTR_AUTHENTICATOR_AMR));
         String amr = amrAttr.getAttributeValue();
-        if (amr.isEmpty()) {
+        if (amr == null || amr.isEmpty()) {
             amr = authenticatorName;
         }
 

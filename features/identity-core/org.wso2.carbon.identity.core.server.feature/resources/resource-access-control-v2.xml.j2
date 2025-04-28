@@ -1436,10 +1436,16 @@
          </Resource>
 
          <!-- [Organization] System defined local authenticator API -->
+         <Resource context="(.*)/o/api/server/v1/authenticators/system/(.*)" secured="true" http-method="GET">
+               <Scopes>internal_org_system_authenticator_get</Scopes>
+          </Resource>
           <Resource context="(.*)/o/api/server/v1/authenticators/system/(.*)" secured="true" http-method="PATCH">
               <Scopes>internal_org_system_authenticator_patch</Scopes>
           </Resource>
           <!-- System defined local authenticator API -->
+          <Resource context="(.*)/api/server/v1/authenticators/system/(.*)" secured="true" http-method="GET">
+              <Scopes>internal_system_authenticator_get</Scopes>
+          </Resource>
           <Resource context="(.*)/api/server/v1/authenticators/system/(.*)" secured="true" http-method="PATCH">
               <Scopes>internal_system_authenticator_patch</Scopes>
           </Resource>

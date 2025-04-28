@@ -85,6 +85,7 @@ public interface AuthenticatorManagementDAO {
      */
     default LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtException {
+
         return null;
     }
 
@@ -127,6 +128,7 @@ public interface AuthenticatorManagementDAO {
      */
     default LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig
             , int tenantId) throws AuthenticatorMgtException {
+
         return null;
     }
 
@@ -139,6 +141,7 @@ public interface AuthenticatorManagementDAO {
      */
     default List<LocalAuthenticatorConfig> getAllSystemLocalAuthenticators(int tenantId)
             throws AuthenticatorMgtException {
+
         return null;
     }
 }
