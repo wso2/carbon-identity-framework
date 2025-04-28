@@ -509,6 +509,8 @@
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
 
+  "identity_mgt.claims.hidden_claims": [],
+
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
 
