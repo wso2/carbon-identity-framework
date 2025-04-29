@@ -22,7 +22,7 @@ import org.mockito.MockedStatic;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.CommonDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.CommonDataRetrievalClientException;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import static org.mockito.Mockito.mockStatic;
 
@@ -38,7 +38,7 @@ public class CommonDataRetrievalClientTest extends RetrievalClientBaseTest {
              MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClient);
             commonDataRetrievalClient.checkBooleanProperty("", SUPER_TENANT_DOMAIN, "", false, true);
         }
     }

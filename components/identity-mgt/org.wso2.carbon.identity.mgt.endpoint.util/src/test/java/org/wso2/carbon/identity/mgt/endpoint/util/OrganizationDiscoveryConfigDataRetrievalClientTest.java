@@ -23,7 +23,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.OrganizationDiscoveryConfigDataRetrievalClient;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClientTest extends Retrieva
              MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createHttp5ClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClient);
             Map<String, String> result =
                     orgDiscoveryConfigDataRetrievalClient.getDiscoveryConfiguration(SUPER_TENANT_DOMAIN);
             Assert.assertEquals(result.size(), 2);

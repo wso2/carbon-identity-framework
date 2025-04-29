@@ -34,7 +34,7 @@ import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationAccessURL(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName));
@@ -140,7 +140,7 @@ public class ApplicationDataRetrievalClient {
     public boolean getApplicationEnabledStatus(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName) + APP_ENABLED_STATE_QUERY);
@@ -196,7 +196,7 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationAccessURLByAppId(String tenant, String applicationId)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             HttpGet request = new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
 
@@ -243,7 +243,7 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationName(String tenant, String applicationId)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
@@ -291,7 +291,7 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationID(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName));

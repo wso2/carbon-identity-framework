@@ -33,7 +33,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -80,7 +80,7 @@ public class ValidationConfigurationRetrievalClient {
     public JSONArray getConfigurations(String tenantDomain)
             throws ValidationConfigurationRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             HttpGet request = new HttpGet(getValidationMgtEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 

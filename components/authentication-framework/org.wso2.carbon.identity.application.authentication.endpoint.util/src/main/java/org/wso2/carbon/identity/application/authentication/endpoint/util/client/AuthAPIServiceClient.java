@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.json.JSONObject;
@@ -31,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.endpoint.util.client.
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationErrorResponse;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationResponse;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationSuccessResponse;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -82,7 +82,7 @@ public class AuthAPIServiceClient {
         httpPostRequest.setHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader(username, password));
         httpPostRequest.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
-        try (CloseableHttpClient httpClient = HttpClients.createSystem()) {
+        try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithSystemProperties().build()) {
             return httpClient.execute(httpPostRequest, response -> {
 
                 String responseString;
