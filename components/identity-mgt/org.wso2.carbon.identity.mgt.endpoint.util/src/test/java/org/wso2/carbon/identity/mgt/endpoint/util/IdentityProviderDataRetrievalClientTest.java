@@ -50,10 +50,10 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
+             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
             String imageKey = identityProviderDataRetrievalClient.getIdPImage(SUPER_TENANT_DOMAIN, idpName);
             Assert.equals("assets/images/logos/enterprise.svg", imageKey);
         }
@@ -64,10 +64,10 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
+             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
 
             identityProviderDataRetrievalClient.getFederatedIdpConfigs(SUPER_TENANT_DOMAIN, "idp-code", idpName,
                     Stream.of("key").collect(Collectors.toList()));

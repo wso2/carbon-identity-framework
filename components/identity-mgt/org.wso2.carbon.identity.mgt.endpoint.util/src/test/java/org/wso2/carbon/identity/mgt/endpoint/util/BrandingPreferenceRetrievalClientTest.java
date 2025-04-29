@@ -47,10 +47,10 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
+             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
             JSONObject jsonObject = preferenceRetrievalClient.getPreference(SUPER_TENANT_DOMAIN, "ORG", null, "en-US");
             Assert.equals("centered",
                     ((JSONObject) ((JSONObject) jsonObject.get("preference")).get("layout")).get("activeLayout")
@@ -63,10 +63,10 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientImpl = mockStatic(HTTPClientUtils.class)) {
+             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientImpl.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClient);
+            httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
             preferenceRetrievalClient.getCustomTextPreference(SUPER_TENANT_DOMAIN, "ORG", "", "", "en-US");
         }
     }
