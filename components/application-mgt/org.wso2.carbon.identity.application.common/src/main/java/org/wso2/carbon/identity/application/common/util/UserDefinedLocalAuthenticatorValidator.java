@@ -39,7 +39,7 @@ public class UserDefinedLocalAuthenticatorValidator {
     private static final String URL_REGEX = "^https?://.+";
     private final Pattern urlRegexPattern = Pattern.compile(URL_REGEX);
 
-    private static final String AMR_VALUE_REGEX = "^[a-zA-Z0-9_]{2,}$";
+    private static final String AMR_VALUE_REGEX = "^[a-zA-Z0-9_-]{2,}$";
     private final Pattern amrRegexPattern = Pattern.compile(AMR_VALUE_REGEX); //Configure AMR value regex pattern in XML
 
     /**
