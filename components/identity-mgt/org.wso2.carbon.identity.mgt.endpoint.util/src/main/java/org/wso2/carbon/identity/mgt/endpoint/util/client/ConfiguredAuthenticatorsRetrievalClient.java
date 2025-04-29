@@ -33,7 +33,7 @@ import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -63,7 +63,7 @@ public class ConfiguredAuthenticatorsRetrievalClient {
     public JSONArray getConfiguredAuthenticators(String applicationId, String tenantDomain)
             throws ConfiguredAuthenticatorsRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createHttp5ClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenantDomain) + "/" + Encode.forUriComponent(applicationId) +
                             AUTHENTICATORS);
