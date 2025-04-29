@@ -2072,7 +2072,8 @@
         {% if authentication.jit_provisioning.allow_idp_login is defined %}
             <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
-        <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
+        <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user | default(true)}}</AllowAssociatingToExistingUser>
+        <RetainEmailDomainOnProvisioning>{{authentication.jit_provisioning.retain_email_domain_on_provisioning}}</RetainEmailDomainOnProvisioning>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
         {% if authentication.jit_provisioning.show_failure_reason is defined %}
         <ShowFailureReason>{{authentication.jit_provisioning.show_failure_reason}}</ShowFailureReason>
