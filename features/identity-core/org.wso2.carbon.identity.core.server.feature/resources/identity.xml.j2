@@ -1513,12 +1513,8 @@
                 <ClaimURI>{{claimuri}}</ClaimURI>
             {% endfor %}
         </IndelibleClaims>
-        <AllowAssociatingToExistingUser>
-            {{authentication.jit_provisioning.associating_to_existing_user | default(true)}}
-        </AllowAssociatingToExistingUser>
-        <RetainEmailDomainOnProvisioning>
-            {{authentication.jit_provisioning.retain_email_domain_on_provisioning}}
-        </RetainEmailDomainOnProvisioning>
+        <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user | default(true)}}</AllowAssociatingToExistingUser>
+        <RetainEmailDomainOnProvisioning>{{authentication.jit_provisioning.retain_email_domain_on_provisioning}}</RetainEmailDomainOnProvisioning>
     </JITProvisioning>
 
     <!--Application management service configurations-->
