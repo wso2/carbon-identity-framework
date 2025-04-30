@@ -92,6 +92,24 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
         return true;
     }
 
+    @Override
+    public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("doPostUpdateIdp executed for idp: " + oldIdPName + " of tenantDomain: " + tenantDomain);
+        }
+
+        // Clear the SP cache since updated IDP might have contained association with SPs.
+        IdentityServiceProviderCache.getInstance().clear(tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityServiceProvider Cache is cleared on post update event of idp: " + oldIdPName + " of " +
+                    "tenantDomain: " + tenantDomain);
+        }
+
+        return super.doPostUpdateIdP(oldIdPName, identityProvider, tenantDomain);
+    }
+
     /**
      * Update the service providers that have the given IDP as their federated IDP.
      *
