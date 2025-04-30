@@ -163,7 +163,7 @@ public class ConsoleAuthorizedAPIListener extends AbstractAuthorizedAPIManagemen
     private String buildConsoleInboundKey(String tenantDomain) {
 
         String consoleInboundKeyDefault = "CONSOLE";
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || tenantDomain.equals("Carbon.super")) {
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || tenantDomain.equals("carbon.super")) {
             return consoleInboundKeyDefault;
         } else {
             return consoleInboundKeyDefault + "_" + tenantDomain;

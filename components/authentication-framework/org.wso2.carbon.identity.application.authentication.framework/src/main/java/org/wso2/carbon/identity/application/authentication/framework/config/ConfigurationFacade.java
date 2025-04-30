@@ -428,10 +428,12 @@ public class ConfigurationFacade {
                             String serviceProviderName) {
 
         IdentityTenantUtil.setConsoleAppRequest("Console".equalsIgnoreCase(serviceProviderName));
+        IdentityTenantUtil.setMyAccountAppRequest("My Account".equalsIgnoreCase(serviceProviderName));
 
         // Console applications in each tenant should continue to function in a multi-tenant environment even if
         // tenant-qualified URLs are disabled.
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || IdentityTenantUtil.isConsoleAppRequest()) {
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || IdentityTenantUtil.isConsoleAppRequest() ||
+                IdentityTenantUtil.isMyAccountAppRequest()) {
             try {
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
                 return ServiceURLBuilder.create().addPath(defaultContext).setOrganization(organizationId).build()

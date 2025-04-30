@@ -149,7 +149,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedUrlContext = buildUrlPath(urlPaths);
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
         boolean useTenantQualifiedURLs = IdentityTenantUtil.isTenantQualifiedUrlsEnabled() ||
-                IdentityTenantUtil.isConsoleAppRequest();
+                IdentityTenantUtil.isConsoleAppRequest() || IdentityTenantUtil.isMyAccountAppRequest();
 
         if (useTenantQualifiedURLs && !resolvedUrlContext.startsWith("t/") && !resolvedUrlContext.startsWith("o/")) {
             if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
