@@ -509,7 +509,16 @@
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
 
-  "identity_mgt.claims.hidden_claims": [],
+  "identity_mgt.claims.hidden_claims": [
+    "http://wso2.org/claims/identity/askPassword",
+    "http://wso2.org/claims/identity/tenantAdminAskPassword",
+    "http://wso2.org/claims/identity/adminForcedPasswordReset",
+    "http://wso2.org/claims/identity/secretkey",
+    "http://wso2.org/claims/identity/verifySecretkey",
+    "http://wso2.org/claims/identity/backupCodes",
+    "http://wso2.org/claims/identity/verifyEmail",
+    "http://wso2.org/claims/identity/verifyMobile"
+  ],
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
