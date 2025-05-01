@@ -303,5 +303,12 @@
   "identity_mgt.events.schemes.FragmentApplicationMgtHandler.module_index": "47",
   "identity_mgt.events.schemes.FragmentApplicationMgtHandler.subscriptions": [
     "PRE_SHARE_APPLICATION"
+  ],
+  "identity_mgt.events.schemes.OrganizationManagementAuditLogHandler.module_index": "48",
+  "identity_mgt.events.schemes.OrganizationManagementAuditLogHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION",
+    "POST_UPDATE_ORGANIZATION",
+    "POST_PATCH_ORGANIZATION",
+    "POST_DELETE_ORGANIZATION"
   ]
 }
