@@ -1187,8 +1187,7 @@
     "OAuthRequestPathAuthenticator"
   ],
   "console.ui.hiddenConnectionTemplates": [
-    "swe-idp",
-    "signicat"
+    "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
