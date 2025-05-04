@@ -427,13 +427,12 @@ public class ConfigurationFacade {
     private String buildUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig,
                             String serviceProviderName) {
 
-        IdentityTenantUtil.setConsoleAppRequest("Console".equalsIgnoreCase(serviceProviderName));
-        IdentityTenantUtil.setMyAccountAppRequest("My Account".equalsIgnoreCase(serviceProviderName));
+        IdentityTenantUtil.setConsoleAppRequest(FrameworkConstants.Application.CONSOLE_APP.equalsIgnoreCase(
+                serviceProviderName));
+        IdentityTenantUtil.setMyAccountAppRequest(FrameworkConstants.Application.MY_ACCOUNT_APP.equalsIgnoreCase(
+                serviceProviderName));
 
-        // Console applications in each tenant should continue to function in a multi-tenant environment even if
-        // tenant-qualified URLs are disabled.
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || IdentityTenantUtil.isConsoleAppRequest() ||
-                IdentityTenantUtil.isMyAccountAppRequest()) {
+        if (useTenantQualifiedURLs()) {
             try {
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
                 return ServiceURLBuilder.create().addPath(defaultContext).setOrganization(organizationId).build()
@@ -451,6 +450,19 @@ public class ConfigurationFacade {
                 return defaultContext;
             }
         }
+    }
+
+    /**
+     * Checks whether tenant qualified URLs should be used.
+     *
+     * Console and My Account applications in each tenant should continue to function in a multi-tenant environment
+     * even if tenant-qualified URLs are disabled.
+     * @return if tenant qualified URLs should be used or not.
+     */
+    private boolean useTenantQualifiedURLs() {
+
+        return IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || IdentityTenantUtil.isConsoleAppRequest() ||
+                IdentityTenantUtil.isMyAccountAppRequest();
     }
 
     private String buildAbsoluteUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig) {
