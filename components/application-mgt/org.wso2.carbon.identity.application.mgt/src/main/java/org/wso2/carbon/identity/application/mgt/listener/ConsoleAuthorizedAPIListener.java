@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -162,11 +163,11 @@ public class ConsoleAuthorizedAPIListener extends AbstractAuthorizedAPIManagemen
 
     private String buildConsoleInboundKey(String tenantDomain) {
 
-        String consoleInboundKeyDefault = "CONSOLE";
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() || tenantDomain.equals("carbon.super")) {
-            return consoleInboundKeyDefault;
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() ||
+                ApplicationConstants.superTenant.equalsIgnoreCase(tenantDomain)) {
+            return ApplicationConstants.CONSOLE_APPLICATION_CLIENT_ID;
         } else {
-            return consoleInboundKeyDefault + "_" + tenantDomain;
+            return ApplicationConstants.CONSOLE_APPLICATION_CLIENT_ID + "_" + tenantDomain;
         }
     }
 
