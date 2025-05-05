@@ -24,8 +24,7 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorM
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_NOT_PROVIDED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.USER_ALREADY_EXISTING_USERNAME;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.*;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.USERNAME_CLAIM_URI;
@@ -92,11 +91,14 @@ public class UserOnboardingExecutor implements Executor {
             String userStoreDomainName = resolveUserStoreDomain(user.getUsername());
             UserStoreManager userStoreManager = getUserStoreManager(context.getTenantDomain(), userStoreDomainName,
                                                                     context.getContextIdentifier());
-            userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
-                                     String.valueOf(password), null, userClaims, null);
-            String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
-            context.setUserId(userid);
-            return new ExecutorResponse(STATUS_USER_CREATED);
+//            userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
+//                                     String.valueOf(password), null, userClaims, null);
+//            String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
+//            context.setUserId(userid);
+//            return new ExecutorResponse(STATUS_USER_CREATED);
+            userStoreManager.updateCredentialByAdmin(
+                    IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName), password);
+            return new ExecutorResponse(STATUS_COMPLETE);
         } catch (UserStoreException e) {
             if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
                 throw handleClientException(ERROR_CODE_USERNAME_ALREADY_EXISTS, context.getTenantDomain());
