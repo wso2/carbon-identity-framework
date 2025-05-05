@@ -1967,7 +1967,7 @@
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
         <identity.organization.management.version>1.4.132</identity.organization.management.version>
-        <org.wso2.identity.organization.mgt.imp.pkg.version.range>[1.0.0, 2.0.0)</org.wso2.identity.organization.mgt.imp.pkg.version.range>
+        <org.wso2.identity.organization.mgt.imp.pkg.version.range>[1.0.0, 3.0.0)</org.wso2.identity.organization.mgt.imp.pkg.version.range>
 
         <!--Carbon registry version-->
         <org.wso2.carbon.registry.version>4.8.37</org.wso2.carbon.registry.version>
