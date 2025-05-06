@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.124-SNAPSHOT</version>
+    <version>7.8.132-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -1953,7 +1953,7 @@
         <carbon.commons.version>4.7.54</carbon.commons.version>
         <carbon.commons.imp.pkg.version>[4.7.2, 5.0.0)</carbon.commons.imp.pkg.version>
 
-        <org.wso2.carbon.database.utils.version>2.2.7</org.wso2.carbon.database.utils.version>
+        <org.wso2.carbon.database.utils.version>2.2.8</org.wso2.carbon.database.utils.version>
         <org.wso2.carbon.database.utils.version.range>[2.0.0,3.0.0)</org.wso2.carbon.database.utils.version.range>
 
         <!--Carbon identity version-->
@@ -1967,7 +1967,7 @@
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
         <identity.organization.management.version>1.4.132</identity.organization.management.version>
-        <org.wso2.identity.organization.mgt.imp.pkg.version.range>[1.0.0, 2.0.0)</org.wso2.identity.organization.mgt.imp.pkg.version.range>
+        <org.wso2.identity.organization.mgt.imp.pkg.version.range>[1.0.0, 3.0.0)</org.wso2.identity.organization.mgt.imp.pkg.version.range>
 
         <!--Carbon registry version-->
         <org.wso2.carbon.registry.version>4.8.37</org.wso2.carbon.registry.version>

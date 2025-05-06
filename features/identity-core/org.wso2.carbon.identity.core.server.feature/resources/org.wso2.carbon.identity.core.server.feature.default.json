@@ -509,7 +509,16 @@
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
 
-  "identity_mgt.claims.hidden_claims": [],
+  "identity_mgt.claims.hidden_claims": [
+    "http://wso2.org/claims/identity/askPassword",
+    "http://wso2.org/claims/identity/tenantAdminAskPassword",
+    "http://wso2.org/claims/identity/adminForcedPasswordReset",
+    "http://wso2.org/claims/identity/secretkey",
+    "http://wso2.org/claims/identity/verifySecretkey",
+    "http://wso2.org/claims/identity/backupCodes",
+    "http://wso2.org/claims/identity/verifyEmail",
+    "http://wso2.org/claims/identity/verifyMobile"
+  ],
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
@@ -1178,8 +1187,7 @@
     "OAuthRequestPathAuthenticator"
   ],
   "console.ui.hiddenConnectionTemplates": [
-    "swe-idp",
-    "signicat"
+    "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
@@ -1655,6 +1663,7 @@
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
   "myaccount.ui.app_logo_path": "/assets/images/branding/logo.svg",
+  "myaccount.ui.app_mobile_logo_path": "/assets/images/branding/logo-mini.svg",
   "myaccount.ui.app_white_logo_path": "/assets/images/branding/logo-inverted.svg",
   "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
