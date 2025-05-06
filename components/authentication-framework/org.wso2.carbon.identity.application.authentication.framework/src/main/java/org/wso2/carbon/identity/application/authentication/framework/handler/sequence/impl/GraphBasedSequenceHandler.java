@@ -230,8 +230,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             response) throws FrameworkException {
 
         try {
-            String longWaitUrl = ConfigurationFacade.getInstance().getAuthenticationEndpointWaitURL(
-                    context.getServiceProviderName());
+            String longWaitUrl = ConfigurationFacade.getInstance().getAuthenticationEndpointWaitURL();
             response.sendRedirect(longWaitUrl + "?" + FrameworkConstants.SESSION_DATA_KEY + "=" + context
                     .getContextIdentifier());
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
@@ -295,8 +294,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         try {
 
-            String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL(
-                    context.getServiceProviderName());
+            String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
             String tenantDomainQueryString = null;
             if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                 tenantDomainQueryString = "tenantDomain=" + context.getTenantDomain();
@@ -405,8 +403,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             try {
                 if (StringUtils.isBlank(errorPage)) {
                     // Redirecting to server retry page.
-                    errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL(
-                            context.getServiceProviderName());
+                    errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
                     URIBuilder uriBuilder = new URIBuilder(errorPage);
                     // Create error key and add failure data set in the script to AuthenticationError and add to cache.
                     String errorKey = UUID.randomUUID().toString();

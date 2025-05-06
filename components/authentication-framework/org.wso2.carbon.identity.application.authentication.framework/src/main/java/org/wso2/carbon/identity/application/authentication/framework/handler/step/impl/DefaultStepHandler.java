@@ -143,8 +143,7 @@ public class DefaultStepHandler implements StepHandler {
 
         String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
 
-        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL(
-                context.getServiceProviderName());
+        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 
         String fidp = request.getParameter(FrameworkConstants.RequestParams.FEDERATED_IDP);
 
@@ -366,8 +365,7 @@ public class DefaultStepHandler implements StepHandler {
                 */
                 if (filteredAuthConfigList.isEmpty() & !authConfigList.isEmpty()) {
                     try {
-                        String errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointErrorURL(
-                                context.getServiceProviderName());
+                        String errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointErrorURL();
                         URIBuilder uriBuilder = new URIBuilder(errorPage);
 
                         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
@@ -468,8 +466,7 @@ public class DefaultStepHandler implements StepHandler {
                                        HttpServletResponse response, String authenticatorNames)
             throws FrameworkException {
 
-        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL(
-                context.getServiceProviderName());
+        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Sending to the Multi Option page");
         }
@@ -517,9 +514,9 @@ public class DefaultStepHandler implements StepHandler {
         StepConfig stepConfig = sequenceConfig.getStepMap().get(context.getCurrentStep());
         List<AuthenticatorConfig> authConfigList = stepConfig.getAuthenticatorList();
 
+
         String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
-        String redirectURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL(
-                context.getServiceProviderName());
+        String redirectURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 
         if (domain.trim().length() == 0) {
             //SP hasn't specified a domain. We assume it wants to get the domain from the user
@@ -1290,8 +1287,7 @@ public class DefaultStepHandler implements StepHandler {
                         FrameworkConstants.ERROR_CODE.equals(nameValuePair.getName()) &&
                                 UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(nameValuePair.getValue()))) {
                     if (isRedirectionToRetryPageOnAccountLock(context)) {
-                        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL(
-                                context.getServiceProviderName());
+                        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
                         return response.encodeRedirectURL(retryPage
                                 + ("?" + context.getContextIdIncludedQueryParams()))
                                 + errorParamString;

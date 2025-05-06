@@ -241,7 +241,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 String displayNames = getMissingClaimsDisplayNames(missingClaimMap, localClaims);
 
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
-                        .getAuthenticationEndpointMissingClaimsURL(context.getServiceProviderName()));
+                        .getAuthenticationEndpointMissingClaimsURL());
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
                         missingClaims[0]);
                 uriBuilder.addParameter(FrameworkConstants.DISPLAY_NAMES,

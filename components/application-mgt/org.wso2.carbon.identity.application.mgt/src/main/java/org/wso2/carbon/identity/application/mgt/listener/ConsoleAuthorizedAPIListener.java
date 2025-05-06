@@ -164,7 +164,7 @@ public class ConsoleAuthorizedAPIListener extends AbstractAuthorizedAPIManagemen
     private String buildConsoleInboundKey(String tenantDomain) {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() ||
-                ApplicationConstants.superTenant.equalsIgnoreCase(tenantDomain)) {
+                ApplicationConstants.SUPER_TENANT.equalsIgnoreCase(tenantDomain)) {
             return ApplicationConstants.CONSOLE_APPLICATION_CLIENT_ID;
         } else {
             return ApplicationConstants.CONSOLE_APPLICATION_CLIENT_ID + "_" + tenantDomain;

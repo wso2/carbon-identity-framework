@@ -112,7 +112,11 @@ public class IdentityCoreConstants {
 
     // Actions constants.
     public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "Actions.MaximumActionsPerType";
-    
+
+    // System application constants.
+    public static final String CONSOLE_APPLICATION_NAME = "Console";
+    public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
+
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
 
     public static class Filter {
@@ -144,4 +148,5 @@ public class IdentityCoreConstants {
 
     private IdentityCoreConstants(){
     }
+
 }

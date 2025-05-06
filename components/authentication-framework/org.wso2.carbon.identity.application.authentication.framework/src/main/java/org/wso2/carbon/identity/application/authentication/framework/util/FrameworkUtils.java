@@ -683,8 +683,7 @@ public class FrameworkUtils {
 
         try {
             URIBuilder uriBuilder = new URIBuilder(
-                    ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL(
-                            context.getServiceProviderName()));
+                    ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
             if (status != null && statusMsg != null) {
                 if (context != null) {
                     Map<String, String> failureData = new HashMap<>();
