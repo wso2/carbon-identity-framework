@@ -29,6 +29,9 @@
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.UnifiedClaimMetadataManagerTest" />
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImplTest" />
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.util.DialectConfigParserTest"/>
+            <class name="org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMappingTest"/>
+            <class name="org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimTest"/>
+            <class name="org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaimTest"/>
         </classes>
     </test>
 
