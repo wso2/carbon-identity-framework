@@ -53,7 +53,8 @@
     "PRE_ADD_USER",
     "POST_ADD_USER",
     "PRE_SET_USER_CLAIMS",
-    "POST_SET_USER_CLAIMS"
+    "POST_SET_USER_CLAIMS",
+    "PRE_DELETE_USER_CLAIM"
   ],
   "identity_mgt.events.schemes.passwordPolicy.module_index": "8",
   "identity_mgt.events.schemes.passwordPolicy.subscriptions": [
@@ -155,7 +156,8 @@
   "identity_mgt.events.schemes.userMobileVerification.module_index": "25",
   "identity_mgt.events.schemes.userMobileVerification.subscriptions": [
     "PRE_SET_USER_CLAIMS",
-    "POST_SET_USER_CLAIMS"
+    "POST_SET_USER_CLAIMS",
+    "PRE_DELETE_USER_CLAIM"
   ],
   "identity_mgt.events.schemes.liteUserRegistration.properties.enable": false,
   "identity_mgt.events.schemes.liteUserRegistration.module_index": "26",
