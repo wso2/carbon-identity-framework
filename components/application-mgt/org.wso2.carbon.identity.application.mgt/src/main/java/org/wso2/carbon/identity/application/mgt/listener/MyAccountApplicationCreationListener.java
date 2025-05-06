@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.core.migrate.MigrationClientException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
@@ -40,8 +39,10 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.APIResourceTypes.TENANT;
 import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.RBAC_AUTHORIZATION;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_ROLE_AUDIENCE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_ROLE_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_SCOPE_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATION_API_RESOURCE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.USER_SESSION_IMPERSONATION_ENABLED;
 
@@ -82,7 +83,7 @@ public class MyAccountApplicationCreationListener extends AbstractApplicationMgt
         String myAccountId = getMyAccountAppId(tenantDomain);
         // Register API Resource.
         if (!isAPIResourceRegistered(myAccountId, tenantDomain)) {
-            addApiResourceToApplication(myAccountId, tenantDomain);
+            addAPIResourceToApplication(myAccountId, tenantDomain);
         }
         // Create Role.
         if (!isExistingRoleName(myAccountId, tenantDomain)) {
@@ -103,7 +104,7 @@ public class MyAccountApplicationCreationListener extends AbstractApplicationMgt
                 .getRoleManagementServiceV2();
         try {
             roleManagementService.addRole(IMPERSONATE_ROLE_NAME, new ArrayList<>(), new ArrayList<>(), permissions,
-                    "application", myAccountId, tenantDomain);
+                    APPLICATION_ROLE_AUDIENCE, myAccountId, tenantDomain);
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error occurred while creating impersonator role.");
         }
@@ -116,13 +117,13 @@ public class MyAccountApplicationCreationListener extends AbstractApplicationMgt
                 .getRoleManagementServiceV2();
         try {
             return roleManagementService.isExistingRoleName(IMPERSONATE_ROLE_NAME,
-                    "application", myAccountId, tenantDomain);
+                    APPLICATION_ROLE_AUDIENCE, myAccountId, tenantDomain);
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error occurred while checking role existence.");
         }
     }
 
-    private void addApiResourceToApplication(String myAccountId, String tenantDomain)
+    private void addAPIResourceToApplication(String myAccountId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         APIResource apiResource = getImpersontionAPIResource(tenantDomain);
@@ -137,7 +138,7 @@ public class MyAccountApplicationCreationListener extends AbstractApplicationMgt
         try {
             authorizedAPIManagementService.addAuthorizedAPI(myAccountId, authorizedAPI, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
-            throw new IdentityApplicationManagementException("Error occured while adding API resource.");
+            throw new IdentityApplicationManagementException("Error occurred while adding API resource.");
         }
     }
 
@@ -148,13 +149,13 @@ public class MyAccountApplicationCreationListener extends AbstractApplicationMgt
             List<AuthorizedAPI> authorizedAPIs = authorizedAPIManagementService.getAuthorizedAPIs(
                     myAccountId, tenantDomain);
             for (AuthorizedAPI authorizedAPI : authorizedAPIs) {
-                if (authorizedAPI.getAPIIdentifier().equals("system:impersonation")) {
+                if (IMPERSONATION_API_RESOURCE.equals(authorizedAPI.getAPIIdentifier())) {
                     return true;
                 }
             }
             return false;
         } catch (IdentityApplicationManagementException e) {
-            throw new IdentityApplicationManagementException("Error occured while adding API resource.");
+            throw new IdentityApplicationManagementException("Error occurred while adding API resource.");
         }
     }
 
@@ -165,13 +166,12 @@ public class MyAccountApplicationCreationListener extends AbstractApplicationMgt
                 .getAPIResourceManager();
         APIResource apiResource = null;
         try {
-            apiResource = apiResourceManager.getAPIResourceByIdentifier("system:impersonation",
-                    tenantDomain);
+            apiResource = apiResourceManager.getAPIResourceByIdentifier(IMPERSONATION_API_RESOURCE, tenantDomain);
         } catch (APIResourceMgtException e) {
             throw new IdentityApplicationManagementException("Error occurred while retrieving API resource.");
         }
         if (apiResource == null) {
-            throw new IdentityApplicationManagementException("Api resources unavailable.");
+            throw new IdentityApplicationManagementException("API resources unavailable.");
         }
         return apiResource;
     }
@@ -183,11 +183,11 @@ public class MyAccountApplicationCreationListener extends AbstractApplicationMgt
             String appUUID = applicationManagementService.getApplicationUUIDByName(
                     MY_ACCOUNT_APPLICATION_NAME, tenantDomain);
             if (StringUtils.isBlank(appUUID)) {
-                throw new MigrationClientException("ApplicationUUID is null.");
+                throw new IdentityApplicationManagementException("Application UUID is null.");
             }
             return appUUID;
-        } catch (IdentityApplicationManagementException | MigrationClientException e) {
-            throw new IdentityApplicationManagementException("Error while getting ApplicationUUID.");
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException("Error while getting Application UUID.");
         }
     }
 }
