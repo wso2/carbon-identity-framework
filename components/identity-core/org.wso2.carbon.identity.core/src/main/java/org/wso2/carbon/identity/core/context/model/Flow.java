@@ -38,6 +38,8 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.PROFILE_UPDATE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.SCIM_BULK_RESOURCE_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
     }
 
     /**
@@ -46,9 +48,7 @@ public class Flow {
      */
     public enum Name {
 
-        PASSWORD_RESET,
-        USER_REGISTRATION_INVITE_WITH_PASSWORD,
-        PROFILE_UPDATE
+        PASSWORD_RESET, USER_REGISTRATION_INVITE_WITH_PASSWORD, PROFILE_UPDATE, SCIM_BULK_RESOURCE_UPDATE
     }
 
     /**
@@ -61,9 +61,7 @@ public class Flow {
      */
     public enum InitiatingPersona {
 
-        ADMIN,
-        APPLICATION,
-        USER
+        ADMIN, APPLICATION, USER
     }
 
     private final Name name;
