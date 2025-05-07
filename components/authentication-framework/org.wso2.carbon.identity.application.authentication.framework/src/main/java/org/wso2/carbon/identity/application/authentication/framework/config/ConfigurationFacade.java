@@ -341,7 +341,7 @@ public class ConfigurationFacade {
                             Supplier<String> getV2VaueFromFileBasedConfig) {
 
         String applicationName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getApplicationName();
-        if (applicationName != null && useTenantQualifiedURLs(applicationName)) {
+        if (IdentityTenantUtil.shouldUseTenantQualifiedURLs()) {
             try {
                 if (getV2VaueFromFileBasedConfig != null &&
                         StringUtils.isNotBlank(getV2VaueFromFileBasedConfig.get())) {

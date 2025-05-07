@@ -148,10 +148,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         String resolvedUrlContext = buildUrlPath(urlPaths);
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
-        boolean useTenantQualifiedURLs = IdentityTenantUtil.isTenantQualifiedUrlsEnabled() ||
-                IdentityTenantUtil.isConsoleAppRequest() || IdentityTenantUtil.isMyAccountAppRequest();
 
-        if (useTenantQualifiedURLs && !resolvedUrlContext.startsWith("t/") && !resolvedUrlContext.startsWith("o/")) {
+        if (IdentityTenantUtil.shouldUseTenantQualifiedURLs() && !resolvedUrlContext.startsWith("t/") &&
+                !resolvedUrlContext.startsWith("o/")) {
             if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
                 setURL(resolvedUrlStringBuilder, tenantDomain);
             }
@@ -171,6 +170,25 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     protected boolean isNotSuperTenant(String tenantDomain) {
 
         return !StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     * Checks whether tenant qualified URLs should be used.
+     *
+     * Console and My Account applications in each tenant should continue to function in a multi-tenant environment
+     * even if tenant-qualified URLs are disabled.
+     * @return if tenant qualified URLs should be used or not.
+     */
+    protected boolean useTenantQualifiedURLs() {
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return true;
+        }
+
+        // Access the system application info from the thread local properties.
+        Object isSystemApp = IdentityUtil.threadLocalProperties.get().get(IdentityCoreConstants.IS_SYSTEM_APPLICATION);
+
+        return isSystemApp instanceof Boolean ? (Boolean) isSystemApp : false;
     }
 
     /**
