@@ -240,6 +240,7 @@ public class DefaultServiceURLBuilderTest {
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(null);
         carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
         identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(true);
+        identityTenantUtil.when(IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(true);
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
         try {
@@ -362,6 +363,7 @@ public class DefaultServiceURLBuilderTest {
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
         identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(enableTenantURLSupport);
+        identityTenantUtil.when(IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(enableTenantURLSupport);
         identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantNameFromContext);
         lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
@@ -410,6 +412,8 @@ public class DefaultServiceURLBuilderTest {
             carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(protocol);
             carbonUtils.when(() -> CarbonUtils.getTransportPort(mockAxisConfiguration, protocol)).thenReturn(port);
             identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled)
+                    .thenReturn(enableTenantURLSupport);
+            identityTenantUtil.when(IdentityTenantUtil::shouldUseTenantQualifiedURLs)
                     .thenReturn(enableTenantURLSupport);
             identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantNameFromContext);
             lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
@@ -480,6 +484,7 @@ public class DefaultServiceURLBuilderTest {
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
         identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(enableTenantURLSupport);
+        identityTenantUtil.when(IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(enableTenantURLSupport);
         identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantNameFromContext);
         lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
@@ -515,6 +520,7 @@ public class DefaultServiceURLBuilderTest {
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
         identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(enableTenantURLSupport);
+        identityTenantUtil.when(IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(enableTenantURLSupport);
         identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantNameFromContext);
         lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 

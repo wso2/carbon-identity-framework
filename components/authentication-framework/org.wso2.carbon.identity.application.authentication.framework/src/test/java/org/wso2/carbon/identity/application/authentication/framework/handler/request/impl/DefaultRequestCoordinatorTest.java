@@ -128,6 +128,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
             identityTenantUtil.when(
                     IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualifiedUrlModeEnabled);
+            identityTenantUtil.when(
+                    IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(isTenantQualifiedUrlModeEnabled);
             identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext)
                     .thenReturn(tenantDomainInThreadLocal);
             IdentityEventService identityEventService = mock(IdentityEventService.class);
