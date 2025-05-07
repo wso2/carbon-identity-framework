@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.rule.evaluation.api.model;
 
+import java.util.List;
+
 /**
  * Field value model.
  * This class represents a field value in the context that is utilized at rule evaluation.
@@ -51,6 +53,13 @@ public class FieldValue {
         this.name = name;
         this.valueType = ValueType.NUMBER;
         this.value = Double.valueOf(value.toString());
+    }
+
+    public FieldValue(String name, List<String> value) {
+
+        this.name = name;
+        this.valueType = ValueType.LIST;
+        this.value = value;
     }
 
     public String getName() {
