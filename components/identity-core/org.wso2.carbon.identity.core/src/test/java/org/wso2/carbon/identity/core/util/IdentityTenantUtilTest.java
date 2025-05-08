@@ -33,6 +33,8 @@ public class IdentityTenantUtilTest {
 
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
+    private static final String SUPER_TENANT = "carbon.super";
+
     @BeforeMethod
     public void setUp() throws Exception {
 
@@ -73,5 +75,25 @@ public class IdentityTenantUtilTest {
         threadLocalProperties.put(IdentityCoreConstants.IS_SYSTEM_APPLICATION, isSystemApplication);
 
         assertEquals(IdentityTenantUtil.shouldUseTenantQualifiedURLs(), expectedResult);
+    }
+
+    @DataProvider
+    public Object[][] getIsSystemApplicationConfigData() {
+
+        return new Object[][]{
+                { SUPER_TENANT, "MY_ACCOUNT", true },
+                { SUPER_TENANT, "app-1-client-id", false },
+                { "abc.com", "MY_ACCOUNT_tenant.com", false },
+                { "abc.com", "CONSOLE_abc.com", true },
+        };
+    }
+
+    @Test(dataProvider = "getIsSystemApplicationConfigData")
+    public void testIsSystemApplication(String tenantDomain, String clientID, boolean expectedResult) {
+
+        identityTenantUtil.when(() -> IdentityTenantUtil.isSystemApplication(tenantDomain, clientID)).
+                thenCallRealMethod();
+
+        assertEquals(IdentityTenantUtil.isSystemApplication(tenantDomain, clientID), expectedResult);
     }
 }
