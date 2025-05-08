@@ -34,6 +34,7 @@
             <class name="org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtilTest"/>
             <class name="org.wso2.carbon.identity.core.HybridSAMLSSOServiceProviderDAOImplTest"/>
             <class name="org.wso2.carbon.identity.core.model.FilterTreeBuilderTest"/>
+            <class name="org.wso2.carbon.identity.core.util.IdentityTenantUtilTest"/>
         </classes>
     </test>
 </suite>
