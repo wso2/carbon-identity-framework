@@ -479,23 +479,6 @@ public class IdentityTenantUtil {
     }
 
     /**
-     * Checks if the current application is a system application.
-     *
-     * @param tenantDomain Tenant Domain.
-     * @param clientID Client ID of the application.
-     * @return true if the application is a system app.
-     */
-    public static boolean isSystemApplication(String tenantDomain, String clientID) {
-
-        boolean isConsoleRequest = StringUtils.equalsIgnoreCase(clientID, IdentityCoreConstants.CONSOLE_APPLICATION_CLIENT_ID) ||
-                StringUtils.equalsIgnoreCase(clientID, IdentityCoreConstants.CONSOLE_APPLICATION_CLIENT_ID + "_" + tenantDomain);
-        boolean isMyAccountRequest = StringUtils.equalsIgnoreCase(clientID, IdentityCoreConstants.MY_ACCOUNT_APPLICATION_CLIENT_ID) ||
-                StringUtils.equalsIgnoreCase(clientID, IdentityCoreConstants.MY_ACCOUNT_APPLICATION_CLIENT_ID + "_" + tenantDomain);
-
-        return isConsoleRequest || isMyAccountRequest;
-    }
-
-    /**
      * Checks whether tenant qualified URLs should be used.
      *
      * System applications in each tenant should continue to function in a multi-tenant environment
