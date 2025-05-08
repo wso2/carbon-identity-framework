@@ -383,6 +383,7 @@ public class IdentityEventConstants {
                 "GET_USER_RECOVERY_DATA_SCENARIO_WITH_CODE_EXPIRY_VALIDATION";
         public static final String GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION =
                 "GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION";
+        public static final String INITIATOR_TYPE = "INITIATOR_TYPE";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";
