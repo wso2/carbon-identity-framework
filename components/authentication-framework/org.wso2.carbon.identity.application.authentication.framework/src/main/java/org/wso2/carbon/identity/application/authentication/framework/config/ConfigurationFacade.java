@@ -370,24 +370,6 @@ public class ConfigurationFacade {
         }
     }
 
-
-    /**
-     * Checks whether tenant qualified URLs should be used.
-     *
-     * Console and My Account applications in each tenant should continue to function in a multi-tenant environment
-     * even if tenant-qualified URLs are disabled.
-     * @return if tenant qualified URLs should be used or not.
-     */
-    private boolean useTenantQualifiedURLs(String applicationName) {
-
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            return true;
-        }
-
-        return FrameworkConstants.Application.CONSOLE_APP.equalsIgnoreCase(applicationName) ||
-                FrameworkConstants.Application.MY_ACCOUNT_APP.equalsIgnoreCase(applicationName);
-    }
-
     private String buildAbsoluteUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig) {
 
         String urlFromFileBasedConfig = getValueFromFileBasedConfig.get();

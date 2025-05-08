@@ -486,6 +486,7 @@ public class IdentityTenantUtil {
      * @return if tenant qualified URLs should be used or not.
      */
     public static boolean shouldUseTenantQualifiedURLs() {
+
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             return true;
         }

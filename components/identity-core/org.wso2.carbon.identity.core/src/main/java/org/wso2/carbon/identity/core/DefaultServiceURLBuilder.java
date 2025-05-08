@@ -173,25 +173,6 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     }
 
     /**
-     * Checks whether tenant qualified URLs should be used.
-     *
-     * Console and My Account applications in each tenant should continue to function in a multi-tenant environment
-     * even if tenant-qualified URLs are disabled.
-     * @return if tenant qualified URLs should be used or not.
-     */
-    protected boolean useTenantQualifiedURLs() {
-
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            return true;
-        }
-
-        // Access the system application info from the thread local properties.
-        Object isSystemApp = IdentityUtil.threadLocalProperties.get().get(IdentityCoreConstants.IS_SYSTEM_APPLICATION);
-
-        return isSystemApp instanceof Boolean ? (Boolean) isSystemApp : false;
-    }
-
-    /**
      * Returns {@link ServiceURLBuilder} appended with other parameters. Such parameters should be
      * entered as <k,v> pairs.
      *
