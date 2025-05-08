@@ -96,12 +96,21 @@ public class PreUpdateProfileActionRuleEvaluationDataProviderTest {
         };
     }
 
-    @DataProvider(name = "claim")
+    @DataProvider(name = "claimData")
     public Object[][] claimData() {
 
         return new Object[][]{
                 {new ArrayList<>(Arrays.asList("http://wso2.org/claims/country", "http://wso2.org/claims/givenname"))}
         };
+    }
+
+    @DataProvider(name = "unsupportedFlowData")
+    public Object[][] unsupportedFlowData() {
+
+        return Arrays.stream(Flow.Name.values())
+                .filter(name -> name != Flow.Name.PROFILE_UPDATE) //Remove the supported flow
+                .map(name -> new Object[]{name})
+                .toArray(Object[][]::new);
     }
 
     @Test(dataProvider = "flowData")
@@ -118,7 +127,7 @@ public class PreUpdateProfileActionRuleEvaluationDataProviderTest {
         assertEquals(fieldValues.get(0).getValue(), fieldValue);
     }
 
-    @Test(dataProvider = "claim")
+    @Test(dataProvider = "claimData")
     public void testGetEvaluationDataForClaim(ArrayList<String> claims)
             throws RuleEvaluationDataProviderException {
 
@@ -147,12 +156,13 @@ public class PreUpdateProfileActionRuleEvaluationDataProviderTest {
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
     }
 
-    @Test(expectedExceptions = RuleEvaluationDataProviderException.class)
-    public void testGetEvaluationDataWithUnsupportedFlow() throws RuleEvaluationDataProviderException {
+    @Test(dataProvider = "unsupportedFlowData", expectedExceptions = RuleEvaluationDataProviderException.class)
+    public void testGetEvaluationDataWithUnsupportedFlows(Flow.Name flowName)
+            throws RuleEvaluationDataProviderException {
 
         Field flowField = new Field("flow", ValueType.STRING);
         doReturn(Collections.singletonList(flowField)).when(ruleEvaluationContext).getFields();
-        doReturn(Flow.Name.PASSWORD_RESET).when(flow).getName();
+        doReturn(flowName).when(flow).getName();
         doReturn(Flow.InitiatingPersona.APPLICATION).when(flow).getInitiatingPersona();
         IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");

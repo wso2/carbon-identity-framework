@@ -121,23 +121,27 @@ public class PreUpdateProfileActionRuleEvaluationDataProvider implements RuleEva
     private String getFlowFromContext() throws RuleEvaluationDataProviderException {
 
         Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
-        if (flow.getName() == Flow.Name.PROFILE_UPDATE &&
-                flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
-            return ProfileUpdateFlowType.ADMIN_INITIATED_PROFILE_UPDATE.getFlowName();
+
+        if (flow == null || flow.getName() == null || flow.getInitiatingPersona() == null) {
+            throw new RuleEvaluationDataProviderException("Flow or required attributes are null.");
         }
 
-        if (flow.getName() == Flow.Name.PROFILE_UPDATE &&
-                flow.getInitiatingPersona() == Flow.InitiatingPersona.APPLICATION) {
-            return ProfileUpdateFlowType.APPLICATION_INITIATED_PROFILE_UPDATE.getFlowName();
+        if (flow.getName() != Flow.Name.PROFILE_UPDATE) {
+            throw new RuleEvaluationDataProviderException("Unsupported flow type: " + flow.getName() +
+                    " for Pre Update Profile Action.");
         }
 
-        if (flow.getName() == Flow.Name.PROFILE_UPDATE &&
-                flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
-            return ProfileUpdateFlowType.USER_INITIATED_PROFILE_UPDATE.getFlowName();
+        switch (flow.getInitiatingPersona()) {
+            case ADMIN:
+                return ProfileUpdateFlowType.ADMIN_INITIATED_PROFILE_UPDATE.getFlowName();
+            case APPLICATION:
+                return ProfileUpdateFlowType.APPLICATION_INITIATED_PROFILE_UPDATE.getFlowName();
+            case USER:
+                return ProfileUpdateFlowType.USER_INITIATED_PROFILE_UPDATE.getFlowName();
+            default:
+                throw new RuleEvaluationDataProviderException("Unsupported initiating persona: "
+                        + flow.getInitiatingPersona());
         }
-
-        throw new RuleEvaluationDataProviderException("Unsupported flow type: " + flow.getName() +
-                " for Pre Update Profile Action.");
     }
 
     private void addClaimFieldValue(List<FieldValue> fieldValueList, Field field, FlowContext flowContext)
