@@ -15,6 +15,7 @@
   "data_storage_type.certificate_validation": "database",
   "data_storage_type.admin_advisory_banner": "database",
   "data_storage_type.remote_logging_config": "database",
+  "data_storage_type.challenge_questions": "database",
   "database.identity_db.pool_options.maxActive": "50",
   "database.identity_db.pool_options.maxWait": "60000",
   "database.identity_db.pool_options.testOnBorrow": "true",
