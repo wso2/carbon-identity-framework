@@ -231,7 +231,17 @@ public class IdPManagementConstants {
 
         public static final String GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL = "SELECT COUNT(DISTINCT IDP.ID) FROM IDP JOIN IDP_METADATA ON IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = '" + IS_TRUSTED_TOKEN_ISSUER + "' AND ";
 
-        public static final String GET_IDP_COUNT_SQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "'";
+        public static final String GET_IDP_COUNT_MYSQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' "
+                        + "AND ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID "
+                        + "AND NAME = 'isSystemReservedIdP' AND `VALUE` = 'true')";
+
+        public static final String GET_IDP_COUNT_ORACLE_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' "
+                        + "AND ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID "
+                        + "AND NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true')";
+
+        public static final String GET_IDP_COUNT_MSSQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' "
+                        + "AND ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID "
+                        +  "AND NAME = 'isSystemReservedIdP' AND VALUE = 'true')";
 
         public static final String GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL_TAIL = "IDP.TENANT_ID = ? AND IDP.NAME != '" + RESIDENT_IDP + "'";
 
