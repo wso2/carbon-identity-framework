@@ -75,7 +75,6 @@ public class RetrievalClientBaseTest {
     @BeforeMethod
     public void setup() throws IOException {
         setupConfiguration();
-
         when(httpClientBuilder.build()).thenReturn(httpClient);
         when(httpClient.execute(any(ClassicHttpRequest.class), any(HttpClientResponseHandler.class)))
                 .thenAnswer(invocation -> {
