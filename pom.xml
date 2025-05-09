@@ -2200,7 +2200,7 @@
 
         <!-- Pax Logging Version -->
         <pax.logging.api.version>1.10.1</pax.logging.api.version>
-        <pax.logging.log4j2.version>1.10.1</pax.logging.log4j2.version>
+        <pax.logging.log4j2.version>2.0.14</pax.logging.log4j2.version>
 
         <!-- Log4j -->
         <log4j.api.version>2.17.1</log4j.api.version>
