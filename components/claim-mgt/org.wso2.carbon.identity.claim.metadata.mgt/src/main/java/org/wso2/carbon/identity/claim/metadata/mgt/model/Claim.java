@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Represents the simplest form of the metadata of a claim.
@@ -82,5 +83,17 @@ public class Claim implements Serializable {
 
     public void setClaimProperty(String propertyName, String propertyValue) {
         this.getClaimProperties().put(propertyName, propertyValue);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (!(o instanceof Claim)) {
+            return false;
+        }
+        Claim claim = (Claim) o;
+        return Objects.equals(claimDialectURI, claim.claimDialectURI)
+                && Objects.equals(claimURI, claim.claimURI)
+                && Objects.equals(claimProperties, claim.claimProperties);
     }
 }

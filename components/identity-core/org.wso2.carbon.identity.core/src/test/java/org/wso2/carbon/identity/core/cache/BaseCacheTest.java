@@ -91,6 +91,20 @@ public class BaseCacheTest {
     }
 
     @Test
+    public void testAdditionWithoutDuplicate() {
+
+        TestCache.getInstance().addToCacheIfNoDuplicate(new TestCacheKey("test"), new TestCacheEntry("value"), 1);
+
+        TestCacheEntry entry = TestCache.getInstance().getValueFromCache(new TestCacheKey("test"), 1);
+        assertEquals(entry.getValue(), "value");
+        entry = TestCache.getInstance().getValueFromCache(new TestCacheKey("test"), "foo.com");
+        assertEquals(entry.getValue(), "value");
+
+        entry = TestCache.getInstance().getValueFromCache(new TestCacheKey("test"), "bar.com");
+        assertNull(entry);
+    }
+
+    @Test
     public void testUpdate() {
 
         TestCache.getInstance().addToCache(new TestCacheKey("test"), new TestCacheEntry("value"), 1);
