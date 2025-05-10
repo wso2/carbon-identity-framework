@@ -1924,7 +1924,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.44</carbon.kernel.version>
+        <carbon.kernel.version>4.10.48</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -1938,7 +1938,7 @@
         <apache.felix.scr.ds.annotations.version>1.2.8</apache.felix.scr.ds.annotations.version>
 
         <!--Carbon commons version-->
-        <carbon.commons.version>4.7.54</carbon.commons.version>
+        <carbon.commons.version>4.10.20</carbon.commons.version>
         <carbon.commons.imp.pkg.version>[4.7.2, 5.0.0)</carbon.commons.imp.pkg.version>
 
         <org.wso2.carbon.database.utils.version>2.2.7</org.wso2.carbon.database.utils.version>
@@ -2217,7 +2217,7 @@
 
         <account.lock.service.imp.pkg.version.range>[1.4.23, 2.0.0)</account.lock.service.imp.pkg.version.range>
         <openjdk.nashorn.version>15.3</openjdk.nashorn.version>
-        <org.wso2.carbon.multitenancy.version>4.11.12</org.wso2.carbon.multitenancy.version>
+        <org.wso2.carbon.multitenancy.version>4.11.37</org.wso2.carbon.multitenancy.version>
 
         <com.google.api.playintegrity.version>1.0.0.wso2v1</com.google.api.playintegrity.version>
         <com.google.auth.version>1.20.0</com.google.auth.version>
