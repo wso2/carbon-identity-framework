@@ -1697,8 +1697,10 @@
     "openid"
   ],
   "myaccount.impersonation.allowed_resources": [
+    "/api/server/v1/identity-governance/preferences",
     "/api/server/v1/branding-preference",
     "/scim2/Schemas",
+    "/scim2/Me",
     "/api/users/v1/me/associations",
     "/api/users/v1/me/applications"
   ],
