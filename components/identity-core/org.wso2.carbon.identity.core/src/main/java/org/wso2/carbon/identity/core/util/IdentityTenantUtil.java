@@ -477,4 +477,40 @@ public class IdentityTenantUtil {
 
         return IdentityUtil.getProperty(IdentityCoreConstants.SUPER_TENANT_ALIAS_IN_PUBLIC_URL);
     }
+
+    /**
+     * Checks whether the current application is a system app.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param clientID Client ID.
+     * @return true if the application is a system app.
+     */
+    public static boolean isSystemApplication(String tenantDomain, String clientID) {
+
+        boolean isConsoleRequest = StringUtils.equalsIgnoreCase(clientID, "CONSOLE") ||
+                StringUtils.equalsIgnoreCase(clientID, "CONSOLE_" + tenantDomain);
+        boolean isMyAccountRequest = StringUtils.equalsIgnoreCase(clientID, "MY_ACCOUNT") ||
+                StringUtils.equalsIgnoreCase(clientID, "MY_ACCOUNT_" + tenantDomain);
+
+        return isConsoleRequest || isMyAccountRequest;
+    }
+
+    /**
+     * Checks whether tenant qualified URLs should be used.
+     *
+     * System applications in each tenant should continue to function in a multi-tenant environment
+     * even if tenant-qualified URLs are disabled.
+     * @return if tenant qualified URLs should be used or not.
+     */
+    public static boolean shouldUseTenantQualifiedURLs() {
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return true;
+        }
+
+        // Access the system application info from the thread local properties.
+        Object isSystemApp = IdentityUtil.threadLocalProperties.get().get(IdentityCoreConstants.IS_SYSTEM_APPLICATION);
+
+        return isSystemApp instanceof Boolean ? (Boolean) isSystemApp : false;
+    }
 }

@@ -28,9 +28,11 @@ import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.BOOLEAN;
+import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.LIST;
 import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.NUMBER;
 import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.REFERENCE;
 import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.STRING;
@@ -44,6 +46,10 @@ public class RuleEvaluator {
     private static final Log LOG = LogFactory.getLog(RuleEvaluator.class);
 
     private final OperatorRegistry operatorRegistry;
+
+    // Operators
+    private static final String EQUALS = "equals";
+    private static final String NOT_EQUALS = "notEquals";
 
     public RuleEvaluator(OperatorRegistry operatorRegistry) {
 
@@ -106,8 +112,23 @@ public class RuleEvaluator {
             return operator.apply(fieldValue.getValue(), Double.parseDouble(expression.getValue().getFieldValue()));
         } else if (fieldValue.getValueType().equals(REFERENCE)) {
             return operator.apply(fieldValue.getValue(), expression.getValue().getFieldValue());
+        } else if (fieldValue.getValueType().equals(LIST)) {
+            return applyOperatorForList(operator, fieldValue.getValue(), expression.getValue().getFieldValue());
         }
 
         throw new IllegalStateException("Unsupported value type: " + fieldValue.getValueType());
+    }
+
+    private boolean applyOperatorForList(Operator operator, Object fieldValue, Object expressionValue) {
+
+        List<?> list = (List<?>) fieldValue;
+
+        if (operator.getName().equals(EQUALS)) {
+            return list.contains(expressionValue);
+        } else if (operator.getName().equals(NOT_EQUALS)) {
+            return !list.contains(expressionValue);
+        }
+
+        throw new IllegalStateException("Unsupported operator: " + operator.getName() + " for LIST value type");
     }
 }
