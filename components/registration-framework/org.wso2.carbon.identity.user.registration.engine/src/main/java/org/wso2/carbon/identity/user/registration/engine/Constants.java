@@ -39,6 +39,7 @@ public class Constants {
     public static final String ERROR = "error";
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
+    public static final String DEFAULT_REGISTRATION_CALLBACK = "/authenticationendpoint/register.do";
 
     // Constants related for OTP field length handling.
     public static final String OTP_LENGTH = "otpLength";
@@ -130,11 +131,18 @@ public class Constants {
         ERROR_CODE_CAPTCHA_VERIFICATION_FAILURE("65015",
                 "Error occurred during captcha verification.",
                 "Error occurred while verifying the captcha for the registration request of flow id: %s."),
+        ERROR_CODE_GET_APP_CONFIG_FAILURE("65016",
+                "Error while loading application configurations.",
+                "Error occurred loading the configurations of application: %s of tenant: %s."),
+        ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE("65017",
+                                                    "Error while resolving default callback URL.",
+                                                    "Error occurred while resolving the default callback URL for the " +
+                                                            "registration request in tenant: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
-                "Invalid flow id.",
-                "The given flow id: %s is invalid."),
+                                   "Invalid flow id.",
+                                   "The given flow id: %s is invalid."),
         ERROR_CODE_USERNAME_NOT_PROVIDED("60002",
                 "Username not provided.",
                 "Username is not provided in the registration request of flow id: %s"),

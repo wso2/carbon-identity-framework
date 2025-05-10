@@ -232,8 +232,25 @@ public class IdPManagementDAOTest {
 
             List<IdentityProvider> idps1 = idPManagementDAO.getIdPs(connection, tenantId, tenantDomain);
             assertEquals(idps1.size(), resultCount);
+            for (IdentityProvider idp : idps1) {
+                validateAdminForcedPasswordResetEmailLinkProp(idp);
+            }
             List<IdentityProvider> idps2 = idPManagementDAO.getIdPs(null, tenantId, tenantDomain);
             assertEquals(idps2.size(), resultCount);
+            for (IdentityProvider idp : idps2) {
+                validateAdminForcedPasswordResetEmailLinkProp(idp);
+            }
+        }
+    }
+
+    private void validateAdminForcedPasswordResetEmailLinkProp(IdentityProvider idp) {
+
+        IdentityProviderProperty[] identityProviderProperties = idp.getIdpProperties();
+        for (IdentityProviderProperty identityProviderProperty : identityProviderProperties) {
+            if (identityProviderProperty.getName()
+                    .equals(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY)) {
+                assertEquals(identityProviderProperty.getValue(), "true");
+            }
         }
     }
 

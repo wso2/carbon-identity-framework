@@ -44,5 +44,34 @@
         }
       }
     }
+  ],
+  "preUpdateProfile": [
+    {
+      "fieldName": "flow",
+      "overrides": {
+        "field": {
+          "displayName": "flow"
+        },
+        "value": {
+          "values": [
+            {
+              "name": "adminInitiatedProfileUpdate",
+              "displayName": "Admin initiated profile update"
+            },
+            {
+              "name": "applicationInitiatedProfileUpdate",
+              "displayName": "Application initiated profile update"
+            },
+            {
+              "name": "userInitiatedProfileUpdate",
+              "displayName": "User initiated profile update"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fieldName": "claim"
+    }
   ]
 }

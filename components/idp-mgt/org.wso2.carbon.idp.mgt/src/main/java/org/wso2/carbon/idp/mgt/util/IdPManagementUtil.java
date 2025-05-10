@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,10 +39,16 @@ import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PRESERVE_LOCALLY_ADDED_CLAIMS;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY;
@@ -380,11 +386,11 @@ public class IdPManagementUtil {
         }
     }
 
-
     /**
-     * This method is used to validate the username recovery property values.
+     * This method is used to validate the username recovery related property values.
      *
-     * @param configurationDetails Configuration updates for governance configuration.
+     * @param configurationDetails Configuration updates for governance configuration
+     * @throws IdentityProviderManagementClientException if configurations contain invalid configurations.
      */
     public static void validateUsernameRecoveryPropertyValues(Map<String, String> configurationDetails)
             throws IdentityProviderManagementClientException {
@@ -404,11 +410,12 @@ public class IdPManagementUtil {
             boolean usernameRecoverySmsProperty = Boolean.parseBoolean(usernameRecoverySmsProp);
 
             if (usernameRecoveryProperty &&
-                    StringUtils.isNotBlank(usernameRecoveryEmailProp) && !usernameRecoveryEmailProperty &&
-                    StringUtils.isNotBlank(usernameRecoverySmsProp) && !usernameRecoverySmsProperty) {
-                // Disabling all recovery options when recovery connector is enabled is not allowed.
-                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
-                // this behaviour.
+                    !usernameRecoveryEmailProperty && StringUtils.isNotBlank(usernameRecoveryEmailProp) &&
+                    !usernameRecoverySmsProperty && StringUtils.isNotBlank(usernameRecoverySmsProp)) {
+                /*
+                 Disabling all recovery options when recovery connector is enabled is not allowed.
+                 WARNING : Be mindful about compatibility of earlier recovery api versions when changing this behaviour.
+                 */
                 throw IdPManagementUtil
                         .handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
@@ -417,14 +424,151 @@ public class IdPManagementUtil {
             }
             if (StringUtils.isNotBlank(usernameRecoveryProp) && !usernameRecoveryProperty &&
                     (usernameRecoveryEmailProperty || usernameRecoverySmsProperty)) {
-                // Enabling any recovery options when connector is disabled is not allowed.
-                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
-                // this behaviour.
+                /*
+                 Enabling any recovery options when connector is disabled is not allowed.
+                 WARNING : Be mindful about compatibility of earlier recovery api versions when changing this behaviour.
+                 */
+
                 throw IdPManagementUtil
                         .handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                                 "Enabling recovery options when connector is disabled, is not allowed.");
             }
+        }
+    }
+
+    /**
+     * This method validates the forced password related configs with current and previous configurations.
+     *
+     * @param configurationDetails  Configuration updates for governance configurations.
+     * @param identityMgtProperties Existing identity provider properties.
+     * @throws IdentityProviderManagementClientException When invalid configurations have passed.
+     */
+    public static void validateAdminPasswordResetWithCurrentAndPreviousConfigs(
+            Map<String, String> configurationDetails,
+            IdentityProviderProperty[] identityMgtProperties)
+            throws IdentityProviderManagementClientException {
+
+        if (configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY) ||
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY) ||
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY) ||
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY)) {
+
+            String adminPasswordResetOfflineProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY);
+            String adminPasswordResetEmailOtpProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY);
+            String adminPasswordResetEmailLinkProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
+            String adminPasswordResetSmsOtpProp =
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY);
+
+            boolean isAdminPasswordResetOfflineEnabled = Boolean.parseBoolean(adminPasswordResetOfflineProp);
+            boolean isAdminPasswordResetEmailOtpEnabled = Boolean.parseBoolean(adminPasswordResetEmailOtpProp);
+            boolean isAdminPasswordResetEmailLinkEnabled = Boolean.parseBoolean(adminPasswordResetEmailLinkProp);
+            boolean isAdminPasswordResetSmsOtpEnabled = Boolean.parseBoolean(adminPasswordResetSmsOtpProp);
+
+            validateAdminPasswordResetCurrentConfigs(isAdminPasswordResetOfflineEnabled,
+                    isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                    isAdminPasswordResetSmsOtpEnabled);
+
+            validateAdminPasswordResetWithExistingConfigs(identityMgtProperties,
+                    isAdminPasswordResetOfflineEnabled, adminPasswordResetOfflineProp,
+                    isAdminPasswordResetEmailOtpEnabled, adminPasswordResetEmailOtpProp,
+                    isAdminPasswordResetEmailLinkEnabled, adminPasswordResetEmailLinkProp,
+                    isAdminPasswordResetSmsOtpEnabled, adminPasswordResetSmsOtpProp);
+        }
+    }
+
+    /**
+     * This method is used to validate user enabling multiple admin password reset options at the same time.
+     *
+     * @param isAdminPasswordResetOfflineEnabled is admin password reset offline enabled.
+     * @param isAdminPasswordResetEmailOtpEnabled is admin password reset email OTP enabled.
+     * @param isAdminPasswordResetEmailLinkEnabled is admin password reset email link enabled.
+     * @param isAdminPasswordResetSmsOtpEnabled is admin password reset sms OTP enabled.
+     * @throws IdentityProviderManagementClientException when more than one admin password reset option is enabled.
+     */
+    private static void validateAdminPasswordResetCurrentConfigs(boolean isAdminPasswordResetOfflineEnabled,
+                                                                 boolean isAdminPasswordResetEmailOtpEnabled,
+                                                                 boolean isAdminPasswordResetEmailLinkEnabled,
+                                                                 boolean isAdminPasswordResetSmsOtpEnabled)
+            throws IdentityProviderManagementClientException {
+
+        List<Boolean> configs = Arrays.asList(isAdminPasswordResetOfflineEnabled,
+                isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                isAdminPasswordResetSmsOtpEnabled);
+
+        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
+
+        if (enabledConfigCount > 1) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Enabling more than one admin password reset option is not allowed");
+        }
+    }
+
+    private static void validateAdminPasswordResetWithExistingConfigs(IdentityProviderProperty[] identityMgtProperties,
+                                                                      boolean isAdminPasswordResetOfflineEnabled,
+                                                                      String adminPasswordResetOfflineProp,
+                                                                      boolean isAdminPasswordResetEmailOtpEnabled,
+                                                                      String adminPasswordResetEmailOtpProp,
+                                                                      boolean isAdminPasswordResetEmailLinkEnabled,
+                                                                      String adminPasswordResetEmailLinkProp,
+                                                                      boolean isAdminPasswordResetSmsOtpEnabled,
+                                                                      String adminPasswordResetSmsOtpProp)
+            throws IdentityProviderManagementClientException {
+
+        boolean isAdminPasswordResetOfflineCurrentlyEnabled = false;
+        boolean isAdminPasswordResetEmailOtpCurrentlyEnabled = false;
+        boolean isAdminPasswordResetEmailLinkCurrentlyEnabled = false;
+        boolean isAdminPasswordResetSmsOtpCurrentlyEnabled = false;
+
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            if (ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetOfflineCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetEmailOtpCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetEmailLinkCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
+                isAdminPasswordResetSmsOtpCurrentlyEnabled =
+                        Boolean.parseBoolean(identityMgtProperty.getValue());
+            }
+        }
+
+        // Update the admin password reset config values based on the existing config values.
+        if (StringUtils.isBlank(adminPasswordResetOfflineProp)) {
+            isAdminPasswordResetOfflineEnabled = isAdminPasswordResetOfflineCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetEmailLinkProp)) {
+            isAdminPasswordResetEmailLinkEnabled = isAdminPasswordResetEmailLinkCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetEmailOtpProp)) {
+            isAdminPasswordResetEmailOtpEnabled = isAdminPasswordResetEmailOtpCurrentlyEnabled;
+        }
+        if (StringUtils.isBlank(adminPasswordResetSmsOtpProp)) {
+            isAdminPasswordResetSmsOtpEnabled = isAdminPasswordResetSmsOtpCurrentlyEnabled;
+        }
+
+        List<Boolean> configs = Arrays.asList(isAdminPasswordResetOfflineEnabled,
+                isAdminPasswordResetEmailOtpEnabled, isAdminPasswordResetEmailLinkEnabled,
+                isAdminPasswordResetSmsOtpEnabled);
+
+        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
+
+        if(enabledConfigCount > 1) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Enabling admin forced password reset option while other options are enabled is not allowed");
+        }
+        else if (enabledConfigCount == 0) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Disabling all admin forced password reset options is not allowed");
         }
     }
 }

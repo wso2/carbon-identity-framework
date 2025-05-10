@@ -36,6 +36,8 @@ import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEn
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
 import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.assertEquals;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -46,6 +48,8 @@ import static org.mockito.Mockito.when;
 public class RegistrationFlowServiceTest {
 
     private static final String TENANT_DOMAIN = "test.com";
+    private static final String TEST_CALLBACK_URL = "https://localhost:3000/myapp/callback";
+    private static final String TEST_APPLICATION_ID = "testAppId";
     private RegistrationContext testRegContext;
 
     @Mock
@@ -72,9 +76,12 @@ public class RegistrationFlowServiceTest {
 
         try (MockedStatic<RegistrationFlowEngineUtils> utilsMockedStatic = mockStatic(
                 RegistrationFlowEngineUtils.class)) {
-            utilsMockedStatic.when(() -> RegistrationFlowEngineUtils.initiateContext(TENANT_DOMAIN))
+            utilsMockedStatic.when(
+                            () -> RegistrationFlowEngineUtils.initiateContext(anyString(), anyString(), anyString()))
                     .thenThrow(new RegistrationEngineException("Failed"));
-            UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN);
+            UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN,
+                                                                                      TEST_APPLICATION_ID,
+                                                                                      TEST_CALLBACK_URL);
         }
     }
 
@@ -84,11 +91,14 @@ public class RegistrationFlowServiceTest {
         try (MockedStatic<RegistrationFlowEngineUtils> utilsMockedStatic = mockStatic(
                 RegistrationFlowEngineUtils.class);
              MockedStatic<RegistrationFlowEngine> engineMockedStatic = mockStatic(RegistrationFlowEngine.class)) {
-            utilsMockedStatic.when(() -> RegistrationFlowEngineUtils.initiateContext(TENANT_DOMAIN))
+            utilsMockedStatic.when(
+                            () -> RegistrationFlowEngineUtils.initiateContext(anyString(), anyString(), anyString()))
                     .thenReturn(testRegContext);
             engineMockedStatic.when(RegistrationFlowEngine::getInstance).thenReturn(engineMock);
             when(engineMock.execute(testRegContext)).thenThrow(RegistrationEngineException.class);
-            UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN);
+            UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN,
+                                                                                      TEST_APPLICATION_ID,
+                                                                                      TEST_CALLBACK_URL);
         }
     }
 
@@ -105,14 +115,16 @@ public class RegistrationFlowServiceTest {
         try (MockedStatic<RegistrationFlowEngineUtils> utilsMockedStatic = mockStatic(
                 RegistrationFlowEngineUtils.class);
              MockedStatic<RegistrationFlowEngine> engineMockedStatic = mockStatic(RegistrationFlowEngine.class)) {
-            utilsMockedStatic.when(() -> RegistrationFlowEngineUtils.initiateContext(TENANT_DOMAIN))
+            utilsMockedStatic.when(
+                            () -> RegistrationFlowEngineUtils.initiateContext(anyString(), anyString(), anyString()))
                     .thenReturn(testRegContext);
 
             engineMockedStatic.when(RegistrationFlowEngine::getInstance).thenReturn(engineMock);
 
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
             RegistrationStep returnedStep =
-                    UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN);
+                    UserRegistrationFlowService.getInstance()
+                            .initiateDefaultRegistrationFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL);
             assertEquals(returnedStep, expectedStep);
         }
     }

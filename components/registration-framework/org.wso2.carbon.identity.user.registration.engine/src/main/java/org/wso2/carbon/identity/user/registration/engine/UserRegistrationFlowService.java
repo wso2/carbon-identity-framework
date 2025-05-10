@@ -52,14 +52,18 @@ public class UserRegistrationFlowService {
     /**
      * Initiates the registration flow for the given tenant domain.
      *
-     * @param tenantDomain Tenant domain.
+     * @param tenantDomain  Tenant domain.
+     * @param callbackUrl   Callback URL.
+     * @param applicationId Application ID.
      * @return RegistrationStep.
      * @throws RegistrationEngineException if something goes wrong while initiating the registration flow.
      */
-    public RegistrationStep initiateDefaultRegistrationFlow(String tenantDomain) throws RegistrationEngineException {
+    public RegistrationStep initiateDefaultRegistrationFlow(String tenantDomain, String applicationId,
+                                                            String callbackUrl) throws RegistrationEngineException {
 
         try {
-            RegistrationContext context = RegistrationFlowEngineUtils.initiateContext(tenantDomain);
+            RegistrationContext context =
+                    RegistrationFlowEngineUtils.initiateContext(tenantDomain, callbackUrl, applicationId);
             for (FlowExecutionListener listener :
                     RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
                 if (listener.isEnabled() && !listener.doPreInitiate(context)) {

@@ -966,7 +966,9 @@ public class UserIdentityManagementUtil {
 
     /**
      * This methods adds default challenge question set to current domain
+     * @deprecated use the challenge question connector instead.
      */
+    @Deprecated
     public static void loadDefaultChallenges() {
 
         List<ChallengeQuestionDTO> questionSetDTOs = new ArrayList<ChallengeQuestionDTO>();

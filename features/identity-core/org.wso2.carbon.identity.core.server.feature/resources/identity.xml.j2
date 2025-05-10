@@ -92,6 +92,7 @@
         <CertificateValidation>{{data_storage_type.certificate_validation}}</CertificateValidation>
         <AdminAdvisoryBanner>{{data_storage_type.admin_advisory_banner}}</AdminAdvisoryBanner>
         <RemoteLoggingConfig>{{data_storage_type.remote_logging_config}}</RemoteLoggingConfig>
+        <ChallengeQuestions>{{data_storage_type.challenge_questions}}</ChallengeQuestions>
     </DataStorageType>
 
     <NotificationTemplates>
@@ -1939,6 +1940,12 @@
         </UniquenessValidation>
         <AllowedAttributeProfiles>{{identity_mgt.user_claim_update.allowed_attribute_profiles}}</AllowedAttributeProfiles>
     </UserClaimUpdate>
+
+    <HiddenClaims>
+        {% for claimURI in identity_mgt.claims.hidden_claims %}
+            <HiddenClaim>{{claimURI}}</HiddenClaim>
+        {% endfor %}
+    </HiddenClaims>
 
      <AccountSuspension>
         <UseIdentityClaims>{{identity_mgt_account_suspension.use_identity_claims}}</UseIdentityClaims>
@@ -4489,6 +4496,13 @@
         <AccessURL>{{myaccount.access_url}}</AccessURL>
         <AppBaseName>{{myaccount.app_base_name}}</AppBaseName>
         <Origin>{{myaccount.origin}}</Origin>
+        <Impersonation>
+            <AllowedResources>
+                {% for resource in myaccount.impersonation.allowed_resources %}
+                    <Resource context="{{resource}}"/>
+                {% endfor %}
+            </AllowedResources>
+        </Impersonation>
     </MyAccount>
 
     <!-- Configuration settings for the API responses. -->
@@ -4582,5 +4596,15 @@
             <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
         </BrandingAI>
     </AIServices>
+
+    {% if platform_idp is defined %}
+    <PlatformIdp>
+        <Enabled>true</Enabled>
+        <Name>{{platform_idp.name}}</Name>
+        <AuthEndpointUrl>{{platform_idp.oauth2_auth_ep_url}}</AuthEndpointUrl>
+        <TokenEndpointUrl>{{platform_idp.oauth2_token_ep_url}}</TokenEndpointUrl>
+        <LogoutEndpointUrl>{{platform_idp.oidc_logout_ep_url}}</LogoutEndpointUrl>
+    </PlatformIdp>
+    {% endif %}
 
 </Server>

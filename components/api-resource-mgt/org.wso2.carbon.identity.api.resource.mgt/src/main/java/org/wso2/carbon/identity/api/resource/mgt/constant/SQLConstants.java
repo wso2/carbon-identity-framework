@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -126,6 +126,11 @@ public class SQLConstants {
             " S.DESCRIPTION AS SCOPE_DESCRIPTION" +
             " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE AR.ID = ? AND (AR.TENANT_ID = ?" +
             " OR AR.TENANT_ID IS NULL)";
+
+    /**
+     * @deprecated Logic moved to service layer. Use {@link #GET_API_RESOURCE_BY_ID} instead.
+     */
+    @Deprecated
     public static final String GET_API_RESOURCE_BY_ID_FOR_ORGANIZATIONS = "SELECT" +
             " AR.ID AS API_RESOURCE_ID," +
             " AR.NAME AS API_RESOURCE_NAME," +

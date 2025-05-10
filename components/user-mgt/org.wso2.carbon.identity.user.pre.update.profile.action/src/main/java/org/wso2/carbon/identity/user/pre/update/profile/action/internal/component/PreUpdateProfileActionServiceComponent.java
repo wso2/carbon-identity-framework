@@ -34,10 +34,12 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorServi
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.execution.PreUpdateProfileRequestBuilder;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.execution.PreUpdateProfileResponseProcessor;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionConverter;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionDTOModelResolver;
+import org.wso2.carbon.identity.user.pre.update.profile.action.internal.rule.PreUpdateProfileActionRuleEvaluationDataProvider;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -69,6 +71,10 @@ public class PreUpdateProfileActionServiceComponent {
             bundleCtx.registerService(
                     ActionExecutionResponseProcessor.class, new PreUpdateProfileResponseProcessor(), null);
             LOG.debug("Pre Update Profile Action Response Processor is registered");
+
+            bundleCtx.registerService(RuleEvaluationDataProvider.class,
+                    new PreUpdateProfileActionRuleEvaluationDataProvider(), null);
+            LOG.debug("User Pre Update Profile Action Rule Evaluation Data Provider is enabled");
 
             LOG.debug("Pre Update Profile Action bundle is activated");
         } catch (Throwable e) {

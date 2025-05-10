@@ -125,6 +125,7 @@ public class ApplicationMgtUtil {
     private static final String DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME =
             UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME + "/" + CarbonConstants.REGISTRY_SYSTEM_USERNAME;
     private static final String BASE_URL_PLACEHOLDER = "<PROTOCOL>://<HOSTNAME>:<PORT>";
+    private static final String BASE_URL_CUSTOM_PLACEHOLDER = "<CUSTOM_PROTOCOL>://<CUSTOM_HOSTNAME>:<CUSTOM_PORT>";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -1129,6 +1130,38 @@ public class ApplicationMgtUtil {
     }
 
     /**
+     * This method use to replace the hostname and port with placeholders of URLs.
+     *
+     * @param absoluteUrl The absolute URL which need to be modified.
+     * @param appName     The application name.
+     * @return The URL which origin replaced placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String replaceUrlOriginWithPlaceholders(String absoluteUrl, String appName)
+            throws URLBuilderException {
+
+        if (StringUtils.isEmpty(appName)) {
+            return replaceUrlOriginWithPlaceholders(absoluteUrl);
+        }
+        String basePath = StringUtils.EMPTY;
+        if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
+            basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+        } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            basePath = IdentityUtil.getProperty(MYACCOUNT_ACCESS_ORIGIN);
+        }
+        if (StringUtils.isEmpty(basePath)) {
+            return replaceUrlOriginWithPlaceholders(absoluteUrl);
+        }
+        absoluteUrl = StringUtils.replace(absoluteUrl, basePath, BASE_URL_PLACEHOLDER);
+
+        if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            absoluteUrl = StringUtils.replace(absoluteUrl, consoleBasePath, BASE_URL_CUSTOM_PLACEHOLDER);
+        }
+        return absoluteUrl;
+    }
+
+    /**
      * This method use to replace placeholders with the hostname and port of URLs.
      *
      * @param absoluteUrl     The URL which need to resolve from placeholders.
@@ -1166,7 +1199,13 @@ public class ApplicationMgtUtil {
         if (StringUtils.isEmpty(basePath)) {
             return resolveOriginUrlFromPlaceholders(absoluteUrl);
         }
-        return StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+        absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+
+        if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_CUSTOM_PLACEHOLDER, consoleBasePath);
+        }
+        return absoluteUrl;
     }
 
     /**

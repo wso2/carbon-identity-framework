@@ -116,7 +116,7 @@ public class RegistrationFlowEngine {
                 .flowStatus(STATUS_COMPLETE)
                 .stepType(REDIRECTION)
                 .data(new DataDTO.Builder()
-                        .url(RegistrationFlowEngineUtils.buildMyAccountAccessURL(context.getTenantDomain()))
+                        .url(RegistrationFlowEngineUtils.resolveCompletionRedirectionUrl(context))
                         .build())
                 .build();
     }
