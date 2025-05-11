@@ -470,6 +470,31 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         }
     }
 
+    private boolean isScopeExistsByApiID(Connection connection, String name, Integer tenantId, String apiId)
+            throws APIResourceMgtServerException {
+
+        int tenantIdToSearchScopes;
+        try {
+            tenantIdToSearchScopes = OrganizationManagementUtil.isOrganization(tenantId) ?
+                    getRootOrganizationTenantId(tenantId) : tenantId;
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)) {
+            preparedStatement.setString(1, name);
+            preparedStatement.setInt(2, tenantIdToSearchScopes);
+            preparedStatement.setString(3, apiId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return resultSet.next();
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_CHECKING_EXISTENCE_OF_SCOPE, e);
+        }
+    }
+
     @Override
     public boolean isScopeExistById(String scopeId, Integer tenantId) throws APIResourceMgtException {
 
@@ -1066,7 +1091,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_SCOPE);
             for (Scope scope : scopes) {
 
-                if (isScopeExists(dbConnection, scope.getName(), tenantId)) {
+                if (isScopeExistsByApiID(dbConnection, scope.getName(), tenantId, apiId)) {
                     throw APIResourceManagementUtil.handleClientException(
                             APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS,
                             String.valueOf(tenantId));
