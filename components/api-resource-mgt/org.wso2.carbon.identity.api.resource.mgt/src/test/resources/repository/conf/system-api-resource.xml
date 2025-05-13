@@ -598,8 +598,8 @@
                    description="Delete user accounts in the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="SCIM2 Roles API" identifier="/scim2/Roles" requiresAuthorization="true"
-                 description="API representation of the SCIM2 Roles API" type="TENANT">
+    <APIResource name="SCIM2 Roles V1/V2 API" identifier="/scim2/Roles" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Roles V1/V2 API" type="TENANT">
         <Scopes>
             <Scope displayName="View Role" name="internal_role_mgt_view"
                    description="View roles details in the organization (root)"/>
@@ -611,14 +611,52 @@
                    description="Delete roles in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="SCIM2 Roles API" identifier="/o/scim2/Roles"
+    <APIResource name="SCIM2 Roles V3 API" identifier="/scim2/V3/Roles" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Roles V3 API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Role" name="internal_role_mgt_view"
+                   description="View roles details in the organization (root)"/>
+            <Scope displayName="Create Role" name="internal_role_mgt_create"
+                   description="Create new roles in the organization (root)"/>
+            <Scope displayName="Update Role Metadata" name="internal_role_meta_update"
+                   description="Update roles details and assign permissions in the organization (root)"/>
+            <Scope displayName="Assign/De-assign users into role" name="internal_role_users_update"
+                   description="Assign/De-assign users into the role in the organization (root)"/>
+            <Scope displayName="Assign/De-assign groups into role" name="internal_role_groups_update"
+                   description="Assign/De-assign groups into the role in the organization (root)"/>
+            <Scope displayName="Delete Role" name="internal_role_mgt_delete"
+                   description="Delete roles in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="SCIM2 Roles V1/V2 API" identifier="/o/scim2/Roles"
                  requiresAuthorization="true"
-                 description="API representation of the SCIM2 Roles API" type="ORGANIZATION">
+                 description="API representation of the SCIM2 Roles V1/V2 API" type="ORGANIZATION">
         <Scopes>
             <Scope displayName="View Role" name="internal_org_role_mgt_view"
                    description="View roles details in the organization"/>
+            <Scope displayName="Create Role" name="internal_org_role_mgt_create"
+                   description="Create new roles in the organization"/>
             <Scope displayName="Update Role" name="internal_org_role_mgt_update"
                    description="Update roles details in the organization"/>
+            <Scope displayName="Delete Role" name="internal_org_role_mgt_delete"
+                   description="Delete roles in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="SCIM2 Roles V3 API" identifier="/o/scim2/V3/Roles" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Roles V3 API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Role" name="internal_org_role_mgt_view"
+                   description="View roles details in the organization"/>
+            <Scope displayName="Create Role" name="internal_org_role_mgt_create"
+                   description="Create new roles in the organization"/>
+            <Scope displayName="Update Role Metadata" name="internal_org_role_meta_update"
+                   description="Update roles details and assign permissions in the organization"/>
+            <Scope displayName="Assign/De-assign users into role" name="internal_org_role_users_update"
+                   description="Assign/De-assign users into the role in the organization"/>
+            <Scope displayName="Assign/De-assign groups into role" name="internal_org_role_groups_update"
+                   description="Assign/De-assign groups into the role in the organization"/>
+            <Scope displayName="Delete Role" name="internal_org_role_mgt_delete"
+                   description="Delete roles in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
