@@ -1519,6 +1519,22 @@
   ],
   "console.user_roles.scopes.update": ["internal_role_mgt_update"],
   "console.user_roles.scopes.delete": ["internal_role_mgt_delete"],
+  "console.entitlement.enabled": true,
+  "console.entitlement.feature": [
+    "console.roles"
+  ],
+  "console.entitlement.scopes.update": [
+    "internal_role_users_update",
+    "internal_role_groups_update"
+  ],
+  "console.entitlement.scopes.read": [
+    "internal_role_mgt_view",
+    "internal_userstore_view",
+    "internal_application_mgt_view",
+    "internal_user_mgt_list",
+    "internal_idp_view",
+    "internal_api_resource_view"
+  ],
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
