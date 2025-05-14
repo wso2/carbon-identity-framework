@@ -1521,7 +1521,7 @@
   "console.user_roles.scopes.delete": ["internal_role_mgt_delete"],
   "console.entitlement.enabled": true,
   "console.entitlement.feature": [
-    "console.roles"
+    "console:roles"
   ],
   "console.entitlement.scopes.update": [
     "internal_role_users_update",
