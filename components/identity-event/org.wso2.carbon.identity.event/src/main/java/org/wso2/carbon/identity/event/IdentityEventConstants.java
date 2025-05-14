@@ -445,6 +445,7 @@ public class IdentityEventConstants {
 
         public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
         public static final String REQUIRED_ATTRIBUTES = "requiredAttributes";
+        public static final String SKIP_LOCAL_USER_CLAIM_UPDATE = "skipLocalUserClaimUpdate";
 
         // API Resource and Application Authorized API related event properties.
         public static final String API_RESOURCE = "API_RESOURCE";
