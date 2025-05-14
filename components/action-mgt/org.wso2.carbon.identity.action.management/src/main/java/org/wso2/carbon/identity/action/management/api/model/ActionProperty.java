@@ -21,7 +21,10 @@ package org.wso2.carbon.identity.action.management.api.model;
 /**
  * This class models the Action Property
  */
-public abstract class ActionProperty {
+public class ActionProperty {
+
+    private final ActionProperty.Type type;
+    private final Object value;
 
     /**
      * Property type.
@@ -31,14 +34,16 @@ public abstract class ActionProperty {
         OBJECT
     }
 
-    private final ActionProperty.Type type;
-
-    protected ActionProperty(Type type) {
+    private ActionProperty(ActionProperty.Type type, Object value) {
 
         this.type = type;
+        this.value = value;
     }
 
-    public abstract Object getValue();
+    public Object getValue() {
+
+        return value;
+    }
 
     public ActionProperty.Type getType() {
 
@@ -53,5 +58,57 @@ public abstract class ActionProperty {
     public boolean isObject() {
 
         return type == Type.OBJECT;
+    }
+
+    /**
+     * This builder creates the Action Property object to be used in Service Layer
+     */
+    public static class BuilderForService {
+
+        private Type type;
+        private Object value;
+
+        public BuilderForService(String value) {
+
+            this.type = Type.PRIMITIVE;
+            this.value = value;
+        }
+
+        public BuilderForService(Object value) {
+
+            this.type = Type.OBJECT;
+            this.value = value;
+        }
+
+        public ActionProperty build() {
+
+            return new ActionProperty(type, value);
+        }
+    }
+
+    /**
+     * This builder creates the Action Property object to be used in DAO Layer
+     */
+    public static class BuilderForDAO {
+
+        private Type type;
+        private Object value;
+
+        public BuilderForDAO(String value) {
+
+            this.type = Type.PRIMITIVE;
+            this.value = value;
+        }
+
+        public BuilderForDAO(Object value) {
+
+            this.type = Type.OBJECT;
+            this.value = value;
+        }
+
+        public ActionProperty build() {
+
+            return new ActionProperty(type, value);
+        }
     }
 }

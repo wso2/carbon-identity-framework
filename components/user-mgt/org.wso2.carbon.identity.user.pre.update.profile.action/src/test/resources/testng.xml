@@ -24,6 +24,13 @@
             <class name="org.wso2.carbon.identity.user.pre.update.profile.action.management.PreUpdateProfileActionConverterTest"></class>
             <class name="org.wso2.carbon.identity.user.pre.update.profile.action.management.PreUpdateProfileActionDTOModelResolverTest"></class>
             <class name="org.wso2.carbon.identity.user.pre.update.profile.action.model.PreUpdateProfileActionBuilderTest"></class>
+            <class name="org.wso2.carbon.identity.user.pre.update.profile.action.rule.PreUpdateProfileActionRuleEvaluationDataProviderTest"></class>
+        </classes>
+    </test>
+    <test name="pre-update-profile-action-execution-tests" preserve-order="true" parallel="false">
+        <classes>
+            <class name="org.wso2.carbon.identity.user.pre.update.profile.action.execution.PreUpdateProfileRequestBuilderTest"></class>
+            <class name="org.wso2.carbon.identity.user.pre.update.profile.action.execution.PreUpdateProfileResponseProcessorTest"></class>
         </classes>
     </test>
 </suite>

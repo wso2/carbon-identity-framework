@@ -86,7 +86,7 @@ public class RecoveryApiV2 {
     /**
      * Initiate recovering the forgotten username.
      *
-     * @param recoveryInitRequest Username recovery initiating request. (required)
+     * @param recoveryInitRequest Username recovery initiating request (required).
      * @param tenantDomain        Tenant Domain which user belongs. Default "carbon.super" (optional)
      * @param headers             If reCaptcha respond is found, embedded in request header. (optional)
      * @return Account recovery options response object.

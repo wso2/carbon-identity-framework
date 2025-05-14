@@ -21,33 +21,42 @@ package org.wso2.carbon.identity.user.pre.update.profile.action.internal.managem
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.user.pre.update.profile.action.internal.component.PreUpdateProfileActionServiceComponentHolder;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.MAX_ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.ROLE_CLAIM_URI;
 
 /**
  * This class implements the methods required to resolve ActionDTO objects in Pre Update Profile extension.
  */
 public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelResolver {
+
+    private static final Log LOG = LogFactory.getLog(PreUpdateProfileActionDTOModelResolver.class);
 
     @Override
     public Action.ActionTypes getSupportedActionType() {
@@ -59,16 +68,16 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
     public ActionDTO resolveForAddOperation(ActionDTO actionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        Map<String, ActionPropertyForDAO> properties = new HashMap<>();
-        Object attributes = actionDTO.getProperty(ATTRIBUTES);
+        Map<String, ActionProperty> properties = new HashMap<>();
+        Object attributes = actionDTO.getPropertyValue(ATTRIBUTES);
         // Attributes is an optional field.
         if (attributes != null) {
-            List<String> validatedAttributes = validateAttributes(attributes);
-            BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream(validatedAttributes));
-            properties.put(ATTRIBUTES, new ActionPropertyForDAO(attributesBinaryObject));
+            List<String> validatedAttributes = validateAttributes(attributes, tenantDomain);
+            ActionProperty attributesObject = createActionProperty(validatedAttributes);
+            properties.put(ATTRIBUTES, attributesObject);
         }
 
-        return new ActionDTO.BuilderForData(actionDTO)
+        return new ActionDTO.Builder(actionDTO)
                 .properties(properties)
                 .build();
     }
@@ -77,15 +86,12 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
     public ActionDTO resolveForGetOperation(ActionDTO actionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         // Attributes is an optional field.
-        if (actionDTO.getProperty(ATTRIBUTES) != null) {
-            if (!(actionDTO.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO)) {
-                throw new ActionDTOModelResolverServerException("Unable to retrieve attributes.",
-                        "Invalid action property provided to retrieve attributes.");
-            }
-            properties.put(ATTRIBUTES, getAttributes(((BinaryObject) ((ActionPropertyForDAO) actionDTO
-                    .getProperty(ATTRIBUTES)).getValue()).getInputStream()));
+        if (actionDTO.getPropertyValue(ATTRIBUTES) != null) {
+
+            properties.put(ATTRIBUTES, getAttributes(((BinaryObject) actionDTO
+                    .getPropertyValue(ATTRIBUTES)).getJSONString()));
         }
 
         return new ActionDTO.Builder(actionDTO)
@@ -120,14 +126,15 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
     public ActionDTO resolveForUpdateOperation(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
                                                String tenantDomain) throws ActionDTOModelResolverException {
 
-        Map<String, ActionPropertyForDAO> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         // Action Properties updating operation is treated as a PUT in DAO layer. Therefore if no properties are updated
         // the existing properties should be sent to the DAO layer.
-        List<String> attributes = getResolvedUpdatingOrExistingAttributes(updatingActionDTO, existingActionDTO);
+        List<String> attributes = getResolvedUpdatingAttributes(updatingActionDTO, existingActionDTO,
+                tenantDomain);
         if (!attributes.isEmpty()) {
             properties.put(ATTRIBUTES, createActionProperty(attributes));
         }
-        return new ActionDTO.BuilderForData(updatingActionDTO)
+        return new ActionDTO.Builder(updatingActionDTO)
                 .properties(properties)
                 .build();
     }
@@ -138,59 +145,55 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
     }
 
-    private List<String> getResolvedUpdatingOrExistingAttributes(ActionDTO updatingActionDTO,
-                                                                 ActionDTO existingActionDTO)
-            throws ActionDTOModelResolverClientException {
+    private List<String> getResolvedUpdatingAttributes(ActionDTO updatingActionDTO,
+                                                       ActionDTO existingActionDTO, String tenantDomain)
+            throws ActionDTOModelResolverException {
 
-        if (updatingActionDTO.getProperty(ATTRIBUTES) != null) {
+        if (updatingActionDTO.getPropertyValue(ATTRIBUTES) != null) {
             // return updating attributes after validation
-            return validateAttributes(updatingActionDTO.getProperty(ATTRIBUTES));
-        } else if (existingActionDTO.getProperty(ATTRIBUTES) != null) {
+            return validateAttributes(updatingActionDTO.getPropertyValue(ATTRIBUTES), tenantDomain);
+        } else if (existingActionDTO.getPropertyValue(ATTRIBUTES) != null) {
             // return existing attributes
-            return (List<String>) existingActionDTO.getProperty(ATTRIBUTES);
+            return (List<String>) existingActionDTO.getPropertyValue(ATTRIBUTES);
         }
         // if attributes are not getting updated or not configured earlier, return empty list.
         return emptyList();
     }
 
-    private ActionPropertyForDAO createActionProperty(List<String> attributes) throws ActionDTOModelResolverException {
-
-        BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream(attributes));
-        return new ActionPropertyForDAO(attributesBinaryObject);
-    }
-
-    private InputStream convertAttributesToInputStream(List<String> attributes) throws ActionDTOModelResolverException {
+    private ActionProperty createActionProperty(List<String> attributes) throws ActionDTOModelResolverException {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            // Convert the attributes to a JSON array and generate the input stream.
-            return new ByteArrayInputStream(objectMapper.writeValueAsString(attributes)
-                    .getBytes(StandardCharsets.UTF_8));
+            // Convert the attributes to a JSON string.
+            BinaryObject attributesBinaryObject = BinaryObject.fromJsonString(objectMapper
+                    .writeValueAsString(attributes));
+            return new ActionProperty.BuilderForDAO(attributesBinaryObject).build();
         } catch (JsonProcessingException e) {
-            throw new ActionDTOModelResolverException("Failed to convert attributes to JSON.", e);
+            throw new ActionDTOModelResolverException("Failed to convert object values to JSON string.", e);
         }
     }
 
-    private List<String> getAttributes(InputStream stream) throws ActionDTOModelResolverException {
+    private ActionProperty getAttributes(String value) throws ActionDTOModelResolverException {
 
-        StringBuilder sb = new StringBuilder();
-        List<String> attributes;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
+        try {
             ObjectMapper objectMapper = new ObjectMapper();
-            attributes = objectMapper.readValue(sb.toString(), new TypeReference<List<String>>() { });
+            return new ActionProperty.BuilderForService(objectMapper.readValue(value,
+                    new TypeReference<List<String>>() { })).build();
         } catch (IOException e) {
             throw new ActionDTOModelResolverException("Error while reading the attribute values from storage.", e);
         }
-
-        return attributes;
     }
 
-    private List<String> validateAttributes(Object attributes) throws ActionDTOModelResolverClientException {
+    private List<String> validateAttributes(Object attributes, String tenantDomain)
+            throws ActionDTOModelResolverException {
+
+        List<String> validatedAttributes = getAttributesList(attributes);
+        validateAttributesCount(validatedAttributes);
+        validatedAttributes = filterValidSystemAttributes(validatedAttributes, tenantDomain);
+        return validatedAttributes;
+    }
+
+    private List<String> getAttributesList(Object attributes) throws ActionDTOModelResolverClientException {
 
         if (!(attributes instanceof List<?>)) {
             throw new ActionDTOModelResolverClientException("Invalid attributes format.",
@@ -206,5 +209,53 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         }
 
         return (List<String>) attributes;
+    }
+
+    private void validateAttributesCount(List<String> attributes) throws ActionDTOModelResolverClientException {
+
+        if (attributes.size() > MAX_ATTRIBUTES) {
+            throw new ActionDTOModelResolverClientException("Maximum attributes limit exceeded.",
+                    String.format("The number of configured attributes: %d exceeds the maximum allowed limit: %d",
+                            attributes.size(), MAX_ATTRIBUTES));
+        }
+    }
+
+    private List<String> filterValidSystemAttributes(List<String> attributes, String tenantDomain)
+            throws ActionDTOModelResolverClientException, ActionDTOModelResolverServerException {
+
+        try {
+            ClaimMetadataManagementService claimMetadataManagementService =
+                    PreUpdateProfileActionServiceComponentHolder.getInstance().getClaimManagementService();
+            List<LocalClaim> localClaims = claimMetadataManagementService.getLocalClaims(tenantDomain);
+            Set<String> localClaimURIs = localClaims.stream()
+                    .map(LocalClaim::getClaimURI)
+                    .collect(Collectors.toSet());
+            Set<String> uniqueAttributes = new HashSet<>();
+            Set<String> duplicatedAttributes = new HashSet<>();
+            for (String attribute : attributes) {
+                if (!localClaimURIs.contains(attribute)) {
+                    String invalidAttributeDescription = String.format("The provided %s attribute is not available " +
+                            "in the system.", attribute);
+                    throw new ActionDTOModelResolverClientException("Invalid attribute provided.",
+                            invalidAttributeDescription);
+                }
+                if (attribute.equals(ROLE_CLAIM_URI)) {
+                    throw new ActionDTOModelResolverClientException("Not supported.", String.format("%s attribute is " +
+                            "not supported to be shared with extension.", ROLE_CLAIM_URI)
+                    );
+                }
+                if (!uniqueAttributes.add(attribute)) {
+                    duplicatedAttributes.add(attribute);
+                }
+            }
+            if (LOG.isDebugEnabled() && !duplicatedAttributes.isEmpty()) {
+                LOG.debug("Ignored duplicated attributes in pre profile action configuration : " +
+                        String.join(", ", duplicatedAttributes));
+            }
+            return Collections.unmodifiableList(new ArrayList<>(uniqueAttributes));
+        } catch (ClaimMetadataException e) {
+            throw new ActionDTOModelResolverServerException("Error while retrieving local claims from claim meta " +
+                    "data service.", e.getMessage());
+        }
     }
 }

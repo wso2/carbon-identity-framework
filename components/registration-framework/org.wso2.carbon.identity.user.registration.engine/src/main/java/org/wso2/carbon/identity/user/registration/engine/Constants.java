@@ -28,15 +28,28 @@ public class Constants {
     public static final String STATUS_INCOMPLETE = "INCOMPLETE";
     public static final String STATUS_PROMPT_ONLY = "PROMPT_ONLY";
     // Constants for user attributes.
+    public static final String CLAIM_URI_PREFIX = "http://wso2.org/claims/";
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
     public static final String PASSWORD_KEY = "password";
     // Constants for DataDTO parameters.
     public static final String REDIRECT_URL = "redirectUrl";
     public static final String VALIDATIONS = "validations";
     public static final String IDENTIFIER = "identifier";
+    public static final String REQUIRED = "required";
     public static final String ERROR = "error";
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
+    public static final String DEFAULT_REGISTRATION_CALLBACK = "/authenticationendpoint/register.do";
+
+    // Constants related for OTP field length handling.
+    public static final String OTP_LENGTH = "otpLength";
+    public static final String OTP_VARIANT = "OTP";
+    public static final String LENGTH_CONFIG = "length";
+
+    public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
+
+    // Recaptcha related constants.
+    public static final String G_RECAPTCHA_RESPONSE = "g-recaptcha-response";
 
     private Constants() {
 
@@ -71,15 +84,15 @@ public class Constants {
         ERROR_CODE_REG_FLOW_NOT_FOUND("65001",
                 "Registration flow not defined.",
                 "Registration flow is not defined for tenant: %s"),
-        ERROR_CODE_FIRST_NODE_NODE_FOUND("65002",
-                "First node not found.",
-                "First node not found in the registration flow: %s of tenant: %s"),
+        ERROR_CODE_FIRST_NODE_NOT_FOUND("65002",
+                                        "First node not found.",
+                                        "First node not found in the registration flow: %s of tenant: %s"),
         ERROR_CODE_UNSUPPORTED_NODE("65003",
                 "Unsupported node type.",
                 "Unsupported node type %s found in the registration flow: %s of tenant: %s"),
         ERROR_CODE_EXECUTOR_NOT_FOUND("65004",
                 "Executor data not found.",
-                "Executor data not found for node: %s of registration flow: %s of tenant: %s"),
+                "Executor data not found in registration flow: %s of tenant: %s"),
         ERROR_CODE_UNSUPPORTED_EXECUTOR("65005",
                 "Unsupported executor type.",
                 "Unsupported executor type %s found in the registration flow: %s of tenant: " +
@@ -112,11 +125,24 @@ public class Constants {
         ERROR_CODE_EXECUTOR_FAILURE("65013",
                 "An error occurred during executor processing.",
                 "%s"),
+        ERROR_CODE_REDIRECTION_URL_NOT_FOUND("65014",
+                "Redirection URL not found.",
+                "Error occurred while resolving the redirection URL."),
+        ERROR_CODE_CAPTCHA_VERIFICATION_FAILURE("65015",
+                "Error occurred during captcha verification.",
+                "Error occurred while verifying the captcha for the registration request of flow id: %s."),
+        ERROR_CODE_GET_APP_CONFIG_FAILURE("65016",
+                "Error while loading application configurations.",
+                "Error occurred loading the configurations of application: %s of tenant: %s."),
+        ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE("65017",
+                                                    "Error while resolving default callback URL.",
+                                                    "Error occurred while resolving the default callback URL for the " +
+                                                            "registration request in tenant: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
-                "Invalid flow id.",
-                "The given flow id: %s is invalid."),
+                                   "Invalid flow id.",
+                                   "The given flow id: %s is invalid."),
         ERROR_CODE_USERNAME_NOT_PROVIDED("60002",
                 "Username not provided.",
                 "Username is not provided in the registration request of flow id: %s"),
@@ -135,6 +161,15 @@ public class Constants {
         ERROR_CODE_REQUEST_PROCESSING_FAILURE("60007",
                 "Error while processing the registration request.",
                 "%s"),
+        ERROR_CODE_INVALID_USER_INPUT("60008",
+                "Invalid user inputs.",
+                "Invalid user inputs provided for the registration request."),
+        ERROR_CODE_INVALID_ACTION_ID("60009",
+                "Invalid action id.",
+                "The provided action id: %s is invalid."),
+        ERROR_CODE_INVALID_CAPTCHA("60010",
+                "Invalid captcha provided.",
+                "Invalid captcha provided in the registration request of flow id: %s."),
         ;
 
         private static final String ERROR_PREFIX = "RFE";

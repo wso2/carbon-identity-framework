@@ -21,39 +21,57 @@ package org.wso2.carbon.identity.user.pre.update.profile.action.management;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
-import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.user.pre.update.profile.action.internal.component.PreUpdateProfileActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionDTOModelResolver;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.DUPLICATED_TEST_ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.INVALID_TEST_ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.INVALID_TEST_ATTRIBUTES_COUNT;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.INVALID_TEST_ATTRIBUTES_TYPE;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.INVALID_TEST_ATTRIBUTES_VALUES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ROLES_CLAIM_ATTRIBUTE;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ROLE_CLAIM_URI;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.SAMPLE_LOCAL_CLAIM_URI_1;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.SAMPLE_LOCAL_CLAIM_URI_2;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.SAMPLE_LOCAL_CLAIM_URI_3;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.SAMPLE_LOCAL_CLAIM_URI_4;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACTION;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_DESCRIPTION;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_EMPTY_ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ID;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_PASSWORD;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_URL;
@@ -69,6 +87,19 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     private Action action;
     private ActionDTO existingActionDTO;
     private ActionDTO existingActionDTOWithoutProperties;
+    private AutoCloseable closeable;
+    @Mock
+    private ClaimMetadataManagementService claimMetadataManagementService;
+    @Mock
+    private LocalClaim localClaim1;
+    @Mock
+    private LocalClaim localClaim2;
+    @Mock
+    private LocalClaim localClaim3;
+    @Mock
+    private LocalClaim localClaim4;
+    @Mock
+    private LocalClaim rolesClaim;
 
     @BeforeClass
     public void init() {
@@ -84,10 +115,32 @@ public class PreUpdateProfileActionDTOModelResolverTest {
                         .build())
                 .build();
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, TEST_ATTRIBUTES);
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(TEST_ATTRIBUTES).build());
         existingActionDTO = new ActionDTO.Builder(action).properties(properties).build();
         existingActionDTOWithoutProperties = new ActionDTO.Builder(action).build();
+    }
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+
+        closeable = MockitoAnnotations.openMocks(this);
+        PreUpdateProfileActionServiceComponentHolder.getInstance()
+                .setClaimManagementService(claimMetadataManagementService);
+        List<LocalClaim> mockLocalClaims = Arrays.asList(localClaim1, localClaim2, localClaim3, localClaim4,
+                rolesClaim);
+        doReturn(SAMPLE_LOCAL_CLAIM_URI_1).when(localClaim1).getClaimURI();
+        doReturn(SAMPLE_LOCAL_CLAIM_URI_2).when(localClaim2).getClaimURI();
+        doReturn(SAMPLE_LOCAL_CLAIM_URI_3).when(localClaim3).getClaimURI();
+        doReturn(SAMPLE_LOCAL_CLAIM_URI_4).when(localClaim4).getClaimURI();
+        doReturn(ROLE_CLAIM_URI).when(rolesClaim).getClaimURI();
+        doReturn(mockLocalClaims).when(claimMetadataManagementService).getLocalClaims(anyString());
+    }
+
+    @AfterMethod
+    public void teardown() throws Exception {
+
+        closeable.close();
     }
 
     @Test
@@ -100,8 +153,8 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     @Test
     public void testResolveForAddOperation() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, TEST_ATTRIBUTES);
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(TEST_ATTRIBUTES).build());
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -110,18 +163,16 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
         assertNotNull(result);
         verifyCommonFields(actionDTO, result);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), TEST_ATTRIBUTES);
+        assertTrue(result.getPropertyValue(ATTRIBUTES) instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString()),
+                TEST_ATTRIBUTES);
     }
 
     @Test
     public void testResolveForAddOperationWithoutAttributes() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -137,8 +188,8 @@ public class PreUpdateProfileActionDTOModelResolverTest {
             expectedExceptionsMessageRegExp = "Invalid attributes format.")
     public void testResolveForAddOperationWithInvalidAttributesFormat() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, INVALID_TEST_ATTRIBUTES);
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(INVALID_TEST_ATTRIBUTES_TYPE).build());
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -149,8 +200,62 @@ public class PreUpdateProfileActionDTOModelResolverTest {
             expectedExceptionsMessageRegExp = "Invalid attributes format.")
     public void testResolveForAddOperationWithInvalidAttributesValueType() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, INVALID_TEST_ATTRIBUTES_VALUES);
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(INVALID_TEST_ATTRIBUTES_VALUES).build());
+        ActionDTO actionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
+            expectedExceptionsMessageRegExp = "Maximum attributes limit exceeded.")
+    public void testResolveForAddOperationWithExceededAttributesCount() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(INVALID_TEST_ATTRIBUTES_COUNT).build());
+        ActionDTO actionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
+    }
+
+    @Test
+    public void testResolveForAddOperationWithDuplicatedAttributes() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(DUPLICATED_TEST_ATTRIBUTES).build());
+        ActionDTO actionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        ActionDTO result = resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
+
+        assertNotNull(result);
+        verifyCommonFields(actionDTO, result);
+        assertTrue(result.getPropertyValue(ATTRIBUTES) instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getInputStream());
+        assertEquals(getAttributes(((BinaryObject) result.getPropertyValue(ATTRIBUTES))
+                .getJSONString()), Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid attribute provided.")
+    public void testResolveForAddOperationWithInvalidAttributes() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(INVALID_TEST_ATTRIBUTES).build());
+        ActionDTO actionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
+            expectedExceptionsMessageRegExp = "Not supported.")
+    public void testResolveForAddOperationWithRoleAttribute() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(ROLES_CLAIM_ATTRIBUTE).build());
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -160,9 +265,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     @Test
     public void testResolveForGetOperation() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
 
-        properties.put(ATTRIBUTES, new ActionPropertyForDAO(getBinaryObject(TEST_ATTRIBUTES)));
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForDAO(getBinaryObject(TEST_ATTRIBUTES)).build());
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -171,28 +276,14 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
         assertNotNull(result);
         verifyCommonFields(actionDTO, result);
-        assertEquals(result.getProperty(ATTRIBUTES), TEST_ATTRIBUTES);
-    }
-
-    @Test(expectedExceptions = ActionDTOModelResolverServerException.class,
-            expectedExceptionsMessageRegExp = "Unable to retrieve attributes.")
-    public void testResolveForGetOperationWithInvalidPropertyValue() throws Exception {
-
-        Map<String, Object> properties = new HashMap<>();
-
-        properties.put(ATTRIBUTES, TEST_ATTRIBUTES);
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
-                .properties(properties)
-                .build();
-
-        resolver.resolveForGetOperation(actionDTO, TENANT_DOMAIN);
+        assertEquals(result.getPropertyValue(ATTRIBUTES), TEST_ATTRIBUTES);
     }
 
     @Test
     public void testResolveForGetOperationForActionList() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, new ActionPropertyForDAO(getBinaryObject(TEST_ATTRIBUTES)));
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForDAO(getBinaryObject(TEST_ATTRIBUTES)).build());
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -202,15 +293,15 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(result);
         for (ActionDTO dto : result) {
             verifyCommonFields(actionDTO, dto);
-            assertEquals(dto.getProperty(ATTRIBUTES), TEST_ATTRIBUTES);
+            assertEquals(dto.getPropertyValue(ATTRIBUTES), TEST_ATTRIBUTES);
         }
     }
 
     @Test
     public void testResolveForUpdateOperationWithExistingAttributes() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, UPDATED_TEST_ATTRIBUTES);
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(UPDATED_TEST_ATTRIBUTES).build());
         ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -219,18 +310,106 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(result);
         verifyCommonFields(updatingActionDTO, result);
         assertEquals(result.getProperties().size(), 1);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), UPDATED_TEST_ATTRIBUTES);
+        assertTrue(result.getPropertyValue(ATTRIBUTES) instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString()),
+                UPDATED_TEST_ATTRIBUTES);
+    }
+
+    @Test
+    public void testResolveForUpdateOperationToDeleteAttributes() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(TEST_EMPTY_ATTRIBUTES).build());
+        ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        ActionDTO result = resolver.resolveForUpdateOperation(updatingActionDTO, existingActionDTO, TENANT_DOMAIN);
+
+        assertNotNull(result);
+        verifyCommonFields(updatingActionDTO, result);
+        assertEquals(result.getProperties().size(), 0);
+        assertNull(result.getPropertyValue(ATTRIBUTES));
+    }
+
+    @Test
+    public void testResolveForUpdateOperationWithUpdatingNullAttributes() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(null).build());
+        ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        ActionDTO result = resolver.resolveForUpdateOperation(updatingActionDTO, existingActionDTO, TENANT_DOMAIN);
+
+        assertNotNull(result);
+        verifyCommonFields(updatingActionDTO, result);
+        // Since no attributes are updated, the existing attributes in ActionDTO should be verified.
+        assertEquals(result.getProperties().size(), existingActionDTO.getProperties().size());
+        assertTrue(result.getPropertyValue(ATTRIBUTES) instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getPropertyValue(ATTRIBUTES))
+                .getJSONString()), existingActionDTO.getPropertyValue(ATTRIBUTES));
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
+            expectedExceptionsMessageRegExp = "Maximum attributes limit exceeded.")
+    public void testResolveForUpdateOperationWithExceededAttributesCountWithExistingAttributes() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(INVALID_TEST_ATTRIBUTES_COUNT).build());
+        ActionDTO actionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        resolver.resolveForUpdateOperation(actionDTO, existingActionDTO, TENANT_DOMAIN);
+    }
+
+    @Test
+    public void testResolveForUpdateOperationWithDuplicatedAttributesWithExistingAttributes() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(DUPLICATED_TEST_ATTRIBUTES).build());
+        ActionDTO actionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        ActionDTO result = resolver.resolveForUpdateOperation(actionDTO, existingActionDTO, TENANT_DOMAIN);
+
+        assertNotNull(result);
+        verifyCommonFields(actionDTO, result);
+        assertTrue(result.getPropertyValue(ATTRIBUTES) instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getInputStream());
+        assertEquals(getAttributes(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString()),
+                Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid attribute provided.")
+    public void testResolveForUpdateOperationWithInvalidAttributesWithExistingAttributes() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(INVALID_TEST_ATTRIBUTES).build());
+        ActionDTO actionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        resolver.resolveForUpdateOperation(actionDTO, existingActionDTO, TENANT_DOMAIN);
+    }
+
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
+            expectedExceptionsMessageRegExp = "Not supported.")
+    public void testResolveForUpdateOperationWithRoleAttributeWithExistingAttributes() throws Exception {
+
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(ROLES_CLAIM_ATTRIBUTE).build());
+        ActionDTO actionDTO = new ActionDTO.Builder(action)
+                .properties(properties)
+                .build();
+        resolver.resolveForUpdateOperation(actionDTO, existingActionDTO, TENANT_DOMAIN);
     }
 
     @Test
     public void testResolveUpdateOperationWithoutUpdatingAttributesWithExistingAttributes() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -240,19 +419,17 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         verifyCommonFields(updatingActionDTO, result);
         // Since no attributes are updated, the existing attributes in ActionDTO should be verified.
         assertEquals(result.getProperties().size(), existingActionDTO.getProperties().size());
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), existingActionDTO.getProperty(ATTRIBUTES));
+        assertTrue(result.getPropertyValue(ATTRIBUTES) instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString()),
+                existingActionDTO.getPropertyValue(ATTRIBUTES));
     }
 
     @Test
     public void testResolveForUpdateOperationWithoutExistingAttributes() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, TEST_ATTRIBUTES);
+        Map<String, ActionProperty> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(TEST_ATTRIBUTES).build());
         ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -262,18 +439,16 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(result);
         verifyCommonFields(updatingActionDTO, result);
         assertEquals(result.getProperties().size(), 1);
-        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
-        assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
-        assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
-        assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), TEST_ATTRIBUTES);
+        assertTrue(result.getPropertyValue(ATTRIBUTES) instanceof BinaryObject);
+        assertNotNull(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString());
+        assertEquals(getAttributes(((BinaryObject) result.getPropertyValue(ATTRIBUTES)).getJSONString()),
+                TEST_ATTRIBUTES);
     }
 
     @Test
     public void testResolveUpdateOperationWithoutBothUpdatingAndExistingAttributes() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionProperty> properties = new HashMap<>();
         ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -301,7 +476,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
     private BinaryObject getBinaryObject(List<String> attributes) throws Exception {
 
-        return new BinaryObject(getInputStream(attributes));
+        return BinaryObject.fromInputStream(getInputStream(attributes));
     }
 
     private InputStream getInputStream(List<String> attributes) throws Exception {
@@ -316,22 +491,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         }
     }
 
-    private List<String> getAttributes(InputStream stream) throws Exception {
+    private List<String> getAttributes(String value) throws IOException {
 
-        StringBuilder sb = new StringBuilder();
-        List<String> attributes;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            attributes = objectMapper.readValue(sb.toString(), new TypeReference<List<String>>() { });
-        } catch (IOException e) {
-            throw new Exception("Error while converting InputStream to List<String>.", e);
-        }
-
-        return attributes;
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(value, new TypeReference<List<String>>() { });
     }
 }

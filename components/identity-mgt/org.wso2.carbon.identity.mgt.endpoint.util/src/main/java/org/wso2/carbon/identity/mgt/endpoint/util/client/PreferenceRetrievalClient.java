@@ -210,6 +210,18 @@ public class PreferenceRetrievalClient {
     }
 
     /**
+     * Check email otp based password recovery is enabled or not.
+     *
+     * @param tenant Tenant domain name.
+     * @return Returns true if email otp based password recovery enabled.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public boolean checkEmailOTPBasedPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, RECOVERY_CONNECTOR, IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+    }
+
+    /**
      * Check SMS OTP based password recovery is enabled or not.
      *
      * @param tenant Tenant domain name.

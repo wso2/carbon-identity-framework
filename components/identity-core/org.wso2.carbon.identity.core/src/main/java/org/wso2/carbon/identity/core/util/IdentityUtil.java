@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2005-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -1643,8 +1643,10 @@ public class IdentityUtil {
                 IdentityCoreConstants.MAXIMUM_USERS_LIST_PER_ROLE_PROPERTY);
 
         if (StringUtils.isBlank(maxUsersListPerRolePropertyValue)) {
-            log.warn("Missing 'MaximumUsersListPerRole' property. Using lower bound value "
-                    + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Missing 'MaximumUsersListPerRole' property. Using lower bound value %d.",
+                        USERS_LIST_PER_ROLE_LOWER_BOUND));
+            }
             return USERS_LIST_PER_ROLE_LOWER_BOUND;
         }
 
@@ -1653,12 +1655,16 @@ public class IdentityUtil {
             if (maxUsersListPerRole >= USERS_LIST_PER_ROLE_LOWER_BOUND) {
                 return maxUsersListPerRole;
             }
-            log.warn("Configured 'MaximumUsersListPerRole' value " + maxUsersListPerRolePropertyValue +
-                    " is below the recommended minimum.");
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Configured 'MaximumUsersListPerRole' value %s " +
+                                "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
+            }
         } catch (NumberFormatException e) {
-            log.warn("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
+            log.debug("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
         }
-        log.warn("Falling back to the lower bound value " + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Falling back to the lower bound value %d.", USERS_LIST_PER_ROLE_LOWER_BOUND));
+        }
         return USERS_LIST_PER_ROLE_LOWER_BOUND;
     }
 

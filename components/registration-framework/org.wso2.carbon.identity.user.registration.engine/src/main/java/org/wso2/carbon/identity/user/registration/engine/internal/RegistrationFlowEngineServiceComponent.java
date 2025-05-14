@@ -28,13 +28,17 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.registration.engine.UserRegistrationFlowService;
 import org.wso2.carbon.identity.user.registration.engine.graph.Executor;
 import org.wso2.carbon.identity.user.registration.engine.graph.UserOnboardingExecutor;
+import org.wso2.carbon.identity.user.registration.engine.listener.FlowExecutionListener;
+import org.wso2.carbon.identity.user.registration.engine.validation.InputValidationListener;
 import org.wso2.carbon.identity.user.registration.mgt.RegistrationFlowMgtService;
 import org.wso2.carbon.user.core.service.RealmService;
+
+import java.util.Comparator;
 
 /**
  * OSGi declarative services component which handles registration flow engine service.
@@ -54,6 +58,8 @@ public class RegistrationFlowEngineServiceComponent {
             bundleContext.registerService(UserRegistrationFlowService.class.getName(),
                     UserRegistrationFlowService.getInstance(), null);
             bundleContext.registerService(Executor.class.getName(), new UserOnboardingExecutor(), null);
+            bundleContext.registerService(FlowExecutionListener.class.getName(), new InputValidationListener(),
+                    null);
             LOG.debug("Registration Flow Engine service successfully activated.");
         } catch (Throwable e) {
             LOG.error("Error while initiating Registration Flow Engine service", e);
@@ -144,4 +150,60 @@ public class RegistrationFlowEngineServiceComponent {
         LOG.debug("Unsetting the Input Validation Mgt Service in the Registration Flow Engine component.");
         RegistrationFlowEngineDataHolder.getInstance().setInputValidationManagementService(null);
     }
+
+    @Reference(
+            service = ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationManagement"
+    )
+    public void setApplicationManagement(ApplicationManagementService applicationManagement) {
+
+        RegistrationFlowEngineDataHolder.getInstance().setApplicationManagementService(applicationManagement);
+    }
+
+    public void unsetApplicationManagement(ApplicationManagementService applicationManagementService) {
+
+        RegistrationFlowEngineDataHolder.getInstance().setApplicationManagementService(null);
+    }
+
+    @Reference(
+            name = "FlowExecutionListener",
+            service = FlowExecutionListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRegistrationExecutionListener")
+    protected void setRegistrationExecutionListener(FlowExecutionListener flowExecutionListener) {
+
+        LOG.debug("Setting the Registration Execution Listener in the Registration Flow Engine component.");
+        RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()
+                .add(flowExecutionListener);
+        RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners().sort(listenerComparator);
+    }
+
+    protected void unsetRegistrationExecutionListener(FlowExecutionListener flowExecutionListener) {
+
+        LOG.debug("Unsetting the Registration Execution Listener in the Registration Flow Engine component.");
+        RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()
+                .remove(flowExecutionListener);
+    }
+
+    private static final Comparator<FlowExecutionListener> listenerComparator =
+            new Comparator<FlowExecutionListener>() {
+
+                @Override
+                public int compare(FlowExecutionListener flowExecutionListener1,
+                                   FlowExecutionListener flowExecutionListener2) {
+
+                    if (flowExecutionListener1.getExecutionOrderId() >
+                            flowExecutionListener2.getExecutionOrderId()) {
+                        return 1;
+                    } else if (flowExecutionListener1.getExecutionOrderId() <
+                            flowExecutionListener2.getExecutionOrderId()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
 }

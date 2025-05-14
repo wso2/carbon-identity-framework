@@ -92,6 +92,7 @@
         <CertificateValidation>{{data_storage_type.certificate_validation}}</CertificateValidation>
         <AdminAdvisoryBanner>{{data_storage_type.admin_advisory_banner}}</AdminAdvisoryBanner>
         <RemoteLoggingConfig>{{data_storage_type.remote_logging_config}}</RemoteLoggingConfig>
+        <ChallengeQuestions>{{data_storage_type.challenge_questions}}</ChallengeQuestions>
     </DataStorageType>
 
     <NotificationTemplates>
@@ -422,6 +423,13 @@
         <!-- If enabled, OIDC claims will be skipped when requesting token for client credential grant type
              currently used by JWT token issuer for issuing access token-->
         <SkipOIDCClaimsForClientCredentialGrant>{{oauth.grant_type.client_credentials.skip_oidc_claims}}</SkipOIDCClaimsForClientCredentialGrant>
+
+        <!-- If enabled, authentication failure reason will be shown in the response for password grant -->
+        {% if authentication.authenticator.basic.parameters.showAuthFailureReason is defined and oauth.password_grant.use_show_auth_failure_reason is sameas true %}
+            <ShowAuthFailureReasonForPasswordGrant>{{authentication.authenticator.basic.parameters.showAuthFailureReason}}</ShowAuthFailureReasonForPasswordGrant>
+        {% else %}
+            <ShowAuthFailureReasonForPasswordGrant>{{oauth.grant_type.password.show_auth_failure_reason}}</ShowAuthFailureReasonForPasswordGrant>
+        {% endif %}
 
         <!-- If enabled, hostname will be used to build the issuer instead of entity ID -->
         <BuildIssuerWithHostname>{{oauth.build_issuer_with_hostname}}</BuildIssuerWithHostname>
@@ -1002,6 +1010,15 @@
             -->
             <LogoutTokenExpiration>{{oauth.oidc.token_validation.logout_token_validity}}</LogoutTokenExpiration>
 
+            <!-- Logout request sender configurations. Time configs are in milliseconds. -->
+            <LogoutRequestSender>
+                <PoolSize>{{oauth.oidc.logout_request_sender.pool_size}}</PoolSize>
+                <WorkQueueSize>{{oauth.oidc.logout_request_sender.work_queue_size}}</WorkQueueSize>
+                <KeepAliveTime>{{oauth.oidc.logout_request_sender.keep_alive_time}}</KeepAliveTime>
+                <HttpConnectTimeout>{{oauth.oidc.logout_request_sender.http_connect_timeout}}</HttpConnectTimeout>
+                <HttpSocketTimeout>{{oauth.oidc.logout_request_sender.http_socket_timeout}}</HttpSocketTimeout>
+            </LogoutRequestSender>
+
             <!--
                 OIDC Request Object builder implementation.
                 Supported versions: IS 5.4.0 onwards
@@ -1343,6 +1360,7 @@
             Default value : false
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
+        <UserSessionImpersonation>{{oauth.enable_user_session_impersonation}}</UserSessionImpersonation>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1923,6 +1941,12 @@
         <AllowedAttributeProfiles>{{identity_mgt.user_claim_update.allowed_attribute_profiles}}</AllowedAttributeProfiles>
     </UserClaimUpdate>
 
+    <HiddenClaims>
+        {% for claimURI in identity_mgt.claims.hidden_claims %}
+            <HiddenClaim>{{claimURI}}</HiddenClaim>
+        {% endfor %}
+    </HiddenClaims>
+
      <AccountSuspension>
         <UseIdentityClaims>{{identity_mgt_account_suspension.use_identity_claims}}</UseIdentityClaims>
         <ExecuteTaskOnMasterNode>{{identity_mgt_account_suspension.execute_task_on_master_node}}</ExecuteTaskOnMasterNode>
@@ -2144,6 +2168,9 @@
                     </AllowedParameters>
                 </ActionRequest>
             </PreIssueAccessToken>
+            <PreUpdateProfile>
+                <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
+            </PreUpdateProfile>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
                 <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
@@ -4469,6 +4496,13 @@
         <AccessURL>{{myaccount.access_url}}</AccessURL>
         <AppBaseName>{{myaccount.app_base_name}}</AppBaseName>
         <Origin>{{myaccount.origin}}</Origin>
+        <Impersonation>
+            <AllowedResources>
+                {% for resource in myaccount.impersonation.allowed_resources %}
+                    <Resource context="{{resource}}"/>
+                {% endfor %}
+            </AllowedResources>
+        </Impersonation>
     </MyAccount>
 
     <!-- Configuration settings for the API responses. -->
@@ -4562,5 +4596,15 @@
             <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
         </BrandingAI>
     </AIServices>
+
+    {% if platform_idp is defined %}
+    <PlatformIdp>
+        <Enabled>true</Enabled>
+        <Name>{{platform_idp.name}}</Name>
+        <AuthEndpointUrl>{{platform_idp.oauth2_auth_ep_url}}</AuthEndpointUrl>
+        <TokenEndpointUrl>{{platform_idp.oauth2_token_ep_url}}</TokenEndpointUrl>
+        <LogoutEndpointUrl>{{platform_idp.oidc_logout_ep_url}}</LogoutEndpointUrl>
+    </PlatformIdp>
+    {% endif %}
 
 </Server>

@@ -115,13 +115,13 @@ public class PreUpdatePasswordActionServiceComponent {
     }
 
     @Reference(
-            name = "action.execution.service",
+            name = "action.executor.service",
             service = ActionExecutorService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetActionExecutorService"
     )
-    protected void setActionExecutionService(ActionExecutorService actionExecutorService) {
+    protected void setActionExecutorService(ActionExecutorService actionExecutorService) {
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setActionExecutorService(actionExecutorService);
         LOG.debug("ActionExecutorService set in PreUpdatePasswordActionServiceComponentHolder bundle.");

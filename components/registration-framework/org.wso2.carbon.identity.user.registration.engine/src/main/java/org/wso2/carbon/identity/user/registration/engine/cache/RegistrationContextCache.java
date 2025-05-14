@@ -20,8 +20,10 @@ package org.wso2.carbon.identity.user.registration.engine.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.cache.BaseCache;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 /**
  * Cache for RegistrationContext.
@@ -31,10 +33,11 @@ public class RegistrationContextCache extends BaseCache<RegistrationContextCache
     private static final String REGISTRATION_CONTEXT_CACHE_NAME = "RegistrationContextCache";
     private static final Log LOG = LogFactory.getLog(RegistrationContextCache.class);
     private static final RegistrationContextCache instance = new RegistrationContextCache(REGISTRATION_CONTEXT_CACHE_NAME,
-                                                                                          true);
+            true);
+
     private RegistrationContextCache(String cacheName, boolean isTemporary) {
 
-            super(cacheName, isTemporary);
+        super(cacheName, isTemporary);
     }
 
     /**
@@ -55,29 +58,47 @@ public class RegistrationContextCache extends BaseCache<RegistrationContextCache
     public void addToCache(RegistrationContextCacheKey key, RegistrationContextCacheEntry entry) {
 
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
-        super.addToCache(key, entry, tenantName);
+        if (tenantName != null) {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantName);
+            super.addToCache(key, entry, tenantName);
+            SessionDataStore.getInstance().storeSessionData(key.getContextId(), REGISTRATION_CONTEXT_CACHE_NAME,
+                    entry, tenantId);
+        }
     }
 
     /**
      * Get the RegistrationContextCacheEntry from the cache for the given key.
      *
-     * @param key   Registration context cache key.
+     * @param key Registration context cache key.
      * @return Registration context cache entry.
      */
     public RegistrationContextCacheEntry getValueFromCache(RegistrationContextCacheKey key) {
 
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
-        return super.getValueFromCache(key, tenantName);
+        RegistrationContextCacheEntry entry = super.getValueFromCache(key, tenantName);
+        if (entry == null) {
+            entry = (RegistrationContextCacheEntry) SessionDataStore.getInstance().
+                    getSessionData(key.getContextId(), REGISTRATION_CONTEXT_CACHE_NAME);
+            if (entry != null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Found a valid RegistrationContextCacheEntry corresponding to the session data key : " +
+                            key.getContextId() + " from the data store. ");
+                }
+                super.addToCache(key, entry, tenantName);
+            }
+        }
+        return entry;
     }
 
     /**
      * Clear the cache entry for the given key.
      *
-     * @param key   Registration context cache key.
+     * @param key Registration context cache key.
      */
     public void clearCacheEntry(RegistrationContextCacheKey key) {
 
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
         super.clearCacheEntry(key, tenantName);
+        SessionDataStore.getInstance().clearSessionData(key.getContextId(), REGISTRATION_CONTEXT_CACHE_NAME);
     }
 }

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.management.internal.util;
 
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.ActionRule;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
@@ -38,7 +39,7 @@ public class ActionDTOBuilder {
     private Action.Status status;
     private EndpointConfig endpoint;
     private ActionRule rule;
-    private Map<String, Object> properties;
+    private Map<String, ActionProperty> properties;
 
     public ActionDTOBuilder() {
 
@@ -144,18 +145,18 @@ public class ActionDTOBuilder {
         return rule;
     }
 
-    public ActionDTOBuilder properties(Map<String, Object> properties) {
+    public ActionDTOBuilder properties(Map<String, ActionProperty> properties) {
 
         this.properties = properties;
         return this;
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, ActionProperty> getProperties() {
 
         return this.properties;
     }
 
-    public ActionDTOBuilder property(String propertyName, Object propertyValue) {
+    public ActionDTOBuilder property(String propertyName, ActionProperty propertyValue) {
 
         if (this.properties == null) {
             this.properties = new HashMap<>();

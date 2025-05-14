@@ -181,6 +181,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORACLE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
@@ -647,7 +648,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (serviceProvider.getAssociatedRolesConfig() != null) {
             String appAudience = serviceProvider.getAssociatedRolesConfig().getAllowedAudience();
             // Update associated roles.
-            if (RoleConstants.APPLICATION.equalsIgnoreCase(appAudience)) {
+            if (RoleConstants.APPLICATION.equalsIgnoreCase(appAudience) && !isFragmentApp(serviceProvider)) {
                 updateAssociatedRolesOfApplication(connection, serviceProvider.getApplicationResourceId(),
                         serviceProvider.getApplicationName(), serviceProvider.getAssociatedRolesConfig(), tenantDomain);
             }
@@ -1920,10 +1921,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * service provider.
      *
      * @param serviceProviderProperties List of service provider properties.
+     * @param tenantID Tenant ID.
      * @return Certificate content.
      * @throws CertificateRetrievingException If an error occurs while retrieving the certificate.
      */
-    private String getCertificateContent(List<ServiceProviderProperty> serviceProviderProperties)
+    private String getCertificateContent(List<ServiceProviderProperty> serviceProviderProperties, int tenantID)
             throws CertificateRetrievingException {
 
         String certificateReferenceId = null;
@@ -1938,7 +1940,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             try {
                 certificate = ApplicationManagementServiceComponentHolder.getInstance()
                         .getApplicationCertificateMgtService().getCertificate(Integer.parseInt(certificateReferenceId),
-                                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                                IdentityTenantUtil.getTenantDomain(tenantID));
 
                 if (certificate != null) {
                     return certificate.getCertificateContent();
@@ -2291,7 +2293,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
 
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
-            serviceProvider.setCertificateContent(getCertificateContent(propertyList));
+            serviceProvider.setCertificateContent(getCertificateContent(propertyList, tenantID));
 
             // Set role associations.
             serviceProvider.setAssociatedRolesConfig(
@@ -2448,7 +2450,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         readAndSetConfigurationsFromProperties(propertyList,
                                 serviceProvider.getLocalAndOutBoundAuthenticationConfig());
                         serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
-                        serviceProvider.setCertificateContent(getCertificateContent(propertyList));
+                        serviceProvider.setCertificateContent(getCertificateContent(propertyList, tenantID));
                     }
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
@@ -6910,5 +6912,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setInt(1, applicationId);
             statement.executeUpdate();
         }
+    }
+
+    /**
+     * Check whether the service provider is a fragment application.
+     *
+     * @param serviceProvider Service provider.
+     * @return True if the service provider is a fragment application.
+     */
+    private static boolean isFragmentApp(ServiceProvider serviceProvider) {
+
+        return Arrays.stream(serviceProvider.getSpProperties())
+                .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 }

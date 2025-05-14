@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,10 @@ public class ClaimConstants {
     public static final String MAX_LENGTH = "maxLength";
     public static final String IS_SYSTEM_CLAIM = "isSystemClaim";
     public static final String SHARED_PROFILE_VALUE_RESOLVING_METHOD = "SharedProfileValueResolvingMethod";
+    public static final String FLOW_INITIATOR = "FlowInitiator";
     public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT =
             "ExternalClaimAdditionNotAllowedForDialect";
+    public static final String MULTI_VALUED_PROPERTY = "multiValued";
 
     /**
      * Enum for error messages.
@@ -116,6 +118,8 @@ public class ClaimConstants {
         ERROR_CODE_INVALID_ATTRIBUTE_PROFILE("CMT-600015", "Invalid attribute profile name."),
         ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT("CMT-60016",
                 "Adding claims to dialect %s is not allowed"),
+        ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY("CMT-60017",
+                "Cannot change flow initiator property of the system claim: %s"),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +

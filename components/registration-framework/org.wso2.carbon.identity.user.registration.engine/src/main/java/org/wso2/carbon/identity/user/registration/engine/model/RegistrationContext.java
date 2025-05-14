@@ -18,14 +18,16 @@
 
 package org.wso2.carbon.identity.user.registration.engine.model;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import org.slf4j.MDC;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * This class is responsible for holding the registration context.
@@ -37,6 +39,8 @@ public class RegistrationContext implements Serializable {
     private final Map<String, String> userInputData = new HashMap<>();
     private final Map<String, Object> properties = new HashMap<>();
     private Map<String, String> authenticatorProperties;
+    private Map<String, Set<String>> currentStepInputs = new HashMap<>();
+    private Map<String, Set<String>> currentRequiredInputs = new HashMap<>();
     private NodeConfig currentNode;
     private RegistrationGraphConfig regGraph;
     private RegisteringUser registeringUser = new RegisteringUser();
@@ -45,6 +49,9 @@ public class RegistrationContext implements Serializable {
     private String userId;
     private String currentActionId;
     private ExternalIdPConfig externalIdPConfig;
+    private Response currentNodeResponse;
+    private String callbackUrl;
+    private String applicationId;
 
     public NodeConfig getCurrentNode() {
 
@@ -170,5 +177,55 @@ public class RegistrationContext implements Serializable {
             ExternalIdPConfig externalIdPConfig) {
 
         this.externalIdPConfig = externalIdPConfig;
+    }
+
+    public Map<String, Set<String>> getCurrentStepInputs() {
+
+        return currentStepInputs;
+    }
+
+    public void setCurrentStepInputs(Map<String, Set<String>> currentExpectedInputs) {
+
+        this.currentStepInputs = currentExpectedInputs;
+    }
+
+    public Map<String, Set<String>> getCurrentRequiredInputs() {
+
+        return currentRequiredInputs;
+    }
+
+    public void setCurrentRequiredInputs(Map<String, Set<String>> currentRequiredInputs) {
+
+        this.currentRequiredInputs = currentRequiredInputs;
+    }
+
+    public Response getCurrentNodeResponse() {
+
+        return currentNodeResponse;
+    }
+
+    public void setCurrentNodeResponse(Response response) {
+
+        this.currentNodeResponse = response;
+    }
+
+    public String getCallbackUrl() {
+
+        return callbackUrl;
+    }
+
+    public void setCallbackUrl(String callbackUrl) {
+
+        this.callbackUrl = callbackUrl;
+    }
+
+    public String getApplicationId() {
+
+        return applicationId;
+    }
+
+    public void setApplicationId(String applicationId) {
+
+        this.applicationId = applicationId;
     }
 }

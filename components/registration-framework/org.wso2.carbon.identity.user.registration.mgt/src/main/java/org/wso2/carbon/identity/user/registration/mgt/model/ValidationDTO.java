@@ -17,15 +17,15 @@
  */
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Data Transfer Object for validation information.
  */
-public class ValidationDTO {
+public class ValidationDTO implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private String type;
     private String name;
     private String message;
@@ -85,7 +85,9 @@ public class ValidationDTO {
     /**
      * Represents a single validation condition with a key and value.
      */
-    public static class Condition {
+    public static class Condition implements Serializable {
+
+        private static final long serialVersionUID = 1L;
         private String key;
         private String value;
 

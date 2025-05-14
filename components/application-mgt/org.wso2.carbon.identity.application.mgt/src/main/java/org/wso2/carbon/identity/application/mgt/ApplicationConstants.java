@@ -110,6 +110,9 @@ public class ApplicationConstants {
     public static final String FILTER_CO = "co";
     public static final int MAX_NUMBER_OF_GROUPS_FROM_META_ENDPOINT = 100;
 
+    // Fallback super tenant domain.
+    public static final String SUPER_TENANT = "carbon.super";
+
     // System application config elements
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
     public static final String DEFAULT_APPLICATIONS_CONFIG_ELEMENT = "DefaultApplications";
@@ -140,6 +143,11 @@ public class ApplicationConstants {
     public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
     public static final String RBAC = "RBAC";
     public static final String SYSTEM_PORTALS = "SystemPortals";
+    public static final String IMPERSONATE_SCOPE_NAME = "internal_user_impersonate";
+    public static final String IMPERSONATE_ROLE_NAME = "Impersonator";
+    public static final String IMPERSONATION_API_RESOURCE = "system:impersonation";
+    public static final String APPLICATION_ROLE_AUDIENCE = "application";
+    public static final String USER_SESSION_IMPERSONATION_ENABLED = "OAuth.UserSessionImpersonation";
 
     /**
      * Group the constants related to logs.

@@ -30,6 +30,7 @@ public class ValueType {
     public static final ValueType NUMBER = new ValueType("NUMBER");
     public static final ValueType BOOLEAN = new ValueType("BOOLEAN");
     public static final ReferenceValueType REFERENCE = new ReferenceValueType("REFERENCE");
+    public static final ValueType LIST = new ValueType("LIST");
 
     public static ReferenceValueType createReferenceType(String referenceAttribute) {
 

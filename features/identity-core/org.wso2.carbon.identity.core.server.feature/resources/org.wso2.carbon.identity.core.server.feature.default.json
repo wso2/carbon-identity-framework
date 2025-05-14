@@ -15,6 +15,7 @@
   "data_storage_type.certificate_validation": "database",
   "data_storage_type.admin_advisory_banner": "database",
   "data_storage_type.remote_logging_config": "database",
+  "data_storage_type.challenge_questions": "database",
   "database.identity_db.pool_options.maxActive": "50",
   "database.identity_db.pool_options.maxWait": "60000",
   "database.identity_db.pool_options.testOnBorrow": "true",
@@ -157,6 +158,7 @@
   "oauth.grant_type.password.enable": true,
   "oauth.grant_type.password.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.PasswordGrantHandler",
   "oauth.grant_type.password.allow_public_client": true,
+  "oauth.grant_type.password.show_auth_failure_reason": false,
   "oauth.grant_type.refresh_token.enable": true,
   "oauth.grant_type.refresh_token.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.RefreshGrantHandler",
   "oauth.grant_type.refresh_token.allow_public_client": true,
@@ -249,6 +251,11 @@
   "oauth.oidc.request_object.supported_encryption_algorithms": ["RSA-OAEP", "RSA1_5"],
   "oauth.oidc.request_object.supported_encryption_methods": "$ref{oauth.oidc.id_token.supported_encryption_methods}",
   "oauth.oidc.token_validation.logout_token_validity": "2m",
+  "oauth.oidc.logout_request_sender.pool_size": "20",
+  "oauth.oidc.logout_request_sender.work_queue_size": "1000",
+  "oauth.oidc.logout_request_sender.keep_alive_time": "60000",
+  "oauth.oidc.logout_request_sender.http_connect_timeout": "10000",
+  "oauth.oidc.logout_request_sender.http_socket_timeout": "20000",
   "oauth.oidc.extensions.request_object_validator": "org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl",
   "oauth.oidc.user_info.jwt_signature_algorithm": "$ref{oauth.oidc.id_token.signature_algorithm}",
   "oauth.oidc.extensions.user_info_claim_retriever": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoUserStoreClaimRetriever",
@@ -261,7 +268,7 @@
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
   "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
-  "oauth.oidc.token_endpoint.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
+  "oauth.oidc.token_endpoint.signing_algorithms": ["PS256", "ES256", "ES384", "RS384", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.id_token.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
@@ -400,7 +407,7 @@
   "identity_mgt.password_reset_email.otp.use_lowercase_in_otp": true,
   "identity_mgt.password_reset_email.otp.use_numeric_in_otp": true,
   "identity_mgt.password_reset_email.otp.otp_length": "6",
-  "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": "false",
+  "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": "true",
   "identity_mgt.password_reset_sms.sms_otp_regex": "[a-zA-Z0-9]{6}",
   "identity_mgt.password_reset_email.enable_recaptcha": false,
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
@@ -502,6 +509,17 @@
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
+
+  "identity_mgt.claims.hidden_claims": [
+    "http://wso2.org/claims/identity/askPassword",
+    "http://wso2.org/claims/identity/tenantAdminAskPassword",
+    "http://wso2.org/claims/identity/adminForcedPasswordReset",
+    "http://wso2.org/claims/identity/secretkey",
+    "http://wso2.org/claims/identity/verifySecretkey",
+    "http://wso2.org/claims/identity/backupCodes",
+    "http://wso2.org/claims/identity/verifyEmail",
+    "http://wso2.org/claims/identity/verifyMobile"
+  ],
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
@@ -1169,7 +1187,9 @@
     "BasicAuthRequestPathAuthenticator",
     "OAuthRequestPathAuthenticator"
   ],
-  "console.ui.hiddenConnectionTemplates": [ "swe-idp" ],
+  "console.ui.hiddenConnectionTemplates": [
+    "swe-idp"
+  ],
   "console.ui.hiddenApplicationTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
@@ -1218,7 +1238,7 @@
   "console.actions.enabled": true,
   "console.actions.disabled_features": [
     "actions.types.list.preRegistration",
-    "actions.types.list.preUpdateProfile"
+    "actions.types.preUpdateProfile.edit.rule"
   ],
   "console.actions.scopes.feature": ["console:actions"],
   "console.actions.scopes.create": ["internal_action_mgt_create"],
@@ -1393,7 +1413,11 @@
   ],
   "console.identity_providers.scopes.update": ["internal_idp_update"],
   "console.identity_providers.scopes.delete": ["internal_idp_delete"],
-  "console.identity_providers.disabled_features": [],
+  "console.identity_providers.disabled_features": [
+    "identityProviders.federationHub",
+    "identityProviders.saml.artifactBinding",
+    "identityProviders.saml.attributeConsumingServiceIndex"
+  ],
   "console.identity_provider_groups.enabled": true,
   "console.identity_verification_providers.enabled": true,
   "console.identity_verification_providers.scopes.feature": ["console:idvps"],
@@ -1640,6 +1664,7 @@
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
   "myaccount.ui.app_logo_path": "/assets/images/branding/logo.svg",
+  "myaccount.ui.app_mobile_logo_path": "/assets/images/branding/logo-mini.svg",
   "myaccount.ui.app_white_logo_path": "/assets/images/branding/logo-inverted.svg",
   "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
@@ -1671,7 +1696,16 @@
     "profile",
     "openid"
   ],
-
+  "myaccount.impersonation.allowed_resources": [
+    "/api/server/v1/identity-governance/preferences",
+    "/api/server/v1/branding-preference",
+    "/scim2/Schemas",
+    "/scim2/Me",
+    "/api/users/v1/me/associations",
+    "/api/users/v1/me/applications"
+  ],
+  "ui.is_cookie_consent_banner_enabled": true,
+  
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],
@@ -1757,9 +1791,11 @@
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.authentication.enable": true,
   "actions.types.authentication.default_userstore": "PRIMARY",
+  "actions.types.pre_update_profile.enable": true,
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
+  "oauth.enable_user_session_impersonation": false,
 
   "system_applications.system_portals": ["Console", "My Account"],
 

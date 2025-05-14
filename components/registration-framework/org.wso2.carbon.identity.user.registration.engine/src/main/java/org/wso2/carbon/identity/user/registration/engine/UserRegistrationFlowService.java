@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.user.registration.engine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
+import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
+import org.wso2.carbon.identity.user.registration.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngine;
@@ -50,15 +52,31 @@ public class UserRegistrationFlowService {
     /**
      * Initiates the registration flow for the given tenant domain.
      *
-     * @param tenantDomain Tenant domain.
+     * @param tenantDomain  Tenant domain.
+     * @param callbackUrl   Callback URL.
+     * @param applicationId Application ID.
      * @return RegistrationStep.
      * @throws RegistrationEngineException if something goes wrong while initiating the registration flow.
      */
-    public RegistrationStep initiateDefaultRegistrationFlow(String tenantDomain) throws RegistrationEngineException {
+    public RegistrationStep initiateDefaultRegistrationFlow(String tenantDomain, String applicationId,
+                                                            String callbackUrl) throws RegistrationEngineException {
 
         try {
-            RegistrationContext context = RegistrationFlowEngineUtils.initiateContext(tenantDomain);
+            RegistrationContext context =
+                    RegistrationFlowEngineUtils.initiateContext(tenantDomain, callbackUrl, applicationId);
+            for (FlowExecutionListener listener :
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPreInitiate(context)) {
+                    return null;
+                }
+            }
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
+            for (FlowExecutionListener listener :
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPostInitiate(step, context)) {
+                    return null;
+                }
+            }
             RegistrationFlowEngineUtils.addRegContextToCache(context);
             return step;
         } catch (RegistrationEngineException e) {
@@ -82,7 +100,19 @@ public class UserRegistrationFlowService {
             RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
             context.getUserInputData().putAll(inputs);
             context.setCurrentActionId(actionId);
+            for (FlowExecutionListener listener :
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPreContinue(context)) {
+                    return null;
+                }
+            }
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
+            for (FlowExecutionListener listener :
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPostContinue(step, context)) {
+                    return null;
+                }
+            }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
                 RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);
             } else {
