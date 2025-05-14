@@ -35,16 +35,35 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.api.
  */
 public class SubOperationStatusQueue {
 
-    private ConcurrentLinkedQueue<OperationStatus> subOperationList = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<OperationStatus> subOperationList = new ConcurrentLinkedQueue<OperationStatus>();
 
+    /**
+     * Constructs a new empty {@link SubOperationStatusQueue}.
+     */
     public SubOperationStatusQueue() {
     }
 
+    /**
+     * Adds a new status representing the result of a sub-operation to the queue.
+     *
+     * @param status The status of the sub-operation (e.g., SUCCESS, FAILED, PARTIALLY_COMPLETED).
+     */
     public void add(OperationStatus status) {
 
         this.subOperationList.add(status);
     }
 
+    /**
+     * Computes and returns the overall status of the operation based on the individual sub-operation statuses
+     * in the queue. The operation status can be one of the following:
+     * <ul>
+     *     <li>{@link OperationStatus#SUCCESS} if all sub-operations succeeded.</li>
+     *     <li>{@link OperationStatus#FAILED} if all sub-operations failed.</li>
+     *     <li>{@link OperationStatus#PARTIALLY_COMPLETED} if some sub-operations succeeded and others failed or are incomplete.</li>
+     * </ul>
+     *
+     * @return The overall {@link OperationStatus} of the operation.
+     */
     public OperationStatus getOperationStatus() {
 
         boolean allSuccess = true;
