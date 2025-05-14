@@ -92,7 +92,7 @@ public class AuthAPIServiceClient {
                     throw new RuntimeException(e);
                 }
                 if (log.isDebugEnabled()) {
-                log.debug("Response: { status: " + response.getCode() + "\n data: " +
+                    log.debug("Response: { status: " + response.getCode() + "\n data: " +
                         responseString + " }");
             }
 

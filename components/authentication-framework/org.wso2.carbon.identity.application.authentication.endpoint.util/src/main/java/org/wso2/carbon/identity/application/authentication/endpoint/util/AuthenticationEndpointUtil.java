@@ -380,7 +380,7 @@ public class AuthenticationEndpointUtil {
             HttpGet httpGet = new HttpGet(backendURL);
             setAuthorizationHeader(httpGet);
 
-            StringBuilder responseString = httpclient.execute(httpGet, response -> {
+            return httpclient.execute(httpGet, response -> {
                 if (log.isDebugEnabled()) {
                     log.debug("HTTP status " + response.getCode() +
                             " when invoking " + HTTP_METHOD_GET + " for URL: " + backendURL);
@@ -388,7 +388,6 @@ public class AuthenticationEndpointUtil {
                 return handleHttpResponse(response, backendURL);
             });
 
-            return responseString.toString();
         } catch (IOException e) {
             log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + backendURL + ", failed.", e);
         }
@@ -403,7 +402,7 @@ public class AuthenticationEndpointUtil {
      * @return Extracted http response content.
      * @throws IOException if there is an error while extracting the response content.
      */
-    private static StringBuilder handleHttpResponse(ClassicHttpResponse response, String backendURL)
+    private static String handleHttpResponse(ClassicHttpResponse response, String backendURL)
             throws IOException {
 
         StringBuilder responseString = new StringBuilder();
@@ -426,7 +425,7 @@ public class AuthenticationEndpointUtil {
                     response.getCode() + ".");
         }
 
-        return responseString;
+        return responseString.toString();
     }
 
     /**
