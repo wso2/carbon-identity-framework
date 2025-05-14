@@ -51,11 +51,12 @@ public class Flow {
         FLOW_DEFINITIONS.put(Name.UPDATE_CREDENTIAL_PASSWORD,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.ACCOUNT_DISABLE,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.USER, InitiatingPersona.APPLICATION));
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.SYSTEM, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.ACCOUNT_LOCK,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.USER, InitiatingPersona.APPLICATION));
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.SYSTEM, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.SESSION_REVOKE,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
+                        InitiatingPersona.SYSTEM));
     }
 
     /**
@@ -90,7 +91,8 @@ public class Flow {
 
         ADMIN,
         APPLICATION,
-        USER
+        USER,
+        SYSTEM
     }
 
     private final Name name;
