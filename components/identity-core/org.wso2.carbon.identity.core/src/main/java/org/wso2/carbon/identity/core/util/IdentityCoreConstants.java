@@ -27,7 +27,7 @@ public class IdentityCoreConstants {
     public static final String HOST_NAME = "HostName";
     public static final String MGT_CONSOLE_HOST_NAME = "MgtHostName";
     public static final String SERVER_HOST_NAME = "ServerHostName";
-    public static final String GRANT_TYPE = "GrantType";
+    public static final String SKIP_LOCAL_USER_CLAIM_UPDATE = "SkipLocalUserClaimUpdate";
     public static final String AUTHENTICATION_ENDPOINT_HOST_NAME = "AuthenticationEndpoint.HostName";
     public static final String AUTHENTICATION_ENDPOINT_PATH = "AuthenticationEndpoint.Path";
     public static final String RECOVERY_ENDPOINT_HOST_NAME = "RecoveryEndpoint.HostName";
