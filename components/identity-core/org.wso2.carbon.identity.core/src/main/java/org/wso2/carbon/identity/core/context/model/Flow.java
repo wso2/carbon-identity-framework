@@ -38,6 +38,12 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.PROFILE_UPDATE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.BULK_RESOURCE_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.USER_GROUP_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.GROUP_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.LOGOUT,
                 EnumSet.of(InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.DELETE_USER,
@@ -61,6 +67,9 @@ public class Flow {
         PASSWORD_RESET,
         USER_REGISTRATION_INVITE_WITH_PASSWORD,
         PROFILE_UPDATE,
+        BULK_RESOURCE_UPDATE,
+        USER_GROUP_UPDATE,
+        GROUP_UPDATE,
         LOGOUT,
         UPDATE_CREDENTIAL_PASSWORD,
         DELETE_USER,
@@ -68,6 +77,7 @@ public class Flow {
         ACCOUNT_DISABLE,
         SESSION_REVOKE
     }
+
     /**
      * Enum for Initiator Persona.
      * Specifies the type of entity responsible for initiating the Flow.
