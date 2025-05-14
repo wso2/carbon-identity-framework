@@ -59,7 +59,8 @@ public class SubOperationStatusQueue {
      * <ul>
      *     <li>{@link OperationStatus#SUCCESS} if all sub-operations succeeded.</li>
      *     <li>{@link OperationStatus#FAILED} if all sub-operations failed.</li>
-     *     <li>{@link OperationStatus#PARTIALLY_COMPLETED} if some sub-operations succeeded and others failed or are incomplete.</li>
+     *     <li>{@link OperationStatus#PARTIALLY_COMPLETED} if some sub-operations succeeded and others failed or are
+     *     incomplete.</li>
      * </ul>
      *
      * @return The overall {@link OperationStatus} of the operation.

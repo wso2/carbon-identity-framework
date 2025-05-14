@@ -190,7 +190,7 @@ public class FilterTreeBuilder {
     private void validateAndBuildFilterExpression(String filterString, ExpressionNode expressionNode)
             throws AsyncOperationStatusMgtClientException {
 
-        if (StringUtils.isBlank(filterString) || filterString.equals("-1")) {
+        if (StringUtils.isNotBlank(filterString) && !filterString.equals("-1")) {
             String trimmedFilter = filterString.trim();
             String[] filterParts;
 
@@ -257,13 +257,14 @@ public class FilterTreeBuilder {
     private void setExpressionNodeValues(String attributeValue, String operation, String value,
                                          ExpressionNode expressionNode) throws AsyncOperationStatusMgtClientException {
 
-        if (StringUtils.isBlank(attributeValue) && StringUtils.isBlank(operation)) {
+        if (StringUtils.isNotBlank(attributeValue) || StringUtils.isNotBlank(operation)) {
+            expressionNode.setAttributeValue(attributeValue.trim());
+            expressionNode.setOperation(operation.trim());
+            if (value != null) {
+                expressionNode.setValue(value.trim());
+            }
+        } else {
             throw handleClientException(ERROR_CODE_INVALID_REQUEST_BODY, attributeValue, operation);
-        }
-        expressionNode.setAttributeValue(attributeValue.trim());
-        expressionNode.setOperation(operation.trim());
-        if (StringUtils.isNotBlank(value)) {
-            expressionNode.setValue(value.trim());
         }
     }
 
@@ -272,7 +273,7 @@ public class FilterTreeBuilder {
      */
     private String nextSymbol() {
 
-        if (tokenList.isEmpty()) {
+        if (tokenList.size() == 0) {
             // No tokens are present in the list anymore/at all.
             return String.valueOf(-1);
         }

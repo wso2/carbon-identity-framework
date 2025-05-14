@@ -35,9 +35,9 @@ import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.models.
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.models.UnitOperationInitDTO;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.models.UnitOperationStatusCount;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.dao.AsyncOperationStatusMgtDAO;
+import org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.models.FilterQueryBuilder;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.models.dos.UnitOperationDO;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtDbUtil;
-import org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.models.FilterQueryBuilder;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -411,8 +411,8 @@ public class AsyncOperationOperationStatusMgtDAOImpl implements AsyncOperationSt
     }
 
     private void setFilterAttributes(NamedPreparedStatement namedPreparedStatement,
-                                           Map<String, String> filterAttributeValue, List<String> timestampTypeAttributes)
-            throws SQLException {
+                                           Map<String, String> filterAttributeValue,
+                                     List<String> timestampTypeAttributes) throws SQLException {
 
         for (Map.Entry<String, String> entry : filterAttributeValue.entrySet()) {
             if (timestampTypeAttributes.contains(entry.getKey())) {

@@ -20,15 +20,11 @@ package org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.u
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.exception.AsyncOperationStatusMgtServerException;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.models.FilterQueryBuilder;
 
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.AsyncOperationStatusMgtConstants.ATTRIBURE_COLUMN_MAP;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.AsyncOperationStatusMgtConstants.EQ;
@@ -150,8 +146,8 @@ public class FilterQueryBuilderUtil {
         filterQueryBuilder.setFilterAttributeValue(FILTER_PLACEHOLDER_PREFIX, value);
     }
 
-    private static void lessThanOrEqualFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                                    FilterQueryBuilder filterQueryBuilder)
+    private static void lessThanOrEqualFilterBuilder(int count, String value, String attributeName,
+                                                     StringBuilder filter, FilterQueryBuilder filterQueryBuilder)
             throws AsyncOperationStatusMgtServerException {
 
         String filterString = String.format(isDateTimeAndMSSql(attributeName) ? " <= CAST(:%s%s; AS DATETIME) AND "
