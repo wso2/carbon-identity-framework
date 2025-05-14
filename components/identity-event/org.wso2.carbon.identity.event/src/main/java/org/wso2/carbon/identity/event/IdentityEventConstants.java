@@ -329,7 +329,8 @@ public class IdentityEventConstants {
         SESSION_TERMINATE,
         SESSION_EXPIRE,
         SESSION_EXTEND,
-        VERIFICATION
+        VERIFICATION,
+        USER_SESSION_TERMINATE
     }
 
     public class EventProperty {
