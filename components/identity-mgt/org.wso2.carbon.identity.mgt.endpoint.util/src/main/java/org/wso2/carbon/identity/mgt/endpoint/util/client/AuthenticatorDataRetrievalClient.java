@@ -69,7 +69,7 @@ public class AuthenticatorDataRetrievalClient {
 
         Map<String, String> authenticatorConfig = new HashMap<>();
         String authenticatorId = base64URLEncode(authenticatorIdentifier);
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             HttpGet request = new HttpGet(getAuthenticatorEndpoint(tenant) + "/" + authenticatorId);
             setAuthorizationHeader(request);
 

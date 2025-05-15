@@ -80,7 +80,7 @@ public class ValidationConfigurationRetrievalClient {
     public JSONArray getConfigurations(String tenantDomain)
             throws ValidationConfigurationRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             HttpGet request = new HttpGet(getValidationMgtEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 

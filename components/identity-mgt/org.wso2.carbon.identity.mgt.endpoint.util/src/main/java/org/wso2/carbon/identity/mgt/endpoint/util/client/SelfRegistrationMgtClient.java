@@ -156,7 +156,7 @@ public class SelfRegistrationMgtClient {
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
 
@@ -254,7 +254,7 @@ public class SelfRegistrationMgtClient {
                     + ". SkipSignUpCheck flag is set to " + skipSignUpCheck);
         }
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             JSONObject userObject = new JSONObject();
             userObject.put(USERNAME, user.getUsername());
 

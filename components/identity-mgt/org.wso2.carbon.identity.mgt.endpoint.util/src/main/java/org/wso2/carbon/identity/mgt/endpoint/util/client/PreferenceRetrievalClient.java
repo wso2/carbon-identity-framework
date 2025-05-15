@@ -377,7 +377,7 @@ public class PreferenceRetrievalClient {
                                              String propertyName)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             String endpoint = getUserGovernanceEndpoint(tenant);
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
@@ -476,7 +476,7 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -543,7 +543,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);

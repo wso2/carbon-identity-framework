@@ -59,7 +59,7 @@ public class CommonDataRetrievalClient {
                                         boolean defaultValue, boolean isEndpointTenantAware)
             throws CommonDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
 
             String uri = getEndpoint(tenantDomain, apiContextPath, isEndpointTenantAware);
             HttpGet get = new HttpGet(uri);

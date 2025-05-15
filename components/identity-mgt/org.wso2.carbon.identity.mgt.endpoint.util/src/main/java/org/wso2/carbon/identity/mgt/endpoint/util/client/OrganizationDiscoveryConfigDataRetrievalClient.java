@@ -66,7 +66,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
 
         Map<String, String> organizationDiscoveryConfig = new HashMap<>();
 
-        try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             HttpGet request = new HttpGet(getOrganizationDiscoveryConfigEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 

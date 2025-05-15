@@ -73,7 +73,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getPreference(String tenant, String type, String name, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
 
             String uri = getBrandingPreferenceEndpoint(tenant);
 
@@ -156,7 +156,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getCustomTextPreference(String tenant, String type, String name, String screen, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
 
             String uri = getCustomTextPreferenceEndpoint(tenant);
 
