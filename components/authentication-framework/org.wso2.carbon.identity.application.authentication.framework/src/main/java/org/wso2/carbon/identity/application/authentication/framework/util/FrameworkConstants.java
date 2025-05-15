@@ -74,6 +74,7 @@ public abstract class FrameworkConstants {
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String SIGN_UP_ENDPOINT = "/accountrecoveryendpoint/signup.do";
+    public static final String VERIFY_ENDPOINT = "/authenticationendpoint/verify.do";
     public static final String REGISTRATION_ENDPOINT = "/accountrecoveryendpoint/register.do";
     public static final String ERROR_CODE = "errorCode";
     public static final String ERROR_MESSAGE = "errorMessage";
@@ -86,6 +87,9 @@ public abstract class FrameworkConstants {
     public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
     public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
+    public static final String IS_OTP_VERIFICATION_TRIGGERED = "isOtpVerificationTriggered";
+    public static final String OTP_VERIFICATION_PENDING_CLAIM = "otpVerificationPendingClaim";
+    public static final String CLAIM_FOR_PENDING_OTP_VERIFICATION = "claimForPendingOtpVerification";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
