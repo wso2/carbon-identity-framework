@@ -24,14 +24,14 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.net.URLEncodedUtils;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
@@ -41,7 +41,7 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.BufferedReader;
@@ -375,26 +375,23 @@ public class AuthenticationEndpointUtil {
      */
     public static String sendGetRequest(String backendURL) {
 
-        StringBuilder responseString = new StringBuilder();
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
 
             HttpGet httpGet = new HttpGet(backendURL);
             setAuthorizationHeader(httpGet);
 
-            try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
-
+            return httpclient.execute(httpGet, response -> {
                 if (log.isDebugEnabled()) {
-                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() +
+                    log.debug("HTTP status " + response.getCode() +
                             " when invoking " + HTTP_METHOD_GET + " for URL: " + backendURL);
                 }
-                responseString = handleHttpResponse(response, backendURL);
-            } finally {
-                httpGet.releaseConnection();
-            }
+                return handleHttpResponse(response, backendURL);
+            });
+
         } catch (IOException e) {
             log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + backendURL + ", failed.", e);
         }
-        return responseString.toString();
+        return StringUtils.EMPTY;
     }
 
     /**
@@ -405,11 +402,12 @@ public class AuthenticationEndpointUtil {
      * @return Extracted http response content.
      * @throws IOException if there is an error while extracting the response content.
      */
-    private static StringBuilder handleHttpResponse(CloseableHttpResponse response, String backendURL) throws IOException {
+    private static String handleHttpResponse(ClassicHttpResponse response, String backendURL)
+            throws IOException {
 
         StringBuilder responseString = new StringBuilder();
 
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+        if (response.getCode() == HttpStatus.SC_OK) {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                     response.getEntity().getContent()))) {
                 String inputLine;
@@ -417,17 +415,17 @@ public class AuthenticationEndpointUtil {
                     responseString.append(inputLine);
                 }
             }
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+        } else if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
             if (log.isDebugEnabled()) {
                 log.debug("Response received from the backendURL " + backendURL + " with status " +
-                        response.getStatusLine() + ".");
+                        response.getCode() + ".");
             }
         } else {
-            log.error("Response received from the backendURL " + backendURL +" failed with status " +
-                    response.getStatusLine() + ".");
+            log.error("Response received from the backendURL " + backendURL + " failed with status " +
+                    response.getCode() + ".");
         }
 
-        return responseString;
+        return responseString.toString();
     }
 
     /**
@@ -435,7 +433,7 @@ public class AuthenticationEndpointUtil {
      *
      * @param httpMethod The HttpMethod which needs the authorization header.
      */
-    private static void setAuthorizationHeader(HttpRequestBase httpMethod) {
+    private static void setAuthorizationHeader(HttpUriRequestBase httpMethod) {
 
         String name = EndpointConfigManager.getAppName();
         String password = String.valueOf(EndpointConfigManager.getAppPassword());

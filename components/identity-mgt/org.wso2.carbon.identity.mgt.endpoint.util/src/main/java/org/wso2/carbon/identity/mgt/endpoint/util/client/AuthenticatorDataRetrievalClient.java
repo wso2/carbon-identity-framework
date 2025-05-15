@@ -20,21 +20,23 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -67,33 +69,42 @@ public class AuthenticatorDataRetrievalClient {
 
         Map<String, String> authenticatorConfig = new HashMap<>();
         String authenticatorId = base64URLEncode(authenticatorIdentifier);
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             HttpGet request = new HttpGet(getAuthenticatorEndpoint(tenant) + "/" + authenticatorId);
             setAuthorizationHeader(request);
 
-            try (CloseableHttpResponse response = httpclient.execute(request)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-
-                    if (jsonResponse.has(IMAGE_KEY)) {
-                        // Image is an optional attribute.
-                        authenticatorConfig.put(IMAGE_KEY, jsonResponse.getString(IMAGE_KEY));
+            String responseString = httpclient.execute(request, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
                     }
-                    authenticatorConfig.put(DISPLAY_NAME_KEY, jsonResponse.getString(DISPLAY_NAME_KEY));
-                    authenticatorConfig.put(DEFINED_BY_KEY, jsonResponse.getString(DEFINED_BY_KEY));
                 }
-            } finally {
-                request.releaseConnection();
+                return null;
+            });
+
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
+
+                if (jsonResponse.has(IMAGE_KEY)) {
+                    // Image is an optional attribute.
+                    authenticatorConfig.put(IMAGE_KEY, jsonResponse.getString(IMAGE_KEY));
+                }
+                authenticatorConfig.put(DISPLAY_NAME_KEY, jsonResponse.getString(DISPLAY_NAME_KEY));
+                authenticatorConfig.put(DEFINED_BY_KEY, jsonResponse.getString(DEFINED_BY_KEY));
             }
+            return authenticatorConfig;
         } catch (IOException | JSONException e) {
             String msg = "Error while getting configs of " + authenticatorIdentifier + " in tenant : " + tenant;
             LOG.debug(msg, e);
             throw new AuthenticatorDataRetrievalClientException(msg, e);
         }
-
-        return authenticatorConfig;
     }
 
     public static String base64URLEncode(String value) {
@@ -114,7 +125,7 @@ public class AuthenticatorDataRetrievalClient {
         }
     }
 
-    private void setAuthorizationHeader(HttpRequestBase httpMethod) {
+    private void setAuthorizationHeader(HttpUriRequestBase httpMethod) {
 
         String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
                 + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());

@@ -23,23 +23,24 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -376,59 +377,82 @@ public class PreferenceRetrievalClient {
                                              String propertyName)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             String endpoint = getUserGovernanceEndpoint(tenant);
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
-            String governanceId = null;
-            try (CloseableHttpResponse response = httpclient.execute(get)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONArray jsonResponse = new JSONArray(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    for (int itemIndex = 0, totalObject = jsonResponse.length();
-                         itemIndex < totalObject; itemIndex++) {
-                        JSONObject config = jsonResponse.getJSONObject(itemIndex);
-                        if (StringUtils.equalsIgnoreCase(
-                                jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
-                            governanceId = config.getString(PROPERTY_ID);
-                            break;
+            String responseStringGet = httpclient.execute(get, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
                         }
+                        return content.toString();
                     }
                 }
-            } finally {
-                get.releaseConnection();
+                return null;
+            });
+
+            String governanceId = StringUtils.EMPTY;
+
+            if (!StringUtils.isEmpty(responseStringGet)) {
+                JSONArray jsonResponse = new JSONArray(new JSONTokener(responseStringGet));
+                for (int itemIndex = 0, totalObject = jsonResponse.length();
+                     itemIndex < totalObject; itemIndex++) {
+                    JSONObject config = jsonResponse.getJSONObject(itemIndex);
+                    if (StringUtils.equalsIgnoreCase(
+                            jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
+                        governanceId = config.getString(PROPERTY_ID);
+                        break;
+                    }
+                }
             }
 
             endpoint = endpoint + "/" + governanceId;
             HttpGet getConnectorConfig = new HttpGet(endpoint);
             setAuthorizationHeader(getConnectorConfig);
 
-            try (CloseableHttpResponse response = httpclient.execute(getConnectorConfig)) {
+            String responseStringGetConnectorConfig = httpclient.execute(getConnectorConfig, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
+                        }
+                        return content.toString();
+                    }
+                }
+                return null;
+            });
 
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    JSONArray connectorArray = jsonResponse.getJSONArray(CONNECTORS);
-                    for (int itemIndex = 0, totalObject = connectorArray.length();
-                         itemIndex < totalObject; itemIndex++) {
-                        JSONObject config = connectorArray.getJSONObject(itemIndex);
-                        if (StringUtils.equalsIgnoreCase(config.getString(PROPERTY_NAME), connectorName)) {
-                            JSONArray responseProperties = config.getJSONArray(PROPERTIES);
-                            for (int propIndex = 0, totalProp = responseProperties.length();
-                                 propIndex < totalProp; propIndex++) {
-                                JSONObject property = responseProperties.getJSONObject(propIndex);
-                                if (StringUtils.equalsIgnoreCase(property.getString(PROPERTY_NAME), propertyName)) {
-                                    return Optional.ofNullable(property.getString(PROPERTY_VALUE));
-                                }
+            if (!StringUtils.isEmpty(responseStringGetConnectorConfig)) {
+                JSONObject jsonResponse = new JSONObject(
+                        new JSONTokener(responseStringGetConnectorConfig));
+                JSONArray connectorArray = jsonResponse.getJSONArray(CONNECTORS);
+                for (int itemIndex = 0, totalObject = connectorArray.length();
+                     itemIndex < totalObject; itemIndex++) {
+                    JSONObject config = connectorArray.getJSONObject(itemIndex);
+                    if (StringUtils.equalsIgnoreCase(config.getString(PROPERTY_NAME), connectorName)) {
+                        JSONArray responseProperties = config.getJSONArray(PROPERTIES);
+                        for (int propIndex = 0, totalProp = responseProperties.length();
+                             propIndex < totalProp; propIndex++) {
+                            JSONObject property = responseProperties.getJSONObject(propIndex);
+                            if (StringUtils.equalsIgnoreCase(property.getString(PROPERTY_NAME), propertyName)) {
+                                return Optional.ofNullable(property.getString(PROPERTY_VALUE));
                             }
                         }
                     }
                 }
-            } finally {
-                get.releaseConnection();
             }
+            return Optional.empty();
 
         } catch (IOException e) {
             // Logging and throwing since this is a client.
@@ -437,7 +461,6 @@ public class PreferenceRetrievalClient {
             log.debug(msg, e);
             throw new PreferenceRetrievalClientException(msg, e);
         }
-        return Optional.empty();
     }
 
     /**
@@ -453,7 +476,7 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -464,28 +487,40 @@ public class PreferenceRetrievalClient {
             HttpPost post = new HttpPost(getUserGovernancePreferenceEndpoint(tenant));
             setAuthorizationHeader(post);
             post.setEntity(new StringEntity(main.toString(), ContentType.create(HTTPConstants
-                    .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
+                    .MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-            try (CloseableHttpResponse response = httpclient.execute(post)) {
 
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONArray jsonResponse = new JSONArray(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    JSONObject connector = (JSONObject) jsonResponse.get(0);
-                    JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
-                    for (int itemIndex = 0, totalObject = responseProperties.length();
-                         itemIndex < totalObject; itemIndex++) {
-                        JSONObject config = responseProperties.getJSONObject(itemIndex);
-                        if (StringUtils.equalsIgnoreCase(
-                                responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
-                            return Boolean.valueOf(config.getString(PROPERTY_VALUE));
+            String responseString = httpclient.execute(post, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
                         }
+                        return content.toString();
                     }
                 }
-                return defaultValue;
-            } finally {
-                post.releaseConnection();
+                return null;
+            });
+
+
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));
+                JSONObject connector = (JSONObject) jsonResponse.get(0);
+                JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
+                for (int itemIndex = 0, totalObject = responseProperties.length();
+                     itemIndex < totalObject; itemIndex++) {
+                    JSONObject config = responseProperties.getJSONObject(itemIndex);
+                    if (StringUtils.equalsIgnoreCase(
+                            responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
+                        return Boolean.valueOf(config.getString(PROPERTY_VALUE));
+                    }
+                }
             }
+            return defaultValue;
         } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while checking preference for connector : " + connectorName + " in tenant : " + tenant;
@@ -508,7 +543,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -523,25 +558,35 @@ public class PreferenceRetrievalClient {
             post.setEntity(new StringEntity(requestBody.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
 
-            try (CloseableHttpResponse response = httpclient.execute(post)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONArray jsonResponse = new JSONArray(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    JSONObject connector = (JSONObject) jsonResponse.get(0);
-                    JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
-                    for (int itemIndex = 0, totalObject = responseProperties.length(); itemIndex < totalObject; itemIndex++) {
-                        JSONObject config = responseProperties.getJSONObject(itemIndex);
-                        if (Boolean.valueOf(config.getString(PROPERTY_VALUE))) {
-                            return true;
+            String responseString = httpclient.execute(post, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    try (InputStream inputStream = response.getEntity().getContent();
+                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            content.append(line);
                         }
+                        return content.toString();
                     }
-                    return false;
                 }
-                return false;
-            } finally {
-                post.releaseConnection();
+                return null;
+            });
+
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));
+                JSONObject connector = (JSONObject) jsonResponse.get(0);
+                JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
+                for (int itemIndex = 0, totalObject = responseProperties.length(); itemIndex < totalObject; itemIndex++) {
+                    JSONObject config = responseProperties.getJSONObject(itemIndex);
+                    if (Boolean.valueOf(config.getString(PROPERTY_VALUE))) {
+                        return true;
+                    }
+                }
             }
+
+            return false;
         } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while check preference for connector : " + connectorName + " in tenant : " + tenant;
@@ -571,7 +616,7 @@ public class PreferenceRetrievalClient {
         }
     }
 
-    private void setAuthorizationHeader(HttpRequestBase httpMethod) {
+    private void setAuthorizationHeader(HttpUriRequestBase httpMethod) {
 
         String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
                 + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());
