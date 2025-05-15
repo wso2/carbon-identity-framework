@@ -63,6 +63,12 @@
   "remote_fetch.enable": false,
   "remote_fetch.working_directory": "${carbon.home}/tmp/",
 
+  "oauth.custom_token_validator": [
+    {
+      "type": "dpop",
+      "class": "org.wso2.carbon.identity.oauth2.dpop.validators.DPoPTokenValidator"
+    }
+  ],
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": false,
 
@@ -585,6 +591,10 @@
   "event.default_listener.application_authentication.enable": true,
   "event.default_listener.mutual_tls_authenticator.priority": "919",
   "event.default_listener.mutual_tls_authenticator.enable": true,
+  "event.default_listener.dpop.priority": "13",
+  "event.default_listener.dpop.enable": false,
+  "event.default_listener.dpop.property.header_validity_period": "3000",
+  "event.default_listener.dpop.property.skip_dpop_validation_in_revoke": true,
   "event.default_listener.private_key_jwt_authenticator.priority": "899",
   "event.default_listener.private_key_jwt_authenticator.enable": true,
   "event.default_listener.private_key_jwt_authenticator.property.prevent_token_reuse": false,
