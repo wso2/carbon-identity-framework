@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.registration;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
@@ -60,9 +61,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.user.registration.SelfRegistrationConstants.SELF_SIGN_UP_ADMIN_SERVICE_ENABLED;
+import static org.wso2.carbon.identity.user.registration.SelfRegistrationConstants.SELF_SIGN_UP_ALLOWED_SIGNUP_ROLE;
+
 public class UserRegistrationService {
 
     private static final Log log = LogFactory.getLog(UserRegistrationService.class);
+    private static List<String> allowedSignUpRoleList;
 
     /**
      * This service method will return back all available password validation regular expressions
@@ -72,6 +77,10 @@ public class UserRegistrationService {
      * @throws IdentityException
      */
     public PasswordRegExDTO[] getPasswordRegularExpressions() throws IdentityException {
+
+        if (!isUserRegistrationAdminServiceEnabled()) {
+            throw new UserRegistrationException("User self registration service is disabled.");
+        }
         UserRealm realm = null;
         realm = IdentityTenantUtil.getRealm(null, null);
         List<PasswordRegExDTO> passwordRegExList = new ArrayList<PasswordRegExDTO>();
@@ -106,6 +115,9 @@ public class UserRegistrationService {
     public UserFieldDTO[] readUserFieldsForUserRegistration(String dialect)
             throws IdentityException {
 
+        if (!isUserRegistrationAdminServiceEnabled()) {
+            throw new UserRegistrationException("User self registration service is disabled.");
+        }
         IdentityClaimManager claimManager = null;
         Claim[] claims = null;
         List<UserFieldDTO> claimList = null;
@@ -137,6 +149,10 @@ public class UserRegistrationService {
     }
 
     public void addUser(UserDTO user) throws Exception {
+
+        if (!isUserRegistrationAdminServiceEnabled()) {
+            throw new UserRegistrationException("User self registration service is disabled.");
+        }
         UserFieldDTO[] userFieldDTOs = null;
         Map<String, String> userClaims = null;
 
@@ -158,6 +174,9 @@ public class UserRegistrationService {
 
     public boolean isAddUserEnabled() throws Exception {
 
+        if (!isUserRegistrationAdminServiceEnabled()) {
+            throw new UserRegistrationException("User self registration service is disabled.");
+        }
         UserRealm userRealm = IdentityTenantUtil.getRealm(null, null);
         if (userRealm != null) {
             UserStoreManager userStoreManager = userRealm.getUserStoreManager();
@@ -184,6 +203,9 @@ public class UserRegistrationService {
      */
     public boolean isUserExist(String username) throws UserRegistrationException {
 
+        if (!isUserRegistrationAdminServiceEnabled()) {
+            throw new UserRegistrationException("User self registration service is disabled.");
+        }
         try {
             return CarbonContext.getThreadLocalCarbonContext().getUserRealm().
                     getUserStoreManager().isExistingUser(username);
@@ -209,6 +231,10 @@ public class UserRegistrationService {
 
     private void addUser(String userName, String password, Map<String, String> claimList,
                          String profileName, UserRealm realm) throws IdentityException {
+
+        if (!isUserRegistrationAdminServiceEnabled()) {
+            throw IdentityException.error("User self registration service is disabled.");
+        }
         UserStoreManager admin = null;
         Permission permission = null;
         try {
@@ -238,15 +264,19 @@ public class UserRegistrationService {
             // after adding the user, assign specif roles
             List<String> roleNamesArr = getRoleName(userName, tenantConfig);
             if (claimList.get(SelfRegistrationConstants.SIGN_UP_ROLE_CLAIM_URI) != null) {
-                // check is a user role is specified as a claim by the client, if so add it to the roles list
-                if (tenantConfig != null) {
-                    roleNamesArr.add(tenantConfig.getSignUpDomain().toUpperCase()
-                            + UserCoreConstants.DOMAIN_SEPARATOR
-                            + claimList.get(SelfRegistrationConstants.SIGN_UP_ROLE_CLAIM_URI));
-                } else {
-                    roleNamesArr.add(UserCoreConstants.INTERNAL_DOMAIN
-                            + UserCoreConstants.DOMAIN_SEPARATOR
-                            + claimList.get(SelfRegistrationConstants.SIGN_UP_ROLE_CLAIM_URI));
+                defineAllowedSignUpRoleList();
+                if (!allowedSignUpRoleList.isEmpty() && allowedSignUpRoleList.contains(
+                        claimList.get(SelfRegistrationConstants.SIGN_UP_ROLE_CLAIM_URI))) {
+                    // check is a user role is specified as a claim by the client, if so add it to the roles list
+                    if (tenantConfig != null) {
+                        roleNamesArr.add(tenantConfig.getSignUpDomain().toUpperCase()
+                                + UserCoreConstants.DOMAIN_SEPARATOR
+                                + claimList.get(SelfRegistrationConstants.SIGN_UP_ROLE_CLAIM_URI));
+                    } else {
+                        roleNamesArr.add(UserCoreConstants.INTERNAL_DOMAIN
+                                + UserCoreConstants.DOMAIN_SEPARATOR
+                                + claimList.get(SelfRegistrationConstants.SIGN_UP_ROLE_CLAIM_URI));
+                    }
                 }
             }
             String[] identityRoleNames = roleNamesArr.toArray(new String[roleNamesArr.size()]);
@@ -400,5 +430,22 @@ public class UserRegistrationService {
         DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         return documentBuilder;
+    }
+
+    private boolean isUserRegistrationAdminServiceEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(SELF_SIGN_UP_ADMIN_SERVICE_ENABLED));
+    }
+
+    private static void defineAllowedSignUpRoleList() {
+
+        if (allowedSignUpRoleList == null) {
+            String allowedSignUpRoles = IdentityUtil.getProperty(SELF_SIGN_UP_ALLOWED_SIGNUP_ROLE);
+            if (StringUtils.isBlank(allowedSignUpRoles)) {
+                allowedSignUpRoleList = new ArrayList<>();
+            } else {
+                allowedSignUpRoleList = Arrays.asList(allowedSignUpRoles.split(","));
+            }
+        }
     }
 }
