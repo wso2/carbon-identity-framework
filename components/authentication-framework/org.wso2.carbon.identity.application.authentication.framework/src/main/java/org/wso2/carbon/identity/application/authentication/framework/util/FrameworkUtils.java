@@ -717,6 +717,11 @@ public class FrameworkUtils {
                 }
                 String authFlowId = context.getContextIdentifier();
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID, authFlowId);
+
+                String correlationId = MDC.get(CORRELATION_ID_MDC);
+                if (StringUtils.isNotBlank(correlationId)) {
+                    uriBuilder.addParameter(CORRELATION_ID, correlationId);
+                }
                 response.sendRedirect(uriBuilder.build().toString());
             } else {
                 response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
