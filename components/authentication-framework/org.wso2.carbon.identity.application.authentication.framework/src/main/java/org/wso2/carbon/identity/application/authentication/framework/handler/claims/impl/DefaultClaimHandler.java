@@ -381,10 +381,17 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
         }
 
-        //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
-        UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
-        addMultiAttributeSeparatorToRequestedClaims(null, userStore, spFilteredClaims, realm);
+        // Add multi Attributes separator with claims. It can be defined in user-mgt.xml file.
+        if (FrameworkUtils.isMultiAttributeSeparatorExistingBehaviourEnabled()) {
+            UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
+            addMultiAttributeSeparatorToRequestedClaims(null, userStore, spFilteredClaims, realm);
+        } else {
+            AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
+            String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator(authenticatedUser != null ?
+                    authenticatedUser.getUserStoreDomain() : null);
+            addMultiAttributeSeparatorToRequestedClaims(spFilteredClaims, multiAttributeSeparator);
+        }
 
         return spFilteredClaims;
     }
@@ -891,6 +898,14 @@ public class DefaultClaimHandler implements ClaimHandler {
             if (StringUtils.isNotBlank(claimSeparator)) {
                 spRequestedClaims.putIfAbsent(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, claimSeparator);
             }
+        }
+    }
+
+    private void addMultiAttributeSeparatorToRequestedClaims(Map<String, String> spRequestedClaims,
+                                                             String multiAttributeSeparator) {
+
+        if (!spRequestedClaims.isEmpty() && StringUtils.isNotBlank(multiAttributeSeparator)) {
+            spRequestedClaims.putIfAbsent(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, multiAttributeSeparator);
         }
     }
 
