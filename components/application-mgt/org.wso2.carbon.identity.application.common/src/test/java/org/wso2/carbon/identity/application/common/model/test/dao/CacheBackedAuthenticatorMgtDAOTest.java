@@ -26,13 +26,17 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.cache.AuthenticatorCache;
 import org.wso2.carbon.identity.application.common.cache.AuthenticatorCacheKey;
+import org.wso2.carbon.identity.application.common.cache.SystemDefinedLocalAuthenticatorCache;
+import org.wso2.carbon.identity.application.common.cache.SystemDefinedLocalAuthenticatorCacheKey;
 import org.wso2.carbon.identity.application.common.cache.UserDefinedLocalAuthenticatorsCache;
 import org.wso2.carbon.identity.application.common.cache.UserDefinedLocalAuthenticatorsCacheKey;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementFacade;
 import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.test.util.SystemDefinedLocalAuthenticatorDataUtil;
 import org.wso2.carbon.identity.application.common.model.test.util.UserDefinedLocalAuthenticatorDataUtil;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -40,11 +44,13 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -53,6 +59,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 @WithCarbonHome
 public class CacheBackedAuthenticatorMgtDAOTest {
@@ -61,21 +69,28 @@ public class CacheBackedAuthenticatorMgtDAOTest {
     private static final String AUTHENTICATOR2_NAME = "custom-auth2";
     private static final int TEST_TENANT_ID = 1;
     private static final String TEST_TENANT_DOMAIN = "wso2.com";
+    private static final String SYSTEM_AUTHENTICATOR_NAME = "system-auth1";
+    private static final String SYSTEM_AUTHENTICATOR2_NAME = "system-auth2";
+
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private AuthenticatorManagementFacade mockAuthenticatorManagementFacade;
     private CacheBackedAuthenticatorMgtDAO cacheBackedAuthenticatorMgtDAO;
     private AuthenticatorCache authenticatorCache;
+    private SystemDefinedLocalAuthenticatorCache systemDefinedAuthenticatorCache;
     private UserDefinedLocalAuthenticatorsCache userDefinedLocalAuthenticatorsCache;
     private UserDefinedLocalAuthenticatorConfig authenticatorConfig1;
     private UserDefinedLocalAuthenticatorConfig authenticatorConfig2;
     private UserDefinedLocalAuthenticatorConfig authenticatorForUpdate;
+    private LocalAuthenticatorConfig localAuthenticatorConfig1;
+    private LocalAuthenticatorConfig localAuthenticatorConfig2;
 
     @BeforeClass
     public void setUp() throws Exception {
 
         cacheBackedAuthenticatorMgtDAO = new CacheBackedAuthenticatorMgtDAO(new AuthenticatorManagementDAOImpl());
         authenticatorCache = AuthenticatorCache.getInstance();
+        systemDefinedAuthenticatorCache = SystemDefinedLocalAuthenticatorCache.getInstance();
         userDefinedLocalAuthenticatorsCache = UserDefinedLocalAuthenticatorsCache.getInstance();
 
         mockAuthenticatorManagementFacade = mock(AuthenticatorManagementFacade.class);
@@ -91,6 +106,10 @@ public class CacheBackedAuthenticatorMgtDAOTest {
                 (AUTHENTICATOR2_NAME, AuthenticatorPropertyConstants.AuthenticationType.IDENTIFICATION);
         authenticatorForUpdate = UserDefinedLocalAuthenticatorDataUtil.updateUserDefinedAuthenticatorConfig(
                 authenticatorConfig1);
+        localAuthenticatorConfig1 = SystemDefinedLocalAuthenticatorDataUtil.createSystemDefinedAuthenticatorConfig(
+                SYSTEM_AUTHENTICATOR_NAME);
+        localAuthenticatorConfig2 = SystemDefinedLocalAuthenticatorDataUtil.createSystemDefinedAuthenticatorConfig(
+                SYSTEM_AUTHENTICATOR2_NAME);
     }
 
     @BeforeMethod
@@ -308,5 +327,155 @@ public class CacheBackedAuthenticatorMgtDAOTest {
 
         field.setAccessible(true);
         field.set(target, value);
+    }
+
+    @Test
+    public void testAddSystemLocalAuthenticator() throws AuthenticatorMgtException {
+
+        systemDefinedAuthenticatorCache.clear(TEST_TENANT_ID);
+        LocalAuthenticatorConfig mockAuthenticatorConfig = mock(LocalAuthenticatorConfig.class);
+        doReturn(localAuthenticatorConfig1.getName()).when(mockAuthenticatorConfig).getName();
+        doReturn(localAuthenticatorConfig1).when(mockAuthenticatorManagementFacade).addSystemLocalAuthenticator(
+                mockAuthenticatorConfig, TEST_TENANT_ID);
+
+        SystemDefinedLocalAuthenticatorCacheKey authenticatorCacheKey =
+                new SystemDefinedLocalAuthenticatorCacheKey(localAuthenticatorConfig1.getName());
+        Assert.assertNull(systemDefinedAuthenticatorCache.getValueFromCache(authenticatorCacheKey, TEST_TENANT_ID));
+
+        LocalAuthenticatorConfig createdAuthenticator = cacheBackedAuthenticatorMgtDAO
+                .addSystemLocalAuthenticator(mockAuthenticatorConfig, TEST_TENANT_ID);
+
+        Assert.assertNotNull(createdAuthenticator);
+        Assert.assertEquals(createdAuthenticator.getName(), localAuthenticatorConfig1.getName());
+        Assert.assertEquals(createdAuthenticator.getDisplayName(), localAuthenticatorConfig1.getDisplayName());
+        Assert.assertEquals(createdAuthenticator.isEnabled(), localAuthenticatorConfig1.isEnabled());
+        Assert.assertEquals(createdAuthenticator.getDefinedByType(), localAuthenticatorConfig1.getDefinedByType());
+
+        verify(mockAuthenticatorManagementFacade, times(1)).addSystemLocalAuthenticator(
+                mockAuthenticatorConfig, TEST_TENANT_ID);
+
+        LocalAuthenticatorConfig cachedAuthenticator = systemDefinedAuthenticatorCache.getValueFromCache(
+                authenticatorCacheKey, TEST_TENANT_ID).getAuthenticatorConfig();
+        Assert.assertNotNull(cachedAuthenticator);
+        Assert.assertEquals(cachedAuthenticator, localAuthenticatorConfig1);
+
+        SystemDefinedLocalAuthenticatorCacheKey systemAuthenticatorCacheKey =
+                new SystemDefinedLocalAuthenticatorCacheKey(localAuthenticatorConfig1.getName());
+        Assert.assertNotNull(systemDefinedAuthenticatorCache.getValueFromCache(
+                systemAuthenticatorCacheKey, TEST_TENANT_ID));
+    }
+
+    @Test(dependsOnMethods = "testAddSystemLocalAuthenticator")
+    public void testGetSystemLocalAuthenticatorFromCache() throws AuthenticatorMgtException {
+
+        SystemDefinedLocalAuthenticatorCacheKey authenticatorCacheKey =
+                new SystemDefinedLocalAuthenticatorCacheKey(localAuthenticatorConfig1.getName());
+        LocalAuthenticatorConfig cachedAuthenticator = systemDefinedAuthenticatorCache.getValueFromCache(
+                authenticatorCacheKey, TEST_TENANT_ID).getAuthenticatorConfig();
+        Assert.assertNotNull(cachedAuthenticator);
+
+        LocalAuthenticatorConfig fetchedAuthenticator = cacheBackedAuthenticatorMgtDAO
+                .getSystemLocalAuthenticator(localAuthenticatorConfig1.getName(), TEST_TENANT_ID);
+
+        Assert.assertNotNull(fetchedAuthenticator);
+        Assert.assertEquals(fetchedAuthenticator, cachedAuthenticator);
+        verify(mockAuthenticatorManagementFacade, never()).getSystemLocalAuthenticator(
+                localAuthenticatorConfig1.getName(), TEST_TENANT_ID);
+    }
+
+    @Test(dependsOnMethods = "testGetSystemLocalAuthenticatorFromCache")
+    public void testGetAllSystemDefinedLocalAuthenticatorsFromDB() throws AuthenticatorMgtException {
+
+        List<LocalAuthenticatorConfig> authenticatorConfigs = new ArrayList<>();
+        authenticatorConfigs.add(localAuthenticatorConfig1);
+        doReturn(authenticatorConfigs).when(mockAuthenticatorManagementFacade)
+                .getAllSystemLocalAuthenticators(TEST_TENANT_ID);
+
+        List<LocalAuthenticatorConfig> fetchedAuthenticators = cacheBackedAuthenticatorMgtDAO
+                .getAllSystemLocalAuthenticators(TEST_TENANT_ID);
+
+        Assert.assertNotNull(fetchedAuthenticators);
+        Assert.assertEquals(fetchedAuthenticators.get(0), localAuthenticatorConfig1);
+
+        verify(mockAuthenticatorManagementFacade,
+                times(1)).getAllSystemLocalAuthenticators(TEST_TENANT_ID);
+    }
+
+    @Test(dependsOnMethods = "testGetAllSystemDefinedLocalAuthenticatorsFromDB")
+    public void testGetAllSystemDefinedLocalAuthenticators() throws AuthenticatorMgtException {
+
+        List<LocalAuthenticatorConfig> expectedAuthenticators = Arrays.asList(localAuthenticatorConfig1);
+        when(mockAuthenticatorManagementFacade.getAllSystemLocalAuthenticators(TEST_TENANT_ID))
+                .thenReturn(expectedAuthenticators);
+
+        List<LocalAuthenticatorConfig> result = cacheBackedAuthenticatorMgtDAO
+                .getAllSystemLocalAuthenticators(TEST_TENANT_ID);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result, expectedAuthenticators);
+        verify(mockAuthenticatorManagementFacade, times(1))
+                .getAllSystemLocalAuthenticators(TEST_TENANT_ID);
+    }
+
+    @Test(dependsOnMethods = "testGetSystemLocalAuthenticatorFromCache")
+    public void testUpdateSystemLocalAuthenticatorAmrValue() throws AuthenticatorMgtException {
+
+        String authenticatorName = localAuthenticatorConfig1.getName();
+        String newAmrValue = "newAmrValue";
+
+        doNothing().when(mockAuthenticatorManagementFacade)
+                .updateSystemLocalAuthenticatorAmrValue(authenticatorName, newAmrValue, TEST_TENANT_ID);
+
+        LocalAuthenticatorConfig updatedConfig = new LocalAuthenticatorConfig();
+        updatedConfig.setName(authenticatorName);
+        updatedConfig.setAmrValue(newAmrValue);
+        when(mockAuthenticatorManagementFacade.getSystemLocalAuthenticator(authenticatorName, TEST_TENANT_ID))
+                .thenReturn(updatedConfig);
+
+        cacheBackedAuthenticatorMgtDAO.updateSystemLocalAuthenticatorAmrValue(authenticatorName
+                , newAmrValue, TEST_TENANT_ID);
+
+        verify(mockAuthenticatorManagementFacade, times(1))
+                .updateSystemLocalAuthenticatorAmrValue(authenticatorName, newAmrValue, TEST_TENANT_ID);
+
+        LocalAuthenticatorConfig result = cacheBackedAuthenticatorMgtDAO
+                .getSystemLocalAuthenticator(authenticatorName, TEST_TENANT_ID);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getAmrValue(), newAmrValue);
+
+        AuthenticatorCacheKey authenticatorCacheKey = new AuthenticatorCacheKey(authenticatorName);
+        Assert.assertNull(authenticatorCache.getValueFromCache(authenticatorCacheKey, TEST_TENANT_ID));
+    }
+
+    @Test(dependsOnMethods = "testUpdateSystemLocalAuthenticatorAmrValue")
+    public void testGetSystemLocalAuthenticatorFromDB() throws AuthenticatorMgtException {
+
+        String testAuthenticatorName = "test-auth-not-in-cache";
+        LocalAuthenticatorConfig mockAuthenticator = localAuthenticatorConfig2;
+
+        when(mockAuthenticatorManagementFacade.getSystemLocalAuthenticator(
+                eq(testAuthenticatorName), eq(TEST_TENANT_ID))
+        ).thenReturn(mockAuthenticator);
+
+        LocalAuthenticatorConfig fetchedAuthenticator = cacheBackedAuthenticatorMgtDAO
+                .getSystemLocalAuthenticator(testAuthenticatorName, TEST_TENANT_ID);
+
+        verify(mockAuthenticatorManagementFacade, times(1))
+                .getSystemLocalAuthenticator(testAuthenticatorName, TEST_TENANT_ID);
+
+        Assert.assertNotNull(fetchedAuthenticator, "Fetched authenticator should not be null");
+        Assert.assertEquals(
+                mockAuthenticator.getName(), fetchedAuthenticator.getName(),
+                "Authenticator name should match mock");
+
+        SystemDefinedLocalAuthenticatorCacheKey cacheKey =
+                new SystemDefinedLocalAuthenticatorCacheKey(testAuthenticatorName);
+        LocalAuthenticatorConfig cachedValue = systemDefinedAuthenticatorCache
+                .getValueFromCache(cacheKey, TEST_TENANT_ID).getAuthenticatorConfig();
+
+        Assert.assertNotNull(cachedValue, "Authenticator should now be cached");
+        Assert.assertEquals(mockAuthenticator.getName(), cachedValue.getName(),
+                "Cached authenticator should match mock");
     }
 }
