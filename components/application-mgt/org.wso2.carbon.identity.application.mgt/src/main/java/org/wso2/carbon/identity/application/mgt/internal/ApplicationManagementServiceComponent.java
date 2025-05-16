@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMg
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.internal.impl.DiscoverableApplicationManagerImpl;
 import org.wso2.carbon.identity.application.mgt.listener.AdminRoleListener;
+import org.wso2.carbon.identity.application.mgt.listener.AdminRoleV3Listener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationClaimMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
@@ -169,6 +170,12 @@ public class ApplicationManagementServiceComponent {
 
             // Register the Admin Role Listener.
             bundleContext.registerService(RoleManagementListener.class, new AdminRoleListener(), null);
+
+            // Register the Admin Role V3 Listener.
+            bundleContext.registerService(
+                    org.wso2.carbon.identity.role.v3.mgt.core.listener.RoleManagementListener.class,
+                    new AdminRoleV3Listener(), null);
+
             // Register the Authorized API Management Listener.
             bundleContext.registerService(AuthorizedAPIManagementListener.class, new ConsoleAuthorizedAPIListener(),
                     null);
