@@ -644,6 +644,9 @@
   "event.default_listener.provisioning_role_mgt_listener.enable": true,
   "event.default_listener.provisioning_role_mgt_listener.priority": "999",
 
+  "event.default_listener.provisioning_role_mgt_v3_listener.enable": true,
+  "event.default_listener.provisioning_role_mgt_v3_listener.priority": "1000",
+
   "event.default_listener.unique_claim_user_operation_event_listener.priority": "101",
   "event.default_listener.unique_claim_user_operation_event_listener.enable": false,
 
