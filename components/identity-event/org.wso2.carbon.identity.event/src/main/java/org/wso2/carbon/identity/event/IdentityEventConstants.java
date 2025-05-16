@@ -268,6 +268,47 @@ public class IdentityEventConstants {
         public static final String POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT =
                 "POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT";
 
+        // Role-Mgt V3 events
+        public static final String PRE_ADD_ROLE_V3_EVENT = "PRE_ADD_ROLE_V3_EVENT";
+        public static final String POST_ADD_ROLE_V3_EVENT = "POST_ADD_ROLE_V3_EVENT";
+        public static final String PRE_GET_ROLES_V3_EVENT = "PRE_GET_ROLES_V3_EVENT";
+        public static final String POST_GET_ROLES_V3_EVENT = "POST_GET_ROLES_V3_EVENT";
+        public static final String PRE_GET_ROLES_V3_COUNT_EVENT = "PRE_GET_ROLES_V3_COUNT_EVENT";
+        public static final String POST_GET_ROLES_V3_COUNT_EVENT = "POST_GET_ROLES_V3_COUNT_EVENT";
+        public static final String PRE_GET_ROLES_V3_FILTERED_COUNT_EVENT = "PRE_GET_ROLES_V3_COUNT_EVENT";
+        public static final String POST_GET_ROLES_V3_FILTERED_COUNT_EVENT = "POST_GET_ROLES_V3_COUNT_EVENT";
+        public static final String PRE_GET_ROLE_V3_EVENT = "PRE_GET_ROLE_V3_EVENT";
+        public static final String POST_GET_ROLE_V3_EVENT = "POST_GET_ROLE_V3_EVENT";
+        public static final String PRE_UPDATE_ROLE_V3_NAME_EVENT = "PRE_UPDATE_ROLE_V3_NAME_EVENT";
+        public static final String POST_UPDATE_ROLE_V3_NAME_EVENT = "POST_UPDATE_ROLE_V3_NAME_EVENT";
+        public static final String PRE_DELETE_ROLE_V3_EVENT = "PRE_DELETE_ROLE_V3_EVENT";
+        public static final String POST_DELETE_ROLE_V3_EVENT = "POST_DELETE_ROLE_V3_EVENT";
+        public static final String PRE_GET_USER_LIST_OF_ROLE_V3_EVENT = "PRE_GET_USER_LIST_OF_ROLE_V3_EVENT";
+        public static final String POST_GET_USER_LIST_OF_ROLE_V3_EVENT = "POST_GET_USER_LIST_OF_ROLE_V3_EVENT";
+        public static final String PRE_UPDATE_USER_LIST_OF_ROLE_V3_EVENT = "PRE_UPDATE_USER_LIST_OF_ROLE_V3_EVENT";
+        public static final String POST_UPDATE_USER_LIST_OF_ROLE_V3_EVENT = "POST_UPDATE_USER_LIST_OF_ROLE_V3_EVENT";
+        public static final String PRE_GET_GROUP_LIST_OF_ROLES_V3_EVENT = "PRE_GET_GROUP_LIST_OF_ROLES_V3_EVENT";
+        public static final String POST_GET_GROUP_LIST_OF_ROLES_V3_EVENT = "POST_GET_GROUP_LIST_OF_ROLES_V3_EVENT";
+        public static final String PRE_UPDATE_GROUP_LIST_OF_ROLE_V3_EVENT = "PRE_UPDATE_GROUP_LIST_OF_ROLE_V3_EVENT";
+        public static final String PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V3_EVENT =
+                "PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V3_EVENT";
+        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE_V3_EVENT =
+                "POST_UPDATE_GROUP_LIST_OF_ROLE_V3_EVENT";
+        public static final String POST_UPDATE_IDP_GROUP_LIST_OF_ROLE_V3_EVENT =
+                "POST_UPDATE_IDP_GROUP_LIST_OF_ROLE_V3_EVENT";
+        public static final String PRE_GET_PERMISSION_LIST_OF_ROLE_V3_EVENT =
+                "PRE_GET_PERMISSION_LIST_OF_ROLE_V3_EVENT";
+        public static final String POST_GET_PERMISSION_LIST_OF_ROLE_V3_EVENT =
+                "POST_GET_PERMISSION_LIST_OF_ROLE_V3_EVENT";
+        public static final String PRE_UPDATE_PERMISSIONS_FOR_ROLE_V3_EVENT =
+                "PRE_UPDATE_PERMISSIONS_FOR_ROLE_V3_EVENT";
+        public static final String POST_UPDATE_PERMISSIONS_FOR_ROLE_V3_EVENT =
+                "POST_UPDATE_PERMISSIONS_FOR_ROLE_V3_EVENT";
+        public static final String PRE_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V3_EVENT =
+                "PRE_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V3_EVENT";
+        public static final String POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V3_EVENT =
+                "POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V3_EVENT";
+
         public static final String POST_APP_USER_ATTRIBUTE_UPDATE = "POST_APP_USER_ATTRIBUTE_UPDATE";
 
         // API Resource Management events.

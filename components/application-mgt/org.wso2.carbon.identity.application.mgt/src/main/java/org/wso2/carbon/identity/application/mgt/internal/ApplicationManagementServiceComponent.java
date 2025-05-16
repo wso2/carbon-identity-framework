@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMg
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.internal.impl.DiscoverableApplicationManagerImpl;
 import org.wso2.carbon.identity.application.mgt.listener.AdminRoleListener;
+import org.wso2.carbon.identity.application.mgt.listener.AdminRoleV3Listener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationClaimMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
@@ -64,6 +65,7 @@ import org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagement
 import org.wso2.carbon.identity.application.mgt.listener.ConsoleAuthorizedAPIListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementV3Listener;
 import org.wso2.carbon.identity.application.mgt.listener.MyAccountApplicationCreationListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
@@ -151,6 +153,13 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(RoleManagementListener.class, new DefaultRoleManagementListener(), null);
             bundleContext.registerService(ApplicationMgtListener.class, new DefaultRoleManagementListener(), null);
 
+            bundleContext.registerService(
+                    org.wso2.carbon.identity.role.v3.mgt.core.listener.RoleManagementListener.class,
+                    new DefaultRoleManagementV3Listener(), null);
+            bundleContext.registerService(
+                    ApplicationMgtListener.class,
+                    new DefaultRoleManagementV3Listener(), null);
+
             // Register the ApplicationValidator.
             context.getBundleContext().registerService(ApplicationValidator.class,
                     new DefaultApplicationValidator(), null);
@@ -161,6 +170,12 @@ public class ApplicationManagementServiceComponent {
 
             // Register the Admin Role Listener.
             bundleContext.registerService(RoleManagementListener.class, new AdminRoleListener(), null);
+
+            // Register the Admin Role V3 Listener.
+            bundleContext.registerService(
+                    org.wso2.carbon.identity.role.v3.mgt.core.listener.RoleManagementListener.class,
+                    new AdminRoleV3Listener(), null);
+
             // Register the Authorized API Management Listener.
             bundleContext.registerService(AuthorizedAPIManagementListener.class, new ConsoleAuthorizedAPIListener(),
                     null);
@@ -592,6 +607,26 @@ public class ApplicationManagementServiceComponent {
 
         ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(null);
         log.debug("RoleManagementServiceV2 unset in ApplicationManagementServiceComponent bundle.");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService",
+            service = org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementServiceV3")
+    protected void setRoleManagementServiceV3(org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService
+                                                          roleManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV3(roleManagementService);
+        log.debug("RoleManagementServiceV3 set in ApplicationManagementServiceComponent bundle.");
+    }
+
+    protected void unsetRoleManagementServiceV3(org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService
+                                                        roleManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV3(null);
+        log.debug("RoleManagementServiceV3 unset in ApplicationManagementServiceComponent bundle.");
     }
 
     @Reference(name = "org.wso2.carbon.identity.organization.management.service",

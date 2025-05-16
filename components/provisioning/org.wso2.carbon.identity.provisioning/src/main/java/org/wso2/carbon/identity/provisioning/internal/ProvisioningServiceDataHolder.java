@@ -38,6 +38,7 @@ public class ProvisioningServiceDataHolder {
     private Map<String, AbstractProvisioningConnectorFactory> connectorFactories = new HashMap<String, AbstractProvisioningConnectorFactory>();
     private DefaultInboundUserProvisioningListener defaultInboundUserProvisioningListener;
     private RoleManagementService roleManagementService;
+    private org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService roleManagementServiceV3;
     private ProvisioningHandler provisioningHandler;
 
     private ProvisioningServiceDataHolder() {
@@ -110,6 +111,17 @@ public class ProvisioningServiceDataHolder {
     public void setRoleManagementService(RoleManagementService roleManagementService) {
 
         this.roleManagementService = roleManagementService;
+    }
+
+    public org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService getRoleManagementServiceV3() {
+
+        return roleManagementServiceV3;
+    }
+
+    public void setRoleManagementServiceV3(org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService
+                                                   roleManagementService) {
+
+        this.roleManagementServiceV3 = roleManagementService;
     }
 
 

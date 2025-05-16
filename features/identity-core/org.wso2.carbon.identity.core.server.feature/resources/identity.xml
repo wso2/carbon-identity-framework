@@ -1437,7 +1437,13 @@
                        type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
                        name="org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener"
                        orderId="999" enable="true"/>
-        
+
+        <!-- Role based outbound provision management Event Listener -->
+        <EventListener id="provisioning_role_mgt_v3_listener"
+                       type="org.wso2.carbon.identity.role.v3.mgt.core.listener.RoleManagementListener"
+                       name="org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtV3Listener"
+                       orderId="1000" enable="true"/>
+
         <!-- User Identity Verification Event Listener -->
         <EventListener id="identity_verification_event_listener"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"

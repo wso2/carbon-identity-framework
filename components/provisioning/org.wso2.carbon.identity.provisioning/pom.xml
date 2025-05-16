@@ -90,6 +90,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.role.v3.mgt.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
         </dependency>
         <dependency>
@@ -166,6 +170,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.json;version="${json.wso2.version.range}",
                             org.wso2.carbon.identity.role.v2.mgt.core.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.role.v3.mgt.core.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.util;
                             version="${carbon.identity.package.import.version.range}",
