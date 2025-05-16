@@ -388,6 +388,47 @@
         <Scopes>internal_org_role_mgt_delete</Scopes>
     </Resource>
 
+    <Resource context="(.*)/o/scim2/v3/Roles/.search" secured="true" http-method="POST">
+        <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        <Scopes>internal_org_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles(.*)" secured="true" http-method="POST">
+        <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+        <Scopes>internal_org_role_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles(.*)" secured="true" http-method="GET">
+        <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        <Scopes>internal_org_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PUT">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_org_role_users_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_org_role_users_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Groups" secured="true" http-method="PUT">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_org_role_groups_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Groups" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_org_role_groups_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles/(.*)" secured="true" http-method="PUT">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_org_role_meta_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles/(.*)" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_org_role_meta_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v3/Roles/(.*)" secured="true" http-method="DELETE">
+        <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+        <Scopes>internal_org_role_mgt_delete</Scopes>
+    </Resource>
+
     <!-- SCIM2 Users API -->
     <Resource context="(.*)/scim2/Users/.search" secured="true" http-method="POST">
         <Scopes>internal_user_mgt_list</Scopes>
@@ -474,6 +515,47 @@
         <Scopes>internal_role_mgt_update</Scopes>
     </Resource>
     <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
+        <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+        <Scopes>internal_role_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/scim2/v3/Roles/.search" secured="true" http-method="POST">
+        <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        <Scopes>internal_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles(.*)" secured="true" http-method="POST">
+        <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+        <Scopes>internal_role_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles(.*)" secured="true" http-method="GET">
+        <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        <Scopes>internal_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PUT">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_users_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_users_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles/(.*)/Groups" secured="true" http-method="PUT">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_groups_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles/(.*)/Groups" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_groups_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles/(.*)" secured="true" http-method="PUT">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_meta_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles/(.*)" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_meta_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v3/Roles/(.*)" secured="true" http-method="DELETE">
         <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
         <Scopes>internal_role_mgt_delete</Scopes>
     </Resource>
