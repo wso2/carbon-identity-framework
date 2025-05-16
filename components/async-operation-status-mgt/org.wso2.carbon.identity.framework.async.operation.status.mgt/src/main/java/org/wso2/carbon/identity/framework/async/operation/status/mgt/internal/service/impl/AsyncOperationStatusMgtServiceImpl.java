@@ -46,7 +46,6 @@ import org.wso2.carbon.identity.organization.management.service.model.BasicOrgan
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -145,6 +144,7 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
 
         return new UnitOperationResponseDTO.Builder()
                 .unitOperationId(unitOperationDO.getUnitOperationId())
+                .cursorKey(unitOperationDO.getCursorKey())
                 .operationId(unitOperationDO.getOperationId())
                 .operationInitiatedResourceId(unitOperationDO.getOperationInitiatedResourceId())
                 .targetOrgId(unitOperationDO.getTargetOrgId())
@@ -184,6 +184,7 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
                 } else {
                     UnitOperationResponseDTO dto = new UnitOperationResponseDTO.Builder()
                             .unitOperationId(unitOperationDO.getUnitOperationId())
+                            .cursorKey(unitOperationDO.getCursorKey())
                             .operationId(unitOperationDO.getOperationId())
                             .operationInitiatedResourceId(unitOperationDO.getOperationInitiatedResourceId())
                             .targetOrgId(unitOperationDO.getTargetOrgId())
@@ -255,12 +256,10 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
         try {
             if (StringUtils.isNotBlank(before)) {
                 String decodedString = new String(Base64.getDecoder().decode(before), StandardCharsets.UTF_8);
-                Timestamp.valueOf(decodedString);
                 paginatedFilter += StringUtils.isNotBlank(paginatedFilter) ? " and before gt " + decodedString :
                         "before gt " + decodedString;
             } else if (StringUtils.isNotBlank(after)) {
                 String decodedString = new String(Base64.getDecoder().decode(after), StandardCharsets.UTF_8);
-                Timestamp.valueOf(decodedString);
                 paginatedFilter += StringUtils.isNotBlank(paginatedFilter) ? " and after lt " + decodedString :
                         "after lt " + decodedString;
             }
