@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.provisioning.listener.ProvisioningApplicationMgt
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener;
+import org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtV3Listener;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -111,6 +112,9 @@ public class IdentityProvisionServiceComponent {
                             null);
             ProvisioningServiceDataHolder.getInstance().getBundleContext()
                     .registerService(RoleManagementListener.class, new ProvisioningRoleMgtListener(), null);
+            ProvisioningServiceDataHolder.getInstance().getBundleContext()
+                    .registerService(org.wso2.carbon.identity.role.v3.mgt.core.listener.RoleManagementListener.class,
+                            new ProvisioningRoleMgtV3Listener(), null);
             log.debug("Provisioning role management listener registered successfully");
             if (log.isDebugEnabled()) {
                 log.debug("Identity provisioning error event listener registered successfully");
@@ -233,6 +237,26 @@ public class IdentityProvisionServiceComponent {
 
         ProvisioningServiceDataHolder.getInstance().setRoleManagementService(null);
         log.debug("RoleManagementService unset in ProvisioningServiceDataHolder bundle.");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService",
+            service = org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementServiceV3")
+    protected void setRoleManagementServiceV3(org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService
+                                                          roleManagementService) {
+
+        ProvisioningServiceDataHolder.getInstance().setRoleManagementServiceV3(roleManagementService);
+        log.debug("RoleManagementServiceV3 set in ProvisioningServiceDataHolder bundle.");
+    }
+
+    protected void unsetRoleManagementServiceV3(org.wso2.carbon.identity.role.v3.mgt.core.RoleManagementService
+                                                        roleManagementService) {
+
+        ProvisioningServiceDataHolder.getInstance().setRoleManagementServiceV3(null);
+        log.debug("RoleManagementServiceV3 unset in ProvisioningServiceDataHolder bundle.");
     }
 }
 
