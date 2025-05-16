@@ -26,6 +26,7 @@ import java.sql.Timestamp;
 public class OperationResponseDTO {
 
     private final String operationId;
+    private final Integer cursorKey;
     private final String correlationId;
     private final String operationType;
     private final String operationSubjectType;
@@ -41,6 +42,7 @@ public class OperationResponseDTO {
     private OperationResponseDTO(Builder builder) {
 
         this.operationId = builder.operationId;
+        this.cursorKey = builder.cursorKey;
         this.correlationId = builder.correlationId;
         this.operationType = builder.operationType;
         this.operationSubjectType = builder.operationSubjectType;
@@ -57,6 +59,11 @@ public class OperationResponseDTO {
     public String getOperationId() {
 
         return operationId;
+    }
+
+    public Integer getCursorKey() {
+
+        return cursorKey;
     }
 
     public String getCorrelationId() {
@@ -121,6 +128,7 @@ public class OperationResponseDTO {
     public static class Builder {
 
         private String operationId;
+        private Integer cursorKey;
         private String correlationId;
         private String operationType;
         private String operationSubjectType;
@@ -136,6 +144,12 @@ public class OperationResponseDTO {
         public Builder operationId(String operationId) {
 
             this.operationId = operationId;
+            return this;
+        }
+
+        public Builder cursorKey(Integer cursorKey) {
+
+            this.cursorKey = cursorKey;
             return this;
         }
 

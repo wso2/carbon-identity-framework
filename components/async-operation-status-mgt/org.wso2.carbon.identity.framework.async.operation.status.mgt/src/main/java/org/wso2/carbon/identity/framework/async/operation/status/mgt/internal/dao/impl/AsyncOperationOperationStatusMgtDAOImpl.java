@@ -72,6 +72,7 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.inte
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CORRELATION_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.COUNT;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CREATED_AT;
+import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CURSOR_KEY;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.INITIATED_ORG_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.INITIATED_USER_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.LAST_MODIFIED;
@@ -382,6 +383,7 @@ public class AsyncOperationOperationStatusMgtDAOImpl implements AsyncOperationSt
 
         return new OperationResponseDTO.Builder()
                 .operationId(resultSet.getString(OPERATION_ID))
+                .cursorKey(resultSet.getInt(CURSOR_KEY))
                 .correlationId(resultSet.getString(CORRELATION_ID))
                 .operationType(resultSet.getString(OPERATION_TYPE))
                 .operationSubjectType(resultSet.getString(SUBJECT_TYPE))
@@ -401,6 +403,7 @@ public class AsyncOperationOperationStatusMgtDAOImpl implements AsyncOperationSt
 
         UnitOperationDO record = new UnitOperationDO();
         record.setUnitOperationId(resultSet.getString(UNIT_OPERATION_ID));
+        record.setCursorKey(resultSet.getInt(CURSOR_KEY));
         record.setOperationId(resultSet.getString(OPERATION_ID));
         record.setOperationInitiatedResourceId(resultSet.getString(RESIDENT_RESOURCE_ID));
         record.setTargetOrgId(resultSet.getString(TARGET_ORG_ID));
