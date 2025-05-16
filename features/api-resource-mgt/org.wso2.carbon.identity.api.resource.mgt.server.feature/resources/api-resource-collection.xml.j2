@@ -1277,6 +1277,29 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="entitlement" displayName="Entitlement" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:roles"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_role_users_update"/>
+                <Scope name="internal_role_groups_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="rolesV1" displayName="Roles" type="tenant">
         <Scopes>
             <Feature>
@@ -1571,6 +1594,27 @@
                 <Scope name="internal_org_application_mgt_view"/>
                 <Scope name="internal_org_user_mgt_list"/>
                 <Scope name="internal_org_idp_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_entitlement" displayName="Entitlement" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:roles"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_role_users_update"/>
+                <Scope name="internal_org_role_groups_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_api_resource_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
