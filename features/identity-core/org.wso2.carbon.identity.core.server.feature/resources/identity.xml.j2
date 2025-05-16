@@ -2254,6 +2254,15 @@
                        orderId="{{event.default_listener.mutual_tls_authenticator.priority}}"
                        enable="{{event.default_listener.mutual_tls_authenticator.enable}}">
         </EventListener>
+        <EventListener id="dpop_listener"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.dpop.listener.OauthDPoPInterceptorHandlerProxy"
+                       orderId="{{event.default_listener.dpop.priority}}"
+                       enable="{{event.default_listener.dpop.enable}}">
+            <Property name="header_validity_period">{{event.default_listener.dpop.property.header_validity_period}}</Property>
+            <Property name="skip_dpop_validation_in_revoke">{{event.default_listener.dpop.property.skip_dpop_validation_in_revoke}}</Property>
+        </EventListener>
+
         <EventListener id="private_key_jwt_authenticator"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.jwt.PrivateKeyJWTClientAuthenticator"
