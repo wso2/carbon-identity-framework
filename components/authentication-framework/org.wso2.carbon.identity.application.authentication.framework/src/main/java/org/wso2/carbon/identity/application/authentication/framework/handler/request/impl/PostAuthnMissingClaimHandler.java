@@ -41,6 +41,9 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.Claim;
@@ -134,6 +137,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             return flowStatus;
         } else {
             try {
+                if (isOtpVerificationTriggeredAndCompleted(context)) {
+                    return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+                }
                 handlePostAuthenticationForMissingClaimsResponse(request, response, context);
             } catch (PostAuthenticationFailedException e) {
                 if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR) != null) {
@@ -145,6 +151,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             }
             if (log.isDebugEnabled()) {
                 log.debug("Successfully returning from missing claim handler");
+            }
+            if (context.getProperty(FrameworkConstants.OTP_VERIFICATION_PENDING_CLAIM) != null) {
+                return PostAuthnHandlerFlowStatus.INCOMPLETE;
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -445,6 +454,13 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
 
                 userStoreManager.setUserClaimValuesWithID(user.getUserId(), localIdpClaims, null);
+                /* If the `otpVerificationTriggeredClaims` set in the local thread, redirect to OTP verification page
+                 and set relevant properties to the authentication context. */
+                if (IdentityUtil.threadLocalProperties.get()
+                        .get(FrameworkConstants.CLAIM_FOR_PENDING_OTP_VERIFICATION) != null) {
+                    setOtpVerificationPendingClaimToContext(context, claims);
+                    redirectToOtpVerificationPage(response, context);
+                }
             } catch (UserStoreException e) {
                 if (e instanceof UserStoreClientException) {
                     context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());
@@ -504,5 +520,57 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
     private ClaimMetadataManagementService getClaimMetadataManagementService() {
 
         return FrameworkServiceDataHolder.getInstance().getClaimMetadataManagementService();
+    }
+
+    private void redirectToOtpVerificationPage(HttpServletResponse response, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        try {
+            context.addEndpointParam(
+                    FrameworkConstants.USERNAME, getAuthenticatedUser(context).toFullQualifiedUsername());
+            ServiceURLBuilder uriBuilder = ServiceURLBuilder.create();
+            uriBuilder = uriBuilder.addPath(FrameworkConstants.VERIFY_ENDPOINT);
+            uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
+            response.sendRedirect(uriBuilder.build().getAbsoluteInternalURL());
+        } catch (IOException | URLBuilderException e) {
+            throw new PostAuthenticationFailedException("URL generation failed",
+                    "Error occurred while building the redirect URL for the OTP verification page.", e);
+        }
+    }
+
+    private void setOtpVerificationPendingClaimToContext(AuthenticationContext context, Map<String,
+            String> claimValues) {
+
+        /* Store the pending claim and its value in the authentication context based the otpVerificationTriggeredClaim.
+         This allows to ensure the value is verified and saved to the user claim. */
+        String triggeredClaim = IdentityUtil.threadLocalProperties.get()
+                .remove(FrameworkConstants.CLAIM_FOR_PENDING_OTP_VERIFICATION).toString();
+        Map<String, String> pendingClaim = new HashMap<>();
+        pendingClaim.put("uri", triggeredClaim);
+        pendingClaim.put("value", claimValues.get(triggeredClaim));
+        context.setProperty(FrameworkConstants.OTP_VERIFICATION_PENDING_CLAIM, pendingClaim);
+    }
+
+    private boolean isOtpVerificationTriggeredAndCompleted(AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        Map<String, String> pendingClaim =
+                (Map<String, String>) context.getProperty(FrameworkConstants.OTP_VERIFICATION_PENDING_CLAIM);
+        if (pendingClaim == null) {
+            return false;
+        }
+
+        AuthenticatedUser user = getAuthenticatedUser(context);
+        try {
+            UserRealm realm = getUserRealm(user.getTenantDomain());
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
+            String storedClaim = userStoreManager.getUserClaimValueWithID(
+                    user.getUserId(), pendingClaim.get("uri"), null
+            );
+            return StringUtils.equals(storedClaim, pendingClaim.get("value"));
+        } catch (UserStoreException | UserIdNotFoundException e) {
+            throw new PostAuthenticationFailedException("Error while handling missing mandatory claims.",
+                    "Error occurred while retrieving the user claims", e);
+        }
     }
 }
