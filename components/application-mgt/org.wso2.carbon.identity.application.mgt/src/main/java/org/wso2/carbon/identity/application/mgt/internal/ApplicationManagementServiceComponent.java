@@ -64,6 +64,7 @@ import org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagement
 import org.wso2.carbon.identity.application.mgt.listener.ConsoleAuthorizedAPIListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.MyAccountApplicationCreationListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
@@ -162,6 +163,9 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(RoleManagementListener.class, new AdminRoleListener(), null);
             // Register the Authorized API Management Listener.
             bundleContext.registerService(AuthorizedAPIManagementListener.class, new ConsoleAuthorizedAPIListener(),
+                    null);
+            // Register post My Account Application creation listener.
+            bundleContext.registerService(ApplicationMgtListener.class, new MyAccountApplicationCreationListener(),
                     null);
 
             if (log.isDebugEnabled()) {
