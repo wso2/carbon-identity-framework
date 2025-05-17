@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.UserSession
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
@@ -42,8 +44,14 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -107,10 +115,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     /**
      * Retrieves the unique user id of the given username.
      *
-     * @param tenantId          id of the tenant domain of the user
-     * @param userStoreDomain   userstore of the user
-     * @param username          username
-     * @return                  unique user id of the user
+     * @param tenantId        id of the tenant domain of the user
+     * @param userStoreDomain userstore of the user
+     * @param username        username
+     * @return unique user id of the user
      * @throws UserSessionException
      */
     private String resolveUserIdFromUsername(int tenantId, String userStoreDomain, String username) throws
@@ -145,7 +153,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     /**
      * Retrieves the username of the given userId.
      *
-     * @param userId Id of the user.
+     * @param userId   Id of the user.
      * @param tenantId Id of the tenant domain of the user.
      * @return username.
      * @throws UserSessionException
@@ -319,6 +327,34 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Terminating all the active sessions of user: " + userId + ".");
             }
         }
+
+        // Publish the event for user session termination.
+        try {
+            Map<String, Object> properties = new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
+
+            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+
+            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+            User user = User.getUserFromUserName(getUsernameFromUserId(userId, tenantId)
+                    .concat("@" + tenantDomain));
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
+            params.put("user", authenticatedUser);
+
+
+            List<UserSession> userSessions = getSessionsByUserId(userId);
+            params.put("sessions", userSessions);
+            params.put("eventTimestamp", System.currentTimeMillis());
+            Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+            properties.put("flow", flow);
+            properties.put("params", params);
+            Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
+            eventService.handleEvent(event);
+        } catch (IdentityEventException | UserSessionException e) {
+            throw new RuntimeException(e);
+        }
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -409,10 +445,38 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
 
         if (isUserSessionMappingExist(userIdToSearch, sessionId)) {
+
+            try {
+                Map<String, Object> properties = new HashMap<>();
+                Map<String, Object> params = new HashMap<>();
+
+                IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+                int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+                String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+                User user = User.getUserFromUserName(getUsernameFromUserId(userId, tenantId)
+                        .concat("@" + tenantDomain));
+                AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
+                params.put("user", authenticatedUser);
+
+                Optional<UserSession> userSession = getSessionBySessionId(userId, sessionId);
+                List<UserSession> userSessions = new ArrayList<>();
+                userSession.ifPresent(userSessions::add);
+                params.put("sessions", userSessions);
+                params.put("eventTimestamp", System.currentTimeMillis());
+                Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+                properties.put("flow", flow);
+                properties.put("params", params);
+                Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
+                eventService.handleEvent(event);
+            } catch (UserSessionException | IdentityEventException e) {
+                throw new RuntimeException(e);
+            }
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
             sessionManagementService.removeSession(sessionId);
+
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -420,6 +484,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } else {
             throw handleSessionManagementClientException(ERROR_CODE_FORBIDDEN_ACTION, userId);
         }
+
     }
 
     @Override
@@ -479,6 +544,29 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             log.debug("Terminating all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
+        // Publish the event for user session termination.
+        try {
+            Map<String, Object> properties = new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
+
+            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
+            params.put("user", authenticatedUser);
+
+            List<UserSession> userSessions = getSessionsByUserId(authenticatedUser.getUserId());
+            params.put("sessions", userSessions);
+            params.put("eventTimestamp", System.currentTimeMillis());
+            Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+            properties.put("flow", flow);
+            properties.put("params", params);
+            Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
+            eventService.handleEvent(event);
+        } catch (IdentityEventException e) {
+            throw new RuntimeException(e);
+        } catch (UserIdNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -501,6 +589,30 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
+            }
+            try {
+                Map<String, Object> properties = new HashMap<>();
+                Map<String, Object> params = new HashMap<>();
+
+                IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+
+                AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
+                params.put("user", authenticatedUser);
+
+                Optional<UserSession> userSession = getSessionBySessionId(authenticatedUser.getUserId(), sessionId);
+                List<UserSession> userSessions = new ArrayList<>();
+                userSession.ifPresent(userSessions::add);
+                params.put("sessions", userSessions);
+                params.put("eventTimestamp", System.currentTimeMillis());
+                Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+                properties.put("flow", flow);
+                properties.put("params", params);
+                Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
+                eventService.handleEvent(event);
+            } catch (IdentityEventException e) {
+                throw new RuntimeException(e);
+            } catch (UserIdNotFoundException e) {
+                throw new RuntimeException(e);
             }
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
@@ -578,8 +690,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * Returns the active sessions from given list of session IDs.
      *
      * @param sessionIdList list of sessionIds.
-     * @param idpId Id of the authenticated idp.
-     * @param idpName Name of the authenticated idp.
+     * @param idpId         Id of the authenticated idp.
+     * @param idpName       Name of the authenticated idp.
      * @return list of user sessions.
      * @throws SessionManagementServerException if an error occurs when retrieving the UserSessions.
      */
@@ -670,7 +782,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         ApplicationManagementService applicationManager =
                 FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
-        for (Application app: userSession.getApplications()) {
+        for (Application app : userSession.getApplications()) {
             ServiceProvider serviceProvider = applicationManager
                     .getServiceProvider(Integer.parseInt(app.getAppId()));
             if (serviceProvider == null) {
@@ -678,7 +790,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
             boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
                     .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
-                    Boolean.parseBoolean(property.getValue()));
+                            Boolean.parseBoolean(property.getValue()));
             if (!isFragmentApp) {
                 return false;
             }
@@ -701,7 +813,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         ApplicationManagementService applicationManager =
                 FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
-        for (Application app: userSession.getApplications()) {
+        for (Application app : userSession.getApplications()) {
             ServiceProvider serviceProvider = applicationManager
                     .getServiceProvider(Integer.parseInt(app.getAppId()));
             if (serviceProvider == null) {
@@ -784,7 +896,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * internal userId stored in IDN_AUTH_USER table.
      *
      * @param tenantId Tenant Id.
-     * @param userId User Id.
+     * @param userId   User Id.
      * @return A map keyed by AuthSessionUserKeys.
      */
     private Map<SessionMgtConstants.AuthSessionUserKeys, String> getAuthSessionUserMapFromFedAssociationMapping(
@@ -860,7 +972,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      *
      * @param tenantDomain Tenant domain of the user.
      * @param userSessions List of user sessions containing idpId.
-     * @param userId Optional userId. If passed, will be set to each session if userId is not found.
+     * @param userId       Optional userId. If passed, will be set to each session if userId is not found.
      * @throws UserSessionException Exception is thrown if any error occurred.
      */
     private void parseIdpInfoToSessionsResponse(String tenantDomain, List<UserSession> userSessions, String userId)
