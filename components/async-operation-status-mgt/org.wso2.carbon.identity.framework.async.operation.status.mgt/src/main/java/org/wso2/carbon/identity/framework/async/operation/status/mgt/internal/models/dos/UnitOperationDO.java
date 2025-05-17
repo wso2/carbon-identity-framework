@@ -26,6 +26,7 @@ import java.sql.Timestamp;
  */
 public class UnitOperationDO {
     private String unitOperationId;
+    private Integer cursorKey;
     private String operationId;
     private String operationInitiatedResourceId;
     private String targetOrgId;
@@ -33,11 +34,12 @@ public class UnitOperationDO {
     private String statusMessage;
     private Timestamp createdTime;
 
-    public UnitOperationDO(String unitOperationId, String operationId, String operationInitiatedResourceId,
-                           String targetOrgId, String unitOperationStatus, String statusMessage,
-                           Timestamp createdTime) {
+    public UnitOperationDO(String unitOperationId, Integer cursorKey, String operationId,
+                           String operationInitiatedResourceId, String targetOrgId, String unitOperationStatus,
+                           String statusMessage, Timestamp createdTime) {
 
         this.unitOperationId = unitOperationId;
+        this.cursorKey = cursorKey;
         this.operationId = operationId;
         this.operationInitiatedResourceId = operationInitiatedResourceId;
         this.targetOrgId = targetOrgId;
@@ -118,5 +120,15 @@ public class UnitOperationDO {
     public void setCreatedTime(Timestamp createdTime) {
 
         this.createdTime = createdTime;
+    }
+
+    public Integer getCursorKey() {
+
+        return cursorKey;
+    }
+
+    public void setCursorKey(Integer cursorKey) {
+
+        this.cursorKey = cursorKey;
     }
 }

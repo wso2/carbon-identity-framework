@@ -25,6 +25,7 @@ import java.sql.Timestamp;
 public class UnitOperationResponseDTO {
 
     private final String unitOperationId;
+    private final Integer cursorKey;
     private final String operationId;
     private final String operationInitiatedResourceId;
     private final String targetOrgId;
@@ -36,6 +37,7 @@ public class UnitOperationResponseDTO {
     private UnitOperationResponseDTO(Builder builder) {
 
         this.unitOperationId = builder.unitOperationId;
+        this.cursorKey = builder.cursorKey;
         this.operationId = builder.operationId;
         this.operationInitiatedResourceId = builder.operationInitiatedResourceId;
         this.targetOrgId = builder.targetOrgId;
@@ -48,6 +50,11 @@ public class UnitOperationResponseDTO {
     public String getUnitOperationId() {
 
         return unitOperationId;
+    }
+
+    public Integer getCursorKey() {
+
+        return cursorKey;
     }
 
     public String getOperationId() {
@@ -91,6 +98,7 @@ public class UnitOperationResponseDTO {
     public static class Builder {
 
         private String unitOperationId;
+        private Integer cursorKey;
         private String operationId;
         private String operationInitiatedResourceId;
         private String targetOrgId;
@@ -102,6 +110,12 @@ public class UnitOperationResponseDTO {
         public Builder unitOperationId(String unitOperationId) {
 
             this.unitOperationId = unitOperationId;
+            return this;
+        }
+
+        public Builder cursorKey(Integer cursorKey) {
+
+            this.cursorKey = cursorKey;
             return this;
         }
 
