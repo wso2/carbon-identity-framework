@@ -687,10 +687,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             List<Application> applications = new ArrayList<>();
             Application application = new Application(appConfig.getSubjectClaimUri(),
                     appConfig.getApplicationName(), String.valueOf(appConfig.getApplicationID()));
+
             applications.add(application);
-            FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
-                        .getAuthenticatedUser(), analyticsSessionAction);
-            publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
+            FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext,
+                    authenticationResult.getSubject(), analyticsSessionAction, applications);
+            publishAuthenticationSuccess(request, context, authenticationResult.getSubject());
         }
 
         // Passing the federated tokens to the authentication result.
