@@ -101,6 +101,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
@@ -2277,8 +2278,14 @@ public class FrameworkUtils {
         return appendQueryParamsStringToUrl(url, queryString);
     }
 
+    public static void publishSessionEvent(String sessionId, HttpServletRequest request,
+            AuthenticationContext context, SessionContext sessionContext, AuthenticatedUser user, String status) {
+        publishSessionEvent(sessionId, request, context, sessionContext, user, status, null);
+    }
+
     public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
-            context, SessionContext sessionContext, AuthenticatedUser user, String status) {
+            context, SessionContext sessionContext, AuthenticatedUser user, String status,
+                                           List<Application> applications) {
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
@@ -2287,6 +2294,7 @@ public class FrameworkUtils {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
+            paramMap.put("applications", applications);
 
             String isPublishingSessionCountEnabledValue = IdentityUtil.getProperty(FrameworkConstants.Config
                     .PUBLISH_ACTIVE_SESSION_COUNT);
@@ -3444,7 +3452,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the server config for skip user local search during federated authentication flow
+     * Get the server config for skip user local search during federated authentication flow.
      *
      * @return isSkipLocalUserSearchForAuthenticationFlowHandlersEnabled value
      */
