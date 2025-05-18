@@ -118,7 +118,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                     template -> template.fetchSingleRecord(Query.GET_WEBHOOK_BY_ID,
                             (resultSet, rowNumber) -> {
                                 Webhook mappedWebhook = mapWebhook(resultSet);
-                                webhookData.setId(mappedWebhook.getId());
+                                webhookData.setId(mappedWebhook.getUuid());
                                 webhookData.setEndpoint(mappedWebhook.getEndpoint());
                                 webhookData.setDescription(mappedWebhook.getDescription());
                                 webhookData.setSecret(mappedWebhook.getSecret());
@@ -400,7 +400,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         return jdbcTemplate.withTransaction(template -> {
             template.executeUpdate(Query.CREATE_WEBHOOK,
                     preparedStatement -> {
-                        preparedStatement.setString(Column.UUID, webhook.getId());
+                        preparedStatement.setString(Column.UUID, webhook.getUuid());
                         preparedStatement.setString(Column.ENDPOINT, webhook.getEndpoint());
                         preparedStatement.setString(Column.DESCRIPTION, webhook.getDescription());
                         preparedStatement.setString(Column.SECRET, webhook.getSecret());
