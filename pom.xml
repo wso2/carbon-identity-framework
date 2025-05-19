@@ -79,6 +79,7 @@
         <module>components/servlet-mgt</module>
         <module>components/system-config-mgt</module>
         <module>components/registration-framework</module>
+        <module>components/workflow-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
@@ -122,6 +123,7 @@
         <module>features/system-config-mgt</module>
         <module>features/registration-framework</module>
         <module>features/async-operation-status-mgt</module>
+        <module>features/workflow-mgt</module>
     </modules>
 
 
@@ -349,6 +351,12 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.workflow.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -765,6 +773,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.ai.service.mgt.server.feature</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.workflow.mgt.server.feature</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
