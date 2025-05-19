@@ -1493,12 +1493,12 @@
          </Resource>
 
          <!-- [Organization] Async Operation Management API -->
-         <Resource context="(.*)/o/api/server/v1/async-operations/(.*)" secured="true" http-method="GET">
+         <Resource context="(.*)/o/api/server/v1/async-operations(.*)" secured="true" http-method="GET">
              <Scopes>internal_org_async_operation_status_view</Scopes>
          </Resource>
 
          <!-- Async Operation Management API -->
-         <Resource context="(.*)/api/server/v1/async-operations/(.*)" secured="true" http-method="GET">
+         <Resource context="(.*)/api/server/v1/async-operations(.*)" secured="true" http-method="GET">
              <Scopes>internal_async_operation_status_view</Scopes>
          </Resource>
 
