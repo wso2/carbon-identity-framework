@@ -131,6 +131,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
@@ -3136,14 +3137,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (authenticatorInfo != null
                         && authenticatorInfo.get(ApplicationConstants.IDP_NAME) != null
                         && ApplicationConstants.LOCAL_IDP_NAME.equals(authenticatorInfo
-                        .get("idpName"))) {
+                        .get(ApplicationConstants.IDP_NAME))) {
                     LocalAuthenticatorConfig localAuthenticator = new LocalAuthenticatorConfig();
                     localAuthenticator.setName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     localAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
-                    localAuthenticator.setDefinedByType(DefinedByType.valueOf(
-                            authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
+                    String definedByType = Optional.ofNullable(authenticatorInfo.get(
+                                    ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE))
+                            .orElseGet(() -> {
+                                log.debug("Defined by type value for " + authenticatorInfo
+                                        .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME) + " authenticator is null.");
+                                return DefinedByType.SYSTEM.toString();
+                            });
+                    localAuthenticator.setDefinedByType(DefinedByType.valueOf(definedByType));
                     stepLocalAuth.get(step).add(localAuthenticator);
                 } else {
                     Map<String, List<FederatedAuthenticatorConfig>> stepFedIdps = stepFedIdPAuthenticators
@@ -3162,8 +3169,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     fedAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
-                    fedAuthenticator.setDefinedByType(DefinedByType.valueOf(
-                            authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
+                    String definedByType = Optional.ofNullable(authenticatorInfo.get(
+                                    ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE))
+                        .orElseGet(() -> {
+                            log.debug("Defined by type value for " + authenticatorInfo
+                                    .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME) + " authenticator is null.");
+                            return DefinedByType.SYSTEM.toString();
+                        });
+                    fedAuthenticator.setDefinedByType(DefinedByType.valueOf(definedByType));
                     idpAuths.add(fedAuthenticator);
                 }
 
