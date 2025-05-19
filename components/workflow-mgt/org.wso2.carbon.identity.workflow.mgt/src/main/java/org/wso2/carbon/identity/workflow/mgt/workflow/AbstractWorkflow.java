@@ -83,9 +83,7 @@ public abstract class AbstractWorkflow {
     public void deploy(List <Parameter> parameterList) throws WorkflowException {
 
         TemplateInitializer initializer = getTemplateInitializer();
-        if (initializer != null) {
-            initializer.initialize(parameterList);
-        }
+        initializer.initialize(parameterList);
     }
 
 
@@ -98,10 +96,8 @@ public abstract class AbstractWorkflow {
     public void execute(WorkflowRequest workFlowRequest, List<Parameter> parameterList) throws WorkflowException {
 
         WorkFlowExecutor executor = getWorkFlowExecutor();
-        if (executor != null) {
-            executor.initialize(parameterList);
-            executor.execute(workFlowRequest);
-        }
+        executor.initialize(parameterList);
+        executor.execute(workFlowRequest);
     }
 
     /**
@@ -161,37 +157,27 @@ public abstract class AbstractWorkflow {
     }
 
     public WorkFlowExecutor getWorkFlowExecutor() {
-        WorkFlowExecutor workFlowExecutor = null;
+
         try {
-            workFlowExecutor = workFlowExecutorClass.newInstance();
-        } catch (InstantiationException e) {
-            String errorMsg = "Error occurred while initializing WorkFlowExecutor : " + e.getMessage();
-            log.error(errorMsg, e);
-            throw new WorkflowRuntimeException(errorMsg, e);
-        } catch (IllegalAccessException e) {
+            return workFlowExecutorClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
             String errorMsg = "Error occurred while initializing WorkFlowExecutor : " + e.getMessage();
             log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         }
-        return workFlowExecutor;
     }
 
 
 
     public TemplateInitializer getTemplateInitializer() throws WorkflowRuntimeException {
-        TemplateInitializer templateInitializer = null;
+
         try {
-            templateInitializer = templateInitializerClass.newInstance();
-        } catch (InstantiationException e) {
-            String errorMsg = "Error occurred while initializing TemplateInitializer : " + e.getMessage();
-            log.error(errorMsg, e);
-            throw new WorkflowRuntimeException(errorMsg, e);
-        } catch (IllegalAccessException e) {
+            return templateInitializerClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
             String errorMsg = "Error occurred while initializing TemplateInitializer : " + e.getMessage();
             log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         }
-        return templateInitializer;
     }
 
 

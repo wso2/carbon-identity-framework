@@ -32,58 +32,72 @@ public class WorkflowRequest {
     private String createdBy;
 
     public String getRequestId() {
+
         return requestId;
     }
 
     public void setRequestId(String requestId) {
+
         this.requestId = requestId;
     }
 
     public String getEventType() {
+
         return eventType;
     }
 
     public void setEventType(String eventType) {
+
         this.eventType = eventType;
     }
 
     public String getRequestParams() {
+
         return requestParams;
     }
 
     public void setRequestParams(String requestParams) {
+
         this.requestParams = requestParams;
     }
 
     public String getUpdatedAt() {
+
         return updatedAt;
     }
 
     public void setUpdatedAt(String updatedAt) {
+
         this.updatedAt = updatedAt;
     }
 
     public String getStatus() {
+
         return status;
     }
 
     public void setStatus(String status) {
+
         this.status = status;
     }
 
     public String getCreatedAt() {
+
         return createdAt;
     }
 
     public void setCreatedAt(String createdAt) {
+
         this.createdAt = createdAt;
     }
 
     public String getCreatedBy() {
+
         return createdBy;
     }
 
     public void setCreatedBy(String createdBy) {
+
         this.createdBy = createdBy;
     }
 }

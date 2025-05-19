@@ -133,28 +133,26 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         List<WorkflowRequestHandler> workflowRequestHandlers =
                 WorkflowServiceDataHolder.getInstance().listRequestHandlers();
         List<WorkflowEvent> eventList = new ArrayList<>();
-        if (workflowRequestHandlers != null) {
-            for (WorkflowRequestHandler requestHandler : workflowRequestHandlers) {
-                WorkflowEvent event = new WorkflowEvent();
-                event.setEventId(requestHandler.getEventId());
-                event.setEventFriendlyName(requestHandler.getFriendlyName());
-                event.setEventDescription(requestHandler.getDescription());
-                event.setEventCategory(requestHandler.getCategory());
-                //note: parameters are not set at here in list operation. It's set only at get operation
-                if (requestHandler.getParamDefinitions() != null) {
-                    Parameter[] parameterDTOs = new Parameter[requestHandler.getParamDefinitions().size()];
-                    int i = 0;
-                    for (Map.Entry<String, String> paramEntry : requestHandler.getParamDefinitions().entrySet()) {
-                        Parameter parameterDTO = new Parameter();
-                        parameterDTO.setParamName(paramEntry.getKey());
-                        parameterDTO.setParamValue(paramEntry.getValue());
-                        parameterDTOs[i] = parameterDTO;
-                        i++;
-                    }
-                    event.setParameters(parameterDTOs);
+        for (WorkflowRequestHandler requestHandler : workflowRequestHandlers) {
+            WorkflowEvent event = new WorkflowEvent();
+            event.setEventId(requestHandler.getEventId());
+            event.setEventFriendlyName(requestHandler.getFriendlyName());
+            event.setEventDescription(requestHandler.getDescription());
+            event.setEventCategory(requestHandler.getCategory());
+            //note: parameters are not set at here in list operation. It's set only at get operation
+            if (requestHandler.getParamDefinitions() != null) {
+                Parameter[] parameterDTOs = new Parameter[requestHandler.getParamDefinitions().size()];
+                int i = 0;
+                for (Map.Entry<String, String> paramEntry : requestHandler.getParamDefinitions().entrySet()) {
+                    Parameter parameterDTO = new Parameter();
+                    parameterDTO.setParamName(paramEntry.getKey());
+                    parameterDTO.setParamValue(paramEntry.getValue());
+                    parameterDTOs[i] = parameterDTO;
+                    i++;
                 }
-                eventList.add(event);
+                event.setParameters(parameterDTOs);
             }
+            eventList.add(event);
         }
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
@@ -218,15 +216,13 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         Map<String, AbstractTemplate> templateMap = WorkflowServiceDataHolder.getInstance().getTemplates();
         List<AbstractTemplate> templateList = new ArrayList<>(templateMap.values());
         List<Template> templates = new ArrayList<Template>();
-        if (templateList != null) {
-            for (AbstractTemplate abstractTemplate : templateList) {
-                Template template = new Template();
-                template.setTemplateId(abstractTemplate.getTemplateId());
-                template.setName(abstractTemplate.getName());
-                template.setDescription(abstractTemplate.getDescription());
-                template.setParametersMetaData(abstractTemplate.getParametersMetaData());
-                templates.add(template);
-            }
+        for (AbstractTemplate abstractTemplate : templateList) {
+            Template template = new Template();
+            template.setTemplateId(abstractTemplate.getTemplateId());
+            template.setName(abstractTemplate.getName());
+            template.setDescription(abstractTemplate.getDescription());
+            template.setParametersMetaData(abstractTemplate.getParametersMetaData());
+            templates.add(template);
         }
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {

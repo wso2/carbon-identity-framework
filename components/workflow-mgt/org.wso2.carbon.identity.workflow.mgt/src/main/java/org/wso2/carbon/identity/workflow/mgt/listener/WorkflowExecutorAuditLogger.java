@@ -47,6 +47,7 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     @Override
     public void doPostExecuteWorkflow(WorkflowRequest workFlowRequest, WorkflowExecutorResult result) throws
             WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;

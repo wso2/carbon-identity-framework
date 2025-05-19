@@ -37,6 +37,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
@@ -47,6 +48,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 public class WorkflowManagementUtil {
+
     private static final Log log = LogFactory.getLog(WorkflowManagementUtil.class);
 
     /**
@@ -137,9 +139,11 @@ public class WorkflowManagementUtil {
      * @throws JAXBException
      */
     public static <T> T unmarshalXML(String xmlString, Class<T> classType) throws JAXBException {
+
         T t = null;
         if (xmlString != null) {
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xmlString.getBytes());
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xmlString.getBytes(
+                    StandardCharsets.UTF_8));
             JAXBContext jaxbContext = JAXBContext.newInstance(classType);
 
             try {

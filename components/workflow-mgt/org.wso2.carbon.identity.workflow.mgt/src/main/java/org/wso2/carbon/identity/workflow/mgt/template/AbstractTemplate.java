@@ -31,14 +31,14 @@ import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import javax.xml.bind.JAXBException;
 
 /**
- * Abstract Template class can be extend to create concrete
+ * Abstract Template class can be extended to create concrete
  * template that is providing its own details and metadata
  */
 public abstract class AbstractTemplate {
 
-    private Log log = LogFactory.getLog(AbstractTemplate.class);
+    private static final Log log = LogFactory.getLog(AbstractTemplate.class);
     private ParametersMetaData parametersMetaData = null;
-    private MetaData metaData;
+    private final MetaData metaData;
 
     protected abstract InputData getInputData(String parameterName) throws WorkflowException;
 
@@ -49,6 +49,7 @@ public abstract class AbstractTemplate {
      * @throws WorkflowRuntimeException
      */
     public AbstractTemplate(String metaDataXML) throws WorkflowRuntimeException {
+
         try {
             this.metaData = WorkflowManagementUtil.unmarshalXML(metaDataXML, MetaData.class);
             if (this.metaData == null || this.metaData.getTemplate() == null) {
@@ -56,7 +57,7 @@ public abstract class AbstractTemplate {
             }
             this.parametersMetaData = this.metaData.getTemplate().getParametersMetaData();
         } catch (JAXBException e) {
-            String errorMsg = "Error occured while converting template parameter data to object : " + e.getMessage();
+            String errorMsg = "Error occurred while converting template parameter data to object : " + e.getMessage();
             log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         }
@@ -68,6 +69,7 @@ public abstract class AbstractTemplate {
      * @return ParametersMetaData object that is contain all the template specific parameter metadata.
      */
     public ParametersMetaData getParametersMetaData() throws WorkflowException {
+
         if (parametersMetaData != null) {
             ParameterMetaData[] parameterMetaData = parametersMetaData.getParameterMetaData();
             for (ParameterMetaData metaData : parameterMetaData) {
@@ -80,8 +82,8 @@ public abstract class AbstractTemplate {
         return parametersMetaData;
     }
 
-    public void setParametersMetaData(
-            ParametersMetaData parametersMetaData) {
+    public void setParametersMetaData(ParametersMetaData parametersMetaData) {
+
         this.parametersMetaData = parametersMetaData;
     }
 
@@ -91,6 +93,7 @@ public abstract class AbstractTemplate {
      * @return String templateId
      */
     public String getTemplateId() {
+
         return this.metaData.getTemplate().getTemplateId();
     }
 
@@ -100,6 +103,7 @@ public abstract class AbstractTemplate {
      * @return String Template Name
      */
     public String getName() {
+
         return this.metaData.getTemplate().getTemplateName();
     }
 
@@ -109,6 +113,7 @@ public abstract class AbstractTemplate {
      * @return String description
      */
     public String getDescription() {
+
         return this.metaData.getTemplate().getTemplateDescription();
     }
 }

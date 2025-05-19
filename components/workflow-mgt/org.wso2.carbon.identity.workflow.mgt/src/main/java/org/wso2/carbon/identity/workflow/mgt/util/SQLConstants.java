@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.workflow.mgt.util;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,10 +67,12 @@ public class SQLConstants {
     public static final String ASSOCIATION_NAME_FILTER = "associationName";
     public static final String WORKFLOW_ID_FILTER = "workflowId";
 
-    public static final Map<String, String> PARAM_NAME_MAPPING = new HashMap<>();
+    public static final Map<String, String> PARAM_NAME_MAPPING;
     static {
-        PARAM_NAME_MAPPING.put("UserAndRole", "ApprovalSteps");
-        PARAM_NAME_MAPPING.put("UserAndRole-step", "Step");
+        Map<String, String> paramNameMapping = new HashMap<>();
+        paramNameMapping.put("UserAndRole", "ApprovalSteps");
+        paramNameMapping.put("UserAndRole-step", "Step");
+        PARAM_NAME_MAPPING = Collections.unmodifiableMap(paramNameMapping);
     }
 
     public static final String ADD_WORKFLOW_REQUEST_QUERY = "INSERT INTO WF_REQUEST(UUID, CREATED_BY, OPERATION_TYPE," +
