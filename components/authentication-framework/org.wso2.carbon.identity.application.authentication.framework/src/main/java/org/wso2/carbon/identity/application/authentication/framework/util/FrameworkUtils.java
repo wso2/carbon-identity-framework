@@ -2281,9 +2281,9 @@ public class FrameworkUtils {
         return appendQueryParamsStringToUrl(url, queryString);
     }
 
-    public static void publishUserSessionTerminateEvent(AuthenticatedUser user, List<UserSession> userSessions) {
+    public static void publishUserSessionTerminateEvent(AuthenticatedUser user, List<UserSession> userSessions)
+            throws IdentityEventException {
 
-        try {
             Map<String, Object> properties = new HashMap<>();
             Map<String, Object> params = new HashMap<>();
 
@@ -2297,9 +2297,6 @@ public class FrameworkUtils {
             properties.put("params", params);
             Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
             eventService.handleEvent(event);
-        } catch (IdentityEventException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static void publishSessionEvent(String sessionId, HttpServletRequest request,

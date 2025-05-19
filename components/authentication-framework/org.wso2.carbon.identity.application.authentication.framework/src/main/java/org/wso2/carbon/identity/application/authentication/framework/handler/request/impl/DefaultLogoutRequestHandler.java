@@ -62,6 +62,7 @@ import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.utils.DiagnosticLog;
@@ -412,6 +413,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 FrameworkUtils.publishUserSessionTerminateEvent(authenticatedUser, userSessions);
             } catch (UserIdNotFoundException | SessionManagementException e) {
                 throw new FrameworkException("Error while getting user session.", e);
+            } catch (IdentityEventException e) {
+                throw new RuntimeException(e);
             }
             // Publish the session terminate event.
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,

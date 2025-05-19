@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -341,8 +342,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             List<UserSession> userSessions = getSessionsByUserId(authenticatedUser.getUserId());
 
             publishUserSessionTerminateEvent(authenticatedUser, userSessions);
-        } catch (UserIdNotFoundException | SessionManagementException e) {
-            throw new RuntimeException(e);
+        } catch (UserIdNotFoundException | SessionManagementException | IdentityEventException e) {
+            log.error("Error while publishing user session termination event for user: " +
+                    user.getLoggableMaskedUserId(), e);
         }
     }
 
@@ -359,8 +361,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
             publishUserSessionTerminateEvent(authenticatedUser, userSessions);
 
-        } catch (UserSessionException e) {
-            throw new RuntimeException(e);
+        } catch (UserSessionException | IdentityEventException e) {
+            log.error("Error while publishing user session termination event for userId: " + userId, e);
         }
     }
 

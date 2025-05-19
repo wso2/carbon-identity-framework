@@ -64,7 +64,9 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -72,6 +74,8 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -117,6 +121,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.publishUserSessionTerminateEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -193,6 +198,36 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 new MockAuthenticator("FederatedAuthenticator", null, "sampleClaimDialectURI"));
            
         authenticationContext.setTenantDomain("abc");
+    }
+
+    @Test
+    public void testPublishUserSessionTerminationEvent() throws Exception {
+
+        MockedStatic<IdentityContext> identityContextMockedStatic;
+        try (MockedStatic<FrameworkServiceDataHolder> mockedFrameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class)) {
+
+            IdentityEventService mockedIdentityEventService = mock(IdentityEventService.class);
+
+            FrameworkServiceDataHolder frameworkServiceDataHolder = mock(FrameworkServiceDataHolder.class);
+            when(frameworkServiceDataHolder.getIdentityEventService()).thenReturn(mockedIdentityEventService);
+            mockedFrameworkServiceDataHolder.when(FrameworkServiceDataHolder::getInstance)
+                    .thenReturn(frameworkServiceDataHolder);
+
+            Flow flow = new Flow.Builder().name(Flow.Name.LOGOUT).
+                    initiatingPersona(Flow.InitiatingPersona.APPLICATION).build();
+
+            identityContextMockedStatic = mockStatic(IdentityContext.class);
+            IdentityContext mockedIdentityContext = mock(IdentityContext.class);
+            when(mockedIdentityContext.getFlow()).thenReturn(flow);
+            when(IdentityContext.getThreadLocalIdentityContext()).thenReturn(mockedIdentityContext);
+
+            AuthenticatedUser mockedAuthenticatedUser = mock(AuthenticatedUser.class);
+            List<UserSession> userSessions = Collections.emptyList();
+
+            publishUserSessionTerminateEvent(mockedAuthenticatedUser, userSessions);
+        }
+        identityContextMockedStatic.close();
     }
 
     @Test
