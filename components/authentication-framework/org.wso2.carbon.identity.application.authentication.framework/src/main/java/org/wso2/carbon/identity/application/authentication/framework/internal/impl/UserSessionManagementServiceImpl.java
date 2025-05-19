@@ -44,14 +44,8 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
-import org.wso2.carbon.identity.core.context.IdentityContext;
-import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.event.IdentityEventConstants;
-import org.wso2.carbon.identity.event.IdentityEventException;
-import org.wso2.carbon.identity.event.event.Event;
-import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -78,6 +72,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.publishUserSessionTerminateEvent;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER;
@@ -329,11 +324,31 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
 
         // Publish the event for user session termination.
-        try {
-            Map<String, Object> properties = new HashMap<>();
-            Map<String, Object> params = new HashMap<>();
+        List<UserSession> userSessions = getSessionsByUserId(userId);
+        publishUserSessionTerminateEventByUserId(userId, userSessions);
 
-            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+        terminateSessionsOfUser(sessionIdList);
+        if (!sessionIdList.isEmpty()) {
+            UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+        }
+        return true;
+    }
+
+    private void publishUserSessionTerminateEventByUser(User user) {
+
+        try {
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
+            List<UserSession> userSessions = getSessionsByUserId(authenticatedUser.getUserId());
+
+            publishUserSessionTerminateEvent(authenticatedUser, userSessions);
+        } catch (UserIdNotFoundException | SessionManagementException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void publishUserSessionTerminateEventByUserId(String userId, List<UserSession> userSessions) {
+
+        try {
 
             int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -341,25 +356,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             User user = User.getUserFromUserName(getUsernameFromUserId(userId, tenantId)
                     .concat("@" + tenantDomain));
             AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
-            params.put("user", authenticatedUser);
 
+            publishUserSessionTerminateEvent(authenticatedUser, userSessions);
 
-            List<UserSession> userSessions = getSessionsByUserId(userId);
-            params.put("sessions", userSessions);
-            params.put("eventTimestamp", System.currentTimeMillis());
-            Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
-            properties.put("flow", flow);
-            properties.put("params", params);
-            Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
-            eventService.handleEvent(event);
-        } catch (IdentityEventException | UserSessionException e) {
+        } catch (UserSessionException e) {
             throw new RuntimeException(e);
         }
-        terminateSessionsOfUser(sessionIdList);
-        if (!sessionIdList.isEmpty()) {
-            UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
-        }
-        return true;
     }
 
     @Override
@@ -446,32 +448,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         if (isUserSessionMappingExist(userIdToSearch, sessionId)) {
 
-            try {
-                Map<String, Object> properties = new HashMap<>();
-                Map<String, Object> params = new HashMap<>();
-
-                IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
-                int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-                String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-                User user = User.getUserFromUserName(getUsernameFromUserId(userId, tenantId)
-                        .concat("@" + tenantDomain));
-                AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
-                params.put("user", authenticatedUser);
-
-                Optional<UserSession> userSession = getSessionBySessionId(userId, sessionId);
-                List<UserSession> userSessions = new ArrayList<>();
-                userSession.ifPresent(userSessions::add);
-                params.put("sessions", userSessions);
-                params.put("eventTimestamp", System.currentTimeMillis());
-                Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
-                properties.put("flow", flow);
-                properties.put("params", params);
-                Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
-                eventService.handleEvent(event);
-            } catch (UserSessionException | IdentityEventException e) {
-                throw new RuntimeException(e);
-            }
+            Optional<UserSession> userSession = getSessionBySessionId(userId, sessionId);
+            List<UserSession> userSessions = new ArrayList<>();
+            userSession.ifPresent(userSessions::add);
+            publishUserSessionTerminateEventByUserId(userId, userSessions);
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
@@ -545,28 +525,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     "domain: " + user.getUserStoreDomain() + ".");
         }
         // Publish the event for user session termination.
-        try {
-            Map<String, Object> properties = new HashMap<>();
-            Map<String, Object> params = new HashMap<>();
-
-            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
-
-            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
-            params.put("user", authenticatedUser);
-
-            List<UserSession> userSessions = getSessionsByUserId(authenticatedUser.getUserId());
-            params.put("sessions", userSessions);
-            params.put("eventTimestamp", System.currentTimeMillis());
-            Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
-            properties.put("flow", flow);
-            properties.put("params", params);
-            Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
-            eventService.handleEvent(event);
-        } catch (IdentityEventException e) {
-            throw new RuntimeException(e);
-        } catch (UserIdNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        publishUserSessionTerminateEventByUser(user);
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -590,30 +549,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
-            try {
-                Map<String, Object> properties = new HashMap<>();
-                Map<String, Object> params = new HashMap<>();
 
-                IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
-
-                AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
-                params.put("user", authenticatedUser);
-
-                Optional<UserSession> userSession = getSessionBySessionId(authenticatedUser.getUserId(), sessionId);
-                List<UserSession> userSessions = new ArrayList<>();
-                userSession.ifPresent(userSessions::add);
-                params.put("sessions", userSessions);
-                params.put("eventTimestamp", System.currentTimeMillis());
-                Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
-                properties.put("flow", flow);
-                properties.put("params", params);
-                Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
-                eventService.handleEvent(event);
-            } catch (IdentityEventException e) {
-                throw new RuntimeException(e);
-            } catch (UserIdNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+            publishUserSessionTerminateEventByUser(user);
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);

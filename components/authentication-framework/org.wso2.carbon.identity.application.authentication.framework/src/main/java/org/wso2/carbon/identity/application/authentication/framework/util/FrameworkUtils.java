@@ -108,6 +108,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -129,6 +130,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -2276,6 +2279,27 @@ public class FrameworkUtils {
 
         String queryString = StringUtils.join(queryParam1, "&");
         return appendQueryParamsStringToUrl(url, queryString);
+    }
+
+    public static void publishUserSessionTerminateEvent(AuthenticatedUser user, List<UserSession> userSessions) {
+
+        try {
+            Map<String, Object> properties = new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
+
+            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+
+            params.put("user", user);
+            params.put("sessions", userSessions);
+            params.put("eventTimestamp", System.currentTimeMillis());
+            Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+            properties.put("flow", flow);
+            properties.put("params", params);
+            Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
+            eventService.handleEvent(event);
+        } catch (IdentityEventException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void publishSessionEvent(String sessionId, HttpServletRequest request,

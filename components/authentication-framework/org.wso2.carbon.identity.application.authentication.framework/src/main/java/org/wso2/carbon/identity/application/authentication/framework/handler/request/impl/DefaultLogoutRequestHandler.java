@@ -26,7 +26,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
-import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -43,7 +42,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -409,28 +407,17 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     .initiatingPersona(Flow.InitiatingPersona.USER)
                     .build();
             IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+
             try {
-                Map<String, Object> properties = new HashMap<>();
-                Map<String, Object> params = new HashMap<>();
-
-                IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
-
-                params.put(FrameworkConstants.AnalyticsAttributes.USER, authenticatedUser);
-
                 Optional<UserSession> userSession = FrameworkServiceDataHolder.getInstance()
                         .getUserSessionManagementService()
                         .getSessionBySessionId(authenticatedUser.getUserId(),
-                        context.getSessionIdentifier());
+                                context.getSessionIdentifier());
                 List<UserSession> userSessions = new ArrayList<>();
                 userSession.ifPresent(userSessions::add);
-                params.put("sessions", userSessions);
-                params.put("eventTimestamp", System.currentTimeMillis());
-                properties.put("flow", flow);
-                properties.put(IdentityEventConstants.EventProperty.PARAMS, params);
-                Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
-                eventService.handleEvent(event);
-            } catch (IdentityEventException | UserIdNotFoundException | SessionManagementException e) {
-                throw new RuntimeException(e);
+                FrameworkUtils.publishUserSessionTerminateEvent(authenticatedUser, userSessions);
+            } catch (UserIdNotFoundException | SessionManagementException e) {
+                throw new FrameworkException("Error while getting user session.", e);
             }
             // Publish the session terminate event.
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
