@@ -2148,7 +2148,7 @@
         <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)</httpcomponents-httpclient.imp.pkg.version.range>
         <orbit.version.commons.lang>2.6.0.wso2v1</orbit.version.commons.lang>
-        <org.wso2.securevault.version>1.1.10</org.wso2.securevault.version>
+        <org.wso2.securevault.version>1.1.12</org.wso2.securevault.version>
         <org.wso2.securevault.import.version.range>[1.1.0, 2.0.0)</org.wso2.securevault.import.version.range>
         <hector-core.wso2.version>1.1.4.wso2v1</hector-core.wso2.version>
         <hector-core.imp.pkg.version.range>[1.1.4.wso2v1,2.0.0)</hector-core.imp.pkg.version.range>
