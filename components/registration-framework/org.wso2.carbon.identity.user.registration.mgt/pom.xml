@@ -49,6 +49,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.ops4j.pax.logging</groupId>
             <artifactId>pax-logging-api</artifactId>
         </dependency>
