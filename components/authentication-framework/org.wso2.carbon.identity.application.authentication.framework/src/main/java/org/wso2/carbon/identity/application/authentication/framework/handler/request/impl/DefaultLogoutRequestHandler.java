@@ -424,7 +424,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 params.put("sessions", userSessions);
                 params.put("eventTimestamp", System.currentTimeMillis());
                 properties.put("flow", flow);
-                properties.put("params", params);
+                properties.put(IdentityEventConstants.EventProperty.PARAMS, params);
                 Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
                 eventService.handleEvent(event);
             } catch (IdentityEventException | UserIdNotFoundException | SessionManagementException e) {
