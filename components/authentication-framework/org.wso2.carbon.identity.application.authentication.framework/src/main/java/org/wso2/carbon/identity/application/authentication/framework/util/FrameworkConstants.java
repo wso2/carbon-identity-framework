@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 /**
- * Constants used in Application Authenticators Framework
+ * Constants used in Application Authenticators Framework.
  */
 public abstract class FrameworkConstants {
 

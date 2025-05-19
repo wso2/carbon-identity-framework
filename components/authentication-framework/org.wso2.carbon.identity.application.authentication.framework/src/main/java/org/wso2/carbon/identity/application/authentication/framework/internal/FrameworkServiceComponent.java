@@ -204,8 +204,10 @@ public class FrameworkServiceComponent {
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
 
+        UserSessionManagementService userSessionManagementService = new UserSessionManagementServiceImpl();
         bundleContext.registerService(UserSessionManagementService.class.getName(),
-                new UserSessionManagementServiceImpl(), null);
+                userSessionManagementService, null);
+        dataHolder.setUserSessionManagementService(userSessionManagementService);
         bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
                 new SessionExtenderRequestFactory(), null);
         bundleContext.registerService(HttpIdentityResponseFactory.class.getName(),
