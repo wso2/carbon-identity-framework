@@ -91,14 +91,11 @@ public class UserOnboardingExecutor implements Executor {
             String userStoreDomainName = resolveUserStoreDomain(user.getUsername());
             UserStoreManager userStoreManager = getUserStoreManager(context.getTenantDomain(), userStoreDomainName,
                                                                     context.getContextIdentifier());
-//            userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
-//                                     String.valueOf(password), null, userClaims, null);
-//            String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
-//            context.setUserId(userid);
-//            return new ExecutorResponse(STATUS_USER_CREATED);
-            userStoreManager.updateCredentialByAdmin(
-                    IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName), password);
-            return new ExecutorResponse(STATUS_COMPLETE);
+            userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
+                                     String.valueOf(password), null, userClaims, null);
+            String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
+            context.setUserId(userid);
+            return new ExecutorResponse(STATUS_USER_CREATED);
         } catch (UserStoreException e) {
             if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
                 throw handleClientException(ERROR_CODE_USERNAME_ALREADY_EXISTS, context.getTenantDomain());

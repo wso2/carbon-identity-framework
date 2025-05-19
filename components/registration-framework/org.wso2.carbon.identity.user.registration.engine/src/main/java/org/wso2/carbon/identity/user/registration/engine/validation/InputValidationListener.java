@@ -18,10 +18,17 @@
 
 package org.wso2.carbon.identity.user.registration.engine.validation;
 
+import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.listener.AbstractFlowExecutionListener;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
+import org.wso2.carbon.identity.user.registration.mgt.Constants;
+import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
+
+import static org.wso2.carbon.identity.user.registration.engine.Constants.IS_INITIATE_REQUEST;
 
 /**
  * Listener to handle input validation.
@@ -47,27 +54,57 @@ public class InputValidationListener extends AbstractFlowExecutionListener {
     }
 
     @Override
-    public boolean doPostInitiate(RegistrationStep step, RegistrationContext registrationContext)
+    public boolean doPreExecute(RegistrationContext registrationContext)
             throws RegistrationEngineException {
 
-        InputValidationService.getInstance().handleStepInputs(step.getData(), registrationContext);
+        DataDTO dataDTO = null;
+        boolean isInitiate = Boolean.parseBoolean(String.valueOf(registrationContext.getProperty(IS_INITIATE_REQUEST)));
+        if(MapUtils.isNotEmpty(registrationContext.getUserInputData())) {
+            if (isInitiate) {
+                RegistrationGraphConfig registrationGraphConfig = registrationContext.getRegGraph();
+                NodeConfig currentNode = registrationGraphConfig.getNodeConfigs().get(registrationGraphConfig.getFirstNodeId());
+                dataDTO = registrationContext.getRegGraph().getNodePageMappings().get(currentNode.getId()).getData();
+
+                registrationContext.setCurrentNode(currentNode);
+
+                // If the current node is Prompt node then there is nothing to execute
+                // hence assigning next node as the current node.
+                if (Constants.NodeTypes.PROMPT_ONLY.equalsIgnoreCase(currentNode.getType())) {
+                    if (currentNode.getEdges() != null && !currentNode.getEdges().isEmpty()) {
+                        currentNode.setNextNodeId(currentNode.getEdges().get(0).getTargetNodeId());
+                    }
+                    currentNode = moveToNextNode(registrationGraphConfig, currentNode);
+                }
+                registrationContext.setCurrentNode(currentNode);
+                InputValidationService.getInstance().prepareStepInputs(dataDTO, registrationContext);
+            }
+            InputValidationService.getInstance().validateInputs(registrationContext);
+            InputValidationService.getInstance().handleUserInputs(registrationContext);
+        }
         return true;
     }
 
-    @Override
-    public boolean doPreContinue(RegistrationContext registrationContext)
-            throws RegistrationEngineException {
+    /**
+     * Set the current node as the previous node of the next node and return the next node.
+     *
+     * @param currentNode Current node.
+     * @return Next node.
+     */
+    private NodeConfig moveToNextNode(RegistrationGraphConfig regConfig, NodeConfig currentNode) {
 
-        InputValidationService.getInstance().validateInputs(registrationContext);
-        InputValidationService.getInstance().handleUserInputs(registrationContext);
-        return true;
+        String nextNodeId = currentNode.getNextNodeId();
+        NodeConfig nextNode = regConfig.getNodeConfigs().get(nextNodeId);
+        if (nextNode != null) {
+            nextNode.setPreviousNodeId(currentNode.getId());
+        }
+        return nextNode;
     }
 
     @Override
-    public boolean doPostContinue(RegistrationStep step, RegistrationContext registrationContext)
+    public boolean doPostExecute(RegistrationStep step, RegistrationContext registrationContext)
             throws RegistrationEngineException {
 
-        InputValidationService.getInstance().handleStepInputs(step.getData(), registrationContext);
+        InputValidationService.getInstance().prepareStepInputs(step.getData(), registrationContext);
         InputValidationService.getInstance().clearUserInputs(registrationContext);
         return true;
     }

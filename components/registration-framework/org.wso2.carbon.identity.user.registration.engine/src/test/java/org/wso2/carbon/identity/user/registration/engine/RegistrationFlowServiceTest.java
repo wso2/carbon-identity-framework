@@ -79,9 +79,8 @@ public class RegistrationFlowServiceTest {
             utilsMockedStatic.when(
                             () -> RegistrationFlowEngineUtils.initiateContext(anyString(), anyString(), anyString()))
                     .thenThrow(new RegistrationEngineException("Failed"));
-            UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN,
-                                                                                      TEST_APPLICATION_ID,
-                                                                                      TEST_CALLBACK_URL);
+            UserRegistrationFlowService.getInstance().handleRegistration(TENANT_DOMAIN,
+                    TEST_APPLICATION_ID, TEST_CALLBACK_URL,null, null, null);
         }
     }
 
@@ -96,9 +95,8 @@ public class RegistrationFlowServiceTest {
                     .thenReturn(testRegContext);
             engineMockedStatic.when(RegistrationFlowEngine::getInstance).thenReturn(engineMock);
             when(engineMock.execute(testRegContext)).thenThrow(RegistrationEngineException.class);
-            UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN,
-                                                                                      TEST_APPLICATION_ID,
-                                                                                      TEST_CALLBACK_URL);
+            UserRegistrationFlowService.getInstance().handleRegistration(TENANT_DOMAIN,
+                    TEST_APPLICATION_ID, TEST_CALLBACK_URL, null, null, null);
         }
     }
 
@@ -124,7 +122,8 @@ public class RegistrationFlowServiceTest {
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
             RegistrationStep returnedStep =
                     UserRegistrationFlowService.getInstance()
-                            .initiateDefaultRegistrationFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL);
+                            .handleRegistration(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL, null,
+                                    null, null);
             assertEquals(returnedStep, expectedStep);
         }
     }
@@ -152,7 +151,8 @@ public class RegistrationFlowServiceTest {
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
 
             UserRegistrationFlowService service = UserRegistrationFlowService.getInstance();
-            RegistrationStep result = service.continueFlow(flowId, null, new HashMap<>());
+            RegistrationStep result = service.handleRegistration(null, null, null,
+                    flowId, null, new HashMap<>());
 
             assertEquals(result, expectedStep);
             utilsMockedStatic.verify(() -> RegistrationFlowEngineUtils.addRegContextToCache(testRegContext));
@@ -180,7 +180,8 @@ public class RegistrationFlowServiceTest {
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
 
             UserRegistrationFlowService service = UserRegistrationFlowService.getInstance();
-            RegistrationStep result = service.continueFlow(flowId, null, new HashMap<>());
+            RegistrationStep result = service.handleRegistration(null, null, null,
+                    flowId, null, new HashMap<>());
 
             assertEquals(result, expectedStep);
             utilsMockedStatic.verify(() -> RegistrationFlowEngineUtils.removeRegContextFromCache(flowId));
@@ -198,7 +199,8 @@ public class RegistrationFlowServiceTest {
         ) {
             utilsMockedStatic.when(() -> RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId))
                     .thenThrow(new RegistrationEngineException("Failed"));
-            UserRegistrationFlowService.getInstance().continueFlow(flowId, "actionId", inputMap);
+            UserRegistrationFlowService.getInstance().handleRegistration(null, null, null,
+                    flowId, "actionId", inputMap);
         }
     }
 }
