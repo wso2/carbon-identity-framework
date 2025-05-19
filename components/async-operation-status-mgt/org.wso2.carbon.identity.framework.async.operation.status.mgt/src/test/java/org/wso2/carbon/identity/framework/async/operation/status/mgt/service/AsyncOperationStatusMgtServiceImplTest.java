@@ -47,7 +47,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -135,7 +134,7 @@ public class AsyncOperationStatusMgtServiceImplTest {
         };
     }
 
-    @Test(dataProvider = "operationStatusProvider")
+    @Test(dataProvider = "operationStatusProvider", priority = 1)
     public void testRegisterOperationStatusWithoutUpdate(String tenantDomain, List<OperationInitDTO> operations,
                                                          int expectedOperationCount)
             throws AsyncOperationStatusMgtException, OrganizationManagementException {
@@ -164,7 +163,7 @@ public class AsyncOperationStatusMgtServiceImplTest {
         };
     }
 
-    @Test(dataProvider = "operationStatusWithUpdateProvider", priority = 1)
+    @Test(dataProvider = "operationStatusWithUpdateProvider", priority = 2)
     public void testRegisterOperationStatusWithUpdate(String tenantDomain, List<OperationInitDTO> operations,
                                                       boolean isUpdate, int expectedSize)
             throws AsyncOperationStatusMgtException, OrganizationManagementException {
@@ -184,17 +183,16 @@ public class AsyncOperationStatusMgtServiceImplTest {
 
         return new Object[][]{
                 // after, before, limit, expectedCount
-                {StringUtils.EMPTY, getStartOfCurrentYearBase64(), 100, 10},
-                {StringUtils.EMPTY, getStartOfCurrentYearBase64(), 100000, 10},
-                {getStartOfNextYearBase64(), StringUtils.EMPTY, 100, 10},
-                {getStartOfNextYearBase64(), getStartOfCurrentYearBase64(), 100, 10},
+                {stringToBase64("0"), stringToBase64("0"), 100, 10},
+                {stringToBase64("0"), StringUtils.EMPTY, 100, 0},
+                {StringUtils.EMPTY, stringToBase64("2"), 100, 10},
                 {StringUtils.EMPTY, StringUtils.EMPTY, 100, 10},
                 {StringUtils.EMPTY, StringUtils.EMPTY, 5, 5},
-                {StringUtils.EMPTY, StringUtils.EMPTY, 0, 0}
+                {StringUtils.EMPTY, StringUtils.EMPTY, 5000, 10}
         };
     }
 
-    @Test(dataProvider = "paginationTestDataProvider", priority = 2)
+    @Test(dataProvider = "paginationTestDataProvider", priority = 0)
     public void testPagination(String after, String before, Integer limit, int expectedCount)
             throws AsyncOperationStatusMgtException, OrganizationManagementException {
 
@@ -208,7 +206,7 @@ public class AsyncOperationStatusMgtServiceImplTest {
 
         List<OperationResponseDTO> operations = service.getOperations(TENANT_DOMAIN_1, after, before, limit,
                 StringUtils.EMPTY);
-        assertEquals(operations.size(), expectedCount);
+        assertEquals(expectedCount, operations.size());
     }
 
     @DataProvider(name = "filteringTestDataWithOperations")
@@ -232,6 +230,7 @@ public class AsyncOperationStatusMgtServiceImplTest {
                 { ops, "operationType EQ " + TYPE_USER_SHARE + " OR operationType EQ " + TYPE_USER_BULK_IMPORT, 2 },
                 { ops, "operationType SW B2B", 3 },
                 { ops, "subjectId NE " + SUBJECT_ID_4, 4 },
+                { ops, "subjectType CO " + SUBJECT_TYPE_USER, 4}
         };
     }
 
@@ -503,34 +502,14 @@ public class AsyncOperationStatusMgtServiceImplTest {
         }
     }
 
-    private String getStartOfCurrentYearBase64() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.MONTH, Calendar.JANUARY);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
+    private String stringToBase64(String input) {
 
-        Timestamp timestamp = new Timestamp(calendar.getTimeInMillis());
-        return Base64.getEncoder().encodeToString(timestamp.toString().getBytes());
-    }
-
-    private String getStartOfNextYearBase64() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.MONTH, Calendar.JANUARY);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        calendar.add(Calendar.YEAR, 1);
-
-        Timestamp timestamp = new Timestamp(calendar.getTimeInMillis());
-        return Base64.getEncoder().encodeToString(timestamp.toString().getBytes());
+        byte[] byteArray = input.getBytes();
+        return Base64.getEncoder().encodeToString(byteArray);
     }
 
     private void cleanUpDB() throws Exception {
+
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate("DELETE FROM IDN_ASYNC_OPERATION_STATUS");
