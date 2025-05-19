@@ -47,6 +47,7 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
 
     private static final String USER_SESSION_MAPPING_ENABLED =
             "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+    static final String ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT = "Error while setting flow in the context.";
 
     @Override
     public int getExecutionOrderId() {
@@ -82,7 +83,7 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
         try {
             IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
         } catch (IllegalStateException e) {
-            log.error("Error while setting flow in the context.", e);
+            log.error(ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT, e);
         }
         terminateSessionsOfUser(username, userStoreManager);
 
@@ -110,7 +111,7 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
         try {
             IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
         } catch (IllegalStateException e) {
-            log.error("Error while setting flow in the context.", e);
+            log.error(ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT, e);
         }
         terminateSessionsOfUser(username, userStoreManager);
         return true;
@@ -142,7 +143,7 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
                 try {
                     IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
                 } catch (IllegalStateException e) {
-                    log.error("Error while setting flow in the context.", e);
+                    log.error(ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT, e);
                 }
             } else {
                 Flow flow = new Flow.Builder()
@@ -152,7 +153,7 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
                 try {
                     IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
                 } catch (IllegalStateException e) {
-                    log.error("Error while setting flow in the context.", e);
+                    log.error(ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT, e);
                 }
 
             }

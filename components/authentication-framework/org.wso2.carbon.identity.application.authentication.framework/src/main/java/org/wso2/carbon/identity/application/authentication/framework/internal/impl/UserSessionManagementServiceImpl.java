@@ -377,7 +377,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_SESSION, null);
         }
         if (log.isDebugEnabled()) {
-            log.debug("Retrieving session: " + sessionId + " of user: " + userId + ".");
+            log.debug("Retrieving the session.");
         }
 
         Optional<UserSession> userSession;
