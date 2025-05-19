@@ -2280,7 +2280,7 @@ public class FrameworkUtils {
 
     public static void publishSessionEvent(String sessionId, HttpServletRequest request,
             AuthenticationContext context, SessionContext sessionContext, AuthenticatedUser user, String status) {
-        publishSessionEvent(sessionId, request, context, sessionContext, user, status, null);
+        publishSessionEvent(sessionId, request, context, sessionContext, user, status, Collections.emptyList());
     }
 
     public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
@@ -2294,7 +2294,7 @@ public class FrameworkUtils {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
-            paramMap.put("applications", applications);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.APPLICATIONS, applications);
 
             String isPublishingSessionCountEnabledValue = IdentityUtil.getProperty(FrameworkConstants.Config
                     .PUBLISH_ACTIVE_SESSION_COUNT);

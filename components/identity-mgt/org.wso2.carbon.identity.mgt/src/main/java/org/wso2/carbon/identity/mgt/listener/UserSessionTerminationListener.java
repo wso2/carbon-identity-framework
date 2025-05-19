@@ -132,6 +132,8 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
             if (log.isDebugEnabled()) {
                 log.debug("Terminating all the active sessions of the user: " + username);
             }
+            // TODO: Change Flow to be able to stack
+            // This does not work as expected, because the flow is set to the last one
             if (isAccountLocked(claims)) {
                 Flow flow = new Flow.Builder()
                         .name(Flow.Name.ACCOUNT_LOCK)

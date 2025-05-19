@@ -414,7 +414,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
                 IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
 
-                params.put("user", authenticatedUser);
+                params.put(FrameworkConstants.AnalyticsAttributes.USER, authenticatedUser);
 
                 Optional<UserSession> userSession = new UserSessionManagementServiceImpl().
                         getSessionBySessionId(authenticatedUser.getUserId(),
@@ -430,7 +430,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             } catch (IdentityEventException | UserIdNotFoundException | SessionManagementException e) {
                 throw new RuntimeException(e);
             }
-//            FrameworkUtils.publishUserSessionTerminateEvent(context.getSessionIdentifier(), authenticatedUser);
             // Publish the session terminate event.
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
                     sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
