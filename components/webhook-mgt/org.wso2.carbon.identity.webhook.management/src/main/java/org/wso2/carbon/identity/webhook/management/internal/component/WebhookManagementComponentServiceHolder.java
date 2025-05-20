@@ -65,10 +65,8 @@ public class WebhookManagementComponentServiceHolder {
      */
     public void addEventSubscriber(EventSubscriber eventSubscriber) {
 
-        if (eventSubscriber != null) {
-            LOG.info("Adding webhook subscriber: " + eventSubscriber.getName());
-            eventSubscribers.add(eventSubscriber);
-        }
+        LOG.info("Adding webhook subscriber: " + eventSubscriber.getName());
+        eventSubscribers.add(eventSubscriber);
     }
 
     /**
@@ -78,10 +76,8 @@ public class WebhookManagementComponentServiceHolder {
      */
     public void removeEventSubscriber(EventSubscriber eventSubscriber) {
 
-        if (eventSubscriber != null) {
-            LOG.info("Removing event subscriber: " + eventSubscriber.getName());
-            eventSubscribers.remove(eventSubscriber);
-        }
+        LOG.info("Removing event subscriber: " + eventSubscriber.getName());
+        eventSubscribers.remove(eventSubscriber);
     }
 
     /**

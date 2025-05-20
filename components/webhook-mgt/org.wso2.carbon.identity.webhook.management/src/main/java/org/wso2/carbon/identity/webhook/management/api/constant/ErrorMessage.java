@@ -68,10 +68,14 @@ public enum ErrorMessage {
             "An internal server error occurred while testing the webhook."),
     ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR("65012", "Error occurred while updating webhook status",
             "An internal server error occurred while updating the webhook: %s status."),
-    ERROR_CODE_DATABASE_ERROR("65013", "Database error occurred",
-            "An error occurred while accessing the database."),
     ERROR_CODE_UNEXPECTED_ERROR("65014", "Unexpected error occurred",
-            "An unexpected error occurred while processing the request.");
+            "An unexpected error occurred while processing the request."),
+    ERROR_CODE_WEBHOOK_SUBSCRIPTION_ERROR("65015", "Webhook subscription error",
+            "An error occurred while subscribing to the webhook: %s."),
+    ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR("65016", "Webhook unsubscription error",
+            "An error occurred while unsubscribing from the webhook: %s."),
+    ERROR_CODE_WEBHOOK_SUBSCRIBERS_NOT_FOUND("65017", "Webhook subscribers not found",
+            "No webhook subscribers found in the system for tenant: %s.");
 
     private final String code;
     private final String message;

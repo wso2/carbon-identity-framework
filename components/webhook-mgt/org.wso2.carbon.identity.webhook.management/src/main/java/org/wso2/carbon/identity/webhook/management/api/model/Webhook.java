@@ -35,7 +35,7 @@ public class Webhook {
     private int tenantId;
     private String eventSchemaName;
     private String eventSchemaUri;
-    private WebhookStatus status; // Changed from String to WebhookStatus enum
+    private WebhookStatus status;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private List<String> eventsSubscribed = new ArrayList<>();
@@ -218,23 +218,6 @@ public class Webhook {
     public void setStatus(WebhookStatus status) {
 
         this.status = status;
-    }
-
-    /**
-     * Set webhook status from string.
-     *
-     * @param statusString Status string.
-     */
-    public void setStatus(String statusString) {
-
-        if (statusString != null) {
-            try {
-                this.status = WebhookStatus.valueOf(statusString);
-            } catch (IllegalArgumentException e) {
-                // Default to INACTIVE if invalid status
-                this.status = WebhookStatus.INACTIVE;
-            }
-        }
     }
 
     /**

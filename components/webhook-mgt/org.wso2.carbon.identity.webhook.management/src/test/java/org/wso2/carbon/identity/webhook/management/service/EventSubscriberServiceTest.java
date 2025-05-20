@@ -38,8 +38,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 
 public class EventSubscriberServiceTest {
 
@@ -90,21 +88,18 @@ public class EventSubscriberServiceTest {
         when(subscriber2.subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
                 true);
 
-        boolean result = eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
+        eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
 
-        assertTrue(result);
         verify(subscriber1).subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
         verify(subscriber2).subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
     }
 
-    @Test
+    @Test(expectedExceptions = WebhookMgtException.class)
     public void testSubscribeWithNoSubscribers() throws WebhookMgtException {
 
         when(mockedHolder.getEventSubscribers()).thenReturn(new ArrayList<>());
 
-        boolean result = eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
-
-        assertFalse(result);
+        eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
     }
 
     @Test
@@ -117,9 +112,8 @@ public class EventSubscriberServiceTest {
         when(subscriber2.subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
                 false);
 
-        boolean result = eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
+        eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
 
-        assertFalse(result);
         verify(subscriber1).subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
         verify(subscriber2).subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
     }
@@ -145,21 +139,18 @@ public class EventSubscriberServiceTest {
         when(subscriber2.unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
                 true);
 
-        boolean result = eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
+        eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
 
-        assertTrue(result);
         verify(subscriber1).unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
         verify(subscriber2).unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
     }
 
-    @Test
+    @Test(expectedExceptions = WebhookMgtException.class)
     public void testUnsubscribeWithNoSubscribers() throws WebhookMgtException {
 
         when(mockedHolder.getEventSubscribers()).thenReturn(new ArrayList<>());
 
-        boolean result = eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
-
-        assertFalse(result);
+        eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
     }
 
     @Test
@@ -172,9 +163,8 @@ public class EventSubscriberServiceTest {
         when(subscriber2.unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
                 false);
 
-        boolean result = eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
+        eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
 
-        assertFalse(result);
         verify(subscriber1).unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
         verify(subscriber2).unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
     }

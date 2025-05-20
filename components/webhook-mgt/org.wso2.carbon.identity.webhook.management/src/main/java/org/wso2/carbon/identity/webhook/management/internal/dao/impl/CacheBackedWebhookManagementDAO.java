@@ -78,11 +78,11 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     }
 
     @Override
-    public void updateWebhook(String webhookId, Webhook webhook, int tenantId) throws WebhookMgtException {
+    public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        webhookCache.clearCacheEntry(new WebhookCacheKey(webhookId), tenantId);
-        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhookId + " for webhook update.");
-        webhookManagementDAO.updateWebhook(webhookId, webhook, tenantId);
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getUuid()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getUuid() + " for webhook update.");
+        webhookManagementDAO.updateWebhook(webhook, tenantId);
     }
 
     @Override

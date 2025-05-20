@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.webhook.management.api.service;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookDTO;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookSummaryDTO;
 
 import java.util.List;
 
@@ -53,13 +54,12 @@ public interface WebhookManagementService {
     /**
      * Update a webhook subscription.
      *
-     * @param webhookId    Webhook subscription ID.
      * @param webhook      Updated webhook subscription.
      * @param tenantDomain Tenant domain.
      * @return Updated webhook subscription.
      * @throws WebhookMgtException If an error occurs while updating the webhook subscription.
      */
-    public WebhookDTO updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException;
+    public WebhookDTO updateWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Delete a webhook subscription.
@@ -77,7 +77,7 @@ public interface WebhookManagementService {
      * @return List of webhook subscriptions.
      * @throws WebhookMgtException If an error occurs while retrieving webhook subscriptions.
      */
-    public List<WebhookDTO> getWebhooks(String tenantDomain) throws WebhookMgtException;
+    public List<WebhookSummaryDTO> getWebhooks(String tenantDomain) throws WebhookMgtException;
 
     /**
      * Enable a webhook subscription.

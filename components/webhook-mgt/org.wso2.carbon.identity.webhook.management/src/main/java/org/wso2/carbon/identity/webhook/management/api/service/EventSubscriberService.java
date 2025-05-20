@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.webhook.management.api.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
 import java.util.List;
 
@@ -40,17 +42,15 @@ public class EventSubscriberService {
      *
      * @param webhook      The webhook to subscribe.
      * @param tenantDomain Tenant domain.
-     * @return True if subscription is successful, false otherwise.
      * @throws WebhookMgtException If an error occurs during subscription.
      */
-    public boolean subscribe(Webhook webhook, String tenantDomain) throws WebhookMgtException {
+    public void subscribe(Webhook webhook, String tenantDomain) throws WebhookMgtException {
 
         List<EventSubscriber> subscribers =
                 WebhookManagementComponentServiceHolder.getInstance().getEventSubscribers();
         if (subscribers.isEmpty()) {
-            LOG.warn("No webhook subscribers registered. Webhook subscription will not be processed " +
-                    "by external systems.");
-            return false;
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIBERS_NOT_FOUND, tenantDomain);
         }
 
         for (EventSubscriber subscriber : subscribers) {
@@ -62,11 +62,10 @@ public class EventSubscriberService {
                             "Subscriber " + subscriber.getName() + " failed to subscribe webhook: " + webhook.getId());
                 }
             } catch (WebhookMgtException e) {
-                LOG.error("Error occurred while subscribing webhook: " + webhook.getId() +
-                        " with subscriber: " + subscriber.getName(), e);
+                throw WebhookManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIPTION_ERROR, webhook.getId());
             }
         }
-        return true;
     }
 
     /**
@@ -75,17 +74,15 @@ public class EventSubscriberService {
      *
      * @param webhook      The webhook to unsubscribe.
      * @param tenantDomain Tenant domain.
-     * @return True if unsubscription is successful, false otherwise.
      * @throws WebhookMgtException If an error occurs during unsubscription.
      */
-    public boolean unsubscribe(Webhook webhook, String tenantDomain) throws WebhookMgtException {
+    public void unsubscribe(Webhook webhook, String tenantDomain) throws WebhookMgtException {
 
         List<EventSubscriber> subscribers =
                 WebhookManagementComponentServiceHolder.getInstance().getEventSubscribers();
         if (subscribers.isEmpty()) {
-            LOG.warn("No webhook subscribers registered. Webhook unsubscription will not be processed " +
-                    "by external systems.");
-            return false;
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIBERS_NOT_FOUND, tenantDomain);
         }
         for (EventSubscriber subscriber : subscribers) {
             try {
@@ -96,10 +93,9 @@ public class EventSubscriberService {
                             webhook.getId());
                 }
             } catch (WebhookMgtException e) {
-                LOG.error("Error occurred while unsubscribing webhook: " + webhook.getId() +
-                        " from subscriber: " + subscriber.getName(), e);
+                throw WebhookManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, webhook.getId());
             }
         }
-        return true;
     }
 }

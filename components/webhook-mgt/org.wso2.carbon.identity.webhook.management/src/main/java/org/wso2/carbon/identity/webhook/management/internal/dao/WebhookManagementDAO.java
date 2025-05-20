@@ -50,12 +50,11 @@ public interface WebhookManagementDAO {
     /**
      * Update a webhook subscription in the database.
      *
-     * @param webhookId Webhook subscription ID.
-     * @param webhook   Updated webhook subscription.
-     * @param tenantId  Tenant ID.
+     * @param webhook  Updated webhook subscription.
+     * @param tenantId Tenant ID.
      * @throws WebhookMgtException If an error occurs while updating the webhook subscription.
      */
-    public void updateWebhook(String webhookId, Webhook webhook, int tenantId) throws WebhookMgtException;
+    public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
 
     /**
      * Delete a webhook subscription from the database.

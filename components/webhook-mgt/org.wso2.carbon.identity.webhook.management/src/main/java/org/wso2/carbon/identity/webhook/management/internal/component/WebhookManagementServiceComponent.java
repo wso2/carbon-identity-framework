@@ -56,13 +56,11 @@ public class WebhookManagementServiceComponent {
         try {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(WebhookManagementService.class.getName(),
-                    new WebhookManagementServiceImpl(), null);
+                    WebhookManagementServiceImpl.getInstance(), null);
             WebhookManagementComponentServiceHolder.getInstance().setEventSubscriberService(
                     new EventSubscriberService());
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("WebhookManagementService is activated");
-            }
+            LOG.debug("WebhookManagementService is activated");
         } catch (Throwable e) {
             LOG.error("Error while activating WebhookManagementService", e);
         }
@@ -77,9 +75,7 @@ public class WebhookManagementServiceComponent {
     protected void deactivate(ComponentContext context) {
 
         try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("WebhookManagementService is deactivated");
-            }
+            LOG.debug("WebhookManagementService is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating WebhookManagementService", e);
         }
@@ -112,9 +108,7 @@ public class WebhookManagementServiceComponent {
      */
     protected void unregisterSubscriber(EventSubscriber subscriber) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering event subscriber: " + subscriber.getName());
-        }
+        LOG.debug("Unregistering event subscriber: " + subscriber.getName());
         WebhookManagementComponentServiceHolder.getInstance().removeEventSubscriber(subscriber);
     }
 }

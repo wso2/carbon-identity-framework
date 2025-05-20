@@ -30,8 +30,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.webhook.management</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Webhook Management</name>
-    <description>A custom wso2 product for webhook management functionality.</description>
+    <name>WSO2 Identity - Webhook Management Component</name>
+    <description>The Webhook Management service component</description>
     <url>http://wso2.org</url>
 
     <dependencies>
