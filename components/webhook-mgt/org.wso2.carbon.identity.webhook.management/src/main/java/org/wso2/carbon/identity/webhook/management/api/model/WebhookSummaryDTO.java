@@ -94,6 +94,9 @@ public class WebhookSummaryDTO {
         return status != null ? status.name() : null;
     }
 
+    /**
+     * Builder class for WebhookSummaryDTO.
+     */
     public static class Builder {
 
         private String id;

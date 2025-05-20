@@ -28,12 +28,10 @@ import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.constant.WebhookSQLConstants;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Implementation of WebhookManagementDAO interface.
- * This class is used to perform CRUD operations on Webhook in the database.
- */
 public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
     private static final String WEBHOOK_SCHEMA_VERSION = "v1";
@@ -96,21 +94,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         try {
             return jdbcTemplate.withTransaction(template -> {
                 Webhook webhook = template.fetchSingleRecord(WebhookSQLConstants.Query.GET_WEBHOOK_BY_ID,
-                        (resultSet, rowNumber) -> {
-                            Webhook wh = new Webhook();
-                            wh.setId(resultSet.getString(WebhookSQLConstants.Column.ID));
-                            wh.setUuid(resultSet.getString(WebhookSQLConstants.Column.UUID));
-                            wh.setEndpoint(resultSet.getString(WebhookSQLConstants.Column.ENDPOINT));
-                            wh.setDescription(resultSet.getString(WebhookSQLConstants.Column.DESCRIPTION));
-                            wh.setSecret(resultSet.getString(WebhookSQLConstants.Column.SECRET));
-                            wh.setEventSchemaName(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME));
-                            wh.setEventSchemaUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI));
-                            wh.setStatus(WebhookStatus.valueOf(resultSet.getString(WebhookSQLConstants.Column.STATUS)));
-                            wh.setTenantId(resultSet.getInt(WebhookSQLConstants.Column.TENANT_ID));
-                            wh.setCreatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.CREATED_AT));
-                            wh.setUpdatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.UPDATED_AT));
-                            return wh;
-                        },
+                        (resultSet, rowNumber) -> mapResultSetToWebhook(resultSet),
                         statement -> {
                             statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
                             statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
@@ -135,26 +119,10 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            return jdbcTemplate.withTransaction(template -> {
-                return template.executeQuery(WebhookSQLConstants.Query.GET_WEBHOOKS_BY_TENANT,
-                        (resultSet, rowNumber) -> {
-                            Webhook wh = new Webhook();
-                            wh.setId(resultSet.getString(WebhookSQLConstants.Column.ID));
-                            wh.setUuid(resultSet.getString(WebhookSQLConstants.Column.UUID));
-                            wh.setEndpoint(resultSet.getString(WebhookSQLConstants.Column.ENDPOINT));
-                            wh.setDescription(resultSet.getString(WebhookSQLConstants.Column.DESCRIPTION));
-                            wh.setSecret(resultSet.getString(WebhookSQLConstants.Column.SECRET));
-                            wh.setEventSchemaName(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME));
-                            wh.setEventSchemaUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI));
-                            wh.setStatus(WebhookStatus.valueOf(resultSet.getString(WebhookSQLConstants.Column.STATUS)));
-                            wh.setTenantId(resultSet.getInt(WebhookSQLConstants.Column.TENANT_ID));
-                            wh.setCreatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.CREATED_AT));
-                            wh.setUpdatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.UPDATED_AT));
-                            return wh;
-                        },
-                        statement -> statement.setInt(WebhookSQLConstants.Column.TENANT_ID,
-                                tenantId));
-            });
+            return jdbcTemplate.withTransaction(
+                    template -> template.executeQuery(WebhookSQLConstants.Query.GET_WEBHOOKS_BY_TENANT,
+                            (resultSet, rowNumber) -> mapResultSetToWebhook(resultSet),
+                            statement -> statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId)));
         } catch (TransactionException e) {
             throw new WebhookMgtServerException("Error while retrieving webhooks from the system.", e);
         }
@@ -192,6 +160,23 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
     // --- Private helper methods ---
 
+    private Webhook mapResultSetToWebhook(ResultSet resultSet) throws SQLException {
+
+        Webhook wh = new Webhook();
+        wh.setId(resultSet.getString(WebhookSQLConstants.Column.ID));
+        wh.setUuid(resultSet.getString(WebhookSQLConstants.Column.UUID));
+        wh.setEndpoint(resultSet.getString(WebhookSQLConstants.Column.ENDPOINT));
+        wh.setDescription(resultSet.getString(WebhookSQLConstants.Column.DESCRIPTION));
+        wh.setSecret(resultSet.getString(WebhookSQLConstants.Column.SECRET));
+        wh.setEventSchemaName(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME));
+        wh.setEventSchemaUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI));
+        wh.setStatus(WebhookStatus.valueOf(resultSet.getString(WebhookSQLConstants.Column.STATUS)));
+        wh.setTenantId(resultSet.getInt(WebhookSQLConstants.Column.TENANT_ID));
+        wh.setCreatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.CREATED_AT));
+        wh.setUpdatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.UPDATED_AT));
+        return wh;
+    }
+
     private int addWebhookToDB(Webhook webhook, int tenantId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -214,8 +199,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         }, webhook, true));
     }
 
-    private void updateWebhookInDB(Webhook webhook, int tenantId)
-            throws TransactionException {
+    private void updateWebhookInDB(Webhook webhook, int tenantId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template -> {
@@ -236,8 +220,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         });
     }
 
-    private int getInternalWebhookIdByUuid(String uuid, int tenantId)
-            throws TransactionException {
+    private int getInternalWebhookIdByUuid(String uuid, int tenantId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         return jdbcTemplate.withTransaction(template ->
@@ -249,8 +232,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         }));
     }
 
-    private void addWebhookEventsToDB(int webhookId, List<String> events)
-            throws TransactionException {
+    private void addWebhookEventsToDB(int webhookId, List<String> events) throws TransactionException {
 
         if (events == null || events.isEmpty()) {
             return;
