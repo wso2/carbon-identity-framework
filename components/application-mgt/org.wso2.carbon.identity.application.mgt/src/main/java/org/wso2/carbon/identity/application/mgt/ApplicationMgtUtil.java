@@ -125,6 +125,7 @@ public class ApplicationMgtUtil {
     private static final String DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME =
             UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME + "/" + CarbonConstants.REGISTRY_SYSTEM_USERNAME;
     private static final String BASE_URL_PLACEHOLDER = "<PROTOCOL>://<HOSTNAME>:<PORT>";
+    private static final String BASE_URL_CUSTOM_PLACEHOLDER = "<CUSTOM_PROTOCOL>://<CUSTOM_HOSTNAME>:<CUSTOM_PORT>";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -1151,7 +1152,13 @@ public class ApplicationMgtUtil {
         if (StringUtils.isEmpty(basePath)) {
             return replaceUrlOriginWithPlaceholders(absoluteUrl);
         }
-        return StringUtils.replace(absoluteUrl, basePath, BASE_URL_PLACEHOLDER);
+        absoluteUrl = StringUtils.replace(absoluteUrl, basePath, BASE_URL_PLACEHOLDER);
+
+        if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            absoluteUrl = StringUtils.replace(absoluteUrl, consoleBasePath, BASE_URL_CUSTOM_PLACEHOLDER);
+        }
+        return absoluteUrl;
     }
 
     /**
@@ -1192,7 +1199,13 @@ public class ApplicationMgtUtil {
         if (StringUtils.isEmpty(basePath)) {
             return resolveOriginUrlFromPlaceholders(absoluteUrl);
         }
-        return StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+        absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+
+        if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_CUSTOM_PLACEHOLDER, consoleBasePath);
+        }
+        return absoluteUrl;
     }
 
     /**

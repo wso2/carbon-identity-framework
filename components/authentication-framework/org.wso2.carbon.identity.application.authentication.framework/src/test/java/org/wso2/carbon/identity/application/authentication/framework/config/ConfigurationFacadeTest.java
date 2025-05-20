@@ -72,6 +72,7 @@ public class ConfigurationFacadeTest {
             carbonContextMock.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
             when(carbonContext.getApplicationName()).thenReturn(null);
             identityTenantUtilMock.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(false);
+            identityTenantUtilMock.when(IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(false);
 
             when(fileBasedConfigurationBuilder.getAuthenticationEndpointMissingClaimsURL()).
                     thenReturn(getValueFromFileBasedConfig.get());

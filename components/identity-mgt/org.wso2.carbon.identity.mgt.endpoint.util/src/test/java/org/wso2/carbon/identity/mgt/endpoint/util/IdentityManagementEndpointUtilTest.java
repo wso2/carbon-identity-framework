@@ -331,6 +331,8 @@ public class IdentityManagementEndpointUtilTest {
         prepareServiceURLBuilder(serviceURLBuilder);
         identityTenantUtil.when(
                 IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualifiedUrlsEnabled);
+        identityTenantUtil.when(
+                IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(isTenantQualifiedUrlsEnabled);
         if (isTenantQualifiedUrlsEnabled) {
             lenient().when(serviceURL.getAbsoluteInternalURL()).thenReturn(SAMPLE_TENANTED_URL + context);
         } else {
