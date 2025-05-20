@@ -37,13 +37,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.wso2.carbon.identity.workflow.mgt.util.Utils.generatePrepStmt;
+
 /**
  * Workflow related DAO operation provides by this class
  *
  */
 public class WorkflowDAO {
 
-    private final String errorMessage = "Error when executing the SQL query ";
+    private static final String errorMessage = "Error when executing the SQL query ";
     private static final Log log = LogFactory.getLog(WorkflowDAO.class);
 
     /**
@@ -464,38 +466,6 @@ public class WorkflowDAO {
             throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
         }
         return sqlQuery;
-    }
-
-    /**
-     * Create PreparedStatement.
-     *
-     * @param connection db connection
-     * @param sqlQuery SQL query
-     * @param tenantId Tenant ID
-     * @param filterResolvedForSQL resolved filter for sql
-     * @param offset offset
-     * @param limit limit
-     * @return PreparedStatement
-     * @throws SQLException
-     * @throws DataAccessException
-     */
-    private PreparedStatement generatePrepStmt(Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException, DataAccessException {
-
-        PreparedStatement prepStmt;
-        if (JdbcUtils.isPostgreSQLDB()) {
-            prepStmt = connection.prepareStatement(sqlQuery);
-            prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, filterResolvedForSQL);
-            prepStmt.setInt(3, limit);
-            prepStmt.setInt(4, offset);
-        } else {
-            prepStmt = connection.prepareStatement(sqlQuery);
-            prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, filterResolvedForSQL);
-            prepStmt.setInt(3, offset);
-            prepStmt.setInt(4, limit);
-        }
-        return prepStmt;
     }
 
     /**

@@ -295,13 +295,13 @@ public class WorkflowRequestDAO {
                     || driverName.contains("MariaDB")
                     || driverName.contains("H2")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_MYSQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_MYSQL;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_MYSQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_MYSQL;
@@ -309,41 +309,28 @@ public class WorkflowRequestDAO {
                 }
             } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_DB2SQl;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_DB2SQL;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_DB2SQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_DB2SQL;
                     }
                 }
-            } else if (driverName.contains("MS SQL")) {
+            } else if (driverName.contains("Microsoft") || driverName.contains("microsoft") ||
+                    driverName.contains("MS SQL")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_MSSQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_MSSQL;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_MSSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_MSSQL;
-                    }
-                }
-            } else if (driverName.contains("Microsoft") || driverName.contains("microsoft")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_MSSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_MSSQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_MSSQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_MSSQL;
@@ -351,7 +338,7 @@ public class WorkflowRequestDAO {
                 }
             } else if (driverName.contains("PostgreSQL")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_POSTGRESQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_POSTGRESQL;
@@ -366,13 +353,13 @@ public class WorkflowRequestDAO {
             } else if (driverName.contains("Informix")) {
                 // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_INFORMIX;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_INFORMIX;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_INFORMIX;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_INFORMIX;
@@ -381,13 +368,13 @@ public class WorkflowRequestDAO {
 
             } else {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_ORACLE;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_ORACLE;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_ORACLE;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_ORACLE;
@@ -399,7 +386,7 @@ public class WorkflowRequestDAO {
             prepStmt.setTimestamp(2, beginTime);
             prepStmt.setTimestamp(3, endTime);
             prepStmt.setInt(4, tenantId);
-            if (!status.equals(ALL_TASKS_FILTER) && !status.equals("")) {
+            if (!status.equals(ALL_TASKS_FILTER) && !status.isEmpty()) {
                 prepStmt.setString(5, status);
             }
             resultSet = prepStmt.executeQuery();
@@ -448,13 +435,13 @@ public class WorkflowRequestDAO {
                     || driverName.contains("MariaDB")
                     || driverName.contains("H2")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_MYSQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_MYSQL;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_MYSQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_MYSQL;
@@ -462,41 +449,28 @@ public class WorkflowRequestDAO {
                 }
             } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_DB2SQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_DB2SQL;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_DB2SQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_DB2SQL;
                     }
                 }
-            } else if (driverName.contains("MS SQL")) {
+            } else if (driverName.contains("Microsoft") || driverName.contains("microsoft") ||
+                    driverName.contains("MS SQL")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_MSSQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_MSSQL;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_MSSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_MSSQL;
-                    }
-                }
-            } else if (driverName.contains("Microsoft") || driverName.contains("microsoft")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_MSSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_MSSQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_MSSQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_MSSQL;
@@ -504,13 +478,13 @@ public class WorkflowRequestDAO {
                 }
             } else if (driverName.contains("PostgreSQL")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_POSTGRESQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_POSTGRESQL;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_POSTGRESQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_POSTGRESQL;
@@ -519,13 +493,13 @@ public class WorkflowRequestDAO {
             } else if (driverName.contains("Informix")) {
                 // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_INFORMIX;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_INFORMIX;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_INFORMIX;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_INFORMIX;
@@ -534,13 +508,13 @@ public class WorkflowRequestDAO {
 
             } else {
                 if (timeCategory.equals(UPDATED_AT_FILTER)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_ORACLE;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_ORACLE;
                     }
                 } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
+                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_ORACLE;
                     } else {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_ORACLE;
@@ -551,7 +525,7 @@ public class WorkflowRequestDAO {
             prepStmt.setTimestamp(1, beginTime);
             prepStmt.setTimestamp(2, endTime);
             prepStmt.setInt(3, tenant);
-            if (!status.equals(ALL_TASKS_FILTER) && !status.equals("")) {
+            if (!status.equals(ALL_TASKS_FILTER) && !status.isEmpty()) {
                 prepStmt.setString(4, status);
             }
             resultSet = prepStmt.executeQuery();

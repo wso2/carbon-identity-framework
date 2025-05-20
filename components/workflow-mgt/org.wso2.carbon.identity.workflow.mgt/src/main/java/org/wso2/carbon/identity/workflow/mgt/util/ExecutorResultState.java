@@ -23,6 +23,7 @@ package org.wso2.carbon.identity.workflow.mgt.util;
  *
  */
 public enum ExecutorResultState {
+
     STARTED_ASSOCIATION{
         @Override public boolean state() {
             return false;
