@@ -3130,6 +3130,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
 
                 int authenticatorId = stepInfoResultSet.getInt(2);
+                if (authenticatorId < 0) {
+                    continue;
+                }
                 Map<String, String> authenticatorInfo = getAuthenticatorInfo(connection, tenantId,
                         authenticatorId);
 
