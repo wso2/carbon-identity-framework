@@ -995,7 +995,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        return associations.size() > 0;
+        return !associations.isEmpty();
     }
 
     /**
