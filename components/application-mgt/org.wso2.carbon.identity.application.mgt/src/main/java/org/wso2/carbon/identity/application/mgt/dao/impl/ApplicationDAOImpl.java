@@ -3131,6 +3131,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 int authenticatorId = stepInfoResultSet.getInt(2);
                 if (authenticatorId < 0) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Skipping row with negative authenticatorId: " + authenticatorId);
+                    }
                     continue;
                 }
                 Map<String, String> authenticatorInfo = getAuthenticatorInfo(connection, tenantId,
