@@ -225,7 +225,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             AuthenticatedUser mockedAuthenticatedUser = mock(AuthenticatedUser.class);
             List<UserSession> userSessions = Collections.emptyList();
 
-            publishUserSessionTerminateEvent(mockedAuthenticatedUser, userSessions);
+            publishUserSessionTerminateEvent(mockedAuthenticatedUser, userSessions, false);
         }
         identityContextMockedStatic.close();
     }

@@ -2281,7 +2281,8 @@ public class FrameworkUtils {
         return appendQueryParamsStringToUrl(url, queryString);
     }
 
-    public static void publishUserSessionTerminateEvent(AuthenticatedUser user, List<UserSession> userSessions)
+    public static void publishUserSessionTerminateEvent(AuthenticatedUser user, List<UserSession> userSessions,
+                                                        boolean isBulkTerminate)
             throws IdentityEventException {
 
             Map<String, Object> properties = new HashMap<>();
@@ -2292,6 +2293,7 @@ public class FrameworkUtils {
             params.put("user", user);
             params.put("sessions", userSessions);
             params.put("eventTimestamp", System.currentTimeMillis());
+            params.put("isBulkTerminate", isBulkTerminate);
             Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
             properties.put("flow", flow);
             properties.put("params", params);

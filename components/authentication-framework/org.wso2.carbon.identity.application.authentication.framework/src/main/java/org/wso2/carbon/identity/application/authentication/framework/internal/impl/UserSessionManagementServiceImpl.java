@@ -326,7 +326,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         // Publish the event for user session termination.
         List<UserSession> userSessions = getSessionsByUserId(userId);
-        publishUserSessionTerminateEventByUserId(userId, userSessions);
+        publishUserSessionTerminateEventByUserId(userId, userSessions, true);
 
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
@@ -335,20 +335,21 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         return true;
     }
 
-    private void publishUserSessionTerminateEventByUser(User user) {
+    private void publishUserSessionTerminateEventByUser(User user, boolean isBulkTerminate) {
 
         try {
             AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
             List<UserSession> userSessions = getSessionsByUserId(authenticatedUser.getUserId());
 
-            publishUserSessionTerminateEvent(authenticatedUser, userSessions);
+            publishUserSessionTerminateEvent(authenticatedUser, userSessions, isBulkTerminate);
         } catch (UserIdNotFoundException | SessionManagementException | IdentityEventException e) {
             log.error("Error while publishing user session termination event for user: " +
                     user.getLoggableMaskedUserId(), e);
         }
     }
 
-    private void publishUserSessionTerminateEventByUserId(String userId, List<UserSession> userSessions) {
+    private void publishUserSessionTerminateEventByUserId(String userId, List<UserSession> userSessions,
+                                                          boolean isBulkTerminate) {
 
         try {
 
@@ -359,7 +360,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     .concat("@" + tenantDomain));
             AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
 
-            publishUserSessionTerminateEvent(authenticatedUser, userSessions);
+            publishUserSessionTerminateEvent(authenticatedUser, userSessions, isBulkTerminate);
 
         } catch (UserSessionException | IdentityEventException e) {
             log.error("Error while publishing user session termination event for userId: " + userId, e);
@@ -454,7 +455,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             Optional<UserSession> userSession = getSessionBySessionId(userId, sessionId);
             List<UserSession> userSessions = new ArrayList<>();
             userSession.ifPresent(userSessions::add);
-            publishUserSessionTerminateEventByUserId(userId, userSessions);
+            publishUserSessionTerminateEventByUserId(userId, userSessions, false);
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
@@ -528,7 +529,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     "domain: " + user.getUserStoreDomain() + ".");
         }
         // Publish the event for user session termination.
-        publishUserSessionTerminateEventByUser(user);
+        publishUserSessionTerminateEventByUser(user, true);
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -553,7 +554,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             // publish user session termination event
-            publishUserSessionTerminateEventByUser(user);
+            publishUserSessionTerminateEventByUser(user, false);
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);

@@ -410,7 +410,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                                 context.getSessionIdentifier());
                 List<UserSession> userSessions = new ArrayList<>();
                 userSession.ifPresent(userSessions::add);
-                FrameworkUtils.publishUserSessionTerminateEvent(authenticatedUser, userSessions);
+                FrameworkUtils.publishUserSessionTerminateEvent(authenticatedUser, userSessions, false);
             } catch (UserIdNotFoundException | SessionManagementException | IdentityEventException e) {
                 throw new FrameworkException("Error while getting user session.", e);
             }
