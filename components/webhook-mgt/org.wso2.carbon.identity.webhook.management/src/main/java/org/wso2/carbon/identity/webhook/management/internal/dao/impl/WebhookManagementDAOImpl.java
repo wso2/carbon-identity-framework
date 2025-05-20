@@ -32,6 +32,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Implementation of WebhookManagementDAO.
+ * This class handles all the database operations related to webhook management.
+ */
 public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
     private static final String WEBHOOK_SCHEMA_VERSION = "v1";

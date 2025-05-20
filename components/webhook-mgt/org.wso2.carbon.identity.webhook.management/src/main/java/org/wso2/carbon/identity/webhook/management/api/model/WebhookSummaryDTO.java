@@ -54,29 +54,9 @@ public class WebhookSummaryDTO {
         return id;
     }
 
-    public String getCreatedAt() {
-
-        return createdAt;
-    }
-
-    public String getUpdatedAt() {
-
-        return updatedAt;
-    }
-
     public String getEndpoint() {
 
         return endpoint;
-    }
-
-    public String getEventSchemaName() {
-
-        return eventSchemaName;
-    }
-
-    public String getEventSchemaUri() {
-
-        return eventSchemaUri;
     }
 
     public String getDescription() {
@@ -87,11 +67,6 @@ public class WebhookSummaryDTO {
     public WebhookStatus getStatus() {
 
         return status;
-    }
-
-    public String getStatusString() {
-
-        return status != null ? status.name() : null;
     }
 
     /**
@@ -143,33 +118,9 @@ public class WebhookSummaryDTO {
             return this;
         }
 
-        public Builder setCreatedAt(String createdAt) {
-
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public Builder setUpdatedAt(String updatedAt) {
-
-            this.updatedAt = updatedAt;
-            return this;
-        }
-
         public Builder setEndpoint(String endpoint) {
 
             this.endpoint = endpoint;
-            return this;
-        }
-
-        public Builder setEventSchemaName(String eventSchemaName) {
-
-            this.eventSchemaName = eventSchemaName;
-            return this;
-        }
-
-        public Builder setEventSchemaUri(String eventSchemaUri) {
-
-            this.eventSchemaUri = eventSchemaUri;
             return this;
         }
 
