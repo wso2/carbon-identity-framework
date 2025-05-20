@@ -450,6 +450,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         if (isUserSessionMappingExist(userIdToSearch, sessionId)) {
 
+            // publish user session termination event
             Optional<UserSession> userSession = getSessionBySessionId(userId, sessionId);
             List<UserSession> userSessions = new ArrayList<>();
             userSession.ifPresent(userSessions::add);
@@ -551,7 +552,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
-
+            // publish user session termination event
             publishUserSessionTerminateEventByUser(user);
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();

@@ -134,29 +134,6 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
                 log.debug("Terminating all the active sessions of the user: " + username);
             }
             // TODO: Change Flow to be able to stack
-            // This does not work as expected, because the flow is set to the last one
-            if (isAccountLocked(claims)) {
-                Flow flow = new Flow.Builder()
-                        .name(Flow.Name.ACCOUNT_LOCK)
-                        .initiatingPersona(Flow.InitiatingPersona.ADMIN)
-                        .build();
-                try {
-                    IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
-                } catch (IllegalStateException e) {
-                    log.error(ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT, e);
-                }
-            } else {
-                Flow flow = new Flow.Builder()
-                        .name(Flow.Name.ACCOUNT_DISABLE)
-                        .initiatingPersona(Flow.InitiatingPersona.ADMIN)
-                        .build();
-                try {
-                    IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
-                } catch (IllegalStateException e) {
-                    log.error(ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT, e);
-                }
-
-            }
             terminateSessionsOfUser(username, userStoreManager);
         }
         return true;
