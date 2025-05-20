@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,7 +28,9 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
@@ -42,6 +44,12 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguratio
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
 import org.wso2.carbon.identity.input.validation.mgt.utils.Constants;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdpManager;
 
@@ -49,6 +57,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
@@ -62,6 +71,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_ADDING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_INHERITING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.FIELD_VALIDATION_CONFIG_HANDLER_MAP;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
@@ -351,13 +361,72 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
 
         Resources resources;
         try {
-            resources =
-                    getConfigurationManager().getResourcesByType(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME);
+            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                resources = getInheritedResourcesByType(tenantDomain);
+            } else {
+                resources =
+                        getConfigurationManager().getResourcesByType(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME);
+            }
         } catch (ConfigurationManagementException e) {
-            throw new InputValidationMgtServerException(ERROR_WHILE_UPDATING_CONFIGURATIONS.getCode(),
-                    String.format(ERROR_WHILE_UPDATING_CONFIGURATIONS.getMessage(), tenantDomain));
+            throw new InputValidationMgtServerException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(),
+                    String.format(ERROR_GETTING_EXISTING_CONFIGURATIONS.getMessage(), tenantDomain));
+        } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
+            throw new InputValidationMgtServerException(ERROR_WHILE_INHERITING_CONFIGURATIONS.getCode(),
+                   String.format(ERROR_WHILE_INHERITING_CONFIGURATIONS.getMessage(), tenantDomain));
         }
         return resources.getResources();
+    }
+
+    /**
+     * Method to get inherited resources by type.
+     *
+     * @param tenantDomain  Tenant domain name.
+     * @return  resources.
+     * @throws OrganizationManagementException If an error occurred when getting organization manager.
+     * @throws OrgResourceHierarchyTraverseException If an error occurred when traversing the resource hierarchy.
+     */
+    private Resources getInheritedResourcesByType(String tenantDomain)
+            throws OrganizationManagementException, OrgResourceHierarchyTraverseException {
+
+        OrganizationManager organizationManager =
+                InputValidationDataHolder.getInstance().getOrganizationManager();
+        OrgResourceResolverService orgResourceResolverService =
+                InputValidationDataHolder.getInstance().getOrgResourceResolverService();
+        String orgId = organizationManager.resolveOrganizationId(tenantDomain);
+
+        return orgResourceResolverService.getResourcesFromOrgHierarchy(
+                orgId,
+                LambdaExceptionUtils.rethrowFunction(orgID ->
+                        Optional.of(getConfigurationManager().getResourcesByType(
+                                IdentityTenantUtil.getTenantId(
+                                        organizationManager.resolveTenantDomain(orgID)),
+                                INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME))),
+                new MergeAllAggregationStrategy<>(this::mergeResources));
+    }
+
+    /**
+     * Merge two Resources objects by combining the resources from both giving priority to the current resources.
+     *
+     * @param currentResources Current resources.
+     * @param parentResources  Parent resources.
+     * @return  Merged resources object.
+     */
+    private Resources mergeResources (Resources currentResources, Resources parentResources) {
+
+        List<Resource> currentResourceList = currentResources.getResources();
+        List<Resource> parentResourceList = parentResources.getResources();
+        Map<String, Resource> resourceMap = new HashMap<>();
+        for (Resource resource : currentResourceList) {
+            resourceMap.put(resource.getResourceName(), resource);
+        }
+
+        for (Resource resource : parentResourceList) {
+            if (!resourceMap.containsKey(resource.getResourceName())) {
+                currentResourceList.add(resource);
+            }
+        }
+
+        return new Resources(currentResourceList);
     }
 
     /**

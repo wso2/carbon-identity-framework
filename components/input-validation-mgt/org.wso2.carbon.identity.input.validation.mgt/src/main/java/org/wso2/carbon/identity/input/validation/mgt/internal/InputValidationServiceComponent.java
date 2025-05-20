@@ -47,6 +47,8 @@ import org.wso2.carbon.identity.input.validation.mgt.model.validators.UpperCaseV
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
 import org.wso2.carbon.identity.input.validation.mgt.userinfo.UserInfoHandlerImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.utils.multitenancy.userinfo.UserInfoHandler;
@@ -213,5 +215,39 @@ public class InputValidationServiceComponent {
     protected void unsetIdpManager(IdpManager idpManager) {
 
         InputValidationDataHolder.getInstance().setIdpManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        InputValidationDataHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        InputValidationDataHolder.getInstance().setOrganizationManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service",
+            service = OrgResourceResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrgResourceResolverService"
+    )
+    protected void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        InputValidationDataHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
+    }
+
+    protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        InputValidationDataHolder.getInstance().setOrgResourceResolverService(null);
     }
 }
