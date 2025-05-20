@@ -91,26 +91,32 @@ public class Association {
     }
 
     public String getEventCategory() {
+
         return eventCategory;
     }
 
     public void setEventCategory(String eventCategory) {
+
         this.eventCategory = eventCategory;
     }
 
     public boolean isEnabled() {
+
         return enabled;
     }
 
     public void setEnabled(boolean enabled) {
+
         this.enabled = enabled;
     }
 
     public String getWorkflowId() {
+
         return workflowId;
     }
 
     public void setWorkflowId(String workflowId) {
+
         this.workflowId = workflowId;
     }
 }

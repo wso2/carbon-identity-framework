@@ -54,7 +54,6 @@ public class WorkflowRequestBuilder {
     private static final String WF_REQ_APPROVE_USER_ELEM = "user";
     private static final String WF_REQ_APPROVE_ROLE_ELEM = "role";
 
-
     //    private static final String WF_REQ_TENANT_DOMAIN_ELEM = "tenantDomain";
     private static final String WF_REQ_PARAMS_ELEM = "parameters";
     private static final String WF_REQ_PARAM_ELEM = "parameter";
@@ -66,7 +65,7 @@ public class WorkflowRequestBuilder {
     private static final Set<Class> SUPPORTED_CLASS_TYPES;
 
     static {
-        //only following types of objects will be allowed as values to the parameters.
+        // Only following types of objects will be allowed as values to the parameters.
         SUPPORTED_CLASS_TYPES = new HashSet<>();
         SUPPORTED_CLASS_TYPES.add(String.class);
         SUPPORTED_CLASS_TYPES.add(Integer.class);
@@ -212,7 +211,8 @@ public class WorkflowRequestBuilder {
      * @return
      */
     protected boolean isValidValue(Object obj) {
-        //null value of one of the supported class
+
+        // Null value of one of the supported class.
         return obj == null || SUPPORTED_CLASS_TYPES.contains(obj.getClass());
     }
 
@@ -231,7 +231,7 @@ public class WorkflowRequestBuilder {
                     if (!isValidValue(o)) {
                         throw new WorkflowRuntimeException(
                                 "At least one value provided for " + key + " is not acceptable" +
-                                ". Use either string, boolean, or numeric value");
+                                        ". Use either string, boolean, or numeric value");
                     }
                 }
                 listTypeParams.put(key, value);
@@ -264,7 +264,7 @@ public class WorkflowRequestBuilder {
                     if (!isValidValue(entry.getValue())) {
                         throw new WorkflowRuntimeException(
                                 "Value provided for " + entry.getKey() + " is not acceptable" +
-                                ". Use either string, boolean, or numeric value");
+                                        ". Use either string, boolean, or numeric value");
                     }
                 }
                 mapTypeParams.put(key, value);
@@ -344,7 +344,7 @@ public class WorkflowRequestBuilder {
                     }
                     OMElement listItemElement = omFactory.createOMElement(WF_REQ_LIST_ITEM_ELEM, omNs);
                     OMAttribute itemNameAttribute = omFactory.createOMAttribute(WF_REQ_KEY_ATTRIB, null,
-                                                                                mapItem.getKey());
+                            mapItem.getKey());
                     listItemElement.addAttribute(itemNameAttribute);
                     listItemElement.setText(valueText);
                     valueElement.addChild(listItemElement);
@@ -383,7 +383,6 @@ public class WorkflowRequestBuilder {
 
             approvalStepElement.addChild(humanTaskElement);
 
-
             Map<String, List<String>> value = approvalStepMap.get(a + "");
             if (value.get("users") != null) {
                 List<String> userList = value.get("users");
@@ -409,6 +408,7 @@ public class WorkflowRequestBuilder {
     }
 
     private Map<String, Map<String, List<String>>> getApprovalStepMap() {
+
         Map<String, Map<String, List<String>>> map = new HashMap<String, Map<String, List<String>>>();
         for (Map.Entry<String, Object> entry : this.initParams.entrySet()) {
             if (entry.getKey().startsWith("step-")) {
@@ -441,6 +441,5 @@ public class WorkflowRequestBuilder {
 
         }
         return map;
-
     }
 }

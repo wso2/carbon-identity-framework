@@ -42,20 +42,22 @@ import java.util.Map;
 
 public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestHandler {
 
+    private static final Log log = LogFactory.getLog(AbstractWorkflowRequestHandler.class);
     /**
      * Used to skip the workflow execution on the successive call after workflow completion.
      */
     private static ThreadLocal<Boolean> workFlowCompleted = new ThreadLocal<Boolean>();
 
-    private static final  Log log = LogFactory.getLog(AbstractWorkflowRequestHandler.class);
     public static void unsetWorkFlowCompleted() {
 
         AbstractWorkflowRequestHandler.workFlowCompleted.remove();
     }
+
     public static Boolean getWorkFlowCompleted() {
 
         return workFlowCompleted.get();
     }
+
     public static void setWorkFlowCompleted(Boolean workFlowCompleted) {
 
         AbstractWorkflowRequestHandler.workFlowCompleted.set(workFlowCompleted);
@@ -84,7 +86,8 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
      * @return
      * @throws WorkflowException
      */
-    public WorkflowExecutorResult startWorkFlow(Map<String, Object> wfParams, Map<String, Object> nonWfParams, String uuid)
+    public WorkflowExecutorResult startWorkFlow(Map<String, Object> wfParams, Map<String, Object> nonWfParams,
+                                                String uuid)
             throws WorkflowException {
 
         if (isWorkflowCompleted()) {
@@ -117,7 +120,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
         WorkflowExecutorResult workflowExecutorResult =
                 WorkFlowExecutorManager.getInstance().executeWorkflow(workFlowRequest);
 
-        if(workflowExecutorResult.getExecutorResultState() == ExecutorResultState.FAILED){
+        if (workflowExecutorResult.getExecutorResultState() == ExecutorResultState.FAILED) {
             throw new WorkflowException(workflowExecutorResult.getMessage());
         }
 
@@ -164,7 +167,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
         parameter.setRequiredInWorkflow(required);
         String valueType = getParamDefinitions().get(name);
         if (valueType == null || value == null) {
-            //null value as param, or undefined param
+            // Null value as param, or undefined param.
             parameter.setValueType(WorkflowDataType.OTHER_TYPE);
         } else {
             if (isValueValid(name, value, valueType)) {
@@ -229,14 +232,13 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
      * @return
      */
     public boolean isValidOperation(Entity[] entities) throws WorkflowException {
+
         return true;
     }
 
     private boolean isWorkflowCompleted() {
 
-        if (retryNeedAtCallback() && getWorkFlowCompleted() != null && getWorkFlowCompleted()) {
-            return true;
-        } else return false;
+        return retryNeedAtCallback() && getWorkFlowCompleted() != null && getWorkFlowCompleted();
     }
 
     /**
@@ -246,15 +248,16 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
      * @return Boolean value for result of isAssociated
      * @throws WorkflowException
      */
-    public boolean isAssociated() throws WorkflowException{
-        boolean eventEngaged = false ;
+    public boolean isAssociated() throws WorkflowException {
+
+        boolean eventEngaged = false;
         try {
             eventEngaged = WorkflowServiceDataHolder.getInstance().getWorkflowService().isEventAssociated(getEventId());
         } catch (InternalWorkflowException e) {
-            String errorMsg = "Error occurred while checking any association for this event, " + e.getMessage() ;
+            String errorMsg = "Error occurred while checking any association for this event, " + e.getMessage();
             log.error(errorMsg, e);
-            throw new WorkflowException(errorMsg,e);
+            throw new WorkflowException(errorMsg, e);
         }
-        return eventEngaged ;
+        return eventEngaged;
     }
 }

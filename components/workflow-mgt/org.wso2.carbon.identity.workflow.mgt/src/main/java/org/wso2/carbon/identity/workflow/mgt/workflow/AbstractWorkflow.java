@@ -31,32 +31,31 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 
 import javax.xml.bind.JAXBException;
+
 import java.util.List;
 
 /**
  * AbstractWorkflow can be used to implement different workflow implementation based on different template implementation
- *
+ * <p>
  * TemplateInitializer and WorkFlowExecutor should be provided to execute
- *
  */
 public abstract class AbstractWorkflow {
 
     private Log log = LogFactory.getLog(AbstractWorkflow.class);
 
     private MetaData metaData = null;
-    private ParametersMetaData parametersMetaData = null ;
+    private ParametersMetaData parametersMetaData = null;
 
     private Class<? extends TemplateInitializer> templateInitializerClass;
     private Class<? extends WorkFlowExecutor> workFlowExecutorClass;
 
     /**
-     *
-     *
      * @param metaDataXML Parameter Metadata XML string
      * @throws WorkflowRuntimeException
      */
     public AbstractWorkflow(Class<? extends TemplateInitializer> templateInitializerClass, Class<? extends
             WorkFlowExecutor> workFlowExecutorClass, String metaDataXML) throws WorkflowRuntimeException {
+
         try {
 
             this.templateInitializerClass = templateInitializerClass;
@@ -80,12 +79,11 @@ public abstract class AbstractWorkflow {
      * @param parameterList Parameter of the workflow
      * @throws WorkflowException
      */
-    public void deploy(List <Parameter> parameterList) throws WorkflowException {
+    public void deploy(List<Parameter> parameterList) throws WorkflowException {
 
         TemplateInitializer initializer = getTemplateInitializer();
         initializer.initialize(parameterList);
     }
-
 
     /**
      * Execute workflow request at profile
@@ -106,10 +104,11 @@ public abstract class AbstractWorkflow {
      * @return
      * @throws WorkflowException
      */
-    public ParametersMetaData getParametersMetaData() throws WorkflowException{
+    public ParametersMetaData getParametersMetaData() throws WorkflowException {
+
         if (parametersMetaData != null) {
             ParameterMetaData[] parameterMetaData = parametersMetaData.getParameterMetaData();
-            for (ParameterMetaData metaData: parameterMetaData){
+            for (ParameterMetaData metaData : parameterMetaData) {
                 if (metaData.isIsInputDataRequired()) {
                     InputData inputData = getInputData(metaData);
                     metaData.setInputData(inputData);
@@ -118,7 +117,6 @@ public abstract class AbstractWorkflow {
         }
         return parametersMetaData;
     }
-
 
     /**
      * To provide Workflow implementation specific data can be load by this method. Implementation depend on the
@@ -130,29 +128,33 @@ public abstract class AbstractWorkflow {
      */
     protected abstract InputData getInputData(ParameterMetaData parameterMetaData) throws WorkflowException;
 
-
     /**
      * Get the ID of current template
      *
      * @return
      */
     public String getTemplateId() {
+
         return this.metaData.getWorkflowImpl().getTemplateId();
     }
 
     public void setTemplateId(String templateId) {
+
         this.metaData.getWorkflowImpl().setTemplateId(templateId);
     }
 
     public String getWorkflowImplId() {
+
         return this.metaData.getWorkflowImpl().getWorkflowImplId();
     }
 
     public String getWorkflowImplName() {
+
         return this.metaData.getWorkflowImpl().getWorkflowImplName();
     }
 
     public String getDescription() {
+
         return this.metaData.getWorkflowImpl().getWorkflowImplDescription();
     }
 
@@ -167,8 +169,6 @@ public abstract class AbstractWorkflow {
         }
     }
 
-
-
     public TemplateInitializer getTemplateInitializer() throws WorkflowRuntimeException {
 
         try {
@@ -179,6 +179,4 @@ public abstract class AbstractWorkflow {
             throw new WorkflowRuntimeException(errorMsg, e);
         }
     }
-
-
 }

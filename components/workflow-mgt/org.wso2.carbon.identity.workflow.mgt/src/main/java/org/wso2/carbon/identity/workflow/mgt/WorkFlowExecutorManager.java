@@ -52,9 +52,8 @@ import java.util.UUID;
 
 public class WorkFlowExecutorManager {
 
-    private static WorkFlowExecutorManager instance = new WorkFlowExecutorManager();
-
     private static final Log log = LogFactory.getLog(WorkFlowExecutorManager.class);
+    private static WorkFlowExecutorManager instance = new WorkFlowExecutorManager();
 
     private WorkFlowExecutorManager() {
 
@@ -201,6 +200,7 @@ public class WorkFlowExecutorManager {
 
     private boolean isAllWorkflowsCompleted(WorkflowRequestAssociationDAO workflowRequestAssociationDAO, String
             requestId) throws InternalWorkflowException {
+
         List<String> statesOfRequest = workflowRequestAssociationDAO.getWorkflowStatesOfRequest(requestId);
         for (int i = 0; i < statesOfRequest.size(); i++) {
             if (!statesOfRequest.get(i).equals(WorkflowRequestStatus.APPROVED.toString())) {
@@ -240,8 +240,6 @@ public class WorkFlowExecutorManager {
                 workflowListener.doPostHandleCallback(uuid, status, additionalParams);
             }
         }
-
-
     }
 
     /**
@@ -252,7 +250,6 @@ public class WorkFlowExecutorManager {
      * @throws InternalWorkflowException
      */
     private void updateDBAtWorkflowCompletion(String requestId, String status) throws InternalWorkflowException {
-
 
         RequestEntityRelationshipDAO requestEntityRelationshipDAO = new RequestEntityRelationshipDAO();
         WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();

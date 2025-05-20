@@ -204,7 +204,7 @@ public class RequestEntityRelationshipDAO {
         ResultSet resultSet = null;
         String query = SQLConstants.GET_REQUEST_ENTITY_NAMES;
         List<String> entityNames = new ArrayList<String>();
-        idFilter = idFilter.replaceAll("\\*","%");
+        idFilter = idFilter.replaceAll("\\*", "%");
         idFilter = idFilter.replaceAll("\\\\%", "*");
 
         try {

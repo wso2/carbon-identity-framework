@@ -33,18 +33,18 @@ public class Utils {
     /**
      * Create PreparedStatement.
      *
-     * @param connection db connection
-     * @param sqlQuery SQL query
-     * @param tenantId Tenant ID
+     * @param connection           db connection
+     * @param sqlQuery             SQL query
+     * @param tenantId             Tenant ID
      * @param filterResolvedForSQL resolved filter for sql
-     * @param offset offset
-     * @param limit limit
+     * @param offset               offset
+     * @param limit                limit
      * @return PreparedStatement
      * @throws SQLException
      * @throws DataAccessException
      */
     public static PreparedStatement generatePrepStmt(Connection connection, String sqlQuery, int tenantId,
-                                               String filterResolvedForSQL, int offset, int limit)
+                                                     String filterResolvedForSQL, int offset, int limit)
             throws SQLException, DataAccessException {
 
         PreparedStatement prepStmt;
@@ -63,5 +63,4 @@ public class Utils {
         }
         return prepStmt;
     }
-
 }

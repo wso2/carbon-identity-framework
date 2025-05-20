@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.workflow.mgt.bean;
 
 import java.io.Serializable;
 
-public class RequestParameter implements Serializable{
+public class RequestParameter implements Serializable {
 
     private static final long serialVersionUID = -8564170214424881696L;
 
@@ -30,39 +30,48 @@ public class RequestParameter implements Serializable{
     private boolean requiredInWorkflow;
 
     public String getName() {
+
         return name;
     }
 
     public void setName(String name) {
+
         this.name = name;
     }
 
     public Object getValue() {
+
         return value;
     }
 
     public void setValue(Object value) {
+
         this.value = value;
     }
 
     public String getValueType() {
+
         return valueType;
     }
 
     public void setValueType(String valueType) {
+
         this.valueType = valueType;
     }
 
     public boolean isRequiredInWorkflow() {
+
         return requiredInWorkflow;
     }
 
     public void setRequiredInWorkflow(boolean requiredInWorkflow) {
+
         this.requiredInWorkflow = requiredInWorkflow;
     }
 
     @Override
     public String toString() {
+
         return "WorkflowParameter{" +
                 "name='" + name + "\'\n" +
                 ", value=" + value + "\n" +

@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.workflow.mgt.bean.metadata.type;
 
-
 public enum DataType {
 
     STRING("String"),
@@ -29,15 +28,13 @@ public enum DataType {
     private final String value;
 
     DataType(String v) {
+
         value = v;
     }
 
-    public String value() {
-        return value;
-    }
-
     public static DataType fromValue(String v) {
-        for (DataType c: DataType.values()) {
+
+        for (DataType c : DataType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }
@@ -45,4 +42,8 @@ public enum DataType {
         throw new IllegalArgumentException(v);
     }
 
+    public String value() {
+
+        return value;
+    }
 }

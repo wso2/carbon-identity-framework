@@ -24,12 +24,11 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * <p>Java class for InputData complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="InputData"&gt;
  *   &lt;complexContent&gt;
@@ -41,12 +40,10 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "InputData", propOrder = {
-    "mapType"
+        "mapType"
 })
 public class InputData {
 
@@ -55,26 +52,23 @@ public class InputData {
 
     /**
      * Gets the value of the mapType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link MapType }
-     *     
+     *
+     * @return possible object is
+     * {@link MapType }
      */
     public MapType getMapType() {
+
         return mapType;
     }
 
     /**
      * Sets the value of the mapType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link MapType }
-     *     
+     *
+     * @param value allowed object is
+     * {@link MapType }
      */
     public void setMapType(MapType value) {
+
         this.mapType = value;
     }
-
 }

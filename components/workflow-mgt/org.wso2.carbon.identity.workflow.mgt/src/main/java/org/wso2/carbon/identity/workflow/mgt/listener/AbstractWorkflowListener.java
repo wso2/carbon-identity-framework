@@ -213,7 +213,6 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
 
     }
 
-
     /**
      * Trigger after retrieving workflow impl
      *
@@ -342,7 +341,8 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @throws WorkflowException
      */
     @Override
-    public void doPreListPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException{
+    public void doPreListPaginatedWorkflows(int tenantId, int limit, int offset, String filter)
+            throws WorkflowException {
 
     }
 
@@ -357,16 +357,17 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @throws WorkflowException
      */
     @Override
-    public void doPostListPaginatedWorkflows(int tenantId, int limit, int offset, String filter, List<Workflow> result) throws WorkflowException{
+    public void doPostListPaginatedWorkflows(int tenantId, int limit, int offset, String filter, List<Workflow> result)
+            throws WorkflowException {
 
     }
 
     /**
      * Trigger before listing workflows of a tenant
      *
-     * @deprecated Use {@link #doPreListPaginatedWorkflows(int, int, int, String)} instead.
      * @param tenantId Tenant ID
      * @throws WorkflowException
+     * @deprecated Use {@link #doPreListPaginatedWorkflows(int, int, int, String)} instead.
      */
     @Deprecated
     @Override
@@ -377,10 +378,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger after listing workflows of a tenant
      *
-     * @deprecated Use {@link #doPostListPaginatedWorkflows(int, int, int, String, List)} instead.
      * @param tenantId Tenant ID
      * @param result   List of workflows returned by original method.
      * @throws WorkflowException
+     * @deprecated Use {@link #doPostListPaginatedWorkflows(int, int, int, String, List)} instead.
      */
     @Deprecated
     @Override
@@ -443,7 +444,7 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @throws WorkflowException
      */
     @Override
-    public void doPreListPaginatedAssociations(int tenantId, int limit, int offset, String filter){
+    public void doPreListPaginatedAssociations(int tenantId, int limit, int offset, String filter) {
 
     }
 
@@ -458,16 +459,17 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @throws WorkflowException
      */
     @Override
-    public void doPostListPaginatedAssociations(int tenantId, int limit, int offset, String filter, List<Association> result){
+    public void doPostListPaginatedAssociations(int tenantId, int limit, int offset, String filter,
+                                                List<Association> result) {
 
     }
 
     /**
      * Trigger before listing all associations
      *
-     * @deprecated Use {@link #doPreListPaginatedAssociations(int, int, int, String)} instead.
      * @param tenantId Tenant ID
      * @throws WorkflowException
+     * @deprecated Use {@link #doPreListPaginatedAssociations(int, int, int, String)} instead.
      */
     @Deprecated
     @Override
@@ -478,10 +480,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger after listing all associations
      *
-     * @deprecated Use {@link #doPostListPaginatedAssociations(int, int, int, String, List)} instead.
      * @param tenantId Tenant ID
      * @param result   Result of the original operation
      * @throws WorkflowException
+     * @deprecated Use {@link #doPostListPaginatedAssociations(int, int, int, String, List)} instead.
      */
     @Deprecated
     @Override
@@ -744,6 +746,7 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @return
      */
     public boolean isEnable() {
+
         IdentityEventListenerConfig workflowListener = IdentityUtil.readEventListenerProperty
                 (WorkflowListener.class.getName(), this.getClass().getName());
 
@@ -764,6 +767,7 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @return
      */
     public int getOrderId() {
+
         IdentityEventListenerConfig workflowListener = IdentityUtil.readEventListenerProperty
                 (WorkflowListener.class.getName(), this.getClass().getName());
         if (workflowListener == null) {

@@ -19,11 +19,14 @@
 package org.wso2.carbon.identity.workflow.mgt.exception;
 
 public class WorkflowRuntimeException extends RuntimeException {
+
     public WorkflowRuntimeException(String message) {
+
         super(message);
     }
 
     public WorkflowRuntimeException(String message, Throwable e) {
+
         super(message, e);
     }
 }

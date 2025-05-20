@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.workflow.mgt.util;
 
 public class WorkflowTemplateParamType {
+
     public static final String INTEGER = "INTEGER";
     public static final String DOUBLE = "DOUBLE";
     public static final String STRING = "STRING";

@@ -275,7 +275,8 @@ public interface WorkflowListener {
      * @param filter   Filter
      * @throws WorkflowException
      */
-    default void doPreListPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException {
+    default void doPreListPaginatedWorkflows(int tenantId, int limit, int offset, String filter)
+            throws WorkflowException {
 
     }
 
@@ -289,7 +290,8 @@ public interface WorkflowListener {
      * @param result   List of workflows returned by original method.
      * @throws WorkflowException
      */
-    default void doPostListPaginatedWorkflows(int tenantId, int limit, int offset, String filter, List<Workflow> result) throws WorkflowException {
+    default void doPostListPaginatedWorkflows(int tenantId, int limit, int offset, String filter, List<Workflow> result)
+            throws WorkflowException {
 
     }
 
@@ -370,7 +372,8 @@ public interface WorkflowListener {
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
-    default void doPostListPaginatedAssociations(int tenantId, int limit, int offset, String filter, List<Association> result) {
+    default void doPostListPaginatedAssociations(int tenantId, int limit, int offset, String filter,
+                                                 List<Association> result) {
 
     }
 
@@ -647,5 +650,4 @@ public interface WorkflowListener {
      * @return
      */
     int getOrderId();
-
 }

@@ -20,41 +20,52 @@ package org.wso2.carbon.identity.workflow.mgt.util;
 
 /**
  * Workflow Execution Result Enumeration with its default state.
- *
  */
 public enum ExecutorResultState {
 
-    STARTED_ASSOCIATION{
-        @Override public boolean state() {
+    STARTED_ASSOCIATION {
+        @Override
+        public boolean state() {
+
             return false;
         }
     },
-    COMPLETED{
-        @Override public boolean state() {
+    COMPLETED {
+        @Override
+        public boolean state() {
+
             return true;
         }
     },
-    NO_ASSOCIATION{
-        @Override public boolean state() {
+    NO_ASSOCIATION {
+        @Override
+        public boolean state() {
+
             return true;
         }
     },
-    CONDITION_FAILED{
-        @Override public boolean state() {
+    CONDITION_FAILED {
+        @Override
+        public boolean state() {
+
             return true;
         }
     },
-    FAILED{
-        @Override public boolean state() {
+    FAILED {
+        @Override
+        public boolean state() {
+
             return false;
         }
     };
 
     /**
      * Defautl State of Result
+     *
      * @return boolean
      */
     public boolean state() {
+
         return false;
     }
 }

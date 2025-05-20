@@ -18,47 +18,51 @@
 
 package org.wso2.carbon.identity.workflow.mgt;
 
-
 import org.wso2.carbon.identity.workflow.mgt.util.ExecutorResultState;
 
 import java.io.Serializable;
-
 
 /**
  * WorkflowExecutorResult for return result of the workflow execution.
  */
 public class WorkflowExecutorResult implements Serializable {
-    private ExecutorResultState executorResultState;
-    private String message;
 
     private static final long serialVersionUID = 578423481187017212L;
+    private ExecutorResultState executorResultState;
+    private String message;
 
     public WorkflowExecutorResult() {
 
     }
 
     public WorkflowExecutorResult(ExecutorResultState executorResultState) {
+
         this.executorResultState = executorResultState;
     }
 
     public WorkflowExecutorResult(ExecutorResultState executorResultState, String message) {
+
         this.message = message;
         this.executorResultState = executorResultState;
     }
 
     public ExecutorResultState getExecutorResultState() {
+
         return executorResultState;
     }
 
     public void setExecutorResultState(ExecutorResultState executorResultState) {
+
         this.executorResultState = executorResultState;
     }
 
     public String getMessage() {
+
         return message;
     }
 
     public void setMessage(String message) {
+
         this.message = message;
     }
 }

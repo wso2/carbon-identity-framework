@@ -46,6 +46,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
      */
     @Override
     public void doPostDeleteWorkflowRequest(WorkflowRequest workflowRequest) throws WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -67,6 +68,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
      */
     @Override
     public void doPostDeleteWorkflow(Workflow workflow) throws WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -112,6 +114,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     @Override
     public void doPostAddWorkflow(Workflow workflowDTO, List<Parameter> parameterList, int tenantId) throws
             WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -140,6 +143,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     @Override
     public void doPostAddAssociation(String associationName, String workflowId, String eventId, String condition)
             throws WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -163,6 +167,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
      */
     @Override
     public void doPostRemoveAssociation(int associationId) throws WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -184,6 +189,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
      */
     @Override
     public void doPostChangeAssociationState(String associationId, boolean isEnable) throws WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -201,9 +207,8 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     /**
      * Get the initiator for audit logs.
      *
-     * @param username      Username of the initiator.
-     * @param tenantDomain  Tenant domain of the initiator.
-     *
+     * @param username     Username of the initiator.
+     * @param tenantDomain Tenant domain of the initiator.
      * @return initiator for the log.
      */
     private String getInitiatorForLog(String username, String tenantDomain) {

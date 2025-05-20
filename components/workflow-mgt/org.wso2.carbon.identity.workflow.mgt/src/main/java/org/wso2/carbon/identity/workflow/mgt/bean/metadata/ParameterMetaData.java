@@ -25,12 +25,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * <p>Java class for ParameterMetaData complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="ParameterMetaData"&gt;
  *   &lt;complexContent&gt;
@@ -52,15 +51,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ParameterMetaData", propOrder = {
-    "displayName",
-    "defaultValue",
-    "regExForValidate",
-    "inputData"
+        "displayName",
+        "defaultValue",
+        "regExForValidate",
+        "inputData"
 })
 public class ParameterMetaData {
 
@@ -89,205 +86,188 @@ public class ParameterMetaData {
 
     /**
      * Gets the value of the displayName property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getDisplayName() {
+
         return displayName;
     }
 
     /**
      * Sets the value of the displayName property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setDisplayName(String value) {
+
         this.displayName = value;
     }
 
     /**
      * Gets the value of the defaultValue property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getDefaultValue() {
+
         return defaultValue;
     }
 
     /**
      * Sets the value of the defaultValue property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setDefaultValue(String value) {
+
         this.defaultValue = value;
     }
 
     /**
      * Gets the value of the regExForValidate property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getRegExForValidate() {
+
         return regExForValidate;
     }
 
     /**
      * Sets the value of the regExForValidate property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setRegExForValidate(String value) {
+
         this.regExForValidate = value;
     }
 
     /**
      * Gets the value of the inputData property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link InputData }
-     *     
+     *
+     * @return possible object is
+     * {@link InputData }
      */
     public InputData getInputData() {
+
         return inputData;
     }
 
     /**
      * Sets the value of the inputData property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link InputData }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link InputData }
      */
     public void setInputData(InputData value) {
+
         this.inputData = value;
     }
 
     /**
      * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getName() {
+
         return name;
     }
 
     /**
      * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setName(String value) {
+
         this.name = value;
     }
 
     /**
      * Gets the value of the dataType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getDataType() {
+
         return dataType;
     }
 
     /**
      * Sets the value of the dataType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setDataType(String value) {
+
         this.dataType = value;
     }
 
     /**
      * Gets the value of the inputType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getInputType() {
+
         return inputType;
     }
 
     /**
      * Sets the value of the inputType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setInputType(String value) {
+
         this.inputType = value;
     }
 
     /**
      * Gets the value of the customInputType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getCustomInputType() {
+
         return customInputType;
     }
 
     /**
      * Sets the value of the customInputType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setCustomInputType(String value) {
+
         this.customInputType = value;
     }
 
     /**
      * Gets the value of the isRequired property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     *
+     * @return possible object is
+     * {@link Boolean }
      */
     public boolean isIsRequired() {
+
         if (isRequired == null) {
             return false;
         } else {
@@ -297,25 +277,23 @@ public class ParameterMetaData {
 
     /**
      * Sets the value of the isRequired property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link Boolean }
      */
     public void setIsRequired(Boolean value) {
+
         this.isRequired = value;
     }
 
     /**
      * Gets the value of the validate property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     *
+     * @return possible object is
+     * {@link Boolean }
      */
     public boolean isValidate() {
+
         if (validate == null) {
             return true;
         } else {
@@ -325,25 +303,23 @@ public class ParameterMetaData {
 
     /**
      * Sets the value of the validate property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link Boolean }
      */
     public void setValidate(Boolean value) {
+
         this.validate = value;
     }
 
     /**
      * Gets the value of the isInputDataRequired property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
+     *
+     * @return possible object is
+     * {@link Boolean }
      */
     public boolean isIsInputDataRequired() {
+
         if (isInputDataRequired == null) {
             return false;
         } else {
@@ -353,14 +329,12 @@ public class ParameterMetaData {
 
     /**
      * Sets the value of the isInputDataRequired property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link Boolean }
      */
     public void setIsInputDataRequired(Boolean value) {
+
         this.isInputDataRequired = value;
     }
-
 }

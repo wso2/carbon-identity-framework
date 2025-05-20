@@ -28,6 +28,7 @@ public class Entity {
     private int tenantId;
 
     public Entity(String entityId, String entityType, int tenantId) {
+
         this.entityId = entityId;
         this.entityType = entityType;
         this.tenantId = tenantId;
@@ -39,6 +40,7 @@ public class Entity {
      * @return
      */
     public String getEntityType() {
+
         return entityType;
     }
 
@@ -48,6 +50,7 @@ public class Entity {
      * @param entityType value to set as entity type
      */
     public void setEntityType(String entityType) {
+
         this.entityType = entityType;
     }
 
@@ -57,6 +60,7 @@ public class Entity {
      * @return
      */
     public String getEntityId() {
+
         return entityId;
     }
 
@@ -66,6 +70,7 @@ public class Entity {
      * @param entityId value to set as entity ID
      */
     public void setEntityId(String entityId) {
+
         this.entityId = entityId;
     }
 
@@ -75,6 +80,7 @@ public class Entity {
      * @return
      */
     public int getTenantId() {
+
         return tenantId;
     }
 
@@ -84,6 +90,7 @@ public class Entity {
      * @param tenantId value to set as tenant ID
      */
     public void setTenantId(int tenantId) {
+
         this.tenantId = tenantId;
     }
 }

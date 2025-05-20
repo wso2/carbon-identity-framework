@@ -35,44 +35,52 @@ public class Workflow implements Serializable {
     private String workflowImplId;
 
     public String getWorkflowId() {
+
         return workflowId;
     }
 
     public void setWorkflowId(String workflowId) {
+
         this.workflowId = workflowId;
     }
 
     public String getWorkflowName() {
+
         return workflowName;
     }
 
     public void setWorkflowName(String workflowName) {
+
         this.workflowName = workflowName;
     }
 
     public String getWorkflowDescription() {
+
         return workflowDescription;
     }
 
     public void setWorkflowDescription(String workflowDescription) {
+
         this.workflowDescription = workflowDescription;
     }
 
-
     public String getWorkflowImplId() {
+
         return workflowImplId;
     }
 
     public void setWorkflowImplId(String workflowImplId) {
+
         this.workflowImplId = workflowImplId;
     }
 
     public String getTemplateId() {
+
         return templateId;
     }
 
     public void setTemplateId(String templateId) {
+
         this.templateId = templateId;
     }
-
 }

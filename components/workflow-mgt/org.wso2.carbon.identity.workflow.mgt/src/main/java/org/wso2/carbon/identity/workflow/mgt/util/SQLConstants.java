@@ -125,7 +125,7 @@ public class SQLConstants {
             "AND WF_WORKFLOW.TENANT_ID = ? " +
             "AND WF_WORKFLOW.ID = ?";
 
-    // Load association basic information for listing with pagination
+    // Load association basic information for listing with pagination.
     public static final String GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL = "SELECT WF_WORKFLOW.WF_NAME, " +
             "WF_WORKFLOW_ASSOCIATION.ID, WF_WORKFLOW_ASSOCIATION.ASSOC_NAME, WF_WORKFLOW_ASSOCIATION.EVENT_ID," +
             " WF_WORKFLOW_ASSOCIATION.ASSOC_CONDITION , WF_WORKFLOW_ASSOCIATION.IS_ENABLED FROM " +
@@ -505,5 +505,4 @@ public class SQLConstants {
     private SQLConstants() {
 
     }
-
 }

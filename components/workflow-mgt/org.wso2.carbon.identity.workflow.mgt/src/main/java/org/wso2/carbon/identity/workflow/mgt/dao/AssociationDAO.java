@@ -41,7 +41,6 @@ import static org.wso2.carbon.identity.workflow.mgt.util.Utils.generatePrepStmt;
 
 /**
  * Association related DAO operation provides by this class
- *
  */
 public class AssociationDAO {
 
@@ -49,7 +48,6 @@ public class AssociationDAO {
     private static final Log log = LogFactory.getLog(AssociationDAO.class);
 
     /**
-     *
      * @param associationName
      * @param workflowId
      * @param eventId
@@ -79,9 +77,7 @@ public class AssociationDAO {
         }
     }
 
-
     /**
-     *
      * @param associationDTO
      * @throws InternalWorkflowException
      */
@@ -125,7 +121,8 @@ public class AssociationDAO {
      * @return List<Association>
      * @throws InternalWorkflowException
      */
-    public List<Association> listPaginatedAssociations(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException{
+    public List<Association> listPaginatedAssociations(int tenantId, String filter, int offset, int limit)
+            throws InternalWorkflowException {
 
         String sqlQuery;
         List<Association> associations = new ArrayList<>();
@@ -174,11 +171,10 @@ public class AssociationDAO {
     }
 
     /**
-     *
-     * @Deprecated Use {@link #listPaginatedAssociations(int, String, int, int)} instead.
      * @param tenantId Tenant ID
      * @return
      * @throws InternalWorkflowException
+     * @Deprecated Use {@link #listPaginatedAssociations(int, String, int, int)} instead.
      */
     @Deprecated
     public List<Association> listAssociations(int tenantId) throws InternalWorkflowException {
@@ -220,7 +216,7 @@ public class AssociationDAO {
      * @return Return associations count
      * @throws InternalWorkflowException
      */
-    public int getAssociationsCount(int tenantId, String filter) throws InternalWorkflowException{
+    public int getAssociationsCount(int tenantId, String filter) throws InternalWorkflowException {
 
         int count = 0;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -242,7 +238,6 @@ public class AssociationDAO {
     }
 
     /**
-     *
      * @param associationId
      * @return
      * @throws InternalWorkflowException
@@ -252,11 +247,11 @@ public class AssociationDAO {
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs;
-        Association associationDTO = null ;
+        Association associationDTO = null;
         String query = SQLConstants.GET_ASSOCIATION_FOR_ASSOC_ID_QUERY;
         try {
             prepStmt = connection.prepareStatement(query);
-            // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as a int to work with postgre
+            // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as an int to work with postgre.
             prepStmt.setInt(1, Integer.parseInt(associationId));
 
             rs = prepStmt.executeQuery();
@@ -281,7 +276,6 @@ public class AssociationDAO {
     }
 
     /**
-     *
      * @param id
      * @throws InternalWorkflowException
      */
@@ -304,7 +298,6 @@ public class AssociationDAO {
     }
 
     /**
-     *
      * @param workflowId
      * @return
      * @throws InternalWorkflowException
@@ -339,6 +332,7 @@ public class AssociationDAO {
 
     private Association createAssociation(String condition, String associationId, String eventId,
                                           String associationName, String workflowName) {
+
         Association associationDTO = new Association();
         associationDTO.setCondition(condition);
         associationDTO.setAssociationId(associationId);
@@ -356,7 +350,7 @@ public class AssociationDAO {
      */
     private String getSqlQuery(String filterField) throws InternalWorkflowException, DataAccessException {
 
-        String sqlQuery ;
+        String sqlQuery;
         if (filterField == null || SQLConstants.ASSOCIATION_NAME_FILTER.equalsIgnoreCase(filterField)) {
             if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
                 sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
@@ -385,24 +379,24 @@ public class AssociationDAO {
     /**
      * Create PreparedStatement.
      *
-     * @param connection db connection
-     * @param sqlQuery SQL query
-     * @param tenantId Tenant ID
+     * @param connection           db connection
+     * @param sqlQuery             SQL query
+     * @param tenantId             Tenant ID
      * @param filterResolvedForSQL resolved filter for sql
      * @return PreparedStatement
      * @throws SQLException
      * @throws DataAccessException
      */
     private PreparedStatement generatePrepStmtWithoutLimitOffset(Connection connection, String sqlQuery, int tenantId,
-            String filterResolvedForSQL) throws SQLException, DataAccessException {
+                                                                 String filterResolvedForSQL)
+            throws SQLException, DataAccessException {
 
-        PreparedStatement prepStmt ;
+        PreparedStatement prepStmt;
         prepStmt = connection.prepareStatement(sqlQuery);
         prepStmt.setInt(1, tenantId);
         prepStmt.setString(2, filterResolvedForSQL);
         return prepStmt;
     }
-
 
     /**
      * Resolve SQL Filter.
@@ -413,7 +407,7 @@ public class AssociationDAO {
      */
     private String resolveSQLFilter(String filter) {
 
-        //To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
+        // To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
         String sqlFilter = "%";
         if (StringUtils.isNotBlank(filter)) {
             sqlFilter = filter.trim()
@@ -427,7 +421,7 @@ public class AssociationDAO {
      * Logs and wraps the given exception.
      *
      * @param errorMsg Error message
-     * @param e   Exception
+     * @param e        Exception
      * @throws InternalWorkflowException
      */
     private void handleException(String errorMsg, Exception e) throws InternalWorkflowException {

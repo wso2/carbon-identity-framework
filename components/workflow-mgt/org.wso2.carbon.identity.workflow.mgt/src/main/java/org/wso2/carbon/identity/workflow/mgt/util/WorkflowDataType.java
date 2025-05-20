@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.workflow.mgt.util;
 
 public class WorkflowDataType {
+
     public static final String STRING_TYPE = "STRING";
     public static final String BOOLEAN_TYPE = "BOOLEAN";
     public static final String INTEGER_TYPE = "INTEGER";

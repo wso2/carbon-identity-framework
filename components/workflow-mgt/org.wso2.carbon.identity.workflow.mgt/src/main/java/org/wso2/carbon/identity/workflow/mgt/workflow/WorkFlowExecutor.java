@@ -34,7 +34,7 @@ public interface WorkFlowExecutor {
      * @return
      */
     boolean canHandle(WorkflowRequest workFlowRequest) throws WorkflowException;
-//todo: return a code, detail to decide whether retry?,...
+// Todo: return a code, detail to decide whether retry?,...
 
     void initialize(List<Parameter> parameterList) throws WorkflowException;
 
@@ -45,7 +45,7 @@ public interface WorkFlowExecutor {
      * @throws WorkflowException
      */
     void execute(WorkflowRequest workFlowRequest) throws WorkflowException;
-//todo: return a code, detail to decide whether retry?,...
+// Todo: return a code, detail to decide whether retry?,...
 
     /**
      * Returns the name of the executor
@@ -53,5 +53,4 @@ public interface WorkFlowExecutor {
      * @return
      */
     String getName();
-
 }
