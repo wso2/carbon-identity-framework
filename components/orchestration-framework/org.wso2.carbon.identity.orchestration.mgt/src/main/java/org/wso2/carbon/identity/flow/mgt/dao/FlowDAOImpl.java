@@ -1,0 +1,401 @@
+/*
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.flow.mgt.dao;
+
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
+import static org.wso2.carbon.identity.flow.mgt.utils.OrchestrationMgtUtils.handleServerException;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.exception.OrchestrationFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.exception.OrchestrationServerException;
+import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
+import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+
+/**
+ * The DAO class for flow management.
+ */
+public class FlowDAOImpl implements FlowDAO {
+
+    private static final Log LOG = LogFactory.getLog(FlowDAOImpl.class);
+
+    @Override
+    public void updateFlow(GraphConfig flowConfig, int tenantId,
+                           String flowName, String flowType, String flowCategory, boolean isDefaultFlow)
+            throws OrchestrationFrameworkException {
+
+        String flowId = flowConfig.getId();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                // Delete the existing flow for the tenant.
+                template.executeUpdate(SQLConstants.DELETE_FLOW,
+                        preparedStatement -> {
+                            preparedStatement.setInt(1, tenantId);
+                            preparedStatement.setBoolean(2, true);
+                            preparedStatement.setString(3, flowType);
+                        });
+
+                // Insert into IDN_FLOW.
+                template.executeInsert(SQLConstants.INSERT_FLOW_INTO_IDN_FLOW,
+                        preparedStatement -> {
+                            preparedStatement.setString(1, flowId);
+                            preparedStatement.setInt(2, tenantId);
+                            preparedStatement.setString(3, flowName);
+                            preparedStatement.setString(4, flowType);
+                            preparedStatement.setBoolean(5, true);
+                            preparedStatement.setString(6, flowCategory);
+                        }, flowConfig, false);
+
+                // Insert into IDN_FLOW_NODE.
+                Map<String, Integer> nodeIdToNodeIdMap = new HashMap<>();
+                for (Map.Entry<String, NodeConfig> entry : flowConfig.getNodeConfigs().entrySet()) {
+                    NodeConfig node = entry.getValue();
+                    int nodeId = template.executeInsert(SQLConstants.INSERT_FLOW_NODE_INFO,
+                            preparedStatement -> {
+                                preparedStatement.setString(1, node.getId());
+                                preparedStatement.setString(2, flowId);
+                                preparedStatement.setString(3, node.getType());
+                                preparedStatement.setBoolean(4, node.isFirstNode());
+                            }, entry, true);
+
+                    nodeIdToNodeIdMap.put(node.getId(), nodeId);
+
+                    // Insert into IDN_FLOW_NODE_EXECUTOR.
+                    ExecutorDTO executorConfig = node.getExecutorConfig();
+                    if (executorConfig != null) {
+                        template.executeInsert(SQLConstants.INSERT_NODE_EXECUTOR_INFO,
+                                preparedStatement -> {
+                                    preparedStatement.setInt(1,
+                                            nodeIdToNodeIdMap.get(node.getId()));
+                                    preparedStatement.setString(2, executorConfig.getName());
+                                    preparedStatement.setString(3, executorConfig.getIdpName());
+                                }, null, false);
+                    }
+                }
+                // Insert graph edges into IDN_FLOW_NODE_MAPPING.
+                for (Map.Entry<String, NodeConfig> entry : flowConfig.getNodeConfigs().entrySet()) {
+                    NodeConfig node = entry.getValue();
+                    if (node.getEdges() != null) {
+                        for (NodeEdge edge : node.getEdges()) {
+                            template.executeInsert(SQLConstants.INSERT_NODE_EDGES,
+                                    preparedStatement -> {
+                                        preparedStatement.setInt(1, nodeIdToNodeIdMap.get(
+                                                edge.getSourceNodeId()));
+                                        preparedStatement.setInt(2, nodeIdToNodeIdMap.get(
+                                                edge.getTargetNodeId()));
+                                        preparedStatement.setString(3, edge.getTriggeringActionId());
+                                    }, null, false);
+                        }
+                    }
+                }
+
+                // Insert into IDN_FLOW_PAGE.
+                for (Map.Entry<String, StepDTO> entry : flowConfig.getNodePageMappings().entrySet()) {
+
+                    StepDTO stepDTO = entry.getValue();
+                    Optional<byte[]> pageContent = serializeStepData(stepDTO, tenantId);
+                    int nodeId = nodeIdToNodeIdMap.get(entry.getKey());
+
+                    int pageAutoIncId = template.executeInsert(SQLConstants.INSERT_FLOW_PAGE_INFO,
+                            preparedStatement -> {
+                                preparedStatement.setString(1, flowId);
+                                preparedStatement.setInt(2, nodeId);
+                                preparedStatement.setString(3, stepDTO.getId());
+                                if (pageContent.isPresent()) {
+                                    preparedStatement.setBinaryStream(4, new ByteArrayInputStream(pageContent.get()));
+                                } else {
+                                    preparedStatement.setBinaryStream(4, null);
+                                }
+                                preparedStatement.setString(5, stepDTO.getType());
+                            }, entry, true);
+
+                    // Insert into IDN_FLOW_PAGE_META.
+                    template.executeInsert(SQLConstants.INSERT_FLOW_PAGE_META,
+                            preparedStatement -> {
+                                preparedStatement.setInt(1, pageAutoIncId);
+                                preparedStatement.setDouble(2, stepDTO.getCoordinateX());
+                                preparedStatement.setDouble(3, stepDTO.getCoordinateY());
+                                preparedStatement.setDouble(4, stepDTO.getHeight());
+                                preparedStatement.setDouble(5, stepDTO.getWidth());
+                            }, null, false);
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_ADD_DEFAULT_FLOW, e, tenantId);
+        }
+    }
+
+    @Override
+    public FlowDTO getFlow(int tenantId, String flowType) throws OrchestrationServerException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+
+        try {
+            List<StepDTO> steps = jdbcTemplate
+                    .executeQuery(SQLConstants.GET_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
+                        StepDTO stepDTO = new StepDTO.Builder()
+                                .id(resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID))
+                                .type(resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_TYPE))
+                                .coordinateX(resultSet.getDouble(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_X))
+                                .coordinateY(resultSet.getDouble(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_Y))
+                                .height(resultSet.getDouble(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT))
+                                .width(resultSet.getDouble(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH))
+                                .build();
+
+                        resolvePageContent(stepDTO, resultSet.getBinaryStream(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+                        return stepDTO;
+                    })), preparedStatement -> {
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setBoolean(2, true);
+                        preparedStatement.setString(3, flowType);
+                    });
+
+            FlowDTO FlowDTO = new FlowDTO();
+            if (steps.isEmpty()) {
+                LOG.debug("No steps are found in the default flow of tenant " + tenantId);
+                return FlowDTO;
+            }
+            String firstStepId = getFirstStepId(tenantId);
+            StepDTO firstStep = steps.stream()
+                    .filter(step -> step.getId().equals(firstStepId))
+                    .findFirst()
+                    .orElseThrow(() -> handleServerException(Constants.ErrorMessages.ERROR_CODE_INVALID_NODE, firstStepId,
+                                                             tenantId));
+            if (StringUtils.isNotBlank(firstStepId)) {
+                FlowDTO.getSteps().add(firstStep);
+                steps.remove(firstStep);
+            }
+            FlowDTO.getSteps().addAll(steps);
+            return FlowDTO;
+        } catch (DataAccessException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantId);
+        }
+    }
+
+    @Override
+    public GraphConfig getGraph(int tenantId, String flowType) throws OrchestrationFrameworkException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            // Step 1: Fetch Nodes with Executors and Mappings.
+            List<Map<String, Object>> rows = getGraphNodes(tenantId, jdbcTemplate, flowType);
+
+            // Step 2: Process Data to Avoid Duplication.
+            GraphConfig graphConfig = buildGraph(rows);
+
+            // Step 3: Fetch Page Content with JOIN (Updated Query).
+            Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(graphConfig.getId(),tenantId, jdbcTemplate);
+
+            // Step 4: Set the page mappings.
+            graphConfig.setNodePageMappings(nodePageMappings);
+            return graphConfig;
+        } catch (DataAccessException e) {
+            LOG.error("Failed to retrieve graph for tenant: " + tenantId, e);
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_GRAPH_FAILED, e, tenantId);
+        }
+    }
+
+    private String getFirstStepId(int tenantId) throws OrchestrationServerException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            List<String> stepIds = jdbcTemplate.executeQuery(SQLConstants.GET_FIRST_STEP_ID, (resultSet, rowNumber) -> {
+                return resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID);
+            }, preparedStatement -> {
+                preparedStatement.setBoolean(1, true);
+                preparedStatement.setInt(2, tenantId);
+            });
+            return stepIds.isEmpty() ? null : stepIds.get(0);
+        } catch (DataAccessException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_FIRST_STEP_ID, e, tenantId);
+        }
+    }
+
+    private List<Map<String, Object>> getGraphNodes(int tenantId, JdbcTemplate jdbcTemplate, String flowType) throws DataAccessException {
+
+        return jdbcTemplate.executeQuery(SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY, (resultSet, rowNumber) -> {
+            Map<String, Object> row = new HashMap<>();
+            row.put(SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_FLOW_ID, resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_FLOW_ID));
+            row.put(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_ID, resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_ID));
+            row.put(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_TYPE, resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_TYPE));
+            row.put(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE, resultSet.getBoolean(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE));
+            row.put(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME, resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME));
+            row.put(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_NAME, resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_NAME));
+            row.put(SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID, resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID));
+            row.put(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT, resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT));
+            return row;
+        }, preparedStatement -> {
+            preparedStatement.setInt(1, tenantId);
+            preparedStatement.setBoolean(2, true);
+            preparedStatement.setString(3, flowType);
+        });
+    }
+
+    private Map<String, StepDTO> getViewPagesForFlow(String flowId, int tenantId, JdbcTemplate jdbcTemplate)
+            throws DataAccessException {
+
+        Map<String, StepDTO> nodePageMappings = new HashMap<>();
+        jdbcTemplate.executeQuery(SQLConstants.GET_VIEW_PAGES_IN_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
+            StepDTO stepDTO = new StepDTO.Builder()
+                    .id(resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID))
+                    .type(VIEW)
+                    .build();
+            resolvePageContent(stepDTO, resultSet.getBinaryStream(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+            nodePageMappings.put(resultSet.getString(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
+            return null;
+        })), preparedStatement -> {
+            preparedStatement.setString(1, flowId);
+            preparedStatement.setString(2, VIEW);
+        });
+        return nodePageMappings;
+    }
+
+    private GraphConfig buildGraph(List<Map<String, Object>> rows) {
+
+        GraphConfig graphConfig = new GraphConfig();
+        Map<String, NodeConfig> nodeConfigs = new HashMap<>();
+
+        for (Map<String, Object> row : rows) {
+            if (graphConfig.getId() == null) {
+                graphConfig.setId((String) row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_FLOW_ID));
+            }
+            String nodeId = (String) row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_ID);
+            nodeConfigs.putIfAbsent(nodeId, new NodeConfig.Builder()
+                    .id(nodeId)
+                    .type((String) row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_TYPE))
+                    .isFirstNode((Boolean) row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE))
+                    .build());
+
+            NodeConfig nodeConfig = nodeConfigs.get(nodeId);
+
+            // Update first node of the graph.
+            if (nodeConfig.isFirstNode()) {
+                graphConfig.setFirstNodeId(nodeId);
+            }
+            // Attach executor details if present.
+            if (row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME) != null) {
+                nodeConfig.setExecutorConfig(
+                        new ExecutorDTO((String) row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME),
+                                        (String) row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_NAME)));
+            }
+
+            // Attach edges (mappings).
+            if (row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID) != null) {
+                nodeConfig.addEdge(new NodeEdge(nodeId, (String) row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID),
+                                     (String) row.get(SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT))
+                );
+            }
+        }
+        graphConfig.setNodeConfigs(nodeConfigs);
+        return graphConfig;
+    }
+
+    private void resolvePageContent(StepDTO stepDTO, InputStream pageContent, int tenantId)
+            throws OrchestrationServerException {
+
+        try {
+            if (pageContent == null) {
+                // The step does not have any data to be resolved.
+                stepDTO.setData(new DataDTO.Builder().build());
+                return;
+            }
+            try (ObjectInputStream ois = new ObjectInputStream(pageContent)) {
+                Object obj = ois.readObject();
+                if (VIEW.equals(stepDTO.getType()) && obj instanceof List<?>) {
+                    List<?> tempList = (List<?>) obj;
+                    if (!tempList.isEmpty() && tempList.get(0) instanceof ComponentDTO) {
+                        List<ComponentDTO> components = tempList.stream()
+                                .map(ComponentDTO.class::cast)
+                                .collect(Collectors.toList());
+                        stepDTO.setData(new DataDTO.Builder().components(components).build());
+                    } else {
+                        throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
+                                                    stepDTO.getId(), tenantId);
+                    }
+                } else if (REDIRECTION.equals(stepDTO.getType())) {
+                    if (obj instanceof ActionDTO) {
+                        ActionDTO action = (ActionDTO) obj;
+                        stepDTO.setData(new DataDTO.Builder().action(action).build());
+                    }
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepDTO.getId(),
+                                        tenantId);
+        }
+    }
+
+    private static byte[] serializeObject(Object obj) throws IOException {
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(obj);
+            oos.flush();
+            return baos.toByteArray();
+        }
+    }
+
+    private static Optional<byte[]> serializeStepData(StepDTO stepDTO, int tenantId)
+            throws OrchestrationFrameworkException {
+
+        try {
+            if (VIEW.equals(stepDTO.getType())) {
+                List<ComponentDTO> components = stepDTO.getData().getComponents();
+                return Optional.of(serializeObject(components));
+            } else if (REDIRECTION.equals(stepDTO.getType())) {
+                ActionDTO action = stepDTO.getData().getAction();
+                return Optional.of(serializeObject(action));
+            } else {
+                return Optional.empty();
+            }
+        } catch (IOException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
+                                        stepDTO.getId(), tenantId);
+        }
+    }
+}
