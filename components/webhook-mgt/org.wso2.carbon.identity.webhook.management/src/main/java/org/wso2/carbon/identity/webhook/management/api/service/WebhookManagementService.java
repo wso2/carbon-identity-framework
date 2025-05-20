@@ -54,12 +54,13 @@ public interface WebhookManagementService {
     /**
      * Update a webhook subscription.
      *
+     * @param webhookId    Webhook subscription ID.
      * @param webhook      Updated webhook subscription.
      * @param tenantDomain Tenant domain.
      * @return Updated webhook subscription.
      * @throws WebhookMgtException If an error occurs while updating the webhook subscription.
      */
-    public WebhookDTO updateWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException;
+    public WebhookDTO updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Delete a webhook subscription.

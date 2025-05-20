@@ -124,7 +124,7 @@ public class WebhookManagementServiceImplTest {
         when(webhook.getEndpoint()).thenReturn(WEBHOOK_ENDPOINT);
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
 
-        WebhookDTO result = webhookManagementService.updateWebhook(webhook, TENANT_DOMAIN);
+        WebhookDTO result = webhookManagementService.updateWebhook(webhook.getUuid(), webhook, TENANT_DOMAIN);
 
         WebhookDTO expectedWebhookDTO = new WebhookDTO.Builder()
                 .setId(webhook.getId())
@@ -167,7 +167,7 @@ public class WebhookManagementServiceImplTest {
         // Mock that the new endpoint already exists in another webhook
         when(webhookManagementDAO.isWebhookEndpointExists(WEBHOOK_ENDPOINT, TENANT_ID)).thenReturn(true);
 
-        webhookManagementService.updateWebhook(webhook, TENANT_DOMAIN);
+        webhookManagementService.updateWebhook(webhook.getUuid(), webhook, TENANT_DOMAIN);
     }
 
     @Test
@@ -215,7 +215,7 @@ public class WebhookManagementServiceImplTest {
 
         Webhook webhook = mock(Webhook.class);
         when(webhook.getId()).thenReturn(WEBHOOK_ID);
-        webhookManagementService.updateWebhook(webhook, TENANT_DOMAIN);
+        webhookManagementService.updateWebhook(webhook.getUuid(), webhook, TENANT_DOMAIN);
     }
 
     @Test

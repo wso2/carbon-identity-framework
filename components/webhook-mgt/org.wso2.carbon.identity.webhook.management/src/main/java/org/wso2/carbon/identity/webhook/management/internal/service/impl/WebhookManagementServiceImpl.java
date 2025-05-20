@@ -98,25 +98,25 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
     }
 
     @Override
-    public WebhookDTO updateWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException {
+    public WebhookDTO updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating webhook with ID: %s for tenant: %s",
-                    webhook.getUuid(), tenantDomain));
+                    webhookId, tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (!isWebhookExists(webhook.getUuid(), tenantId)) {
+        if (!isWebhookExists(webhookId, tenantId)) {
             throw WebhookManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhook.getUuid());
+                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        Webhook existingWebhook = daoFACADE.getWebhook(webhook.getUuid(), tenantId);
+        Webhook existingWebhook = daoFACADE.getWebhook(webhookId, tenantId);
         if (!existingWebhook.getEndpoint().equals(webhook.getEndpoint()) &&
                 daoFACADE.isWebhookEndpointExists(webhook.getEndpoint(), tenantId)) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_EXISTS);
         }
         daoFACADE.updateWebhook(webhook, tenantId);
-        Webhook updatedWebhook = daoFACADE.getWebhook(webhook.getUuid(), tenantId);
+        Webhook updatedWebhook = daoFACADE.getWebhook(webhookId, tenantId);
         return WebhookDTO.Builder.fromWebhook(updatedWebhook).build();
     }
 
