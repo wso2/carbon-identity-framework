@@ -59,6 +59,16 @@ public class WebhookSummaryDTO {
         return endpoint;
     }
 
+    public String getEventSchemaName() {
+
+        return eventSchemaName;
+    }
+
+    public String getEventSchemaUri() {
+
+        return eventSchemaUri;
+    }
+
     public String getDescription() {
 
         return description;
