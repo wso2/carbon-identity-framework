@@ -18,11 +18,6 @@
 
 package org.wso2.carbon.identity.user.registration.engine;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -30,17 +25,30 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
+import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngine;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
+import org.wso2.carbon.identity.user.registration.engine.validation.InputValidationListener;
 import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
+import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.testng.Assert.assertEquals;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
 
 /**
  * Unit tests for RegistrationFlowService.
@@ -103,6 +111,11 @@ public class RegistrationFlowServiceTest {
     @Test
     public void testInitiateDefaultRegistrationFlowExecution() throws Exception {
 
+        RegistrationGraphConfig registrationGraphConfig = buildRegistrationGraphWithDecision();
+        testRegContext.setRegGraph(registrationGraphConfig);
+        RegistrationFlowEngineDataHolder.getInstance().addRegistrationExecutionListeners(new InputValidationListener());
+        testRegContext.getUserInputData().put("input1", "value1");
+
         RegistrationStep expectedStep = new RegistrationStep.Builder()
                 .flowId(testRegContext.getContextIdentifier())
                 .flowStatus("INCOMPLETE")
@@ -126,6 +139,44 @@ public class RegistrationFlowServiceTest {
                                     null, null);
             assertEquals(returnedStep, expectedStep);
         }
+    }
+
+    private RegistrationGraphConfig buildRegistrationGraphWithDecision() {
+
+        NodeConfig decisionNode = new NodeConfig.Builder()
+                .id("decisionNode")
+                .type(DECISION)
+                .build();
+
+        decisionNode.addEdge(new NodeEdge("decisionNode", "promptNode", "button1"));
+        decisionNode.addEdge(new NodeEdge("decisionNode", "testTarget", "button2"));
+
+        NodeConfig promptNode = new NodeConfig.Builder()
+                .id("promptNode")
+                .type(PROMPT_ONLY)
+                .build();
+        promptNode.addEdge(new NodeEdge("promptNode", "taskNode", "button1"));
+
+        NodeConfig taskNode = new NodeConfig.Builder()
+                .id("taskNode")
+                .type(TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put("decisionNode", decisionNode);
+        nodeMap.put("promptNode", promptNode);
+        nodeMap.put("taskNode", taskNode);
+
+        Map<String, StepDTO> pageMappings = new HashMap<>();
+        pageMappings.put("decisionNode", new StepDTO.Builder().build());
+        pageMappings.put("promptNode", new StepDTO.Builder().build());
+        pageMappings.put("taskNode", new StepDTO.Builder().build());
+
+        RegistrationGraphConfig graph = new RegistrationGraphConfig();
+        graph.setNodeConfigs(nodeMap);
+        graph.setNodePageMappings(pageMappings);
+        graph.setFirstNodeId("decisionNode");
+        return graph;
     }
 
     @Test

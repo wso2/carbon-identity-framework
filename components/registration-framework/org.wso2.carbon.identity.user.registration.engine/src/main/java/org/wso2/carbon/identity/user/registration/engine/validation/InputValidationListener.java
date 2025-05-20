@@ -28,8 +28,6 @@ import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 
-import static org.wso2.carbon.identity.user.registration.engine.Constants.IS_INITIATE_REQUEST;
-
 /**
  * Listener to handle input validation.
  */
@@ -57,30 +55,24 @@ public class InputValidationListener extends AbstractFlowExecutionListener {
     public boolean doPreExecute(RegistrationContext registrationContext)
             throws RegistrationEngineException {
 
-        DataDTO dataDTO = null;
-        boolean isInitiate = Boolean.parseBoolean(String.valueOf(registrationContext.getProperty(IS_INITIATE_REQUEST)));
-        if(MapUtils.isNotEmpty(registrationContext.getUserInputData())) {
-            if (isInitiate) {
-                RegistrationGraphConfig registrationGraphConfig = registrationContext.getRegGraph();
-                NodeConfig currentNode = registrationGraphConfig.getNodeConfigs().get(registrationGraphConfig.getFirstNodeId());
-                dataDTO = registrationContext.getRegGraph().getNodePageMappings().get(currentNode.getId()).getData();
-
-                registrationContext.setCurrentNode(currentNode);
-
-                // If the current node is Prompt node then there is nothing to execute
-                // hence assigning next node as the current node.
-                if (Constants.NodeTypes.PROMPT_ONLY.equalsIgnoreCase(currentNode.getType())) {
-                    if (currentNode.getEdges() != null && !currentNode.getEdges().isEmpty()) {
-                        currentNode.setNextNodeId(currentNode.getEdges().get(0).getTargetNodeId());
-                    }
-                    currentNode = moveToNextNode(registrationGraphConfig, currentNode);
+        if (MapUtils.isNotEmpty(registrationContext.getUserInputData()) &&
+                MapUtils.isEmpty(registrationContext.getCurrentStepInputs())) {
+            RegistrationGraphConfig registrationGraphConfig = registrationContext.getRegGraph();
+            NodeConfig currentNode = registrationGraphConfig.getNodeConfigs().get(registrationGraphConfig.getFirstNodeId());
+            DataDTO dataDTO = registrationContext.getRegGraph().getNodePageMappings().get(currentNode.getId()).getData();
+            // If the current node is Prompt node then there is nothing to execute
+            // hence assigning next node as the current node.
+            if (Constants.NodeTypes.PROMPT_ONLY.equalsIgnoreCase(currentNode.getType())) {
+                if (currentNode.getEdges() != null && !currentNode.getEdges().isEmpty()) {
+                    currentNode.setNextNodeId(currentNode.getEdges().get(0).getTargetNodeId());
                 }
+                currentNode = moveToNextNode(registrationGraphConfig, currentNode);
                 registrationContext.setCurrentNode(currentNode);
-                InputValidationService.getInstance().prepareStepInputs(dataDTO, registrationContext);
             }
-            InputValidationService.getInstance().validateInputs(registrationContext);
-            InputValidationService.getInstance().handleUserInputs(registrationContext);
+            InputValidationService.getInstance().prepareStepInputs(dataDTO, registrationContext);
         }
+        InputValidationService.getInstance().validateInputs(registrationContext);
+        InputValidationService.getInstance().handleUserInputs(registrationContext);
         return true;
     }
 

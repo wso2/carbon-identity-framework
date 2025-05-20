@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEn
 import java.util.Map;
 import java.util.Optional;
 
-import static org.wso2.carbon.identity.user.registration.engine.Constants.IS_INITIATE_REQUEST;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
 
 /**
@@ -64,12 +63,10 @@ public class UserRegistrationFlowService {
                 context = RegistrationFlowEngineUtils.initiateContext(tenantDomain, callbackUrl, applicationId);
                 Optional.ofNullable(inputs).ifPresent(inputs1 -> context.getUserInputData().putAll(inputs1));
                 context.setCurrentActionId(actionId);
-                context.setProperty(IS_INITIATE_REQUEST, true);
             } else {
                 context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
                 context.getUserInputData().putAll(inputs);
                 context.setCurrentActionId(actionId);
-                context.setProperty(IS_INITIATE_REQUEST, false);
             }
             for (FlowExecutionListener listener :
                     RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
