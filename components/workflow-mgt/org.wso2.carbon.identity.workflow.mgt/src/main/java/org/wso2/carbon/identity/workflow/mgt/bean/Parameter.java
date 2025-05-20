@@ -22,14 +22,12 @@ import java.io.Serializable;
 
 /**
  * This is the Bean class that represent the Parameter per workflow.
- *
+ * <p>
  * workflowId : Unique Id for the workflow
  * paramName : Parameter Name that is defined in the metafile
  * paramValue : Value for this parameter
  * qName :  Fully qualified name for this parameter. There can be more than one Parameter in same ParamName and but unique by qName.
  * holder : This is represent either template or workflowImpl
- *
- *
  */
 public class Parameter implements Serializable {
 
@@ -42,11 +40,10 @@ public class Parameter implements Serializable {
     private String holder;
 
     public Parameter() {
+
     }
 
-
     /**
-     *
      * @param workflowId
      * @param paramName
      * @param paramValue
@@ -54,6 +51,7 @@ public class Parameter implements Serializable {
      * @param holder
      */
     public Parameter(String workflowId, String paramName, String paramValue, String qName, String holder) {
+
         this.workflowId = workflowId;
         this.paramName = paramName;
         this.paramValue = paramValue;
@@ -62,48 +60,58 @@ public class Parameter implements Serializable {
     }
 
     public String getParamName() {
+
         return paramName;
     }
 
     public void setParamName(String paramName) {
+
         this.paramName = paramName;
     }
 
     public String getParamValue() {
+
         return paramValue;
     }
 
     public void setParamValue(String paramValue) {
+
         this.paramValue = paramValue;
     }
 
     public String getWorkflowId() {
+
         return workflowId;
     }
 
     public void setWorkflowId(String workflowId) {
+
         this.workflowId = workflowId;
     }
 
     public String getqName() {
+
         return qName;
     }
 
     public void setqName(String qName) {
+
         this.qName = qName;
     }
 
     public String getHolder() {
+
         return holder;
     }
 
     public void setHolder(String holder) {
+
         this.holder = holder;
     }
 
-
     @Override
     public boolean equals(Object o) {
+
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
@@ -113,11 +121,11 @@ public class Parameter implements Serializable {
         if (!paramName.equals(parameter.paramName)) return false;
         if (!qName.equals(parameter.qName)) return false;
         return holder.equals(parameter.holder);
-
     }
 
     @Override
     public int hashCode() {
+
         int result = workflowId.hashCode();
         result = 31 * result + paramName.hashCode();
         result = 31 * result + qName.hashCode();

@@ -31,11 +31,10 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Map;
 
-public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManagerListener{
+public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManagerListener {
 
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
-    private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result " +
-            ":  %s ";
+    private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
     private static final String AUDIT_SUCCESS = "Success";
 
     /**
@@ -72,7 +71,9 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
      * @throws WorkflowException
      */
     @Override
-    public void doPostHandleCallback(String uuid, String status, Map<String, Object> additionalParams) throws WorkflowException {
+    public void doPostHandleCallback(String uuid, String status, Map<String, Object> additionalParams)
+            throws WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -91,9 +92,8 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     /**
      * Get the initiator for audit logs.
      *
-     * @param username      Username of the initiator.
-     * @param tenantDomain  Tenant domain of the initiator.
-     *
+     * @param username     Username of the initiator.
+     * @param tenantDomain Tenant domain of the initiator.
      * @return initiator for the log.
      */
     private String getInitiatorForLog(String username, String tenantDomain) {

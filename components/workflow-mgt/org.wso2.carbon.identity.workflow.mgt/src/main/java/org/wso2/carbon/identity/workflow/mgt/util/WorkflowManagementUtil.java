@@ -40,6 +40,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -58,6 +59,7 @@ public class WorkflowManagementUtil {
      * @throws WorkflowException
      */
     public static void createAppRole(String workflowName) throws WorkflowException {
+
         String roleName = createWorkflowRoleName(workflowName);
         String qualifiedUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String[] user = {qualifiedUsername};
@@ -82,6 +84,7 @@ public class WorkflowManagementUtil {
      * @throws WorkflowException
      */
     public static void deleteWorkflowRole(String workflowName) throws WorkflowException {
+
         String roleName = createWorkflowRoleName(workflowName);
 
         try {
@@ -104,6 +107,7 @@ public class WorkflowManagementUtil {
      */
     public static void updateWorkflowRoleName(String oldWorkflowName, String newWorkflowName) throws
             WorkflowException {
+
         String oldRoleName = createWorkflowRoleName(oldWorkflowName);
         String newRoleName = createWorkflowRoleName(newWorkflowName);
         try {
@@ -125,9 +129,9 @@ public class WorkflowManagementUtil {
      * @return
      */
     public static String createWorkflowRoleName(String workflowName) {
+
         return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + workflowName;
     }
-
 
     /**
      * Un-marshall given string to given class type
@@ -168,6 +172,7 @@ public class WorkflowManagementUtil {
      * @throws IOException
      */
     public static String readFileFromResource(InputStream resourceAsStream) throws URISyntaxException, IOException {
+
         String content = null;
         try {
             BufferedInputStream bufferedInputStream = new BufferedInputStream(resourceAsStream);
@@ -196,6 +201,7 @@ public class WorkflowManagementUtil {
      * @return
      */
     public static Parameter getParameter(List<Parameter> parameterList, String paramName, String holder) {
+
         for (Parameter parameter : parameterList) {
             if (parameter.getParamName().equals(paramName) && parameter.getqName().equals(paramName) &&
                     parameter.getHolder().equals(holder)) {
@@ -231,6 +237,4 @@ public class WorkflowManagementUtil {
 
         return WFConstant.DEFAULT_RESULTS_PER_PAGE;
     }
-
-
 }

@@ -37,10 +37,8 @@ import javax.xml.bind.JAXBException;
 public abstract class AbstractTemplate {
 
     private static final Log log = LogFactory.getLog(AbstractTemplate.class);
-    private ParametersMetaData parametersMetaData = null;
     private final MetaData metaData;
-
-    protected abstract InputData getInputData(String parameterName) throws WorkflowException;
+    private ParametersMetaData parametersMetaData = null;
 
     /**
      * AbstractTemplate Constructor with metadata xml string parameter
@@ -62,6 +60,8 @@ public abstract class AbstractTemplate {
             throw new WorkflowRuntimeException(errorMsg, e);
         }
     }
+
+    protected abstract InputData getInputData(String parameterName) throws WorkflowException;
 
     /**
      * Retrieve template specific metadata

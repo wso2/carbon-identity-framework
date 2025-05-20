@@ -21,94 +21,90 @@ package org.wso2.carbon.identity.workflow.mgt.bean.metadata;
 
 import javax.xml.bind.annotation.XmlRegistry;
 
-
 /**
- * This object contains factory methods for each 
- * Java content interface and Java element interface 
- * generated in the org.wso2.carbon.identity.workflow.mgt.bean.metadata package. 
- * <p>An ObjectFactory allows you to programatically 
- * construct new instances of the Java representation 
- * for XML content. The Java representation of XML 
- * content can consist of schema derived interfaces 
- * and classes representing the binding of schema 
- * type definitions, element declarations and model 
- * groups.  Factory methods for each of these are 
+ * This object contains factory methods for each
+ * Java content interface and Java element interface
+ * generated in the org.wso2.carbon.identity.workflow.mgt.bean.metadata package.
+ * <p>An ObjectFactory allows you to programatically
+ * construct new instances of the Java representation
+ * for XML content. The Java representation of XML
+ * content can consist of schema derived interfaces
+ * and classes representing the binding of schema
+ * type definitions, element declarations and model
+ * groups.  Factory methods for each of these are
  * provided in this class.
- * 
  */
 @XmlRegistry
 public class ObjectFactory {
 
-
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.wso2.carbon.identity.workflow.mgt.bean.metadata
-     * 
      */
     public ObjectFactory() {
+
     }
 
     /**
      * Create an instance of {@link MetaData }
-     * 
      */
     public MetaData createMetaData() {
+
         return new MetaData();
     }
 
     /**
      * Create an instance of {@link MetaData.Template }
-     * 
      */
     public MetaData.Template createMetaDataTemplate() {
+
         return new MetaData.Template();
     }
 
     /**
      * Create an instance of {@link MetaData.WorkflowImpl }
-     * 
      */
     public MetaData.WorkflowImpl createMetaDataWorkflowImpl() {
+
         return new MetaData.WorkflowImpl();
     }
 
     /**
      * Create an instance of {@link ParametersMetaData }
-     * 
      */
     public ParametersMetaData createParametersMetaData() {
+
         return new ParametersMetaData();
     }
 
     /**
      * Create an instance of {@link ParameterMetaData }
-     * 
      */
     public ParameterMetaData createParameterMetaData() {
+
         return new ParameterMetaData();
     }
 
     /**
      * Create an instance of {@link InputData }
-     * 
      */
     public InputData createInputData() {
+
         return new InputData();
     }
 
     /**
      * Create an instance of {@link MapType }
-     * 
      */
     public MapType createMapType() {
+
         return new MapType();
     }
 
     /**
      * Create an instance of {@link Item }
-     * 
      */
     public Item createItem() {
+
         return new Item();
     }
-
 }

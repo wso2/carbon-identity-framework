@@ -29,42 +29,52 @@ public class WorkflowEvent {
     private Parameter[] parameters;
 
     public String getEventId() {
+
         return eventId;
     }
 
     public void setEventId(String eventId) {
+
         this.eventId = eventId;
     }
 
     public String getEventFriendlyName() {
+
         return eventFriendlyName;
     }
 
     public void setEventFriendlyName(String eventFriendlyName) {
+
         this.eventFriendlyName = eventFriendlyName;
     }
 
     public String getEventCategory() {
+
         return eventCategory;
     }
 
     public void setEventCategory(String eventCategory) {
+
         this.eventCategory = eventCategory;
     }
 
     public Parameter[] getParameters() {
+
         return parameters;
     }
 
     public void setParameters(Parameter[] parameters) {
+
         this.parameters = parameters;
     }
 
     public String getEventDescription() {
+
         return eventDescription;
     }
 
     public void setEventDescription(String eventDescription) {
+
         this.eventDescription = eventDescription;
     }
 }

@@ -61,20 +61,22 @@ public interface WorkflowRequestHandler {
 
     /**
      * Gets the human friendly name for the event associated with this handler
+     *
      * @return
      */
     String getFriendlyName();
 
     /**
      * Gets the human friendly description for the event associated with this handler
+     *
      * @return
      */
     String getDescription();
 
     /**
      * Gets the category of the event associated with this handler
+     *
      * @return
      */
     String getCategory();
-
 }

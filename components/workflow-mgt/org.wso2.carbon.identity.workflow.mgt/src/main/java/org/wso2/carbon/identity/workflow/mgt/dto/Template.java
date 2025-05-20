@@ -23,7 +23,6 @@ import org.wso2.carbon.identity.workflow.mgt.bean.metadata.ParametersMetaData;
 /**
  * Template class is a DTO that is represent basic Template data and the
  * template specific MetaData
- *
  */
 public class Template {
 
@@ -34,36 +33,42 @@ public class Template {
     private ParametersMetaData parametersMetaData;
 
     public String getTemplateId() {
+
         return templateId;
     }
 
     public void setTemplateId(String templateId) {
+
         this.templateId = templateId;
     }
 
     public String getName() {
+
         return name;
     }
 
     public void setName(String name) {
+
         this.name = name;
     }
 
     public String getDescription() {
+
         return description;
     }
 
     public void setDescription(String description) {
+
         this.description = description;
     }
 
     public ParametersMetaData getParametersMetaData() {
+
         return parametersMetaData;
     }
 
     public void setParametersMetaData(ParametersMetaData parametersMetaData) {
+
         this.parametersMetaData = parametersMetaData;
     }
-
-
 }

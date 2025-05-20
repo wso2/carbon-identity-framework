@@ -88,6 +88,7 @@ public abstract class AbstractWorkflowExecutorManagerListener implements Workflo
      * @return
      */
     public boolean isEnable() {
+
         IdentityEventListenerConfig listenerConfig = IdentityUtil.readEventListenerProperty
                 (WorkflowExecutorManagerListener.class.getName(), this.getClass().getName());
 
@@ -108,6 +109,7 @@ public abstract class AbstractWorkflowExecutorManagerListener implements Workflo
      * @return
      */
     public int getOrderId() {
+
         IdentityEventListenerConfig listenerConfig = IdentityUtil.readEventListenerProperty
                 (WorkflowExecutorManagerListener.class.getName(), this.getClass().getName());
         if (listenerConfig == null) {

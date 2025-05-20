@@ -30,26 +30,32 @@ public class WSWorkflowResponse {
     private ParameterDO[] outputParams;
 
     public String getUuid() {
+
         return uuid;
     }
 
     public void setUuid(String uuid) {
+
         this.uuid = uuid;
     }
 
     public String getStatus() {
+
         return status;
     }
 
     public void setStatus(String status) {
+
         this.status = status;
     }
 
     public ParameterDO[] getOutputParams() {
+
         return outputParams;
     }
 
     public void setOutputParams(ParameterDO[] outputParams) {
+
         this.outputParams = outputParams;
     }
 }

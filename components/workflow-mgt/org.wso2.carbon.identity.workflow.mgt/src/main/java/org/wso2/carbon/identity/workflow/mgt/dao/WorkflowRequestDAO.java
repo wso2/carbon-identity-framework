@@ -49,11 +49,12 @@ public class WorkflowRequestDAO {
      * Persists WorkflowRequest to be used when workflow is completed
      *
      * @param workflow    The workflow object to be persisted
-     * @param currentUser Currently logged in user
+     * @param currentUser Currently logged-in user
      * @param tenantId    Tenant ID of the currently Logged user.
      * @throws WorkflowException
      */
     public void addWorkflowEntry(WorkflowRequest workflow, String currentUser, int tenantId) throws WorkflowException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         String query = SQLConstants.ADD_WORKFLOW_REQUEST_QUERY;
@@ -88,6 +89,7 @@ public class WorkflowRequestDAO {
      * @throws IOException
      */
     private byte[] serializeWorkflowRequest(WorkflowRequest workFlowRequest) throws IOException {
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(workFlowRequest);
@@ -103,6 +105,7 @@ public class WorkflowRequestDAO {
      * @throws WorkflowException
      */
     public WorkflowRequest retrieveWorkflow(String uuid) throws InternalWorkflowException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
@@ -134,6 +137,7 @@ public class WorkflowRequestDAO {
      * @throws InternalWorkflowException
      */
     public String retrieveStatusOfWorkflow(String uuid) throws InternalWorkflowException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -163,6 +167,7 @@ public class WorkflowRequestDAO {
      * @throws InternalWorkflowException
      */
     public String retrieveCreatedUserOfRequest(String uuid) throws InternalWorkflowException {
+
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -192,7 +197,8 @@ public class WorkflowRequestDAO {
      * @throws ClassNotFoundException
      */
     private WorkflowRequest deserializeWorkflowRequest(byte[] serializedData) throws IOException,
-                                                                                     ClassNotFoundException {
+            ClassNotFoundException {
+
         ByteArrayInputStream bais = new ByteArrayInputStream(serializedData);
         ObjectInputStream ois = new ObjectInputStream(bais);
         Object objectRead = ois.readObject();
@@ -351,7 +357,7 @@ public class WorkflowRequestDAO {
                     }
                 }
             } else if (driverName.contains("Informix")) {
-                // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
+                // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server".
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
                     if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_INFORMIX;
@@ -588,5 +594,4 @@ public class WorkflowRequestDAO {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
     }
-
 }

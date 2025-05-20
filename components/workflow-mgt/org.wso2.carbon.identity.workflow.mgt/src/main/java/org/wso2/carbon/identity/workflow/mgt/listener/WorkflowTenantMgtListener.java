@@ -53,8 +53,7 @@ public class WorkflowTenantMgtListener extends AbstractIdentityTenantMgtListener
         try {
             WorkflowServiceDataHolder.getInstance().getWorkflowService().removeWorkflows(tenantId);
         } catch (WorkflowException e) {
-            throw new StratosException("Server error occurred when removing workflows");
+            throw new StratosException("Server error occurred when removing workflows.");
         }
     }
-
 }

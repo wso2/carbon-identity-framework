@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.workflow.mgt.bean.metadata.type;
 
-
 public enum InputType {
 
     SELECT("Select"),
@@ -33,15 +32,13 @@ public enum InputType {
     private final String value;
 
     InputType(String v) {
+
         value = v;
     }
 
-    public String value() {
-        return value;
-    }
-
     public static InputType fromValue(String v) {
-        for (InputType c: InputType.values()) {
+
+        for (InputType c : InputType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }
@@ -49,4 +46,8 @@ public enum InputType {
         throw new IllegalArgumentException(v);
     }
 
+    public String value() {
+
+        return value;
+    }
 }

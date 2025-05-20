@@ -25,6 +25,7 @@ public class WorkflowException extends IdentityException {
     private static final long serialVersionUID = 737141405805528549L;
 
     public WorkflowException(String message) {
+
         super(message);
     }
 
@@ -34,6 +35,7 @@ public class WorkflowException extends IdentityException {
     }
 
     public WorkflowException(String message, Throwable e) {
+
         super(message, e);
     }
 }

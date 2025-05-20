@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.metadata.ParametersMetaData;
  * based on a Template and the Workflow Implementation specific MetaData
  */
 public class WorkflowImpl {
+
     private String workflowImplId;
     private String workflowImplName;
     private ParametersMetaData parametersMetaData;
@@ -32,35 +33,43 @@ public class WorkflowImpl {
     private String templateId;
 
     public String getWorkflowImplId() {
+
         return workflowImplId;
     }
 
     public void setWorkflowImplId(String workflowImplId) {
+
         this.workflowImplId = workflowImplId;
     }
 
     public String getWorkflowImplName() {
+
         return workflowImplName;
     }
 
     public void setWorkflowImplName(String workflowImplName) {
+
         this.workflowImplName = workflowImplName;
     }
 
     public ParametersMetaData getParametersMetaData() {
+
         return parametersMetaData;
     }
 
     public void setParametersMetaData(
             ParametersMetaData parametersMetaData) {
+
         this.parametersMetaData = parametersMetaData;
     }
 
     public String getTemplateId() {
+
         return templateId;
     }
 
     public void setTemplateId(String templateId) {
+
         this.templateId = templateId;
     }
 }

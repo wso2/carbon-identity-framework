@@ -21,57 +21,69 @@ package org.wso2.carbon.identity.workflow.mgt.bean;
 public class WorkflowAssociation {
 
     private int associationId;
-    private String associationName ;
+    private String associationName;
     private String eventId;
     private String associationCondition;
     private String workflowId;
     private boolean isEnabled;
 
     public int getAssociationId() {
+
         return associationId;
     }
 
     public void setAssociationId(int associationId) {
+
         this.associationId = associationId;
     }
 
     public String getEventId() {
+
         return eventId;
     }
 
     public void setEventId(String eventId) {
+
         this.eventId = eventId;
     }
 
     public String getAssociationCondition() {
+
         return associationCondition;
     }
 
     public void setAssociationCondition(String associationCondition) {
+
         this.associationCondition = associationCondition;
     }
 
     public String getWorkflowId() {
+
         return workflowId;
     }
 
     public void setWorkflowId(String workflowId) {
+
         this.workflowId = workflowId;
     }
 
     public boolean isEnabled() {
+
         return isEnabled;
     }
 
     public void setIsEnabled(boolean isEnabled) {
+
         this.isEnabled = isEnabled;
     }
 
     public String getAssociationName() {
+
         return associationName;
     }
 
     public void setAssociationName(String associationName) {
+
         this.associationName = associationName;
     }
 }

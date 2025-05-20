@@ -25,49 +25,56 @@ import java.util.List;
 
 public class WorkflowRequest implements Serializable, Cloneable {
 
-    private static final long serialVersionUID = 578401681187017212L;
-
     public static final String CREDENTIAL = "Credential";
+    private static final long serialVersionUID = 578401681187017212L;
     private String uuid;
     private String eventType;
     private int tenantId;
     private List<RequestParameter> requestParameters;
 
-
     public String getUuid() {
+
         return uuid;
     }
 
     public void setUuid(String uuid) {
+
         this.uuid = uuid;
     }
 
     public String getEventType() {
+
         return eventType;
     }
 
     public void setEventType(String eventType) {
+
         this.eventType = eventType;
     }
 
     public List<RequestParameter> getRequestParameters() {
+
         return requestParameters;
     }
 
     public void setRequestParameters(List<RequestParameter> requestParameters) {
+
         this.requestParameters = requestParameters;
     }
 
     public int getTenantId() {
+
         return tenantId;
     }
 
     public void setTenantId(int tenantId) {
+
         this.tenantId = tenantId;
     }
 
     @Override
     public String toString() {
+
         return "WorkFlowRequest{" +
                 "uuid='" + uuid + "\'\n" +
                 ", eventType='" + eventType + "\'\n" +
@@ -80,7 +87,7 @@ public class WorkflowRequest implements Serializable, Cloneable {
 
         String requestParametersString = "{";
         for (int i = 0; i < requestParameters.size(); i++) {
-            if(!CREDENTIAL.equals(requestParameters.get(i).getName())) {
+            if (!CREDENTIAL.equals(requestParameters.get(i).getName())) {
                 requestParametersString = requestParametersString + requestParameters.get(i).getName() + " : " +
                         requestParameters.get(i).getValue();
                 if (i != requestParameters.size() - 1) {

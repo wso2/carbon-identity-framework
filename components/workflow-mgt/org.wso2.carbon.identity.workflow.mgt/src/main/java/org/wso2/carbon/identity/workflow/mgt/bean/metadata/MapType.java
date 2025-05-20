@@ -24,12 +24,11 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * <p>Java class for MapType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="MapType"&gt;
  *   &lt;complexContent&gt;
@@ -41,12 +40,10 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "MapType", propOrder = {
-    "item"
+        "item"
 })
 public class MapType {
 
@@ -54,10 +51,12 @@ public class MapType {
     protected Item[] item;
 
     public Item[] getItem() {
+
         return item;
     }
 
     public void setItem(Item[] item) {
+
         this.item = item;
     }
 }

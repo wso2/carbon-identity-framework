@@ -25,12 +25,11 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * <p>Java class for anonymous complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType&gt;
  *   &lt;complexContent&gt;
@@ -70,13 +69,11 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "template",
-    "workflowImpl"
+        "template",
+        "workflowImpl"
 })
 @XmlRootElement(name = "MetaData")
 public class MetaData {
@@ -88,58 +85,53 @@ public class MetaData {
 
     /**
      * Gets the value of the template property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Template }
-     *     
+     *
+     * @return possible object is
+     * {@link Template }
      */
     public Template getTemplate() {
+
         return template;
     }
 
     /**
      * Sets the value of the template property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Template }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link Template }
      */
     public void setTemplate(Template value) {
+
         this.template = value;
     }
 
     /**
      * Gets the value of the workflowImpl property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link WorkflowImpl }
-     *     
+     *
+     * @return possible object is
+     * {@link WorkflowImpl }
      */
     public WorkflowImpl getWorkflowImpl() {
+
         return workflowImpl;
     }
 
     /**
      * Sets the value of the workflowImpl property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link WorkflowImpl }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link WorkflowImpl }
      */
     public void setWorkflowImpl(WorkflowImpl value) {
+
         this.workflowImpl = value;
     }
 
-
     /**
      * <p>Java class for anonymous complex type.
-     * 
+     *
      * <p>The following schema fragment specifies the expected content contained within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType&gt;
      *   &lt;complexContent&gt;
@@ -154,15 +146,13 @@ public class MetaData {
      *   &lt;/complexContent&gt;
      * &lt;/complexType&gt;
      * </pre>
-     * 
-     * 
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "", propOrder = {
-        "templateId",
-        "templateName",
-        "templateDescription",
-        "parametersMetaData"
+            "templateId",
+            "templateName",
+            "templateDescription",
+            "parametersMetaData"
     })
     public static class Template {
 
@@ -177,108 +167,99 @@ public class MetaData {
 
         /**
          * Gets the value of the templateId property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link String }
-         *     
+         *
+         * @return possible object is
+         * {@link String }
          */
         public String getTemplateId() {
+
             return templateId;
         }
 
         /**
          * Sets the value of the templateId property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link String }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link String }
          */
         public void setTemplateId(String value) {
+
             this.templateId = value;
         }
 
         /**
          * Gets the value of the templateName property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link String }
-         *     
+         *
+         * @return possible object is
+         * {@link String }
          */
         public String getTemplateName() {
+
             return templateName;
         }
 
         /**
          * Sets the value of the templateName property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link String }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link String }
          */
         public void setTemplateName(String value) {
+
             this.templateName = value;
         }
 
         /**
          * Gets the value of the templateDescription property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link String }
-         *     
+         *
+         * @return possible object is
+         * {@link String }
          */
         public String getTemplateDescription() {
+
             return templateDescription;
         }
 
         /**
          * Sets the value of the templateDescription property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link String }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link String }
          */
         public void setTemplateDescription(String value) {
+
             this.templateDescription = value;
         }
 
         /**
          * Gets the value of the parametersMetaData property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link ParametersMetaData }
-         *     
+         *
+         * @return possible object is
+         * {@link ParametersMetaData }
          */
         public ParametersMetaData getParametersMetaData() {
+
             return parametersMetaData;
         }
 
         /**
          * Sets the value of the parametersMetaData property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link ParametersMetaData }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link ParametersMetaData }
          */
         public void setParametersMetaData(ParametersMetaData value) {
+
             this.parametersMetaData = value;
         }
 
     }
 
-
     /**
      * <p>Java class for anonymous complex type.
-     * 
+     *
      * <p>The following schema fragment specifies the expected content contained within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType&gt;
      *   &lt;complexContent&gt;
@@ -294,16 +275,14 @@ public class MetaData {
      *   &lt;/complexContent&gt;
      * &lt;/complexType&gt;
      * </pre>
-     * 
-     * 
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "", propOrder = {
-        "workflowImplId",
-        "workflowImplName",
-        "workflowImplDescription",
-        "templateId",
-        "parametersMetaData"
+            "workflowImplId",
+            "workflowImplName",
+            "workflowImplDescription",
+            "templateId",
+            "parametersMetaData"
     })
     public static class WorkflowImpl {
 
@@ -320,124 +299,112 @@ public class MetaData {
 
         /**
          * Gets the value of the workflowImplId property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link String }
-         *     
+         *
+         * @return possible object is
+         * {@link String }
          */
         public String getWorkflowImplId() {
+
             return workflowImplId;
         }
 
         /**
          * Sets the value of the workflowImplId property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link String }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link String }
          */
         public void setWorkflowImplId(String value) {
+
             this.workflowImplId = value;
         }
 
         /**
          * Gets the value of the workflowImplName property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link String }
-         *     
+         *
+         * @return possible object is
+         * {@link String }
          */
         public String getWorkflowImplName() {
+
             return workflowImplName;
         }
 
         /**
          * Sets the value of the workflowImplName property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link String }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link String }
          */
         public void setWorkflowImplName(String value) {
+
             this.workflowImplName = value;
         }
 
         /**
          * Gets the value of the workflowImplDescription property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link String }
-         *     
+         *
+         * @return possible object is
+         * {@link String }
          */
         public String getWorkflowImplDescription() {
+
             return workflowImplDescription;
         }
 
         /**
          * Sets the value of the workflowImplDescription property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link String }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link String }
          */
         public void setWorkflowImplDescription(String value) {
+
             this.workflowImplDescription = value;
         }
 
         /**
          * Gets the value of the templateId property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link String }
-         *     
+         *
+         * @return possible object is
+         * {@link String }
          */
         public String getTemplateId() {
+
             return templateId;
         }
 
         /**
          * Sets the value of the templateId property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link String }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link String }
          */
         public void setTemplateId(String value) {
+
             this.templateId = value;
         }
 
         /**
          * Gets the value of the parametersMetaData property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link ParametersMetaData }
-         *     
+         *
+         * @return possible object is
+         * {@link ParametersMetaData }
          */
         public ParametersMetaData getParametersMetaData() {
+
             return parametersMetaData;
         }
 
         /**
          * Sets the value of the parametersMetaData property.
-         * 
-         * @param value
-         *     allowed object is
-         *     {@link ParametersMetaData }
-         *     
+         *
+         * @param value allowed object is
+         *              {@link ParametersMetaData }
          */
         public void setParametersMetaData(ParametersMetaData value) {
+
             this.parametersMetaData = value;
         }
-
     }
-
 }

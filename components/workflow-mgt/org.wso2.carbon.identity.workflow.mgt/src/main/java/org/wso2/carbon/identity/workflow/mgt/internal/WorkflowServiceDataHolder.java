@@ -37,43 +37,50 @@ import java.util.Map;
 
 public class WorkflowServiceDataHolder {
 
-    private static WorkflowServiceDataHolder instance = new WorkflowServiceDataHolder();
     private static final Log log = LogFactory.getLog(WorkflowServiceDataHolder.class);
-
+    private static WorkflowServiceDataHolder instance = new WorkflowServiceDataHolder();
     private RealmService realmService;
     private ConfigurationContextService configurationContextService;
     private BundleContext bundleContext;
 
-    private Map<String, WorkflowRequestHandler> workflowRequestHandlers =  new HashMap<String, WorkflowRequestHandler>();
+    private Map<String, WorkflowRequestHandler> workflowRequestHandlers = new HashMap<String, WorkflowRequestHandler>();
 
     private List<WorkflowListener> workflowListenerList = new ArrayList<>();
     private List<WorkflowExecutorManagerListener> executorListenerList = new ArrayList<>();
+    private Map<String, AbstractTemplate> templates = new HashMap<String, AbstractTemplate>();
+    private Map<String, Map<String, AbstractWorkflow>> workflowImpls =
+            new HashMap<String, Map<String, AbstractWorkflow>>();
+    private WorkflowManagementService workflowService = null;
+
+    private WorkflowServiceDataHolder() {
+
+    }
+
+    public static WorkflowServiceDataHolder getInstance() {
+
+        return instance;
+    }
 
     public List<WorkflowListener> getWorkflowListenerList() {
+
         return workflowListenerList;
     }
 
     public void setWorkflowListenerList(
             List<WorkflowListener> workflowListenerList) {
+
         this.workflowListenerList = workflowListenerList;
     }
 
     public List<WorkflowExecutorManagerListener> getExecutorListenerList() {
+
         return executorListenerList;
     }
 
     public void setExecutorListenerList(
             List<WorkflowExecutorManagerListener> executorListenerList) {
+
         this.executorListenerList = executorListenerList;
-    }
-
-    private Map<String, AbstractTemplate> templates = new HashMap<String, AbstractTemplate>();
-    private Map<String, Map<String,AbstractWorkflow>> workflowImpls = new HashMap<String, Map<String,AbstractWorkflow>>();
-
-    private WorkflowManagementService workflowService = null ;
-
-    private WorkflowServiceDataHolder() {
-
     }
 
     public ConfigurationContextService getConfigurationContextService() {
@@ -107,37 +114,36 @@ public class WorkflowServiceDataHolder {
         this.realmService = realmService;
     }
 
-    public static WorkflowServiceDataHolder getInstance() {
-
-        return instance;
-    }
-
     public void addTemplate(AbstractTemplate template) {
+
         templates.put(template.getTemplateId(), template);
     }
 
     public void removeTemplate(AbstractTemplate template) {
+
         if (template != null && template.getTemplateId() != null) {
             templates.remove(template.getTemplateId());
         }
     }
 
-
     public Map<String, AbstractTemplate> getTemplates() {
+
         return templates;
     }
 
-    public Map<String, Map<String,AbstractWorkflow>> getWorkflowImpls() {
+    public Map<String, Map<String, AbstractWorkflow>> getWorkflowImpls() {
+
         return workflowImpls;
     }
 
     public void addWorkflowImplementation(AbstractWorkflow abstractWorkflow) {
+
         Map<String, AbstractWorkflow> abstractWorkflowMap = workflowImpls.get(abstractWorkflow.getTemplateId());
-        if(abstractWorkflowMap == null){
+        if (abstractWorkflowMap == null) {
             abstractWorkflowMap = new HashMap<>();
-            workflowImpls.put(abstractWorkflow.getTemplateId(),abstractWorkflowMap);
+            workflowImpls.put(abstractWorkflow.getTemplateId(), abstractWorkflowMap);
         }
-        abstractWorkflowMap.put(abstractWorkflow.getWorkflowImplId(),abstractWorkflow);
+        abstractWorkflowMap.put(abstractWorkflow.getWorkflowImplId(), abstractWorkflow);
     }
 
     public void removeWorkflowImplementation(AbstractWorkflow abstractWorkflow) {
@@ -146,7 +152,6 @@ public class WorkflowServiceDataHolder {
             workflowImpls.remove(abstractWorkflow.getWorkflowImplId());
         }
     }
-
 
     public void addWorkflowRequestHandler(WorkflowRequestHandler requestHandler) {
 
@@ -172,12 +177,13 @@ public class WorkflowServiceDataHolder {
         return new ArrayList<>(workflowRequestHandlers.values());
     }
 
-
     public WorkflowManagementService getWorkflowService() {
+
         return workflowService;
     }
 
     public void setWorkflowService(WorkflowManagementService workflowService) {
+
         this.workflowService = workflowService;
     }
 }
