@@ -1562,7 +1562,7 @@
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="org_applications" displayName="Applications" type="organization">
-        <>
+        <Scopes>
             <Feature>
                 <Scope name="console:org:applications"/>
                 <Scope name="console:org:applications_view"/>
