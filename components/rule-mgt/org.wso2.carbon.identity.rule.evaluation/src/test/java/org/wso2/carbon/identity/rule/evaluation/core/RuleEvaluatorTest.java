@@ -122,7 +122,10 @@ public class RuleEvaluatorTest {
                 {createRuleWithTwoANDExpressionsAndOneORExpressionUsingReferenceAndNumberValueTypes(),
                         createEvaluationData("testapp3", 4), true},
                 {createRuleWithANDExpressionUsingStringValueTypesAndContainsOperator(),
-                        createEvaluationData("user@wso2.com"), true}
+                        createEvaluationData("user@wso2.com"), true},
+                {createRuleWithTwoANDExpressionsUsingListValueTypes(),
+                        createEvaluationData(Arrays.asList("http://wso2.org/claims/givenname",
+                                "http://wso2.org/claims/country")), true}
         };
     }
 
@@ -223,6 +226,20 @@ public class RuleEvaluatorTest {
         return ruleBuilder.build();
     }
 
+    private Rule createRuleWithTwoANDExpressionsUsingListValueTypes() throws Exception {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression1 = new Expression.Builder().field("claim").operator("equals")
+                .value(new Value(Value.Type.REFERENCE, "http://wso2.org/claims/country")).build();
+        Expression expression2 = new Expression.Builder().field("claim").operator("notEquals")
+                .value(new Value(Value.Type.REFERENCE, "http://wso2.org/claims/dob")).build();
+        ruleBuilder.addAndExpression(expression1);
+        ruleBuilder.addAndExpression(expression2);
+
+        return ruleBuilder.build();
+    }
+
     private Map<String, FieldValue> createEvaluationData(String applicationValue, String grantTypeValue) {
 
         Map<String, FieldValue> evaluationData = new HashMap<>();
@@ -251,6 +268,13 @@ public class RuleEvaluatorTest {
 
         Map<String, FieldValue> evaluationData = new HashMap<>();
         evaluationData.put("email", new FieldValue("application", emailValue, ValueType.STRING));
+        return evaluationData;
+    }
+
+    private Map<String, FieldValue> createEvaluationData(List<String> claims) {
+
+        Map<String, FieldValue> evaluationData = new HashMap<>();
+        evaluationData.put("claim", new FieldValue("claim", claims));
         return evaluationData;
     }
 
@@ -297,6 +321,18 @@ public class RuleEvaluatorTest {
         fieldDefinitionList.add(
                 new FieldDefinition(emailField, Collections.singletonList(new Operator("contains", "contains")),
                         emailValue));
+
+        Field claimField = new Field("claim", "claim");
+        List<Operator> operatorsForClaim = Arrays.asList(new Operator("equals", "equals"),
+                new Operator("notEquals", "not equals"));
+        List<Link> linksForClaim = Arrays.asList(new Link("/claim-dialects/local/claims?exclude-hidden-claims=true",
+                "GET", "values"));
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
+                claimValue = new OptionsReferenceValue.Builder().valueReferenceAttribute("uri")
+                .valueDisplayAttribute("name").valueType(
+                        org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.REFERENCE)
+                .links(linksForClaim).build();
+        fieldDefinitionList.add(new FieldDefinition(claimField, operatorsForClaim, claimValue));
 
         return fieldDefinitionList;
     }

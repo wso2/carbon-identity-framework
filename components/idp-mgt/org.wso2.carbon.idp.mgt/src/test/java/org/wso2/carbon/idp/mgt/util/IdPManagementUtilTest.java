@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@ package org.wso2.carbon.idp.mgt.util;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
+import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -50,6 +51,9 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY;
 
 /**
  * Unit tests for IdPManagementUtil.
@@ -60,6 +64,13 @@ public class IdPManagementUtilTest {
 
     private static final String TRUE_STRING = "true";
     private static final String FALSE_STRING = "false";
+    private static final String PASSWORD_RECOVERY_ENABLE = "Recovery.Notification.Password.Enable";
+    private static final String PASSWORD_RECOVERY_EMAIL_LINK_ENABLE
+            = "Recovery.Notification.Password.emailLink.Enable";
+    private static final String PASSWORD_RECOVERY_EMAIL_OTP_ENABLE =
+            "Recovery.Notification.Password.OTP.SendOTPInEmail";
+    private static final String PASSWORD_RECOVERY_SMS_OTP_ENABLE = "Recovery.Notification.Password.smsOtp.Enable";
+
 
     @Mock
     private IdentityProviderManager mockedIdentityProviderManager;
@@ -293,6 +304,303 @@ public class IdPManagementUtilTest {
 
     }
 
+    @Test(dataProvider = "passwordRecoveryConfigs")
+    public void testValidatePasswordRecoveryPropertyValues(HashMap<String, String> configs, boolean isValid) {
+
+        try {
+            IdPManagementUtil.validatePasswordRecoveryPropertyValues(configs);
+
+            if (!isValid) {
+                Assert.fail("Expected an  IdentityProviderManagementClientException but no exception was thrown.");
+            }
+        } catch (IdentityProviderManagementClientException e) {
+            if (isValid) {
+                Assert.fail("Did not expect IdentityProviderManagementClientException.", e);
+            }
+        }
+    }
+
+    @Test(dataProvider = "adminPasswordResetConfigs")
+    public void testValidateAdminPasswordResetWithCurrentAndPreviousConfigs(HashMap<String, String> configs, IdentityProviderProperty[] identityProviderProperties,boolean isValid) {
+
+        try {
+            IdPManagementUtil.validateAdminPasswordResetWithCurrentAndPreviousConfigs(configs,
+                    identityProviderProperties);
+
+            if (!isValid) {
+                Assert.fail("Expected an  IdentityProviderManagementClientException but no exception was thrown.");
+            }
+        } catch (IdentityProviderManagementClientException e) {
+            if (isValid) {
+                Assert.fail("Did not expect IdentityProviderManagementClientException.", e);
+            }
+        }
+    }
+
+    @Test(dataProvider = "passwordRecoveryConfigsWithIdpMgtProps")
+    public void testValidatePasswordRecoveryWithCurrentAndPreviousConfigs(HashMap<String, String> configs,
+                                                                          IdentityProviderProperty[] identityProviderProperties,
+                                                                          boolean isValid) {
+
+        try {
+            IdPManagementUtil.validatePasswordRecoveryWithCurrentAndPreviousConfigs(configs,
+                    identityProviderProperties);
+
+            if (!isValid) {
+                Assert.fail("Expected an  IdentityProviderManagementClientException but no exception was thrown.");
+            }
+        } catch (IdentityProviderManagementClientException e) {
+            if (isValid) {
+                Assert.fail("Did not expect IdentityProviderManagementClientException.", e);
+            }
+        }
+
+    }
+
+    @DataProvider(name = "adminPasswordResetConfigs")
+    public Object[][] setAdminPasswordResetConfigs() {
+
+        IdentityProviderProperty[] adminPasswordResetIdentityPropsAllFalse =
+                getAdminPasswordResetIdentityProviderProperties(false, false, false, false);
+
+        IdentityProviderProperty[] adminPasswordResetIdentityPropsEmailLinkEnabled =
+                getAdminPasswordResetIdentityProviderProperties(true, false, false, false);
+
+        IdentityProviderProperty[] adminPasswordResetIdentityPropsEmailOtpEnabled =
+                getAdminPasswordResetIdentityProviderProperties(false, true, false, false);
+
+        IdentityProviderProperty[] adminPasswordResetIdentityPropsOfflineEnabled =
+                getAdminPasswordResetIdentityProviderProperties(false, false, true, false);
+
+        HashMap<String, String> adminPasswordResetConfig1 = getAdminPasswordResetConfigs(true, null, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig2 = getAdminPasswordResetConfigs(null, true, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig3 = getAdminPasswordResetConfigs(null, null, true, null);
+
+        HashMap<String, String> adminPasswordResetConfig4 = getAdminPasswordResetConfigs(null, null, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig5 = getAdminPasswordResetConfigs(true, true, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig6 = getAdminPasswordResetConfigs(null, true, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig7 = getAdminPasswordResetConfigs(null, null, true, null);
+
+        HashMap<String, String> adminPasswordResetConfig8 = getAdminPasswordResetConfigs(false, true, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig9 = getAdminPasswordResetConfigs(false, null, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig10 = getAdminPasswordResetConfigs(null, null, true, null);
+
+        HashMap<String, String> adminPasswordResetConfig11 = getAdminPasswordResetConfigs(true, null, null, null);
+
+        HashMap<String, String> adminPasswordResetConfig12 = getAdminPasswordResetConfigs(null, null, null, true);
+
+        return new Object[][]{
+                // configs, identityProviderProperties, isValid
+                {adminPasswordResetConfig1, adminPasswordResetIdentityPropsAllFalse, true},
+                {adminPasswordResetConfig2, adminPasswordResetIdentityPropsAllFalse, true},
+                {adminPasswordResetConfig3, adminPasswordResetIdentityPropsAllFalse, true},
+                {adminPasswordResetConfig4, adminPasswordResetIdentityPropsAllFalse, true},
+                {adminPasswordResetConfig5, adminPasswordResetIdentityPropsAllFalse, false},
+                {adminPasswordResetConfig6, adminPasswordResetIdentityPropsEmailLinkEnabled, false},
+                {adminPasswordResetConfig7, adminPasswordResetIdentityPropsEmailLinkEnabled, false},
+                {adminPasswordResetConfig8, adminPasswordResetIdentityPropsEmailLinkEnabled, true},
+                {adminPasswordResetConfig9, adminPasswordResetIdentityPropsEmailLinkEnabled, false},
+                {adminPasswordResetConfig10, adminPasswordResetIdentityPropsEmailOtpEnabled, false},
+                {adminPasswordResetConfig11, adminPasswordResetIdentityPropsOfflineEnabled, false},
+                {adminPasswordResetConfig12, adminPasswordResetIdentityPropsAllFalse, true},
+                {adminPasswordResetConfig12, adminPasswordResetIdentityPropsEmailOtpEnabled, false}
+        };
+    }
+
+
+    @DataProvider(name = "passwordRecoveryConfigsWithIdpMgtProps")
+    public Object[][] setPasswordRecoveryConfigsWithIpdMgtProps() {
+
+        IdentityProviderProperty[] passwordIdentityPropsAllFalse = getPasswordRecoveryIdentityProviderProperties(false,
+                false, false, false);
+
+        IdentityProviderProperty[] passwordIdentityPropsEmailLinkEnabled =
+                getPasswordRecoveryIdentityProviderProperties(false, true, false, false);
+
+        IdentityProviderProperty[] passwordIdentityPropsEmailOtpEnabled =
+                getPasswordRecoveryIdentityProviderProperties(false, false, true, false);
+
+        HashMap<String, String> recoveryConfig1 = getPasswordRecoveryConfigs(null, true, null, null);
+
+        HashMap<String, String> recoveryConfig2 = getPasswordRecoveryConfigs(null, null, true, null);
+
+        HashMap<String, String> recoveryConfig3 = getPasswordRecoveryConfigs(true, null, null, null);
+
+        HashMap<String, String> recoveryConfig4 = getPasswordRecoveryConfigs(null, true, false, null);
+
+        HashMap<String, String> recoveryConfig5 = getPasswordRecoveryConfigs(null, false, true, null);
+        return new Object[][]{
+                {recoveryConfig1, passwordIdentityPropsEmailOtpEnabled, false},
+                {recoveryConfig1, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig2, passwordIdentityPropsEmailLinkEnabled, false},
+                {recoveryConfig2, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig3, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig4, passwordIdentityPropsEmailOtpEnabled, true},
+                {recoveryConfig5, passwordIdentityPropsEmailLinkEnabled, true}
+        };
+    }
+
+    @DataProvider(name = "passwordRecoveryConfigs")
+    public Object[][] setPasswordRecoveryConfigs() {
+
+        HashMap<String, String> recoveryConfig1 = getPasswordRecoveryConfigs(true, true, null, null);
+
+        HashMap<String, String> recoveryConfig2 = getPasswordRecoveryConfigs(true, false, false, false);
+
+        HashMap<String, String> recoveryConfig3 = getPasswordRecoveryConfigs(false, true, false, false);
+
+        HashMap<String, String> recoveryConfig4 = getPasswordRecoveryConfigs(false, false, true, false);
+
+        HashMap<String, String> recoveryConfig5 = getPasswordRecoveryConfigs(false, false, false, true);
+
+        HashMap<String, String> recoveryConfig6 = getPasswordRecoveryConfigs(null, true, null, null);
+
+        HashMap<String, String> recoveryConfig7 = getPasswordRecoveryConfigs(null, null, null, true);
+
+        HashMap<String, String> recoveryConfig8 = getPasswordRecoveryConfigs(null, false, null, null);
+
+        HashMap<String, String> recoveryConfig9 = getPasswordRecoveryConfigs(null, true, false, null);
+
+        HashMap<String, String> recoveryConfig10 = getPasswordRecoveryConfigs(null, false, true, null);
+
+        HashMap<String, String> recoveryConfig11 = getPasswordRecoveryConfigs(null, true, true, false);
+
+        HashMap<String, String> recoveryConfig12 = getPasswordRecoveryConfigs(null, null, true, null);
+
+        return new Object[][]{
+                {recoveryConfig1, true},
+                {recoveryConfig2, false},
+                {recoveryConfig3, false},
+                {recoveryConfig4, false},
+                {recoveryConfig5, false},
+                {recoveryConfig6, true},
+                {recoveryConfig7, true},
+                {recoveryConfig8, true},
+                {recoveryConfig9, true},
+                {recoveryConfig10, true},
+                {recoveryConfig11, false},
+                {recoveryConfig12, true}
+        };
+    }
+
+    private HashMap<String, String> getPasswordRecoveryConfigs(Boolean passwordRecoveryEnable,
+                                                               Boolean passwordRecoveryEmailLinkEnable,
+                                                               Boolean passwordRecoveryEmailOtpEnable,
+                                                               Boolean passwordRecoverySmsOtpEnable) {
+
+        HashMap<String, String> configs = new HashMap<>();
+
+        if (passwordRecoveryEnable != null) {
+            configs.put(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY, passwordRecoveryEnable ?
+                    TRUE_STRING : FALSE_STRING);
+        }
+
+        if (passwordRecoveryEmailLinkEnable != null) {
+            configs.put(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY,
+                    passwordRecoveryEmailLinkEnable ? TRUE_STRING : FALSE_STRING);
+        }
+
+        if (passwordRecoveryEmailOtpEnable != null) {
+            configs.put(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY, passwordRecoveryEmailOtpEnable ?
+                    TRUE_STRING : FALSE_STRING);
+        }
+
+        if (passwordRecoverySmsOtpEnable != null) {
+            configs.put(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY, passwordRecoverySmsOtpEnable ?
+                    TRUE_STRING : FALSE_STRING);
+        }
+
+        return configs;
+    }
+
+    private IdentityProviderProperty[] getPasswordRecoveryIdentityProviderProperties(
+            boolean passwordRecoveryEnable,
+            boolean passwordRecoveryEmailLinkEnable,
+            boolean passwordRecoveryEmailOtpEnable,
+            boolean passwordRecoverySmsOtpEnable) {
+
+        IdentityProviderProperty identityProviderProperty1 = new IdentityProviderProperty();
+        identityProviderProperty1.setName(PASSWORD_RECOVERY_ENABLE);
+        identityProviderProperty1.setValue(passwordRecoveryEnable ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty2 = new IdentityProviderProperty();
+        identityProviderProperty2.setName(PASSWORD_RECOVERY_EMAIL_LINK_ENABLE);
+        identityProviderProperty2.setValue(passwordRecoveryEmailLinkEnable ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty3 = new IdentityProviderProperty();
+        identityProviderProperty3.setName(PASSWORD_RECOVERY_EMAIL_OTP_ENABLE);
+        identityProviderProperty3.setValue(passwordRecoveryEmailOtpEnable ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty4 = new IdentityProviderProperty();
+        identityProviderProperty4.setName(PASSWORD_RECOVERY_SMS_OTP_ENABLE);
+        identityProviderProperty4.setValue(passwordRecoverySmsOtpEnable ? TRUE_STRING : FALSE_STRING);
+
+        return new IdentityProviderProperty[]{
+                identityProviderProperty1,
+                identityProviderProperty2,
+                identityProviderProperty3,
+                identityProviderProperty4
+        };
+    }
+
+    private HashMap<String, String> getAdminPasswordResetConfigs(Boolean isEmailLinkEnabled,
+                                                                 Boolean isEmailOtpEnabled, Boolean isOfflineEnabled,
+                                                                 Boolean isSmsOtpEnabled) {
+
+        HashMap<String, String> configs = new HashMap<>();
+        if (isEmailLinkEnabled != null) {
+            configs.put(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY,
+                    isEmailLinkEnabled ? TRUE_STRING : FALSE_STRING);
+        }
+        if (isEmailOtpEnabled != null) {
+            configs.put(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY,
+                    isEmailOtpEnabled ? TRUE_STRING : FALSE_STRING);
+        }
+        if (isOfflineEnabled != null) {
+            configs.put(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY,
+                    isOfflineEnabled ? TRUE_STRING : FALSE_STRING);
+        }
+        if (isSmsOtpEnabled != null) {
+            configs.put(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY,
+                    isSmsOtpEnabled ? TRUE_STRING : FALSE_STRING);
+        }
+        return configs;
+    }
+
+    private IdentityProviderProperty[] getAdminPasswordResetIdentityProviderProperties(
+            boolean isEmailLinkEnabled, boolean isEmailOtpEnabled, boolean isOfflineEnabled, boolean isSmsOtpEnabled) {
+
+        IdentityProviderProperty identityProviderProperty1 = new IdentityProviderProperty();
+        identityProviderProperty1.setName(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
+        identityProviderProperty1.setValue(isEmailLinkEnabled ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty2 = new IdentityProviderProperty();
+        identityProviderProperty2.setName(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY);
+        identityProviderProperty2.setValue(isEmailOtpEnabled ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty3 = new IdentityProviderProperty();
+        identityProviderProperty3.setName(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY);
+        identityProviderProperty3.setValue(isOfflineEnabled ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty4 = new IdentityProviderProperty();
+        identityProviderProperty4.setName(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY);
+        identityProviderProperty4.setValue(isSmsOtpEnabled ? TRUE_STRING : FALSE_STRING);
+
+        return new IdentityProviderProperty[]{
+                identityProviderProperty1,
+                identityProviderProperty2,
+                identityProviderProperty3,
+                identityProviderProperty4
+        };
+    }
+
     @Test(dataProvider = "setSuccessConfigDetails")
     public void testSuccessVerificationsInValidateUsernameRecoveryPropertyValues(Map<String, String> configDetails)
             throws IdentityProviderManagementClientException {
@@ -360,5 +668,4 @@ public class IdPManagementUtilTest {
                 {configDetails11}
         };
     }
-
 }

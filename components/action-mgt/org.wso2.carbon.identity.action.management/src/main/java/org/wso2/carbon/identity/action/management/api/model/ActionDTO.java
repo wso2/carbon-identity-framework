@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,7 +32,7 @@ public class ActionDTO {
     private final Action.Status status;
     private final EndpointConfig endpoint;
     private final ActionRule rule;
-    private final Map<String, Object> properties;
+    private final Map<String, ActionProperty> properties;
 
     public ActionDTO(Builder builder) {
 
@@ -81,18 +81,18 @@ public class ActionDTO {
         return rule;
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, ActionProperty> getProperties() {
 
         return properties;
     }
 
-    public Object getProperty(String propertyName) {
+    public Object getPropertyValue(String propertyName) {
 
-        if (properties == null) {
+        ActionProperty property = properties != null ? properties.get(propertyName) : null;
+        if (property == null) {
             return null;
         }
-
-        return properties.get(propertyName);
+        return property.getValue();
     }
 
     /**
@@ -107,7 +107,7 @@ public class ActionDTO {
         private final Action.Status status;
         private final EndpointConfig endpoint;
         private final ActionRule rule;
-        private Map<String, Object> properties;
+        private Map<String, ActionProperty> properties;
 
         public Builder(ActionDTO actionDTO) {
 
@@ -132,7 +132,7 @@ public class ActionDTO {
             this.rule = action.getActionRule();
         }
 
-        public Builder properties(Map<String, Object> properties) {
+        public Builder properties(Map<String, ActionProperty> properties) {
 
             this.properties = properties;
             return this;

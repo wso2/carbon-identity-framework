@@ -56,6 +56,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
             String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes, String tenantDomain)
             throws APIResourceMgtException {
 
+        if (CollectionUtils.isEmpty(authorizationDetailsTypes)) {
+            return Collections.emptyList();
+        }
         AuthorizationDetailsTypesUtil.assertRichAuthorizationRequestsEnabled();
         return this.authorizationDetailsTypeMgtDAO.addAuthorizationDetailsTypes(apiId, authorizationDetailsTypes,
                 IdentityTenantUtil.getTenantId(tenantDomain));
@@ -168,6 +171,10 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
                                                 List<AuthorizationDetailsType> addedAuthorizationDetailsTypes,
                                                 String tenantDomain) throws APIResourceMgtException {
 
+        if (CollectionUtils.isEmpty(removedAuthorizationDetailsTypes) &&
+                CollectionUtils.isEmpty(addedAuthorizationDetailsTypes)) {
+            return;
+        }
         AuthorizationDetailsTypesUtil.assertRichAuthorizationRequestsEnabled();
         this.authorizationDetailsTypeMgtDAO.updateAuthorizationDetailsTypes(apiId, removedAuthorizationDetailsTypes,
                 addedAuthorizationDetailsTypes, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -180,6 +187,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
     public void updateAuthorizationDetailsType(String apiId, AuthorizationDetailsType authorizationDetailsType,
                                                String tenantDomain) throws APIResourceMgtException {
 
+        if (authorizationDetailsType == null) {
+            return;
+        }
         AuthorizationDetailsTypesUtil.assertRichAuthorizationRequestsEnabled();
         this.authorizationDetailsTypeMgtDAO.updateAuthorizationDetailsTypes(apiId,
                 Collections.singletonList(authorizationDetailsType), IdentityTenantUtil.getTenantId(tenantDomain));

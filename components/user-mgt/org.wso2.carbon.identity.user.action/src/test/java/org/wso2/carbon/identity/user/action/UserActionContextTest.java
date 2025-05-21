@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.user.action;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
+import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
 
 /**
  * Test class for UserActionContext.
@@ -30,6 +31,13 @@ public class UserActionContextTest {
     public static final String TEST_USER_ID = "testUser";
     public static final String PASSWORD = "testPassword";
     public static final String TEST_USER_STORE_DOMAIN = "testUserStoreDomain";
+    public static final String TEST_CLAIM = "testClaim";
+    public static final String TEST_CLAIM_VALUE = "testClaimValue";
+    public static final String TEST_CLAIM_2 = "testClaim2";
+    public static final String TEST_CLAIM_VALUE_1 = "testClaimValue1";
+    public static final String TEST_CLAIM_VALUE_2 = "testClaimValue2";
+    public static final String TEST_GROUP = "testGroup";
+    public static final String TEST_ROLE = "testRole";
 
     @Test
     public void testUserActionContext() {
@@ -56,5 +64,68 @@ public class UserActionContextTest {
         Assert.assertEquals(userActionContext.getUserId(), TEST_USER_ID);
         Assert.assertNull(userActionContext.getPassword());
         Assert.assertEquals(userActionContext.getUserStoreDomain(), TEST_USER_STORE_DOMAIN);
+    }
+
+    @Test
+    public void testCreateUserActionContextWithUserActionRequestDTO() {
+
+        UserActionRequestDTO userActionRequestDTO = new UserActionRequestDTO.Builder()
+                .userId(TEST_USER_ID)
+                .password(PASSWORD.toCharArray())
+                .userStoreDomain(TEST_USER_STORE_DOMAIN)
+                .addClaim(TEST_CLAIM, TEST_CLAIM_VALUE)
+                .addClaim(TEST_CLAIM_2, new String[]{TEST_CLAIM_VALUE_1, TEST_CLAIM_VALUE_2})
+                .addGroup(TEST_GROUP)
+                .addRole(TEST_ROLE)
+                .build();
+        UserActionContext context = new UserActionContext(userActionRequestDTO);
+
+        Assert.assertEquals(context.getUserActionRequestDTO().getUserId(), TEST_USER_ID);
+        Assert.assertEquals(context.getUserActionRequestDTO().getPassword(), PASSWORD.toCharArray());
+        Assert.assertEquals(context.getUserActionRequestDTO().getUserStoreDomain(), TEST_USER_STORE_DOMAIN);
+        Assert.assertEquals(context.getUserActionRequestDTO().getClaims().get(TEST_CLAIM), TEST_CLAIM_VALUE);
+        Assert.assertEquals(context.getUserActionRequestDTO().getClaims().get(TEST_CLAIM_2),
+                new String[]{TEST_CLAIM_VALUE_1,
+                        TEST_CLAIM_VALUE_2});
+        Assert.assertTrue(context.getUserActionRequestDTO().getGroups().contains(TEST_GROUP));
+        Assert.assertTrue(context.getUserActionRequestDTO().getRoles().contains(TEST_ROLE));
+
+        Assert.assertEquals(context.getUserActionResponseDTO().getUserId(), TEST_USER_ID);
+        Assert.assertEquals(context.getUserActionResponseDTO().getPassword(), PASSWORD.toCharArray());
+        Assert.assertEquals(context.getUserActionResponseDTO().getUserStoreDomain(), TEST_USER_STORE_DOMAIN);
+        Assert.assertEquals(context.getUserActionResponseDTO().getClaims().get(TEST_CLAIM), TEST_CLAIM_VALUE);
+        Assert.assertEquals(context.getUserActionResponseDTO().getClaims().get(TEST_CLAIM_2),
+                new String[]{TEST_CLAIM_VALUE_1,
+                        TEST_CLAIM_VALUE_2});
+        Assert.assertTrue(context.getUserActionResponseDTO().getGroups().contains(TEST_GROUP));
+        Assert.assertTrue(context.getUserActionResponseDTO().getRoles().contains(TEST_ROLE));
+    }
+
+    @Test
+    public void testUpdateUserActionResponseDTOFromUserActionContext() {
+
+        UserActionRequestDTO userActionRequestDTO = new UserActionRequestDTO.Builder()
+                .userId(TEST_USER_ID)
+                .password(PASSWORD.toCharArray())
+                .userStoreDomain(TEST_USER_STORE_DOMAIN)
+                .build();
+        UserActionContext context = new UserActionContext(userActionRequestDTO);
+
+        Assert.assertNotNull(context.getUserActionResponseDTO());
+        Assert.assertEquals(context.getUserActionResponseDTO().getUserId(), TEST_USER_ID);
+        Assert.assertEquals(context.getUserActionResponseDTO().getPassword(), PASSWORD.toCharArray());
+        Assert.assertEquals(context.getUserActionResponseDTO().getUserStoreDomain(), TEST_USER_STORE_DOMAIN);
+
+        context.getUserActionResponseDTO().addRole(TEST_ROLE);
+        context.getUserActionResponseDTO().addGroup(TEST_GROUP);
+        context.getUserActionResponseDTO().addClaim(TEST_CLAIM, TEST_CLAIM_VALUE);
+        context.getUserActionResponseDTO().addClaim(TEST_CLAIM_2, new String[]{TEST_CLAIM_VALUE_1, TEST_CLAIM_VALUE_2});
+
+        Assert.assertTrue(context.getUserActionResponseDTO().getGroups().contains(TEST_GROUP));
+        Assert.assertTrue(context.getUserActionResponseDTO().getRoles().contains(TEST_ROLE));
+        Assert.assertEquals(context.getUserActionResponseDTO().getClaims().get(TEST_CLAIM), TEST_CLAIM_VALUE);
+        Assert.assertEquals(context.getUserActionResponseDTO().getClaims().get(TEST_CLAIM_2),
+                new String[]{TEST_CLAIM_VALUE_1,
+                        TEST_CLAIM_VALUE_2});
     }
 }

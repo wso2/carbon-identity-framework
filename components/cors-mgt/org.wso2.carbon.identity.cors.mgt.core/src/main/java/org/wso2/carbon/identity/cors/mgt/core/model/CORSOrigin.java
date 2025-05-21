@@ -34,6 +34,23 @@ public class CORSOrigin {
     private String origin;
 
     /**
+     * Default constructor.
+     */
+    public CORSOrigin() {
+    }
+
+    /**
+     * Constructor with all params.
+     * @param id ID of the origin.
+     * @param origin The origin of the CORSOrigin instance.
+     */
+    public CORSOrigin(String id, String origin) {
+
+        this.id = id;
+        this.origin = origin;
+    }
+
+    /**
      * Get the {@code id}.
      *
      * @return Returns the {@code id}.

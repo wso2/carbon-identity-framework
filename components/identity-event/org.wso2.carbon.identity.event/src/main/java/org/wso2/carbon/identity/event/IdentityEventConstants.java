@@ -328,7 +328,9 @@ public class IdentityEventConstants {
         SESSION_UPDATE,
         SESSION_TERMINATE,
         SESSION_EXPIRE,
-        SESSION_EXTEND
+        SESSION_EXTEND,
+        VERIFICATION,
+        USER_SESSION_TERMINATE
     }
 
     public class EventProperty {
@@ -383,6 +385,7 @@ public class IdentityEventConstants {
                 "GET_USER_RECOVERY_DATA_SCENARIO_WITH_CODE_EXPIRY_VALIDATION";
         public static final String GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION =
                 "GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION";
+        public static final String INITIATOR_TYPE = "INITIATOR_TYPE";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";
@@ -443,6 +446,7 @@ public class IdentityEventConstants {
 
         public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
         public static final String REQUIRED_ATTRIBUTES = "requiredAttributes";
+        public static final String SKIP_LOCAL_USER_CLAIM_UPDATE = "skipLocalUserClaimUpdate";
 
         // API Resource and Application Authorized API related event properties.
         public static final String API_RESOURCE = "API_RESOURCE";

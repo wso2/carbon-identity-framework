@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2005-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,6 +23,8 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.httpclient.HttpURL;
+import org.apache.commons.httpclient.HttpsURL;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -157,6 +159,8 @@ public class IdentityUtil {
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
+    private static final String HTTP = "http";
+    private static final String HTTPS = "https";
     private static Boolean groupsVsRolesSeparationImprovementsEnabled;
     private static Boolean showLegacyRoleClaimOnGroupRoleSeparationEnabled;
     private static String JAVAX_TRANSFORMER_PROP_VAL = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
@@ -191,14 +195,47 @@ public class IdentityUtil {
     }
 
     /**
-     * Read configuration elements from the identity.xml
+     * Read configuration elements from the identity.xml.
      *
      * @param key Element Name as specified from the parent elements in the XML structure.
-     *            To read the element value of b in {@code<a><b>text</b></a>}, the property
+     *            To read the element value of b in {@code <a><b>text</b></a>}, the property
      *            name should be passed as "a.b"
-     * @return Element text value, "text" for the above element.
+     * @return Element text value, "text" for the above element with the placeholders replaced.
      */
     public static String getProperty(String key) {
+
+        String strValue = getPropertyValue(key);
+        strValue = fillURLPlaceholders(strValue);
+        return strValue;
+    }
+
+    /**
+     * Read configuration elements from the identity.xml and
+     * drops the port if it is 443 for https and 80 for http.
+     *
+     * @param key Element name as specified from the parent elements in the XML structure.
+     *            To read the element value of b in {@code <a><b>text</b></a>}, the property
+     *            name should be passed as "a.b".
+     * @return The value of the element, which is "text" in the above element, with the placeholders
+     * replaced and the standard port dropped.
+     */
+    public static String getPropertyWithoutStandardPort(String key) {
+
+        String strValue = getPropertyValue(key);
+        strValue = replacePortNumberPlaceholder(strValue, Boolean.TRUE);
+        strValue = fillURLPlaceholders(strValue);
+        return strValue;
+    }
+
+    /**
+     * Gets the property value corresponding to the given key from the identity.xml file.
+     *
+     * @param key Element name as specified from the parent elements in the XML structure.
+     *            To read the element value of b in {@code <a><b>text</b></a>}, the property
+     *            name should be passed as "a.b".
+     * @return The value of the element, which is "text" in the above element.
+     */
+    private static String getPropertyValue(String key) {
 
         Object value = configuration.get(key);
         String strValue;
@@ -214,7 +251,6 @@ public class IdentityUtil {
         } else {
             strValue = String.valueOf(value);
         }
-        strValue = fillURLPlaceholders(strValue);
         return strValue;
     }
 
@@ -967,6 +1003,48 @@ public class IdentityUtil {
     }
 
     /**
+     * Replaces the port number placeholder with the actual port number for non-standard ports, and
+     * if the ports are standard ports, namely 443 for https and 80 for http, the port number is dropped.
+     *
+     * @param urlWithPlaceholders URL with the placeholders.
+     * @return URL with the port number placeholder replaced.
+     */
+    public static String replacePortNumberPlaceholder(String urlWithPlaceholders, boolean dropStandardPort) {
+
+        if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT)) {
+
+            String mgtTransport = CarbonUtils.getManagementTransport();
+            AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
+                    getServerConfigContext().getAxisConfiguration();
+
+            int mgtTransportProxyPort = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
+            String mgtTransportPort = Integer.toString(mgtTransportProxyPort);
+
+            if (mgtTransportProxyPort <= 0) {
+                if (StringUtils.equals(mgtTransport, HTTP)) {
+                    mgtTransportPort = System.getProperty(
+                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY);
+                } else {
+                    mgtTransportPort = System.getProperty(
+                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY);
+                }
+            }
+
+            if (dropStandardPort && ((StringUtils.equals(mgtTransport, HTTP) &&
+                    StringUtils.equals(mgtTransportPort, String.valueOf(HttpURL.DEFAULT_PORT))) ||
+                    (StringUtils.equals(mgtTransport, HTTPS) &&
+                            StringUtils.equals(mgtTransportPort, String.valueOf(HttpsURL.DEFAULT_PORT))))) {
+                urlWithPlaceholders = StringUtils.replace(urlWithPlaceholders, ":" +
+                        IdentityConstants.CarbonPlaceholders.CARBON_PORT, StringUtils.EMPTY);
+            } else {
+                urlWithPlaceholders = StringUtils.replace(urlWithPlaceholders,
+                        IdentityConstants.CarbonPlaceholders.CARBON_PORT, mgtTransportPort);
+            }
+        }
+        return urlWithPlaceholders;
+    }
+
+    /**
      * Replace the placeholders with the related values in the URL.
      *
      * @param urlWithPlaceholders URL with the placeholders.
@@ -998,28 +1076,7 @@ public class IdentityUtil {
                     hostName);
         }
 
-        if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT)) {
-
-            String mgtTransport = CarbonUtils.getManagementTransport();
-            AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
-                    getServerConfigContext().getAxisConfiguration();
-
-            int mgtTransportProxyPort = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
-            String mgtTransportPort = Integer.toString(mgtTransportProxyPort);
-
-            if (mgtTransportProxyPort <= 0) {
-                if (StringUtils.equals(mgtTransport, "http")) {
-                    mgtTransportPort = System.getProperty(
-                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY);
-                } else {
-                    mgtTransportPort = System.getProperty(
-                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY);
-                }
-            }
-
-            urlWithPlaceholders = StringUtils.replace(urlWithPlaceholders,
-                    IdentityConstants.CarbonPlaceholders.CARBON_PORT, mgtTransportPort);
-        }
+        urlWithPlaceholders = replacePortNumberPlaceholder(urlWithPlaceholders, Boolean.FALSE);
 
         if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP)) {
 
@@ -1586,8 +1643,10 @@ public class IdentityUtil {
                 IdentityCoreConstants.MAXIMUM_USERS_LIST_PER_ROLE_PROPERTY);
 
         if (StringUtils.isBlank(maxUsersListPerRolePropertyValue)) {
-            log.warn("Missing 'MaximumUsersListPerRole' property. Using lower bound value "
-                    + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Missing 'MaximumUsersListPerRole' property. Using lower bound value %d.",
+                        USERS_LIST_PER_ROLE_LOWER_BOUND));
+            }
             return USERS_LIST_PER_ROLE_LOWER_BOUND;
         }
 
@@ -1596,12 +1655,16 @@ public class IdentityUtil {
             if (maxUsersListPerRole >= USERS_LIST_PER_ROLE_LOWER_BOUND) {
                 return maxUsersListPerRole;
             }
-            log.warn("Configured 'MaximumUsersListPerRole' value " + maxUsersListPerRolePropertyValue +
-                    " is below the recommended minimum.");
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Configured 'MaximumUsersListPerRole' value %s " +
+                                "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
+            }
         } catch (NumberFormatException e) {
-            log.warn("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
+            log.debug("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
         }
-        log.warn("Falling back to the lower bound value " + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Falling back to the lower bound value %d.", USERS_LIST_PER_ROLE_LOWER_BOUND));
+        }
         return USERS_LIST_PER_ROLE_LOWER_BOUND;
     }
 

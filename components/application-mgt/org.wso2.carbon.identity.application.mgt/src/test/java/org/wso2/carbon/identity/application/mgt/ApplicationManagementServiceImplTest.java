@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -44,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ClientAttestationMetaData;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -78,6 +80,9 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -104,6 +109,11 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
+import org.wso2.carbon.user.core.model.Condition;
+import org.wso2.carbon.user.core.model.ExpressionCondition;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
@@ -122,20 +132,30 @@ import static java.lang.Boolean.TRUE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_GROUP_LIST;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.INVALID_GROUP_FILTER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.INVALID_USER_STORE_DOMAIN;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.FILTER_CO;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT;
+import static org.wso2.carbon.user.core.UserStoreConfigConstants.GROUP_NAME_ATTRIBUTE;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -190,6 +210,7 @@ public class ApplicationManagementServiceImplTest {
     private static final int L1_TENANT_ID = 1;
     private static final String L2_ORG_ID = "30b701c6-e309-4241-b047-0c299c45d1a0";
     private static final int L2_TENANT_ID = 2;
+    private static final String DEFAULT_DOMAIN_NAME = "PRIMARY";
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
@@ -1836,6 +1857,106 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
             applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
         });
+    }
+
+    @DataProvider(name = "testGetGroupsDataProvider")
+    public Object[][] testGetGroupsDataProvider() {
+
+        ExpressionNode validExpressionNode = new ExpressionNode();
+        validExpressionNode.setOperation(FILTER_CO);
+        validExpressionNode.setAttributeValue(NAME);
+        validExpressionNode.setValue("test-value");
+        ExpressionNode invalidExpressionNode1 = new ExpressionNode();
+        invalidExpressionNode1.setAttributeValue("wrong-filter-attr");
+        invalidExpressionNode1.setOperation(FILTER_CO);
+        ExpressionNode invalidExpressionNode2 = new ExpressionNode();
+        invalidExpressionNode2.setAttributeValue(NAME);
+        invalidExpressionNode2.setOperation("wrong-filter-op");
+        OperationNode operationNode = new OperationNode(FILTER_CO);
+        Group group1 = new Group("test-group-id-1", "test-group-name-1");
+        Group group2 = new Group("test-group-id-2", "test-group-name-2");
+
+        return new Object[][] {
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, null, new ArrayList<>(Arrays.asList(group1, group2)), null,
+                        null},
+                {ROOT_TENANT_DOMAIN, null, null, new ArrayList<>(Arrays.asList(group1, group2)), null, null},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, operationNode, null, null, INVALID_GROUP_FILTER.getCode()},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, invalidExpressionNode1, null, null,
+                        INVALID_GROUP_FILTER.getCode()},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, invalidExpressionNode2, null, null,
+                        INVALID_GROUP_FILTER.getCode()},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, validExpressionNode,
+                        new ArrayList<>(Arrays.asList(group1, group2)), null, null},
+                {ROOT_TENANT_DOMAIN, "wrong-domain-name", validExpressionNode, null, null,
+                        INVALID_USER_STORE_DOMAIN.getCode()},
+                {ROOT_TENANT_DOMAIN, DEFAULT_DOMAIN_NAME, null, null,
+                        new org.wso2.carbon.user.core.UserStoreException(), ERROR_RETRIEVING_GROUP_LIST.getCode()}
+        };
+    }
+
+    @Test(description = "Test the group listing functionality of the application management service.",
+            dataProvider = "testGetGroupsDataProvider")
+    public void testGetGroups(String tenantDomain, String domainName, Node filter, List<Group> userStoreGroupsResponse,
+                              org.wso2.carbon.user.core.UserStoreException userStoreGroupsRequestException,
+                              String expectedErrorCode) throws UserStoreException {
+
+        AbstractUserStoreManager mockAbstractUserStoreManager = mock(AbstractUserStoreManager.class);
+        RealmService mockRealmService = mock(RealmService.class);
+        UserRealm mockUserRealmService = mock(UserRealm.class);
+        ApplicationManagementServiceComponentHolder mockApplicationManagementServiceComponentHolder =
+                mock(ApplicationManagementServiceComponentHolder.class);
+        try (MockedStatic<ApplicationManagementServiceComponentHolder> applicationManagementServiceComponentHolder =
+                     mockStatic(ApplicationManagementServiceComponentHolder.class)) {
+            applicationManagementServiceComponentHolder.when(ApplicationManagementServiceComponentHolder::getInstance)
+                    .thenReturn(mockApplicationManagementServiceComponentHolder);
+            when(mockApplicationManagementServiceComponentHolder.getRealmService()).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantUserRealm(eq(SUPER_TENANT_ID))).thenReturn(mockUserRealmService);
+            when(mockUserRealmService.getUserStoreManager()).thenReturn(mockAbstractUserStoreManager);
+            when(mockAbstractUserStoreManager.getSecondaryUserStoreManager(eq(DEFAULT_DOMAIN_NAME))).thenReturn(
+                    mockAbstractUserStoreManager);
+            if (userStoreGroupsResponse != null) {
+                when(mockAbstractUserStoreManager.listGroups(nullable(Condition.class), nullable(String.class),
+                        anyInt(), anyInt(), nullable(String.class), nullable(String.class))).thenReturn(
+                        userStoreGroupsResponse);
+            } else if (userStoreGroupsRequestException != null) {
+                when(mockAbstractUserStoreManager.listGroups(nullable(Condition.class), nullable(String.class),
+                        anyInt(), anyInt(), nullable(String.class), nullable(String.class))).thenThrow(
+                        userStoreGroupsRequestException);
+            }
+            try {
+                List<GroupBasicInfo> groups = applicationManagementService.getGroups(tenantDomain, domainName, filter);
+                for (int i = 0; i < groups.size(); i++) {
+                    assertEquals(groups.get(i).getId(), userStoreGroupsResponse.get(i).getGroupID());
+                    assertEquals(groups.get(i).getName(), userStoreGroupsResponse.get(i).getGroupName());
+                }
+            } catch (IdentityApplicationManagementException e) {
+                assertEquals(e.getErrorCode(), expectedErrorCode);
+            }
+            if (userStoreGroupsResponse != null || userStoreGroupsRequestException != null) {
+                ArgumentCaptor<Condition> conditionArgumentCaptor = ArgumentCaptor.forClass(Condition.class);
+                ArgumentCaptor<String> userDomainArgumentCaptor = ArgumentCaptor.forClass(String.class);
+                verify(mockAbstractUserStoreManager).listGroups(conditionArgumentCaptor.capture(),
+                        userDomainArgumentCaptor.capture(),
+                        eq(100), eq(0), nullable(String.class), nullable(String.class));
+                if (filter == null) {
+                    assertEquals(conditionArgumentCaptor.getValue().getOperation(), "SW");
+                    assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeName(),
+                            GROUP_NAME_ATTRIBUTE);
+                    assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeValue(),
+                            StringUtils.EMPTY);
+                } else if (filter instanceof OperationNode) {
+                    assertEquals(conditionArgumentCaptor.getValue().getOperation(),
+                            conditionArgumentCaptor.getValue().getOperation());
+                } else {
+                    assertEquals(conditionArgumentCaptor.getValue().getOperation(), StringUtils.upperCase(FILTER_CO));
+                    assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeName(),
+                            GROUP_NAME_ATTRIBUTE);
+                    assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeValue(),
+                            ((ExpressionNode) filter).getValue());
+                }
+                assertEquals(userDomainArgumentCaptor.getValue(), DEFAULT_DOMAIN_NAME);
+            }
+        }
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {

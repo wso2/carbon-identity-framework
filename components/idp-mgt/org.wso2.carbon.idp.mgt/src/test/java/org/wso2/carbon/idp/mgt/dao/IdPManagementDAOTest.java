@@ -232,8 +232,25 @@ public class IdPManagementDAOTest {
 
             List<IdentityProvider> idps1 = idPManagementDAO.getIdPs(connection, tenantId, tenantDomain);
             assertEquals(idps1.size(), resultCount);
+            for (IdentityProvider idp : idps1) {
+                validateAdminForcedPasswordResetEmailLinkProp(idp);
+            }
             List<IdentityProvider> idps2 = idPManagementDAO.getIdPs(null, tenantId, tenantDomain);
             assertEquals(idps2.size(), resultCount);
+            for (IdentityProvider idp : idps2) {
+                validateAdminForcedPasswordResetEmailLinkProp(idp);
+            }
+        }
+    }
+
+    private void validateAdminForcedPasswordResetEmailLinkProp(IdentityProvider idp) {
+
+        IdentityProviderProperty[] identityProviderProperties = idp.getIdpProperties();
+        for (IdentityProviderProperty identityProviderProperty : identityProviderProperties) {
+            if (identityProviderProperty.getName()
+                    .equals(IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY)) {
+                assertEquals(identityProviderProperty.getValue(), "true");
+            }
         }
     }
 
@@ -1869,7 +1886,11 @@ public class IdPManagementDAOTest {
         identityProviderProperty.setDisplayName("idpDisplayName");
         identityProviderProperty.setName("idpPropertyName");
         identityProviderProperty.setValue("idpPropertyValue");
-        idp1.setIdpProperties(new IdentityProviderProperty[]{identityProviderProperty});
+
+        IdentityProviderProperty idpProp2 = new IdentityProviderProperty();
+        idpProp2.setValue("true");
+        idpProp2.setName(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+        idp1.setIdpProperties(new IdentityProviderProperty[]{identityProviderProperty, idpProp2});
 
         ClaimConfig claimConfig = new ClaimConfig();
         claimConfig.setLocalClaimDialect(false);

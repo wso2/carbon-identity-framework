@@ -18,6 +18,13 @@
 
 package org.wso2.carbon.identity.action.execution.api.model;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.io.IOException;
+
 /**
  * This class models the user claims.
  * User claim is the entity that represents the user claims of the user for whom the action is triggered for.
@@ -25,9 +32,18 @@ package org.wso2.carbon.identity.action.execution.api.model;
 public class UserClaim {
 
     private final String uri;
-    private final String value;
+
+    @JsonSerialize(using = ClaimValueSerializer.class)
+    private final Object value;
+
+    public UserClaim(String uri, String[] value) {
+
+        this.uri = uri;
+        this.value = value;
+    }
 
     public UserClaim(String uri, String value) {
+
         this.uri = uri;
         this.value = value;
     }
@@ -37,7 +53,8 @@ public class UserClaim {
      *
      * @return Claim value.
      */
-    public String getValue() {
+    public Object getValue() {
+
         return value;
     }
 
@@ -47,6 +64,23 @@ public class UserClaim {
      * @return Claim URI.
      */
     public String getUri() {
+
         return uri;
+    }
+
+    private static class ClaimValueSerializer extends JsonSerializer<Object> {
+
+        @Override
+        public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            if (value instanceof String) {
+                // Serialize as string
+                gen.writeString((String) value);
+            } else if (value instanceof String[]) {
+                // Serialize as array
+                gen.writeArray((String[]) value, 0, ((String[]) value).length);
+            } else {
+                throw new IOException("Unsupported type for serialization: " + value.getClass());
+            }
+        }
     }
 }

@@ -18,9 +18,12 @@
 
 package org.wso2.carbon.identity.unique.claim.mgt.listener;
 
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -28,6 +31,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.policy.PolicyViolationException;
 import org.wso2.carbon.identity.unique.claim.mgt.internal.UniqueClaimUserOperationDataHolder;
 import org.wso2.carbon.user.api.Claim;
@@ -41,20 +46,30 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
 
 public class UniqueClaimUserOperationEventListenerTest {
+
+    private static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
+    private static final String EMAIL_ADDRESSES_CLAIM_URI = "http://wso2.org/claims/emailaddresses";
 
     private UniqueClaimUserOperationEventListener uniqueClaimUserOperationEventListener;
 
@@ -67,8 +82,26 @@ public class UniqueClaimUserOperationEventListenerTest {
     @Mock
     private Claim claim;
 
+    @InjectMocks
+    private UniqueClaimUserOperationEventListener listener;
+
+    @Mock
+    private ClaimMetadataManagementService claimMetadataManagementService;
+
+    @Mock
+    private RealmService realmService;
+
+    @Mock
+    private TenantManager tenantManager;
+
+    @Mock
+    private IdentityEventListenerConfig mockIdentityEventListenerConfig;
+
+    private MockedStatic<IdentityUtil> identityUtilMock;
+
+
     @BeforeMethod
-    public void setUp() throws UserStoreException {
+    public void setUp() throws UserStoreException, ClaimMetadataException {
 
         MockitoAnnotations.initMocks(this);
         uniqueClaimUserOperationEventListener = spy(new UniqueClaimUserOperationEventListener());
@@ -77,6 +110,16 @@ public class UniqueClaimUserOperationEventListenerTest {
         claim = mock(Claim.class);
 
         when(userStoreManager.getClaimManager()).thenReturn(claimManager);
+
+        identityUtilMock = mockStatic(IdentityUtil.class);
+        claimManager = mock(ClaimManager.class);
+
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getDomain(anyInt())).thenReturn("carbon.super");
+        UniqueClaimUserOperationDataHolder.getInstance().setRealmService(realmService);
+        UniqueClaimUserOperationDataHolder.getInstance().setRealmService(realmService);
+        UniqueClaimUserOperationDataHolder.getInstance().setClaimMetadataManagementService(
+                claimMetadataManagementService);
     }
 
     @DataProvider(name = "duplicateClaimDataProvider")
@@ -84,7 +127,8 @@ public class UniqueClaimUserOperationEventListenerTest {
 
         Map<String, String> claimsOne = new HashMap<>();
         claimsOne.put("http://wso2.org/claims/mobile", "0711234567");
-        claimsOne.put("http://wso2.org/claims/emailAddress", "sample@wso2.com");
+        claimsOne.put(EMAIL_CLAIM_URI, "sample@wso2.com");
+        claimsOne.put(EMAIL_ADDRESSES_CLAIM_URI, "sample@wso2.com,sample1@wso2.com");
         return new Object[][]{
                 {"testUser", claimsOne, "default"}
         };
@@ -127,7 +171,9 @@ public class UniqueClaimUserOperationEventListenerTest {
 
         List<LocalClaim> localClaims = new ArrayList<>();
         LocalClaim localClaimMobile = new LocalClaim("http://wso2.org/claims/mobile");
-        LocalClaim localClaimEmail = new LocalClaim("http://wso2.org/claims/emailAddress");
+        LocalClaim localClaimEmail = new LocalClaim(EMAIL_CLAIM_URI);
+        LocalClaim localClaimEmails = new LocalClaim(EMAIL_ADDRESSES_CLAIM_URI);
+
         localClaimEmail.setClaimProperties(new HashMap<String, String>() {{
             put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
                     ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
@@ -136,18 +182,32 @@ public class UniqueClaimUserOperationEventListenerTest {
             put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
                     ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
         }});
+        localClaimEmails.setClaimProperties(new HashMap<String, String>() {{
+            put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
+        }});
         localClaims.add(localClaimMobile);
         localClaims.add(localClaimEmail);
+        localClaims.add(localClaimEmails);
         when(claimMetadataManagementService.getLocalClaims(anyString())).thenReturn(localClaims);
 
         Claim claimMobile = new Claim();
         claimMobile.setClaimUri("http://wso2.org/claims/mobile");
         claimMobile.setDisplayTag("Mobile");
         Claim claimEmail = new Claim();
-        claimEmail.setClaimUri("http://wso2.org/claims/emailAddress");
+        claimEmail.setClaimUri(EMAIL_CLAIM_URI);
         claimEmail.setDisplayTag("Email");
+        Claim claimEmails = new Claim();
+        claimEmails.setClaimUri(EMAIL_ADDRESSES_CLAIM_URI);
+        claimEmails.setDisplayTag("Email Addresses");
+        claimEmails.setMultiValued(true);
         when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/mobile")).thenReturn(claimMobile);
-        when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/emailAddress")).thenReturn(claimEmail);
+        when(userStoreManager.getClaimManager().getClaim(EMAIL_CLAIM_URI)).thenReturn(claimEmail);
+        when(userStoreManager.getClaimManager().getClaim(EMAIL_ADDRESSES_CLAIM_URI))
+                .thenReturn(claimEmails);
+        when(userStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(userStoreManager);
+        when(realmConfiguration.getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR)).thenReturn(",");
+
         doReturn(true).when(uniqueClaimUserOperationEventListener).isEnable();
 
         try {
@@ -157,7 +217,92 @@ public class UniqueClaimUserOperationEventListenerTest {
             Assert.assertNotNull(e.getCause());
             PolicyViolationException policyViolationException = (PolicyViolationException) e.getCause();
             Assert.assertEquals(policyViolationException.getErrorCode(), ERROR_CODE_DUPLICATE_CLAIM_VALUE);
+            Assert.assertTrue(e.getMessage().contains(claimEmail.getDisplayTag()), e.getMessage());
+            Assert.assertTrue(e.getMessage().contains(claimMobile.getDisplayTag()), e.getMessage());
+            Assert.assertTrue(e.getMessage().contains(claimEmails.getDisplayTag()), e.getMessage());
             throw e;
+        }
+    }
+
+    @Test
+    public void testCheckClaimUniquenessWithPasswordPolicyViolation() throws UserStoreException,
+            NoSuchMethodException, IllegalAccessException, ClaimMetadataException {
+
+        mockInitForCheckClaimUniqueness();
+        String username = "testUser";
+        Map<String, String> claims = new HashMap<>();
+        claims.put(EMAIL_CLAIM_URI, "test@example.com");
+        String profile = "default";
+        Object credential = "test@example.com";
+
+        // Mock the necessary methods.
+        when(userStoreManager.getTenantId()).thenReturn(1);
+        when(userStoreManager.getClaimManager()).thenReturn(claimManager);
+        Claim emailClaimMetaDate = new Claim();
+        emailClaimMetaDate.setClaimUri(EMAIL_CLAIM_URI);
+        emailClaimMetaDate.setDisplayTag("Email Address");
+        when(claimManager.getClaim(anyString())).thenReturn(emailClaimMetaDate);
+
+        java.lang.reflect.Method method = UniqueClaimUserOperationEventListener.class.getDeclaredMethod(
+                "checkClaimUniqueness", String.class, Map.class, String.class, UserStoreManager.class, Object.class);
+        method.setAccessible(true);
+        try {
+            method.invoke(listener, username, claims, profile, userStoreManager, credential);
+        } catch (InvocationTargetException e) {
+            assertEquals(e.getTargetException().getClass(), org.wso2.carbon.user.core.UserStoreException.class);
+            assertTrue(e.getTargetException().getMessage().contains("Password cannot be equal to the value defined " +
+                    "for Email Address!"));
+        }
+    }
+
+    @Test
+    public void testValidatePasswordNotEqualToClaims() throws Exception {
+
+        Map<String, String> claims = new HashMap<>();
+        claims.put(EMAIL_CLAIM_URI, "test@example.com");
+        Object newCredential = "Wso2@test";
+
+        // Mock the necessary methods.
+        when(userStoreManager.getTenantId()).thenReturn(1);
+        when(userStoreManager.getClaimManager()).thenReturn(claimManager);
+        Claim emailClaim = new Claim();
+        emailClaim.setClaimUri(EMAIL_CLAIM_URI);
+        emailClaim.setDisplayTag("Email Address");
+        when(claimManager.getClaim(anyString())).thenReturn(emailClaim);
+
+        // Use reflection to invoke the private method.
+        java.lang.reflect.Method method = UniqueClaimUserOperationEventListener.class.getDeclaredMethod(
+                "validatePasswordNotEqualToClaims", Map.class, UserStoreManager.class, Object.class);
+        method.setAccessible(true);
+
+        try {
+            // This shouldn't throw any exception. Shouldn't violate the policy.
+            method.invoke(listener, claims, userStoreManager, newCredential);
+        } catch (Exception e) {
+            Assert.fail("Method threw an exception: " + e.getMessage());
+        }
+    }
+
+    private void mockInitForCheckClaimUniqueness() throws ClaimMetadataException {
+
+        List<LocalClaim> localClaims = new ArrayList<>();
+        LocalClaim emailClaim = new LocalClaim(EMAIL_CLAIM_URI);
+        emailClaim.setClaimProperty("isUnique", "true");
+        localClaims.add(emailClaim);
+        localClaims.add(new LocalClaim("http://wso2.org/claims/username"));
+        when(claimMetadataManagementService.getLocalClaims(anyString())).thenReturn(localClaims);
+        identityUtilMock.when(() -> IdentityUtil.readEventListenerProperty(any(), any())).thenReturn(
+                mockIdentityEventListenerConfig);
+        Properties properties = new Properties();
+        properties.put("ScopeWithinUserstore", "true");
+        when(mockIdentityEventListenerConfig.getProperties()).thenReturn(properties);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        if (identityUtilMock != null) {
+            identityUtilMock.close();
         }
     }
 }

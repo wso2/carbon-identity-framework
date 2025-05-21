@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -283,19 +283,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     @Override
     public APIResource getAPIResourceById(String apiId, Integer tenantId) throws APIResourceMgtException {
 
-        String query = SQLConstants.GET_API_RESOURCE_BY_ID;
-        try {
-            if (OrganizationManagementUtil.isOrganization(tenantId)) {
-                tenantId = getRootOrganizationTenantId(tenantId);
-                query = SQLConstants.GET_API_RESOURCE_BY_ID_FOR_ORGANIZATIONS;
-            }
-        } catch (OrganizationManagementException e) {
-            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages.
-                            ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
-                    IdentityTenantUtil.getTenantDomain(tenantId));
-        }
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement preparedStatement = dbConnection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = dbConnection.prepareStatement(SQLConstants.GET_API_RESOURCE_BY_ID)) {
             preparedStatement.setString(1, apiId);
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();

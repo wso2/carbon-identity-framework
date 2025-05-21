@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -8,9 +8,9 @@
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
@@ -45,6 +45,7 @@ public class PreferenceRetrievalClientTest {
     public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
     private static final String SELF_REG_CALLBACK_REGEX_PROP = "SelfRegistration.CallbackRegex";
     public static final String SHOW_USERNAME_UNAVAILABILITY = "SelfRegistration.ShowUsernameUnavailability";
+    private static final String ENABLE_DYNAMIC_REGISTRATION_PORTAL = "SelfRegistration.EnableDynamicPortal";
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     private static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
@@ -52,6 +53,8 @@ public class PreferenceRetrievalClientTest {
     public static final String NOTIFICATION_PASSWORD_ENABLE_PROPERTY = "Recovery.Notification.Password.Enable";
     public static final String EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY =
             "Recovery.Notification.Password.emailLink.Enable";
+    public static final String EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY =
+            "Recovery.Notification.Password.OTP.SendOTPInEmail";
     public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.smsOtp.Enable";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
     private static final String RECOVERY_CALLBACK_REGEX_PROP = "Recovery.CallbackRegex";
@@ -122,6 +125,17 @@ public class PreferenceRetrievalClientTest {
     }
 
     @Test
+    public void testCheckSelfRegistrationEnableDynamicPortal() throws PreferenceRetrievalClientException {
+
+        doReturn(false).when(preferenceRetrievalClient)
+                .checkPreference(tenantDomain, SELF_SIGN_UP_CONNECTOR, ENABLE_DYNAMIC_REGISTRATION_PORTAL);
+        boolean result = preferenceRetrievalClient.checkSelfRegistrationEnableDynamicPortal(tenantDomain);
+        assertFalse(result);
+        verify(preferenceRetrievalClient, times(1)).checkPreference(tenantDomain,
+                SELF_SIGN_UP_CONNECTOR, ENABLE_DYNAMIC_REGISTRATION_PORTAL);
+    }
+
+    @Test
     public void testCheckUsernameRecovery() throws PreferenceRetrievalClientException {
 
         doReturn(true).when(preferenceRetrievalClient)
@@ -174,6 +188,17 @@ public class PreferenceRetrievalClientTest {
         assertTrue(result);
         verify(preferenceRetrievalClient, times(1)).checkPreference(tenantDomain, RECOVERY_CONNECTOR,
                 EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+    }
+
+    @Test
+    public void testCheckEmailOTPBasedPasswordRecovery() throws PreferenceRetrievalClientException {
+
+        doReturn(true).when(preferenceRetrievalClient).checkPreference(tenantDomain, RECOVERY_CONNECTOR,
+                EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+        boolean result = preferenceRetrievalClient.checkEmailOTPBasedPasswordRecovery(tenantDomain);
+        assertTrue(result);
+        verify(preferenceRetrievalClient, times(1)).checkPreference(tenantDomain, RECOVERY_CONNECTOR,
+                EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
     }
 
     @Test

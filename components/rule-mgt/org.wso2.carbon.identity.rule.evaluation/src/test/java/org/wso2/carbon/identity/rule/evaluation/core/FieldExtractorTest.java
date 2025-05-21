@@ -159,6 +159,21 @@ public class FieldExtractorTest {
         Expression expression4 = new Expression.Builder().field("riskScore").operator("equals")
                 .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
                         org.wso2.carbon.identity.rule.management.api.model.Value.Type.NUMBER, "5")).build();
-        return Arrays.asList(expression1, expression2, expression3, expression4);
+
+        Expression expression5 = new Expression.Builder().field("application").operator("equals")
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.REFERENCE, "testapp2")).build();
+        Expression expression6 = new Expression.Builder().field("grantType").operator("equals")
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.STRING, "password"))
+                .build();
+        Expression expression7 = new Expression.Builder().field("consented").operator("equals")
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.BOOLEAN, "false")).build();
+        Expression expression8 = new Expression.Builder().field("riskScore").operator("equals")
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.NUMBER, "4")).build();
+        return Arrays.asList(expression1, expression2, expression3, expression4, expression5, expression6, expression7,
+                expression8);
     }
 }

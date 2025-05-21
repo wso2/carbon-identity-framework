@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -195,10 +195,34 @@ public class APIResourceManagementUtil {
                         APIResourceManagementConstants.ASC, tenantDomain).getAPIResources().isEmpty();
     }
 
+    /**
+     * Checks whether a given API resource is a tenant agnostic API.
+     * This determines whether the API is an Identity Server (IS) management API that is commonly owned by all tenants.
+     * {@code APIResourceTypes.SYSTEM} indicates API resources owned only by the super tenant.
+     *
+     * @param type The API resource type to check.
+     * @return {@code true} if the API resource type is neither "BUSINESS" nor "SYSTEM".
+     */
     public static boolean isSystemAPI(String type) {
 
-        return !APIResourceManagementConstants.BUSINESS_TYPE.equalsIgnoreCase(type)
-                && !APIResourceManagementConstants.SYSTEM_TYPE.equalsIgnoreCase(type);
+        return !APIResourceManagementConstants.APIResourceTypes.BUSINESS.equalsIgnoreCase(type)
+                && !APIResourceManagementConstants.APIResourceTypes.SYSTEM.equalsIgnoreCase(type);
+    }
+
+    /**
+     * Determines whether the given API Resource Type is an allowed type for sub-organizations.
+     *
+     * @param type The API Resource Type to check.
+     * @return {@code true} if the API Resource Type is allowed for sub-organizations
+     *         ("ORGANIZATION", "BUSINESS", "CONSOLE_ORG_LEVEL", or "CONSOLE_ORG_FEATURE").
+     *         {@code false} if it is a restricted type ("TENANT", "SYSTEM", or "CONSOLE_FEATURE").
+     */
+    public static boolean isAllowedAPIResourceTypeForOrganizations(String type) {
+
+        return APIResourceManagementConstants.APIResourceTypes.ORGANIZATION.equalsIgnoreCase(type)
+                || APIResourceManagementConstants.APIResourceTypes.BUSINESS.equalsIgnoreCase(type)
+                || APIResourceManagementConstants.APIResourceTypes.CONSOLE_ORG_LEVEL.equalsIgnoreCase(type)
+                || APIResourceManagementConstants.APIResourceTypes.CONSOLE_ORG_FEATURE.equalsIgnoreCase(type);
     }
 
     public static boolean isSystemAPIByAPIId(String apiId) throws APIResourceMgtException {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -41,8 +41,6 @@ public class APIResourceManagementConstants {
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
     public static final String PROPERTIES = "properties";
-    public static final String BUSINESS_TYPE = "BUSINESS";
-    public static final String SYSTEM_TYPE = "SYSTEM";
     public static final String EQ = "eq";
     public static final String NE = "ne";
     public static final String CO = "co";
@@ -64,6 +62,18 @@ public class APIResourceManagementConstants {
     private static final Map<String, String> authorizationDetailsTypesAttributeColumnMap = new HashMap<>();
     public static final Map<String, String> AUTHORIZATION_DETAILS_TYPES_ATTRIBUTE_COLUMN_MAP =
             Collections.unmodifiableMap(authorizationDetailsTypesAttributeColumnMap);
+
+    /**
+     * @deprecated Use {@link APIResourceTypes#BUSINESS} instead.
+     */
+    @Deprecated
+    public static final String BUSINESS_TYPE = "BUSINESS";
+
+    /**
+     * @deprecated Use {@link APIResourceTypes#SYSTEM} instead.
+     */
+    @Deprecated
+    public static final String SYSTEM_TYPE = "SYSTEM";
 
     static {
         attributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
@@ -96,6 +106,20 @@ public class APIResourceManagementConstants {
         public static final String TENANT_ADMIN_TYPE = "TENANT_ADMIN";
         public static final String RICH_AUTHORIZATION_REQUESTS_ENABLED = "OAuth.EnableRichAuthorizationRequests";
 
+    }
+
+    /**
+     * API Resource Types.
+     */
+    public static class APIResourceTypes {
+
+        public static final String BUSINESS = "BUSINESS";
+        public static final String SYSTEM = "SYSTEM";
+        public static final String TENANT = "TENANT";
+        public static final String ORGANIZATION = "ORGANIZATION";
+        public static final String CONSOLE_FEATURE = "CONSOLE_FEATURE";
+        public static final String CONSOLE_ORG_FEATURE = "CONSOLE_ORG_FEATURE";
+        public static final String CONSOLE_ORG_LEVEL = "CONSOLE_ORG_LEVEL";
     }
 
     /**
@@ -177,7 +201,10 @@ public class APIResourceManagementConstants {
                 "Error while deleting authorization details types from the database."),
         ERROR_CODE_ERROR_WHILE_UPDATING_AUTHORIZATION_DETAILS_TYPES("65024",
                 "Error while updating authorization details types.",
-                "Error while updating authorization details types in the database.");
+                "Error while updating authorization details types in the database."),
+        ERROR_CODE_ERROR_WHILE_RETRIEVING_ROOT_ORGANIZATION_TENANT_DOMAIN("65025",
+                "Error retrieving the root organization's tenant domain.", "Failed to retrieve " +
+                "the root organization's tenant domain using the sub-organization's tenant domain: %s");
 
         private final String code;
         private final String message;

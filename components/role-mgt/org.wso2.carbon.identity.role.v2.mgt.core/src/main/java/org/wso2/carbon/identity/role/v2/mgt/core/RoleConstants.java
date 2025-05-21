@@ -79,6 +79,9 @@ public class RoleConstants {
     public static final String EXISTING_ROLE_NAME = "existingRoleName";
     public static final String NEW_ROLE_NAME = "newRoleName";
     public static final String FAILURE_REASON = "failureReason";
+    public static final String PARENT_APP_ID = "parentApplicationId";
+    public static final String CONFLICT_ROLE_ID = "roleId";
+    public static final String CONFLICT_ROLE_NAME = "roleName";
 
     // Role management service configurations.
     public static final String ALLOW_SYSTEM_PREFIX_FOR_ROLES = "RoleMgt.AllowSystemPrefixForRoles";

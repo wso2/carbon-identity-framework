@@ -59,6 +59,8 @@ public class ServiceProvider implements Serializable {
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
     private static final String TRUSTED_APP_METADATA = "TrustedAppMetadata";
+    private static final String DISCOVERABLE_GROUPS = "DiscoverableGroups";
+    private static final String DISCOVERABLE_GROUP = "DiscoverableGroup";
 
     @XmlTransient
     @JsonIgnore
@@ -131,6 +133,10 @@ public class ServiceProvider implements Serializable {
 
     @XmlElement(name = "IsDiscoverable")
     private boolean isDiscoverable;
+
+    @XmlElementWrapper(name = DISCOVERABLE_GROUPS)
+    @XmlElement(name = DISCOVERABLE_GROUP)
+    private DiscoverableGroup[] discoverableGroups;
 
     @IgnoreNullElement
     @XmlElement(name = TEMPLATE_ID)
@@ -304,6 +310,21 @@ public class ServiceProvider implements Serializable {
                     serviceProvider.setApplicationEnabled(true);
                 } else  {
                     serviceProvider.setApplicationEnabled(!"false".equals(element.getText()));
+                }
+            } else if (DISCOVERABLE_GROUPS.equals(elementName)) {
+                Iterator<?> discoverableGroupIter = element.getChildElements();
+                List<DiscoverableGroup> discoverableGroupList = new ArrayList<>();
+
+                while (discoverableGroupIter.hasNext()) {
+                    OMElement discoverableGroupElement = (OMElement) discoverableGroupIter.next();
+                    DiscoverableGroup discoverableGroup = DiscoverableGroup.build(discoverableGroupElement);
+                    if (discoverableGroup != null) {
+                        discoverableGroupList.add(discoverableGroup);
+                    }
+                }
+
+                if (!discoverableGroupList.isEmpty()) {
+                    serviceProvider.setDiscoverableGroups(discoverableGroupList.toArray(new DiscoverableGroup[0]));
                 }
             }
         }
@@ -600,6 +621,26 @@ public class ServiceProvider implements Serializable {
     public void setDiscoverable(boolean discoverable) {
 
         isDiscoverable = discoverable;
+    }
+
+    /**
+     * Retrieve the list of groups for which the application has been granted discoverable access.
+     *
+     * @return The list of discoverable groups.
+     */
+    public DiscoverableGroup[] getDiscoverableGroups() {
+
+        return discoverableGroups;
+    }
+
+    /**
+     * Set the list of groups for which the application has been granted discoverable access.
+     *
+     * @param discoverableGroups The list of discoverable groups.
+     */
+    public void setDiscoverableGroups(DiscoverableGroup[] discoverableGroups) {
+
+        this.discoverableGroups = discoverableGroups;
     }
 
     public String getTemplateId() {

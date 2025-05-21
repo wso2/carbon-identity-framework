@@ -67,16 +67,25 @@ public class SessionDataStore {
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED, EXPIRY_TIME) " +
                     "VALUES (?,?,?,?,?)";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK =
-            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID in (" +
-                    "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "')";
+            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_STORE +
+                    "' AND EXISTS (" +
+                        "SELECT 1 FROM IDN_AUTH_SESSION_STORE DELETE_OP " +
+                        "WHERE DELETE_OP.OPERATION = '" + OPERATION_DELETE + "' " +
+                        "AND IDN_AUTH_SESSION_STORE.SESSION_ID = DELETE_OP.SESSION_ID " +
+                        "AND IDN_AUTH_SESSION_STORE.TIME_CREATED < DELETE_OP.TIME_CREATED)";
 
     private static final String SQL_DELETE_TEMP_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE EXPIRY_TIME < ?";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL =
-            "DELETE IDN_AUTH_SESSION_STORE_DELETE FROM IDN_AUTH_SESSION_STORE IDN_AUTH_SESSION_STORE_DELETE WHERE " +
-                    "OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID IN (SELECT SESSION_ID FROM " +
-                    "(SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "') " +
-                    "IDN_AUTH_SESSION_STORE_SELECT)";
+            "DELETE FROM IDN_AUTH_SESSION_STORE STORE_OP WHERE OPERATION = '" + OPERATION_STORE + "'" +
+                    "AND SESSION_ID IN (" +
+                        "SELECT STORE_OP.SESSION_ID FROM (" +
+                            "SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE DELETE_OP " +
+                            "WHERE OPERATION = '" + OPERATION_DELETE + "' " +
+                            "AND STORE_OP.SESSION_ID = SESSION_ID " +
+                            "AND STORE_OP.TIME_CREATED < DELETE_OP.TIME_CREATED" +
+                        ") AS STORE_OP" +
+                    ");";
     private static final String SQL_DELETE_DELETE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "' AND  EXPIRY_TIME < ?";
     private static final String SQL_DELETE_TEMP_RECORDS =
@@ -733,6 +742,11 @@ public class SessionDataStore {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
+    }
+
+    public boolean isSessionDataCleanupEnabled() {
+
+        return sessionDataCleanupEnabled;
     }
 
     private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
