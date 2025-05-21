@@ -72,14 +72,11 @@ public class ApplicationDataRetrievalClient {
             String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
-                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
-
-                JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
-                if (applications.length() != 1) {
+                JSONObject application = getSingleApplicationFromResponse(responseString);
+                if (application == null) {
                     return StringUtils.EMPTY;
                 }
 
-                JSONObject application = (JSONObject) applications.get(0);
                 if (application.has(ACCESS_URL_KEY)) {
                     return application.getString(ACCESS_URL_KEY);
                 }
@@ -128,13 +125,11 @@ public class ApplicationDataRetrievalClient {
             String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
-                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
-                JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
-                if (applications.length() != 1) {
+                JSONObject application = getSingleApplicationFromResponse(responseString);
+                if (application == null) {
                     return false;
                 }
 
-                JSONObject application = (JSONObject) applications.get(0);
                 if (application.has(APP_ENABLED_STATE_KEY)) {
                     return application.getBoolean(APP_ENABLED_STATE_KEY);
                 }
@@ -237,13 +232,11 @@ public class ApplicationDataRetrievalClient {
             String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
-                JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
-                JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
-                if (applications.length() != 1) {
+                JSONObject application = getSingleApplicationFromResponse(responseString);
+                if (application == null) {
                     return StringUtils.EMPTY;
                 }
-
-                JSONObject application = (JSONObject) applications.get(0);
+                
                 return application.getString(APP_ID);
             }
 
@@ -258,6 +251,22 @@ public class ApplicationDataRetrievalClient {
         }
     }
 
+    /**
+     * Parses a JSON response string and extracts a single application object if available.
+     *
+     * @param responseString JSON response string from API
+     * @return the single application JSONObject or null if not exactly one application is found
+     * @throws JSONException if parsing the JSON response fails
+     */
+    private JSONObject getSingleApplicationFromResponse(String responseString) throws JSONException {
+        JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
+        JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
+        if (applications.length() != 1) {
+            return null;
+        }
+        
+        return (JSONObject) applications.get(0);
+    }
 
     private String getApplicationsEndpoint(String tenantDomain) throws ApplicationDataRetrievalClientException {
 

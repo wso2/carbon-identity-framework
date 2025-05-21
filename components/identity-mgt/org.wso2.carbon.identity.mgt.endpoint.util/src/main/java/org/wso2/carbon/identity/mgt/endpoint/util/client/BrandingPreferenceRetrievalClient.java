@@ -104,12 +104,7 @@ public class BrandingPreferenceRetrievalClient {
 
             String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
-            JSONObject jsonResponse = new JSONObject();
-            if (!StringUtils.isEmpty(responseString)) {
-                jsonResponse = new JSONObject(new JSONTokener(responseString));
-            }
-
-            return jsonResponse;
+            return parseJsonResponse(responseString);
         } catch (IOException e) {
             String msg = "Error while getting branding preference for tenant : " + tenant;
 
@@ -174,12 +169,7 @@ public class BrandingPreferenceRetrievalClient {
 
             String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
-            JSONObject jsonResponse = new JSONObject();
-            if (!StringUtils.isEmpty(responseString)) {
-                jsonResponse = new JSONObject(new JSONTokener(responseString));
-            }
-
-            return jsonResponse;
+            return parseJsonResponse(responseString);
         } catch (IOException e) {
             String msg = "Error while getting custom text preference for tenant : " + tenant;
 
@@ -188,6 +178,21 @@ public class BrandingPreferenceRetrievalClient {
             }
             throw new BrandingPreferenceRetrievalClientException(msg, e);
         }
+    }
+
+    /**
+     * Parse a string response to a JSONObject.
+     *
+     * @param responseString The string to parse
+     * @return A JSONObject containing the parsed data or an empty JSONObject if the string is empty
+     */
+    private JSONObject parseJsonResponse(String responseString) {
+
+        JSONObject jsonResponse = new JSONObject();
+        if (!StringUtils.isEmpty(responseString)) {
+            jsonResponse = new JSONObject(new JSONTokener(responseString));
+        }
+        return jsonResponse;
     }
 
     /**
