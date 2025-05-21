@@ -190,7 +190,6 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     private Webhook mapResultSetToWebhook(ResultSet resultSet) throws SQLException {
 
         return new Webhook.BuilderWithoutSecret()
-                .id(resultSet.getString(WebhookSQLConstants.Column.ID))
                 .uuid(resultSet.getString(WebhookSQLConstants.Column.UUID))
                 .endpoint(resultSet.getString(WebhookSQLConstants.Column.ENDPOINT))
                 .description(resultSet.getString(WebhookSQLConstants.Column.DESCRIPTION))
