@@ -80,7 +80,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            LOG.debug("Error creating webhook: " + webhook.getId() +
+            LOG.debug("Error creating webhook: " + webhook.getUuid() +
                     " in tenant ID: " + tenantId, e);
             // If an error occurs after subscription but before adding to DB, attempt to unsubscribe
             try {
@@ -121,6 +121,20 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     }
 
     /**
+     * Get webhook events for a specific webhook subscription from the database.
+     *
+     * @param webhookId Webhook subscription ID.
+     * @param tenantId  Tenant ID.
+     * @return List of events subscribed to the webhook.
+     * @throws WebhookMgtException If an error occurs while retrieving the events.
+     */
+    @Override
+    public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
+
+        return webhookManagementDAO.getWebhookEvents(webhookId, tenantId);
+    }
+
+    /**
      * Update a webhook subscription in the database.
      * First updates the webhook subscription with webhook subscriber service,
      * then updates its persistent state.
@@ -155,11 +169,10 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                     subscriberService.unsubscribe(existingWebhook, tenantDomain);
                 } catch (WebhookMgtException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, webhook.getId());
+                            ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, webhook.getUuid());
                 }
 
                 // Then try to subscribe with the updated webhook
-                webhook.setId(webhook.getUuid());
                 try {
                     if (WebhookStatus.ACTIVE.equals(webhook.getStatus())) {
                         subscriberService.subscribe(webhook, tenantDomain);
@@ -181,7 +194,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            LOG.debug("Error updating webhook: " + webhook.getId() +
+            LOG.debug("Error updating webhook: " + webhook.getUuid() +
                     " in tenant ID: " + tenantId, e);
             throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_UNEXPECTED_ERROR);
         }
@@ -213,7 +226,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 try {
                     subscriberService.unsubscribe(existingWebhook, tenantDomain);
                 } catch (WebhookMgtException e) {
-                    LOG.warn("Error unsubscribing webhook during deletion: " + existingWebhook.getId(), e);
+                    LOG.warn("Error unsubscribing webhook during deletion: " + existingWebhook.getUuid(), e);
                 }
                 webhookManagementDAO.deleteWebhook(webhookId, tenantId);
                 return null;

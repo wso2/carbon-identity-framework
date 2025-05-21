@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.webhook.management.api.service;
 
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
-import org.wso2.carbon.identity.webhook.management.api.model.WebhookDTO;
-import org.wso2.carbon.identity.webhook.management.api.model.WebhookSummaryDTO;
 
 import java.util.List;
 
@@ -39,7 +37,7 @@ public interface WebhookManagementService {
      * @return Created webhook subscription.
      * @throws WebhookMgtException If an error occurs while creating the webhook subscription.
      */
-    public WebhookDTO createWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException;
+    public Webhook createWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Get a webhook subscription by ID.
@@ -49,7 +47,7 @@ public interface WebhookManagementService {
      * @return Webhook subscription.
      * @throws WebhookMgtException If an error occurs while retrieving the webhook subscription.
      */
-    public WebhookDTO getWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+    public Webhook getWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Update a webhook subscription.
@@ -60,7 +58,7 @@ public interface WebhookManagementService {
      * @return Updated webhook subscription.
      * @throws WebhookMgtException If an error occurs while updating the webhook subscription.
      */
-    public WebhookDTO updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException;
+    public Webhook updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Delete a webhook subscription.
@@ -78,7 +76,17 @@ public interface WebhookManagementService {
      * @return List of webhook subscriptions.
      * @throws WebhookMgtException If an error occurs while retrieving webhook subscriptions.
      */
-    public List<WebhookSummaryDTO> getWebhooks(String tenantDomain) throws WebhookMgtException;
+    public List<Webhook> getWebhooks(String tenantDomain) throws WebhookMgtException;
+
+    /**
+     * Get webhook events by webhook ID.
+     *
+     * @param webhookId    Webhook subscription ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of webhook events.
+     * @throws WebhookMgtException If an error occurs while retrieving webhook events.
+     */
+    public List<String> getWebhookEvents(String webhookId, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Enable a webhook subscription.

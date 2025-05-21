@@ -78,6 +78,32 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     }
 
     @Override
+    public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
+
+        WebhookCacheEntry webhookCacheEntry = webhookCache.getValueFromCache(new WebhookCacheKey(webhookId), tenantId);
+        if (webhookCacheEntry != null && webhookCacheEntry.getWebhook() != null &&
+                webhookCacheEntry.getWebhook().getEventsSubscribed() != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Webhook cache hit for webhook ID: " + webhookId + ". Returning from cache.");
+            }
+            return webhookCacheEntry.getWebhook().getEventsSubscribed();
+        }
+
+        Webhook webhook = webhookManagementDAO.getWebhook(webhookId, tenantId);
+        if (webhook != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Webhook cache miss for webhook events for webhook ID: " + webhookId + ". Adding to cache.");
+            }
+            webhookCache.addToCache(new WebhookCacheKey(webhookId), new WebhookCacheEntry(webhook), tenantId);
+
+            if (webhook.getEventsSubscribed() != null) {
+                return webhook.getEventsSubscribed();
+            }
+        }
+        return java.util.Collections.emptyList();
+    }
+
+    @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getUuid()), tenantId);

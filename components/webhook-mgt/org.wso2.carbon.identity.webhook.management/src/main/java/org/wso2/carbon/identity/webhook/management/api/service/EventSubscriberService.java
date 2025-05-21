@@ -59,11 +59,12 @@ public class EventSubscriberService {
                         subscriber.subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), tenantDomain);
                 if (!success) {
                     LOG.error(
-                            "Subscriber " + subscriber.getName() + " failed to subscribe webhook: " + webhook.getId());
+                            "Subscriber " + subscriber.getName() + " failed to subscribe webhook: " +
+                                    webhook.getUuid());
                 }
             } catch (WebhookMgtException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIPTION_ERROR, webhook.getId());
+                        ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIPTION_ERROR, webhook.getUuid());
             }
         }
     }
@@ -90,11 +91,11 @@ public class EventSubscriberService {
                         subscriber.unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), tenantDomain);
                 if (!success) {
                     LOG.warn("Subscriber " + subscriber.getName() + " failed to unsubscribe webhook: " +
-                            webhook.getId());
+                            webhook.getUuid());
                 }
             } catch (WebhookMgtException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, webhook.getId());
+                        ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, webhook.getUuid());
             }
         }
     }

@@ -24,9 +24,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
-import org.wso2.carbon.identity.webhook.management.api.model.WebhookDTO;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
-import org.wso2.carbon.identity.webhook.management.api.model.WebhookSummaryDTO;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.CacheBackedWebhookManagementDAO;
@@ -34,7 +32,6 @@ import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookMana
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOImpl;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,7 +58,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
     }
 
     @Override
-    public WebhookDTO createWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException {
+    public Webhook createWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Creating webhook with endpoint: %s for tenant: %s",
@@ -73,32 +70,55 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS, webhook.getEndpoint());
         }
         String generatedWebhookId = UUID.randomUUID().toString();
-        webhook.setUuid(generatedWebhookId);
 
-        // Set default status to INACTIVE if not provided
-        if (webhook.getStatus() == null) {
-            webhook.setStatus(WebhookStatus.INACTIVE);
-        }
+        WebhookStatus status = webhook.getStatus() != null ? webhook.getStatus() : WebhookStatus.INACTIVE;
 
-        daoFACADE.createWebhook(webhook, tenantId);
-        Webhook createdWebhook = daoFACADE.getWebhook(webhook.getId(), tenantId);
-        return WebhookDTO.Builder.fromWebhook(createdWebhook).build();
+        Webhook webhookToCreate = new Webhook.Builder()
+                .uuid(generatedWebhookId)
+                .endpoint(webhook.getEndpoint())
+                .description(webhook.getDescription())
+                .secret(webhook.getSecret())
+                .tenantId(tenantId)
+                .eventSchemaName(webhook.getEventSchemaName())
+                .eventSchemaUri(webhook.getEventSchemaUri())
+                .status(status)
+                .createdAt(webhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
+
+        daoFACADE.createWebhook(webhookToCreate, tenantId);
+        return daoFACADE.getWebhook(webhookToCreate.getUuid(), tenantId);
     }
 
     @Override
-    public WebhookDTO getWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
+    public Webhook getWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving webhook with ID: %s for tenant: %s",
                     webhookId, tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        Webhook webhook = daoFACADE.getWebhook(webhookId, tenantId);
-        return WebhookDTO.Builder.fromWebhook(webhook).build();
+        return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
     @Override
-    public WebhookDTO updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException {
+    public List<String> getWebhookEvents(String webhookId, String tenantDomain) throws WebhookMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Getting events for webhook with ID: %s for tenant: %s",
+                    webhookId, tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (!isWebhookExists(webhookId, tenantId)) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
+        }
+        return daoFACADE.getWebhookEvents(webhookId, tenantId);
+    }
+
+    @Override
+    public Webhook updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating webhook with ID: %s for tenant: %s",
@@ -116,8 +136,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_EXISTS);
         }
         daoFACADE.updateWebhook(webhook, tenantId);
-        Webhook updatedWebhook = daoFACADE.getWebhook(webhookId, tenantId);
-        return WebhookDTO.Builder.fromWebhook(updatedWebhook).build();
+        return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
     @Override
@@ -136,21 +155,14 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
     }
 
     @Override
-    public List<WebhookSummaryDTO> getWebhooks(String tenantDomain) throws WebhookMgtException {
+    public List<Webhook> getWebhooks(String tenantDomain) throws WebhookMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Getting all webhooks for tenant: %s", tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        List<Webhook> webhooks = daoFACADE.getWebhooks(tenantId);
 
-        // Convert Webhook objects to WebhookDTO objects using builder pattern
-        List<WebhookSummaryDTO> webhookSummaryDTOS = new ArrayList<>();
-        for (Webhook webhook : webhooks) {
-            webhookSummaryDTOS.add(WebhookSummaryDTO.Builder.fromWebhook(webhook).build());
-        }
-
-        return webhookSummaryDTOS;
+        return daoFACADE.getWebhooks(tenantId);
     }
 
     @Override

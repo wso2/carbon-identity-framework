@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.CacheBackedWebhookManagementDAO;
 
+import java.util.List;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -112,7 +114,7 @@ public class CacheBackedWebhookManagementDAOTest {
     public void testDeleteWebhookWhenCacheIsPopulated() throws WebhookMgtException {
 
         Webhook webhook = mock(Webhook.class);
-        when(webhook.getId()).thenReturn(WEBHOOK_ID);
+        when(webhook.getUuid()).thenReturn(WEBHOOK_ID);
         WebhookCacheEntry cacheEntry = new WebhookCacheEntry(webhook);
         webhookCache.addToCache(new WebhookCacheKey(WEBHOOK_ID), cacheEntry, TENANT_ID);
 
@@ -140,7 +142,7 @@ public class CacheBackedWebhookManagementDAOTest {
         webhookCache.clear(TENANT_ID);
 
         Webhook webhook = mock(Webhook.class);
-        when(webhook.getId()).thenReturn(WEBHOOK_ID);
+        when(webhook.getUuid()).thenReturn(WEBHOOK_ID);
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
 
         Webhook result = cacheBackedWebhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID);
@@ -164,7 +166,7 @@ public class CacheBackedWebhookManagementDAOTest {
     public void testActivateWebhookWhenCacheIsPopulated() throws WebhookMgtException {
 
         Webhook webhook = mock(Webhook.class);
-        when(webhook.getId()).thenReturn(WEBHOOK_ID);
+        when(webhook.getUuid()).thenReturn(WEBHOOK_ID);
         WebhookCacheEntry cacheEntry = new WebhookCacheEntry(webhook);
         webhookCache.addToCache(new WebhookCacheKey(WEBHOOK_ID), cacheEntry, TENANT_ID);
 
@@ -187,7 +189,7 @@ public class CacheBackedWebhookManagementDAOTest {
     public void testDeactivateWebhookWhenCacheIsPopulated() throws WebhookMgtException {
 
         Webhook webhook = mock(Webhook.class);
-        when(webhook.getId()).thenReturn(WEBHOOK_ID);
+        when(webhook.getUuid()).thenReturn(WEBHOOK_ID);
         WebhookCacheEntry cacheEntry = new WebhookCacheEntry(webhook);
         webhookCache.addToCache(new WebhookCacheKey(WEBHOOK_ID), cacheEntry, TENANT_ID);
 
@@ -195,5 +197,52 @@ public class CacheBackedWebhookManagementDAOTest {
 
         verify(webhookManagementDAO).deactivateWebhook(WEBHOOK_ID, TENANT_ID);
         assertNull(webhookCache.getValueFromCache(new WebhookCacheKey(WEBHOOK_ID), TENANT_ID));
+    }
+
+    @Test
+    public void testGetWebhookEvents_CacheHit() throws WebhookMgtException {
+
+        List<String> events = java.util.Arrays.asList("event1", "event2");
+        Webhook webhook = mock(Webhook.class);
+        when(webhook.getEventsSubscribed()).thenReturn(events);
+        WebhookCacheEntry cacheEntry = new WebhookCacheEntry(webhook);
+        webhookCache.addToCache(new WebhookCacheKey(WEBHOOK_ID), cacheEntry, TENANT_ID);
+
+        List<String> result = cacheBackedWebhookManagementDAO.getWebhookEvents(WEBHOOK_ID, TENANT_ID);
+
+        assertEquals(result, events);
+        verify(webhookManagementDAO, never()).getWebhook(WEBHOOK_ID, TENANT_ID);
+    }
+
+    @Test
+    public void testGetWebhookEvents_CacheMiss() throws WebhookMgtException {
+
+        webhookCache.clear(TENANT_ID);
+        List<String> events = java.util.Arrays.asList("event1", "event2");
+        Webhook webhook = mock(Webhook.class);
+        when(webhook.getEventsSubscribed()).thenReturn(events);
+        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
+
+        List<String> result = cacheBackedWebhookManagementDAO.getWebhookEvents(WEBHOOK_ID, TENANT_ID);
+
+        assertEquals(result, events);
+        verify(webhookManagementDAO).getWebhook(WEBHOOK_ID, TENANT_ID);
+        // Ensure cache is populated
+        assertEquals(
+                webhookCache.getValueFromCache(new WebhookCacheKey(WEBHOOK_ID), TENANT_ID).getWebhook()
+                        .getEventsSubscribed(),
+                events
+        );
+    }
+
+    @Test
+    public void testGetWebhookEvents_EmptyListWhenNoWebhook() throws WebhookMgtException {
+
+        webhookCache.clear(TENANT_ID);
+        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(null);
+
+        List<String> result = cacheBackedWebhookManagementDAO.getWebhookEvents(WEBHOOK_ID, TENANT_ID);
+
+        assertEquals(result, java.util.Collections.emptyList());
     }
 }

@@ -75,6 +75,16 @@ public interface WebhookManagementDAO {
     public List<Webhook> getWebhooks(int tenantId) throws WebhookMgtException;
 
     /**
+     * Get webhook events for a specific webhook subscription from the database.
+     *
+     * @param webhookId Webhook subscription ID.
+     * @param tenantId  Tenant ID.
+     * @return List of events subscribed to the webhook.
+     * @throws WebhookMgtException If an error occurs while retrieving the events.
+     */
+    public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException;
+
+    /**
      * Check if a webhook endpoint exists in the database.
      *
      * @param endpoint Webhook endpoint URL.

@@ -110,9 +110,32 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
                 int internalWebhookId = getInternalWebhookIdByUuid(webhookId, tenantId);
                 List<String> events = getWebhookEvents(internalWebhookId);
-                webhook.setEventsSubscribed(events);
-                return webhook;
+
+                // Build the Webhook without the secret
+                return new Webhook.BuilderWithoutSecret()
+                        .uuid(webhook.getUuid())
+                        .endpoint(webhook.getEndpoint())
+                        .description(webhook.getDescription())
+                        .tenantId(webhook.getTenantId())
+                        .eventSchemaName(webhook.getEventSchemaName())
+                        .eventSchemaUri(webhook.getEventSchemaUri())
+                        .status(webhook.getStatus())
+                        .createdAt(webhook.getCreatedAt())
+                        .updatedAt(webhook.getUpdatedAt())
+                        .eventsSubscribed(events)
+                        .build();
             });
+        } catch (TransactionException e) {
+            throw new WebhookMgtServerException("Error while retrieving the webhook from the system.", e);
+        }
+    }
+
+    @Override
+    public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
+
+        try {
+            int internalWebhookId = getInternalWebhookIdByUuid(webhookId, tenantId);
+            return getWebhookEvents(internalWebhookId);
         } catch (TransactionException e) {
             throw new WebhookMgtServerException("Error while retrieving the webhook from the system.", e);
         }
@@ -166,19 +189,18 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
     private Webhook mapResultSetToWebhook(ResultSet resultSet) throws SQLException {
 
-        Webhook wh = new Webhook();
-        wh.setId(resultSet.getString(WebhookSQLConstants.Column.ID));
-        wh.setUuid(resultSet.getString(WebhookSQLConstants.Column.UUID));
-        wh.setEndpoint(resultSet.getString(WebhookSQLConstants.Column.ENDPOINT));
-        wh.setDescription(resultSet.getString(WebhookSQLConstants.Column.DESCRIPTION));
-        wh.setSecret(resultSet.getString(WebhookSQLConstants.Column.SECRET));
-        wh.setEventSchemaName(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME));
-        wh.setEventSchemaUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI));
-        wh.setStatus(WebhookStatus.valueOf(resultSet.getString(WebhookSQLConstants.Column.STATUS)));
-        wh.setTenantId(resultSet.getInt(WebhookSQLConstants.Column.TENANT_ID));
-        wh.setCreatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.CREATED_AT));
-        wh.setUpdatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.UPDATED_AT));
-        return wh;
+        return new Webhook.BuilderWithoutSecret()
+                .id(resultSet.getString(WebhookSQLConstants.Column.ID))
+                .uuid(resultSet.getString(WebhookSQLConstants.Column.UUID))
+                .endpoint(resultSet.getString(WebhookSQLConstants.Column.ENDPOINT))
+                .description(resultSet.getString(WebhookSQLConstants.Column.DESCRIPTION))
+                .eventSchemaName(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME))
+                .eventSchemaUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI))
+                .status(WebhookStatus.valueOf(resultSet.getString(WebhookSQLConstants.Column.STATUS)))
+                .tenantId(resultSet.getInt(WebhookSQLConstants.Column.TENANT_ID))
+                .createdAt(resultSet.getTimestamp(WebhookSQLConstants.Column.CREATED_AT))
+                .updatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.UPDATED_AT))
+                .build();
     }
 
     private int addWebhookToDB(Webhook webhook, int tenantId) throws TransactionException {
@@ -198,7 +220,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                                     webhook.getEventSchemaUri());
                             statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_VERSION,
                                     WEBHOOK_SCHEMA_VERSION);
-                            statement.setString(WebhookSQLConstants.Column.STATUS, webhook.getStatusString());
+                            statement.setString(WebhookSQLConstants.Column.STATUS, String.valueOf(webhook.getStatus()));
                             statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
                         }, webhook, true));
     }
@@ -216,7 +238,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME, webhook.getEventSchemaName());
                         statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI, webhook.getEventSchemaUri());
                         statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_VERSION, WEBHOOK_SCHEMA_VERSION);
-                        statement.setString(WebhookSQLConstants.Column.STATUS, webhook.getStatusString());
+                        statement.setString(WebhookSQLConstants.Column.STATUS, String.valueOf(webhook.getStatus()));
                         statement.setString(WebhookSQLConstants.Column.UUID, webhook.getUuid());
                         statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
                     });
@@ -271,7 +293,9 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         return jdbcTemplate.withTransaction(template ->
                 template.executeQuery(WebhookSQLConstants.Query.LIST_WEBHOOK_EVENTS,
                         (resultSet, rowNumber) -> resultSet.getString(WebhookSQLConstants.Column.EVENT_NAME),
-                        statement -> statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId))
+                        statement -> {
+                            statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
+                        })
         );
     }
 

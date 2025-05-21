@@ -79,14 +79,26 @@ public class WebhookManagementDAOImplTest {
     @Test(dependsOnMethods = {"testAddWebhook"})
     public void testWebhookWithMultipleEvents() throws WebhookMgtException {
 
-        // Create a webhook with multiple events
-        testWebhook = createTestWebhook();
-        testWebhook.setEndpoint(WEBHOOK_ENDPOINT2);
+        // Create a list of events
         List<String> events = new ArrayList<>();
         events.add("event1");
         events.add("event2");
         events.add("event3");
-        testWebhook.setEventsSubscribed(events);
+
+        // Create a webhook with multiple events using the builder
+        testWebhook = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint(WEBHOOK_ENDPOINT2)
+                .description(WEBHOOK_DESCRIPTION)
+                .secret(WEBHOOK_SECRET)
+                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
+                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .eventsSubscribed(events)
+                .build();
+
         webhookManagementDAOImpl.createWebhook(testWebhook, TENANT_ID);
 
         // Retrieve the webhook and verify the events
@@ -101,7 +113,20 @@ public class WebhookManagementDAOImplTest {
     @Test(dependsOnMethods = {"testAddWebhook"})
     public void testUpdateWebhook() throws WebhookMgtException {
 
-        testWebhook.setDescription("Updated description");
+        testWebhook = new Webhook.Builder()
+                .uuid(testWebhook.getUuid())
+                .endpoint(testWebhook.getEndpoint())
+                .description("Updated description")
+                .secret(testWebhook.getSecret())
+                .tenantId(testWebhook.getTenantId())
+                .eventSchemaName(testWebhook.getEventSchemaName())
+                .eventSchemaUri(testWebhook.getEventSchemaUri())
+                .status(testWebhook.getStatus())
+                .createdAt(testWebhook.getCreatedAt())
+                .updatedAt(testWebhook.getUpdatedAt())
+                .eventsSubscribed(testWebhook.getEventsSubscribed())
+                .build();
+
         webhookManagementDAOImpl.updateWebhook(testWebhook, TENANT_ID);
 
         Webhook updatedWebhook = webhookManagementDAOImpl.getWebhook(createdWebhook.getUuid(), TENANT_ID);
@@ -141,9 +166,18 @@ public class WebhookManagementDAOImplTest {
     @Test(dependsOnMethods = {"testWebhookWithMultipleEvents"})
     public void testGetWebhooks() throws WebhookMgtException {
         // Create another webhook to ensure we have multiple webhooks
-        Webhook secondWebhook = createTestWebhook();
-        secondWebhook.setEndpoint(WEBHOOK_ENDPOINT3);
-        secondWebhook.setDescription("Another test webhook");
+        Webhook secondWebhook = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint(WEBHOOK_ENDPOINT3)
+                .description("Another test webhook")
+                .secret(WEBHOOK_SECRET)
+                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
+                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .build();
+
         webhookManagementDAOImpl.createWebhook(secondWebhook, TENANT_ID);
 
         // Get all webhooks for the tenant
@@ -185,18 +219,52 @@ public class WebhookManagementDAOImplTest {
         assertFalse(exists, "Non-existing webhook endpoint should not exist");
     }
 
+    @Test(dependsOnMethods = {"testWebhookWithMultipleEvents"})
+    public void testGetWebhookEvents() throws WebhookMgtException {
+        // Create a list of events
+        List<String> events = new ArrayList<>();
+        events.add("eventA");
+        events.add("eventB");
+        events.add("eventC");
+
+        // Create and persist a webhook with these events
+        Webhook webhookWithEvents = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint("https://example.com/webhook-events")
+                .description("Webhook with events")
+                .secret(WEBHOOK_SECRET)
+                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
+                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .eventsSubscribed(events)
+                .build();
+
+        webhookManagementDAOImpl.createWebhook(webhookWithEvents, TENANT_ID);
+
+        // Retrieve the events using the method under test
+        List<String> retrievedEvents =
+                webhookManagementDAOImpl.getWebhookEvents(webhookWithEvents.getUuid(), TENANT_ID);
+
+        // Verify the events
+        assertNotNull(retrievedEvents);
+        assertEquals(retrievedEvents.size(), events.size());
+        assertTrue(retrievedEvents.containsAll(events));
+    }
+
     private Webhook createTestWebhook() {
 
-        Webhook webhook = new Webhook();
-        webhook.setUuid(UUID.randomUUID().toString());
-        webhook.setEndpoint(WEBHOOK_ENDPOINT);
-        webhook.setDescription(WEBHOOK_DESCRIPTION);
-        webhook.setSecret(WEBHOOK_SECRET);
-        webhook.setEventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME);
-        webhook.setEventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI);
-        webhook.setStatus(WebhookStatus.ACTIVE);
-        webhook.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        webhook.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-        return webhook;
+        return new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint(WEBHOOK_ENDPOINT)
+                .description(WEBHOOK_DESCRIPTION)
+                .secret(WEBHOOK_SECRET)
+                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
+                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .build();
     }
 }

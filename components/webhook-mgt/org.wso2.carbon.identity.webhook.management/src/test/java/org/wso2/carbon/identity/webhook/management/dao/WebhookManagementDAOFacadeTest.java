@@ -113,11 +113,23 @@ public class WebhookManagementDAOFacadeTest {
     @Test(priority = 3)
     public void testUpdateWebhook() throws Exception {
 
-        testWebhook.setDescription("Updated description");
+        testWebhook = new Webhook.Builder()
+                .uuid(testWebhook.getUuid())
+                .endpoint(testWebhook.getEndpoint())
+                .description("Updated description")
+                .secret(testWebhook.getSecret())
+                .tenantId(testWebhook.getTenantId())
+                .eventSchemaName(testWebhook.getEventSchemaName())
+                .eventSchemaUri(testWebhook.getEventSchemaUri())
+                .status(testWebhook.getStatus())
+                .createdAt(testWebhook.getCreatedAt())
+                .updatedAt(testWebhook.getUpdatedAt())
+                .eventsSubscribed(testWebhook.getEventsSubscribed())
+                .build();
+
         daoFacade.updateWebhook(testWebhook, TENANT_ID);
 
-        Webhook updatedWebhook = daoFacade.getWebhook(testWebhook.getUuid(),
-                TENANT_ID);
+        Webhook updatedWebhook = daoFacade.getWebhook(testWebhook.getUuid(), TENANT_ID);
 
         Assert.assertEquals(updatedWebhook.getDescription(), "Updated description");
     }
@@ -226,7 +238,21 @@ public class WebhookManagementDAOFacadeTest {
     public void testIsWebhookEndpointExists() throws Exception {
 
         testWebhook = createTestWebhook();
-        testWebhook.setEndpoint(WEBHOOK_ENDPOINT2);
+        // Create a new Webhook with the updated endpoint
+        testWebhook = new Webhook.Builder()
+                .uuid(testWebhook.getUuid())
+                .endpoint(WEBHOOK_ENDPOINT2)
+                .description(testWebhook.getDescription())
+                .secret(testWebhook.getSecret())
+                .tenantId(testWebhook.getTenantId())
+                .eventSchemaName(testWebhook.getEventSchemaName())
+                .eventSchemaUri(testWebhook.getEventSchemaUri())
+                .status(testWebhook.getStatus())
+                .createdAt(testWebhook.getCreatedAt())
+                .updatedAt(testWebhook.getUpdatedAt())
+                .eventsSubscribed(testWebhook.getEventsSubscribed())
+                .build();
+
         daoFacade.createWebhook(testWebhook, TENANT_ID);
         boolean exists = daoFacade.isWebhookEndpointExists(WEBHOOK_ENDPOINT2, TENANT_ID);
 
@@ -253,13 +279,24 @@ public class WebhookManagementDAOFacadeTest {
     @Test(priority = 17)
     public void testActivateWebhook() throws Exception {
 
-        testWebhook = createTestWebhook();
-        testWebhook.setStatus(WebhookStatus.INACTIVE);
+        // Create a webhook with INACTIVE status using the builder
+        testWebhook = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint(WEBHOOK_ENDPOINT)
+                .description(WEBHOOK_DESCRIPTION)
+                .secret(WEBHOOK_SECRET)
+                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
+                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .status(WebhookStatus.INACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .tenantId(TENANT_ID)
+                .build();
+
         daoFacade.createWebhook(testWebhook, TENANT_ID);
         daoFacade.activateWebhook(testWebhook.getUuid(), TENANT_ID);
 
-        Webhook webhookRetrieved = daoFacade.getWebhook(testWebhook.getUuid(),
-                TENANT_ID);
+        Webhook webhookRetrieved = daoFacade.getWebhook(testWebhook.getUuid(), TENANT_ID);
 
         Assert.assertEquals(webhookRetrieved.getStatus(), WebhookStatus.ACTIVE);
     }
@@ -300,26 +337,25 @@ public class WebhookManagementDAOFacadeTest {
 
     private Webhook createTestWebhook() {
 
-        Webhook webhookInternal = new Webhook();
-        webhookInternal.setUuid(UUID.randomUUID().toString());
-        webhookInternal.setEndpoint(WEBHOOK_ENDPOINT);
-        webhookInternal.setDescription(WEBHOOK_DESCRIPTION);
-        webhookInternal.setSecret(WEBHOOK_SECRET);
-        webhookInternal.setEventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME);
-        webhookInternal.setEventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI);
-        webhookInternal.setStatus(WebhookStatus.ACTIVE);
-        webhookInternal.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        webhookInternal.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-        webhookInternal.setTenantId(TENANT_ID);
-        return webhookInternal;
+        return new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint(WEBHOOK_ENDPOINT)
+                .description(WEBHOOK_DESCRIPTION)
+                .secret(WEBHOOK_SECRET)
+                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
+                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .tenantId(TENANT_ID)
+                .build();
     }
 
-    private void verifyWebhook(Webhook actualWebhook, Webhook expectedWebhook) {
+    private void verifyWebhook(Webhook actualWebhook, Webhook expectedWebhook) throws WebhookMgtException {
 
         Assert.assertEquals(actualWebhook.getUuid(), expectedWebhook.getUuid());
         Assert.assertEquals(actualWebhook.getEndpoint(), expectedWebhook.getEndpoint());
         Assert.assertEquals(actualWebhook.getDescription(), expectedWebhook.getDescription());
-        Assert.assertEquals(actualWebhook.getSecret(), expectedWebhook.getSecret());
         Assert.assertEquals(actualWebhook.getEventSchemaName(), expectedWebhook.getEventSchemaName());
         Assert.assertEquals(actualWebhook.getEventSchemaUri(), expectedWebhook.getEventSchemaUri());
         Assert.assertEquals(actualWebhook.getStatus(), expectedWebhook.getStatus());
