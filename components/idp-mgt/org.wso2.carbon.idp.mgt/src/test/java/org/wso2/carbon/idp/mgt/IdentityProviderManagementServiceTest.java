@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -58,6 +58,9 @@ import org.wso2.carbon.identity.common.testng.WithKeyStore;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -75,7 +78,11 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -83,6 +90,7 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -116,9 +124,13 @@ public class IdentityProviderManagementServiceTest {
     private IdentityProviderManager identityProviderManager;
     private MockedStatic<CryptoUtil> cryptoUtil;
     private ActionManagementService actionManagementService;
+    private OrgResourceResolverService orgResourceResolverService;
+    private MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
 
     private static final String ASSOCIATED_ACTION_ID = "Dummy_Action_ID";
     private static final String CUSTOM_IDP_NAME = "customIdP";
+    private static final String ROOT_TENANT_DOMAIN = "carbon.super";
+    private static final String ROOT_ORG_ID = "10084a8d-113f-4211-a0d5-efe36b082211";
     private static Action action;
     private static EndpointConfig endpointConfig;
     private static EndpointConfig endpointConfigToBeUpdated;
@@ -177,6 +189,17 @@ public class IdentityProviderManagementServiceTest {
         when(actionManagementService.updateAction(anyString(), any(), any(), any())).thenReturn(action);
         when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         doNothing().when(actionManagementService).deleteAction(anyString(), any(), any());
+
+        organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(any()))
+                .thenReturn(false);
+
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        IdpMgtServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        when(organizationManager.resolveOrganizationId(ROOT_TENANT_DOMAIN)).thenReturn(ROOT_ORG_ID);
+
+        orgResourceResolverService = mock(OrgResourceResolverService.class);
+        IdpMgtServiceComponentHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
     }
 
     @AfterMethod
@@ -186,6 +209,7 @@ public class IdentityProviderManagementServiceTest {
         field.set(identityProviderManager, dao);
         // Clear Database after every test.
         removeTestIdps();
+        organizationManagementUtilMockedStatic.close();
     }
 
     private void registerSystemAuthenticators() {
@@ -210,6 +234,13 @@ public class IdentityProviderManagementServiceTest {
         config.setEnabled(true);
         config.setDefinedByType(DefinedByType.USER);
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(config);
+
+        FederatedAuthenticatorConfig samlSsoConfig = new FederatedAuthenticatorConfig();
+        samlSsoConfig.setName("samlsso");
+        samlSsoConfig.setDisplayName("DisplayName");
+        samlSsoConfig.setEnabled(true);
+        samlSsoConfig.setDefinedByType(DefinedByType.USER);
+        ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(samlSsoConfig);
     }
 
     @DataProvider
@@ -952,8 +983,7 @@ public class IdentityProviderManagementServiceTest {
 
         FederatedAuthenticatorConfig[] allFederatedAuthenticators =
                 identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 2);
-
+        Assert.assertEquals(allFederatedAuthenticators.length, 3);
 
         FederatedAuthenticatorConfig federatedAuthenticatorConfig1 = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig1.setDisplayName("DisplayName1");
@@ -966,18 +996,18 @@ public class IdentityProviderManagementServiceTest {
 
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig1);
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 3);
+        Assert.assertEquals(allFederatedAuthenticators.length, 4);
 
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig2);
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 4);
+        Assert.assertEquals(allFederatedAuthenticators.length, 5);
 
         // Clear after the test.
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(federatedAuthenticatorConfig1);
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(federatedAuthenticatorConfig2);
 
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 2);
+        Assert.assertEquals(allFederatedAuthenticators.length, 3);
     }
 
     @Test
@@ -1016,6 +1046,22 @@ public class IdentityProviderManagementServiceTest {
         addResidentIdp();
         IdentityProvider idpFromDb = identityProviderManagementService.getResidentIdP();
 
+        verify(orgResourceResolverService, times(2)).getResourcesFromOrgHierarchy(
+                eq(ROOT_ORG_ID), any(), any());
+        Assert.assertNotNull(idpFromDb);
+        Assert.assertEquals(idpFromDb.getIdentityProviderName(), "LOCAL");
+    }
+
+    @Test
+    public void testGetSubOrgResidentIdP() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                .thenReturn(true);
+        addResidentIdp();
+        IdentityProvider idpFromDb = identityProviderManagementService.getResidentIdP();
+
+        verify(orgResourceResolverService, times(3)).getResourcesFromOrgHierarchy(
+                eq(ROOT_ORG_ID), any(), any());
         Assert.assertNotNull(idpFromDb);
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), "LOCAL");
     }
@@ -1346,7 +1392,7 @@ public class IdentityProviderManagementServiceTest {
         userDefinedIdP = identityProviderManagementService.getIdPByName(userDefinedIdP.getIdentityProviderName());
     }
 
-    private void addResidentIdp() throws IdentityProviderManagementException {
+    private void addResidentIdp() throws Exception {
 
         IdentityProvider residentIdp = new IdentityProvider();
         residentIdp.setIdentityProviderName("LOCAL");
@@ -1355,7 +1401,45 @@ public class IdentityProviderManagementServiceTest {
         idpProperty1.setValue("20");
         residentIdp.setIdpProperties(new IdentityProviderProperty[]{idpProperty1});
 
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig =
+                getFederatedAuthenticatorConfig();
+        residentIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
+
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(ROOT_ORG_ID), any(), any())).thenAnswer(invocation -> {
+            // Mock the return type based on the passed lambda.
+            Function<String, ?> function = invocation.getArgument(1);
+            Object result = function.apply(ROOT_ORG_ID);
+            if (result instanceof Optional) {
+                Optional<?> optionalResult = (Optional<?>) result;
+                if (optionalResult.isPresent() && optionalResult.get() instanceof List) {
+                    return new ArrayList<>();
+                } else if (optionalResult.isPresent() && optionalResult.get() instanceof Set) {
+                    return new HashSet<>();
+                }
+            }
+            return Optional.empty();
+        });
         identityProviderManagementService.addIdP(residentIdp);
+    }
+
+    private static FederatedAuthenticatorConfig getFederatedAuthenticatorConfig() {
+
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
+        federatedAuthenticatorConfig.setDisplayName("DisplayName1");
+        federatedAuthenticatorConfig.setName("samlsso");
+        federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        Property property1 = new Property();
+        property1.setName("Property1");
+        property1.setValue("value1");
+        property1.setConfidential(true);
+        Property property2 = new Property();
+        property2.setName("Property2");
+        property2.setValue("value2");
+        property2.setConfidential(false);
+        federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
+        return federatedAuthenticatorConfig;
     }
 
     private void addSharedIdp() throws SQLException, IdentityProviderManagementException {
