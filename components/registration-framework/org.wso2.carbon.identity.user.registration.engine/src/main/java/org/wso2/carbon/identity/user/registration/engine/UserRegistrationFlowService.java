@@ -51,6 +51,18 @@ public class UserRegistrationFlowService {
         return instance;
     }
 
+    /**
+     * Handle the registration flow for the given tenant domain.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @param applicationId Application ID.
+     * @param callbackUrl   Callback URL.
+     * @param flowId        Flow ID.
+     * @param actionId      Action ID.
+     * @param inputs        User inputs.
+     * @return ExecutionState.
+     * @throws RegistrationEngineException If something goes wrong while executing the registration flow.
+     */
     public RegistrationStep handleRegistration(String tenantDomain, String applicationId,
                                                String callbackUrl, String flowId, String actionId,
                                                Map<String, String> inputs) throws RegistrationEngineException {
