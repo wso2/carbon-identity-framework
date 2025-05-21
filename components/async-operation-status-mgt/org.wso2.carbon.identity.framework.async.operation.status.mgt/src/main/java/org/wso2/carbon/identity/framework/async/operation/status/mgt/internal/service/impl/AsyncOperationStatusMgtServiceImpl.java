@@ -75,8 +75,6 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
             ASYNC_OPERATION_STATUS_MGT_DAO = new AsyncOperationOperationStatusMgtDAOImpl();
     private static final AsyncOperationDataBuffer operationDataBuffer =
             new AsyncOperationDataBuffer(ASYNC_OPERATION_STATUS_MGT_DAO, 100, 3);
-    private static final boolean IS_DATA_PERSISTENCE_ENABLED =
-            Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE));
 
     public static AsyncOperationStatusMgtServiceImpl getInstance() {
 
@@ -94,7 +92,7 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
     public String registerOperationStatus(OperationInitDTO record, boolean updateIfExists)
             throws AsyncOperationStatusMgtException {
 
-        if (IS_DATA_PERSISTENCE_ENABLED) {
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE))) {
             if (updateIfExists) {
                 return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithUpdate(record);
             }
@@ -108,7 +106,7 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
     public void updateOperationStatus(String operationId, OperationStatus status)
             throws AsyncOperationStatusMgtException {
 
-        if (IS_DATA_PERSISTENCE_ENABLED) {
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE))) {
             ASYNC_OPERATION_STATUS_MGT_DAO.updateAsyncStatus(operationId, status);
         }
     }
@@ -117,7 +115,7 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
     public void registerUnitOperationStatus(UnitOperationInitDTO unitOperationInitDTO) throws
             AsyncOperationStatusMgtException {
 
-        if (IS_DATA_PERSISTENCE_ENABLED) {
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE))) {
             operationDataBuffer.add(unitOperationInitDTO);
         }
     }
