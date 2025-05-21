@@ -98,8 +98,9 @@ public final class WebhookSQLConstants {
         public static final String ADD_WEBHOOK_EVENT =
                 "INSERT INTO IDN_WEBHOOK_EVENTS (WEBHOOK_ID, EVENT_NAME) VALUES (:WEBHOOK_ID;, :EVENT_NAME;)";
 
-        public static final String LIST_WEBHOOK_EVENTS =
-                "SELECT EVENT_NAME FROM IDN_WEBHOOK_EVENTS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
+        public static final String LIST_WEBHOOK_EVENTS_BY_UUID = "SELECT E.EVENT_NAME FROM IDN_WEBHOOK_EVENTS E " +
+                "INNER JOIN IDN_WEBHOOK W ON E.WEBHOOK_ID = W.ID " +
+                "WHERE W.UUID = :UUID; AND W.TENANT_ID = :TENANT_ID;";
 
         public static final String DELETE_WEBHOOK_EVENTS =
                 "DELETE FROM IDN_WEBHOOK_EVENTS WHERE WEBHOOK_ID = :WEBHOOK_ID;";

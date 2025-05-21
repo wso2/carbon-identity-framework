@@ -108,8 +108,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                     return null;
                 }
 
-                int internalWebhookId = getInternalWebhookIdByUuid(webhookId, tenantId);
-                List<String> events = getWebhookEvents(internalWebhookId);
+                // Fetch events using UUID and TENANT_ID directly
+                List<String> events = getWebhookEvents(webhookId, tenantId);
 
                 // Build the Webhook without the secret
                 return new Webhook.BuilderWithoutSecret()
@@ -133,11 +133,20 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     @Override
     public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
 
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            int internalWebhookId = getInternalWebhookIdByUuid(webhookId, tenantId);
-            return getWebhookEvents(internalWebhookId);
+            return jdbcTemplate.withTransaction(template ->
+                    template.executeQuery(
+                            WebhookSQLConstants.Query.LIST_WEBHOOK_EVENTS_BY_UUID,
+                            (resultSet, rowNumber) -> resultSet.getString(WebhookSQLConstants.Column.EVENT_NAME),
+                            statement -> {
+                                statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
+                                statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
+                            }
+                    )
+            );
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while retrieving the webhook from the system.", e);
+            throw new WebhookMgtServerException("Error while retrieving webhook events from the system.", e);
         }
     }
 
@@ -284,18 +293,6 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                     statement -> statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId));
             return null;
         });
-    }
-
-    private List<String> getWebhookEvents(int webhookId) throws TransactionException {
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        return jdbcTemplate.withTransaction(template ->
-                template.executeQuery(WebhookSQLConstants.Query.LIST_WEBHOOK_EVENTS,
-                        (resultSet, rowNumber) -> resultSet.getString(WebhookSQLConstants.Column.EVENT_NAME),
-                        statement -> {
-                            statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
-                        })
-        );
     }
 
     private void updateWebhookStatus(String webhookId, int tenantId, String status) throws WebhookMgtException {

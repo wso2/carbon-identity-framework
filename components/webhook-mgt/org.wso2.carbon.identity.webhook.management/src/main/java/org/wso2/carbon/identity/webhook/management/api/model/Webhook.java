@@ -42,7 +42,7 @@ public class Webhook {
     private final WebhookStatus status;
     private final Timestamp createdAt;
     private final Timestamp updatedAt;
-    private final List<String> eventsSubscribed;
+    private List<String> eventsSubscribed;
 
     private Webhook(Builder builder) {
 
@@ -129,8 +129,10 @@ public class Webhook {
         if (eventsSubscribed != null) {
             return eventsSubscribed;
         }
-        return WebhookManagementServiceImpl.getInstance()
+        // Fetch from service and cache the result
+        this.eventsSubscribed = WebhookManagementServiceImpl.getInstance()
                 .getWebhookEvents(getUuid(), IdentityTenantUtil.getTenantDomain(tenantId));
+        return eventsSubscribed;
     }
 
     @Override

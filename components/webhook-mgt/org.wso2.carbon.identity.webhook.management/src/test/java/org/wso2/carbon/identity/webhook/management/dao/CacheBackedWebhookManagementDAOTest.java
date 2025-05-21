@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.CacheBackedWebhookManagementDAO;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
@@ -202,7 +204,7 @@ public class CacheBackedWebhookManagementDAOTest {
     @Test
     public void testGetWebhookEvents_CacheHit() throws WebhookMgtException {
 
-        List<String> events = java.util.Arrays.asList("event1", "event2");
+        List<String> events = Arrays.asList("event1", "event2");
         Webhook webhook = mock(Webhook.class);
         when(webhook.getEventsSubscribed()).thenReturn(events);
         WebhookCacheEntry cacheEntry = new WebhookCacheEntry(webhook);
@@ -218,7 +220,7 @@ public class CacheBackedWebhookManagementDAOTest {
     public void testGetWebhookEvents_CacheMiss() throws WebhookMgtException {
 
         webhookCache.clear(TENANT_ID);
-        List<String> events = java.util.Arrays.asList("event1", "event2");
+        List<String> events = Arrays.asList("event1", "event2");
         Webhook webhook = mock(Webhook.class);
         when(webhook.getEventsSubscribed()).thenReturn(events);
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
@@ -243,6 +245,6 @@ public class CacheBackedWebhookManagementDAOTest {
 
         List<String> result = cacheBackedWebhookManagementDAO.getWebhookEvents(WEBHOOK_ID, TENANT_ID);
 
-        assertEquals(result, java.util.Collections.emptyList());
+        assertEquals(result, Collections.emptyList());
     }
 }

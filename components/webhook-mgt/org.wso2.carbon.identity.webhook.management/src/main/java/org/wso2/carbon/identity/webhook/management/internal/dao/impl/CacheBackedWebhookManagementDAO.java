@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtExcep
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -100,7 +101,7 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
                 return webhook.getEventsSubscribed();
             }
         }
-        return java.util.Collections.emptyList();
+        return Collections.emptyList();
     }
 
     @Override

@@ -59,7 +59,7 @@ public class WebhookManagementDAOFacadeTest {
     public static final int TENANT_ID = 2;
     public static final int INVALID_TENANT_ID = -1;
     public static final String TENANT_DOMAIN = "carbon.super";
-    private static final String WEBHOOK_ENDPOINT = "https://example.com/webhook";
+    private static final String WEBHOOK_ENDPOINT1 = "https://example.com/webhook1";
     private static final String WEBHOOK_ENDPOINT2 = "https://example.com/webhook2";
     private static final String WEBHOOK_DESCRIPTION = "Test webhook description";
     private static final String WEBHOOK_SECRET = "test-secret";
@@ -110,7 +110,7 @@ public class WebhookManagementDAOFacadeTest {
         verifyWebhook(webhookRetrieved, testWebhook);
     }
 
-    @Test(priority = 3)
+    @Test(priority = 2)
     public void testUpdateWebhook() throws Exception {
 
         testWebhook = new Webhook.Builder()
@@ -134,8 +134,17 @@ public class WebhookManagementDAOFacadeTest {
         Assert.assertEquals(updatedWebhook.getDescription(), "Updated description");
     }
 
-    @Test(priority = 4)
+    @Test(priority = 3)
     public void testGetWebhook() throws Exception {
+
+        Webhook webhookRetrieved = daoFacade.getWebhook(testWebhook.getUuid(),
+                TENANT_ID);
+
+        Assert.assertEquals(webhookRetrieved.getEventsSubscribed(), testWebhook.getEventsSubscribed());
+    }
+
+    @Test(priority = 4)
+    public void testGetWebhookEvents() throws Exception {
 
         Webhook webhookRetrieved = daoFacade.getWebhook(testWebhook.getUuid(),
                 TENANT_ID);
@@ -143,7 +152,7 @@ public class WebhookManagementDAOFacadeTest {
         verifyWebhook(webhookRetrieved, testWebhook);
     }
 
-    @Test(priority = 6)
+    @Test(priority = 5)
     public void testGetWebhookByIdWithInvalidId() throws Exception {
 
         String invalidWebhookId = "invalid-webhook-id";
@@ -153,7 +162,7 @@ public class WebhookManagementDAOFacadeTest {
         Assert.assertNull(webhookRetrieved);
     }
 
-    @Test(priority = 7)
+    @Test(priority = 6)
     public void testGetWebhookByIdWithInvalidTenant() throws Exception {
 
         String invalidTenantDomain = "invalid-tenant-domain";
@@ -166,7 +175,7 @@ public class WebhookManagementDAOFacadeTest {
         Assert.assertNull(webhookRetrieved);
     }
 
-    @Test(priority = 8)
+    @Test(priority = 7)
     public void testGetWebhooks() throws Exception {
 
         List<Webhook> webhooks = daoFacade.getWebhooks(TENANT_ID);
@@ -271,7 +280,7 @@ public class WebhookManagementDAOFacadeTest {
     @Test(priority = 16)
     public void testIsWebhookEndpointExistsWithInvalidTenant() throws Exception {
 
-        boolean exists = daoFacade.isWebhookEndpointExists(WEBHOOK_ENDPOINT, INVALID_TENANT_ID);
+        boolean exists = daoFacade.isWebhookEndpointExists(WEBHOOK_ENDPOINT1, INVALID_TENANT_ID);
 
         Assert.assertFalse(exists);
     }
@@ -282,7 +291,7 @@ public class WebhookManagementDAOFacadeTest {
         // Create a webhook with INACTIVE status using the builder
         testWebhook = new Webhook.Builder()
                 .uuid(UUID.randomUUID().toString())
-                .endpoint(WEBHOOK_ENDPOINT)
+                .endpoint(WEBHOOK_ENDPOINT1)
                 .description(WEBHOOK_DESCRIPTION)
                 .secret(WEBHOOK_SECRET)
                 .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
@@ -337,9 +346,13 @@ public class WebhookManagementDAOFacadeTest {
 
     private Webhook createTestWebhook() {
 
+
+        List<String> eventsSubscribed = new java.util.ArrayList<>();
+        eventsSubscribed.add("user.create");
+        eventsSubscribed.add("user.update");
         return new Webhook.Builder()
                 .uuid(UUID.randomUUID().toString())
-                .endpoint(WEBHOOK_ENDPOINT)
+                .endpoint(WEBHOOK_ENDPOINT1)
                 .description(WEBHOOK_DESCRIPTION)
                 .secret(WEBHOOK_SECRET)
                 .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
@@ -347,11 +360,12 @@ public class WebhookManagementDAOFacadeTest {
                 .status(WebhookStatus.ACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .eventsSubscribed(eventsSubscribed)
                 .tenantId(TENANT_ID)
                 .build();
     }
 
-    private void verifyWebhook(Webhook actualWebhook, Webhook expectedWebhook) throws WebhookMgtException {
+    private void verifyWebhook(Webhook actualWebhook, Webhook expectedWebhook) {
 
         Assert.assertEquals(actualWebhook.getUuid(), expectedWebhook.getUuid());
         Assert.assertEquals(actualWebhook.getEndpoint(), expectedWebhook.getEndpoint());
@@ -360,6 +374,5 @@ public class WebhookManagementDAOFacadeTest {
         Assert.assertEquals(actualWebhook.getEventSchemaUri(), expectedWebhook.getEventSchemaUri());
         Assert.assertEquals(actualWebhook.getStatus(), expectedWebhook.getStatus());
         Assert.assertEquals(actualWebhook.getTenantId(), expectedWebhook.getTenantId());
-        Assert.assertEquals(actualWebhook.getEventsSubscribed(), expectedWebhook.getEventsSubscribed());
     }
 }
