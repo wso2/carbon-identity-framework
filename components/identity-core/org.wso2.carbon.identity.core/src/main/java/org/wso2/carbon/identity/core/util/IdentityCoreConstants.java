@@ -123,6 +123,11 @@ public class IdentityCoreConstants {
 
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
 
+    // Migration related constants.
+    public static final String MIGRATE =  "migrate";
+    public static final String DRY_RUN = "dryRun";
+    public static final String COMPONENT = "component";
+
     public static class Filter {
 
         public static final String AND = "and";

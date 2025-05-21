@@ -145,9 +145,9 @@ public class IdentityCoreServiceComponent {
             // initialize um persistence manager and retrieve the user management datasource.
             UmPersistenceManager.getInstance();
 
-            String migrate = System.getProperty("migrate");
-            String component = System.getProperty("component");
-            String dryRun = System.getProperty("dryRun");
+            String migrate = System.getProperty(IdentityCoreConstants.MIGRATE);
+            String component = System.getProperty(IdentityCoreConstants.COMPONENT);
+            String dryRun = System.getProperty(IdentityCoreConstants.DRY_RUN);
             if (Boolean.parseBoolean(migrate) && component != null && component.contains("identity")) {
                 if (migrationClient == null) {
                     log.warn("Waiting for migration client.");
@@ -157,9 +157,9 @@ public class IdentityCoreServiceComponent {
                     migrationClient.execute();
                     ctxt.getBundleContext().registerService(ServerStartupObserver.class.getName(),
                             new MigrationClientStartupObserver(migrationClient), null);
-                    if (dryRun != null) {
-                        log.info("Dry run completed. Exiting the server.");
-                        System.exit(0);
+                    if (Boolean.parseBoolean(dryRun)) {
+                        log.info("Dry run completed. Stopping the bundle.");
+                        ctxt.getBundleContext().getBundle().stop();
                     }
                 }
             }
