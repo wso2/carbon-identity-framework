@@ -67,7 +67,7 @@ public class AuthenticatorDataRetrievalClient {
             HttpGet request = new HttpGet(getAuthenticatorEndpoint(tenant) + "/" + authenticatorId);
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));

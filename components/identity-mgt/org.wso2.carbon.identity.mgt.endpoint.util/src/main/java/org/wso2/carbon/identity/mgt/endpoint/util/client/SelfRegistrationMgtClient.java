@@ -159,7 +159,7 @@ public class SelfRegistrationMgtClient {
         setAuthorizationHeader(httpGet);
 
         try {
-            return IdentityManagementEndpointUtil.getResponseString(httpGet);
+            return IdentityManagementEndpointUtil.getHttpClientResponseString(httpGet);
         } catch (RuntimeException e) {
             throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". " +
                     "Found http status " + e.getMessage());

@@ -76,7 +76,7 @@ public class IdentityProviderDataRetrievalClient {
                             Encode.forUriComponent(idpName));
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -209,7 +209,7 @@ public class IdentityProviderDataRetrievalClient {
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(httpGet);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(httpGet);
 
             if (!StringUtils.isEmpty(responseString)) {
                 return new JSONObject(new JSONTokener(responseString));

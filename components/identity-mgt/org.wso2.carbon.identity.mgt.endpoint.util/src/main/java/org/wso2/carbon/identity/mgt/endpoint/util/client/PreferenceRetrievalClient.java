@@ -404,7 +404,7 @@ public class PreferenceRetrievalClient {
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
-            String responseStringGet = IdentityManagementEndpointUtil.getResponseString(get);
+            String responseStringGet = IdentityManagementEndpointUtil.getHttpClientResponseString(get);
 
             String governanceId = StringUtils.EMPTY;
 
@@ -426,7 +426,7 @@ public class PreferenceRetrievalClient {
             setAuthorizationHeader(getConnectorConfig);
 
             String responseStringGetConnectorConfig =
-                    IdentityManagementEndpointUtil.getResponseString(getConnectorConfig);
+                    IdentityManagementEndpointUtil.getHttpClientResponseString(getConnectorConfig);
 
             if (!StringUtils.isEmpty(responseStringGetConnectorConfig)) {
                 JSONObject jsonResponse = new JSONObject(
@@ -484,7 +484,7 @@ public class PreferenceRetrievalClient {
             post.setEntity(new StringEntity(main.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(post);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(post);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));
@@ -537,7 +537,7 @@ public class PreferenceRetrievalClient {
             post.setEntity(new StringEntity(requestBody.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(post);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(post);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));

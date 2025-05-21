@@ -31,8 +31,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.HttpStatus;
@@ -63,7 +61,10 @@ import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 import org.wso2.securevault.commons.MiscellaneousUtil;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -1031,11 +1032,11 @@ public class IdentityManagementEndpointUtil {
     }
 
     /**
-     * Execute the HttpUriRequestBase requests and return the response as a string.
+     * Executes the HTTP client request and returns the response as a string.
      *
      * @return String
      */
-     public static String getResponseString (HttpUriRequestBase request) throws IOException {
+     public static String getHttpClientResponseString(HttpUriRequestBase request) throws IOException {
 
         try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             return httpClient.execute(request, response -> {

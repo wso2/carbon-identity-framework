@@ -53,7 +53,7 @@ public class AdminAdvisoryDataRetrievalClient {
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
             HttpGet request = new HttpGet(uri);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 return new JSONObject(new JSONTokener(responseString));

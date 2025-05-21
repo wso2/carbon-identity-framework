@@ -58,7 +58,7 @@ public class CommonDataRetrievalClient {
             HttpGet get = new HttpGet(uri);
             setAuthorizationHeader(get);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(get);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(get);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));

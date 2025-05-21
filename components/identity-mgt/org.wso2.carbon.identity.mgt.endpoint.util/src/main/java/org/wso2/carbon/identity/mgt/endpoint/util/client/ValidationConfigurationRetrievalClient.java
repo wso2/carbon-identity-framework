@@ -77,7 +77,7 @@ public class ValidationConfigurationRetrievalClient {
             HttpGet request = new HttpGet(getValidationMgtEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 return new JSONArray(new JSONTokener(responseString));

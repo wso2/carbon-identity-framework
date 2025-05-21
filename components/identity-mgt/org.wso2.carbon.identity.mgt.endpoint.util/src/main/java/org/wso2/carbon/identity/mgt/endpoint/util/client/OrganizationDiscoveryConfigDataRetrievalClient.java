@@ -63,7 +63,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
             HttpGet request = new HttpGet(getOrganizationDiscoveryConfigEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject configObject = new JSONObject(new JSONTokener(responseString));

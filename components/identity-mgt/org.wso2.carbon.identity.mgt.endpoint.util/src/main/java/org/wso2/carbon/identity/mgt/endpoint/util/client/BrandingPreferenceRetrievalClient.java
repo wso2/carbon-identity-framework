@@ -102,7 +102,7 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             JSONObject jsonResponse = new JSONObject();
             if (!StringUtils.isEmpty(responseString)) {
@@ -172,7 +172,7 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             JSONObject jsonResponse = new JSONObject();
             if (!StringUtils.isEmpty(responseString)) {

@@ -69,7 +69,7 @@ public class ApplicationDataRetrievalClient {
                             Encode.forUriComponent(applicationName));
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -125,7 +125,7 @@ public class ApplicationDataRetrievalClient {
                             Encode.forUriComponent(applicationName) + APP_ENABLED_STATE_QUERY);
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -165,7 +165,7 @@ public class ApplicationDataRetrievalClient {
             HttpGet request = new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -199,7 +199,7 @@ public class ApplicationDataRetrievalClient {
                     new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -234,7 +234,7 @@ public class ApplicationDataRetrievalClient {
                             Encode.forUriComponent(applicationName));
             setAuthorizationHeader(request);
 
-            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
