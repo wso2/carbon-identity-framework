@@ -16,7 +16,7 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   -->
-<feature id="org.wso2.carbon.identity.webhook.mgt.feature" version="7.8.159.SNAPSHOT" label="WSO2 Identity Framework - Webhook Management Feature">
+<feature id="org.wso2.carbon.identity.webhook.mgt.feature" version="7.8.161.SNAPSHOT" label="WSO2 Identity Framework - Webhook Management Feature">
     <description>
         This feature contains the core bundles required for Webhook Management functionality
     </description>
@@ -24,7 +24,7 @@
     <license url="http://www.apache.org/licenses/LICENSE-2.0">
         The Apache Software License, Version 2.0
     </license>
-    <plugin id="org.wso2.carbon.identity.webhook.management" version="7.8.159.SNAPSHOT">
+    <plugin id="org.wso2.carbon.identity.webhook.management" version="7.8.161.SNAPSHOT">
         <feature id="org.wso2.carbon.core" version="4.6.0"/>
     </plugin>
 </feature>
