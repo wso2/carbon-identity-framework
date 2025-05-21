@@ -58,6 +58,7 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.api.
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.api.constants.ErrorMessage.ERROR_WHILE_RETRIEVING_ORG_NAME_FROM_ORG_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.AsyncOperationStatusMgtConstants.AND;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.AsyncOperationStatusMgtConstants.DESC_SORT_ORDER;
+import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.AsyncOperationStatusMgtConstants.ENABLE_DATA_PERSISTENCE;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtExceptionHandler.handleClientException;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtExceptionHandler.handleServerException;
 
@@ -74,6 +75,8 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
             ASYNC_OPERATION_STATUS_MGT_DAO = new AsyncOperationOperationStatusMgtDAOImpl();
     private static final AsyncOperationDataBuffer operationDataBuffer =
             new AsyncOperationDataBuffer(ASYNC_OPERATION_STATUS_MGT_DAO, 100, 3);
+    private static final boolean IS_DATA_PERSISTENCE_ENABLED =
+            Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE));
 
     public static AsyncOperationStatusMgtServiceImpl getInstance() {
 
@@ -91,24 +94,32 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
     public String registerOperationStatus(OperationInitDTO record, boolean updateIfExists)
             throws AsyncOperationStatusMgtException {
 
-        if (updateIfExists) {
-            return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithUpdate(record);
+        if (IS_DATA_PERSISTENCE_ENABLED) {
+            if (updateIfExists) {
+                return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithUpdate(record);
+            }
+            return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithoutUpdate(record);
+        } else {
+            return StringUtils.EMPTY;
         }
-        return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithoutUpdate(record);
     }
 
     @Override
     public void updateOperationStatus(String operationId, OperationStatus status)
             throws AsyncOperationStatusMgtException {
 
-        ASYNC_OPERATION_STATUS_MGT_DAO.updateAsyncStatus(operationId, status);
+        if (IS_DATA_PERSISTENCE_ENABLED) {
+            ASYNC_OPERATION_STATUS_MGT_DAO.updateAsyncStatus(operationId, status);
+        }
     }
 
     @Override
     public void registerUnitOperationStatus(UnitOperationInitDTO unitOperationInitDTO) throws
             AsyncOperationStatusMgtException {
 
-        operationDataBuffer.add(unitOperationInitDTO);
+        if (IS_DATA_PERSISTENCE_ENABLED) {
+            operationDataBuffer.add(unitOperationInitDTO);
+        }
     }
 
     @Override

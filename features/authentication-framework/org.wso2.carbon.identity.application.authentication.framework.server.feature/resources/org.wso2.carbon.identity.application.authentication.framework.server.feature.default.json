@@ -283,5 +283,5 @@
   "ai_services.login_flow_ai.status_request_path": "/api/server/v1/applications/loginflow/status",
   "ai_services.login_flow_ai.result_request_path": "/api/server/v1/applications/loginflow/result",
 
-  "async_operation_status.enabled": false
+  "async_operation_status.enable_data_persistence": true
 }
