@@ -1036,9 +1036,11 @@ public class IdentityManagementEndpointUtil {
     /**
      * Executes the HTTP client request and returns the response as a string.
      *
-     * @return String
+     * @param request The HTTP request to execute.
+     * @return The response body as a string.
+     * @throws IOException If an I/O error occurs or the response status is not SC_OK.
      */
-     public static String getHttpClientResponseString(HttpUriRequestBase request) throws IOException {
+    public static String getHttpClientResponseString(HttpUriRequestBase request) throws IOException {
 
         try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
             return httpClient.execute(request, response -> {
