@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.151-SNAPSHOT</version>
+    <version>7.8.162-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -79,6 +79,7 @@
         <module>components/servlet-mgt</module>
         <module>components/system-config-mgt</module>
         <module>components/registration-framework</module>
+        <module>components/workflow-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
@@ -122,6 +123,7 @@
         <module>features/system-config-mgt</module>
         <module>features/registration-framework</module>
         <module>features/async-operation-status-mgt</module>
+        <module>features/workflow-mgt</module>
     </modules>
 
 
@@ -349,6 +351,12 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.workflow.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -765,6 +773,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.ai.service.mgt.server.feature</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.workflow.mgt.server.feature</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1949,7 +1962,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.48</carbon.kernel.version>
+        <carbon.kernel.version>4.10.51</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -2148,7 +2161,7 @@
         <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)</httpcomponents-httpclient.imp.pkg.version.range>
         <orbit.version.commons.lang>2.6.0.wso2v1</orbit.version.commons.lang>
-        <org.wso2.securevault.version>1.1.10</org.wso2.securevault.version>
+        <org.wso2.securevault.version>1.1.12</org.wso2.securevault.version>
         <org.wso2.securevault.import.version.range>[1.1.0, 2.0.0)</org.wso2.securevault.import.version.range>
         <hector-core.wso2.version>1.1.4.wso2v1</hector-core.wso2.version>
         <hector-core.imp.pkg.version.range>[1.1.4.wso2v1,2.0.0)</hector-core.imp.pkg.version.range>

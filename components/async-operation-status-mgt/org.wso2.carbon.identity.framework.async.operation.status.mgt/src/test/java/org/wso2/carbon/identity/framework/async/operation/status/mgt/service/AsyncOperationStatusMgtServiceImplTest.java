@@ -230,7 +230,9 @@ public class AsyncOperationStatusMgtServiceImplTest {
                 { ops, "operationType EQ " + TYPE_USER_SHARE + " OR operationType EQ " + TYPE_USER_BULK_IMPORT, 2 },
                 { ops, "operationType SW B2B", 3 },
                 { ops, "subjectId NE " + SUBJECT_ID_4, 4 },
-                { ops, "subjectType CO " + SUBJECT_TYPE_USER, 4}
+                { ops, "subjectType CO " + SUBJECT_TYPE_USER, 4},
+                { ops, "operationType CO B2B", 4 },
+                { ops, "subjectId PR " + SUBJECT_ID_4, 4 }
         };
     }
 
