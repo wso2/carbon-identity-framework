@@ -25,8 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,14 +32,9 @@ import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
-import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Client which retrieves application data required by endpoints.
@@ -70,27 +63,13 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationAccessURL(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName));
             setAuthorizationHeader(request);
 
-            String responseString = httpclient.execute(request, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -140,27 +119,13 @@ public class ApplicationDataRetrievalClient {
     public boolean getApplicationEnabledStatus(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName) + APP_ENABLED_STATE_QUERY);
             setAuthorizationHeader(request);
 
-            String responseString = httpclient.execute(request, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -196,25 +161,11 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationAccessURLByAppId(String tenant, String applicationId)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             HttpGet request = new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
 
-            String responseString = httpclient.execute(request, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -243,26 +194,12 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationName(String tenant, String applicationId)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
             setAuthorizationHeader(request);
 
-            String responseString = httpclient.execute(request, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
@@ -291,27 +228,13 @@ public class ApplicationDataRetrievalClient {
     public String getApplicationID(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             HttpGet request =
                     new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
                             Encode.forUriComponent(applicationName));
             setAuthorizationHeader(request);
 
-            String responseString = httpclient.execute(request, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));

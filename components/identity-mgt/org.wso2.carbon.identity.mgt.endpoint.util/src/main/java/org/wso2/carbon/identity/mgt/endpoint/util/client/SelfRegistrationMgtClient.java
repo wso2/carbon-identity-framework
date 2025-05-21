@@ -155,34 +155,14 @@ public class SelfRegistrationMgtClient {
 
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
-        boolean isDebugEnabled = log.isDebugEnabled();
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
-            HttpGet httpGet = new HttpGet(url);
-            setAuthorizationHeader(httpGet);
+        HttpGet httpGet = new HttpGet(url);
+        setAuthorizationHeader(httpGet);
 
-            try {
-                return httpclient.execute(httpGet, response -> {
-                    if (isDebugEnabled) {
-                        log.debug("HTTP status " + response.getCode() + " when invoking GET for URL: "
-                                + url);
-                    }
-
-                    if (response.getCode() == HttpStatus.SC_OK) {
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-                        String inputLine;
-                        StringBuilder responseString = new StringBuilder();
-
-                        while ((inputLine = reader.readLine()) != null) {
-                            responseString.append(inputLine);
-                        }
-                        return responseString.toString();
-                    }
-                    throw new RuntimeException(String.valueOf(response.getCode()));
-                });
-            } catch (RuntimeException e) {
-                throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". " +
-                        "Found http status " + e.getMessage());
-            }
+        try {
+            return IdentityManagementEndpointUtil.getResponseString(httpGet);
+        } catch (RuntimeException e) {
+            throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". " +
+                    "Found http status " + e.getMessage());
         }
     }
 

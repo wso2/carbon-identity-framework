@@ -25,8 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.net.URIBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -34,15 +32,10 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
-import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Client to interact with the Tenant branding preferences API.
@@ -73,7 +66,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getPreference(String tenant, String type, String name, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
 
             String uri = getBrandingPreferenceEndpoint(tenant);
 
@@ -109,21 +102,7 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            String responseString = httpclient.execute(request, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
 
             JSONObject jsonResponse = new JSONObject();
             if (!StringUtils.isEmpty(responseString)) {
@@ -156,7 +135,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getCustomTextPreference(String tenant, String type, String name, String screen, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
 
             String uri = getCustomTextPreferenceEndpoint(tenant);
 
@@ -193,21 +172,7 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            String responseString = httpclient.execute(request, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
 
             JSONObject jsonResponse = new JSONObject();
             if (!StringUtils.isEmpty(responseString)) {

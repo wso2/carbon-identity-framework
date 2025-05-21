@@ -28,7 +28,6 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,10 +37,7 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -403,26 +399,12 @@ public class PreferenceRetrievalClient {
                                              String propertyName)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             String endpoint = getUserGovernanceEndpoint(tenant);
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
-            String responseStringGet = httpclient.execute(get, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseStringGet = IdentityManagementEndpointUtil.getResponseString(get);
 
             String governanceId = StringUtils.EMPTY;
 
@@ -443,21 +425,8 @@ public class PreferenceRetrievalClient {
             HttpGet getConnectorConfig = new HttpGet(endpoint);
             setAuthorizationHeader(getConnectorConfig);
 
-            String responseStringGetConnectorConfig = httpclient.execute(getConnectorConfig, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseStringGetConnectorConfig =
+                    IdentityManagementEndpointUtil.getResponseString(getConnectorConfig);
 
             if (!StringUtils.isEmpty(responseStringGetConnectorConfig)) {
                 JSONObject jsonResponse = new JSONObject(
@@ -502,7 +471,7 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -515,23 +484,7 @@ public class PreferenceRetrievalClient {
             post.setEntity(new StringEntity(main.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-
-            String responseString = httpclient.execute(post, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
-
+            String responseString = IdentityManagementEndpointUtil.getResponseString(post);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));
@@ -584,21 +537,7 @@ public class PreferenceRetrievalClient {
             post.setEntity(new StringEntity(requestBody.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
 
-            String responseString = httpclient.execute(post, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(post);
 
             if (!StringUtils.isEmpty(responseString)) {
                 JSONArray jsonResponse = new JSONArray(new JSONTokener(responseString));

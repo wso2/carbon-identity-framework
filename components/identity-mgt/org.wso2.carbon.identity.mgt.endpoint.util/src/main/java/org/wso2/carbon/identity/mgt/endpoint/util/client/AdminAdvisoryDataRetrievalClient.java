@@ -22,18 +22,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
-import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Client to interact with the Admin Advisory Management API.
@@ -56,26 +49,11 @@ public class AdminAdvisoryDataRetrievalClient {
      */
     public JSONObject getAdminAdvisoryBannerData(String tenant) throws AdminAdvisoryDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
-
+        try {
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
             HttpGet request = new HttpGet(uri);
 
-            String responseString = httpclient.execute(request, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-                        StringBuilder content = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            content.append(line);
-                        }
-                        return content.toString();
-                    }
-                }
-                return null;
-            });
+            String responseString = IdentityManagementEndpointUtil.getResponseString(request);
 
             if (!StringUtils.isEmpty(responseString)) {
                 return new JSONObject(new JSONTokener(responseString));
