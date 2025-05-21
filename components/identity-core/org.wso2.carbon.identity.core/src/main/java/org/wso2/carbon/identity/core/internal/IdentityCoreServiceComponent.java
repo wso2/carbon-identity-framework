@@ -159,7 +159,7 @@ public class IdentityCoreServiceComponent {
                             new MigrationClientStartupObserver(migrationClient), null);
                     if (Boolean.parseBoolean(dryRun)) {
                         log.info("Dry run completed. Stopping the bundle.");
-                        ctxt.getBundleContext().getBundle().stop();
+                        System.exit(0);
                     }
                 }
             }
