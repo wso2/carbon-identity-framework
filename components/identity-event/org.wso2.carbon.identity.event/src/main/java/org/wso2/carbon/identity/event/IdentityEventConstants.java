@@ -313,6 +313,21 @@ public class IdentityEventConstants {
         public static final String POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
                 "POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
 
+        // Events for passkey credentials
+        public static final String POST_ADD_PASSKEY = "POST_ADD_PASSKEY";
+        public static final String POST_UPDATE_PASSKEY = "POST_UPDATE_PASSKEY";
+        public static final String POST_DELETE_PASSKEY = "POST_DELETE_PASSKEY";
+
+        // Events for TOTP credentials
+        public static final String POST_ADD_TOTP = "POST_ADD_TOTP";
+        public static final String POST_UPDATE_TOTP = "POST_UPDATE_TOTP";
+        public static final String POST_DELETE_TOTP = "POST_DELETE_TOTP";
+
+        // Events for backup codes
+        public static final String POST_ADD_BACKUP_CODES = "POST_ADD_BACKUP_CODES";
+        public static final String POST_UPDATE_BACKUP_CODES = "POST_UPDATE_BACKUP_CODES";
+        public static final String POST_DELETE_BACKUP_CODES = "POST_DELETE_BACKUP_CODES";
+
     }
 
     /**
@@ -386,6 +401,7 @@ public class IdentityEventConstants {
         public static final String GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION =
                 "GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION";
         public static final String INITIATOR_TYPE = "INITIATOR_TYPE";
+        public static final String CREDENTIAL_TYPE = "CREDENTIAL_TYPE";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";
