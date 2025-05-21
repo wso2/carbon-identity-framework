@@ -592,7 +592,7 @@
   "event.default_listener.mutual_tls_authenticator.priority": "919",
   "event.default_listener.mutual_tls_authenticator.enable": true,
   "event.default_listener.dpop.priority": "13",
-  "event.default_listener.dpop.enable": false,
+  "event.default_listener.dpop.enable": true,
   "event.default_listener.dpop.property.header_validity_period": "3000",
   "event.default_listener.dpop.property.skip_dpop_validation_in_revoke": true,
   "event.default_listener.private_key_jwt_authenticator.priority": "899",
