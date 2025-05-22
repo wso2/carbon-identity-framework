@@ -92,14 +92,13 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
     public String registerOperationStatus(OperationInitDTO record, boolean updateIfExists)
             throws AsyncOperationStatusMgtException {
 
-        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE))) {
-            if (updateIfExists) {
-                return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithUpdate(record);
-            }
-            return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithoutUpdate(record);
-        } else {
-            return StringUtils.EMPTY;
+        if (!Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE))) {
+            return null;
         }
+        if (updateIfExists) {
+            return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithUpdate(record);
+        }
+        return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithoutUpdate(record);
     }
 
     @Override
