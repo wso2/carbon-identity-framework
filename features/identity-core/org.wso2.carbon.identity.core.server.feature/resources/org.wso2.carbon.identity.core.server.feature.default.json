@@ -151,6 +151,7 @@
   "oauth.grant_type.jwt.enable_iat_validation": "true",
   "oauth.grant_type.jwt.iat_validity_period": "30",
   "oauth.grant_type.jwt.enable_jwt_cache": "false",
+  "oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp": "false",
 
   "oauth.grant_type.authorization_code.enable": true,
   "oauth.grant_type.authorization_code.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler",
