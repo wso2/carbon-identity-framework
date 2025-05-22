@@ -1,0 +1,21 @@
+{
+    "channels": {
+        "RISC_Risk_Channel": {
+            "name": "RISC Risk Channel",
+            "description": "This is a test RISC risk channel",
+            "uri": "https://schemas.openid.net/secevent/risc/event-type/risk",
+            "events": [
+                {
+                    "name": "Test RISC Event 1",
+                    "description": "This is test RISC event 1",
+                    "uri": "https://schemas.openid.net/secevent/risc/event-type/test1"
+                },
+                {
+                    "name": "Test RISC Event 2",
+                    "description": "This is test RISC event 2",
+                    "uri": "https://schemas.openid.net/secevent/risc/event-type/test2"
+                }
+            ]
+        }
+    }
+}
