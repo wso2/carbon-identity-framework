@@ -1830,6 +1830,16 @@
                 <version>${apache.httpcomponents.httpclient.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+                <artifactId>httpcore5</artifactId>
+                <version>${orbit.version.httpcore5}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>${orbit.version.httpclient5}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
                 <version>${project.version}</version>
@@ -1959,11 +1969,13 @@
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <apache.httpcomponents.httpclient.version>4.3.5</apache.httpcomponents.httpclient.version>
+        <orbit.version.httpcore5>5.3.1.wso2v1</orbit.version.httpcore5>
+        <orbit.version.httpclient5>5.4.1.wso2v1</orbit.version.httpclient5>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.51</carbon.kernel.version>
+        <carbon.kernel.version>4.10.53</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
