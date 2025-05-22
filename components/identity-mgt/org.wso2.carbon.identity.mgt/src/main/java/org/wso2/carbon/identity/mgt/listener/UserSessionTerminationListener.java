@@ -133,7 +133,6 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
             if (log.isDebugEnabled()) {
                 log.debug("Terminating all the active sessions of the user: " + username);
             }
-            // TODO: Change and set Flow to be able to stack
             terminateSessionsOfUser(username, userStoreManager);
         }
         return true;
