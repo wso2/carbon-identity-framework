@@ -39,7 +39,7 @@ jobs:
       - name: Build with Maven
         run: mvn clean install -U -B
       - name: Generate coverage report
-        run: mvn test jacoco:report
+        run: mvn jacoco:report
       - name: Delete SNAPSHOT artifacts
         run: find ~/.m2/repository/ -name "*-SNAPSHOT" -type d -print -prune -exec rm -r {} +
       - name: Upload coverage reports to Codecov
