@@ -16,22 +16,21 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>webhook-management-feature</artifactId>
-        <version>7.8.161-SNAPSHOT</version>
+        <version>7.8.163-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>feature</artifactId>
+    <artifactId>org.wso2.carbon.identity.webhook.management.server.feature</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - Webhook Management Feature</name>
+    <name>Webhook Management Server Feature</name>
     <url>http://wso2.org</url>
-    <description>This feature contains the core bundles required for Webhook Management functionality</description>
+    <description>This feature contains the core bundles required for Webhook Management Framework</description>
 
     <dependencies>
         <dependency>
@@ -48,27 +47,46 @@
                 <version>${carbon.p2.plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>p2-feature-generation</id>
+                        <id>4-p2-feature-generation</id>
                         <phase>package</phase>
                         <goals>
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
                             <id>org.wso2.carbon.identity.webhook.management.server</id>
-                            <propertiesFile>../../../etc/feature.properties</propertiesFile>
+                            <propertiesFile>../../etc/feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.webhook.management</bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.webhook.management
+                                </bundleDef>
                             </bundles>
-                            <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core:compatible:${identity.framework.version}</importFeatureDef>
-                            </importFeatures>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <id>clean_target</id>
+                        <phase>install</phase>
+                        <configuration>
+                            <tasks>
+                                <delete dir="src/main/resources" />
+                                <delete dir="src/main" />
+                                <delete dir="src" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
