@@ -91,7 +91,7 @@ public class WorkflowDAO {
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        String query = SQLConstants.GET_WORKFLOW;
+        String query = SQLConstants.GET_WORKFLOW_BY_ID;
 
         Workflow workflow = null;
 
