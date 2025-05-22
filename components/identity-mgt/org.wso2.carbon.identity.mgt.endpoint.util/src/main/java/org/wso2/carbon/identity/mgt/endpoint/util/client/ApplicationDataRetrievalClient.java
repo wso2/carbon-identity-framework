@@ -259,6 +259,7 @@ public class ApplicationDataRetrievalClient {
      * @throws JSONException if parsing the JSON response fails
      */
     private JSONObject getSingleApplicationFromResponse(String responseString) throws JSONException {
+
         JSONObject jsonResponse = new JSONObject(new JSONTokener(responseString));
         JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
         if (applications.length() != 1) {

@@ -18,6 +18,13 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
@@ -30,15 +37,21 @@ import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.testutil.Whitebox;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * This class tests the methods of IdentityManagementEndpointUtil class.
@@ -47,11 +60,24 @@ import static org.testng.Assert.assertEquals;
 public class IdentityManagementEndpointUtilTest {
 
     @Mock
+    HttpClientBuilder httpClientBuilder;
+
+    @Mock
+    CloseableHttpClient httpClient;
+
+    @Mock
+    HttpEntity httpEntity;
+
+    @Mock
+    ClassicHttpResponse httpResponse;
+
+    @Mock
     ServiceURL serviceURL;
 
     @Mock
     private ServiceURLBuilder serviceURLBuilder;
 
+    private String mockJsonResponse = "{}";
     private static final String SAMPLE_URL = "https://wso2.org:9443";
     private static final String SAMPLE_TENANTED_URL = "https://wso2.org:9443/t/test.com";
 
@@ -350,4 +376,30 @@ public class IdentityManagementEndpointUtilTest {
         lenient().when(this.serviceURLBuilder.addParameter(any(), any())).thenReturn(this.serviceURLBuilder);
         lenient().when(this.serviceURLBuilder.build()).thenReturn(serviceURL);
     }
+
+    @Test
+    public void testGetHttpClientResponseString () throws IOException {
+
+        try (MockedStatic<HTTPClientUtils> httpClientUtilsMockedStatic = mockStatic(HTTPClientUtils.class)) {
+             httpClientUtilsMockedStatic.when(HTTPClientUtils::createClientWithCustomHostnameVerifier)
+                     .thenReturn(httpClientBuilder);
+            when(httpClientBuilder.build()).thenReturn(httpClient);
+            when(httpClient.execute(any(ClassicHttpRequest.class), any(HttpClientResponseHandler.class)))
+                    .thenAnswer(invocation -> {
+                        HttpClientResponseHandler<?> handler = invocation.getArgument(1);
+                        return handler.handleResponse(httpResponse);
+                    });
+
+            when(httpResponse.getCode()).thenReturn(200);
+            when(httpResponse.getEntity()).thenReturn(httpEntity);
+            InputStream inputStream = new ByteArrayInputStream(mockJsonResponse.getBytes());
+            when(httpEntity.getContent()).thenReturn(inputStream);
+
+            HttpGet httpGet = new HttpGet("https://localhost:9443");
+
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(httpGet);
+            assertNotNull(responseString);
+        }
+    }
+
 }
