@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.161-SNAPSHOT</version>
+    <version>7.8.163-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -73,6 +73,7 @@
         <module>components/client-attestation-mgt</module>
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
+        <module>components/webhook-mgt</module>
         <module>components/action-mgt</module>
         <module>components/ai-services-mgt</module>
         <module>components/certificate-mgt</module>
@@ -116,6 +117,7 @@
         <module>features/client-attestation-mgt</module>
         <module>features/trusted-app-mgt</module>
         <module>features/rule-mgt</module>
+        <module>features/webhook-mgt</module>
         <module>features/action-mgt</module>
         <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
@@ -339,6 +341,11 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.webhook.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -387,12 +394,6 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.consent.server.configs.mgt</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
