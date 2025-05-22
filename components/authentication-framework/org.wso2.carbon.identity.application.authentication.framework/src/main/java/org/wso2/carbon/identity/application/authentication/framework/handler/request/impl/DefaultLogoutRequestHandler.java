@@ -397,6 +397,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             }
             // Setting the authenticated user's object to the request to get the relevant details to log out the user.
             context.setProperty(FrameworkConstants.AUTHENTICATED_USER, authenticatedUser);
+
             Flow flow = new Flow.Builder()
                     .name(Flow.Name.LOGOUT)
                     .initiatingPersona(Flow.InitiatingPersona.USER)
@@ -412,9 +413,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 userSession.ifPresent(userSessions::add);
                 FrameworkUtils.publishUserSessionTerminateEvent(authenticatedUser, userSessions, false);
             } catch (UserIdNotFoundException | SessionManagementException | IdentityEventException e) {
-                throw new FrameworkException("Error while getting user session.", e);
+                log.error("Error while publishing user session terminate event.", e);
             }
-            // Publish the session terminate event.
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
                     sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
                             .SESSION_TERMINATE);
