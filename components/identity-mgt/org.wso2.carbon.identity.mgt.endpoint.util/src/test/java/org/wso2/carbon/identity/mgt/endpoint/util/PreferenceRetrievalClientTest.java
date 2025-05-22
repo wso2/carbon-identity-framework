@@ -358,7 +358,7 @@ public class PreferenceRetrievalClientTest {
             prepareServiceURLBuilder(serviceURLBuilder);
             prepareServiceURL();
 
-            String responseString = "";
+            String responseString = "someValue";
             identityManagementEndpointUtilMockedStatic.when(() ->
                             IdentityManagementEndpointUtil.getHttpClientResponseString(any()))
                     .thenReturn(responseString);
