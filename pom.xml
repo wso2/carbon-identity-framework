@@ -1958,7 +1958,7 @@
         <apache.cxf-rt-rs-service-description.version>3.3.7</apache.cxf-rt-rs-service-description.version>
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
-        <apache.httpcomponents.httpclient.version>4.3.5</apache.httpcomponents.httpclient.version>
+        <apache.httpcomponents.httpclient.version>4.5.13</apache.httpcomponents.httpclient.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
