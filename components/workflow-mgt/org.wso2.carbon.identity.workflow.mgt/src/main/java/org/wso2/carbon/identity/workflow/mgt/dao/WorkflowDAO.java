@@ -132,19 +132,19 @@ public class WorkflowDAO {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
-        ResultSet rs;
+        ResultSet resultSet = null;
         String query = SQLConstants.GET_WORKFLOW_BY_NAME;
 
         Workflow workflow = null;
         try {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, workflowName);
-            rs = prepStmt.executeQuery();
-            if (rs.next()) {
-                String workflowId = rs.getString(SQLConstants.ID_COLUMN);
-                String description = rs.getString(SQLConstants.DESCRIPTION_COLUMN);
-                String templateId = rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
-                String implId = rs.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
+            resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                String workflowId = resultSet.getString(SQLConstants.ID_COLUMN);
+                String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
+                String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
+                String implId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
                 workflow = new Workflow();
                 workflow.setWorkflowId(workflowId);
                 workflow.setWorkflowName(workflowName);
@@ -155,7 +155,7 @@ public class WorkflowDAO {
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
         return workflow;
     }
