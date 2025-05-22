@@ -118,13 +118,13 @@ public class InputValidationService {
     }
 
     /**
-     * Handles the step inputs for the registration process.
+     * Prepare the step inputs for the registration process.
      *
      * @param dataDTO Data transfer object containing components.
      * @param context Registration context.
      * @throws RegistrationEngineServerException If an error occurs while processing the inputs.
      */
-    public void handleStepInputs(DataDTO dataDTO, RegistrationContext context)
+    public void prepareStepInputs(DataDTO dataDTO, RegistrationContext context)
             throws RegistrationEngineServerException {
 
         if (dataDTO == null) {

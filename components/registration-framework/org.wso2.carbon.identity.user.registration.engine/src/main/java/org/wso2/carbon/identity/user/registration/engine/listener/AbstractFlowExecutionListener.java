@@ -46,28 +46,15 @@ public class AbstractFlowExecutionListener implements FlowExecutionListener {
     }
 
     @Override
-    public boolean doPreInitiate(RegistrationContext registrationContext) throws RegistrationEngineException {
+    public boolean doPreExecute(RegistrationContext registrationContext) throws RegistrationEngineException {
 
         return true;
     }
 
     @Override
-    public boolean doPostInitiate(RegistrationStep step, RegistrationContext registrationContext)
-            throws RegistrationEngineException {
+    public boolean doPostExecute(RegistrationStep step, RegistrationContext registrationContext) throws RegistrationEngineException {
 
         return true;
     }
 
-    @Override
-    public boolean doPreContinue(RegistrationContext registrationContext) throws RegistrationEngineException {
-
-        return true;
-    }
-
-    @Override
-    public boolean doPostContinue(RegistrationStep step, RegistrationContext registrationContext)
-            throws RegistrationEngineException {
-
-        return true;
-    }
 }
