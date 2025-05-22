@@ -281,5 +281,7 @@
   "ai_services.login_flow_ai.endpoint": "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/iam-ai-us/loginflow-ai/v1.0",
   "ai_services.login_flow_ai.generate_request_path": "/api/server/v1/applications/loginflow/generate",
   "ai_services.login_flow_ai.status_request_path": "/api/server/v1/applications/loginflow/status",
-  "ai_services.login_flow_ai.result_request_path": "/api/server/v1/applications/loginflow/result"
+  "ai_services.login_flow_ai.result_request_path": "/api/server/v1/applications/loginflow/result",
+
+  "async_operation_status.enable_data_persistence": true
 }
