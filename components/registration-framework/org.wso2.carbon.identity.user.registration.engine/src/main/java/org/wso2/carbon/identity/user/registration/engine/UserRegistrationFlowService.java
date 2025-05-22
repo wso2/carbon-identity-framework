@@ -77,7 +77,7 @@ public class UserRegistrationFlowService {
                 context.setCurrentActionId(actionId);
             } else {
                 context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
-                context.getUserInputData().putAll(inputs);
+                Optional.ofNullable(inputs).ifPresent(inputs1 -> context.getUserInputData().putAll(inputs1));
                 context.setCurrentActionId(actionId);
             }
             for (FlowExecutionListener listener :

@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -111,11 +112,6 @@ public class RegistrationFlowServiceTest {
     @Test
     public void testInitiateDefaultRegistrationFlowExecution() throws Exception {
 
-        RegistrationGraphConfig registrationGraphConfig = buildRegistrationGraphWithDecision();
-        testRegContext.setRegGraph(registrationGraphConfig);
-        RegistrationFlowEngineDataHolder.getInstance().addRegistrationExecutionListeners(new InputValidationListener());
-        testRegContext.getUserInputData().put("input1", "value1");
-
         RegistrationStep expectedStep = new RegistrationStep.Builder()
                 .flowId(testRegContext.getContextIdentifier())
                 .flowStatus("INCOMPLETE")
@@ -137,6 +133,41 @@ public class RegistrationFlowServiceTest {
                     UserRegistrationFlowService.getInstance()
                             .handleRegistration(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL, null,
                                     null, null);
+            assertEquals(returnedStep, expectedStep);
+        }
+    }
+
+    @Test
+    public void testInitiateDefaultRegistrationFlowExecutionWithInput() throws Exception {
+
+        RegistrationGraphConfig registrationGraphConfig = buildRegistrationGraphWithDecision();
+        testRegContext.setRegGraph(registrationGraphConfig);
+        RegistrationFlowEngineDataHolder.getInstance().addRegistrationExecutionListeners(new InputValidationListener());
+        Map<String, String> userInputMap = new HashMap<>();
+        userInputMap.put("input1", "value1");
+        testRegContext.getUserInputData().putAll(userInputMap);
+
+        RegistrationStep expectedStep = new RegistrationStep.Builder()
+                .flowId(testRegContext.getContextIdentifier())
+                .flowStatus("INCOMPLETE")
+                .stepType("VIEW")
+                .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
+                .build();
+
+        try (MockedStatic<RegistrationFlowEngineUtils> utilsMockedStatic = mockStatic(
+                RegistrationFlowEngineUtils.class);
+             MockedStatic<RegistrationFlowEngine> engineMockedStatic = mockStatic(RegistrationFlowEngine.class)) {
+            utilsMockedStatic.when(
+                            () -> RegistrationFlowEngineUtils.initiateContext(anyString(), anyString(), anyString()))
+                    .thenReturn(testRegContext);
+
+            engineMockedStatic.when(RegistrationFlowEngine::getInstance).thenReturn(engineMock);
+
+            when(engineMock.execute(any(RegistrationContext.class))).thenReturn(expectedStep);
+            RegistrationStep returnedStep =
+                    UserRegistrationFlowService.getInstance()
+                            .handleRegistration(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL, null,
+                                    null, userInputMap);
             assertEquals(returnedStep, expectedStep);
         }
     }
