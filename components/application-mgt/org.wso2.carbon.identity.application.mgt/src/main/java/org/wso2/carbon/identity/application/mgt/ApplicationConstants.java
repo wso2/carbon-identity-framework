@@ -110,6 +110,9 @@ public class ApplicationConstants {
     public static final String FILTER_CO = "co";
     public static final int MAX_NUMBER_OF_GROUPS_FROM_META_ENDPOINT = 100;
 
+    // Fallback super tenant domain.
+    public static final String SUPER_TENANT = "carbon.super";
+
     // System application config elements
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
     public static final String DEFAULT_APPLICATIONS_CONFIG_ELEMENT = "DefaultApplications";

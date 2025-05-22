@@ -312,5 +312,10 @@
     "POST_UPDATE_ORGANIZATION",
     "POST_PATCH_ORGANIZATION",
     "POST_DELETE_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.dpopEventHandler.module_index": "49",
+  "identity_mgt.events.schemes.dpopEventHandler.subscriptions": [
+    "PRE_HANDLE_PAR_REQUEST",
+    "POST_ISSUE_CODE"
   ]
 }

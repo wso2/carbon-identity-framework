@@ -44,6 +44,19 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.GROUP_UPDATE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.LOGOUT,
+                EnumSet.of(InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.DELETE_USER,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.UPDATE_CREDENTIAL_PASSWORD,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.ACCOUNT_DISABLE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ACCOUNT_LOCK,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.SYSTEM, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.SESSION_REVOKE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
+                        InitiatingPersona.SYSTEM));
     }
 
     /**
@@ -57,7 +70,13 @@ public class Flow {
         PROFILE_UPDATE,
         BULK_RESOURCE_UPDATE,
         USER_GROUP_UPDATE,
-        GROUP_UPDATE
+        GROUP_UPDATE,
+        LOGOUT,
+        UPDATE_CREDENTIAL_PASSWORD,
+        DELETE_USER,
+        ACCOUNT_LOCK,
+        ACCOUNT_DISABLE,
+        SESSION_REVOKE
     }
 
     /**
@@ -72,7 +91,8 @@ public class Flow {
 
         ADMIN,
         APPLICATION,
-        USER
+        USER,
+        SYSTEM
     }
 
     private final Name name;

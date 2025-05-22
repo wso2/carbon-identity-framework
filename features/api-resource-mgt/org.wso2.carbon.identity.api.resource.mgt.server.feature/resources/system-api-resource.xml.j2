@@ -1573,4 +1573,20 @@
                    description="Update registration flow in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Asynchronous Operation Status API" identifier="/api/server/v1/async-operations"
+                 requiresAuthorization="true"
+                 description="API representation of the Asynchronous Operation Status API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Async Operation status" name="internal_async_operation_status_view"
+                   description="View Asynchronous Operation Status"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Asynchronous Operation Status API" identifier="/o/api/server/v1/async-operations"
+                 requiresAuthorization="true"
+                 description="API representation of the Asynchronous Operation Status API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Async Operation status" name="internal_org_async_operation_status_view"
+                   description="View Asynchronous Operation Status in the organization"/>
+        </Scopes>
+    </APIResource>
 </APIResources>

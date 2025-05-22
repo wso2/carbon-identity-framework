@@ -194,6 +194,7 @@ public class SessionNonceCookieUtilTest {
         mockNonceCookieUtils(identityUtil);
 
         identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(false);
+        identityTenantUtil.when(IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(false);
         frameworkUtils.when(() -> FrameworkUtils.getAuthenticationContextFromCache(any())).thenReturn(context);
         frameworkUtils.when(() -> FrameworkUtils.getCookie(any(), any())).thenReturn(null);
 
