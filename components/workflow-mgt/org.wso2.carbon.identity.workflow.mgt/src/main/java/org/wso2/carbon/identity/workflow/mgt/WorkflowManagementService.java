@@ -106,6 +106,19 @@ public interface WorkflowManagementService {
     Workflow getWorkflow(String workflowId) throws WorkflowException;
 
     /**
+     * Check if a workflow exists by given name.
+     *
+     * @param workflowName workflow name
+     * @return true if workflow exists, false otherwise
+     * @throws WorkflowException
+     */
+    default boolean isWorkflowExistByName(String workflowName) throws WorkflowException {
+
+        return false;
+    }
+
+
+    /**
      * List parameters of a workflow
      *
      * @param workflowId workflow id

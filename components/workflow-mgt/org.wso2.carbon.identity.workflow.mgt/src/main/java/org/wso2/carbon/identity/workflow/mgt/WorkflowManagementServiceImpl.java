@@ -101,6 +101,12 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
+    public boolean isWorkflowExistByName(String workflowName) throws WorkflowException {
+
+        return workflowDAO.getWorkflowByName(workflowName) != null;
+    }
+
+    @Override
     public List<Parameter> getWorkflowParameters(String workflowId) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =

@@ -122,6 +122,45 @@ public class WorkflowDAO {
     }
 
     /**
+     * Get a Workflow object for given workflow name
+     *
+     * @param workflowName Workflow name.
+     * @return Workflow object
+     * @throws InternalWorkflowException Throws when an error occurs while retrieving the workflow.
+     */
+    public Workflow getWorkflowByName(String workflowName) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet rs;
+        String query = SQLConstants.GET_WORKFLOW_BY_NAME;
+
+        Workflow workflow = null;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, workflowName);
+            rs = prepStmt.executeQuery();
+            if (rs.next()) {
+                String workflowId = rs.getString(SQLConstants.ID_COLUMN);
+                String description = rs.getString(SQLConstants.DESCRIPTION_COLUMN);
+                String templateId = rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
+                String implId = rs.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
+                workflow = new Workflow();
+                workflow.setWorkflowId(workflowId);
+                workflow.setWorkflowName(workflowName);
+                workflow.setWorkflowDescription(description);
+                workflow.setTemplateId(templateId);
+                workflow.setWorkflowImplId(implId);
+            }
+        } catch (SQLException e) {
+            throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+        return workflow;
+    }
+
+    /**
      * Remove Workflow from the DB
      *
      * @param workflowId workflow Id
