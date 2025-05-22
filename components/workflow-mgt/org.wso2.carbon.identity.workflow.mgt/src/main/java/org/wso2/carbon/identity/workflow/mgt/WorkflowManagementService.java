@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.workflow.mgt;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
@@ -114,7 +115,7 @@ public interface WorkflowManagementService {
      */
     default boolean isWorkflowExistByName(String workflowName) throws WorkflowException {
 
-        return false;
+        throw new NotImplementedException("This functionality is not implemented.");
     }
 
 
