@@ -39,6 +39,7 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.inte
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.FilterPlaceholders.UNIT_OPERATION_ID_FILTER;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CORRELATION_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CREATED_AT;
+import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CURSOR_KEY;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.INITIATED_ORG_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.INITIATED_USER_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.LAST_MODIFIED;
@@ -98,7 +99,7 @@ public class AsyncOperationStatusMgtConstants {
         attributeColumnMap.put(MODIFIED_TIME_FILTER, LAST_MODIFIED);
         attributeColumnMap.put(POLICY_FILTER, POLICY);
 
-        attributeColumnMap.put(PAGINATION_AFTER, CREATED_AT);
-        attributeColumnMap.put(PAGINATION_BEFORE, CREATED_AT);
+        attributeColumnMap.put(PAGINATION_AFTER, CURSOR_KEY);
+        attributeColumnMap.put(PAGINATION_BEFORE, CURSOR_KEY);
     }
 }

@@ -1,0 +1,5 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources); \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.webhook.management.server_${feature.version}/webhook-mgt/,target:${installFolder}/../../../repository/resources/identity/webhook-mgt,overwrite:true); \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.webhook.management.server_${feature.version}/conf/webhook-config.xml,target:${installFolder}/../../../repository/conf/identity/webhook-config.xml,overwrite:false);
