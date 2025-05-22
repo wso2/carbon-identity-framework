@@ -358,10 +358,11 @@ public class PreferenceRetrievalClientTest {
             prepareServiceURLBuilder(serviceURLBuilder);
             prepareServiceURL();
 
-            String responseString = "someValue";
+            String firstResponse = "[]";
+            String secondResponse = "{\"connectors\":[]}";
             identityManagementEndpointUtilMockedStatic.when(() ->
-                            IdentityManagementEndpointUtil.getHttpClientResponseString(any()))
-                    .thenReturn(responseString);
+                    IdentityManagementEndpointUtil.getHttpClientResponseString(any()))
+                .thenReturn(firstResponse, secondResponse);
 
             preferenceRetrievalClient.getPropertyValue(tenantDomain, USER_ONBOARDING_GOVERNANCE, LITE_USER_CONNECTOR,
                     LITE_REG_CALLBACK_REGEX_PROP);
