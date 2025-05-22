@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagemen
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -248,6 +249,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_VERSION, WEBHOOK_SCHEMA_VERSION);
                         statement.setString(WebhookSQLConstants.Column.STATUS, String.valueOf(webhook.getStatus()));
                         statement.setString(WebhookSQLConstants.Column.UUID, webhook.getUuid());
+                        statement.setString(WebhookSQLConstants.Column.CREATED_AT, String.valueOf(Instant.now()));
                         statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
                     });
             return null;
