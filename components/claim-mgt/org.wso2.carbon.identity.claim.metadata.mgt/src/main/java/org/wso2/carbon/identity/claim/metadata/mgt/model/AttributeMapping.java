@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.claim.metadata.mgt.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Represents the metadata of a attribute mapping.
@@ -36,5 +37,16 @@ public class AttributeMapping implements Serializable {
 
     public String getAttributeName() {
         return attributeName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (!(o instanceof AttributeMapping)) {
+            return false;
+        }
+        AttributeMapping that = (AttributeMapping) o;
+        return Objects.equals(userStoreDomain, that.userStoreDomain)
+                && Objects.equals(attributeName, that.attributeName);
     }
 }
