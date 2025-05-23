@@ -307,6 +307,7 @@ public abstract class FrameworkConstants {
         public static final String ATTR_AUTHENTICATOR_NAME = "name";
         public static final String ATTR_AUTHENTICATOR_IDPS = "idpList";
         public static final String ATTR_AUTHENTICATOR_ENABLED = "enabled";
+        public static final String ATTR_AUTHENTICATOR_AMR = "amrValue";
         public static final String ATTR_PARAMETER_NAME = "name";
         public static final String ATTR_STEP_LOGIN_PAGE = "loginPage";
         public static final String ATTR_STEP_ORDER = "order";

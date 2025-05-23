@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.dao;
 
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 
 import java.util.List;
@@ -54,6 +55,18 @@ public interface AuthenticatorManagementDAO {
             throws AuthenticatorMgtException;
 
     /**
+     * @param authenticatorName Name of the authenticator to be updated.
+     * @param amrValue          Amr Value of the authenticator to be updated.
+     * @param tenantId          Tenant Id.
+     * @throws AuthenticatorMgtException If an error occurs while updating the authenticator configuration.
+     */
+    default void updateSystemLocalAuthenticatorAmrValue(
+            String authenticatorName,
+            String amrValue, int tenantId) throws AuthenticatorMgtException {
+
+    }
+
+    /**
      * Retrieve a local user defined application authenticator configuration by name.
      *
      * @param authenticatorConfigName   Name of the local application authenticator configuration.
@@ -63,6 +76,18 @@ public interface AuthenticatorManagementDAO {
      */
     UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException;
+
+    /**
+     * @param authenticatorConfigName Name of the local application authenticator configuration.
+     * @param tenantId                Tenant Id.
+     * @return Retrieved LocalAuthenticatorConfig.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration.
+     */
+    default LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
+            throws AuthenticatorMgtException {
+
+        return null;
+    }
 
     /**
      * Retrieve all user defined local application authenticator configurations.
@@ -93,4 +118,30 @@ public interface AuthenticatorManagementDAO {
      * @throws AuthenticatorMgtException If an error occurs while checking the existence of the authenticator.
      */
     boolean isExistingAuthenticatorName(String authenticatorName, int tenantId) throws AuthenticatorMgtException;
+
+    /**
+     * Add a new system local authenticator configuration.
+     *
+     * @param authenticatorConfig Local application authenticator configuration.
+     * @param tenantId            Tenant Id.
+     * @return Created LocalAuthenticatorConfig.
+     */
+    default LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig
+            , int tenantId) throws AuthenticatorMgtException {
+
+        return null;
+    }
+
+    /**
+     * Update a system local authenticator configuration.
+     *
+     * @param tenantId Tenant Id.
+     * @return All System Defined LocalAuthenticatorConfigs.
+     * @throws AuthenticatorMgtException If an error occurs while updating the authenticator configuration.
+     */
+    default List<LocalAuthenticatorConfig> getAllSystemLocalAuthenticators(int tenantId)
+            throws AuthenticatorMgtException {
+
+        return null;
+    }
 }

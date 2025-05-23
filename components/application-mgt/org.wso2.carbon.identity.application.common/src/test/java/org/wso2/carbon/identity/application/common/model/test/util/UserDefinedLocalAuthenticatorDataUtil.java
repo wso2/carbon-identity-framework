@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.common.model.test.util;
 
 import com.google.gson.Gson;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
@@ -54,32 +53,6 @@ public class UserDefinedLocalAuthenticatorDataUtil {
         authenticatorConfig.setEndpointConfig(endpointConfigBuilder.build());
         authenticatorConfig.setImageUrl("https://localhost:8080/test/image");
         authenticatorConfig.setDescription("Description for " + uniqueIdentifier);
-
-        return authenticatorConfig;
-    }
-
-    /**
-     * Create a system defined authenticator configuration.
-     *
-     * @param uniqueIdentifier Unique identifier for the authenticator.
-     * @return LocalAuthenticatorConfig
-     */
-    public static LocalAuthenticatorConfig createSystemDefinedAuthenticatorConfig(String uniqueIdentifier) {
-
-        LocalAuthenticatorConfig authenticatorConfig = new LocalAuthenticatorConfig();
-        authenticatorConfig.setName(uniqueIdentifier);
-        authenticatorConfig.setDisplayName("Custom " + uniqueIdentifier);
-        authenticatorConfig.setEnabled(true);
-        authenticatorConfig.setDefinedByType(AuthenticatorPropertyConstants.DefinedByType.SYSTEM);
-        Property prop1 = new Property();
-        prop1.setName("PropertyName1_" + uniqueIdentifier);
-        prop1.setValue("PropertyValue1_" + uniqueIdentifier);
-        prop1.setConfidential(false);
-        Property prop2 = new Property();
-        prop2.setName("PropertyName2_" + uniqueIdentifier);
-        prop2.setValue("PropertyValue2_" + uniqueIdentifier);
-        prop2.setConfidential(true);
-        authenticatorConfig.setProperties(new Property[]{prop1, prop2});
 
         return authenticatorConfig;
     }

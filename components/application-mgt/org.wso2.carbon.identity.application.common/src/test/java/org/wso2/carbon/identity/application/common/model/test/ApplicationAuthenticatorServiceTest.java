@@ -57,7 +57,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.application.common.model.test.util.ActionMgtTestUtil.mockActionService;
-import static org.wso2.carbon.identity.application.common.model.test.util.UserDefinedLocalAuthenticatorDataUtil.createSystemDefinedAuthenticatorConfig;
+import static org.wso2.carbon.identity.application.common.model.test.util.SystemDefinedLocalAuthenticatorDataUtil.createSystemDefinedAuthenticatorConfig;
+import static org.wso2.carbon.identity.application.common.model.test.util.SystemDefinedLocalAuthenticatorDataUtil.updateSystemDefinedAuthenticatorConfig;
 import static org.wso2.carbon.identity.application.common.model.test.util.UserDefinedLocalAuthenticatorDataUtil.createUserDefinedAuthenticatorConfig;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError.ERROR_CODE_INVALID_DEFINED_BY_AUTH_PROVIDED;
 
@@ -80,6 +81,9 @@ public class ApplicationAuthenticatorServiceTest {
     private UserDefinedLocalAuthenticatorConfig authenticatorConfigForException;
     private UserDefinedLocalAuthenticatorConfig nonExistAuthenticatorConfig;
     private LocalAuthenticatorConfig systemAuthenticatorConfig;
+    private LocalAuthenticatorConfig systemAuthenticatorConfig2;
+    private LocalAuthenticatorConfig systemAuthenticatorConfigForException;
+    private LocalAuthenticatorConfig nonExistingSystemAuthenticatorConfig;
 
     private ActionManagementService actionManagementService;
     private static Action action;
@@ -91,12 +95,20 @@ public class ApplicationAuthenticatorServiceTest {
     private static final String AUTHENTICATOR_CONFIG_FOR_EXCEPTION_NAME = "custom-exception_auth";
     private static final String NON_EXIST_AUTHENTICATOR_NAME = "custom-non_exist_auth";
     private static final String SYSTEM_AUTHENTICATOR_NAME = "system_auth";
+    private static final String SYSTEM_AUTHENTICATOR2_NAME = "system_auth_2";
+    private static final String NON_EXIST_SYSTEM_AUTHENTICATOR_NAME = "non_exist_system_auth";
+    private static final String SYSTEM_AUTHENTICATOR_NAME_FOR_EXCEPTION = "system-auth-exception";
 
     @BeforeClass
     public void setUpClass() throws Exception {
 
         tenantDomain = "carbon.super";
         systemAuthenticatorConfig = createSystemDefinedAuthenticatorConfig(SYSTEM_AUTHENTICATOR_NAME);
+        systemAuthenticatorConfig2 = createSystemDefinedAuthenticatorConfig(SYSTEM_AUTHENTICATOR2_NAME);
+        nonExistingSystemAuthenticatorConfig = createSystemDefinedAuthenticatorConfig(
+                NON_EXIST_SYSTEM_AUTHENTICATOR_NAME);
+        systemAuthenticatorConfigForException = createSystemDefinedAuthenticatorConfig(
+                SYSTEM_AUTHENTICATOR_NAME_FOR_EXCEPTION);
         authenticatorConfig1 = createUserDefinedAuthenticatorConfig(AUTHENTICATOR1_NAME,
                 AuthenticationType.IDENTIFICATION);
         authenticatorConfig2 = createUserDefinedAuthenticatorConfig(AUTHENTICATOR2_NAME,
@@ -138,6 +150,24 @@ public class ApplicationAuthenticatorServiceTest {
         return new Object[][]{
                 {authenticatorConfig1},
                 {authenticatorConfig2}
+        };
+    }
+
+    @DataProvider(name = "localAuthenticatorConfigForAddition")
+    public Object[][] localAuthenticatorConfigForAddition() {
+
+        return new Object[][]{
+                {systemAuthenticatorConfig2}
+        };
+    }
+
+    @DataProvider(name = "localAuthenticatorConfigForUpdate")
+    public Object[][] localAuthenticatorConfigForUpdate() {
+        systemAuthenticatorConfig.setName("BasicAuthenticator");
+        systemAuthenticatorConfig.setAmrValue("amrValue");
+
+        return new Object[][]{
+                {systemAuthenticatorConfig}
         };
     }
 
@@ -242,6 +272,14 @@ public class ApplicationAuthenticatorServiceTest {
 
         List<UserDefinedLocalAuthenticatorConfig> authenticatorsList = ApplicationCommonServiceDataHolder.getInstance()
                 .getApplicationAuthenticatorService().getAllUserDefinedLocalAuthenticators(tenantDomain);
+        Assert.assertEquals(authenticatorsList.size(), 2);
+    }
+
+    @Test(priority = 10)
+    public void testGetAllSystemDefinedLocalAuthenticators() throws Exception {
+
+        List<LocalAuthenticatorConfig> authenticatorsList = ApplicationCommonServiceDataHolder.getInstance()
+                .getApplicationAuthenticatorService().getAllSystemDefinedLocalAuthenticators(tenantDomain);
         Assert.assertEquals(authenticatorsList.size(), 2);
     }
 
@@ -400,5 +438,53 @@ public class ApplicationAuthenticatorServiceTest {
         // Assert that no exception is thrown when trying to delete a non-existing authenticator.
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
                 .deleteUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig.getName(), tenantDomain);
+    }
+
+    @Test(priority = 22, dataProvider = "localAuthenticatorConfigForUpdate")
+    public void testUpdateSystemDefinedLocalAuthenticatorAmrValue(LocalAuthenticatorConfig config)
+            throws AuthenticatorMgtException {
+
+        ApplicationAuthenticatorService authenticatorService =
+                ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService();
+        authenticatorService.addLocalAuthenticator(config);
+        authenticatorService.updateAuthenticatorAmrValue(config, tenantDomain);
+        LocalAuthenticatorConfig updatedConfig = authenticatorService.getSystemLocalAuthenticator(
+                config.getName(), tenantDomain);
+        Assert.assertEquals(updatedConfig.getAmrValue(), config.getAmrValue());
+    }
+
+    @Test(priority = 23, expectedExceptions = AuthenticatorMgtException.class,
+            expectedExceptionsMessageRegExp = "No Authenticator found.")
+    public void testUpdateSystemDefinedLocalAuthenticatorWithNonExistingAuthenticator()
+            throws AuthenticatorMgtException {
+
+        nonExistingSystemAuthenticatorConfig.setAmrValue("valid_amr");
+        ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
+                .updateAuthenticatorAmrValue(nonExistingSystemAuthenticatorConfig, tenantDomain);
+    }
+
+
+    @Test(priority = 24, expectedExceptions = AuthenticatorMgtException.class)
+    public void testUpdateSystemDefinedLocalAuthenticatorWithInvalidAmrValue() throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig invalidConfig = new LocalAuthenticatorConfig();
+        invalidConfig.setName("ExistingAuthenticator");
+        invalidConfig.setAmrValue("Invalid-AMR");
+        ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
+                .updateAuthenticatorAmrValue(updateSystemDefinedAuthenticatorConfig(
+                        invalidConfig), tenantDomain);
+    }
+
+    @Test(priority = 25)
+    public void testGetSystemDefinedLocalAuthenticator() throws AuthenticatorMgtException {
+
+
+        LocalAuthenticatorConfig retrievedConfig = ApplicationCommonServiceDataHolder.getInstance()
+                .getApplicationAuthenticatorService().getSystemLocalAuthenticator(
+                        systemAuthenticatorConfig.getName(), tenantDomain);
+        Assert.assertNotNull(retrievedConfig);
+        Assert.assertEquals(retrievedConfig.getName(), systemAuthenticatorConfig.getName());
+        Assert.assertEquals(retrievedConfig.getDisplayName(), systemAuthenticatorConfig.getDisplayName());
+        Assert.assertEquals(retrievedConfig.isEnabled(), systemAuthenticatorConfig.isEnabled());
     }
 }
