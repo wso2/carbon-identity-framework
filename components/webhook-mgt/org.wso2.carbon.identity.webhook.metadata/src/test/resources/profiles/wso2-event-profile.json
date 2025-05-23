@@ -1,0 +1,21 @@
+{
+    "channels": {
+        "Test_Channel": {
+            "name": "Test Channel",
+            "description": "This is a test channel",
+            "uri": "https://schemas.identity.wso2.org/events/test",
+            "events": [
+                {
+                    "name": "Test Event 1",
+                    "description": "This is test event 1",
+                    "uri": "https://schemas.identity.wso2.org/events/test/event-type/test1"
+                },
+                {
+                    "name": "Test Event 2",
+                    "description": "This is test event 2",
+                    "uri": "https://schemas.identity.wso2.org/events/test/event-type/test2"
+                }
+            ]
+        }
+    }
+}

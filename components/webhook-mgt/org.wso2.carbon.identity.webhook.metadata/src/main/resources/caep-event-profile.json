@@ -1,0 +1,43 @@
+{
+    "channels": {
+        "Security_Channel": {
+            "name": "Security Channel",
+            "description": "This is the CAEP security channel",
+            "uri": "https://schemas.openid.net/secevent/caep/event-type/security",
+            "events": [
+                {
+                    "name": "Credential Change Event",
+                    "description": "This event occurs when a user's credentials change",
+                    "uri": "https://schemas.openid.net/secevent/caep/event-type/credential-change"
+                },
+                {
+                    "name": "Account Purged Event",
+                    "description": "This event occurs when a user account is purged",
+                    "uri": "https://schemas.openid.net/secevent/caep/event-type/account-purged"
+                },
+                {
+                    "name": "Account Disabled Event",
+                    "description": "This event occurs when a user account is disabled",
+                    "uri": "https://schemas.openid.net/secevent/caep/event-type/account-disabled"
+                }
+            ]
+        },
+        "Session_Channel": {
+            "name": "Session Channel",
+            "description": "This is the CAEP session channel",
+            "uri": "https://schemas.openid.net/secevent/caep/event-type/session",
+            "events": [
+                {
+                    "name": "Session Revoked Event",
+                    "description": "This event occurs when a user's session is revoked",
+                    "uri": "https://schemas.openid.net/secevent/caep/event-type/session-revoked"
+                },
+                {
+                    "name": "Token Clipped Event",
+                    "description": "This event occurs when a token is clipped (shortened)",
+                    "uri": "https://schemas.openid.net/secevent/caep/event-type/token-clipped"
+                }
+            ]
+        }
+    }
+}
