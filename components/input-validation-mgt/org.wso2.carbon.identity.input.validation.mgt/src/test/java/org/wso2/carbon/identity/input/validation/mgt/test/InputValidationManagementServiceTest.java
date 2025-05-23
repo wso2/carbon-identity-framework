@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,6 +37,9 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguratio
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,8 +48,11 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
@@ -60,19 +66,36 @@ public class InputValidationManagementServiceTest {
     private String tenantName = "testTenant";
     private String fieldPassword = "password";
     private String fieldUsername = "username";
+    private OrgResourceResolverService orgResourceResolverService;
+    private OrganizationManager organizationManager;
     private MockedStatic<InputValidationDataHolder> inputValidationDataHolder;
+    private MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
+
+    private static final String TEST_ORG_ID = "24584a8d-163f-4g11-hjd5-efedfgu82211";
+
 
     @BeforeMethod
     public void setup() {
 
         service = new InputValidationManagementServiceImpl();
+        orgResourceResolverService = mock(OrgResourceResolverService.class);
+        organizationManager = mock(OrganizationManager.class);
         inputValidationDataHolder = mockStatic(InputValidationDataHolder.class);
+
+        InputValidationDataHolder inputValidationDataHolderInstance = new InputValidationDataHolder();
+        inputValidationDataHolderInstance.setOrganizationManager(organizationManager);
+        inputValidationDataHolderInstance.setOrgResourceResolverService(orgResourceResolverService);
+
+        inputValidationDataHolder.when(InputValidationDataHolder::getInstance)
+                .thenReturn(inputValidationDataHolderInstance);
+        organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
     }
 
     @AfterMethod
     public void tearDown() {
 
         inputValidationDataHolder.close();
+        organizationManagementUtilMockedStatic.close();
     }
 
     @Test
@@ -91,6 +114,8 @@ public class InputValidationManagementServiceTest {
     @Test
     public void getInputValidationConfigurationTest() {
 
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(false);
         Resources resources = getResources();
         ConfigurationManager configurationManager = mock(ConfigurationManager.class);
         when(InputValidationDataHolder.getConfigurationManager()).thenReturn(configurationManager);
@@ -99,6 +124,28 @@ public class InputValidationManagementServiceTest {
             List<ValidationConfiguration> updated = service.getInputValidationConfiguration(tenantName);
             Assert.assertFalse(updated.isEmpty());
         } catch (ConfigurationManagementException | InputValidationMgtException e) {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void getOrganizationInputValidationConfigurationTest() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(true);
+        Resources resources = getResources();
+        ConfigurationManager configurationManager = mock(ConfigurationManager.class);
+        when(InputValidationDataHolder.getConfigurationManager()).thenReturn(configurationManager);
+
+        when(organizationManager.resolveOrganizationId(tenantName)).thenReturn(TEST_ORG_ID);
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(resources);
+        try {
+            List<ValidationConfiguration> updated = service.getInputValidationConfiguration(tenantName);
+            verify(orgResourceResolverService, times(1)).getResourcesFromOrgHierarchy(
+                    eq(TEST_ORG_ID), any(), any());
+            Assert.assertFalse(updated.isEmpty());
+        } catch (InputValidationMgtException e) {
             Assert.fail();
         }
     }

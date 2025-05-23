@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
@@ -114,6 +115,7 @@ public class IdPManagementDAOTest {
 
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
     MockedStatic<CryptoUtil> cryptoUtil;
+    MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
     private SecretManagerImpl secretManager;
     private CryptoUtil mockCryptoUtil;
 
@@ -169,10 +171,12 @@ public class IdPManagementDAOTest {
 
         cryptoUtil = mockStatic(CryptoUtil.class);
         mockCryptoUtil = mock(CryptoUtil.class);
+        organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
         cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
         when(mockCryptoUtil.encryptAndBase64Encode(any())).thenReturn("ENCRYPTED_VALUE2");
         when(mockCryptoUtil.base64DecodeAndDecrypt(anyString())).thenReturn("ENCRYPTED_VALUE2".getBytes());
-
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN))
+                .thenReturn(false);
         endpointConfig = ActionMgtTestUtil.createEndpointConfig("http://localhost", "admin", "admin");
         endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig("http://localhost1", "admin1", "admin1");
         userDefinedIdP = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, endpointConfig);
@@ -184,6 +188,7 @@ public class IdPManagementDAOTest {
     public void tearDownClass() {
 
         cryptoUtil.close();
+        organizationManagementUtilMockedStatic.close();
     }
 
     @BeforeMethod

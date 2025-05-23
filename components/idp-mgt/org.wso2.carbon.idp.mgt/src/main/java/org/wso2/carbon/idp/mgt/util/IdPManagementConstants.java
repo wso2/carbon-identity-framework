@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+
+import java.util.List;
+
 /**
  * This class is used to keep the identity provider management related constants.
  */
@@ -145,6 +149,15 @@ public class IdPManagementConstants {
     public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     public static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
+
+    public static final List<String> INHERITED_FEDERATED_AUTHENTICATORS = List.of(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME,
+            IdentityApplicationConstants.Authenticator.WSTrust.NAME);
+
+    public static final List<String> INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES = List.of(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
 
     public static class SQLConstants {
 

@@ -22,6 +22,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 
 import java.util.HashMap;
@@ -36,6 +38,8 @@ public class InputValidationDataHolder {
     private static ConfigurationManager configurationManager = null;
     private ClaimMetadataManagementService claimMetadataManagementService;
     private IdpManager idpManager;
+    private OrganizationManager organizationManager;
+    private OrgResourceResolverService orgResourceResolverService;
     private static Map<String, Validator> validators = new HashMap<>();
     private static Map<String, FieldValidationConfigurationHandler> validationConfigurationHandlers = new HashMap<>();
 
@@ -117,5 +121,45 @@ public class InputValidationDataHolder {
     public void setIdpManager(IdpManager idpManager) {
 
         this.idpManager = idpManager;
+    }
+
+    /**
+     * Get the OrganizationManager.
+     *
+     * @return OrganizationManager instance.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Set the OrganizationManager.
+     *
+     * @param organizationManager OrganizationManager instance.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Get the OrgResourceResolverService.
+     *
+     * @return OrgResourceResolverService instance.
+     */
+    public OrgResourceResolverService getOrgResourceResolverService() {
+
+        return orgResourceResolverService;
+    }
+
+    /**
+     * Set the OrgResourceResolverService.
+     *
+     * @param orgResourceResolverService OrgResourceResolverService instance.
+     */
+    public void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        this.orgResourceResolverService = orgResourceResolverService;
     }
 }

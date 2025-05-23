@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2025 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,9 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -46,6 +49,7 @@ import org.wso2.carbon.idp.mgt.cache.IdPResourceIdCacheKey;
 import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCache;
 import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCacheEntry;
 import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCacheKey;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -53,6 +57,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class CacheBackedIdPMgtDAO {
@@ -768,7 +773,6 @@ public class CacheBackedIdPMgtDAO {
     public void clearIdpCache(String idPName, String resourceId, int tenantId, String tenantDomain) throws
             IdentityProviderManagementException {
 
-
         // clearing cache entries related to the IDP.
         IdentityProvider identityProvider;
         if (StringUtils.isNotBlank(resourceId)) {
@@ -776,40 +780,105 @@ public class CacheBackedIdPMgtDAO {
         } else {
             identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
         }
+
         if (identityProvider != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Removing entry for Identity Provider " + idPName + " of tenantDomain:" + tenantDomain +
                         " from cache.");
             }
 
-            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(idPName);
-            idPCacheByName.clearCacheEntry(idPNameCacheKey, tenantDomain);
-
-            if (identityProvider.getHomeRealmId() != null) {
-                IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
-                        identityProvider.getHomeRealmId());
-                idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey, tenantDomain);
+            clearIdPCacheEntries(identityProvider, idPName, resourceId, tenantDomain, tenantId);
+            if (IdPManagementConstants.RESIDENT_IDP.equals(idPName)) {
+                // Since resident IDP properties are inherited, we need to clear the cache of all child organizations.
+                clearDescendantIdpCache(idPName, tenantDomain);
             }
-            if (StringUtils.isNotBlank(resourceId)) {
-                IdPResourceIdCacheKey idPResourceIdCacheKey = new IdPResourceIdCacheKey(resourceId);
-                idPCacheByResourceId.clearCacheEntry(idPResourceIdCacheKey, tenantDomain);
-            }
-
-            String idPIssuerName = getIDPIssuerName(identityProvider);
-            if (StringUtils.isNotBlank(idPIssuerName)) {
-                IdPMetadataPropertyCacheKey cacheKey = new IdPMetadataPropertyCacheKey(
-                        IdentityApplicationConstants.IDP_ISSUER_NAME, idPIssuerName);
-                idPCacheByMetadataProperty.clearCacheEntry(cacheKey, tenantDomain);
-            }
-
-            userDefinedFederatedAuthenticatorsCache.clearCacheEntry(
-                    new UserDefinedFederatedAuthenticatorsCacheKey(tenantId), tenantId);
         } else {
             log.debug("Entry for Identity Provider " + idPName + " not found in cache or DB");
         }
     }
 
+    /**
+     * Get the cached IDP by name.
+     *
+     * @param idPName      Identity Provider name.
+     * @param tenantDomain Tenant domain of the identity provider.
+     * @return Optional of Identity Provider.
+     */
+    private Optional<IdentityProvider> getCachedIdpByName(String idPName, String tenantDomain) {
 
+        IdPNameCacheKey cacheKey = new IdPNameCacheKey(idPName);
+        IdPCacheEntry entry = idPCacheByName.getValueFromCache(cacheKey, tenantDomain);
+
+        if (entry != null) {
+            return Optional.of(entry.getIdentityProvider());
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Clear IDP cache entries of all child organizations of the given organization.
+     *
+     * @param idPName      Identity Provider name.
+     * @param tenantDomain Tenant domain of the identity provider.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    private void clearDescendantIdpCache(String idPName, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        try {
+            OrganizationManager organizationManager =
+                    IdpMgtServiceComponentHolder.getInstance().getOrganizationManager();
+            String orgId = organizationManager.resolveOrganizationId(tenantDomain);
+            List<String> childOrgIds = organizationManager.getChildOrganizationsIds(orgId, true);
+
+            for (String childOrgId : childOrgIds) {
+                int tenantId = IdentityTenantUtil.getTenantId(childOrgId);
+                Optional<IdentityProvider> identityProvider = this.getCachedIdpByName(idPName, childOrgId);
+                identityProvider.ifPresent(
+                        provider -> clearIdPCacheEntries(provider, idPName, null, childOrgId, tenantId));
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementServerException("Error while resolving child organization ids of " +
+                    tenantDomain, e);
+        }
+    }
+
+    /**
+     * Clear IDP cache entries of the given identity provider.
+     *
+     * @param identityProvider Identity Provider information.
+     * @param idPName          Identity Provider name.
+     * @param resourceId       Resource ID of the identity provider.
+     * @param tenantDomain     Tenant domain of the identity provider.
+     * @param tenantId         Tenant ID of the identity provider.
+     */
+    private void clearIdPCacheEntries(IdentityProvider identityProvider, String idPName, String resourceId,
+                                      String tenantDomain, int tenantId) {
+
+        IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(idPName);
+        idPCacheByName.clearCacheEntry(idPNameCacheKey, tenantDomain);
+
+        if (identityProvider.getHomeRealmId() != null) {
+            IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
+                    identityProvider.getHomeRealmId());
+            idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey, tenantDomain);
+        }
+
+        if (StringUtils.isNotBlank(resourceId)) {
+            IdPResourceIdCacheKey idPResourceIdCacheKey = new IdPResourceIdCacheKey(resourceId);
+            idPCacheByResourceId.clearCacheEntry(idPResourceIdCacheKey, tenantDomain);
+        }
+
+        String idPIssuerName = getIDPIssuerName(identityProvider);
+        if (StringUtils.isNotBlank(idPIssuerName)) {
+            IdPMetadataPropertyCacheKey cacheKey = new IdPMetadataPropertyCacheKey(
+                    IdentityApplicationConstants.IDP_ISSUER_NAME, idPIssuerName);
+            idPCacheByMetadataProperty.clearCacheEntry(cacheKey, tenantDomain);
+        }
+
+        userDefinedFederatedAuthenticatorsCache.clearCacheEntry(
+                new UserDefinedFederatedAuthenticatorsCacheKey(tenantId), tenantId);
+    }
 
     /**
      * @param tenantId

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -50,6 +50,8 @@ import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -242,9 +244,17 @@ public class IdentityProviderManager implements IdpManager {
         samlAuthnRequestSigningProperty.setValue(samlAuthnRequestSigningEnabled);
         List<Property> propertyList =
                 new ArrayList<>(Arrays.asList(saml2SSOResidentAuthenticatorConfig.getProperties()));
-        propertyList.add(samlMetadataValidityPeriodProperty);
-        propertyList.add(samlMetadataSigningEnabledProperty);
-        propertyList.add(samlAuthnRequestSigningProperty);
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                propertyList.add(samlMetadataValidityPeriodProperty);
+                propertyList.add(samlMetadataSigningEnabledProperty);
+                propertyList.add(samlAuthnRequestSigningProperty);
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementServerException("Error while checking if tenant " + tenantDomain +
+                    " is an organization.", e);
+        }
+
         Property[] properties = new Property[propertyList.size()];
         properties = propertyList.toArray(properties);
         saml2SSOResidentAuthenticatorConfig.setProperties(properties);
@@ -333,19 +343,26 @@ public class IdentityProviderManager implements IdpManager {
         IdPManagementUtil.validatePasswordRecoveryPropertyValues(configurationDetails);
         IdPManagementUtil.validateUsernameRecoveryPropertyValues(configurationDetails);
 
-        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
-            IdentityProviderProperty prop = new IdentityProviderProperty();
-            String key = identityMgtProperty.getName();
-            prop.setName(key);
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+                    IdentityProviderProperty prop = new IdentityProviderProperty();
+                    String key = identityMgtProperty.getName();
+                    prop.setName(key);
 
-            if (configurationDetails.containsKey(key)) {
-                prop.setValue(configurationDetails.get(key));
-            } else {
-                prop.setValue(identityMgtProperty.getValue());
+                    if (configurationDetails.containsKey(key)) {
+                        prop.setValue(configurationDetails.get(key));
+                    } else {
+                        prop.setValue(identityMgtProperty.getValue());
+                    }
+
+                    newProperties.add(prop);
+                    configurationDetails.remove(key);
+                }
             }
-
-            newProperties.add(prop);
-            configurationDetails.remove(key);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementException(String.format(
+                    "Error while checking if tenant %s is an organization.", tenantDomain), e);
         }
 
         for (Map.Entry<String, String> entry : configurationDetails.entrySet()) {
