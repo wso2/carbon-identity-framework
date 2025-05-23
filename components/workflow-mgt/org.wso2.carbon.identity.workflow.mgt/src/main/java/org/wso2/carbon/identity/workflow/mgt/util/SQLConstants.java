@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2015, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -184,9 +184,11 @@ public class SQLConstants {
     public static final String GET_WORKFLOW_PARAMS = "SELECT WORKFLOW_ID, PARAM_NAME, PARAM_VALUE, PARAM_QNAME, " +
             "PARAM_HOLDER FROM WF_WORKFLOW_CONFIG_PARAM WHERE WORKFLOW_ID = ?";
 
-    public static final String GET_WORKFLOW = "SELECT WF_WORKFLOW.WF_NAME, WF_WORKFLOW.DESCRIPTION, WF_WORKFLOW" +
+    public static final String GET_WORKFLOW_BY_ID = "SELECT WF_WORKFLOW.WF_NAME, WF_WORKFLOW.DESCRIPTION, WF_WORKFLOW" +
             ".TEMPLATE_ID, WF_WORKFLOW.IMPL_ID, WF_WORKFLOW.TENANT_ID FROM WF_WORKFLOW WHERE WF_WORKFLOW.ID = ?";
 
+    public static final String GET_WORKFLOW_BY_NAME = "SELECT WF_WORKFLOW.ID, WF_WORKFLOW.DESCRIPTION, WF_WORKFLOW" +
+            ".TEMPLATE_ID, WF_WORKFLOW.IMPL_ID, WF_WORKFLOW.TENANT_ID FROM WF_WORKFLOW WHERE WF_WORKFLOW.WF_NAME = ?";
 
     public static final String DELETE_WORKFLOW_QUERY = "DELETE FROM WF_WORKFLOW WHERE ID = ?";
 

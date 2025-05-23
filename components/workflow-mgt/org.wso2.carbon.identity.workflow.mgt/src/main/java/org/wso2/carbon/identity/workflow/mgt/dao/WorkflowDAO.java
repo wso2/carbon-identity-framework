@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2015, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -91,7 +91,7 @@ public class WorkflowDAO {
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        String query = SQLConstants.GET_WORKFLOW;
+        String query = SQLConstants.GET_WORKFLOW_BY_ID;
 
         Workflow workflow = null;
 
@@ -117,6 +117,45 @@ public class WorkflowDAO {
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+        return workflow;
+    }
+
+    /**
+     * Get a Workflow object for given workflow name
+     *
+     * @param workflowName Workflow name.
+     * @return Workflow object
+     * @throws InternalWorkflowException Throws when an error occurs while retrieving the workflow.
+     */
+    public Workflow getWorkflowByName(String workflowName) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+        String query = SQLConstants.GET_WORKFLOW_BY_NAME;
+
+        Workflow workflow = null;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, workflowName);
+            resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                String workflowId = resultSet.getString(SQLConstants.ID_COLUMN);
+                String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
+                String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
+                String implId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
+                workflow = new Workflow();
+                workflow.setWorkflowId(workflowId);
+                workflow.setWorkflowName(workflowName);
+                workflow.setWorkflowDescription(description);
+                workflow.setTemplateId(templateId);
+                workflow.setWorkflowImplId(implId);
+            }
+        } catch (SQLException e) {
+            throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
         return workflow;
     }
