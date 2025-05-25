@@ -67,6 +67,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
      * @return Singleton instance
      */
     public static FileBasedWebhookMetadataDAOImpl getInstance() {
+
         return INSTANCE;
     }
 
@@ -75,6 +76,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
      * This is called during service activation.
      */
     public synchronized void init() {
+
         if (isInitialized) {
             return;
         }
@@ -91,25 +93,31 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
      * Load all event profiles from the configured directory.
      */
     private void loadEventProfiles() throws WebhookMetadataException {
+
         try {
             Path eventProfilesPath = WebhookMetadataUtil.getEventProfilesDirectory();
-            
+
             // Clear existing cache
             profileCache.clear();
-            
+
             // Load all JSON files in the directory
             try (Stream<Path> paths = Files.walk(eventProfilesPath)) {
                 List<Path> jsonFiles = paths
                         .filter(Files::isRegularFile)
                         .filter(path -> path.toString().endsWith(".json"))
                         .collect(Collectors.toList());
-                
+
                 for (Path jsonFile : jsonFiles) {
                     try {
                         String json = FileUtils.readFileToString(jsonFile.toFile(), StandardCharsets.UTF_8);
                         Gson gson = new GsonBuilder().create();
                         EventProfile profile = gson.fromJson(json, EventProfile.class);
-                        
+
+                        if (profile == null) {
+                            log.warn("Failed to parse event profile from file: " + jsonFile);
+                            continue;
+                        }
+
                         // Prioritize using profile name from JSON content
                         // Only use filename as a fallback if profile name is not specified in the JSON
                         if (profile.getProfile() == null || profile.getProfile().isEmpty()) {
@@ -117,7 +125,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
                             profile.setProfile(fileName);
                             log.info("Profile name not found in JSON, using filename: " + fileName);
                         }
-                        
+
                         profileCache.put(profile.getProfile(), profile);
                         log.info("Loaded event profile: " + profile.getProfile());
                     } catch (Exception e) {
@@ -135,6 +143,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
     @Override
     public List<String> getSupportedEventProfiles() throws WebhookMetadataException {
+
         if (!isInitialized) {
             throw WebhookMetadataExceptionBuilder.buildServerException(
                     ErrorCodes.ERROR_RETRIEVING_PROFILES, "Webhook metadata DAO is not initialized");
@@ -143,12 +152,13 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
     }
 
     @Override
-    public EventProfile getEventProfile(String profileName) throws WebhookMetadataException {
+    public synchronized EventProfile getEventProfile(String profileName) throws WebhookMetadataException {
+
         if (!isInitialized) {
             throw WebhookMetadataExceptionBuilder.buildServerException(
                     ErrorCodes.ERROR_RETRIEVING_PROFILE, "Webhook metadata DAO is not initialized");
         }
-        
+
         EventProfile profile = profileCache.get(profileName);
         if (profile == null) {
             log.debug("Event profile not found for name: " + profileName);
@@ -158,21 +168,27 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
     @Override
     public List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException {
+
         if (!isInitialized) {
             throw WebhookMetadataExceptionBuilder.buildServerException(
                     ErrorCodes.ERROR_RETRIEVING_EVENTS, "Webhook metadata DAO is not initialized");
         }
-        
+
         List<Event> matchingEvents = new ArrayList<>();
-        
+
         for (EventProfile profile : profileCache.values()) {
-            for (Channel channel : profile.getChannels()) {
-                if (schemaUri.equals(channel.getUri())) {
-                    matchingEvents.addAll(channel.getEvents());
+            if (profile.getChannels() != null) {
+                for (Channel channel : profile.getChannels()) {
+                    if (channel != null && schemaUri.equals(channel.getUri())) {
+                        List<Event> events = channel.getEvents();
+                        if (events != null) {
+                            matchingEvents.addAll(events);
+                        }
+                    }
                 }
             }
         }
-        
+
         return matchingEvents;
     }
 
@@ -180,7 +196,8 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
      * Reload all event profiles from the file system.
      * This can be called to refresh the cache.
      */
-    public void reloadEventProfiles() throws WebhookMetadataException {
+    public synchronized void reloadEventProfiles() throws WebhookMetadataException {
+
         loadEventProfiles();
     }
 }

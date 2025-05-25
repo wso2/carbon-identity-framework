@@ -23,7 +23,7 @@ package org.wso2.carbon.identity.webhook.metadata.api.exception;
  */
 public class WebhookMetadataClientException extends WebhookMetadataException {
 
-    private static final long serialVersionUID = -6743232645196393267L;
+    private static final long serialVersionUID = -8743232645196393268L;
 
     /**
      * Constructor with error code and error message.
@@ -32,6 +32,7 @@ public class WebhookMetadataClientException extends WebhookMetadataException {
      * @param errorMessage Error message
      */
     public WebhookMetadataClientException(String errorCode, String errorMessage) {
+
         super(errorCode, errorMessage);
     }
 
@@ -43,6 +44,7 @@ public class WebhookMetadataClientException extends WebhookMetadataException {
      * @param cause        Cause of the exception
      */
     public WebhookMetadataClientException(String errorCode, String errorMessage, Throwable cause) {
+
         super(errorCode, errorMessage, cause);
     }
 }

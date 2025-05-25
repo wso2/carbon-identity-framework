@@ -47,19 +47,32 @@ public class WebhookMetadataUtil {
             return eventProfilesDirectory;
         }
 
-        String carbonHome = System.getProperty("carbon.home");
-        Path eventProfilesPath = Paths.get(carbonHome, EVENT_PROFILES_PATH);
-
-        File directory = eventProfilesPath.toFile();
-        if (!directory.exists()) {
-            if (directory.mkdirs()) {
-                log.info("Created directory for event profiles: " + eventProfilesPath);
-            } else {
-                log.error("Failed to create directory for event profiles: " + eventProfilesPath);
+        synchronized (WebhookMetadataUtil.class) {
+            if (eventProfilesDirectory != null) {
+                return eventProfilesDirectory;
             }
-        }
 
-        return eventProfilesPath;
+            String carbonHome = System.getProperty("carbon.home");
+            if (carbonHome == null) {
+                throw new IllegalStateException("carbon.home system property is not set");
+            }
+
+            Path eventProfilesPath = Paths.get(carbonHome, EVENT_PROFILES_PATH);
+
+            File directory = eventProfilesPath.toFile();
+            if (!directory.exists()) {
+                if (directory.mkdirs()) {
+                    log.info("Created directory for event profiles: " + eventProfilesPath);
+                } else {
+                    String errorMsg = "Failed to create directory for event profiles: " + eventProfilesPath;
+                    log.error(errorMsg);
+                    throw new IllegalStateException(errorMsg);
+                }
+            }
+
+            eventProfilesDirectory = eventProfilesPath;
+            return eventProfilesPath;
+        }
     }
 
     /**
