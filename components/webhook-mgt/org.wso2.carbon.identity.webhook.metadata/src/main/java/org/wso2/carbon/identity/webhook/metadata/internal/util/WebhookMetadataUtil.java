@@ -31,7 +31,7 @@ import java.nio.file.Paths;
 public class WebhookMetadataUtil {
 
     private static final Log log = LogFactory.getLog(WebhookMetadataUtil.class);
-    private static final String EVENT_PROFILES_DIR = "event-profiles";
+    private static final String EVENT_PROFILES_DIR = "eventprofiles";
     private static final String EVENT_PROFILES_PATH = "repository/conf/" + EVENT_PROFILES_DIR;
 
     protected static Path eventProfilesDirectory = null;
