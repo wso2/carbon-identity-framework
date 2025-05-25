@@ -30,7 +30,7 @@ public class WebhookMetadataServiceComponentHolder {
     private WebhookMetadataService webhookMetadataService;
 
     private WebhookMetadataServiceComponentHolder() {
-        // Initialize with the default implementation
+
         this.webhookMetadataService = WebhookMetadataServiceImpl.getInstance();
     }
 
@@ -40,6 +40,7 @@ public class WebhookMetadataServiceComponentHolder {
      * @return Instance of WebhookMetadataServiceComponentHolder
      */
     public static WebhookMetadataServiceComponentHolder getInstance() {
+
         return INSTANCE;
     }
 
@@ -49,6 +50,7 @@ public class WebhookMetadataServiceComponentHolder {
      * @return WebhookMetadataService
      */
     public WebhookMetadataService getWebhookMetadataService() {
+
         return webhookMetadataService;
     }
 
@@ -58,6 +60,7 @@ public class WebhookMetadataServiceComponentHolder {
      * @param webhookMetadataService WebhookMetadataService
      */
     public void setWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
+
         this.webhookMetadataService = webhookMetadataService;
     }
 }
