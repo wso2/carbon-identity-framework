@@ -18,30 +18,66 @@
 
 package org.wso2.carbon.identity.webhook.metadata.api.model;
 
-import java.util.Map;
+import java.util.List;
 
 /**
- * This class represents the webhook event profile metadata.
+ * Represents a webhook event profile.
  */
 public class EventProfile {
 
-    private Map<String, EventChannel> channels;
+    private String profile;
+    private List<Channel> channels;
 
     /**
-     * Get the channels of the event profile.
-     *
-     * @return Map of channel ID to channel metadata
+     * Default constructor.
      */
-    public Map<String, EventChannel> getChannels() {
+    public EventProfile() {
+    }
+
+    /**
+     * Constructor with all parameters.
+     *
+     * @param profile  Name of the event profile
+     * @param channels List of channels in the profile
+     */
+    public EventProfile(String profile, List<Channel> channels) {
+        this.profile = profile;
+        this.channels = channels;
+    }
+
+    /**
+     * Get the name of the event profile.
+     *
+     * @return Name of the event profile
+     */
+    public String getProfile() {
+        return profile;
+    }
+
+    /**
+     * Set the name of the event profile.
+     *
+     * @param profile Name of the event profile
+     */
+    public void setProfile(String profile) {
+        this.profile = profile;
+    }
+
+    /**
+     * Get the list of channels in the profile.
+     *
+     * @return List of channels
+     */
+    public List<Channel> getChannels() {
         return channels;
     }
 
     /**
-     * Set the channels of the event profile.
+     * Set the list of channels in the profile.
      *
-     * @param channels Map of channel ID to channel metadata
+     * @param channels List of channels
      */
-    public void setChannels(Map<String, EventChannel> channels) {
+    public void setChannels(List<Channel> channels) {
         this.channels = channels;
     }
 }

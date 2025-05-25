@@ -20,54 +20,67 @@ package org.wso2.carbon.identity.webhook.metadata.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
-import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.WebhookMetadataServiceImpl;
 
 /**
- * Service component for the webhook metadata service.
+ * OSGi service component for webhook metadata.
  */
 @Component(
-        name = "webhook.metadata.service.component",
+        name = "identity.webhook.metadata.component",
         immediate = true
 )
 public class WebhookMetadataServiceComponent {
 
-    private static final Log LOG = LogFactory.getLog(WebhookMetadataServiceComponent.class);
+    private static final Log log = LogFactory.getLog(WebhookMetadataServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {
-
         try {
-            BundleContext bundleCtx = context.getBundleContext();
-
-            // Get the singleton instance of the DAO
-            FileBasedWebhookMetadataDAOImpl webhookMetadataDAO = FileBasedWebhookMetadataDAOImpl.getInstance();
-            WebhookMetadataService webhookMetadataService = new WebhookMetadataServiceImpl(webhookMetadataDAO);
-
-            // Register the webhook metadata service
-            bundleCtx.registerService(WebhookMetadataService.class.getName(), webhookMetadataService, null);
-
-            LOG.debug("Webhook metadata bundle is activated.");
+            // Initialize the webhook metadata service
+            WebhookMetadataServiceImpl webhookMetadataService = WebhookMetadataServiceImpl.getInstance();
+            webhookMetadataService.init();
+            
+            // Register the service in OSGi framework
+            context.getBundleContext().registerService(WebhookMetadataService.class.getName(),
+                    webhookMetadataService, null);
+            
+            // Set the service in the component holder
+            WebhookMetadataServiceComponentHolder.getInstance().setWebhookMetadataService(webhookMetadataService);
+            
+            log.info("Webhook Metadata component activated successfully");
         } catch (Throwable e) {
-            LOG.error("Error while initializing webhook metadata service component.", e);
+            log.error("Error activating Webhook Metadata component", e);
         }
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
-
-        try {
-            BundleContext bundleCtx = context.getBundleContext();
-            bundleCtx.ungetService(bundleCtx.getServiceReference(WebhookMetadataService.class));
-            LOG.debug("Webhook metadata bundle is deactivated.");
-        } catch (Throwable e) {
-            LOG.error("Error while deactivating webhook metadata service component.", e);
+        if (log.isDebugEnabled()) {
+            log.debug("Webhook Metadata component deactivated");
         }
+    }
+
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        // This is used to guarantee that IdentityCore is properly initialized before using it
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        // No action needed
     }
 }

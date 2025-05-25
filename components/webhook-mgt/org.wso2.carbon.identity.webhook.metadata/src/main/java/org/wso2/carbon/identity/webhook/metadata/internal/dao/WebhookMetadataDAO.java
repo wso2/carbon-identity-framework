@@ -19,21 +19,39 @@
 package org.wso2.carbon.identity.webhook.metadata.internal.dao;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.ProfileType;
+
+import java.util.List;
 
 /**
- * DAO interface for webhook metadata.
- * This interface defines methods to access webhook metadata from the data source.
+ * DAO interface for webhook metadata operations.
  */
 public interface WebhookMetadataDAO {
 
     /**
-     * Get the event profile metadata for a specific profile type.
+     * Get all supported event profiles.
      *
-     * @param profileType Type of event profile
-     * @return EventProfile containing channel and event metadata
-     * @throws WebhookMetadataException If an error occurs while retrieving the event profile
+     * @return List of event profile names
+     * @throws WebhookMetadataException If an error occurs while retrieving event profiles
      */
-    EventProfile getEventProfile(ProfileType profileType) throws WebhookMetadataException;
+    List<String> getSupportedEventProfiles() throws WebhookMetadataException;
+
+    /**
+     * Get details of a specific event profile including its channels.
+     *
+     * @param profileName Name of the event profile
+     * @return EventProfile object containing profile details and channels
+     * @throws WebhookMetadataException If an error occurs while retrieving event profile details
+     */
+    EventProfile getEventProfile(String profileName) throws WebhookMetadataException;
+
+    /**
+     * Get list of events under the given event schema.
+     *
+     * @param schemaUri URI of the event schema
+     * @return List of events
+     * @throws WebhookMetadataException If an error occurs while retrieving events
+     */
+    List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException;
 }

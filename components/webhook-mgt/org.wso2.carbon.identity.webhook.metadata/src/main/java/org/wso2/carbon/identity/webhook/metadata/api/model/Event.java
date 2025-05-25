@@ -19,63 +19,82 @@
 package org.wso2.carbon.identity.webhook.metadata.api.model;
 
 /**
- * This class represents the event type metadata in an event channel.
+ * Represents an event in a webhook event profile.
  */
-public class EventType {
+public class Event {
 
     private String name;
     private String description;
     private String uri;
 
     /**
-     * Get the name of the event type.
+     * Default constructor.
+     */
+    public Event() {
+    }
+
+    /**
+     * Constructor with all parameters.
      *
-     * @return Name of the event type
+     * @param name        Name of the event
+     * @param description Description of the event
+     * @param uri         URI of the event
+     */
+    public Event(String name, String description, String uri) {
+        this.name = name;
+        this.description = description;
+        this.uri = uri;
+    }
+
+    /**
+     * Get the name of the event.
+     *
+     * @return Name of the event
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Set the name of the event type.
+     * Set the name of the event.
      *
-     * @param name Name of the event type
+     * @param name Name of the event
      */
     public void setName(String name) {
         this.name = name;
     }
 
     /**
-     * Get the description of the event type.
+     * Get the description of the event.
      *
-     * @return Description of the event type
+     * @return Description of the event
      */
     public String getDescription() {
         return description;
     }
 
     /**
-     * Set the description of the event type.
+     * Set the description of the event.
      *
-     * @param description Description of the event type
+     * @param description Description of the event
      */
     public void setDescription(String description) {
         this.description = description;
     }
 
     /**
-     * Get the URI of the event type.
+     * Get the URI of the event.
      *
-     * @return URI of the event type
+     * @return URI of the event
      */
     public String getUri() {
         return uri;
     }
 
     /**
-     * Set the URI of the event type.
+     * Set the URI of the event.
      *
-     * @param uri URI of the event type
+     * @param uri URI of the event
      */
     public void setUri(String uri) {
         this.uri = uri;

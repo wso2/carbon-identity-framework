@@ -22,49 +22,78 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataCl
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 
 /**
- * Utility class for building exceptions for the webhook metadata service.
+ * Builder class for creating webhook metadata exceptions.
  */
 public class WebhookMetadataExceptionBuilder {
 
     /**
-     * Build a server exception with a message.
-     *
-     * @param message Error message
-     * @return WebhookMetadataServerException
+     * Error codes for webhook metadata exceptions.
      */
-    public static WebhookMetadataServerException buildServerException(String message) {
-        return new WebhookMetadataServerException(message);
+    public static class ErrorCodes {
+
+        // Client error codes start with CLIENT
+        public static final String CLIENT_ERROR_CODE_PREFIX = "CLIENT-";
+        public static final String INVALID_REQUEST = CLIENT_ERROR_CODE_PREFIX + "00001";
+        public static final String PROFILE_NOT_FOUND = CLIENT_ERROR_CODE_PREFIX + "00002";
+        public static final String SCHEMA_NOT_FOUND = CLIENT_ERROR_CODE_PREFIX + "00003";
+
+        // Server error codes start with SERVER
+        public static final String SERVER_ERROR_CODE_PREFIX = "SERVER-";
+        public static final String ERROR_RETRIEVING_PROFILES = SERVER_ERROR_CODE_PREFIX + "00001";
+        public static final String ERROR_RETRIEVING_PROFILE = SERVER_ERROR_CODE_PREFIX + "00002";
+        public static final String ERROR_RETRIEVING_EVENTS = SERVER_ERROR_CODE_PREFIX + "00003";
+        public static final String ERROR_LOADING_PROFILE_FILES = SERVER_ERROR_CODE_PREFIX + "00004";
     }
 
     /**
-     * Build a server exception with a message and cause.
+     * Build a webhook metadata client exception.
      *
-     * @param message Error message
-     * @param cause   Exception cause
-     * @return WebhookMetadataServerException
-     */
-    public static WebhookMetadataServerException buildServerException(String message, Throwable cause) {
-        return new WebhookMetadataServerException(message, cause);
-    }
-
-    /**
-     * Build a client exception with a message.
-     *
-     * @param message Error message
+     * @param errorCode    Error code
+     * @param errorMessage Error message
      * @return WebhookMetadataClientException
      */
-    public static WebhookMetadataClientException buildClientException(String message) {
-        return new WebhookMetadataClientException(message);
+    public static WebhookMetadataClientException buildClientException(String errorCode, String errorMessage) {
+
+        return new WebhookMetadataClientException(errorCode, errorMessage);
     }
 
     /**
-     * Build a client exception with a message and cause.
+     * Build a webhook metadata client exception with a cause.
      *
-     * @param message Error message
-     * @param cause   Exception cause
+     * @param errorCode    Error code
+     * @param errorMessage Error message
+     * @param cause        Cause of the exception
      * @return WebhookMetadataClientException
      */
-    public static WebhookMetadataClientException buildClientException(String message, Throwable cause) {
-        return new WebhookMetadataClientException(message, cause);
+    public static WebhookMetadataClientException buildClientException(String errorCode, String errorMessage,
+                                                                      Throwable cause) {
+
+        return new WebhookMetadataClientException(errorCode, errorMessage, cause);
+    }
+
+    /**
+     * Build a webhook metadata server exception.
+     *
+     * @param errorCode    Error code
+     * @param errorMessage Error message
+     * @return WebhookMetadataServerException
+     */
+    public static WebhookMetadataServerException buildServerException(String errorCode, String errorMessage) {
+
+        return new WebhookMetadataServerException(errorCode, errorMessage);
+    }
+
+    /**
+     * Build a webhook metadata server exception with a cause.
+     *
+     * @param errorCode    Error code
+     * @param errorMessage Error message
+     * @param cause        Cause of the exception
+     * @return WebhookMetadataServerException
+     */
+    public static WebhookMetadataServerException buildServerException(String errorCode, String errorMessage,
+                                                                      Throwable cause) {
+
+        return new WebhookMetadataServerException(errorCode, errorMessage, cause);
     }
 }

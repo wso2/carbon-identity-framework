@@ -18,59 +18,94 @@
 
 package org.wso2.carbon.identity.webhook.metadata.internal.service.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.ProfileType;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
-import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
+import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionBuilder;
+import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionBuilder.ErrorCodes;
+
+import java.util.List;
 
 /**
- * Implementation of the WebhookMetadataService interface.
- * This class provides access to webhook event metadata.
+ * Implementation of WebhookMetadataService.
  */
 public class WebhookMetadataServiceImpl implements WebhookMetadataService {
 
-    private final WebhookMetadataDAO webhookMetadataDAO;
+    private static final Log log = LogFactory.getLog(WebhookMetadataServiceImpl.class);
+    private static final WebhookMetadataServiceImpl INSTANCE = new WebhookMetadataServiceImpl();
 
-    /**
-     * Constructor with WebhookMetadataDAO dependency.
-     *
-     * @param webhookMetadataDAO The DAO to access webhook metadata
-     */
-    public WebhookMetadataServiceImpl(WebhookMetadataDAO webhookMetadataDAO) {
+    private FileBasedWebhookMetadataDAOImpl webhookMetadataDAO;
 
-        this.webhookMetadataDAO = webhookMetadataDAO;
+    private WebhookMetadataServiceImpl() {
+        webhookMetadataDAO = FileBasedWebhookMetadataDAOImpl.getInstance();
     }
 
     /**
-     * Get the event profile metadata for a specific profile type.
+     * Get the singleton instance of WebhookMetadataServiceImpl.
      *
-     * @param profileType Type of event profile
-     * @return EventProfile containing channel and event metadata
-     * @throws WebhookMetadataException If an error occurs while retrieving the event profile
+     * @return Singleton instance
      */
-    @Override
-    public EventProfile getEventProfile(ProfileType profileType) throws WebhookMetadataException {
-
-        return webhookMetadataDAO.getEventProfile(profileType);
+    public static WebhookMetadataServiceImpl getInstance() {
+        return INSTANCE;
     }
 
     /**
-     * Get all event profiles.
-     *
-     * @return Array of all available event profiles
-     * @throws WebhookMetadataException If an error occurs while retrieving the event profiles
+     * Initialize the service.
      */
-    @Override
-    public EventProfile[] getAllEventProfiles() throws WebhookMetadataException {
-        // Get profiles for all types
-        EventProfile[] profiles = new EventProfile[ProfileType.values().length];
-        ProfileType[] types = ProfileType.values();
+    public void init() {
+        webhookMetadataDAO.init();
+    }
 
-        for (int i = 0; i < types.length; i++) {
-            profiles[i] = getEventProfile(types[i]);
+    @Override
+    public List<String> getSupportedEventProfiles() throws WebhookMetadataException {
+        try {
+            return webhookMetadataDAO.getSupportedEventProfiles();
+        } catch (Exception e) {
+            String errorMessage = "Error retrieving supported event profiles";
+            log.error(errorMessage, e);
+            throw WebhookMetadataExceptionBuilder.buildServerException(
+                    ErrorCodes.ERROR_RETRIEVING_PROFILES, errorMessage, e);
         }
+    }
 
-        return profiles;
+    @Override
+    public EventProfile getEventProfile(String profileName) throws WebhookMetadataException {
+        try {
+            EventProfile profile = webhookMetadataDAO.getEventProfile(profileName);
+            if (profile == null) {
+                String errorMessage = "Event profile not found: " + profileName;
+                log.error(errorMessage);
+                throw WebhookMetadataExceptionBuilder.buildClientException(
+                        ErrorCodes.PROFILE_NOT_FOUND, errorMessage);
+            }
+            return profile;
+        } catch (WebhookMetadataException e) {
+            throw e;
+        } catch (Exception e) {
+            String errorMessage = "Error retrieving event profile: " + profileName;
+            log.error(errorMessage, e);
+            throw WebhookMetadataExceptionBuilder.buildServerException(
+                    ErrorCodes.ERROR_RETRIEVING_PROFILE, errorMessage, e);
+        }
+    }
+
+    @Override
+    public List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException {
+        try {
+            List<Event> events = webhookMetadataDAO.getEventsBySchema(schemaUri);
+            if (events.isEmpty()) {
+                log.warn("No events found for schema URI: " + schemaUri);
+            }
+            return events;
+        } catch (Exception e) {
+            String errorMessage = "Error retrieving events for schema: " + schemaUri;
+            log.error(errorMessage, e);
+            throw WebhookMetadataExceptionBuilder.buildServerException(
+                    ErrorCodes.ERROR_RETRIEVING_EVENTS, errorMessage, e);
+        }
     }
 }

@@ -1,38 +1,39 @@
 {
-    "channels": {
-        "Login_Channel": {
-            "name": "Login Channel",
-            "description": "This is the login channel",
-            "uri": "https://schemas.identity.wso2.org/events/login",
-            "events": [
-                {
-                    "name": "Login Success Event",
-                    "description": "This is the login success event",
-                    "uri": "https://schemas.identity.wso2.org/events/login/event-type/loginSuccess"
-                },
-                {
-                    "name": "Login Failure Event",
-                    "description": "This is the login failure event",
-                    "uri": "https://schemas.identity.wso2.org/events/login/event-type/loginFailed"
-                }
-            ]
+  "profile": "WSO2",
+  "channels": [
+    {
+      "name": "Login Channel",
+      "description": "This is the login channel",
+      "uri": "https://schemas.identity.wso2.org/events/login",
+      "events": [
+        {
+          "name": "Login Success Event",
+          "description": "This is the login success event",
+          "uri": "https://schemas.identity.wso2.org/events/login/event-type/loginSuccess"
         },
-        "Registration_Channel": {
-            "name": "Registration Channel",
-            "description": "This is the registration channel",
-            "uri": "https://schemas.identity.wso2.org/events/registration",
-            "events": [
-                {
-                    "name": "Registration Success Event",
-                    "description": "This is the registration success event",
-                    "uri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationSuccess"
-                },
-                {
-                    "name": "Registration Failure Event",
-                    "description": "This is the registration failure event",
-                    "uri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationFailed"
-                }
-            ]
+        {
+          "name": "Login Failure Event",
+          "description": "This is the login failure event",
+          "uri": "https://schemas.identity.wso2.org/events/login/event-type/loginFailed"
         }
+      ]
+    },
+    {
+      "name": "Registration Channel",
+      "description": "This is the registration channel",
+      "uri": "https://schemas.identity.wso2.org/events/registration",
+      "events": [
+        {
+          "name": "Registration Success Event",
+          "description": "This is the registration success event",
+          "uri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationSuccess"
+        },
+        {
+          "name": "Registration Failure Event",
+          "description": "This is the registration failure event",
+          "uri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationFailed"
+        }
+      ]
     }
+  ]
 }

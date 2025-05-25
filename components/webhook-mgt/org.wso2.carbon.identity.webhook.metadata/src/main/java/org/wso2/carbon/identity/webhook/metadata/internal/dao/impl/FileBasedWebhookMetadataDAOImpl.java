@@ -18,109 +18,169 @@
 
 package org.wso2.carbon.identity.webhook.metadata.internal.dao.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.ProfileType;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionBuilder;
-import org.wso2.carbon.utils.CarbonUtils;
+import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionBuilder.ErrorCodes;
+import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.EnumMap;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * Implementation of the WebhookMetadataDAO interface that reads webhook metadata from files.
- * Uses a singleton pattern and caches event profiles to avoid repeated file reads.
+ * File-based implementation of the WebhookMetadataDAO.
+ * Loads event profiles from JSON files in the configured directory.
  */
 public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
-    private static final Log LOG = LogFactory.getLog(FileBasedWebhookMetadataDAOImpl.class);
-    private static final String METADATA_DIR = "repository/resources/identity/channel-profiles";
+    private static final Log log = LogFactory.getLog(FileBasedWebhookMetadataDAOImpl.class);
     private static final FileBasedWebhookMetadataDAOImpl INSTANCE = new FileBasedWebhookMetadataDAOImpl();
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final Map<ProfileType, EventProfile> profileCache = new EnumMap<>(ProfileType.class);
+    // Cache of loaded event profiles
+    private Map<String, EventProfile> profileCache = new HashMap<>();
+    private boolean isInitialized = false;
 
-    /**
-     * Private constructor to enforce singleton pattern.
-     */
     private FileBasedWebhookMetadataDAOImpl() {
-        // Private constructor to enforce singleton pattern
+        // Private constructor to prevent instantiation
     }
 
     /**
-     * Get the singleton instance of FileBasedWebhookMetadataDAO.
+     * Get the singleton instance of FileBasedWebhookMetadataDAOImpl.
      *
-     * @return The singleton instance
+     * @return Singleton instance
      */
     public static FileBasedWebhookMetadataDAOImpl getInstance() {
-
         return INSTANCE;
     }
 
     /**
-     * Get the event profile metadata for a specific profile type.
-     * First checks the cache, if not found, reads from file and caches the result.
-     *
-     * @param profileType Type of event profile
-     * @return EventProfile containing channel and event metadata
-     * @throws WebhookMetadataException If an error occurs while retrieving the event profile
+     * Initialize the DAO by loading all event profiles from the file system.
+     * This is called during service activation.
      */
-    @Override
-    public EventProfile getEventProfile(ProfileType profileType) throws WebhookMetadataException {
-        // Check if the profile is already in the cache
-        if (profileCache.containsKey(profileType)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("EventProfile for " + profileType.getProfileName() + " found in cache");
-            }
-            return profileCache.get(profileType);
+    public synchronized void init() {
+        if (isInitialized) {
+            return;
         }
 
-        // Not in cache, load from file
-        String fileName = profileType.getFileName();
-        String filePath = Paths.get(CarbonUtils.getCarbonConfigDirPath(), METADATA_DIR, fileName).toString();
-
         try {
-            File file = new File(filePath);
-            if (!file.exists()) {
-                // Try to load from resources
-                file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource(fileName)).getFile());
-                if (!file.exists()) {
-                    throw WebhookMetadataExceptionBuilder.buildServerException(
-                            "Event profile file not found: " + filePath);
-                }
-            }
-
-            EventProfile profile = objectMapper.readValue(file, EventProfile.class);
-
-            // Cache the profile
-            profileCache.put(profileType, profile);
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("EventProfile for " + profileType.getProfileName() + " loaded from file and cached");
-            }
-
-            return profile;
-        } catch (IOException e) {
-            throw WebhookMetadataExceptionBuilder.buildServerException(
-                    "Error reading event profile from file: " + filePath, e);
+            loadEventProfiles();
+            isInitialized = true;
+        } catch (Exception e) {
+            log.error("Error initializing FileBasedWebhookMetadataDAOImpl", e);
         }
     }
 
     /**
-     * Clears the event profile cache.
-     * This can be useful when profiles are updated and need to be reloaded.
+     * Load all event profiles from the configured directory.
      */
-    public void clearCache() {
+    private void loadEventProfiles() throws WebhookMetadataException {
+        try {
+            Path eventProfilesPath = WebhookMetadataUtil.getEventProfilesDirectory();
+            
+            // Clear existing cache
+            profileCache.clear();
+            
+            // Load all JSON files in the directory
+            try (Stream<Path> paths = Files.walk(eventProfilesPath)) {
+                List<Path> jsonFiles = paths
+                        .filter(Files::isRegularFile)
+                        .filter(path -> path.toString().endsWith(".json"))
+                        .collect(Collectors.toList());
+                
+                for (Path jsonFile : jsonFiles) {
+                    try {
+                        String json = FileUtils.readFileToString(jsonFile.toFile(), StandardCharsets.UTF_8);
+                        Gson gson = new GsonBuilder().create();
+                        EventProfile profile = gson.fromJson(json, EventProfile.class);
+                        
+                        // Prioritize using profile name from JSON content
+                        // Only use filename as a fallback if profile name is not specified in the JSON
+                        if (profile.getProfile() == null || profile.getProfile().isEmpty()) {
+                            String fileName = FilenameUtils.getBaseName(jsonFile.getFileName().toString());
+                            profile.setProfile(fileName);
+                            log.info("Profile name not found in JSON, using filename: " + fileName);
+                        }
+                        
+                        profileCache.put(profile.getProfile(), profile);
+                        log.info("Loaded event profile: " + profile.getProfile());
+                    } catch (Exception e) {
+                        log.error("Error loading event profile from file: " + jsonFile, e);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            String errorMessage = "Error loading event profiles from directory";
+            log.error(errorMessage, e);
+            throw WebhookMetadataExceptionBuilder.buildServerException(
+                    ErrorCodes.ERROR_LOADING_PROFILE_FILES, errorMessage, e);
+        }
+    }
 
-        profileCache.clear();
-        LOG.debug("Event profile cache cleared");
+    @Override
+    public List<String> getSupportedEventProfiles() throws WebhookMetadataException {
+        if (!isInitialized) {
+            throw WebhookMetadataExceptionBuilder.buildServerException(
+                    ErrorCodes.ERROR_RETRIEVING_PROFILES, "Webhook metadata DAO is not initialized");
+        }
+        return new ArrayList<>(profileCache.keySet());
+    }
+
+    @Override
+    public EventProfile getEventProfile(String profileName) throws WebhookMetadataException {
+        if (!isInitialized) {
+            throw WebhookMetadataExceptionBuilder.buildServerException(
+                    ErrorCodes.ERROR_RETRIEVING_PROFILE, "Webhook metadata DAO is not initialized");
+        }
+        
+        EventProfile profile = profileCache.get(profileName);
+        if (profile == null) {
+            log.debug("Event profile not found for name: " + profileName);
+        }
+        return profile;
+    }
+
+    @Override
+    public List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException {
+        if (!isInitialized) {
+            throw WebhookMetadataExceptionBuilder.buildServerException(
+                    ErrorCodes.ERROR_RETRIEVING_EVENTS, "Webhook metadata DAO is not initialized");
+        }
+        
+        List<Event> matchingEvents = new ArrayList<>();
+        
+        for (EventProfile profile : profileCache.values()) {
+            for (Channel channel : profile.getChannels()) {
+                if (schemaUri.equals(channel.getUri())) {
+                    matchingEvents.addAll(channel.getEvents());
+                }
+            }
+        }
+        
+        return matchingEvents;
+    }
+
+    /**
+     * Reload all event profiles from the file system.
+     * This can be called to refresh the cache.
+     */
+    public void reloadEventProfiles() throws WebhookMetadataException {
+        loadEventProfiles();
     }
 }

@@ -21,84 +21,105 @@ package org.wso2.carbon.identity.webhook.metadata.api.model;
 import java.util.List;
 
 /**
- * This class represents the event channel metadata in an event profile.
+ * Represents a channel in a webhook event profile.
  */
-public class EventChannel {
+public class Channel {
 
     private String name;
     private String description;
     private String uri;
-    private List<EventType> events;
+    private List<Event> events;
 
     /**
-     * Get the name of the event channel.
+     * Default constructor.
+     */
+    public Channel() {
+    }
+
+    /**
+     * Constructor with all parameters.
      *
-     * @return Name of the event channel
+     * @param name        Name of the channel
+     * @param description Description of the channel
+     * @param uri         URI of the channel
+     * @param events      List of events in the channel
+     */
+    public Channel(String name, String description, String uri, List<Event> events) {
+        this.name = name;
+        this.description = description;
+        this.uri = uri;
+        this.events = events;
+    }
+
+    /**
+     * Get the name of the channel.
+     *
+     * @return Name of the channel
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Set the name of the event channel.
+     * Set the name of the channel.
      *
-     * @param name Name of the event channel
+     * @param name Name of the channel
      */
     public void setName(String name) {
         this.name = name;
     }
 
     /**
-     * Get the description of the event channel.
+     * Get the description of the channel.
      *
-     * @return Description of the event channel
+     * @return Description of the channel
      */
     public String getDescription() {
         return description;
     }
 
     /**
-     * Set the description of the event channel.
+     * Set the description of the channel.
      *
-     * @param description Description of the event channel
+     * @param description Description of the channel
      */
     public void setDescription(String description) {
         this.description = description;
     }
 
     /**
-     * Get the URI of the event channel.
+     * Get the URI of the channel.
      *
-     * @return URI of the event channel
+     * @return URI of the channel
      */
     public String getUri() {
         return uri;
     }
 
     /**
-     * Set the URI of the event channel.
+     * Set the URI of the channel.
      *
-     * @param uri URI of the event channel
+     * @param uri URI of the channel
      */
     public void setUri(String uri) {
         this.uri = uri;
     }
 
     /**
-     * Get the events in the event channel.
+     * Get the list of events in the channel.
      *
-     * @return List of event types in this channel
+     * @return List of events
      */
-    public List<EventType> getEvents() {
+    public List<Event> getEvents() {
         return events;
     }
 
     /**
-     * Set the events in the event channel.
+     * Set the list of events in the channel.
      *
-     * @param events List of event types in this channel
+     * @param events List of events
      */
-    public void setEvents(List<EventType> events) {
+    public void setEvents(List<Event> events) {
         this.events = events;
     }
 }
