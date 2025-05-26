@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 public class WebhookMetadataServiceImplTest {
 
     private static final String TEST_PROFILE_NAME = "Test";
-    private static final String TEST_SCHEMA_URI = "https://schemas.identity.wso2.org/events/test";
+    private static final String TEST_PROFILE_URI = "https://schemas.identity.wso2.org/events/test";
 
     @Mock
     private FileBasedWebhookMetadataDAOImpl mockDAO;
@@ -124,9 +124,9 @@ public class WebhookMetadataServiceImplTest {
         Event event1 = new Event("Event 1", "Description 1", "uri1");
         Event event2 = new Event("Event 2", "Description 2", "uri2");
         List<Event> events = Arrays.asList(event1, event2);
-        when(mockDAO.getEventsBySchema(TEST_SCHEMA_URI)).thenReturn(events);
+        when(mockDAO.getEventsByProfile(TEST_PROFILE_URI)).thenReturn(events);
 
-        List<Event> result = service.getEventsByProfileURI(TEST_SCHEMA_URI);
+        List<Event> result = service.getEventsByProfileURI(TEST_PROFILE_URI);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 2);
@@ -136,9 +136,9 @@ public class WebhookMetadataServiceImplTest {
     @Test
     public void testGetEventsByProfileURIEmpty() throws Exception {
 
-        when(mockDAO.getEventsBySchema(TEST_SCHEMA_URI)).thenReturn(Collections.emptyList());
+        when(mockDAO.getEventsByProfile(TEST_PROFILE_URI)).thenReturn(Collections.emptyList());
 
-        List<Event> result = service.getEventsByProfileURI(TEST_SCHEMA_URI);
+        List<Event> result = service.getEventsByProfileURI(TEST_PROFILE_URI);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 0);
@@ -147,8 +147,8 @@ public class WebhookMetadataServiceImplTest {
     @Test(expectedExceptions = WebhookMetadataServerException.class)
     public void testGetEventsByProfileURIException() throws Exception {
 
-        when(mockDAO.getEventsBySchema(TEST_SCHEMA_URI)).thenThrow(new RuntimeException("Test exception"));
+        when(mockDAO.getEventsByProfile(TEST_PROFILE_URI)).thenThrow(new RuntimeException("Test exception"));
 
-        service.getEventsByProfileURI(TEST_SCHEMA_URI);
+        service.getEventsByProfileURI(TEST_PROFILE_URI);
     }
 }

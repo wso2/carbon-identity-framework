@@ -47,11 +47,11 @@ public interface WebhookMetadataDAO {
     EventProfile getEventProfile(String profileName) throws WebhookMetadataException;
 
     /**
-     * Get list of events under the given event schema.
+     * Get list of events under the given event profile.
      *
-     * @param schemaUri URI of the event schema
+     * @param profileUri URI of the event profile
      * @return List of events
      * @throws WebhookMetadataException If an error occurs while retrieving events
      */
-    List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException;
+    List<Event> getEventsByProfile(String profileUri) throws WebhookMetadataException;
 }

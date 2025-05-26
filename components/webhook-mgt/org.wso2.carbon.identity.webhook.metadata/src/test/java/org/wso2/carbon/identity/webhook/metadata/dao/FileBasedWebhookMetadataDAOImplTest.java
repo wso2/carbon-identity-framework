@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.webhook.metadata.dao;
 
 import org.apache.commons.io.FileUtils;
-import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -28,7 +27,6 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
-import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -43,9 +41,8 @@ import java.util.Map;
 public class FileBasedWebhookMetadataDAOImplTest {
 
     private static final String TEST_PROFILE_NAME = "Test";
-    private static final String TEST_SCHEMA_URI = "https://schemas.identity.wso2.org/events/test";
+    private static final String TEST_PROFILE_URI = "https://schemas.identity.wso2.org/events/test";
     private FileBasedWebhookMetadataDAOImpl dao;
-    private MockedStatic<WebhookMetadataUtil> webhookMetadataUtilMockedStatic;
     private File tempDir;
 
     @BeforeMethod
@@ -102,9 +99,9 @@ public class FileBasedWebhookMetadataDAOImplTest {
     }
 
     @Test
-    public void testGetEventsBySchema() throws Exception {
+    public void testGetEventsByProfile() throws Exception {
 
-        List<Event> events = dao.getEventsBySchema(TEST_SCHEMA_URI);
+        List<Event> events = dao.getEventsByProfile(TEST_PROFILE_URI);
         Assert.assertNotNull(events);
         Assert.assertEquals(events.size(), 2);
         Assert.assertEquals(events.get(0).getEventName(), "Test Event 1");
@@ -112,9 +109,9 @@ public class FileBasedWebhookMetadataDAOImplTest {
     }
 
     @Test
-    public void testGetEventsBySchemaNotFound() throws Exception {
+    public void testGetEventsByProfileNotFound() throws Exception {
 
-        List<Event> events = dao.getEventsBySchema("https://nonexistent.uri");
+        List<Event> events = dao.getEventsByProfile("https://nonexistent.uri");
         Assert.assertNotNull(events);
         Assert.assertEquals(events.size(), 0);
     }

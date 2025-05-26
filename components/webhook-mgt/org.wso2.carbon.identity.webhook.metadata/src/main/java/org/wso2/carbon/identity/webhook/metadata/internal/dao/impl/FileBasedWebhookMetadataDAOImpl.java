@@ -166,7 +166,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
     }
 
     @Override
-    public List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException {
+    public List<Event> getEventsByProfile(String profileUri) throws WebhookMetadataException {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
@@ -178,7 +178,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
         for (EventProfile profile : profileCache.values()) {
             if (profile.getChannels() != null) {
                 for (Channel channel : profile.getChannels()) {
-                    if (channel != null && schemaUri.equals(channel.getUri())) {
+                    if (channel != null && profileUri.equals(channel.getUri())) {
                         List<Event> events = channel.getEvents();
                         if (events != null) {
                             matchingEvents.addAll(events);

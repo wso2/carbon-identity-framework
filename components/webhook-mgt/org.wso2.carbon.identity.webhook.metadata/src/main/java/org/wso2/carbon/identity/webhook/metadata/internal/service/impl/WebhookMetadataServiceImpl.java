@@ -100,9 +100,9 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     public List<Event> getEventsByProfileURI(String profileUri) throws WebhookMetadataException {
 
         try {
-            List<Event> events = webhookMetadataDAO.getEventsBySchema(profileUri);
+            List<Event> events = webhookMetadataDAO.getEventsByProfile(profileUri);
             if (events.isEmpty()) {
-                log.warn("No events found for schema URI: " + profileUri);
+                log.warn("No events found for profile URI: " + profileUri);
             }
             return events;
         } catch (Exception e) {
