@@ -18,13 +18,13 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.webhook.management">
-    <test name="webhook-management-service-test">
+<suite name="org.wso2.carbon.identity.webhook.metadata">
+    <test name="webhook-metadata-service-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.metadata.service.WebhookMetadataServiceImplTest"/>
         </classes>
     </test>
-    <test name="webhook-management-dao-test">
+    <test name="webhook-metadata-dao-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.metadata.dao.FileBasedWebhookMetadataDAOImplTest"/>
         </classes>
