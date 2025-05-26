@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.webhook.metadata.dao;
 
-import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUt
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +45,7 @@ public class FileBasedWebhookMetadataDAOImplTest {
     private static final String TEST_PROFILE_NAME = "Test";
     private static final String TEST_SCHEMA_URI = "https://schemas.identity.wso2.org/events/test";
     private FileBasedWebhookMetadataDAOImpl dao;
+    private MockedStatic<WebhookMetadataUtil> webhookMetadataUtilMockedStatic;
     private File tempDir;
 
     @BeforeMethod
@@ -54,12 +55,9 @@ public class FileBasedWebhookMetadataDAOImplTest {
 
         tempDir = Files.createTempDirectory("webhook-metadata-test").toFile();
 
-        File sourceFile = new File(getClass().getClassLoader()
-                .getResource("test-event-profile.json").getFile());
-        File targetFile = new File(tempDir, "test-event-profile.json");
-        FileUtils.copyFile(sourceFile, targetFile);
-
-        WebhookMetadataUtil.setEventProfilesDirectory(tempDir.toPath());
+        URL root = this.getClass().getClassLoader().getResource(".");
+        File file = new File(root.getPath());
+        System.setProperty("carbon.home", file.getAbsolutePath());
 
         dao = FileBasedWebhookMetadataDAOImpl.getInstance();
 
@@ -70,8 +68,6 @@ public class FileBasedWebhookMetadataDAOImplTest {
 
     @AfterMethod
     public void tearDown() throws Exception {
-
-        WebhookMetadataUtil.setEventProfilesDirectory(null);
 
         if (tempDir != null && tempDir.exists()) {
             FileUtils.deleteDirectory(tempDir);
@@ -121,22 +117,6 @@ public class FileBasedWebhookMetadataDAOImplTest {
         List<Event> events = dao.getEventsBySchema("https://nonexistent.uri");
         Assert.assertNotNull(events);
         Assert.assertEquals(events.size(), 0);
-    }
-
-    @Test
-    public void testReloadEventProfiles() throws Exception {
-
-        File newProfileFile = new File(tempDir, "new-profile.json");
-        EventProfile newProfile = new EventProfile();
-        newProfile.setProfile("NewProfile");
-        String json = new Gson().toJson(newProfile);
-        FileUtils.writeStringToFile(newProfileFile, json, StandardCharsets.UTF_8);
-
-        dao.reloadEventProfiles();
-
-        List<String> profiles = dao.getSupportedEventProfiles();
-        Assert.assertEquals(profiles.size(), 2);
-        Assert.assertTrue(profiles.contains("NewProfile"));
     }
 
     /**

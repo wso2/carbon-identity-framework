@@ -59,16 +59,6 @@ public class Event {
     }
 
     /**
-     * Set the name of the event.
-     *
-     * @param eventName Name of the event
-     */
-    public void setEventName(String eventName) {
-
-        this.eventName = eventName;
-    }
-
-    /**
      * Get the description of the event.
      *
      * @return Description of the event
@@ -79,16 +69,6 @@ public class Event {
     }
 
     /**
-     * Set the description of the event.
-     *
-     * @param eventDescription Description of the event
-     */
-    public void setEventDescription(String eventDescription) {
-
-        this.eventDescription = eventDescription;
-    }
-
-    /**
      * Get the URI of the event.
      *
      * @return URI of the event
@@ -96,15 +76,5 @@ public class Event {
     public String getEventUri() {
 
         return eventUri;
-    }
-
-    /**
-     * Set the URI of the event.
-     *
-     * @param eventUri URI of the event
-     */
-    public void setEventUri(String eventUri) {
-
-        this.eventUri = eventUri;
     }
 }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.webhook.metadata.internal.service.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
@@ -61,7 +62,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     /**
      * Initialize the service.
      */
-    public void init() {
+    public void init() throws WebhookMetadataServerException {
 
         webhookMetadataDAO.init();
     }
@@ -96,12 +97,12 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     }
 
     @Override
-    public List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException {
+    public List<Event> getEventsByProfileURI(String profileUri) throws WebhookMetadataException {
 
         try {
-            List<Event> events = webhookMetadataDAO.getEventsBySchema(schemaUri);
+            List<Event> events = webhookMetadataDAO.getEventsBySchema(profileUri);
             if (events.isEmpty()) {
-                log.warn("No events found for schema URI: " + schemaUri);
+                log.warn("No events found for schema URI: " + profileUri);
             }
             return events;
         } catch (Exception e) {

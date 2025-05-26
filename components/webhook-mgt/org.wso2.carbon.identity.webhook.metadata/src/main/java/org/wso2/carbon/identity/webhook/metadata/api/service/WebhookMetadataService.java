@@ -49,9 +49,9 @@ public interface WebhookMetadataService {
     /**
      * Get list of events under the given event schema.
      *
-     * @param schemaUri URI of the event schema
+     * @param profileUri URI of the event schema
      * @return List of events
      * @throws WebhookMetadataException If an error occurs while retrieving events
      */
-    List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException;
+    List<Event> getEventsByProfileURI(String profileUri) throws WebhookMetadataException;
 }

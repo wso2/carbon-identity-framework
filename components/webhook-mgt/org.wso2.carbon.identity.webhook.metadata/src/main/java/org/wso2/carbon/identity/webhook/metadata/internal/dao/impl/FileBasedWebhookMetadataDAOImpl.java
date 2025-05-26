@@ -25,6 +25,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
@@ -78,7 +79,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
      * Initialize the DAO by loading all event profiles from the file system.
      * This is called during service activation.
      */
-    public synchronized void init() {
+    public synchronized void init() throws WebhookMetadataServerException {
 
         if (isInitialized) {
             return;
@@ -88,7 +89,8 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
             loadEventProfiles();
             isInitialized = true;
         } catch (Exception e) {
-            log.error("Error initializing FileBasedWebhookMetadataDAOImpl", e);
+            throw WebhookMetadataExceptionHandler.handleServerException(
+                    ERROR_LOADING_PROFILE_FILES, e);
         }
     }
 
@@ -111,29 +113,25 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
                         .collect(Collectors.toList());
 
                 for (Path jsonFile : jsonFiles) {
-                    try {
-                        String json = FileUtils.readFileToString(jsonFile.toFile(), StandardCharsets.UTF_8);
-                        Gson gson = new GsonBuilder().create();
-                        EventProfile profile = gson.fromJson(json, EventProfile.class);
+                    String json = FileUtils.readFileToString(jsonFile.toFile(), StandardCharsets.UTF_8);
+                    Gson gson = new GsonBuilder().create();
+                    EventProfile profile = gson.fromJson(json, EventProfile.class);
 
-                        if (profile == null) {
-                            log.warn("Failed to parse event profile from file: " + jsonFile);
-                            continue;
-                        }
-
-                        // Prioritize using profile name from JSON content
-                        // Only use filename as a fallback if profile name is not specified in the JSON
-                        if (profile.getProfile() == null || profile.getProfile().isEmpty()) {
-                            String fileName = FilenameUtils.getBaseName(jsonFile.getFileName().toString());
-                            profile.setProfile(fileName);
-                            log.info("Profile name not found in JSON, using filename: " + fileName);
-                        }
-
-                        profileCache.put(profile.getProfile(), profile);
-                        log.info("Loaded event profile: " + profile.getProfile());
-                    } catch (Exception e) {
-                        log.error("Error loading event profile from file: " + jsonFile, e);
+                    if (profile == null) {
+                        log.warn("Failed to parse event profile from file: " + jsonFile);
+                        continue;
                     }
+
+                    // Prioritize using profile name from JSON content
+                    // Only use filename as a fallback if profile name is not specified in the JSON
+                    if (profile.getProfile() == null || profile.getProfile().isEmpty()) {
+                        String fileName = FilenameUtils.getBaseName(jsonFile.getFileName().toString());
+                        profile = new EventProfile(fileName, profile.getChannels());
+                        log.debug("Profile name not found in JSON, using filename: " + fileName);
+                    }
+
+                    profileCache.put(profile.getProfile(), profile);
+                    log.debug("Loaded event profile: " + profile.getProfile());
                 }
             }
         } catch (IOException e) {
@@ -191,14 +189,5 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
         }
 
         return matchingEvents;
-    }
-
-    /**
-     * Reload all event profiles from the file system.
-     * This can be called to refresh the cache.
-     */
-    public synchronized void reloadEventProfiles() throws WebhookMetadataException {
-
-        loadEventProfiles();
     }
 }

@@ -24,20 +24,14 @@ package org.wso2.carbon.identity.webhook.metadata.api.constant;
 public enum ErrorMessage {
 
     // Client errors
-    INVALID_REQUEST("CLIENT-00001", "Invalid request",
-            "The request is invalid."),
     PROFILE_NOT_FOUND("CLIENT-00002", "Profile not found",
             "The requested event profile could not be found."),
-    SCHEMA_NOT_FOUND("CLIENT-00003", "Schema not found",
-            "The requested schema could not be found."),
 
     // Server errors
-    ERROR_RETRIEVING_PROFILES("SERVER-00001", "Error retrieving profiles",
-            "An error occurred while retrieving event profiles."),
     ERROR_RETRIEVING_PROFILE("SERVER-00002", "Error retrieving profile",
             "An error occurred while retrieving the event profile."),
     ERROR_RETRIEVING_EVENTS("SERVER-00003", "Error retrieving events",
-            "An error occurred while retrieving events for the schema."),
+            "An error occurred while retrieving events for the profile."),
     ERROR_LOADING_PROFILE_FILES("SERVER-00004", "Error loading profile files",
             "An error occurred while loading event profile files from the directory.");
 

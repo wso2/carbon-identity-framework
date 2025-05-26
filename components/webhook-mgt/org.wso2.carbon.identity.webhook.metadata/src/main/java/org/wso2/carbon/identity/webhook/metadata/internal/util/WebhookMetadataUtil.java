@@ -34,7 +34,7 @@ public class WebhookMetadataUtil {
     private static final String EVENT_PROFILES_DIR = "eventprofiles";
     private static final String EVENT_PROFILES_PATH = "repository/conf/" + EVENT_PROFILES_DIR;
 
-    protected static Path eventProfilesDirectory = null;
+    private static Path eventProfilesDirectory = null;
 
     /**
      * Get the directory path for event profiles.
@@ -62,7 +62,7 @@ public class WebhookMetadataUtil {
             File directory = eventProfilesPath.toFile();
             if (!directory.exists()) {
                 if (directory.mkdirs()) {
-                    log.info("Created directory for event profiles: " + eventProfilesPath);
+                    log.debug("Created directory for event profiles: " + eventProfilesPath);
                 } else {
                     String errorMsg = "Failed to create directory for event profiles: " + eventProfilesPath;
                     log.error(errorMsg);
@@ -73,15 +73,5 @@ public class WebhookMetadataUtil {
             eventProfilesDirectory = eventProfilesPath;
             return eventProfilesPath;
         }
-    }
-
-    /**
-     * Set the directory path for event profiles. This is primarily for testing.
-     *
-     * @param path Path to the event profiles directory
-     */
-    public static void setEventProfilesDirectory(Path path) {
-
-        eventProfilesDirectory = path;
     }
 }

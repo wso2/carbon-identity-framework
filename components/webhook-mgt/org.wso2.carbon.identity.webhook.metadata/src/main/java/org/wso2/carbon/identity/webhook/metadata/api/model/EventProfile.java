@@ -58,16 +58,6 @@ public class EventProfile {
     }
 
     /**
-     * Set the name of the event profile.
-     *
-     * @param profile Name of the event profile
-     */
-    public void setProfile(String profile) {
-
-        this.profile = profile;
-    }
-
-    /**
      * Get the list of channels in the profile.
      *
      * @return List of channels
@@ -75,15 +65,5 @@ public class EventProfile {
     public List<Channel> getChannels() {
 
         return channels;
-    }
-
-    /**
-     * Set the list of channels in the profile.
-     *
-     * @param channels List of channels
-     */
-    public void setChannels(List<Channel> channels) {
-
-        this.channels = channels;
     }
 }

@@ -64,16 +64,6 @@ public class Channel {
     }
 
     /**
-     * Set the name of the channel.
-     *
-     * @param name Name of the channel
-     */
-    public void setName(String name) {
-
-        this.name = name;
-    }
-
-    /**
      * Get the description of the channel.
      *
      * @return Description of the channel
@@ -81,16 +71,6 @@ public class Channel {
     public String getDescription() {
 
         return description;
-    }
-
-    /**
-     * Set the description of the channel.
-     *
-     * @param description Description of the channel
-     */
-    public void setDescription(String description) {
-
-        this.description = description;
     }
 
     /**
@@ -104,16 +84,6 @@ public class Channel {
     }
 
     /**
-     * Set the URI of the channel.
-     *
-     * @param uri URI of the channel
-     */
-    public void setUri(String uri) {
-
-        this.uri = uri;
-    }
-
-    /**
      * Get the list of events in the channel.
      *
      * @return List of events
@@ -121,15 +91,5 @@ public class Channel {
     public List<Event> getEvents() {
 
         return events;
-    }
-
-    /**
-     * Set the list of events in the channel.
-     *
-     * @param events List of events
-     */
-    public void setEvents(List<Event> events) {
-
-        this.events = events;
     }
 }

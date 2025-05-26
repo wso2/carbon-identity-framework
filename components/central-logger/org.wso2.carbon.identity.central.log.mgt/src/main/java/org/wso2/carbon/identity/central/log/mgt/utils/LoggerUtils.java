@@ -103,10 +103,8 @@ public class LoggerUtils {
             }
             IdentityEventService eventMgtService =
                     CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
-            Map<String, Object> stringObjectMap = new HashMap<>();
-            stringObjectMap.put(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLogBuilder.build());
             Event auditEvent = new Event(PUBLISH_AUDIT_LOG,
-                    stringObjectMap);
+                    Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLogBuilder.build()));
             eventMgtService.handleEvent(auditEvent);
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";

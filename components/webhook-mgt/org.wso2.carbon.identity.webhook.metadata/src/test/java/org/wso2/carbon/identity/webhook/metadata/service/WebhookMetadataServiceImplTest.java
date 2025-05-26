@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebh
 import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.WebhookMetadataServiceImpl;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -92,8 +93,7 @@ public class WebhookMetadataServiceImplTest {
     @Test
     public void testGetEventProfile() throws Exception {
 
-        EventProfile mockProfile = new EventProfile();
-        mockProfile.setProfile(TEST_PROFILE_NAME);
+        EventProfile mockProfile = new EventProfile(TEST_PROFILE_NAME, new ArrayList<>());
         when(mockDAO.getEventProfile(TEST_PROFILE_NAME)).thenReturn(mockProfile);
 
         EventProfile result = service.getEventProfile(TEST_PROFILE_NAME);
@@ -119,14 +119,14 @@ public class WebhookMetadataServiceImplTest {
     }
 
     @Test
-    public void testGetEventsBySchema() throws Exception {
+    public void testGetEventsByProfileURI() throws Exception {
 
         Event event1 = new Event("Event 1", "Description 1", "uri1");
         Event event2 = new Event("Event 2", "Description 2", "uri2");
         List<Event> events = Arrays.asList(event1, event2);
         when(mockDAO.getEventsBySchema(TEST_SCHEMA_URI)).thenReturn(events);
 
-        List<Event> result = service.getEventsBySchema(TEST_SCHEMA_URI);
+        List<Event> result = service.getEventsByProfileURI(TEST_SCHEMA_URI);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 2);
@@ -134,21 +134,21 @@ public class WebhookMetadataServiceImplTest {
     }
 
     @Test
-    public void testGetEventsBySchemaEmpty() throws Exception {
+    public void testGetEventsByProfileURIEmpty() throws Exception {
 
         when(mockDAO.getEventsBySchema(TEST_SCHEMA_URI)).thenReturn(Collections.emptyList());
 
-        List<Event> result = service.getEventsBySchema(TEST_SCHEMA_URI);
+        List<Event> result = service.getEventsByProfileURI(TEST_SCHEMA_URI);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 0);
     }
 
     @Test(expectedExceptions = WebhookMetadataServerException.class)
-    public void testGetEventsBySchemaException() throws Exception {
+    public void testGetEventsByProfileURIException() throws Exception {
 
         when(mockDAO.getEventsBySchema(TEST_SCHEMA_URI)).thenThrow(new RuntimeException("Test exception"));
 
-        service.getEventsBySchema(TEST_SCHEMA_URI);
+        service.getEventsByProfileURI(TEST_SCHEMA_URI);
     }
 }
