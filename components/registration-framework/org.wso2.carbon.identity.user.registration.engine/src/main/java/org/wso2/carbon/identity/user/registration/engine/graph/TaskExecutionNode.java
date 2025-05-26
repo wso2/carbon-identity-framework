@@ -18,27 +18,6 @@
 
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_IDP_CONFIG_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REGISTRATION_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REQUEST_PROCESSING_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_ERROR;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_RETRY;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
-import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
-import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -58,6 +37,34 @@ import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_IDP_CONFIG_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REGISTRATION_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REQUEST_PROCESSING_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_CLIENT_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_ERROR;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_INTERACTION;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_RETRY;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
+import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERNAL_PROMPT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 
 /**
  * Implementation of a node specific to executing a registration executor.
@@ -97,11 +104,18 @@ public class TaskExecutionNode implements Node {
     }
 
     @Override
-    public Response rollback(RegistrationContext context, NodeConfig nodeConfig)
+    public Response rollback(RegistrationContext context, NodeConfig config)
             throws RegistrationEngineException {
 
-        LOG.debug("Rollback is not supported for TaskExecutionNode.");
-        return null;
+        if (config.getExecutorConfig() == null) {
+            throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getRegGraph().getId(),
+                    context.getTenantDomain());
+        }
+        Executor mappedRegExecutor = resolveExecutor(config, context.getRegGraph().getId(), context.getTenantDomain());
+        mappedRegExecutor.rollback(context);
+        context.setCurrentNode(context.getRegGraph().getNodeConfigs().get(config.getPreviousNodeId()));
+        // Ignore the response from executor for rollback.
+        return new Response.Builder().status(STATUS_COMPLETE).build();
     }
 
     private Response triggerExecutor(RegistrationContext context, NodeConfig configs)
@@ -109,7 +123,15 @@ public class TaskExecutionNode implements Node {
 
         Executor mappedRegExecutor = resolveExecutor(configs, context.getRegGraph().getId(), context.getTenantDomain());
         ExecutorResponse response = mappedRegExecutor.execute(context);
+        if (response == null) {
+            throw handleServerException(ERROR_CODE_EXECUTOR_FAILURE, "Executor response is null for executor: "
+                    + mappedRegExecutor.getName());
+        }
+        if (response.getContextProperties() != null && !response.getContextProperties().isEmpty()) {
+            context.addProperties(response.getContextProperties());
+        }
         if (STATUS_COMPLETE.equals(response.getResult()) || STATUS_USER_CREATED.equals(response.getResult())) {
+            context.addCompletedNode(configs);
             return handleCompleteStatus(context, response, mappedRegExecutor.getName(), configs);
         }
         return handleIncompleteStatus(context, response);
@@ -118,9 +140,6 @@ public class TaskExecutionNode implements Node {
     private Response handleIncompleteStatus(RegistrationContext context, ExecutorResponse response)
             throws RegistrationEngineException {
 
-        if (response.getContextProperties() != null && !response.getContextProperties().isEmpty()) {
-            context.addProperties(response.getContextProperties());
-        }
         switch (response.getResult()) {
             case STATUS_RETRY:
                 return new Response.Builder()
@@ -133,6 +152,20 @@ public class TaskExecutionNode implements Node {
                 return new Response.Builder()
                         .status(STATUS_INCOMPLETE)
                         .type(VIEW)
+                        .requiredData(response.getRequiredData())
+                        .additionalInfo(response.getAdditionalInfo())
+                        .build();
+            case STATUS_CLIENT_INPUT_REQUIRED:
+                return new Response.Builder()
+                        .status(STATUS_INCOMPLETE)
+                        .type(INTERNAL_PROMPT)
+                        .requiredData(response.getRequiredData())
+                        .additionalInfo(response.getAdditionalInfo())
+                        .build();
+            case STATUS_INTERACTION:
+                return new Response.Builder()
+                        .status(STATUS_INCOMPLETE)
+                        .type(INTERACT)
                         .requiredData(response.getRequiredData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
