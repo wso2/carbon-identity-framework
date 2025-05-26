@@ -65,7 +65,7 @@ public class RegistrationFlowMgtService {
                     new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                                                  flowConfig.getId(),
                                                  LoggerUtils.Target.Flow.name(),
-                                                 LogConstants.RegistrationFlowManagement.UPDATE_REGISTRATION_FLOW);
+                                                 LogConstants.FlowManagement.UPDATE_FLOW);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }

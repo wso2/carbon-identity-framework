@@ -31,29 +31,32 @@ public interface FlowDAO {
     /**
      * Update a specific flow of the given tenant.
      *
+     * @param flowType      The flow type.
      * @param graphConfig The graph config.
      * @param tenantId      The tenant ID.
      * @param flowName      The flow name.
      * @throws OrchestrationFrameworkException If an error occurs while updating the flow.
      */
-    void updateFlow(GraphConfig graphConfig, int tenantId, String flowName)
+    void updateFlow(String flowType, GraphConfig graphConfig, int tenantId, String flowName)
             throws OrchestrationFrameworkException;
 
     /**
      * Get the specific flow of the given tenant.
      *
+     * @param flowType The flow type.
      * @param tenantId The tenant ID.
      * @return The flow.
      * @throws OrchestrationServerException If an error occurs while retrieving the default flow.
      */
-    FlowDTO getFlow(int tenantId) throws OrchestrationServerException;
+    FlowDTO getFlow(String flowType, int tenantId) throws OrchestrationServerException;
 
     /**
      * Get the specific graph of the given tenant.
      *
+     * @param flowType The flow type.
      * @param tenantId The tenant ID.
      * @return The graph config.
      * @throws OrchestrationServerException If an error occurs while retrieving the flow.
      */
-    GraphConfig getGraphConfig(int tenantId) throws OrchestrationFrameworkException;
+    GraphConfig getGraphConfig(String flowType, int tenantId) throws OrchestrationFrameworkException;
 }

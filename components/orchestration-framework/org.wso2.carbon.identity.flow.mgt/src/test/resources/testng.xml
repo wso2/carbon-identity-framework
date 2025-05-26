@@ -19,7 +19,7 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.flow.mgt">
-    <test name="registration-mgt-tests" preserve-order="true" parallel="false">
+    <test name="flow-mgt-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.flow.mgt.FlowMgtServiceTest"/>
         </classes>

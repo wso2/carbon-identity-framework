@@ -96,6 +96,7 @@ public class FlowMgtServiceTest {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            FlowDTO asd = createSampleGraphConfig();
             service.updateFlow(createSampleGraphConfig(), TEST_TENANT_ID);
         }
     }
@@ -105,7 +106,7 @@ public class FlowMgtServiceTest {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
-            FlowDTO flowDTO = service.getFlow(TEST_TENANT_ID);
+            FlowDTO flowDTO = service.getFlow("SELF_REGISTRATION", TEST_TENANT_ID);
             assertNotNull(flowDTO);
             assertEquals(flowDTO.getSteps().size(), 4);
         }
@@ -116,7 +117,7 @@ public class FlowMgtServiceTest {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
-            GraphConfig regGraph = service.getGraphConfig(TEST_TENANT_ID);
+            GraphConfig regGraph = service.getGraphConfig("SELF_REGISTRATION", TEST_TENANT_ID);
             assertNotNull(regGraph);
             assertEquals(regGraph.getNodeConfigs().size(), 5);
             assertEquals(regGraph.getFirstNodeId(), "step_1");
@@ -200,7 +201,7 @@ public class FlowMgtServiceTest {
             FlowDTO flowDTO = new FlowDTO();
             flowDTO.setSteps(Collections.singletonList(step));
             service.updateFlow(flowDTO, TEST_TENANT_ID);
-            fail("Expected RegistrationFrameworkException not thrown");
+            fail("Expected OrchestrationFrameworkException not thrown");
         } catch (OrchestrationFrameworkException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_MULTIPLE_STEP_EXECUTORS.getCode());
         }
@@ -214,7 +215,7 @@ public class FlowMgtServiceTest {
         flowDTO.setSteps(Collections.singletonList(step));
         try {
             service.updateFlow(flowDTO, TEST_TENANT_ID);
-            fail("Expected RegistrationFrameworkException not thrown");
+            fail("Expected OrchestrationFrameworkException not thrown");
         } catch (OrchestrationFrameworkException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_UNSUPPORTED_STEP_TYPE.getCode());
         }
@@ -302,7 +303,9 @@ public class FlowMgtServiceTest {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            return objectMapper.readValue(new File(getFilePath(FLOW_JSON)), FlowDTO.class);
+            FlowDTO flowDTO = objectMapper.readValue(new File(getFilePath(FLOW_JSON)), FlowDTO.class);
+            flowDTO.setFlowType("SELF_REGISTRATION");
+            return flowDTO;
         } catch (Exception e) {
             throw new RuntimeException("Error while reading the JSON file.", e);
         }

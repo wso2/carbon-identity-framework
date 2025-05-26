@@ -46,7 +46,6 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.REGISTRATION_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.utils.OrchestrationMgtUtils.handleServerException;
 
 import java.io.ByteArrayInputStream;
@@ -55,6 +54,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +91,7 @@ public class FlowDAOImpl implements FlowDAO {
     private static final Log LOG = LogFactory.getLog(FlowDAOImpl.class);
 
     @Override
-    public void updateFlow(GraphConfig graphConfig, int tenantId,
+    public void updateFlow(String flowType, GraphConfig graphConfig, int tenantId,
                            String flowName) throws OrchestrationFrameworkException {
 
         String flowId = graphConfig.getId();
@@ -102,7 +103,7 @@ public class FlowDAOImpl implements FlowDAO {
                         preparedStatement -> {
                             preparedStatement.setInt(1, tenantId);
                             preparedStatement.setBoolean(2, true);
-                            preparedStatement.setString(3, REGISTRATION_FLOW);
+                            preparedStatement.setString(3, flowType);
                         });
 
                 // Insert into IDN_FLOW.
@@ -111,8 +112,9 @@ public class FlowDAOImpl implements FlowDAO {
                             preparedStatement.setString(1, flowId);
                             preparedStatement.setInt(2, tenantId);
                             preparedStatement.setString(3, flowName);
-                            preparedStatement.setString(4, REGISTRATION_FLOW);
+                            preparedStatement.setString(4, flowType);
                             preparedStatement.setBoolean(5, true);
+                            preparedStatement.setTimestamp(6, new Timestamp(new Date().getTime()), null);
                         }, graphConfig, false);
 
                 // Insert into IDN_FLOW_NODE.
@@ -196,7 +198,7 @@ public class FlowDAOImpl implements FlowDAO {
     }
 
     @Override
-    public FlowDTO getFlow(int tenantId) throws OrchestrationServerException {
+    public FlowDTO getFlow(String flowType, int tenantId) throws OrchestrationServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
@@ -217,7 +219,7 @@ public class FlowDAOImpl implements FlowDAO {
                     })), preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
                         preparedStatement.setBoolean(2, true);
-                        preparedStatement.setString(3, REGISTRATION_FLOW);
+                        preparedStatement.setString(3, flowType);
                     });
 
             FlowDTO flowDTO = new FlowDTO();
@@ -243,12 +245,12 @@ public class FlowDAOImpl implements FlowDAO {
     }
 
     @Override
-    public GraphConfig getGraphConfig(int tenantId) throws OrchestrationFrameworkException {
+    public GraphConfig getGraphConfig(String flowType, int tenantId) throws OrchestrationFrameworkException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             // Step 1: Fetch Nodes with Executors and Mappings.
-            List<Map<String, Object>> rows = getGraphNodes(tenantId, jdbcTemplate);
+            List<Map<String, Object>> rows = getGraphNodes(flowType, tenantId, jdbcTemplate);
 
             // Step 2: Process Data to Avoid Duplication.
             GraphConfig graphConfig = buildGraph(rows);
@@ -260,7 +262,7 @@ public class FlowDAOImpl implements FlowDAO {
             graphConfig.setNodePageMappings(nodePageMappings);
             return graphConfig;
         } catch (DataAccessException e) {
-            LOG.error("Failed to retrieve registration graph for tenant: " + tenantId, e);
+            LOG.error("Failed to retrieve graph for tenant: " + tenantId, e);
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_GRAPH_FAILED, e, tenantId);
         }
     }
@@ -281,7 +283,7 @@ public class FlowDAOImpl implements FlowDAO {
         }
     }
 
-    private List<Map<String, Object>> getGraphNodes(int tenantId, JdbcTemplate jdbcTemplate) throws DataAccessException {
+    private List<Map<String, Object>> getGraphNodes(String flowType, int tenantId, JdbcTemplate jdbcTemplate) throws DataAccessException {
 
         return jdbcTemplate.executeQuery(GET_NODES_WITH_MAPPINGS_QUERY, (resultSet, rowNumber) -> {
             Map<String, Object> row = new HashMap<>();
@@ -297,7 +299,7 @@ public class FlowDAOImpl implements FlowDAO {
         }, preparedStatement -> {
             preparedStatement.setInt(1, tenantId);
             preparedStatement.setBoolean(2, true);
-            preparedStatement.setString(3, REGISTRATION_FLOW);
+            preparedStatement.setString(3, flowType);
         });
     }
 

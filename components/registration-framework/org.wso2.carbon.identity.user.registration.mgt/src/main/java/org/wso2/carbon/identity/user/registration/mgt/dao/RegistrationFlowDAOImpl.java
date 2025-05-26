@@ -55,6 +55,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,6 +115,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                             preparedStatement.setString(3, flowName);
                             preparedStatement.setString(4, REGISTRATION_FLOW);
                             preparedStatement.setBoolean(5, true);
+                            preparedStatement.setTimestamp(6, new Timestamp(new Date().getTime()), null);
                         }, regFlowConfig, false);
 
                 // Insert into IDN_FLOW_NODE.

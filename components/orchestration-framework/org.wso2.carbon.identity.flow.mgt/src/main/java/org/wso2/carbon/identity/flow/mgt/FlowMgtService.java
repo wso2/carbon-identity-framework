@@ -59,13 +59,13 @@ public class FlowMgtService {
             throws OrchestrationFrameworkException {
 
         GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
-        flowDAO.updateFlow(flowConfig, tenantID, DEFAULT_FLOW_NAME);
+        flowDAO.updateFlow(flowDTO.getFlowType(), flowConfig, tenantID, DEFAULT_FLOW_NAME);
         if (isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder =
                     new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                                                  flowConfig.getId(),
                                                  LoggerUtils.Target.Flow.name(),
-                                                 LogConstants.RegistrationFlowManagement.UPDATE_REGISTRATION_FLOW);
+                                                 LogConstants.FlowManagement.UPDATE_FLOW + flowDTO.getFlowType());
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }
@@ -77,18 +77,18 @@ public class FlowMgtService {
      * @return The flow.
      * @throws OrchestrationFrameworkException If an error occurs while retrieving the default flow.
      */
-    public FlowDTO getFlow(int tenantID) throws OrchestrationFrameworkException {
+    public FlowDTO getFlow(String flowType, int tenantID) throws OrchestrationFrameworkException {
 
-        return flowDAO.getFlow(tenantID);
+        return flowDAO.getFlow(flowType, tenantID);
     }
 
     /**
-     * Get the registration flow by tenant ID.
+     * Get the graph config by tenant ID.
      *
      * @param tenantID The tenant ID.
      */
-    public GraphConfig getGraphConfig(int tenantID) throws OrchestrationFrameworkException {
+    public GraphConfig getGraphConfig(String flowType, int tenantID) throws OrchestrationFrameworkException {
 
-        return flowDAO.getGraphConfig(tenantID);
+        return flowDAO.getGraphConfig(flowType, tenantID);
     }
 }

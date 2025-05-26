@@ -27,6 +27,7 @@ import java.util.List;
 public class FlowDTO {
 
     private List<StepDTO> steps = new ArrayList<>();
+    private String flowType;
 
     public List<StepDTO> getSteps() {
 
@@ -36,5 +37,15 @@ public class FlowDTO {
     public void setSteps(List<StepDTO> steps) {
 
         this.steps = steps;
+    }
+
+    public void setFlowType(String flowType) {
+
+        this.flowType = flowType;
+    }
+
+    public String getFlowType() {
+
+        return flowType;
     }
 }

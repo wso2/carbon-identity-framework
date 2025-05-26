@@ -26,7 +26,7 @@ public class SQLConstants {
     public static final String DELETE_FLOW =
             "DELETE FROM IDN_FLOW WHERE TENANT_ID = ? AND IS_DEFAULT = ? AND TYPE = ?";
     public static final String INSERT_FLOW_INTO_IDN_FLOW =
-            "INSERT INTO IDN_FLOW (ID, TENANT_ID, FLOW_NAME, TYPE, IS_DEFAULT) VALUES (?, ?, ?, ?, ?)";
+            "INSERT INTO IDN_FLOW (ID, TENANT_ID, FLOW_NAME, TYPE, IS_DEFAULT, LAST_MODIFIED) VALUES (?, ?, ?, ?, ?, ?)";
     public static final String INSERT_FLOW_NODE_INFO =
             "INSERT INTO IDN_FLOW_NODE (NODE_ID, FLOW_ID, NODE_TYPE, IS_FIRST_NODE) VALUES (?, ?, ?, ?)";
     public static final String INSERT_NODE_EXECUTOR_INFO =
@@ -74,7 +74,7 @@ public class SQLConstants {
      */
     public static final class SQLPlaceholders {
 
-        public static final String REGISTRATION_FLOW = "REGISTRATION";
+        public static final String REGISTRATION_FLOW = "SELF_REGISTRATION";
         public static final String DB_SCHEMA_COLUMN_NAME_STEP_ID = "STEP_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT = "PAGE_CONTENT";
         public static final String DB_SCHEMA_COLUMN_NAME_PAGE_TYPE = "PAGE_TYPE";
