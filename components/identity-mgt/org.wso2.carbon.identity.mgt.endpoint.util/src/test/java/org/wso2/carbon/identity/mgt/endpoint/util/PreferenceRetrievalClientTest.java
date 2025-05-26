@@ -18,10 +18,17 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockedConstruction;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.core.ServiceURL;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.PreferenceRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.PreferenceRetrievalClientException;
 
@@ -31,9 +38,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertTrue;
 
 public class PreferenceRetrievalClientTest {
@@ -71,8 +76,16 @@ public class PreferenceRetrievalClientTest {
     private static final String ACCOUNT_MGT_GOVERNANCE = "Account Management";
     private static final String USER_ONBOARDING_GOVERNANCE = "User Onboarding";
 
+    private static final String SERVICE_URL = "https://localhost:9443";
+
     @Spy
     private PreferenceRetrievalClient preferenceRetrievalClient;
+
+    @Mock
+    ServiceURL serviceURL;
+
+    @Mock
+    private ServiceURLBuilder serviceURLBuilder;
 
     @BeforeMethod
     public void setUp() {
@@ -332,5 +345,45 @@ public class PreferenceRetrievalClientTest {
         assertTrue(result);
         verify(preferenceRetrievalClient, times(1)).getPropertyValue(tenantDomain, USER_ONBOARDING_GOVERNANCE,
                 LITE_USER_CONNECTOR, LITE_REG_CALLBACK_REGEX_PROP);
+    }
+
+    @Test
+    public void testGetPropertyValue() throws PreferenceRetrievalClientException, URLBuilderException {
+
+        try (MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<IdentityManagementEndpointUtil> identityManagementEndpointUtilMockedStatic =
+                     mockStatic(IdentityManagementEndpointUtil.class);
+             MockedConstruction<HttpGet> httpGetConstruction = mockConstruction(HttpGet.class)) {
+
+            prepareServiceURLBuilder(serviceURLBuilder);
+            prepareServiceURL();
+
+            String firstResponse = "[]";
+            String secondResponse = "{\"connectors\":[]}";
+            identityManagementEndpointUtilMockedStatic.when(() ->
+                    IdentityManagementEndpointUtil.getHttpClientResponseString(any()))
+                .thenReturn(firstResponse, secondResponse);
+
+            preferenceRetrievalClient.getPropertyValue(tenantDomain, USER_ONBOARDING_GOVERNANCE, LITE_USER_CONNECTOR,
+                    LITE_REG_CALLBACK_REGEX_PROP);
+        }
+
+    }
+
+    /**
+     * Prepare service URL.
+     */
+    private void prepareServiceURL() {
+
+        when(serviceURL.getAbsoluteInternalURL()).thenReturn(SERVICE_URL);
+    }
+
+    /**
+     * Prepare service URL builder.
+     */
+    private void prepareServiceURLBuilder(MockedStatic<ServiceURLBuilder> serviceURLBuilder) throws URLBuilderException {
+
+        serviceURLBuilder.when(ServiceURLBuilder::create).thenReturn(this.serviceURLBuilder);
+        when(this.serviceURLBuilder.build()).thenReturn(serviceURL);
     }
 }

@@ -62,6 +62,7 @@ public class AsyncOperationStatusMgtConstants {
     public static final String DESC_SORT_ORDER = "DESC";
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String FILTER_PLACEHOLDER_PREFIX = "FILTER_ID_";
+    public static final String ENABLE_DATA_PERSISTENCE = "async_operation_status.enable_data_persistence";
 
     private static final Map<String, String> attributeColumnMap = new HashMap<>();
     public static final Map<String, String> ATTRIBURE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);
