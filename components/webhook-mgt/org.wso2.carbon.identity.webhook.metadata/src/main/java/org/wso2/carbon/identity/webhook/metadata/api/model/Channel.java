@@ -34,6 +34,7 @@ public class Channel {
      * Default constructor.
      */
     public Channel() {
+
     }
 
     /**
@@ -45,6 +46,7 @@ public class Channel {
      * @param events      List of events in the channel
      */
     public Channel(String name, String description, String uri, List<Event> events) {
+
         this.name = name;
         this.description = description;
         this.uri = uri;
@@ -57,6 +59,7 @@ public class Channel {
      * @return Name of the channel
      */
     public String getName() {
+
         return name;
     }
 
@@ -66,6 +69,7 @@ public class Channel {
      * @param name Name of the channel
      */
     public void setName(String name) {
+
         this.name = name;
     }
 
@@ -75,6 +79,7 @@ public class Channel {
      * @return Description of the channel
      */
     public String getDescription() {
+
         return description;
     }
 
@@ -84,6 +89,7 @@ public class Channel {
      * @param description Description of the channel
      */
     public void setDescription(String description) {
+
         this.description = description;
     }
 
@@ -93,6 +99,7 @@ public class Channel {
      * @return URI of the channel
      */
     public String getUri() {
+
         return uri;
     }
 
@@ -102,6 +109,7 @@ public class Channel {
      * @param uri URI of the channel
      */
     public void setUri(String uri) {
+
         this.uri = uri;
     }
 
@@ -111,6 +119,7 @@ public class Channel {
      * @return List of events
      */
     public List<Event> getEvents() {
+
         return events;
     }
 
@@ -120,6 +129,7 @@ public class Channel {
      * @param events List of events
      */
     public void setEvents(List<Event> events) {
+
         this.events = events;
     }
 }

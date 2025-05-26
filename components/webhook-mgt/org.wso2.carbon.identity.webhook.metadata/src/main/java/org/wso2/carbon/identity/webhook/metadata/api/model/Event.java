@@ -23,27 +23,29 @@ package org.wso2.carbon.identity.webhook.metadata.api.model;
  */
 public class Event {
 
-    private String name;
-    private String description;
-    private String uri;
+    private String eventName;
+    private String eventDescription;
+    private String eventUri;
 
     /**
      * Default constructor.
      */
     public Event() {
+
     }
 
     /**
      * Constructor with all parameters.
      *
-     * @param name        Name of the event
-     * @param description Description of the event
-     * @param uri         URI of the event
+     * @param eventName        Name of the event
+     * @param eventDescription Description of the event
+     * @param eventUri         URI of the event
      */
-    public Event(String name, String description, String uri) {
-        this.name = name;
-        this.description = description;
-        this.uri = uri;
+    public Event(String eventName, String eventDescription, String eventUri) {
+
+        this.eventName = eventName;
+        this.eventDescription = eventDescription;
+        this.eventUri = eventUri;
     }
 
     /**
@@ -51,17 +53,19 @@ public class Event {
      *
      * @return Name of the event
      */
-    public String getName() {
-        return name;
+    public String getEventName() {
+
+        return eventName;
     }
 
     /**
      * Set the name of the event.
      *
-     * @param name Name of the event
+     * @param eventName Name of the event
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setEventName(String eventName) {
+
+        this.eventName = eventName;
     }
 
     /**
@@ -69,17 +73,19 @@ public class Event {
      *
      * @return Description of the event
      */
-    public String getDescription() {
-        return description;
+    public String getEventDescription() {
+
+        return eventDescription;
     }
 
     /**
      * Set the description of the event.
      *
-     * @param description Description of the event
+     * @param eventDescription Description of the event
      */
-    public void setDescription(String description) {
-        this.description = description;
+    public void setEventDescription(String eventDescription) {
+
+        this.eventDescription = eventDescription;
     }
 
     /**
@@ -87,16 +93,18 @@ public class Event {
      *
      * @return URI of the event
      */
-    public String getUri() {
-        return uri;
+    public String getEventUri() {
+
+        return eventUri;
     }
 
     /**
      * Set the URI of the event.
      *
-     * @param uri URI of the event
+     * @param eventUri URI of the event
      */
-    public void setUri(String uri) {
-        this.uri = uri;
+    public void setEventUri(String eventUri) {
+
+        this.eventUri = eventUri;
     }
 }

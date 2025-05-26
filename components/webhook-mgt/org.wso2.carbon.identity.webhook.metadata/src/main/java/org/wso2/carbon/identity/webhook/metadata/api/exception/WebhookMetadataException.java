@@ -34,6 +34,7 @@ public class WebhookMetadataException extends IdentityException {
      * @param errorMessage Error message
      */
     public WebhookMetadataException(String errorCode, String errorMessage) {
+
         super(errorCode, errorMessage);
     }
 
@@ -45,6 +46,7 @@ public class WebhookMetadataException extends IdentityException {
      * @param cause        Cause of the exception
      */
     public WebhookMetadataException(String errorCode, String errorMessage, Throwable cause) {
+
         super(errorCode, errorMessage, cause);
     }
 }

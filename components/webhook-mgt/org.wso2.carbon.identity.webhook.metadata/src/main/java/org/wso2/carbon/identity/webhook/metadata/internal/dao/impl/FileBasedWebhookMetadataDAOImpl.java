@@ -29,8 +29,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
-import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionBuilder;
-import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionBuilder.ErrorCodes;
+import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil;
 
 import java.io.IOException;
@@ -43,6 +42,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_LOADING_PROFILE_FILES;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_RETRIEVING_EVENTS;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_RETRIEVING_PROFILE;
 
 /**
  * File-based implementation of the WebhookMetadataDAO.
@@ -134,10 +137,8 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
                 }
             }
         } catch (IOException e) {
-            String errorMessage = "Error loading event profiles from directory";
-            log.error(errorMessage, e);
-            throw WebhookMetadataExceptionBuilder.buildServerException(
-                    ErrorCodes.ERROR_LOADING_PROFILE_FILES, errorMessage, e);
+            throw WebhookMetadataExceptionHandler.handleServerException(
+                    ERROR_LOADING_PROFILE_FILES, e);
         }
     }
 
@@ -145,8 +146,8 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
     public List<String> getSupportedEventProfiles() throws WebhookMetadataException {
 
         if (!isInitialized) {
-            throw WebhookMetadataExceptionBuilder.buildServerException(
-                    ErrorCodes.ERROR_RETRIEVING_PROFILES, "Webhook metadata DAO is not initialized");
+            throw WebhookMetadataExceptionHandler.handleClientException(
+                    ERROR_RETRIEVING_PROFILE);
         }
         return new ArrayList<>(profileCache.keySet());
     }
@@ -155,8 +156,8 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
     public synchronized EventProfile getEventProfile(String profileName) throws WebhookMetadataException {
 
         if (!isInitialized) {
-            throw WebhookMetadataExceptionBuilder.buildServerException(
-                    ErrorCodes.ERROR_RETRIEVING_PROFILE, "Webhook metadata DAO is not initialized");
+            throw WebhookMetadataExceptionHandler.handleClientException(
+                    ERROR_RETRIEVING_PROFILE);
         }
 
         EventProfile profile = profileCache.get(profileName);
@@ -170,8 +171,8 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
     public List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException {
 
         if (!isInitialized) {
-            throw WebhookMetadataExceptionBuilder.buildServerException(
-                    ErrorCodes.ERROR_RETRIEVING_EVENTS, "Webhook metadata DAO is not initialized");
+            throw WebhookMetadataExceptionHandler.handleClientException(
+                    ERROR_RETRIEVING_EVENTS);
         }
 
         List<Event> matchingEvents = new ArrayList<>();

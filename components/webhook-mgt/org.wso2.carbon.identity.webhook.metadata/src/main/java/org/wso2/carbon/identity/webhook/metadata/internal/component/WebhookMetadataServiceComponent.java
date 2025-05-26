@@ -44,18 +44,16 @@ public class WebhookMetadataServiceComponent {
 
     @Activate
     protected void activate(ComponentContext context) {
+
         try {
-            // Initialize the webhook metadata service
             WebhookMetadataServiceImpl webhookMetadataService = WebhookMetadataServiceImpl.getInstance();
             webhookMetadataService.init();
-            
-            // Register the service in OSGi framework
+
             context.getBundleContext().registerService(WebhookMetadataService.class.getName(),
                     webhookMetadataService, null);
-            
-            // Set the service in the component holder
+
             WebhookMetadataServiceComponentHolder.getInstance().setWebhookMetadataService(webhookMetadataService);
-            
+
             log.info("Webhook Metadata component activated successfully");
         } catch (Throwable e) {
             log.error("Error activating Webhook Metadata component", e);
@@ -64,6 +62,7 @@ public class WebhookMetadataServiceComponent {
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
+
         if (log.isDebugEnabled()) {
             log.debug("Webhook Metadata component deactivated");
         }

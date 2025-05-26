@@ -111,8 +111,8 @@ public class FileBasedWebhookMetadataDAOImplTest {
         List<Event> events = dao.getEventsBySchema(TEST_SCHEMA_URI);
         Assert.assertNotNull(events);
         Assert.assertEquals(events.size(), 2);
-        Assert.assertEquals(events.get(0).getName(), "Test Event 1");
-        Assert.assertEquals(events.get(1).getName(), "Test Event 2");
+        Assert.assertEquals(events.get(0).getEventName(), "Test Event 1");
+        Assert.assertEquals(events.get(1).getEventName(), "Test Event 2");
     }
 
     @Test

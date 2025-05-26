@@ -130,7 +130,7 @@ public class WebhookMetadataServiceImplTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 2);
-        Assert.assertEquals(result.get(0).getName(), "Event 1");
+        Assert.assertEquals(result.get(0).getEventName(), "Event 1");
     }
 
     @Test

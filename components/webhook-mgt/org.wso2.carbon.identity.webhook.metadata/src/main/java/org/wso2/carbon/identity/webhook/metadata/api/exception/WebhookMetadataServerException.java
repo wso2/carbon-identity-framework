@@ -32,6 +32,7 @@ public class WebhookMetadataServerException extends WebhookMetadataException {
      * @param errorMessage Error message
      */
     public WebhookMetadataServerException(String errorCode, String errorMessage) {
+
         super(errorCode, errorMessage);
     }
 
@@ -43,6 +44,7 @@ public class WebhookMetadataServerException extends WebhookMetadataException {
      * @param cause        Cause of the exception
      */
     public WebhookMetadataServerException(String errorCode, String errorMessage, Throwable cause) {
+
         super(errorCode, errorMessage, cause);
     }
 }

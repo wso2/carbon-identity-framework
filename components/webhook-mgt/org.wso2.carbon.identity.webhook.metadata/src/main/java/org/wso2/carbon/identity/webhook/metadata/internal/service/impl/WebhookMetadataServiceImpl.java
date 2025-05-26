@@ -25,10 +25,13 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
-import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionBuilder;
-import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionBuilder.ErrorCodes;
+import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 
 import java.util.List;
+
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_RETRIEVING_EVENTS;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_RETRIEVING_PROFILE;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.PROFILE_NOT_FOUND;
 
 /**
  * Implementation of WebhookMetadataService.
@@ -41,6 +44,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     private FileBasedWebhookMetadataDAOImpl webhookMetadataDAO;
 
     private WebhookMetadataServiceImpl() {
+
         webhookMetadataDAO = FileBasedWebhookMetadataDAOImpl.getInstance();
     }
 
@@ -50,6 +54,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
      * @return Singleton instance
      */
     public static WebhookMetadataServiceImpl getInstance() {
+
         return INSTANCE;
     }
 
@@ -57,44 +62,42 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
      * Initialize the service.
      */
     public void init() {
+
         webhookMetadataDAO.init();
     }
 
     @Override
     public List<String> getSupportedEventProfiles() throws WebhookMetadataException {
+
         try {
             return webhookMetadataDAO.getSupportedEventProfiles();
         } catch (Exception e) {
-            String errorMessage = "Error retrieving supported event profiles";
-            log.error(errorMessage, e);
-            throw WebhookMetadataExceptionBuilder.buildServerException(
-                    ErrorCodes.ERROR_RETRIEVING_PROFILES, errorMessage, e);
+            throw WebhookMetadataExceptionHandler.handleServerException(
+                    ERROR_RETRIEVING_PROFILE, e);
         }
     }
 
     @Override
     public EventProfile getEventProfile(String profileName) throws WebhookMetadataException {
+
         try {
             EventProfile profile = webhookMetadataDAO.getEventProfile(profileName);
             if (profile == null) {
-                String errorMessage = "Event profile not found: " + profileName;
-                log.error(errorMessage);
-                throw WebhookMetadataExceptionBuilder.buildClientException(
-                        ErrorCodes.PROFILE_NOT_FOUND, errorMessage);
+                throw WebhookMetadataExceptionHandler.handleClientException(
+                        PROFILE_NOT_FOUND);
             }
             return profile;
         } catch (WebhookMetadataException e) {
             throw e;
         } catch (Exception e) {
-            String errorMessage = "Error retrieving event profile: " + profileName;
-            log.error(errorMessage, e);
-            throw WebhookMetadataExceptionBuilder.buildServerException(
-                    ErrorCodes.ERROR_RETRIEVING_PROFILE, errorMessage, e);
+            throw WebhookMetadataExceptionHandler.handleServerException(
+                    ERROR_RETRIEVING_PROFILE, e);
         }
     }
 
     @Override
     public List<Event> getEventsBySchema(String schemaUri) throws WebhookMetadataException {
+
         try {
             List<Event> events = webhookMetadataDAO.getEventsBySchema(schemaUri);
             if (events.isEmpty()) {
@@ -102,10 +105,8 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
             }
             return events;
         } catch (Exception e) {
-            String errorMessage = "Error retrieving events for schema: " + schemaUri;
-            log.error(errorMessage, e);
-            throw WebhookMetadataExceptionBuilder.buildServerException(
-                    ErrorCodes.ERROR_RETRIEVING_EVENTS, errorMessage, e);
+            throw WebhookMetadataExceptionHandler.handleServerException(
+                    ERROR_RETRIEVING_EVENTS, e);
         }
     }
 }

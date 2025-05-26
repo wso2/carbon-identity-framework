@@ -32,6 +32,7 @@ public class EventProfile {
      * Default constructor.
      */
     public EventProfile() {
+
     }
 
     /**
@@ -41,6 +42,7 @@ public class EventProfile {
      * @param channels List of channels in the profile
      */
     public EventProfile(String profile, List<Channel> channels) {
+
         this.profile = profile;
         this.channels = channels;
     }
@@ -51,6 +53,7 @@ public class EventProfile {
      * @return Name of the event profile
      */
     public String getProfile() {
+
         return profile;
     }
 
@@ -60,6 +63,7 @@ public class EventProfile {
      * @param profile Name of the event profile
      */
     public void setProfile(String profile) {
+
         this.profile = profile;
     }
 
@@ -69,6 +73,7 @@ public class EventProfile {
      * @return List of channels
      */
     public List<Channel> getChannels() {
+
         return channels;
     }
 
@@ -78,6 +83,7 @@ public class EventProfile {
      * @param channels List of channels
      */
     public void setChannels(List<Channel> channels) {
+
         this.channels = channels;
     }
 }
