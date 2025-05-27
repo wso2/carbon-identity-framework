@@ -131,6 +131,11 @@ public class WebhookMetadataServiceImplTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 2);
         Assert.assertEquals(result.get(0).getEventName(), "Event 1");
+        Assert.assertEquals(result.get(0).getEventDescription(), "Description 1");
+        Assert.assertEquals(result.get(0).getEventUri(), "uri1");
+        Assert.assertEquals(result.get(1).getEventName(), "Event 2");
+        Assert.assertEquals(result.get(1).getEventDescription(), "Description 2");
+        Assert.assertEquals(result.get(1).getEventUri(), "uri2");
     }
 
     @Test

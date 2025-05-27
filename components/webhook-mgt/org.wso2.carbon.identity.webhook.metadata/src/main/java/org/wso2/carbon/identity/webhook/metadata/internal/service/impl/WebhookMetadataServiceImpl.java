@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataEx
 import java.util.List;
 
 import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_NOT_FOUND;
 import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
@@ -74,7 +75,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
             return webhookMetadataDAO.getSupportedEventProfiles();
         } catch (Exception e) {
             throw WebhookMetadataExceptionHandler.handleServerException(
-                    ERROR_CODE_PROFILE_RETRIEVE_ERROR, e);
+                    ERROR_CODE_PROFILES_RETRIEVE_ERROR, e);
         }
     }
 
@@ -85,14 +86,14 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
             EventProfile profile = webhookMetadataDAO.getEventProfile(profileName);
             if (profile == null) {
                 throw WebhookMetadataExceptionHandler.handleClientException(
-                        ERROR_CODE_PROFILE_NOT_FOUND);
+                        ERROR_CODE_PROFILE_NOT_FOUND, profileName);
             }
             return profile;
         } catch (WebhookMetadataException e) {
             throw e;
         } catch (Exception e) {
             throw WebhookMetadataExceptionHandler.handleServerException(
-                    ERROR_CODE_PROFILE_RETRIEVE_ERROR, e);
+                    ERROR_CODE_PROFILE_RETRIEVE_ERROR, e, profileName);
         }
     }
 
@@ -107,7 +108,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
             return events;
         } catch (Exception e) {
             throw WebhookMetadataExceptionHandler.handleServerException(
-                    ERROR_CODE_EVENTS_RETRIEVE_ERROR, e);
+                    ERROR_CODE_EVENTS_RETRIEVE_ERROR, e, profileUri);
         }
     }
 }

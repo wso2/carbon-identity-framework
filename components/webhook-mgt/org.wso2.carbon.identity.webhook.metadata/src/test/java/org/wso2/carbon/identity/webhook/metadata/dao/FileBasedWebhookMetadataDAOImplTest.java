@@ -24,6 +24,8 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
@@ -89,6 +91,7 @@ public class FileBasedWebhookMetadataDAOImplTest {
         Assert.assertNotNull(profile.getChannels());
         Assert.assertEquals(profile.getChannels().size(), 1);
         Assert.assertEquals(profile.getChannels().get(0).getName(), "Test Channel");
+        Assert.assertEquals(profile.getChannels().get(0).getDescription(), "This is a test channel");
     }
 
     @Test
@@ -114,6 +117,99 @@ public class FileBasedWebhookMetadataDAOImplTest {
         List<Event> events = dao.getEventsByProfile("https://nonexistent.uri");
         Assert.assertNotNull(events);
         Assert.assertEquals(events.size(), 0);
+    }
+
+    @Test(expectedExceptions = WebhookMetadataServerException.class)
+    public void testGetEventProfilesDirectoryNotExist() throws Exception {
+
+        File tempCarbonHome = Files.createTempDirectory("webhook-metadata-missing-dir").toFile();
+        System.setProperty("carbon.home", tempCarbonHome.getAbsolutePath());
+
+        // Reset the static cache in WebhookMetadataUtil
+        Class<?> utilClass =
+                Class.forName("org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil");
+        Field field = utilClass.getDeclaredField("eventProfilesDirectory");
+        field.setAccessible(true);
+        field.set(null, null);
+
+        try {
+            utilClass.getMethod("getEventProfilesDirectory").invoke(null);
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            // Rethrow the real cause so TestNG can catch it
+            throw (Exception) e.getCause();
+        }
+    }
+
+    @Test(expectedExceptions = org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException.class)
+    public void testGetSupportedEventProfilesNotInitialized() throws Exception {
+
+        resetDAOState(dao);
+        dao.getSupportedEventProfiles();
+    }
+
+    @Test(expectedExceptions = org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException.class)
+    public void testGetEventProfileNotInitialized() throws Exception {
+
+        resetDAOState(dao);
+        dao.getEventProfile(TEST_PROFILE_NAME);
+    }
+
+    @Test
+    public void testGetEventsByProfileNotInitialized() throws Exception {
+
+        resetDAOState(dao);
+        try {
+            dao.getEventsByProfile(TEST_PROFILE_URI);
+            Assert.fail("Expected WebhookMetadataException was not thrown");
+        } catch (WebhookMetadataException ex) {
+            Assert.assertEquals(ex.getErrorCode(), "66003");
+            Assert.assertEquals(ex.getDescription(),
+                    "An internal server error occurred while retrieving events for the profile " +
+                            "https://schemas.identity.wso2.org/events/test.");
+        }
+    }
+
+    @Test
+    public void testProfileNameFallbackToFileName() throws Exception {
+        // Create a JSON file with no "profile" field
+        String json =
+                "{ \"channels\": [{ \"name\": \"Channel1\", \"uri\": \"" + TEST_PROFILE_URI + "\", \"events\": [] }] }";
+        File profileFile = new File(tempDir, "fallbackProfile.json");
+        FileUtils.writeStringToFile(profileFile, json, "UTF-8");
+
+        // Point the util to the tempDir
+        Class<?> utilClass =
+                Class.forName("org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil");
+        Field field = utilClass.getDeclaredField("eventProfilesDirectory");
+        field.setAccessible(true);
+        field.set(null, tempDir.toPath());
+
+        resetDAOState(dao);
+        dao.init();
+
+        List<String> profiles = dao.getSupportedEventProfiles();
+        Assert.assertTrue(profiles.contains("fallbackProfile"));
+        EventProfile profile = dao.getEventProfile("fallbackProfile");
+        Assert.assertNotNull(profile);
+        Assert.assertEquals(profile.getProfile(), "fallbackProfile");
+    }
+
+    @Test
+    public void testChannelConstructorAndGetters() {
+
+        String name = "Test Channel";
+        String description = "Channel for testing";
+        String uri = "https://test.uri";
+        Event event = new Event(); // Use a real Event or a mock if needed
+        List<Event> events = java.util.Collections.singletonList(event);
+
+        org.wso2.carbon.identity.webhook.metadata.api.model.Channel channel =
+                new org.wso2.carbon.identity.webhook.metadata.api.model.Channel(name, description, uri, events);
+
+        Assert.assertEquals(channel.getName(), name);
+        Assert.assertEquals(channel.getDescription(), description);
+        Assert.assertEquals(channel.getUri(), uri);
+        Assert.assertEquals(channel.getEvents(), events);
     }
 
     /**

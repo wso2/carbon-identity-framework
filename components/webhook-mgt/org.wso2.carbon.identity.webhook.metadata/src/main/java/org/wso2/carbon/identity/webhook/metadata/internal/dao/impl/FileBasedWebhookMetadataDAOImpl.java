@@ -44,8 +44,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_FILES_LOAD_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_FILES_LOAD_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
 /**
@@ -88,7 +89,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
         try {
             loadEventProfiles();
             isInitialized = true;
-        } catch (Exception e) {
+        } catch (WebhookMetadataException e) {
             throw WebhookMetadataExceptionHandler.handleServerException(
                     ERROR_CODE_PROFILE_FILES_LOAD_ERROR, e);
         }
@@ -145,7 +146,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_CODE_PROFILE_RETRIEVE_ERROR);
+                    ERROR_CODE_PROFILES_RETRIEVE_ERROR);
         }
         return new ArrayList<>(profileCache.keySet());
     }
@@ -155,7 +156,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_CODE_PROFILE_RETRIEVE_ERROR);
+                    ERROR_CODE_PROFILE_RETRIEVE_ERROR, profileName);
         }
 
         EventProfile profile = profileCache.get(profileName);
@@ -170,7 +171,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_CODE_EVENTS_RETRIEVE_ERROR);
+                    ERROR_CODE_EVENTS_RETRIEVE_ERROR, profileUri);
         }
 
         List<Event> matchingEvents = new ArrayList<>();

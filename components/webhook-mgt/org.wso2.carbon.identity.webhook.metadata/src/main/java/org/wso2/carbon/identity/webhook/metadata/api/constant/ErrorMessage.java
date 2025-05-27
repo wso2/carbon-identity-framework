@@ -25,15 +25,19 @@ public enum ErrorMessage {
 
     // Client errors (61xxx range)
     ERROR_CODE_PROFILE_NOT_FOUND("61001", "Profile not found",
-            "The requested event profile could not be found."),
+            "The requested event profile %s could not be found."),
 
     // Server errors (66xxx range)
-    ERROR_CODE_PROFILE_RETRIEVE_ERROR("66001", "Error occurred while retrieving profile",
-            "An internal server error occurred while retrieving the event profile."),
-    ERROR_CODE_EVENTS_RETRIEVE_ERROR("66002", "Error occurred while retrieving events",
-            "An internal server error occurred while retrieving events for the profile."),
-    ERROR_CODE_PROFILE_FILES_LOAD_ERROR("66003", "Error occurred while loading profile files",
-            "An internal server error occurred while loading event profile files from the directory.");
+    ERROR_CODE_PROFILES_RETRIEVE_ERROR("66001", "Error occurred while retrieving profiles",
+            "An internal server error occurred while retrieving event profiles."),
+    ERROR_CODE_PROFILE_RETRIEVE_ERROR("66002", "Error occurred while retrieving profile",
+            "An internal server error occurred while retrieving the event profile %s."),
+    ERROR_CODE_EVENTS_RETRIEVE_ERROR("66003", "Error occurred while retrieving events",
+            "An internal server error occurred while retrieving events for the profile %s."),
+    ERROR_CODE_PROFILE_FILES_LOAD_ERROR("66004", "Error occurred while loading profile files",
+            "An internal server error occurred while loading event profile files from the directory."),
+    ERROR_CODE_DIRECTORY_NOT_FOUND("66005", "Directory not found",
+            "The specified directory %s does not exist or is not accessible.");
 
     private final String code;
     private final String message;

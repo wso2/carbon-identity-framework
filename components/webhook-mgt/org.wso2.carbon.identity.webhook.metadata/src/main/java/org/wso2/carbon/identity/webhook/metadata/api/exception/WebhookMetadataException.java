@@ -18,35 +18,45 @@
 
 package org.wso2.carbon.identity.webhook.metadata.api.exception;
 
-import org.wso2.carbon.identity.base.IdentityException;
-
 /**
- * Exception class for webhook metadata related errors.
+ * Webhook metadata exception.
  */
-public class WebhookMetadataException extends IdentityException {
+public class WebhookMetadataException extends Exception {
 
-    private static final long serialVersionUID = -6743232645196393267L;
+    private String errorCode;
+    private String description;
 
-    /**
-     * Constructor with error code and error message.
-     *
-     * @param errorCode    Error code
-     * @param errorMessage Error message
-     */
-    public WebhookMetadataException(String errorCode, String errorMessage) {
+    public WebhookMetadataException(String message) {
 
-        super(errorCode, errorMessage);
+        super(message);
     }
 
-    /**
-     * Constructor with error code, error message and cause.
-     *
-     * @param errorCode    Error code
-     * @param errorMessage Error message
-     * @param cause        Cause of the exception
-     */
-    public WebhookMetadataException(String errorCode, String errorMessage, Throwable cause) {
+    public WebhookMetadataException(String message, Throwable cause) {
 
-        super(errorCode, errorMessage, cause);
+        super(message, cause);
+    }
+
+    public WebhookMetadataException(String message, String description, String errorCode) {
+
+        super(message);
+        this.errorCode = errorCode;
+        this.description = description;
+    }
+
+    public WebhookMetadataException(String message, String description, String errorCode, Throwable cause) {
+
+        super(message, cause);
+        this.errorCode = errorCode;
+        this.description = description;
+    }
+
+    public String getErrorCode() {
+
+        return this.errorCode;
+    }
+
+    public String getDescription() {
+
+        return this.description;
     }
 }

@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataCl
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 
 /**
- * Utility class for handling exceptions in the webhook metadata module.
+ * Utility class for handling exceptions in the webhook management module.
  * This class provides methods to create client and server exceptions with
  * appropriate error codes, messages, and descriptions.
  */
@@ -48,7 +48,7 @@ public class WebhookMetadataExceptionHandler {
             description = String.format(description, (Object[]) data);
         }
 
-        return new WebhookMetadataClientException(error.getCode(), description);
+        return new WebhookMetadataClientException(error.getMessage(), description, error.getCode());
     }
 
     /**
@@ -67,7 +67,7 @@ public class WebhookMetadataExceptionHandler {
             description = String.format(description, (Object[]) data);
         }
 
-        return new WebhookMetadataServerException(error.getCode(), description, e);
+        return new WebhookMetadataServerException(error.getMessage(), description, error.getCode(), e);
     }
 
     /**
@@ -84,6 +84,6 @@ public class WebhookMetadataExceptionHandler {
             description = String.format(description, (Object[]) data);
         }
 
-        return new WebhookMetadataServerException(error.getCode(), description);
+        return new WebhookMetadataServerException(error.getMessage(), description, error.getCode());
     }
 }

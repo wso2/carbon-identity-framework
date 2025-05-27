@@ -18,19 +18,20 @@
 
 package org.wso2.carbon.identity.webhook.metadata.internal.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_DIRECTORY_NOT_FOUND;
 
 /**
  * Utility class for webhook metadata operations.
  */
 public class WebhookMetadataUtil {
 
-    private static final Log log = LogFactory.getLog(WebhookMetadataUtil.class);
     private static final String EVENT_PROFILES_DIR = "eventprofiles";
     private static final String EVENT_PROFILES_PATH = "repository/conf/" + EVENT_PROFILES_DIR;
 
@@ -41,7 +42,7 @@ public class WebhookMetadataUtil {
      *
      * @return Path to event profiles directory
      */
-    public static Path getEventProfilesDirectory() {
+    public static Path getEventProfilesDirectory() throws WebhookMetadataException {
 
         if (eventProfilesDirectory != null) {
             return eventProfilesDirectory;
@@ -52,22 +53,13 @@ public class WebhookMetadataUtil {
                 return eventProfilesDirectory;
             }
 
-            String carbonHome = System.getProperty("carbon.home");
-            if (carbonHome == null) {
-                throw new IllegalStateException("carbon.home system property is not set");
-            }
-
-            Path eventProfilesPath = Paths.get(carbonHome, EVENT_PROFILES_PATH);
+            Path eventProfilesPath =
+                    Paths.get(System.getProperty(CarbonBaseConstants.CARBON_HOME), EVENT_PROFILES_PATH);
 
             File directory = eventProfilesPath.toFile();
             if (!directory.exists()) {
-                if (directory.mkdirs()) {
-                    log.debug("Created directory for event profiles: " + eventProfilesPath);
-                } else {
-                    String errorMsg = "Failed to create directory for event profiles: " + eventProfilesPath;
-                    log.error(errorMsg);
-                    throw new IllegalStateException(errorMsg);
-                }
+                throw WebhookMetadataExceptionHandler.handleServerException(ERROR_CODE_DIRECTORY_NOT_FOUND,
+                        eventProfilesPath.toString());
             }
 
             eventProfilesDirectory = eventProfilesPath;
