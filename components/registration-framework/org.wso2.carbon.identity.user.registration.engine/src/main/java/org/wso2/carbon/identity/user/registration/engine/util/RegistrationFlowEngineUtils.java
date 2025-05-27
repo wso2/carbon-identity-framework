@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -45,6 +44,7 @@ import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphCon
 
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE;
@@ -230,9 +230,13 @@ public class RegistrationFlowEngineUtils {
      * @param tenantDomain Tenant domain.
      * @return MyAccount Access URL.
      */
-    public static String buildMyAccountAccessURL(String tenantDomain) {
+    public static String buildMyAccountAccessURL(String tenantDomain) throws RegistrationEngineServerException {
 
-        return ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig(tenantDomain);
+        String myAccountAccessUrl = getApplicationAccessUrlByAppName(tenantDomain, MY_ACCOUNT_APPLICATION_NAME);
+        if (StringUtils.isBlank(myAccountAccessUrl)) {
+            myAccountAccessUrl = ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig(tenantDomain);
+        }
+        return myAccountAccessUrl;
     }
 
     /**
@@ -245,10 +249,10 @@ public class RegistrationFlowEngineUtils {
     public static String resolveCompletionRedirectionUrl(RegistrationContext context)
             throws RegistrationEngineServerException {
 
-        String redirectionUrl = getApplicationAccessUrl(context.getTenantDomain(), context.getApplicationId());
+        String redirectionUrl = getApplicationAccessUrlByAppId(context.getTenantDomain(), context.getApplicationId());
 
         // If the application access URL is not available, we will use the MyAccount access URL.
-        if (StringUtils.isEmpty(redirectionUrl)) {
+        if (StringUtils.isBlank(redirectionUrl)) {
             redirectionUrl = buildMyAccountAccessURL(context.getTenantDomain());
         }
         return redirectionUrl;
@@ -262,7 +266,7 @@ public class RegistrationFlowEngineUtils {
      * @return Application access URL.
      * @throws RegistrationEngineServerException Registration framework exception.
      */
-    private static String getApplicationAccessUrl(String tenantDomain, String applicationId)
+    private static String getApplicationAccessUrlByAppId(String tenantDomain, String applicationId)
             throws RegistrationEngineServerException {
 
         ApplicationBasicInfo application;
@@ -275,6 +279,31 @@ public class RegistrationFlowEngineUtils {
             }
         } catch (IdentityApplicationManagementException e) {
             throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, applicationId, tenantDomain);
+        }
+        return null;
+    }
+
+    /**
+     * Get the application access URL by application name.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param appName      Application name.
+     * @return Application access URL.
+     * @throws RegistrationEngineServerException Registration framework exception.
+     */
+    private static String getApplicationAccessUrlByAppName(String tenantDomain, String appName)
+            throws RegistrationEngineServerException {
+
+        ApplicationBasicInfo application;
+        ApplicationManagementService applicationManagementService =
+                RegistrationFlowEngineDataHolder.getInstance().getApplicationManagementService();
+        try {
+            application = applicationManagementService.getApplicationBasicInfoByName(appName, tenantDomain);
+            if (application != null) {
+                return application.getAccessUrl();
+            }
+        } catch (IdentityApplicationManagementException e) {
+            throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, appName, tenantDomain);
         }
         return null;
     }
