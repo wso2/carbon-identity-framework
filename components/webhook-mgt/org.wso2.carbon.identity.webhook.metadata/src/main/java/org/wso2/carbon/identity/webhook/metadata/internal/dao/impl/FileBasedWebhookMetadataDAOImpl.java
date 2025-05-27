@@ -44,9 +44,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_LOADING_PROFILE_FILES;
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_RETRIEVING_EVENTS;
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_RETRIEVING_PROFILE;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_FILES_LOAD_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
 /**
  * File-based implementation of the WebhookMetadataDAO.
@@ -90,7 +90,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
             isInitialized = true;
         } catch (Exception e) {
             throw WebhookMetadataExceptionHandler.handleServerException(
-                    ERROR_LOADING_PROFILE_FILES, e);
+                    ERROR_CODE_PROFILE_FILES_LOAD_ERROR, e);
         }
     }
 
@@ -136,7 +136,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
             }
         } catch (IOException e) {
             throw WebhookMetadataExceptionHandler.handleServerException(
-                    ERROR_LOADING_PROFILE_FILES, e);
+                    ERROR_CODE_PROFILE_FILES_LOAD_ERROR, e);
         }
     }
 
@@ -145,7 +145,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_RETRIEVING_PROFILE);
+                    ERROR_CODE_PROFILE_RETRIEVE_ERROR);
         }
         return new ArrayList<>(profileCache.keySet());
     }
@@ -155,7 +155,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_RETRIEVING_PROFILE);
+                    ERROR_CODE_PROFILE_RETRIEVE_ERROR);
         }
 
         EventProfile profile = profileCache.get(profileName);
@@ -170,7 +170,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_RETRIEVING_EVENTS);
+                    ERROR_CODE_EVENTS_RETRIEVE_ERROR);
         }
 
         List<Event> matchingEvents = new ArrayList<>();

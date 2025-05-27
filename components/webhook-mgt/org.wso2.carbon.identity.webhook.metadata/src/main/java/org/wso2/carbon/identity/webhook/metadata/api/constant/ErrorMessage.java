@@ -23,17 +23,17 @@ package org.wso2.carbon.identity.webhook.metadata.api.constant;
  */
 public enum ErrorMessage {
 
-    // Client errors
-    PROFILE_NOT_FOUND("CLIENT-00002", "Profile not found",
+    // Client errors (61xxx range)
+    ERROR_CODE_PROFILE_NOT_FOUND("61001", "Profile not found",
             "The requested event profile could not be found."),
 
-    // Server errors
-    ERROR_RETRIEVING_PROFILE("SERVER-00002", "Error retrieving profile",
-            "An error occurred while retrieving the event profile."),
-    ERROR_RETRIEVING_EVENTS("SERVER-00003", "Error retrieving events",
-            "An error occurred while retrieving events for the profile."),
-    ERROR_LOADING_PROFILE_FILES("SERVER-00004", "Error loading profile files",
-            "An error occurred while loading event profile files from the directory.");
+    // Server errors (66xxx range)
+    ERROR_CODE_PROFILE_RETRIEVE_ERROR("66001", "Error occurred while retrieving profile",
+            "An internal server error occurred while retrieving the event profile."),
+    ERROR_CODE_EVENTS_RETRIEVE_ERROR("66002", "Error occurred while retrieving events",
+            "An internal server error occurred while retrieving events for the profile."),
+    ERROR_CODE_PROFILE_FILES_LOAD_ERROR("66003", "Error occurred while loading profile files",
+            "An internal server error occurred while loading event profile files from the directory.");
 
     private final String code;
     private final String message;
