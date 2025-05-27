@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.framework.async.operation.status.mgt.service;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -28,6 +29,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.constants.ErrorMessage;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.exception.AsyncOperationStatusMgtException;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.models.OperationInitDTO;
@@ -47,7 +49,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,9 +56,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.api.constants.ErrorMessage.ERROR_WHILE_PERSISTING_ASYNC_OPERATION_STATUS;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.api.constants.OperationStatus.FAILED;
@@ -70,6 +73,7 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.cons
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.constants.TestAsyncOperationConstants.CORR_ID_4;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.constants.TestAsyncOperationConstants.INITIATOR_ID_1;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.constants.TestAsyncOperationConstants.POLICY_SELECTIVE_SHARE;
+import static org.wso2.carbon.identity.framework.async.operation.status.mgt.constants.TestAsyncOperationConstants.POLICY_SHARE_WITH_ALL;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.constants.TestAsyncOperationConstants.RESIDENT_ORG_ID_1;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.constants.TestAsyncOperationConstants.RESIDENT_ORG_ID_2;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.constants.TestAsyncOperationConstants.RESIDENT_ORG_ID_3;
@@ -135,20 +139,25 @@ public class AsyncOperationStatusMgtServiceImplTest {
         };
     }
 
-    @Test(dataProvider = "operationStatusProvider")
+    @Test(dataProvider = "operationStatusProvider", priority = 1)
     public void testRegisterOperationStatusWithoutUpdate(String tenantDomain, List<OperationInitDTO> operations,
                                                          int expectedOperationCount)
             throws AsyncOperationStatusMgtException, OrganizationManagementException {
 
-        for (OperationInitDTO op : operations) {
-            service.registerOperationStatus(op, false);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
+
+            for (OperationInitDTO op : operations) {
+                service.registerOperationStatus(op, false);
+            }
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+
+            int actualCount = service.getOperations(tenantDomain, StringUtils.EMPTY, StringUtils.EMPTY, 10,
+                    StringUtils.EMPTY).size();
+            assertEquals(actualCount, expectedOperationCount);
         }
 
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
-
-        int actualCount = service.getOperations(tenantDomain, StringUtils.EMPTY, StringUtils.EMPTY, 10,
-                StringUtils.EMPTY).size();
-        assertEquals(actualCount, expectedOperationCount);
     }
 
     @DataProvider(name = "operationStatusWithUpdateProvider")
@@ -157,26 +166,35 @@ public class AsyncOperationStatusMgtServiceImplTest {
         OperationInitDTO operation1 = new OperationInitDTO(CORR_ID_1, TYPE_USER_SHARE, SUBJECT_TYPE_USER, SUBJECT_ID_1,
                 RESIDENT_ORG_ID_1, INITIATOR_ID_1, POLICY_SELECTIVE_SHARE);
         OperationInitDTO operation2 = new OperationInitDTO(CORR_ID_2, TYPE_USER_SHARE, SUBJECT_TYPE_USER, SUBJECT_ID_1,
-                RESIDENT_ORG_ID_1, INITIATOR_ID_1, POLICY_SELECTIVE_SHARE);
+                RESIDENT_ORG_ID_1, INITIATOR_ID_1, POLICY_SHARE_WITH_ALL);
 
         return new Object[][]{
                 {TENANT_DOMAIN_1, Arrays.asList(operation1, operation2), true, 1}
         };
     }
 
-    @Test(dataProvider = "operationStatusWithUpdateProvider", priority = 1)
+    @Test(dataProvider = "operationStatusWithUpdateProvider", priority = 2)
     public void testRegisterOperationStatusWithUpdate(String tenantDomain, List<OperationInitDTO> operations,
                                                       boolean isUpdate, int expectedSize)
             throws AsyncOperationStatusMgtException, OrganizationManagementException {
 
-        for (OperationInitDTO operation : operations) {
-            service.registerOperationStatus(operation, isUpdate);
-        }
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
 
-        int actualSize = service.getOperations(tenantDomain, StringUtils.EMPTY, StringUtils.EMPTY, 10,
-                StringUtils.EMPTY).size();
-        assertEquals(actualSize, expectedSize);
+            for (OperationInitDTO operation : operations) {
+                service.registerOperationStatus(operation, isUpdate);
+            }
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+
+            int actualSize = service.getOperations(tenantDomain, StringUtils.EMPTY, StringUtils.EMPTY, 10,
+                    StringUtils.EMPTY).size();
+            assertEquals(actualSize, expectedSize);
+            OperationResponseDTO response = service.getOperations(tenantDomain, StringUtils.EMPTY, StringUtils.EMPTY,
+                    10, StringUtils.EMPTY).get(0);
+            assertEquals(POLICY_SHARE_WITH_ALL, response.getOperationPolicy());
+            assertNotEquals(CORR_ID_1, response.getCorrelationId());
+        }
     }
 
     @DataProvider(name = "paginationTestDataProvider")
@@ -184,31 +202,35 @@ public class AsyncOperationStatusMgtServiceImplTest {
 
         return new Object[][]{
                 // after, before, limit, expectedCount
-                {StringUtils.EMPTY, getStartOfCurrentYearBase64(), 100, 10},
-                {StringUtils.EMPTY, getStartOfCurrentYearBase64(), 100000, 10},
-                {getStartOfNextYearBase64(), StringUtils.EMPTY, 100, 10},
-                {getStartOfNextYearBase64(), getStartOfCurrentYearBase64(), 100, 10},
+                {stringToBase64("0"), stringToBase64("0"), 100, 10},
+                {stringToBase64("0"), StringUtils.EMPTY, 100, 0},
+                {StringUtils.EMPTY, stringToBase64("2"), 100, 10},
                 {StringUtils.EMPTY, StringUtils.EMPTY, 100, 10},
                 {StringUtils.EMPTY, StringUtils.EMPTY, 5, 5},
-                {StringUtils.EMPTY, StringUtils.EMPTY, 0, 0}
+                {StringUtils.EMPTY, StringUtils.EMPTY, 5000, 10}
         };
     }
 
-    @Test(dataProvider = "paginationTestDataProvider", priority = 2)
+    @Test(dataProvider = "paginationTestDataProvider", priority = 0)
     public void testPagination(String after, String before, Integer limit, int expectedCount)
             throws AsyncOperationStatusMgtException, OrganizationManagementException {
 
-        for (int i = 0; i < 10; i++) {
-            OperationInitDTO operation = new OperationInitDTO(CORR_ID_1_PREFIX + i, TYPE_USER_SHARE,
-                    SUBJECT_TYPE_USER, SUBJECT_ID_1_PREFIX + i, RESIDENT_ORG_ID_1, INITIATOR_ID_1,
-                    POLICY_SELECTIVE_SHARE);
-            service.registerOperationStatus(operation, false);
-        }
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
 
-        List<OperationResponseDTO> operations = service.getOperations(TENANT_DOMAIN_1, after, before, limit,
-                StringUtils.EMPTY);
-        assertEquals(operations.size(), expectedCount);
+            for (int i = 0; i < 10; i++) {
+                OperationInitDTO operation = new OperationInitDTO(CORR_ID_1_PREFIX + i, TYPE_USER_SHARE,
+                        SUBJECT_TYPE_USER, SUBJECT_ID_1_PREFIX + i, RESIDENT_ORG_ID_1, INITIATOR_ID_1,
+                        POLICY_SELECTIVE_SHARE);
+                service.registerOperationStatus(operation, false);
+            }
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+
+            List<OperationResponseDTO> operations = service.getOperations(TENANT_DOMAIN_1, after, before, limit,
+                    StringUtils.EMPTY);
+            assertEquals(expectedCount, operations.size());
+        }
     }
 
     @DataProvider(name = "filteringTestDataWithOperations")
@@ -232,6 +254,9 @@ public class AsyncOperationStatusMgtServiceImplTest {
                 { ops, "operationType EQ " + TYPE_USER_SHARE + " OR operationType EQ " + TYPE_USER_BULK_IMPORT, 2 },
                 { ops, "operationType SW B2B", 3 },
                 { ops, "subjectId NE " + SUBJECT_ID_4, 4 },
+                { ops, "subjectType CO " + SUBJECT_TYPE_USER, 4},
+                { ops, "operationType CO B2B", 4 },
+                { ops, "subjectId PR " + SUBJECT_ID_4, 4 }
         };
     }
 
@@ -240,14 +265,19 @@ public class AsyncOperationStatusMgtServiceImplTest {
     public void testFiltering(List<OperationInitDTO> operations, String filter, int expectedCount)
             throws AsyncOperationStatusMgtException, OrganizationManagementException {
 
-        for (OperationInitDTO operation : operations) {
-            service.registerOperationStatus(operation, false);
-        }
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
 
-        int actual = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
-                10, filter).size();
-        assertEquals(actual, expectedCount);
+            for (OperationInitDTO operation : operations) {
+                service.registerOperationStatus(operation, false);
+            }
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+
+            int actual = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
+                    10, filter).size();
+            assertEquals(actual, expectedCount);
+        }
     }
 
     @DataProvider(name = "createdTimeFilterTestData")
@@ -280,46 +310,56 @@ public class AsyncOperationStatusMgtServiceImplTest {
                                          List<Integer> expectedCount, int waitTime)
             throws AsyncOperationStatusMgtException, OrganizationManagementException, InterruptedException {
 
-        String currentTime = StringUtils.EMPTY;
-        int i = 0;
-        for (OperationInitDTO operation : operations) {
-            Thread.sleep(1000);
-            if (i == 3) {
-                currentTime = new Timestamp(new Date().getTime()).toString();
-                Thread.sleep(waitTime);
-            }
-            i++;
-            service.registerOperationStatus(operation, false);
-        }
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
 
-        int j = 0;
-        for (String filter : filters) {
-            int actual = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY, 10,
-                    String.format(filter, currentTime)).size();
-            assertEquals((int) expectedCount.get(j++), actual);
+            String currentTime = StringUtils.EMPTY;
+            int i = 0;
+            for (OperationInitDTO operation : operations) {
+                Thread.sleep(1000);
+                if (i == 3) {
+                    currentTime = new Timestamp(new Date().getTime()).toString();
+                    Thread.sleep(waitTime);
+                }
+                i++;
+                service.registerOperationStatus(operation, false);
+            }
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+
+            int j = 0;
+            for (String filter : filters) {
+                int actual = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY, 10,
+                        String.format(filter, currentTime)).size();
+                assertEquals((int) expectedCount.get(j++), actual);
+            }
         }
     }
 
     @Test(priority = 4)
     public void testUpdateOperationStatus() throws AsyncOperationStatusMgtException, OrganizationManagementException {
 
-        OperationInitDTO operation1 = new OperationInitDTO(CORR_ID_1, TYPE_USER_SHARE, SUBJECT_TYPE_USER, SUBJECT_ID_1,
-                RESIDENT_ORG_ID_1, INITIATOR_ID_1, POLICY_SELECTIVE_SHARE);
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
 
-        String initialOperationId = service.registerOperationStatus(operation1, false);
+            OperationInitDTO operation1 = new OperationInitDTO(CORR_ID_1, TYPE_USER_SHARE, SUBJECT_TYPE_USER,
+                    SUBJECT_ID_1, RESIDENT_ORG_ID_1, INITIATOR_ID_1, POLICY_SELECTIVE_SHARE);
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
 
-        OperationResponseDTO fetchedOperation = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY,
-                StringUtils.EMPTY, null, StringUtils.EMPTY).get(0);
-        String initialStatus = fetchedOperation.getOperationStatus();
-        assertEquals(IN_PROGRESS.toString(), initialStatus);
+            String initialOperationId = service.registerOperationStatus(operation1, false);
 
-        service.updateOperationStatus(initialOperationId, SUCCESS);
-        assertEquals(SUCCESS.toString(), service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
-                null, StringUtils.EMPTY).get(0).getOperationStatus());
-        assertEquals(1, service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY, null,
-                StringUtils.EMPTY).size());
+            OperationResponseDTO fetchedOperation = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY,
+                    StringUtils.EMPTY, 100, StringUtils.EMPTY).get(0);
+            String initialStatus = fetchedOperation.getOperationStatus();
+            assertEquals(IN_PROGRESS.toString(), initialStatus);
+
+            service.updateOperationStatus(initialOperationId, SUCCESS);
+            assertEquals(SUCCESS.toString(), service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY,
+                    StringUtils.EMPTY, 100, StringUtils.EMPTY).get(0).getOperationStatus());
+            assertEquals(1, service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
+                    10, StringUtils.EMPTY).size());
+        }
     }
 
     @DataProvider(name = "registerUnitOperationStatusTestData")
@@ -346,22 +386,26 @@ public class AsyncOperationStatusMgtServiceImplTest {
                                                 BasicOrganization basicOrganization)
             throws AsyncOperationStatusMgtException, InterruptedException, OrganizationManagementException {
 
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
 
-        String returnedId = service.registerOperationStatus(initDTO, false);
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+            String returnedId = service.registerOperationStatus(initDTO, false);
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
 
-        String fetchedOperationId = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
-                5, StringUtils.EMPTY).get(0).getOperationId();
-        UnitOperationInitDTO unit1 = new UnitOperationInitDTO(returnedId, RESIDENT_ORG_ID_1,
-                RESIDENT_ORG_ID_4, SUCCESS, StringUtils.EMPTY);
-        service.registerUnitOperationStatus(unit1);
-        mockedOrgMap.put(residentOrgId, basicOrganization);
-        Thread.sleep(4000);
-        when(organizationManager.getBasicOrganizationDetailsByOrgIDs(anyList())).thenReturn(mockedOrgMap);
+            String fetchedOperationId = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
+                    5, StringUtils.EMPTY).get(0).getOperationId();
+            UnitOperationInitDTO unit1 = new UnitOperationInitDTO(returnedId, RESIDENT_ORG_ID_1,
+                    RESIDENT_ORG_ID_4, SUCCESS, StringUtils.EMPTY);
+            service.registerUnitOperationStatus(unit1);
+            mockedOrgMap.put(residentOrgId, basicOrganization);
+            Thread.sleep(4000);
+            when(organizationManager.getBasicOrganizationDetailsByOrgIDs(anyList())).thenReturn(mockedOrgMap);
 
-        String returnedOperationId = service.getUnitOperationStatusRecords(fetchedOperationId, TENANT_DOMAIN_1,
-                StringUtils.EMPTY, StringUtils.EMPTY, 10, StringUtils.EMPTY).get(0).getOperationId();
-        assertEquals(returnedId, returnedOperationId);
+            String returnedOperationId = service.getUnitOperationStatusRecords(fetchedOperationId, TENANT_DOMAIN_1,
+                    StringUtils.EMPTY, StringUtils.EMPTY, 10, StringUtils.EMPTY).get(0).getOperationId();
+            assertEquals(returnedId, returnedOperationId);
+        }
     }
 
     @DataProvider(name = "getUnitOperationStatusTestData")
@@ -395,36 +439,41 @@ public class AsyncOperationStatusMgtServiceImplTest {
                                                   List<BasicOrganization> basicOrgs)
             throws AsyncOperationStatusMgtException, InterruptedException, OrganizationManagementException {
 
-        String returnedId = service.registerOperationStatus(initDTO, false);
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
-        String fetchedOperationId = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
-                5, StringUtils.EMPTY).get(0).getOperationId();
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
 
-        UnitOperationInitDTO unit1 = new UnitOperationInitDTO(returnedId, RESIDENT_ORG_ID_1,
-                RESIDENT_ORG_ID_2, SUCCESS, StringUtils.EMPTY);
-        UnitOperationInitDTO unit2 = new UnitOperationInitDTO(returnedId, RESIDENT_ORG_ID_1,
-                RESIDENT_ORG_ID_3, FAILED, StringUtils.EMPTY);
-        service.registerUnitOperationStatus(unit1);
-        service.registerUnitOperationStatus(unit2);
+            String returnedId = service.registerOperationStatus(initDTO, false);
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+            String fetchedOperationId = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
+                    5, StringUtils.EMPTY).get(0).getOperationId();
 
-        mockedOrgMap.put(residentOrgIds.get(0), basicOrgs.get(0));
-        mockedOrgMap.put(residentOrgIds.get(1), basicOrgs.get(1));
-        Thread.sleep(4000);
+            UnitOperationInitDTO unit1 = new UnitOperationInitDTO(returnedId, RESIDENT_ORG_ID_1,
+                    RESIDENT_ORG_ID_2, SUCCESS, StringUtils.EMPTY);
+            UnitOperationInitDTO unit2 = new UnitOperationInitDTO(returnedId, RESIDENT_ORG_ID_1,
+                    RESIDENT_ORG_ID_3, FAILED, StringUtils.EMPTY);
+            service.registerUnitOperationStatus(unit1);
+            service.registerUnitOperationStatus(unit2);
 
-        when(organizationManager.getBasicOrganizationDetailsByOrgIDs(anyList())).thenReturn(mockedOrgMap);
-        List<UnitOperationResponseDTO> unitOperations = service.getUnitOperationStatusRecords(fetchedOperationId,
-                TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY, 10, StringUtils.EMPTY);
-        when(organizationManager.getOrganizationNameById(RESIDENT_ORG_ID_2)).thenReturn(basicOrgs.get(0).getName());
-        UnitOperationResponseDTO unitOperation = service.getUnitOperation(unitOperations.get(1).getUnitOperationId(),
-                TENANT_DOMAIN_1);
+            mockedOrgMap.put(residentOrgIds.get(0), basicOrgs.get(0));
+            mockedOrgMap.put(residentOrgIds.get(1), basicOrgs.get(1));
+            Thread.sleep(4000);
 
-        assertEquals(RESIDENT_ORG_ID_1, unitOperation.getOperationInitiatedResourceId());
-        assertEquals(RESIDENT_ORG_ID_2, unitOperation.getTargetOrgId());
-        assertEquals(basicOrgs.get(0).getName(), unitOperation.getTargetOrgName());
-        assertEquals(SUCCESS.toString(), unitOperation.getUnitOperationStatus());
-        assertEquals(StringUtils.EMPTY, unitOperation.getStatusMessage());
-        assertEquals(2, unitOperations.size());
-        assertEquals(returnedId, unitOperations.get(0).getOperationId());
+            when(organizationManager.getBasicOrganizationDetailsByOrgIDs(anyList())).thenReturn(mockedOrgMap);
+            List<UnitOperationResponseDTO> unitOperations = service.getUnitOperationStatusRecords(fetchedOperationId,
+                    TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY, 10, StringUtils.EMPTY);
+            when(organizationManager.getOrganizationNameById(RESIDENT_ORG_ID_2)).thenReturn(basicOrgs.get(0).getName());
+            UnitOperationResponseDTO unitOperation =
+                    service.getUnitOperation(unitOperations.get(1).getUnitOperationId(), TENANT_DOMAIN_1);
+
+            assertEquals(RESIDENT_ORG_ID_1, unitOperation.getOperationInitiatedResourceId());
+            assertEquals(RESIDENT_ORG_ID_2, unitOperation.getTargetOrgId());
+            assertEquals(basicOrgs.get(0).getName(), unitOperation.getTargetOrgName());
+            assertEquals(SUCCESS.toString(), unitOperation.getUnitOperationStatus());
+            assertEquals(StringUtils.EMPTY, unitOperation.getStatusMessage());
+            assertEquals(2, unitOperations.size());
+            assertEquals(returnedId, unitOperations.get(0).getOperationId());
+        }
     }
 
     @DataProvider(name = "getOperationStatusTestData")
@@ -451,37 +500,42 @@ public class AsyncOperationStatusMgtServiceImplTest {
                                                   List<BasicOrganization> basicOrgs)
             throws AsyncOperationStatusMgtException, InterruptedException, OrganizationManagementException {
 
-        String returnedId = service.registerOperationStatus(initDTO, false);
-        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
-        String fetchedOperationId = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
-                5, StringUtils.EMPTY).get(0).getOperationId();
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
 
-        UnitOperationInitDTO unit1 = new UnitOperationInitDTO(returnedId, RESIDENT_ORG_ID_1,
-                RESIDENT_ORG_ID_2, SUCCESS, StringUtils.EMPTY);
-        service.registerUnitOperationStatus(unit1);
-        mockedOrgMap.put(residentOrgIds.get(0), basicOrgs.get(0));
-        Thread.sleep(4000);
+            String returnedId = service.registerOperationStatus(initDTO, false);
+            when(organizationManager.resolveOrganizationId(anyString())).thenReturn(RESIDENT_ORG_ID_1);
+            String fetchedOperationId = service.getOperations(TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY,
+                    5, StringUtils.EMPTY).get(0).getOperationId();
 
-        when(organizationManager.getBasicOrganizationDetailsByOrgIDs(anyList())).thenReturn(mockedOrgMap);
+            UnitOperationInitDTO unit1 = new UnitOperationInitDTO(returnedId, RESIDENT_ORG_ID_1,
+                    RESIDENT_ORG_ID_2, SUCCESS, StringUtils.EMPTY);
+            service.registerUnitOperationStatus(unit1);
+            mockedOrgMap.put(residentOrgIds.get(0), basicOrgs.get(0));
+            Thread.sleep(4000);
 
-        OperationResponseDTO fetchedOperation = service.getOperation(fetchedOperationId, TENANT_DOMAIN_1);
-        List<UnitOperationResponseDTO> unitOperations = service.getUnitOperationStatusRecords(fetchedOperationId,
-                TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY, 10, StringUtils.EMPTY);
+            when(organizationManager.getBasicOrganizationDetailsByOrgIDs(anyList())).thenReturn(mockedOrgMap);
 
-        assertEquals(initDTO.getOperationType(), fetchedOperation.getOperationType());
-        assertEquals(initDTO.getOperationSubjectType(), fetchedOperation.getOperationSubjectType());
-        assertEquals(initDTO.getOperationSubjectId(), fetchedOperation.getOperationSubjectId());
-        assertEquals(initDTO.getInitiatorId(), fetchedOperation.getInitiatorId());
-        assertEquals(initDTO.getResidentOrgId(), fetchedOperation.getResidentOrgId());
-        assertEquals(1, unitOperations.size());
-        assertEquals(returnedId, unitOperations.get(0).getOperationId());
+            OperationResponseDTO fetchedOperation = service.getOperation(fetchedOperationId, TENANT_DOMAIN_1);
+            List<UnitOperationResponseDTO> unitOperations = service.getUnitOperationStatusRecords(fetchedOperationId,
+                    TENANT_DOMAIN_1, StringUtils.EMPTY, StringUtils.EMPTY, 10, StringUtils.EMPTY);
+
+            assertEquals(initDTO.getOperationType(), fetchedOperation.getOperationType());
+            assertEquals(initDTO.getOperationSubjectType(), fetchedOperation.getOperationSubjectType());
+            assertEquals(initDTO.getOperationSubjectId(), fetchedOperation.getOperationSubjectId());
+            assertEquals(initDTO.getInitiatorId(), fetchedOperation.getInitiatorId());
+            assertEquals(initDTO.getResidentOrgId(), fetchedOperation.getResidentOrgId());
+            assertEquals(1, unitOperations.size());
+            assertEquals(returnedId, unitOperations.get(0).getOperationId());
+        }
     }
 
     @DataProvider(name = "registerOperationStatusInvalidInputTestData")
     public Object[][] registerOperationStatusInvalidInputTestData() throws InterruptedException {
 
-        OperationInitDTO operation1 = new OperationInitDTO(null, TYPE_USER_SHARE, SUBJECT_TYPE_USER, SUBJECT_ID_1,
-                RESIDENT_ORG_ID_1, INITIATOR_ID_1, POLICY_SELECTIVE_SHARE);
+        OperationInitDTO operation1 = new OperationInitDTO(null, TYPE_USER_SHARE, SUBJECT_TYPE_USER,
+                SUBJECT_ID_1, RESIDENT_ORG_ID_1, INITIATOR_ID_1, POLICY_SELECTIVE_SHARE);
         ErrorMessage e = ERROR_WHILE_PERSISTING_ASYNC_OPERATION_STATUS;
 
         return new Object[][]{
@@ -493,44 +547,29 @@ public class AsyncOperationStatusMgtServiceImplTest {
     public void testRegisterOperationStatusInvalidInput(OperationInitDTO dto, String errorCode, String message,
                                                         String description) {
 
-        try {
-            service.registerOperationStatus(dto, false);
-            Assert.fail("Expected AsyncOperationStatusMgtException was not thrown.");
-        } catch (AsyncOperationStatusMgtException e) {
-            Assert.assertEquals(e.getErrorCode(), errorCode);
-            Assert.assertEquals(e.getMessage(), message);
-            Assert.assertEquals(e.getDescription(), description);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("true");
+            identityUtil.when(IdentityUtil::getMaximumItemPerPage).thenReturn(100);
+
+            try {
+                service.registerOperationStatus(dto, false);
+                Assert.fail("Expected AsyncOperationStatusMgtException was not thrown.");
+            } catch (AsyncOperationStatusMgtException e) {
+                Assert.assertEquals(e.getErrorCode(), errorCode);
+                Assert.assertEquals(e.getMessage(), message);
+                Assert.assertEquals(e.getDescription(), description);
+            }
         }
     }
 
-    private String getStartOfCurrentYearBase64() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.MONTH, Calendar.JANUARY);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
+    private String stringToBase64(String input) {
 
-        Timestamp timestamp = new Timestamp(calendar.getTimeInMillis());
-        return Base64.getEncoder().encodeToString(timestamp.toString().getBytes());
-    }
-
-    private String getStartOfNextYearBase64() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.MONTH, Calendar.JANUARY);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        calendar.add(Calendar.YEAR, 1);
-
-        Timestamp timestamp = new Timestamp(calendar.getTimeInMillis());
-        return Base64.getEncoder().encodeToString(timestamp.toString().getBytes());
+        byte[] byteArray = input.getBytes();
+        return Base64.getEncoder().encodeToString(byteArray);
     }
 
     private void cleanUpDB() throws Exception {
+
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate("DELETE FROM IDN_ASYNC_OPERATION_STATUS");

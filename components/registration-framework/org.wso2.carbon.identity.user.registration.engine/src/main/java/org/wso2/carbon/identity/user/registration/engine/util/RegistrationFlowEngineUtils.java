@@ -104,6 +104,12 @@ public class RegistrationFlowEngineUtils {
      */
     public static void removeRegContextFromCache(String contextId) {
 
+        if (contextId == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Context id is null. Hence skipping removing the registration context from cache.");
+            }
+            return;
+        }
         RegistrationContextCache.getInstance().clearCacheEntry(new RegistrationContextCacheKey(contextId));
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registration context removed from cache for context id: " + contextId + ".");

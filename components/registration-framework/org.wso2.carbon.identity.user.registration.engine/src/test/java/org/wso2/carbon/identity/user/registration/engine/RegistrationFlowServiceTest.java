@@ -18,11 +18,6 @@
 
 package org.wso2.carbon.identity.user.registration.engine;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -30,17 +25,31 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
+import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngine;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
+import org.wso2.carbon.identity.user.registration.engine.validation.InputValidationListener;
 import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
+import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.testng.Assert.assertEquals;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
 
 /**
  * Unit tests for RegistrationFlowService.
@@ -79,9 +88,8 @@ public class RegistrationFlowServiceTest {
             utilsMockedStatic.when(
                             () -> RegistrationFlowEngineUtils.initiateContext(anyString(), anyString(), anyString()))
                     .thenThrow(new RegistrationEngineException("Failed"));
-            UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN,
-                                                                                      TEST_APPLICATION_ID,
-                                                                                      TEST_CALLBACK_URL);
+            UserRegistrationFlowService.getInstance().handleRegistration(TENANT_DOMAIN,
+                    TEST_APPLICATION_ID, TEST_CALLBACK_URL,null, null, null);
         }
     }
 
@@ -96,9 +104,8 @@ public class RegistrationFlowServiceTest {
                     .thenReturn(testRegContext);
             engineMockedStatic.when(RegistrationFlowEngine::getInstance).thenReturn(engineMock);
             when(engineMock.execute(testRegContext)).thenThrow(RegistrationEngineException.class);
-            UserRegistrationFlowService.getInstance().initiateDefaultRegistrationFlow(TENANT_DOMAIN,
-                                                                                      TEST_APPLICATION_ID,
-                                                                                      TEST_CALLBACK_URL);
+            UserRegistrationFlowService.getInstance().handleRegistration(TENANT_DOMAIN,
+                    TEST_APPLICATION_ID, TEST_CALLBACK_URL, null, null, null);
         }
     }
 
@@ -124,9 +131,83 @@ public class RegistrationFlowServiceTest {
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
             RegistrationStep returnedStep =
                     UserRegistrationFlowService.getInstance()
-                            .initiateDefaultRegistrationFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL);
+                            .handleRegistration(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL, null,
+                                    null, null);
             assertEquals(returnedStep, expectedStep);
         }
+    }
+
+    @Test
+    public void testInitiateDefaultRegistrationFlowExecutionWithInput() throws Exception {
+
+        RegistrationGraphConfig registrationGraphConfig = buildRegistrationGraphWithDecision();
+        testRegContext.setRegGraph(registrationGraphConfig);
+        RegistrationFlowEngineDataHolder.getInstance().addRegistrationExecutionListeners(new InputValidationListener());
+        Map<String, String> userInputMap = new HashMap<>();
+        userInputMap.put("input1", "value1");
+        testRegContext.getUserInputData().putAll(userInputMap);
+
+        RegistrationStep expectedStep = new RegistrationStep.Builder()
+                .flowId(testRegContext.getContextIdentifier())
+                .flowStatus("INCOMPLETE")
+                .stepType("VIEW")
+                .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
+                .build();
+
+        try (MockedStatic<RegistrationFlowEngineUtils> utilsMockedStatic = mockStatic(
+                RegistrationFlowEngineUtils.class);
+             MockedStatic<RegistrationFlowEngine> engineMockedStatic = mockStatic(RegistrationFlowEngine.class)) {
+            utilsMockedStatic.when(
+                            () -> RegistrationFlowEngineUtils.initiateContext(anyString(), anyString(), anyString()))
+                    .thenReturn(testRegContext);
+
+            engineMockedStatic.when(RegistrationFlowEngine::getInstance).thenReturn(engineMock);
+
+            when(engineMock.execute(any(RegistrationContext.class))).thenReturn(expectedStep);
+            RegistrationStep returnedStep =
+                    UserRegistrationFlowService.getInstance()
+                            .handleRegistration(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL, null,
+                                    null, userInputMap);
+            assertEquals(returnedStep, expectedStep);
+        }
+    }
+
+    private RegistrationGraphConfig buildRegistrationGraphWithDecision() {
+
+        NodeConfig decisionNode = new NodeConfig.Builder()
+                .id("decisionNode")
+                .type(DECISION)
+                .build();
+
+        decisionNode.addEdge(new NodeEdge("decisionNode", "promptNode", "button1"));
+        decisionNode.addEdge(new NodeEdge("decisionNode", "testTarget", "button2"));
+
+        NodeConfig promptNode = new NodeConfig.Builder()
+                .id("promptNode")
+                .type(PROMPT_ONLY)
+                .build();
+        promptNode.addEdge(new NodeEdge("promptNode", "taskNode", "button1"));
+
+        NodeConfig taskNode = new NodeConfig.Builder()
+                .id("taskNode")
+                .type(TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put("decisionNode", decisionNode);
+        nodeMap.put("promptNode", promptNode);
+        nodeMap.put("taskNode", taskNode);
+
+        Map<String, StepDTO> pageMappings = new HashMap<>();
+        pageMappings.put("decisionNode", new StepDTO.Builder().build());
+        pageMappings.put("promptNode", new StepDTO.Builder().build());
+        pageMappings.put("taskNode", new StepDTO.Builder().build());
+
+        RegistrationGraphConfig graph = new RegistrationGraphConfig();
+        graph.setNodeConfigs(nodeMap);
+        graph.setNodePageMappings(pageMappings);
+        graph.setFirstNodeId("decisionNode");
+        return graph;
     }
 
     @Test
@@ -152,7 +233,8 @@ public class RegistrationFlowServiceTest {
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
 
             UserRegistrationFlowService service = UserRegistrationFlowService.getInstance();
-            RegistrationStep result = service.continueFlow(flowId, null, new HashMap<>());
+            RegistrationStep result = service.handleRegistration(null, null, null,
+                    flowId, null, new HashMap<>());
 
             assertEquals(result, expectedStep);
             utilsMockedStatic.verify(() -> RegistrationFlowEngineUtils.addRegContextToCache(testRegContext));
@@ -180,7 +262,8 @@ public class RegistrationFlowServiceTest {
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
 
             UserRegistrationFlowService service = UserRegistrationFlowService.getInstance();
-            RegistrationStep result = service.continueFlow(flowId, null, new HashMap<>());
+            RegistrationStep result = service.handleRegistration(null, null, null,
+                    flowId, null, new HashMap<>());
 
             assertEquals(result, expectedStep);
             utilsMockedStatic.verify(() -> RegistrationFlowEngineUtils.removeRegContextFromCache(flowId));
@@ -198,7 +281,8 @@ public class RegistrationFlowServiceTest {
         ) {
             utilsMockedStatic.when(() -> RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId))
                     .thenThrow(new RegistrationEngineException("Failed"));
-            UserRegistrationFlowService.getInstance().continueFlow(flowId, "actionId", inputMap);
+            UserRegistrationFlowService.getInstance().handleRegistration(null, null, null,
+                    flowId, "actionId", inputMap);
         }
     }
 }

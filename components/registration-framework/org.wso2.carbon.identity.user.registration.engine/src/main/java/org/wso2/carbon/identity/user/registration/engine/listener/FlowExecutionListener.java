@@ -51,42 +51,23 @@ public interface FlowExecutionListener {
     boolean isEnabled();
 
     /**
-     * Pre-initiate method to be called before the registration flow is initiated.
+     * Pre-execute method to be called before the registration flow is executed.
      *
      * @param registrationContext Registration context.
      * @return true if the pre-initiate was successful, false otherwise.
      * @throws RegistrationEngineException if an error occurs during pre-initiate.
      */
-    boolean doPreInitiate(RegistrationContext registrationContext) throws RegistrationEngineException;
+    boolean doPreExecute(RegistrationContext registrationContext) throws RegistrationEngineException;
 
     /**
-     * Post-initiate method to be called after the registration flow is initiated.
+     * Post-execute method to be called after the registration flow is executed.
      *
      * @param step                Registration step.
      * @param registrationContext Registration context.
      * @return true if the post-initiate was successful, false otherwise.
      * @throws RegistrationEngineException if an error occurs during post-initiate.
      */
-    boolean doPostInitiate(RegistrationStep step, RegistrationContext registrationContext)
+    boolean doPostExecute(RegistrationStep step, RegistrationContext registrationContext)
             throws RegistrationEngineException;
 
-    /**
-     * Pre-continue method to be called before the registration flow continues.
-     *
-     * @param registrationContext Registration context.
-     * @return true if the pre-continue was successful, false otherwise.
-     * @throws RegistrationEngineException if an error occurs during pre-continue.
-     */
-    boolean doPreContinue(RegistrationContext registrationContext) throws RegistrationEngineException;
-
-    /**
-     * Post-continue method to be called after the registration flow continues.
-     *
-     * @param step                Registration step.
-     * @param registrationContext Registration context.
-     * @return true if the post-continue was successful, false otherwise.
-     * @throws RegistrationEngineException if an error occurs during post-continue.
-     */
-    boolean doPostContinue(RegistrationStep step, RegistrationContext registrationContext)
-            throws RegistrationEngineException;
 }

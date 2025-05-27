@@ -19,20 +19,16 @@
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.commons.lang.StringUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
-import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,27 +59,24 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
 
         Map<String, String> organizationDiscoveryConfig = new HashMap<>();
 
-        try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try {
             HttpGet request = new HttpGet(getOrganizationDiscoveryConfigEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 
-            try (CloseableHttpResponse httpResponse = httpClient.execute(request)) {
-                if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONObject configObject = new JSONObject(new JSONTokener(new InputStreamReader(
-                            httpResponse.getEntity().getContent())));
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
-                    if (configObject.has(PROPERTIES) && configObject.get(PROPERTIES) instanceof JSONArray) {
-                        JSONArray properties = configObject.getJSONArray(PROPERTIES);
-                        for (int i = 0; i < properties.length(); i++) {
-                            JSONObject property = properties.getJSONObject(i);
-                            organizationDiscoveryConfig.put(property.getString(KEY), property.getString(VALUE));
-                        }
+            if (!StringUtils.isEmpty(responseString)) {
+                JSONObject configObject = new JSONObject(new JSONTokener(responseString));
+
+                if (configObject.has(PROPERTIES) && configObject.get(PROPERTIES) instanceof JSONArray) {
+                    JSONArray properties = configObject.getJSONArray(PROPERTIES);
+                    for (int i = 0; i < properties.length(); i++) {
+                        JSONObject property = properties.getJSONObject(i);
+                        organizationDiscoveryConfig.put(property.getString(KEY), property.getString(VALUE));
                     }
                 }
-                return organizationDiscoveryConfig;
-            } finally {
-                request.releaseConnection();
             }
+            return organizationDiscoveryConfig;
         } catch (IOException e) {
             throw new OrganizationDiscoveryConfigDataRetrievalClientException("Error while retrieving organization " +
                     "discovery configuration for tenant: " + tenantDomain, e);
@@ -102,7 +95,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
         }
     }
 
-    private void setAuthorizationHeader(HttpRequestBase httpMethod) {
+    private void setAuthorizationHeader(HttpUriRequestBase httpMethod) {
 
         String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
                 + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());

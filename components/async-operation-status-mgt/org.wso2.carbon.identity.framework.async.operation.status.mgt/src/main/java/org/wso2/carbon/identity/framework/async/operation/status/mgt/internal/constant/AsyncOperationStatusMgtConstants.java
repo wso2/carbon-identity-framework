@@ -39,6 +39,7 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.inte
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.FilterPlaceholders.UNIT_OPERATION_ID_FILTER;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CORRELATION_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CREATED_AT;
+import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CURSOR_KEY;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.INITIATED_ORG_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.INITIATED_USER_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.LAST_MODIFIED;
@@ -61,6 +62,7 @@ public class AsyncOperationStatusMgtConstants {
     public static final String DESC_SORT_ORDER = "DESC";
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String FILTER_PLACEHOLDER_PREFIX = "FILTER_ID_";
+    public static final String ENABLE_DATA_PERSISTENCE = "async_operation_status.enable_data_persistence";
 
     private static final Map<String, String> attributeColumnMap = new HashMap<>();
     public static final Map<String, String> ATTRIBURE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);
@@ -98,7 +100,7 @@ public class AsyncOperationStatusMgtConstants {
         attributeColumnMap.put(MODIFIED_TIME_FILTER, LAST_MODIFIED);
         attributeColumnMap.put(POLICY_FILTER, POLICY);
 
-        attributeColumnMap.put(PAGINATION_AFTER, CREATED_AT);
-        attributeColumnMap.put(PAGINATION_BEFORE, CREATED_AT);
+        attributeColumnMap.put(PAGINATION_AFTER, CURSOR_KEY);
+        attributeColumnMap.put(PAGINATION_BEFORE, CURSOR_KEY);
     }
 }

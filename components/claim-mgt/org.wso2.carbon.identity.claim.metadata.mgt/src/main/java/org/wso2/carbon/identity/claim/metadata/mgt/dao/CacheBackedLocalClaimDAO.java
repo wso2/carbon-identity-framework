@@ -57,7 +57,7 @@ public class CacheBackedLocalClaimDAO {
                 log.debug("Cache miss for local claim list for tenant: " + tenantId);
             }
             localClaimList = localClaimDAO.getLocalClaims(tenantId);
-            localClaimInvalidationCache.addToCache(tenantId, new ArrayList<>(localClaimList), tenantId);
+            localClaimInvalidationCache.addToCacheIfNoDuplicate(tenantId, new ArrayList<>(localClaimList), tenantId);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Cache hit for local claim list for tenant: " + tenantId);
