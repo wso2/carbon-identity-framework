@@ -19,7 +19,7 @@
 <suite name="Identity-suite-initializer">
     <parameter name="log-level" value="info"/>
 
-    <test name="is-tests-initialize" preserve-order="true" parallel="classes" group-by-instances="true">
+    <test name="is-tests-initialize" parallel="classes" group-by-instances="true">
         <classes>
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtilsTest"/>
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAOTest" />
@@ -32,6 +32,7 @@
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMappingTest"/>
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimTest"/>
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaimTest"/>
+            <class name="org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDAOTest"/>
         </classes>
     </test>
 
