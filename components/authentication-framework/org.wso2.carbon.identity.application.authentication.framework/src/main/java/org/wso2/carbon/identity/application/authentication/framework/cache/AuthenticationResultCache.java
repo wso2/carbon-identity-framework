@@ -110,14 +110,18 @@ public class AuthenticationResultCache extends
 
     private boolean isCacheEntryExpired(AuthenticationResultCacheEntry entry) {
 
-        if (entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP) == null) {
-            log.warn("Cache entry does not have a created timestamp.");
+        String cacheCreatedTimestamp;
+        if (entry.getResult().getProperty(FrameworkConstants.UPDATED_TIMESTAMP) != null) {
+            cacheCreatedTimestamp = entry.getResult().getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString();
+        } else if (entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP) != null) {
+            cacheCreatedTimestamp = entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString();
+        } else {
+            log.warn("Cache entry does not have a created or updated timestamp.");
             return false;
         }
-        String createdTimestamp = entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString();
-        if (StringUtils.isNotBlank(createdTimestamp) &&
+        if (StringUtils.isNotBlank(cacheCreatedTimestamp) &&
                 (FrameworkUtils.getCurrentStandardNano() >
-                    entry.getValidityPeriod() + Long.parseLong(createdTimestamp) * 1000000)) {
+                    entry.getValidityPeriod() + Long.parseLong(cacheCreatedTimestamp) * 1000000)) {
             log.warn("Authentication result cache is expired");
             return true;
         }
