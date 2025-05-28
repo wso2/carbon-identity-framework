@@ -227,7 +227,7 @@ public class FlowDAOImpl implements FlowDAO {
                 LOG.debug("No steps are found in the flow " + tenantId);
                 return flowDTO;
             }
-            String firstStepId = getFirstStepId(tenantId);
+            String firstStepId = getFirstStepId(tenantId, flowType);
             StepDTO firstStep = steps.stream()
                     .filter(step -> step.getId().equals(firstStepId))
                     .findFirst()
@@ -267,7 +267,7 @@ public class FlowDAOImpl implements FlowDAO {
         }
     }
 
-    private String getFirstStepId(int tenantId) throws FlowMgtServerException {
+    private String getFirstStepId(int tenantId, String flowType) throws FlowMgtServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -276,6 +276,7 @@ public class FlowDAOImpl implements FlowDAO {
             }, preparedStatement -> {
                 preparedStatement.setBoolean(1, true);
                 preparedStatement.setInt(2, tenantId);
+                preparedStatement.setString(3, flowType);
             });
             return stepIds.isEmpty() ? null : stepIds.get(0);
         } catch (DataAccessException e) {

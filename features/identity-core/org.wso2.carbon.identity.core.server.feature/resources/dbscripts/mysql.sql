@@ -1647,7 +1647,7 @@ CREATE TABLE IDN_FLOW (
     TYPE VARCHAR(100),             -- Type of flow (e.g., "user_registration", "approval_process")
     IS_DEFAULT BOOLEAN DEFAULT FALSE, -- Indicates if this is the default flow
     LAST_MODIFIED TIMESTAMP, -- Timestamp of the last modification
-    UNIQUE (TENANT_ID, FLOW_NAME) -- Ensures a unique flow name per tenant
+    UNIQUE (TENANT_ID, TYPE, FLOW_NAME) -- Ensures a unique flow name per tenant
 );
 
 -- Create IDN_FLOW_NODE table with auto-incremental ID

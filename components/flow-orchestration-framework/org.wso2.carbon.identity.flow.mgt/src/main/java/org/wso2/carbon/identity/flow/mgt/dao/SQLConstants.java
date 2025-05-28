@@ -63,7 +63,7 @@ public class SQLConstants {
 
     public static final String GET_FIRST_STEP_ID = "SELECT fp.STEP_ID FROM IDN_FLOW_PAGE fp JOIN IDN_FLOW_NODE fn" +
             " ON fp.FLOW_NODE_ID = fn.ID JOIN IDN_FLOW f ON fn.FLOW_ID = f.ID WHERE fn.IS_FIRST_NODE = ? AND" +
-            " f.TENANT_ID = ?;";
+            " f.TENANT_ID = ? AND f.TYPE = ?;";
 
     private SQLConstants() {
 
