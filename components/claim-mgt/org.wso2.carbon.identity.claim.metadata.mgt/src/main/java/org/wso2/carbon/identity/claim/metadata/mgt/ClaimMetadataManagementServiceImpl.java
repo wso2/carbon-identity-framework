@@ -706,9 +706,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             // Validating the sub-attributes property separately as it can contain multiple sub-attributes.
             if (SUB_ATTRIBUTES_PROPERTY.equals(property.getKey())) {
                 for (String subAttribute : StringUtils.split(value, ' ')) {
-                    if (StringUtils.isBlank(subAttribute) && subAttribute.length() > MAX_CLAIM_PROPERTY_LENGTH) {
+                    if (StringUtils.isNotBlank(subAttribute) && subAttribute.length() > MAX_CLAIM_PROPERTY_LENGTH) {
                         throw new ClaimMetadataClientException(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getCode(),
-                                String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(), property.getKey()));
+                                String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(),
+                                        property.getKey(), MAX_CLAIM_PROPERTY_LENGTH));
                     }
                 }
             } else if (StringUtils.isNotBlank(value) && value.length() > MAX_CLAIM_PROPERTY_LENGTH) {
