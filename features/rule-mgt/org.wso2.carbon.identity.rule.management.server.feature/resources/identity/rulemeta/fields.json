@@ -86,8 +86,8 @@
     "value": {
       "inputType": "options",
       "valueType": "reference",
-      "valueReferenceAttribute": "uri",
-      "valueDisplayAttribute": "name",
+      "valueReferenceAttribute": "claimURI",
+      "valueDisplayAttribute": "displayName",
       "links": [
         {
           "href": "/claim-dialects/local/claims?exclude-hidden-claims=true",
