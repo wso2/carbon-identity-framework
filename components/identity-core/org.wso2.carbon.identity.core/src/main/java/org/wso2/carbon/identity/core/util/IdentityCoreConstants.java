@@ -27,6 +27,7 @@ public class IdentityCoreConstants {
     public static final String HOST_NAME = "HostName";
     public static final String MGT_CONSOLE_HOST_NAME = "MgtHostName";
     public static final String SERVER_HOST_NAME = "ServerHostName";
+    public static final String SKIP_LOCAL_USER_CLAIM_UPDATE = "SkipLocalUserClaimUpdate";
     public static final String AUTHENTICATION_ENDPOINT_HOST_NAME = "AuthenticationEndpoint.HostName";
     public static final String AUTHENTICATION_ENDPOINT_PATH = "AuthenticationEndpoint.Path";
     public static final String RECOVERY_ENDPOINT_HOST_NAME = "RecoveryEndpoint.HostName";
@@ -112,8 +113,20 @@ public class IdentityCoreConstants {
 
     // Actions constants.
     public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "Actions.MaximumActionsPerType";
-    
+
+    // System application constants
+    public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
+    public static final String MY_ACCOUNT_APPLICATION_CLIENT_ID = "MY_ACCOUNT";
+
+    // Thread local property keys for system applications
+    public static final String IS_SYSTEM_APPLICATION = "IsSystemApplication";
+
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
+
+    // Migration related constants.
+    public static final String MIGRATE =  "migrate";
+    public static final String DRY_RUN = "dryRun";
+    public static final String COMPONENT = "component";
 
     public static class Filter {
 
@@ -144,4 +157,5 @@ public class IdentityCoreConstants {
 
     private IdentityCoreConstants(){
     }
+
 }

@@ -26,7 +26,8 @@ import org.wso2.carbon.identity.rule.metadata.internal.util.RuleMetadataExceptio
  */
 public enum FlowType {
     PRE_ISSUE_ACCESS_TOKEN("preIssueAccessToken"),
-    PRE_UPDATE_PASSWORD("preUpdatePassword");
+    PRE_UPDATE_PASSWORD("preUpdatePassword"),
+    PRE_UPDATE_PROFILE("preUpdateProfile");
 
     private final String flowAlias;
 

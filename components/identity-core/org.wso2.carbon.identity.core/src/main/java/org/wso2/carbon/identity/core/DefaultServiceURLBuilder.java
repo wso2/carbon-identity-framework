@@ -149,7 +149,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedUrlContext = buildUrlPath(urlPaths);
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
+        if (IdentityTenantUtil.shouldUseTenantQualifiedURLs() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
             if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
                 setURL(resolvedUrlStringBuilder, tenantDomain);

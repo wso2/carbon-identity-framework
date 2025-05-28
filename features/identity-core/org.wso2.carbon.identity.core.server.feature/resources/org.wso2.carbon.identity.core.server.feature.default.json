@@ -15,6 +15,7 @@
   "data_storage_type.certificate_validation": "database",
   "data_storage_type.admin_advisory_banner": "database",
   "data_storage_type.remote_logging_config": "database",
+  "data_storage_type.challenge_questions": "database",
   "database.identity_db.pool_options.maxActive": "50",
   "database.identity_db.pool_options.maxWait": "60000",
   "database.identity_db.pool_options.testOnBorrow": "true",
@@ -62,6 +63,12 @@
   "remote_fetch.enable": false,
   "remote_fetch.working_directory": "${carbon.home}/tmp/",
 
+  "oauth.custom_token_validator": [
+    {
+      "type": "dpop",
+      "class": "org.wso2.carbon.identity.oauth2.dpop.validators.DPoPTokenValidator"
+    }
+  ],
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": false,
 
@@ -584,6 +591,10 @@
   "event.default_listener.application_authentication.enable": true,
   "event.default_listener.mutual_tls_authenticator.priority": "919",
   "event.default_listener.mutual_tls_authenticator.enable": true,
+  "event.default_listener.dpop.priority": "13",
+  "event.default_listener.dpop.enable": true,
+  "event.default_listener.dpop.property.header_validity_period": "3000",
+  "event.default_listener.dpop.property.skip_dpop_validation_in_revoke": true,
   "event.default_listener.private_key_jwt_authenticator.priority": "899",
   "event.default_listener.private_key_jwt_authenticator.enable": true,
   "event.default_listener.private_key_jwt_authenticator.property.prevent_token_reuse": false,
@@ -1187,8 +1198,7 @@
     "OAuthRequestPathAuthenticator"
   ],
   "console.ui.hiddenConnectionTemplates": [
-    "swe-idp",
-    "signicat"
+    "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
@@ -1663,6 +1673,7 @@
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
   "myaccount.ui.app_logo_path": "/assets/images/branding/logo.svg",
+  "myaccount.ui.app_mobile_logo_path": "/assets/images/branding/logo-mini.svg",
   "myaccount.ui.app_white_logo_path": "/assets/images/branding/logo-inverted.svg",
   "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
@@ -1695,8 +1706,10 @@
     "openid"
   ],
   "myaccount.impersonation.allowed_resources": [
+    "/api/server/v1/identity-governance/preferences",
     "/api/server/v1/branding-preference",
     "/scim2/Schemas",
+    "/scim2/Me",
     "/api/users/v1/me/associations",
     "/api/users/v1/me/applications"
   ],
@@ -1791,7 +1804,7 @@
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
-  "oauth.enable_user_session_impersonation": false,
+  "oauth.enable_user_session_impersonation": true,
 
   "system_applications.system_portals": ["Console", "My Account"],
 

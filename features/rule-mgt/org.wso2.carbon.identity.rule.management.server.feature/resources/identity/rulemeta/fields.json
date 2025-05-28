@@ -73,5 +73,28 @@
       "valueType": "string",
       "values": []
     }
+  },
+  "claim": {
+    "field": {
+      "name": "claim",
+      "displayName": "claim"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "reference",
+      "valueReferenceAttribute": "claimURI",
+      "valueDisplayAttribute": "displayName",
+      "links": [
+        {
+          "href": "/claim-dialects/local/claims?exclude-hidden-claims=true",
+          "method": "GET",
+          "rel": "values"
+        }
+      ]
+    }
   }
 }

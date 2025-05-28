@@ -139,7 +139,7 @@ public class InputValidationServiceTest {
                 .components(components)
                 .requiredParams(Collections.singletonList("input3"))
                 .build();
-        inputValidationService.handleStepInputs(dataDTO, registrationContext);
+        inputValidationService.prepareStepInputs(dataDTO, registrationContext);
         Assert.assertEquals(registrationContext.getCurrentStepInputs().size(), 2);
         Assert.assertEquals(registrationContext.getCurrentStepInputs().get("action1").size(), 2);
         Assert.assertTrue(registrationContext.getCurrentStepInputs().get("action1").contains("input1"));
@@ -156,7 +156,7 @@ public class InputValidationServiceTest {
         DataDTO dataDTO = new DataDTO.Builder()
                 .requiredParams(Collections.singletonList("input1"))
                 .build();
-        inputValidationService.handleStepInputs(dataDTO, registrationContext);
+        inputValidationService.prepareStepInputs(dataDTO, registrationContext);
         Assert.assertEquals(registrationContext.getCurrentStepInputs().size(), 1);
         Assert.assertEquals(registrationContext.getCurrentStepInputs().get(DEFAULT_ACTION).size(), 1);
         Assert.assertTrue(registrationContext.getCurrentStepInputs().get(DEFAULT_ACTION).contains("input1"));

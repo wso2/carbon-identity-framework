@@ -92,6 +92,7 @@
         <CertificateValidation>{{data_storage_type.certificate_validation}}</CertificateValidation>
         <AdminAdvisoryBanner>{{data_storage_type.admin_advisory_banner}}</AdminAdvisoryBanner>
         <RemoteLoggingConfig>{{data_storage_type.remote_logging_config}}</RemoteLoggingConfig>
+        <ChallengeQuestions>{{data_storage_type.challenge_questions}}</ChallengeQuestions>
     </DataStorageType>
 
     <NotificationTemplates>
@@ -2253,6 +2254,15 @@
                        orderId="{{event.default_listener.mutual_tls_authenticator.priority}}"
                        enable="{{event.default_listener.mutual_tls_authenticator.enable}}">
         </EventListener>
+        <EventListener id="dpop_listener"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.dpop.listener.OauthDPoPInterceptorHandlerProxy"
+                       orderId="{{event.default_listener.dpop.priority}}"
+                       enable="{{event.default_listener.dpop.enable}}">
+            <Property name="header_validity_period">{{event.default_listener.dpop.property.header_validity_period}}</Property>
+            <Property name="skip_dpop_validation_in_revoke">{{event.default_listener.dpop.property.skip_dpop_validation_in_revoke}}</Property>
+        </EventListener>
+
         <EventListener id="private_key_jwt_authenticator"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.jwt.PrivateKeyJWTClientAuthenticator"
@@ -4595,5 +4605,20 @@
             <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
         </BrandingAI>
     </AIServices>
+
+    {% if platform_idp is defined %}
+    <PlatformIdp>
+        <Enabled>true</Enabled>
+        <Name>{{platform_idp.name}}</Name>
+        <AuthEndpointUrl>{{platform_idp.oauth2_auth_ep_url}}</AuthEndpointUrl>
+        <TokenEndpointUrl>{{platform_idp.oauth2_token_ep_url}}</TokenEndpointUrl>
+        <LogoutEndpointUrl>{{platform_idp.oidc_logout_ep_url}}</LogoutEndpointUrl>
+        <CallbackUrl>{{platform_idp.callback_url}}</CallbackUrl>
+    </PlatformIdp>
+    {% endif %}
+
+    <AsyncOperationStatus>
+        <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
+    </AsyncOperationStatus>
 
 </Server>
