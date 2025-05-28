@@ -129,28 +129,6 @@
                    description="Delete actions"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Webhook Management API" identifier="/api/server/v1/webhooks"
-                 requiresAuthorization="true"
-                 description="API representation of the Webhook Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="Create Webhook" name="internal_webhook_mgt_create"
-                   description="Create new webhooks"/>
-            <Scope displayName="Update Webhook" name="internal_webhook_mgt_update"
-                   description="Update Webhooks"/>
-            <Scope displayName="View Webhook" name="internal_webhook_mgt_view"
-                   description="View webhooks"/>
-            <Scope displayName="Delete Webhook" name="internal_webhook_mgt_delete"
-                   description="Delete webhooks"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Webhook Metadata API" identifier="/api/server/v1/webhooks/metadata"
-                 requiresAuthorization="true"
-                 description="API representation of the Webhook Metadata API" type="TENANT">
-        <Scopes>
-            <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
-                   description="View webhook metadata"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">
@@ -1549,17 +1527,6 @@
                    description="Manage views of webhooks from the Console"/>
             <Scope displayName="Webhook Edit Feature" name="console:webhooks_edit"
                    description="Manage edits of webhooks from the Console"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Webhook Metadata Feature" identifier="console:webhookMeta"
-                 requiresAuthorization="true"
-                 description="Resource representation of the Webhook Metadata Feature"
-                 type="CONSOLE_FEATURE">
-        <Scopes>
-            <Scope displayName="Webhook Metadata Feature" name="console:webhookMeta"
-                   description="Manage webhook metadata from the Console"/>
-            <Scope displayName="Webhook Metadata View Feature" name="console:webhookMeta_view"
-                   description="Manage views of webhook metadata from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Tenant Management Feature" identifier="console:tenants"
