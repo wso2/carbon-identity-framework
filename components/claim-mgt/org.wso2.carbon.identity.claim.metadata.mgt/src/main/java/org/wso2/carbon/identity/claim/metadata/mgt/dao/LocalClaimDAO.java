@@ -151,7 +151,7 @@ public class LocalClaimDAO extends ClaimDAO {
                 if (propertyName.startsWith(SUB_ATTRIBUTE_PREFIX)) {
                     String subAttributes = existingAttributeMap.get(SUB_ATTRIBUTES_PROPERTY);
                     if (subAttributes == null) {
-                        subAttributes = "";
+                        subAttributes = StringUtils.EMPTY;
                     } else {
                         subAttributes += " ";
                     }

@@ -327,7 +327,7 @@ public class ExternalClaimDAO extends ClaimDAO {
                     if (claimPropertyName.startsWith(SUB_ATTRIBUTE_PREFIX)) {
                         String subAttributes = claimMap.get(localId).getClaimProperties().get(SUB_ATTRIBUTES_PROPERTY);
                         if (subAttributes == null) {
-                            subAttributes = "";
+                            subAttributes = StringUtils.EMPTY;
                         } else {
                             subAttributes += " ";
                         }
