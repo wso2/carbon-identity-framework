@@ -40,10 +40,10 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
-import static org.junit.Assert.fail;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.mockito.Mockito.mockStatic;
+import static org.testng.Assert.fail;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.EXECUTOR;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.NEXT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.BUTTON;
