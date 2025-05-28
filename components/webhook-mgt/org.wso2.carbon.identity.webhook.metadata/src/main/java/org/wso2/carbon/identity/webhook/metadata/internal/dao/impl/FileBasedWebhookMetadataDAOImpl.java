@@ -175,20 +175,23 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
         }
 
         List<Event> matchingEvents = new ArrayList<>();
+        profileCache.values().forEach(profile ->
+                matchingEvents.addAll(getEventsFromProfile(profile, profileUri))
+        );
+        return matchingEvents;
+    }
 
-        for (EventProfile profile : profileCache.values()) {
-            if (profile.getChannels() != null) {
-                for (Channel channel : profile.getChannels()) {
-                    if (channel != null && profileUri.equals(channel.getUri())) {
-                        List<Event> events = channel.getEvents();
-                        if (events != null) {
-                            matchingEvents.addAll(events);
-                        }
-                    }
+    private List<Event> getEventsFromProfile(EventProfile profile, String profileUri) {
+
+        List<Event> events = new ArrayList<>();
+        if (profile.getChannels() != null) {
+            for (Channel channel : profile.getChannels()) {
+                if (channel != null && profileUri.equals(channel.getUri()) && channel.getEvents() != null) {
+                    events.addAll(channel.getEvents());
                 }
+
             }
         }
-
-        return matchingEvents;
+        return events;
     }
 }

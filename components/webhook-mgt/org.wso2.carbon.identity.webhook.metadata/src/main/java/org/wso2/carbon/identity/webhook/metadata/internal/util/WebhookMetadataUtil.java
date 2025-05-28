@@ -37,6 +37,10 @@ public class WebhookMetadataUtil {
 
     private static Path eventProfilesDirectory = null;
 
+    private WebhookMetadataUtil() {
+
+    }
+
     /**
      * Get the directory path for event profiles.
      *
