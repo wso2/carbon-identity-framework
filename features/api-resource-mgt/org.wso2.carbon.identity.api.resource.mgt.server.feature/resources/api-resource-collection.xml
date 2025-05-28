@@ -1347,6 +1347,28 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="webhooks" displayName="Webhooks" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:webhooks"/>
+                <Scope name="console:webhooks_view"/>
+                <Scope name="console:webhooks_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_webhook_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_webhook_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_webhook_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_webhook_mgt_view"/>
+                <Scope name="internal_webhook_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="tenants" displayName="Root Organizations" type="tenant">
         <Scopes>
             <Feature>

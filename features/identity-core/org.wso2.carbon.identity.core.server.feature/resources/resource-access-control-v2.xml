@@ -153,6 +153,25 @@
         <Scopes>internal_cert_validation_mgt_delete</Scopes>
     </Resource>
 
+    <!-- Webhook Management API -->
+    <Resource context="(.*)/api/server/v1/webhooks/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_webhook_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/webhooks/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_webhook_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/webhooks/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_webhook_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/webhooks/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_webhook_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Webhook Metadata API -->
+    <Resource context="(.*)/api/server/v1/webhooks/metadata/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_webhook_meta_view</Scopes>
+    </Resource>
+
     <!-- Secret Type Management API -->
     <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
         <Scopes>internal_secret_type_mgt_add</Scopes>
