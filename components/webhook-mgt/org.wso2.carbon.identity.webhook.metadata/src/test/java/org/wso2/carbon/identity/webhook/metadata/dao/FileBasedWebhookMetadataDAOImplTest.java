@@ -162,7 +162,7 @@ public class FileBasedWebhookMetadataDAOImplTest {
             dao.getEventsByProfile(TEST_PROFILE_URI);
             Assert.fail("Expected WebhookMetadataException was not thrown");
         } catch (WebhookMetadataException ex) {
-            Assert.assertEquals(ex.getErrorCode(), "66003");
+            Assert.assertEquals(ex.getErrorCode(), "WEBHOOKMETA-66003");
             Assert.assertEquals(ex.getDescription(),
                     "An internal server error occurred while retrieving events for the profile " +
                             "https://schemas.identity.wso2.org/events/test.");
