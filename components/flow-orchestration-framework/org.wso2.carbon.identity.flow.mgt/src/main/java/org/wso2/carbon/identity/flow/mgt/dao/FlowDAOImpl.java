@@ -16,38 +16,37 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.registration.mgt.dao;
+package org.wso2.carbon.identity.flow.mgt.dao;
 
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.DELETE_FLOW;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_FLOW;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_VIEW_PAGES_IN_FLOW;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_FLOW_INTO_IDN_FLOW;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_FLOW_NODE_INFO;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_INFO;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_META;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_NODE_EDGES;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_NODE_EXECUTOR_INFO;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_FLOW_ID;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_X;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_Y;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_NAME;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_ID;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_TYPE;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_TYPE;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.REGISTRATION_FLOW;
-import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleServerException;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_VIEW_PAGES_IN_FLOW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_INTO_IDN_FLOW;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_INFO;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_INFO;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_META;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EDGES;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EXECUTOR_INFO;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_FLOW_ID;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_X;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_Y;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_NAME;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_ID;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_TYPE;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_TYPE;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -55,6 +54,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,31 +70,31 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
-import org.wso2.carbon.identity.user.registration.mgt.Constants;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
-import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
-import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
-import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
+import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
 /**
- * The DAO class for the registration flow.
+ * The DAO class for the flow.
  */
-public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
+public class FlowDAOImpl implements FlowDAO {
 
-    private static final Log LOG = LogFactory.getLog(RegistrationFlowDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(FlowDAOImpl.class);
 
     @Override
-    public void updateDefaultRegistrationFlowByTenant(RegistrationGraphConfig regFlowConfig, int tenantId,
-                                                      String flowName) throws RegistrationFrameworkException {
+    public void updateFlow(String flowType, GraphConfig graphConfig, int tenantId, String flowName)
+            throws FlowMgtFrameworkException {
 
-        String flowId = regFlowConfig.getId();
+        String flowId = graphConfig.getId();
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
@@ -102,7 +103,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                         preparedStatement -> {
                             preparedStatement.setInt(1, tenantId);
                             preparedStatement.setBoolean(2, true);
-                            preparedStatement.setString(3, REGISTRATION_FLOW);
+                            preparedStatement.setString(3, flowType);
                         });
 
                 // Insert into IDN_FLOW.
@@ -111,13 +112,14 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                             preparedStatement.setString(1, flowId);
                             preparedStatement.setInt(2, tenantId);
                             preparedStatement.setString(3, flowName);
-                            preparedStatement.setString(4, REGISTRATION_FLOW);
+                            preparedStatement.setString(4, flowType);
                             preparedStatement.setBoolean(5, true);
-                        }, regFlowConfig, false);
+                            preparedStatement.setTimestamp(6, new Timestamp(new Date().getTime()), null);
+                        }, graphConfig, false);
 
                 // Insert into IDN_FLOW_NODE.
-                Map<String, Integer> nodeIdToRegNodeIdMap = new HashMap<>();
-                for (Map.Entry<String, NodeConfig> entry : regFlowConfig.getNodeConfigs().entrySet()) {
+                Map<String, Integer> nodeIdToNodeIdMap = new HashMap<>();
+                for (Map.Entry<String, NodeConfig> entry : graphConfig.getNodeConfigs().entrySet()) {
                     NodeConfig node = entry.getValue();
                     int regNodeId = template.executeInsert(INSERT_FLOW_NODE_INFO,
                             preparedStatement -> {
@@ -127,7 +129,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                                 preparedStatement.setBoolean(4, node.isFirstNode());
                             }, entry, true);
 
-                    nodeIdToRegNodeIdMap.put(node.getId(), regNodeId);
+                    nodeIdToNodeIdMap.put(node.getId(), regNodeId);
 
                     // Insert into IDN_FLOW_NODE_EXECUTOR.
                     ExecutorDTO executorConfig = node.getExecutorConfig();
@@ -135,22 +137,22 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                         template.executeInsert(INSERT_NODE_EXECUTOR_INFO,
                                 preparedStatement -> {
                                     preparedStatement.setInt(1,
-                                            nodeIdToRegNodeIdMap.get(node.getId()));
+                                            nodeIdToNodeIdMap.get(node.getId()));
                                     preparedStatement.setString(2, executorConfig.getName());
                                     preparedStatement.setString(3, executorConfig.getIdpName());
                                 }, null, false);
                     }
                 }
                 // Insert graph edges into IDN_FLOW_NODE_MAPPING.
-                for (Map.Entry<String, NodeConfig> entry : regFlowConfig.getNodeConfigs().entrySet()) {
+                for (Map.Entry<String, NodeConfig> entry : graphConfig.getNodeConfigs().entrySet()) {
                     NodeConfig node = entry.getValue();
                     if (node.getEdges() != null) {
                         for (NodeEdge edge : node.getEdges()) {
                             template.executeInsert(INSERT_NODE_EDGES,
                                     preparedStatement -> {
-                                        preparedStatement.setInt(1, nodeIdToRegNodeIdMap.get(
+                                        preparedStatement.setInt(1, nodeIdToNodeIdMap.get(
                                                 edge.getSourceNodeId()));
-                                        preparedStatement.setInt(2, nodeIdToRegNodeIdMap.get(
+                                        preparedStatement.setInt(2, nodeIdToNodeIdMap.get(
                                                 edge.getTargetNodeId()));
                                         preparedStatement.setString(3, edge.getTriggeringActionId());
                                     }, null, false);
@@ -159,11 +161,11 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                 }
 
                 // Insert into IDN_FLOW_PAGE.
-                for (Map.Entry<String, StepDTO> entry : regFlowConfig.getNodePageMappings().entrySet()) {
+                for (Map.Entry<String, StepDTO> entry : graphConfig.getNodePageMappings().entrySet()) {
 
                     StepDTO stepDTO = entry.getValue();
                     Optional<byte[]> pageContent = serializeStepData(stepDTO, tenantId);
-                    int regNodeId = nodeIdToRegNodeIdMap.get(entry.getKey());
+                    int regNodeId = nodeIdToNodeIdMap.get(entry.getKey());
 
                     int pageAutoIncId = template.executeInsert(INSERT_FLOW_PAGE_INFO,
                             preparedStatement -> {
@@ -196,10 +198,9 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
     }
 
     @Override
-    public RegistrationFlowDTO getDefaultRegistrationFlowByTenant(int tenantId) throws RegistrationServerException {
+    public FlowDTO getFlow(String flowType, int tenantId) throws FlowMgtServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-
         try {
             List<StepDTO> steps = jdbcTemplate
                     .executeQuery(GET_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
@@ -217,55 +218,55 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                     })), preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
                         preparedStatement.setBoolean(2, true);
-                        preparedStatement.setString(3, REGISTRATION_FLOW);
+                        preparedStatement.setString(3, flowType);
                     });
 
-            RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
+            FlowDTO flowDTO = new FlowDTO();
             if (steps.isEmpty()) {
-                LOG.debug("No steps are found in the default flow of tenant " + tenantId);
-                return registrationFlowDTO;
+                LOG.debug("No steps are found in the " + flowType + " flow ");
+                return flowDTO;
             }
-            String firstStepId = getFirstStepId(tenantId);
+            String firstStepId = getFirstStepId(tenantId, flowType);
             StepDTO firstStep = steps.stream()
                     .filter(step -> step.getId().equals(firstStepId))
                     .findFirst()
                     .orElseThrow(() -> handleServerException(Constants.ErrorMessages.ERROR_CODE_INVALID_NODE, firstStepId,
                                                              tenantId));
             if (StringUtils.isNotBlank(firstStepId)) {
-                registrationFlowDTO.getSteps().add(firstStep);
+                flowDTO.getSteps().add(firstStep);
                 steps.remove(firstStep);
             }
-            registrationFlowDTO.getSteps().addAll(steps);
-            return registrationFlowDTO;
+            flowDTO.getSteps().addAll(steps);
+            return flowDTO;
         } catch (DataAccessException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantId);
         }
     }
 
     @Override
-    public RegistrationGraphConfig getDefaultRegistrationGraphByTenant(int tenantId) throws RegistrationFrameworkException {
+    public GraphConfig getGraphConfig(String flowType, int tenantId) throws FlowMgtFrameworkException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             // Step 1: Fetch Nodes with Executors and Mappings.
-            List<Map<String, Object>> rows = getGraphNodes(tenantId, jdbcTemplate);
+            List<Map<String, Object>> rows = getGraphNodes(flowType, tenantId, jdbcTemplate);
 
             // Step 2: Process Data to Avoid Duplication.
-            RegistrationGraphConfig regGraph = buildGraph(rows);
+            GraphConfig graphConfig = buildGraph(rows);
 
-            // Step 3: Fetch Page Content with JOIN query.
-            Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(regGraph.getId(),tenantId, jdbcTemplate);
+            // Step 3: Fetch Page Content with JOIN (Updated Query).
+            Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(graphConfig.getId(),tenantId, jdbcTemplate);
 
             // Step 4: Set the page mappings.
-            regGraph.setNodePageMappings(nodePageMappings);
-            return regGraph;
+            graphConfig.setNodePageMappings(nodePageMappings);
+            return graphConfig;
         } catch (DataAccessException e) {
-            LOG.error("Failed to retrieve registration graph for tenant: " + tenantId, e);
-            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_REG_GRAPH_FAILED, e, tenantId);
+            LOG.error("Failed to retrieve graph for tenant: " + tenantId, e);
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_GRAPH_FAILED, e, tenantId);
         }
     }
 
-    private String getFirstStepId(int tenantId) throws RegistrationServerException {
+    private String getFirstStepId(int tenantId, String flowType) throws FlowMgtServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -274,6 +275,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             }, preparedStatement -> {
                 preparedStatement.setBoolean(1, true);
                 preparedStatement.setInt(2, tenantId);
+                preparedStatement.setString(3, flowType);
             });
             return stepIds.isEmpty() ? null : stepIds.get(0);
         } catch (DataAccessException e) {
@@ -281,7 +283,8 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         }
     }
 
-    private List<Map<String, Object>> getGraphNodes(int tenantId, JdbcTemplate jdbcTemplate) throws DataAccessException {
+    private List<Map<String, Object>> getGraphNodes(String flowType, int tenantId, JdbcTemplate jdbcTemplate)
+            throws DataAccessException {
 
         return jdbcTemplate.executeQuery(GET_NODES_WITH_MAPPINGS_QUERY, (resultSet, rowNumber) -> {
             Map<String, Object> row = new HashMap<>();
@@ -297,7 +300,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         }, preparedStatement -> {
             preparedStatement.setInt(1, tenantId);
             preparedStatement.setBoolean(2, true);
-            preparedStatement.setString(3, REGISTRATION_FLOW);
+            preparedStatement.setString(3, flowType);
         });
     }
 
@@ -320,14 +323,14 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         return nodePageMappings;
     }
 
-    private RegistrationGraphConfig buildGraph(List<Map<String, Object>> rows) {
+    private GraphConfig buildGraph(List<Map<String, Object>> rows) {
 
-        RegistrationGraphConfig registrationGraphConfig = new RegistrationGraphConfig();
+        GraphConfig graphConfig = new GraphConfig();
         Map<String, NodeConfig> nodeConfigs = new HashMap<>();
 
         for (Map<String, Object> row : rows) {
-            if (registrationGraphConfig.getId() == null) {
-                registrationGraphConfig.setId((String) row.get(DB_SCHEMA_ALIAS_FLOW_ID));
+            if (graphConfig.getId() == null) {
+                graphConfig.setId((String) row.get(DB_SCHEMA_ALIAS_FLOW_ID));
             }
             String nodeId = (String) row.get(DB_SCHEMA_COLUMN_NAME_NODE_ID);
             nodeConfigs.putIfAbsent(nodeId, new NodeConfig.Builder()
@@ -340,7 +343,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
 
             // Update first node of the graph.
             if (nodeConfig.isFirstNode()) {
-                registrationGraphConfig.setFirstNodeId(nodeId);
+                graphConfig.setFirstNodeId(nodeId);
             }
             // Attach executor details if present.
             if (row.get(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME) != null) {
@@ -356,12 +359,12 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                 );
             }
         }
-        registrationGraphConfig.setNodeConfigs(nodeConfigs);
-        return registrationGraphConfig;
+        graphConfig.setNodeConfigs(nodeConfigs);
+        return graphConfig;
     }
 
     private void resolvePageContent(StepDTO stepDTO, InputStream pageContent, int tenantId)
-            throws RegistrationServerException {
+            throws FlowMgtServerException {
 
         try {
             if (pageContent == null) {
@@ -406,7 +409,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
     }
 
     private static Optional<byte[]> serializeStepData(StepDTO stepDTO, int tenantId)
-            throws RegistrationFrameworkException {
+            throws FlowMgtFrameworkException {
 
         try {
             if (VIEW.equals(stepDTO.getType())) {

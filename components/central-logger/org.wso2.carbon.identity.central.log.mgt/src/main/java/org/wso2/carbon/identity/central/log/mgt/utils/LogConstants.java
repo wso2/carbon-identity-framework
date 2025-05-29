@@ -163,13 +163,13 @@ public class LogConstants {
     }
 
     /**
-     * Registration flow management related log constants.
+     * Flow management related log constants.
      */
-    public static class RegistrationFlowManagement {
+    public static class FlowManagement {
 
-        public static final String UPDATE_REGISTRATION_FLOW = "update-registration-flow";
+        public static final String UPDATE_FLOW = "update-flow-";
 
-        private RegistrationFlowManagement() {
+        private FlowManagement() {
 
         }
     }
