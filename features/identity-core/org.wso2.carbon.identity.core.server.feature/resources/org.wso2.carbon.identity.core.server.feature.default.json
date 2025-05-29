@@ -1808,6 +1808,8 @@
 
   "system_applications.system_portals": ["Console", "My Account"],
 
-  "notification_templates.sms_templates.apply": true
+  "notification_templates.sms_templates.apply": true,
+
+  "attribute.return_previous_additional_properties.enabled": false
 }
 
