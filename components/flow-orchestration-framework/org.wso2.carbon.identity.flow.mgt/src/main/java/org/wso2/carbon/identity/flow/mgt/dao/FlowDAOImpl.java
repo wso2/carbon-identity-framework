@@ -91,8 +91,8 @@ public class FlowDAOImpl implements FlowDAO {
     private static final Log LOG = LogFactory.getLog(FlowDAOImpl.class);
 
     @Override
-    public void updateFlow(String flowType, GraphConfig graphConfig, int tenantId,
-                           String flowName) throws FlowMgtFrameworkException {
+    public void updateFlow(String flowType, GraphConfig graphConfig, int tenantId, String flowName)
+            throws FlowMgtFrameworkException {
 
         String flowId = graphConfig.getId();
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -201,7 +201,6 @@ public class FlowDAOImpl implements FlowDAO {
     public FlowDTO getFlow(String flowType, int tenantId) throws FlowMgtServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-
         try {
             List<StepDTO> steps = jdbcTemplate
                     .executeQuery(GET_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
@@ -224,7 +223,7 @@ public class FlowDAOImpl implements FlowDAO {
 
             FlowDTO flowDTO = new FlowDTO();
             if (steps.isEmpty()) {
-                LOG.debug("No steps are found in the flow " + tenantId);
+                LOG.debug("No steps are found in the " + flowType + " flow ");
                 return flowDTO;
             }
             String firstStepId = getFirstStepId(tenantId, flowType);
@@ -284,7 +283,8 @@ public class FlowDAOImpl implements FlowDAO {
         }
     }
 
-    private List<Map<String, Object>> getGraphNodes(String flowType, int tenantId, JdbcTemplate jdbcTemplate) throws DataAccessException {
+    private List<Map<String, Object>> getGraphNodes(String flowType, int tenantId, JdbcTemplate jdbcTemplate)
+            throws DataAccessException {
 
         return jdbcTemplate.executeQuery(GET_NODES_WITH_MAPPINGS_QUERY, (resultSet, rowNumber) -> {
             Map<String, Object> row = new HashMap<>();

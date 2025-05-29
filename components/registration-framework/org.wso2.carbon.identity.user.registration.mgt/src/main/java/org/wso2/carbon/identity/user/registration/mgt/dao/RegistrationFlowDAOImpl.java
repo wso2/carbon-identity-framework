@@ -253,7 +253,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             // Step 2: Process Data to Avoid Duplication.
             RegistrationGraphConfig regGraph = buildGraph(rows);
 
-            // Step 3: Fetch Page Content with JOIN (Updated Query).
+            // Step 3: Fetch Page Content with JOIN query.
             Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(regGraph.getId(),tenantId, jdbcTemplate);
 
             // Step 4: Set the page mappings.

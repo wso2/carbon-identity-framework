@@ -41,9 +41,9 @@ public class FlowMgtServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(FlowMgtService.class.getName(),
                     FlowMgtService.getInstance(), null);
-            LOG.debug("FlowMgt bundle is activated.");
+            LOG.debug("Flow Management bundle is activated.");
         } catch (Throwable e) {
-            LOG.error("Error occurred while activating FlowMgt bundle.", e);
+            LOG.error("Error occurred while activating Flow Management bundle.", e);
         }
     }
 
@@ -52,6 +52,6 @@ public class FlowMgtServiceComponent {
 
         BundleContext bundleCtx = context.getBundleContext();
         bundleCtx.ungetService(bundleCtx.getServiceReference(FlowMgtService.class));
-        LOG.debug("FlowMgt bundle is deactivated.");
+        LOG.debug("Flow Management bundle is deactivated.");
     }
 }
