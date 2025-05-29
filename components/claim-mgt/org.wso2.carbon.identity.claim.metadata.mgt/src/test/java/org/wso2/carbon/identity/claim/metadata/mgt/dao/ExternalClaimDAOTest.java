@@ -1,18 +1,21 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
 import org.testng.annotations.BeforeClass;
@@ -52,25 +55,30 @@ public class ExternalClaimDAOTest {
     LocalClaim localClaim1;
     LocalClaim localClaim2;
     LocalClaim localClaim3;
+    LocalClaim localClaim4;
 
     List<AttributeMapping> mappedAttributes1;
     List<AttributeMapping> mappedAttributes2;
     List<AttributeMapping> mappedAttributes3;
+    List<AttributeMapping> mappedAttributes4;
 
     AttributeMapping attributeMapping1;
     AttributeMapping attributeMapping2;
     AttributeMapping attributeMapping3;
+    AttributeMapping attributeMapping4;
 
     Map<String, String> claimProperties1;
     Map<String, String> claimProperties2;
     Map<String, String> claimProperties3;
+    Map<String, String> claimProperties4;
 
     @BeforeClass
-    public void initTest() throws Exception {
+    public void initTest() {
 
         attributeMapping1 = new AttributeMapping("PRIMARY", "givenname");
         attributeMapping2 = new AttributeMapping("PRIMARY", "nickname");
         attributeMapping3 = new AttributeMapping("PRIMARY", "username");
+        attributeMapping4 = new AttributeMapping("PRIMARY", "testAttribute");
 
         claimProperties1 = new HashMap<>();
         claimProperties1.put("Description", "TestDescription1");
@@ -83,6 +91,14 @@ public class ExternalClaimDAOTest {
         claimProperties3 = new HashMap<>();
         claimProperties3.put("Description", "TestDescription3");
         claimProperties3.put("FriendlyName", "UserName");
+        claimProperties3.put("subAttributes",
+                "http://wso2.org/claims/subattribute1 http://wso2.org/claims/subattribute2");
+
+        claimProperties4 = new HashMap<>();
+        claimProperties4.put("Description", "TestDescription4");
+        claimProperties4.put("FriendlyName", "TestAttribute4");
+        claimProperties4.put("subAttributes",
+                "http://wso2.org/claims/subattribute1 http://wso2.org/claims/subattribute2");
 
         mappedAttributes1 = new ArrayList<>();
         mappedAttributes1.add(attributeMapping1);
@@ -92,6 +108,9 @@ public class ExternalClaimDAOTest {
 
         mappedAttributes3 = new ArrayList<>();
         mappedAttributes3.add(attributeMapping3);
+
+        mappedAttributes4 = new ArrayList<>();
+        mappedAttributes4.add(attributeMapping4);
 
         localClaim1 = new LocalClaim("http://wso2.org/claims/test1");
         localClaim1.setMappedAttributes(mappedAttributes1);
@@ -105,6 +124,9 @@ public class ExternalClaimDAOTest {
         localClaim3.setMappedAttributes(mappedAttributes3);
         localClaim3.setClaimProperties(claimProperties3);
 
+        localClaim4 = new LocalClaim("http://wso2.org/claims/test4");
+        localClaim4.setMappedAttributes(mappedAttributes4);
+        localClaim4.setClaimProperties(claimProperties4);
     }
 
     @Test(dataProvider = "getExternalClaim")
@@ -153,37 +175,42 @@ public class ExternalClaimDAOTest {
     public Object[][] testGetExternalClaimsData() {
         Claim externalClaim1 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI1",
                 "http://wso2.org/claims/test1");
-        Map<String, String> claimProperties1 = new HashMap<>();
-        claimProperties1.put("DisplayName", "FirstName");
-        claimProperties1.put("FriendlyName", "givenName");
-        claimProperties1.put("Description", "Sampletest1");
-        externalClaim1.setClaimProperties(claimProperties1);
+        Map<String, String> externalClaimProperties1 = new HashMap<>();
+        externalClaimProperties1.put("DisplayName", "FirstName");
+        externalClaimProperties1.put("FriendlyName", "givenName");
+        externalClaimProperties1.put("Description", "Sampletest1");
+        externalClaim1.setClaimProperties(externalClaimProperties1);
 
         Claim externalClaim2 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI2",
                 "http://wso2.org/claims/test2");
-        Map<String, String> claimProperties2 = new HashMap<>();
-        claimProperties2.put("DisplayName", "FirstName");
-        claimProperties2.put("FriendlyName", "givenName");
-        claimProperties2.put("Description", "Sampletest2");
-        externalClaim2.setClaimProperties(claimProperties2);
+        Map<String, String> externalClaimProperties2 = new HashMap<>();
+        externalClaimProperties2.put("DisplayName", "FirstName");
+        externalClaimProperties2.put("FriendlyName", "givenName");
+        externalClaimProperties2.put("Description", "Sampletest2");
+        externalClaim2.setClaimProperties(externalClaimProperties2);
 
         Claim externalClaim3 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI3",
                 "http://wso2.org/claims/test3");
-        Map<String, String> claimProperties3 = new HashMap<>();
-        claimProperties3.put("DisplayName", "FirstName");
-        claimProperties3.put("FriendlyName", "givenName");
-        claimProperties3.put("Description", "Sampletest3");
-        externalClaim3.setClaimProperties(claimProperties3);
+        Map<String, String> externalClaimProperties3 = new HashMap<>();
+        externalClaimProperties3.put("DisplayName", "FirstName");
+        externalClaimProperties3.put("FriendlyName", "givenName");
+        externalClaimProperties3.put("Description", "Sampletest3");
+        externalClaim3.setClaimProperties(externalClaimProperties3);
 
-        return new Object[][] {
-                {
-                        localClaim1, externalClaim1, TENANT_ID
-                }, {
-                        localClaim2, externalClaim2, TENANT_ID
-                }, {
-                        localClaim3, externalClaim3, TENANT_ID
-                },
-                };
+        Claim externalClaim4 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI4",
+                "http://wso2.org/claims/test4");
+        Map<String, String> externalClaimProperties4 = new HashMap<>();
+        externalClaimProperties4.put("subAttributes",
+                "http://wso2.org/claims/subattribute1 http://wso2.org/claims/subattribute2");
+        externalClaimProperties4.put("Description", "sampleDescription4");
+        externalClaim4.setClaimProperties(externalClaimProperties4);
+
+        return new Object[][]{
+                {localClaim1, externalClaim1, TENANT_ID},
+                {localClaim2, externalClaim2, TENANT_ID},
+                {localClaim3, externalClaim3, TENANT_ID},
+                {localClaim4, externalClaim4, TENANT_ID}
+        };
     }
 
     @Test(dataProvider = "updateExternalClaim")
