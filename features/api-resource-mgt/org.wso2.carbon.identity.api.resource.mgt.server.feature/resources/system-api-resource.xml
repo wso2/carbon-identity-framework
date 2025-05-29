@@ -1556,6 +1556,16 @@
                    description="Update registration flow in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Flow Management API" identifier="/api/server/v1/flow"
+                 requiresAuthorization="true"
+                 description="API representation of the Flow Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Flow" name="internal_flow_view"
+                   description="View flow in the organization (root)"/>
+            <Scope displayName="Update Flow" name="internal_flow_update"
+                   description="Update flow in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Asynchronous Operation Status API" identifier="/api/server/v1/async-operations"
                  requiresAuthorization="true"
                  description="API representation of the Asynchronous Operation Status API" type="TENANT">

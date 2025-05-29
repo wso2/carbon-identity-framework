@@ -1452,6 +1452,14 @@
              <Scopes>internal_registration_flow_update</Scopes>
          </Resource>
 
+         <!-- Flow management API -->
+         <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">
+             <Scopes>internal_registration_flow_view</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="PUT">
+             <Scopes>internal_registration_flow_update</Scopes>
+         </Resource>
+
           <!-- [Organization] User share API -->
           <Resource context="(.*)/o/api/server/v1/users/share(.*)" secured="true" http-method="POST">
               <Scopes>internal_org_user_share</Scopes>
