@@ -447,6 +447,34 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Delete properties of the resident IDP in the given tenant.
+     * @param tenantDomain Tenant domain whose resident IdP propperties should be deleted.
+     * @param propertyNames List of property names to be deleted.
+     * @throws IdentityProviderManagementException
+     */
+    @Override
+    public void deleteResidentIdpProperties(String tenantDomain, List<String> propertyNames)
+            throws IdentityProviderManagementException {
+
+        IdentityProvider residentIdp = dao.getIdPByName(null, IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
+                IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
+
+        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteResidentIdpProperties(tenantDomain, propertyNames)) {
+                return;
+            }
+        }
+
+        dao.deleteIdpProperties(tenantDomain, residentIdp, propertyNames);
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteResidentIdpProperties(tenantDomain, propertyNames)) {
+                return;
+            }
+        }
+    }
+
+    /**
      * Retrieves registered Identity finally {
      * break;
      * }providers for a given tenant

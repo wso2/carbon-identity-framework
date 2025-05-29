@@ -1,25 +1,27 @@
 /*
- *  Copyright (c) 2005-2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2005-2025, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
- *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+
 package org.wso2.carbon.idp.mgt.listener;
 
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+
+import java.util.List;
 
 /**
  * Listener interface for Identity Provider Managements tasks.
@@ -86,6 +88,32 @@ public interface IdentityProviderMgtListener {
      */
     public boolean doPostUpdateResidentIdP(IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException;
+
+    /**
+     * Define any additional actions before deleting resident idp properties.
+     * @param tenantDomain Tenant domain of the resident idp.
+     * @param propertyNames List of property names to be deleted.
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException
+     */
+    public default boolean doPreDeleteResidentIdpProperties(String tenantDomain,  List<String> propertyNames) throws
+            IdentityProviderManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after deleting resident idp properties.
+     * @param tenantDomain Tenant domain of the resident idp.
+     * @param propertyNames List of property names deleted.
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException
+     */
+    public default boolean doPostDeleteResidentIdpProperties(String tenantDomain, List<String> propertyNames) throws
+            IdentityProviderManagementException {
+
+        return true;
+    }
 
     /**
      * Define any additional actions before adding idp

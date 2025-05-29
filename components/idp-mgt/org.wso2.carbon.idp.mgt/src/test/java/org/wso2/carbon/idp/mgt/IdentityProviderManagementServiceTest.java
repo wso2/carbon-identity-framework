@@ -1287,6 +1287,16 @@ public class IdentityProviderManagementServiceTest {
         verify(actionManagementService, times(1)).addAction(anyString(), any(), anyString());
     }
 
+    @Test
+    public void testDeleteResidentIdpProperties() throws Exception {
+
+        addResidentIdp();
+        List<String> propertiesToDelete = new ArrayList<>();
+        propertiesToDelete.add(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+        IdentityProviderManager.getInstance().deleteResidentIdpProperties(ROOT_TENANT_DOMAIN, propertiesToDelete);
+        Assert.assertNotNull(identityProviderManagementService.getResidentIdP());
+    }
+
     private void addTestIdps() throws IdentityProviderManagementException {
 
         // Initialize Test Identity Provider 1.

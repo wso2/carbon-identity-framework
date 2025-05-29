@@ -619,6 +619,27 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * Delete the properties of the given Identity Provider.
+     *
+     * @param tenantDomain       Tenant domain of the Identity Provider.
+     * @param identityProvider   Identity provider whose properties need to be deleted.
+     * @param propertyNames      List of property names to be deleted.
+     */
+    public void deleteIdpProperties(String tenantDomain, IdentityProvider identityProvider, List<String> propertyNames)
+            throws IdentityProviderManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Updating the resident IDP properties for tenant: " + tenantDomain +
+                    "Following properties will be deleted: " + propertyNames.toString());
+        }
+
+        clearIdpCache(identityProvider.getIdentityProviderName(), identityProvider.getResourceId(),
+                IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
+        idPManagementFacade.deleteIdpProperties(
+                tenantDomain, Integer.parseInt(identityProvider.getId()), propertyNames);
+    }
+
+    /**
      * @param idPName
      * @param tenantId
      * @param tenantDomain

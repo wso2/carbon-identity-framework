@@ -323,6 +323,12 @@ public class IdPManagementFacade {
         return configList;
     }
 
+    public void deleteIdpProperties(String tenantDomain, int idpId, List<String> propertyNames)
+            throws IdentityProviderManagementException {
+
+        dao.deleteIdpProperties(tenantDomain, idpId, propertyNames);
+    }
+
     private IdentityProvider populateEndpointConfig(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 

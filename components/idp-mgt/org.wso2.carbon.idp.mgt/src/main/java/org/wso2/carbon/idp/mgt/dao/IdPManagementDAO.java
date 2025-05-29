@@ -6364,6 +6364,36 @@ public class IdPManagementDAO {
         }
     }
 
+    /**
+     * Deletes the specified properties of an identity provider.
+     *
+     * @param tenantDomain  Tenant domain of the identity provider.
+     * @param idpId         ID of the identity provider.
+     * @param propertyNames List of property names to be deleted.
+     * @throws IdentityProviderManagementException If an error occurred while deleting properties.
+     */
+    public void deleteIdpProperties(String tenantDomain, int idpId, List<String> propertyNames)
+            throws IdentityProviderManagementException {
+
+        String query = IdPManagementConstants.SQLQueries.DELETE_IDP_METADATA_BY_PROPERTY_NAME;
+        query = query.replace(
+                IdPManagementConstants.IDP_METADATA_PROPERTY_LIST_PLACEHOLDER,
+                String.join(",", Collections.nCopies(propertyNames.size(), "?")));
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, idpId);
+            for (int i = 0; i < propertyNames.size(); i++) {
+                preparedStatement.setString(i + 2, propertyNames.get(i));
+            }
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occured while deleting properties of IDP:" + idpId +
+                    " in tenant:" + tenantDomain, e);
+        }
+    }
+
     private void getFederatedProperties(Connection connection, int authnId,
             FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws SQLException{
 
