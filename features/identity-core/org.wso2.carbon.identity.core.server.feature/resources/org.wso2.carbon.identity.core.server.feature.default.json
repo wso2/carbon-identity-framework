@@ -1259,6 +1259,14 @@
   ],
   "console.actions.scopes.update": ["internal_action_mgt_update"],
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
+  "console.webhooks.scopes.feature": ["console:webhooks"],
+  "console.webhooks.scopes.create": ["internal_webhook_mgt_create"],
+  "console.webhooks.scopes.read": [
+    "internal_webhook_mgt_view",
+    "internal_webhook_meta_view"
+  ],
+  "console.webhooks.scopes.update": ["internal_webhook_mgt_update"],
+  "console.webhooks.scopes.delete": ["internal_webhook_mgt_delete"],
   "console.administrators.enabled": false,
   "console.administrators.scopes.feature": [],
   "console.administrators.scopes.create": [],

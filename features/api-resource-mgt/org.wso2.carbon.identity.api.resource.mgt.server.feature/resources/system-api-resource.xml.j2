@@ -867,6 +867,28 @@
                    description="Delete certificate validation configurations in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Webhook Management API" identifier="/api/server/v1/webhooks"
+                 requiresAuthorization="true"
+                 description="API representation of the Webhook Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Webhooks" name="internal_webhook_mgt_view"
+                   description="View webhooks in the organization (root)"/>
+            <Scope displayName="Create Webhooks" name="internal_webhook_mgt_create"
+                   description="Create webhooks in the organization (root)"/>
+            <Scope displayName="Update Webhooks" name="internal_webhook_mgt_update"
+                   description="Update webhooks in the organization (root)"/>
+            <Scope displayName="Delete Webhooks" name="internal_webhook_mgt_delete"
+                   description="Delete webhooks in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Webhook Metadata API" identifier="/api/server/v1/webhooks/metadata"
+                 requiresAuthorization="true"
+                 description="API representation of the Webhook Metadata API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
+                   description="View webhook metadata in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Email Template Management API v1/v2"
                  identifier="/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API" type="TENANT">
@@ -1492,6 +1514,19 @@
                     description="Manage views of actions from the Console"/>
             <Scope displayName="Action Edit Feature" name="console:actions_edit"
                     description="Manage edits of actions from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Webhook Management Feature" identifier="console:webhooks"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Webhook Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Webhook Feature" name="console:webhooks"
+                   description="Manage webhooks from the Console"/>
+            <Scope displayName="Webhook View Feature" name="console:webhooks_view"
+                   description="Manage views of webhooks from the Console"/>
+            <Scope displayName="Webhook Edit Feature" name="console:webhooks_edit"
+                   description="Manage edits of webhooks from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Tenant Management Feature" identifier="console:tenants"
