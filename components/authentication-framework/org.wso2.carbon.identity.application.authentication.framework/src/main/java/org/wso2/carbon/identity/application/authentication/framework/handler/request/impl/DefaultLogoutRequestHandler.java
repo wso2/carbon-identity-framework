@@ -37,13 +37,16 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Ses
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -55,8 +58,11 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.utils.DiagnosticLog;
@@ -66,6 +72,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -390,6 +397,24 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             }
             // Setting the authenticated user's object to the request to get the relevant details to log out the user.
             context.setProperty(FrameworkConstants.AUTHENTICATED_USER, authenticatedUser);
+
+            Flow flow = new Flow.Builder()
+                    .name(Flow.Name.LOGOUT)
+                    .initiatingPersona(Flow.InitiatingPersona.USER)
+                    .build();
+            IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+
+            try {
+                Optional<UserSession> userSession = FrameworkServiceDataHolder.getInstance()
+                        .getUserSessionManagementService()
+                        .getSessionBySessionId(authenticatedUser.getUserId(),
+                                context.getSessionIdentifier());
+                List<UserSession> userSessions = new ArrayList<>();
+                userSession.ifPresent(userSessions::add);
+                FrameworkUtils.publishUserSessionTerminateEvent(authenticatedUser, userSessions, false);
+            } catch (UserIdNotFoundException | SessionManagementException | IdentityEventException e) {
+                log.error("Error while publishing user session terminate event.", e);
+            }
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
                     sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
                             .SESSION_TERMINATE);
@@ -485,7 +510,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
     }
 
     /**
-     * Add authentication result into request attribute
+     * Add authentication result into request attribute.
      *
      * @param request Http servlet request
      * @param authenticationResult Authentication result
