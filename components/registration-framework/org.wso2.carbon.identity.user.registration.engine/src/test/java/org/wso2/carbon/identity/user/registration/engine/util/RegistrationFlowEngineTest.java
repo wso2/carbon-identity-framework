@@ -22,13 +22,24 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
 import org.wso2.carbon.identity.user.registration.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.user.registration.engine.listener.FlowExecutionListener;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
+import org.wso2.carbon.identity.user.registration.engine.model.Response;
 import org.wso2.carbon.identity.user.registration.engine.validation.InputValidationListener;
-import org.wso2.carbon.identity.user.registration.engine.model.*;
-import org.wso2.carbon.identity.user.registration.mgt.model.*;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
+import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
+import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
@@ -36,16 +47,19 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INTERACTION_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REQUIRED_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.INTERACTION_DATA;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
-
-import java.util.*;
 
 /**
  * Unit tests for RegistrationFlowEngine.
@@ -107,7 +121,7 @@ public class RegistrationFlowEngineTest {
 
         try (MockedStatic<RegistrationFlowEngineUtils> utilsMockedStatic = mockStatic(
                 RegistrationFlowEngineUtils.class);
-                MockedConstruction<TaskExecutionNode> mocked =
+             MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          Response response = new Response.Builder()
                                  .status("COMPLETE")
@@ -192,6 +206,161 @@ public class RegistrationFlowEngineTest {
             assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
             assertEquals(step.getStepType(), REDIRECTION);
             assertEquals(step.getData().getUrl(), "https://test.com");
+        }
+    }
+
+    @Test
+    public void testInteractionNodeResponse() throws Exception {
+
+        NodeConfig interactionNode = new NodeConfig.Builder()
+                .id("interactionNode")
+                .type(TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put("interactionNode", interactionNode);
+
+        RegistrationGraphConfig graphWithInteraction = new RegistrationGraphConfig();
+        graphWithInteraction.setFirstNodeId("interactionNode");
+        graphWithInteraction.setNodeConfigs(nodeMap);
+
+        RegistrationContext newContext = initiateRegistrationContext();
+        newContext.setRegGraph(graphWithInteraction);
+
+        Map<String, String> additionalTestInfo = new HashMap<>();
+        additionalTestInfo.put(INTERACTION_DATA, "{\"field1\":\"value1\",\"field2\":\"value2\"}");
+
+        try (MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
+                         Response response = new Response.Builder()
+                                 .status(STATUS_INCOMPLETE)
+                                 .type(INTERACT)
+                                 .additionalInfo(additionalTestInfo)
+                                 .requiredData(Arrays.asList("username", "email"))
+                                 .build();
+                         when(mock.execute(any(), any())).thenReturn(response);
+                     })) {
+
+            RegistrationStep step = RegistrationFlowEngine.getInstance().execute(newContext);
+            assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
+            assertEquals(step.getStepType(), INTERACT);
+            assertEquals(step.getData().getRequiredParams().size(), 2);
+            assertEquals(step.getData().getAdditionalData().get(INTERACTION_DATA),
+                    "{\"field1\":\"value1\",\"field2\":\"value2\"}");
+        }
+    }
+
+    @Test
+    public void testInteractionNodeResponseWithoutInteractionData() throws Exception {
+
+        NodeConfig interactionNode = new NodeConfig.Builder()
+                .id("interactionNodeWithoutData")
+                .type(TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put("interactionNodeWithoutData", interactionNode);
+
+        RegistrationGraphConfig graphWithInteraction = new RegistrationGraphConfig();
+        graphWithInteraction.setFirstNodeId("interactionNodeWithoutData");
+        graphWithInteraction.setNodeConfigs(nodeMap);
+
+        RegistrationContext newContext = initiateRegistrationContext();
+        newContext.setRegGraph(graphWithInteraction);
+
+        Map<String, String> emptyAdditionalInfo = new HashMap<>();
+
+        try (MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
+                         Response response = new Response.Builder()
+                                 .status(STATUS_INCOMPLETE)
+                                 .type(INTERACT)
+                                 .additionalInfo(emptyAdditionalInfo)
+                                 .requiredData(Arrays.asList("username", "email"))
+                                 .build();
+                         when(mock.execute(any(), any())).thenReturn(response);
+                     })) {
+
+            RegistrationFlowEngine.getInstance().execute(newContext);
+        } catch (RegistrationEngineServerException e) {
+            assertEquals(e.getErrorCode(), ERROR_CODE_INTERACTION_DATA_NOT_FOUND.getCode());
+        }
+    }
+
+    @Test
+    public void testInternalPromptResponse() throws Exception {
+
+        NodeConfig promptNode = new NodeConfig.Builder()
+                .id("internalPromptNode")
+                .type(TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put("internalPromptNode", promptNode);
+
+        RegistrationGraphConfig graphWithPrompt = new RegistrationGraphConfig();
+        graphWithPrompt.setFirstNodeId("internalPromptNode");
+        graphWithPrompt.setNodeConfigs(nodeMap);
+
+        RegistrationContext newContext = initiateRegistrationContext();
+        newContext.setRegGraph(graphWithPrompt);
+
+        Map<String, String> additionalTestInfo = new HashMap<>();
+        additionalTestInfo.put("someKey", "someValue");
+
+        try (MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
+                         Response response = new Response.Builder()
+                                 .status(STATUS_INCOMPLETE)
+                                 .type(INTERNAL_PROMPT)
+                                 .additionalInfo(additionalTestInfo)
+                                 .requiredData(Arrays.asList("firstName", "lastName", "password"))
+                                 .build();
+                         when(mock.execute(any(), any())).thenReturn(response);
+                     })) {
+
+            RegistrationStep step = RegistrationFlowEngine.getInstance().execute(newContext);
+            assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
+            assertEquals(step.getStepType(), INTERNAL_PROMPT);
+            assertEquals(step.getData().getRequiredParams().size(), 3);
+            assertEquals(step.getData().getAdditionalData().get("someKey"), "someValue");
+        }
+    }
+
+    @Test
+    public void testInternalPromptResponseWithoutRequiredData() throws Exception {
+
+        NodeConfig promptNode = new NodeConfig.Builder()
+                .id("internalPromptNodeNoData")
+                .type(TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put("internalPromptNodeNoData", promptNode);
+
+        RegistrationGraphConfig graphWithPrompt = new RegistrationGraphConfig();
+        graphWithPrompt.setFirstNodeId("internalPromptNodeNoData");
+        graphWithPrompt.setNodeConfigs(nodeMap);
+
+        RegistrationContext newContext = initiateRegistrationContext();
+        newContext.setRegGraph(graphWithPrompt);
+
+        Map<String, String> additionalTestInfo = new HashMap<>();
+        additionalTestInfo.put("someKey", "someValue");
+
+        try (MockedConstruction<TaskExecutionNode> mocked =
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
+                         Response response = new Response.Builder()
+                                 .status(STATUS_INCOMPLETE)
+                                 .type(INTERNAL_PROMPT)
+                                 .additionalInfo(additionalTestInfo)
+                                 .build();
+                         when(mock.execute(any(), any())).thenReturn(response);
+                     })) {
+
+            RegistrationFlowEngine.getInstance().execute(newContext);
+        } catch (RegistrationEngineServerException e) {
+            assertEquals(e.getErrorCode(), ERROR_CODE_REQUIRED_DATA_NOT_FOUND.getCode());
         }
     }
 
@@ -282,4 +451,3 @@ public class RegistrationFlowEngineTest {
         return context;
     }
 }
-

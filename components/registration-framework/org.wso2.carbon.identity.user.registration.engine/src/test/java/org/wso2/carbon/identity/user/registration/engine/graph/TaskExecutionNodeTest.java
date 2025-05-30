@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.user.registration.engine.Constants;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
@@ -65,6 +66,9 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.Execut
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 
 /**
  * Test class for TaskExecutionNode.
@@ -314,6 +318,76 @@ public class TaskExecutionNodeTest {
             assertNotNull(context.getAuthenticatorProperties());
             assertEquals(context.getAuthenticatorProperties().size(), 1);
             assertEquals(context.getAuthenticatorProperties().get("property1"), "value1");
+        }
+    }
+
+    @Test
+    public void testExecutorClientInputRequiredStatus() throws Exception {
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(Constants.ExecutorStatus.STATUS_CLIENT_INPUT_REQUIRED);
+        List<String> requiredData = new ArrayList<>();
+        requiredData.add("clientField1");
+        requiredData.add("clientField2");
+        executorResponse.setRequiredData(requiredData);
+        Map<String, String> additionalInfo = new HashMap<>();
+        additionalInfo.put("clientKey", "clientValue");
+        executorResponse.setAdditionalInfo(additionalInfo);
+
+        try (MockedStatic<RegistrationFlowEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+            Response response = taskExecutionNode.execute(context, nodeConfig);
+            assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+            assertEquals(response.getType(), INTERNAL_PROMPT);
+            assertNotNull(response.getRequiredData());
+            assertEquals(response.getRequiredData().size(), 2);
+            assertEquals(response.getAdditionalInfo().get("clientKey"), "clientValue");
+        }
+    }
+
+    @Test
+    public void testExecutorInteractionStatus() throws Exception {
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(Constants.ExecutorStatus.STATUS_INTERACTION);
+        List<String> requiredData = new ArrayList<>();
+        requiredData.add("interactionField1");
+        requiredData.add("interactionField2");
+        executorResponse.setRequiredData(requiredData);
+        Map<String, String> additionalInfo = new HashMap<>();
+        additionalInfo.put("interactionData", "{\"form\":\"data\"}");
+        executorResponse.setAdditionalInfo(additionalInfo);
+
+        try (MockedStatic<RegistrationFlowEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+            Response response = taskExecutionNode.execute(context, nodeConfig);
+            assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+            assertEquals(response.getType(), INTERACT);
+            assertNotNull(response.getRequiredData());
+            assertEquals(response.getRequiredData().size(), 2);
+            assertEquals(response.getAdditionalInfo().get("interactionData"), "{\"form\":\"data\"}");
+        }
+    }
+
+    @Test
+    public void testRollbackFunctionality() throws Exception {
+
+        nodeConfig.setPreviousNodeId("previousNode");
+
+        NodeConfig previousNodeConfig = new NodeConfig.Builder()
+                .id("previousNode")
+                .type(TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeConfigs = new HashMap<>();
+        nodeConfigs.put("previousNode", previousNodeConfig);
+        context.getRegGraph().setNodeConfigs(nodeConfigs);
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_COMPLETE);
+
+        try (MockedStatic<RegistrationFlowEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+            Response response = taskExecutionNode.rollback(context, nodeConfig);
+            assertEquals(response.getStatus(), STATUS_COMPLETE);
+            assertEquals(context.getCurrentNode(), previousNodeConfig);
         }
     }
 

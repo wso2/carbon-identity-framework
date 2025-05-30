@@ -37,6 +37,7 @@ public class Constants {
     public static final String IDENTIFIER = "identifier";
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
+    public static final String INTERACTION_DATA = "interactionData";
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
     public static final String DEFAULT_REGISTRATION_CALLBACK = "/authenticationendpoint/register.do";
@@ -62,11 +63,13 @@ public class Constants {
 
         public static final String STATUS_USER_INPUT_REQUIRED = "USER_INPUT_REQUIRED";
         public static final String STATUS_EXTERNAL_REDIRECTION = "EXTERNAL_REDIRECTION";
+        public static final String STATUS_INTERACTION = "INTERACTION";
         public static final String STATUS_USER_CREATED = "USER_CREATED";
         public static final String STATUS_COMPLETE = "COMPLETE";
         public static final String STATUS_RETRY = "RETRY";
         public static final String STATUS_ERROR = "ERROR";
         public static final String STATUS_USER_ERROR = "USER_ERROR";
+        public static final String STATUS_CLIENT_INPUT_REQUIRED = "CLIENT_INPUT_REQUIRED";
         // User store manager related statuses.
         public static final String USER_ALREADY_EXISTING_USERNAME = "UserAlreadyExistingUsername";
 
@@ -138,6 +141,12 @@ public class Constants {
                                                     "Error while resolving default callback URL.",
                                                     "Error occurred while resolving the default callback URL for the " +
                                                             "registration request in tenant: %s."),
+        ERROR_CODE_INTERACTION_DATA_NOT_FOUND("65018",
+                "Interaction data not found.",
+                "Error occurred while resolving interaction data."),
+        ERROR_CODE_REQUIRED_DATA_NOT_FOUND("65019",
+                "Required data not found.",
+                "Error occurred while resolving required data."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",

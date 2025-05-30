@@ -37,8 +37,10 @@ import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationConte
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineClientException;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
+import org.wso2.carbon.identity.user.registration.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 
@@ -155,6 +157,35 @@ public class RegistrationFlowEngineUtils {
             throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         } catch (RegistrationFrameworkException e) {
             throw handleServerException(ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE, tenantDomain);
+        }
+    }
+
+    /**
+     * Rollback the registration context.
+     *
+     * @param contextId Context identifier.
+     */
+    public static void rollbackContext(String contextId) {
+
+        if (StringUtils.isBlank(contextId)) {
+            LOG.debug("Context id is null or empty. Hence skipping rollback of the flow context.");
+            return;
+        }
+        try {
+            RegistrationContext context = retrieveRegContextFromCache(contextId);
+            if (context != null) {
+                context.getCompletedNodes().forEach((config) -> {
+                    if (Constants.NodeTypes.TASK_EXECUTION.equals(config.getType())) {
+                        try {
+                            new TaskExecutionNode().rollback(context, config);
+                        } catch (RegistrationEngineException ex) {
+                            LOG.error("Error occurred while executing rollback for node: " + config.getId(), ex);
+                        }
+                    }
+                });
+            }
+        } catch (RegistrationEngineException e) {
+            LOG.error("Error occurred while retrieving the flow context with flow id: " + contextId, e);
         }
     }
 

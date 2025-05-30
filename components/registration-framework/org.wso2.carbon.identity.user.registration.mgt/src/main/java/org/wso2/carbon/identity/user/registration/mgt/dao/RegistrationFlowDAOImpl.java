@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.dao;
 
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.DELETE_FLOW;
@@ -382,7 +383,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                         throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
                                                     stepDTO.getId(), tenantId);
                     }
-                } else if (REDIRECTION.equals(stepDTO.getType())) {
+                } else if (REDIRECTION.equals(stepDTO.getType()) || INTERACT.equals(stepDTO.getType())) {
                     if (obj instanceof ActionDTO) {
                         ActionDTO action = (ActionDTO) obj;
                         stepDTO.setData(new DataDTO.Builder().action(action).build());
@@ -412,7 +413,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             if (VIEW.equals(stepDTO.getType())) {
                 List<ComponentDTO> components = stepDTO.getData().getComponents();
                 return Optional.of(serializeObject(components));
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
+            } else if (REDIRECTION.equals(stepDTO.getType()) || INTERACT.equals(stepDTO.getType())) {
                 ActionDTO action = stepDTO.getData().getAction();
                 return Optional.of(serializeObject(action));
             } else {
