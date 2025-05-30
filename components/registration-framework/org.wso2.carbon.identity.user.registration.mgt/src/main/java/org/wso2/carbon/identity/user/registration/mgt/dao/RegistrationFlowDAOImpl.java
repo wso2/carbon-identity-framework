@@ -275,6 +275,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             }, preparedStatement -> {
                 preparedStatement.setBoolean(1, true);
                 preparedStatement.setInt(2, tenantId);
+                preparedStatement.setString(3, REGISTRATION_FLOW);
             });
             return stepIds.isEmpty() ? null : stepIds.get(0);
         } catch (DataAccessException e) {
