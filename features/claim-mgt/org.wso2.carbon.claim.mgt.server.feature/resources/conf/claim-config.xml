@@ -178,6 +178,7 @@
 				<AttributeID>dateOfBirth</AttributeID>
 				<Description>Birth Date</Description>
 				<RegEx>^\d{4}-\d{2}-\d{2}$</RegEx>
+				<dataType>date_time</dataType>
 				<RegExValidationError>Date of Birth is not in the correct format of YYYY-MM-DD</RegExValidationError>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
@@ -245,6 +246,7 @@
 				<AttributeID>createdDate</AttributeID>
 				<Description>Created timestamp of the user</Description>
 				<ReadOnly/>
+				<dataType>date_time</dataType>
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -253,6 +255,7 @@
 				<AttributeID>lastModifiedDate</AttributeID>
 				<Description>Last Modified timestamp of the user</Description>
 				<ReadOnly/>
+				<dataType>date_time</dataType>
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -478,6 +481,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>verifyEmail</AttributeID>
 				<Description>Temporary claim to invoke email verified feature</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 				<FlowInitiator>True</FlowInitiator>
 			</Claim>
@@ -488,6 +492,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>askPassword</AttributeID>
 				<Description>Temporary claim to invoke email ask Password feature</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 				<FlowInitiator>True</FlowInitiator>
 			</Claim>
@@ -498,6 +503,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>tenantAdminAskPassword</AttributeID>
 				<Description>Temporary claim to invoke email tenant admin ask Password feature</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -507,6 +513,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>forcePasswordReset</AttributeID>
 				<Description>Temporary claim to invoke email force password feature</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 				<FlowInitiator>True</FlowInitiator>
 			</Claim>
@@ -540,6 +547,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedRecoveryAttempts</AttributeID>
 				<Description>Number of consecutive failed attempts done for password recovery</Description>
+				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 
@@ -590,6 +598,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>accountLock</AttributeID>
 				<Description>Account Locked</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -609,6 +618,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>emailVerified</AttributeID>
 				<Description>Email Verified</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -618,6 +628,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>phoneVerified</AttributeID>
 				<Description>Phone Verified</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -636,6 +647,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>confirmedTime</AttributeID>
 				<Description>Account confirmed timestamp of the user</Description>
+				<dataType>date_time</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -645,6 +657,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>accountDisabled</AttributeID>
 				<Description>Account Disabled</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -654,6 +667,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedLoginAttempts</AttributeID>
 				<Description>Failed Login Attempts</Description>
+				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -663,6 +677,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedLoginAttemptsBeforeSuccess</AttributeID>
 				<Description>Failed Attempts Before Success</Description>
+				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -672,6 +687,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedSmsOtpAttempts</AttributeID>
 				<Description>Failed SMS OTP Attempts</Description>
+				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -681,6 +697,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedEmailOtpAttempts</AttributeID>
 				<Description>Failed Email OTP Attempts</Description>
+				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -690,6 +707,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedTotpAttempts</AttributeID>
 				<Description>Failed TOTP Attempts</Description>
+				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -699,6 +717,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedLockoutCount</AttributeID>
 				<Description>Failed Lockout Count</Description>
+				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -708,6 +727,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>unlockTime</AttributeID>
 				<Description>Unlock Time</Description>
+				<dataType>date_time</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -716,6 +736,7 @@
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>lastLoginTime</AttributeID>
 				<Description>Last Login Time</Description>
+				<dataType>date_time</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -725,6 +746,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lastLogonTime</AttributeID>
 				<Description>Last Logon Time</Description>
+				<dataType>date_time</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -734,6 +756,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lastPasswordUpdate</AttributeID>
 				<Description>Last Password Update Time</Description>
+				<dataType>date_time</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -766,6 +789,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>emailOTPDisabled</AttributeID>
 				<Description>Claim to disable EmailOTP</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -775,6 +799,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>smsOTPDisabled</AttributeID>
 				<Description>Claim to disable SMSOTP</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -802,6 +827,7 @@
 				<!-- If user store based identity store is used, a proper mapped attribute
 				in your user store must be configured for this. -->
 				<AttributeID>isLiteUser</AttributeID>
+				<dataType>boolean</dataType>
 				<Description>Claim to store if this is a lite user account.</Description>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
@@ -812,6 +838,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>isReadOnlyUser</AttributeID>
 				<Description>Claim to store if the user is read only</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -831,6 +858,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>verifyMobile</AttributeID>
 				<Description>Temporary claim to invoke mobile verification feature</Description>
+				<dataType>boolean</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 				<FlowInitiator>True</FlowInitiator>
 			</Claim>
@@ -886,6 +914,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedBackupCodeAttempts</AttributeID>
 				<Description>Claim to store failed Backup Code Attempts</Description>
+				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -959,6 +988,7 @@
 				<Description>Claim to dynamically calculate password expiry time of user</Description>
 				<ReadOnly>true</ReadOnly>
 				<Returned>request</Returned>
+				<dataType>date_time</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
