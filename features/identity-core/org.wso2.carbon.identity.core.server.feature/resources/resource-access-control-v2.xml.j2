@@ -1454,10 +1454,10 @@
 
          <!-- Flow management API -->
          <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">
-             <Scopes>internal_registration_flow_view</Scopes>
+             <Scopes>internal_flow_view</Scopes>
          </Resource>
          <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="PUT">
-             <Scopes>internal_registration_flow_update</Scopes>
+             <Scopes>internal_flow_update</Scopes>
          </Resource>
 
           <!-- [Organization] User share API -->

@@ -61,9 +61,11 @@ public class SQLConstants {
             "SELECT n.NODE_ID, p.STEP_ID, p.PAGE_CONTENT FROM IDN_FLOW_PAGE p " +
                     "JOIN IDN_FLOW_NODE n ON p.FLOW_NODE_ID = n.ID WHERE p.FLOW_ID = ? AND p.TYPE = ?;";
 
-    public static final String GET_FIRST_STEP_ID = "SELECT fp.STEP_ID FROM IDN_FLOW_PAGE fp JOIN IDN_FLOW_NODE fn" +
-            " ON fp.FLOW_NODE_ID = fn.ID JOIN IDN_FLOW f ON fn.FLOW_ID = f.ID WHERE fn.IS_FIRST_NODE = ? AND" +
-            " f.TENANT_ID = ?;";
+    public static final String GET_FIRST_STEP_ID =
+            "SELECT fp.STEP_ID FROM IDN_FLOW_PAGE fp " +
+                    "JOIN IDN_FLOW_NODE fn ON fp.FLOW_NODE_ID = fn.ID " +
+                    "JOIN IDN_FLOW f ON fn.FLOW_ID = f.ID " +
+                    "WHERE fn.IS_FIRST_NODE = ? AND f.TENANT_ID = ? AND f.TYPE = ?;";
 
     private SQLConstants() {
 
