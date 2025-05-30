@@ -488,4 +488,28 @@ public class AuthenticationEndpointUtil {
         }
         return queryParamString.toString();
     }
+
+    /**
+     * Validates a given URL string to ensure it's safe for use.
+     * It checks for several common security vulnerabilities and invalid states:
+     * <ul>
+     * <li>Ensures the URL is not the string "null" (case-insensitive).</li>
+     * <li>Ensures the URL is not null, empty, or consists only of whitespace.</li>
+     * <li>Prevents common trickery by disallowing URLs starting with "javascript:", "file:", "ftp:", or "data:"
+     * (case-insensitive).</li>
+     * </ul>
+     *
+     * @param url The URL string to be validated.
+     * @return {@code true} if the URL is considered safe and valid based on the defined criteria;
+     * {@code false} otherwise.
+     */
+    public static boolean isSchemeSafeURL(String url) {
+
+        return !StringUtils.equalsIgnoreCase(url, "null") &&
+                !StringUtils.isBlank(url) &&
+                !url.toLowerCase().contains("javascript:") &&
+                !url.toLowerCase().contains("file:") &&
+                !url.toLowerCase().contains("ftp:") &&
+                !url.toLowerCase().contains("data:");
+    }
 }

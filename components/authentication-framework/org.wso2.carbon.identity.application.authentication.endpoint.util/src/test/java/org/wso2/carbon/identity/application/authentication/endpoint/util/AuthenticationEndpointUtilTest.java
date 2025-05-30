@@ -217,4 +217,33 @@ public class AuthenticationEndpointUtilTest {
             Assert.assertEquals(validity, expectedValidity, "URL validity failed for " + urlString);
         }
     }
+
+    @DataProvider(name = "URLProvider")
+    public Object[][] isSafeURLData() {
+
+        return new Object[][]{
+                {"http://example.com", true},
+                {"http://example.com?query=string", true},
+                {"a.com/page", true},
+                {null, false},
+                {"null", false},
+                {"   ", false},
+                {"NULL", false},
+                {"javascript:alert(1)", false},
+                {"ftp://malicious.com/exploit", false},
+                {"FILE://C:/windows/system32/cmd.exe", false},
+                {"FTP://attacker.org/file.txt", false},
+                {"data:text/html,<script>alert('xss')</script>", false},
+                {"http://example.com/malicious?url=javascript:alert(1)", false},
+                {"somepath/ftp:user@host", false},
+                {"data:image/jpeg;base64,something.jpg", false}
+        };
+    }
+
+    @Test(dataProvider = "URLProvider")
+    public void isSchemeSafeURL(String url, boolean expectedValidity) throws Exception {
+
+        boolean validity = AuthenticationEndpointUtil.isSchemeSafeURL(url);
+        Assert.assertEquals(validity, expectedValidity);
+    }
 }
