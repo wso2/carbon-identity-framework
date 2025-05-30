@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.application.mgt;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_FILTER;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
@@ -144,6 +146,13 @@ public class ApplicationConstants {
     public static final String RBAC = "RBAC";
     public static final String SYSTEM_PORTALS = "SystemPortals";
     public static final String IMPERSONATE_SCOPE_NAME = "internal_user_impersonate";
+    public static final String IMPERSONATE_ORG_SCOPE_NAME = "internal_org_user_impersonate";
+    public static final List<String> DEFAULT_BLOCKED_SCOPES = new ArrayList<String>() {
+        {
+            add(IMPERSONATE_SCOPE_NAME);
+            add(IMPERSONATE_ORG_SCOPE_NAME);
+        }
+    };
     public static final String IMPERSONATE_ROLE_NAME = "Impersonator";
     public static final String IMPERSONATION_API_RESOURCE = "system:impersonation";
     public static final String APPLICATION_ROLE_AUDIENCE = "application";
