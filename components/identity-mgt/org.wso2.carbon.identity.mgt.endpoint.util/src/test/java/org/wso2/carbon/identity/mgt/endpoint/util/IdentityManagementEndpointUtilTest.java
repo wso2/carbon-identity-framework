@@ -148,6 +148,16 @@ public class IdentityManagementEndpointUtilTest {
         };
     }
 
+    @DataProvider(name = "dataForBlankOrNullCallbackUrl")
+    public Object[][] dataForBlankOrNullCallbackUrl() {
+
+        return new Object[][]{
+                {null},
+                {""},
+                {"   "}
+        };
+    }
+
     @Test(dataProvider = "getEndpointUrlTestData")
     public void testBuildEndpointUrl(String serviceContextUrl, String path, String expected) throws Exception {
 
@@ -170,6 +180,13 @@ public class IdentityManagementEndpointUtilTest {
 
         assertEquals(IdentityManagementEndpointUtil.encodeURL(callbackUrl), encodedCallbackUrl,
                 "callbackUrl is not properly encoded");
+    }
+
+    @Test(dataProvider = "dataForBlankOrNullCallbackUrl")
+    public void testEncodeURLWithBlankOrNull(String input) throws MalformedURLException {
+
+        assertEquals(IdentityManagementEndpointUtil.encodeURL(input), input,
+                "Expected the original callback URL to be returned when input is blank or null.");
     }
 
     @Test(dataProvider = "dataForQueryParamEncoding")

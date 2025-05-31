@@ -573,6 +573,10 @@ public class IdentityManagementEndpointUtil {
      */
     public static String encodeURL(String callbackUrl) throws MalformedURLException {
 
+        if (StringUtils.isBlank(callbackUrl)) {
+            return callbackUrl;
+        }
+
         URL url = new URL(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
