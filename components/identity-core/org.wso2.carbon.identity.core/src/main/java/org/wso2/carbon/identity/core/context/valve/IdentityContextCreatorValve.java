@@ -34,9 +34,9 @@ public class IdentityContextCreatorValve extends ValveBase {
 
     private static final Log LOG = LogFactory.getLog(IdentityContextCreatorValve.class);
     public static final String TOKEN_PATH = "/oauth2/token";
-    public static final String URL_SEPERATOR = "/";
-    public static final String TENANT_SEPERATOR = "t";
-    public static final String ORG_SEPERATOR = "o";
+    public static final String URL_SEPARATOR = "/";
+    public static final String TENANT_SEPARATOR = "t";
+    public static final String ORG_SEPARATOR = "o";
 
     public IdentityContextCreatorValve() {
         // Enable async support to handle asynchronous requests, allowing non-blocking operations
@@ -74,21 +74,21 @@ public class IdentityContextCreatorValve extends ValveBase {
          * 2. t/<tenant>/o/<org>/oauth2/token           => issuer = root
          * 3. o/<org>/oauth2/token                      => issuer = sub-org
          */
-        if (requestURI.startsWith(URL_SEPERATOR)) {
+        if (requestURI.startsWith(URL_SEPARATOR)) {
             requestURI = requestURI.substring(1);
         }
 
-        String[] parts = requestURI.split(URL_SEPERATOR);
+        String[] parts = requestURI.split(URL_SEPARATOR);
         if (parts.length < 3) {
             return;
         }
 
         String accessTokenIssuedOrganization;
-        if (TENANT_SEPERATOR.equals(parts[0])) {
+        if (TENANT_SEPARATOR.equals(parts[0])) {
             // Case 1 & 2: /t/<tenant>/oauth2/token
             // Case 3: /t/<tenant>/o/<org>/oauth2/token (virtual org)
             accessTokenIssuedOrganization = parts[1];
-        } else if (ORG_SEPERATOR.equals(parts[0])) {
+        } else if (ORG_SEPARATOR.equals(parts[0])) {
             // Case 4: /o/<org>/oauth2/token
             accessTokenIssuedOrganization = parts[1];
         } else {
