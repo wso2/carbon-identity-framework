@@ -169,6 +169,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             markAsSystemClaim(systemClaim);
             localClaimMap.merge(systemClaim.getClaimURI(), systemClaim, (existingClaim, newClaim) -> {
                 markAsSystemClaim(existingClaim);
+                for (Map.Entry<String, String> entry : newClaim.getClaimProperties().entrySet()) {
+                    if (!existingClaim.getClaimProperties().containsKey(entry.getKey())) {
+                        existingClaim.setClaimProperty(entry.getKey(), entry.getValue());
+                    }
+                }
                 return existingClaim;
             });
         });
