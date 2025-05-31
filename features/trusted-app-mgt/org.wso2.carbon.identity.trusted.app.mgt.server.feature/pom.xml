@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>trusted-app-mgt-feature</artifactId>
-        <version>7.8.192</version>
+        <version>7.8.193-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
