@@ -33,10 +33,10 @@ import javax.servlet.ServletException;
 public class IdentityContextCreatorValve extends ValveBase {
 
     private static final Log LOG = LogFactory.getLog(IdentityContextCreatorValve.class);
-    public static final String TOKEN_PATH = "/oauth2/token";
-    public static final String URL_SEPARATOR = "/";
-    public static final String TENANT_SEPARATOR = "t";
-    public static final String ORG_SEPARATOR = "o";
+    private static final String TOKEN_PATH = "/oauth2/token";
+    private static final String URL_SEPARATOR = "/";
+    private static final String TENANT_SEPARATOR = "t";
+    private static final String ORG_SEPARATOR = "o";
 
     public IdentityContextCreatorValve() {
         // Enable async support to handle asynchronous requests, allowing non-blocking operations
