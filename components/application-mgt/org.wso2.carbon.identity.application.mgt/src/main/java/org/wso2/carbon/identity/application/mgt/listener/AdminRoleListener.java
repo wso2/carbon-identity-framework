@@ -38,7 +38,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_SCOPE_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_BLOCKED_SCOPES;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_ORG_SCOPE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_ORG_SCOPE_PREFIX;
 
@@ -129,7 +129,7 @@ public class AdminRoleListener extends AbstractRoleManagementListener {
                         systemScopes.stream()
                                 .map(Scope::getName)
                                 // Impersonate scope should not be given by default even for an admin.
-                                .filter(name -> !IMPERSONATE_SCOPE_NAME.equals(name))
+                                .filter(name -> !DEFAULT_BLOCKED_SCOPES.contains(name))
                                 .collect(Collectors.toList()));
             } catch (APIResourceMgtException e) {
                 throw new IdentityRoleManagementException("Error while retrieving internal scopes for tenant " +

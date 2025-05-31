@@ -366,6 +366,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, rolesClaim);
                     spFilteredClaims.put(FrameworkConstants.USER_ORGANIZATION_CLAIM, stepConfig.getAuthenticatedUser()
                             .getUserResidentOrganization());
+                    localUnfilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, rolesClaim);
                     if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                         String appRolesClaim = localToIdPClaimMap.get(FrameworkConstants.APP_ROLES_CLAIM);
                         if (StringUtils.isNotBlank(appRolesClaim)) {
