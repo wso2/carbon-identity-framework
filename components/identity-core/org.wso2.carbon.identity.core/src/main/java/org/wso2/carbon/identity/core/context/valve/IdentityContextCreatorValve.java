@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.core.context.valve;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.ValveBase;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.context.IdentityContext;
@@ -32,6 +33,10 @@ import javax.servlet.ServletException;
 public class IdentityContextCreatorValve extends ValveBase {
 
     private static final Log LOG = LogFactory.getLog(IdentityContextCreatorValve.class);
+    public static final String TOKEN_PATH = "/oauth2/token";
+    public static final String URL_SEPERATOR = "/";
+    public static final String TENANT_SEPERATOR = "t";
+    public static final String ORG_SEPERATOR = "o";
 
     public IdentityContextCreatorValve() {
         // Enable async support to handle asynchronous requests, allowing non-blocking operations
@@ -40,8 +45,10 @@ public class IdentityContextCreatorValve extends ValveBase {
 
     @Override
     public void invoke(Request request, Response response) throws IOException, ServletException {
+
         try {
             initIdentityContext();
+            initAccessTokenIssuedOrganization(request.getRequestURI());
             getNext().invoke(request, response);
         } catch (Exception e) {
             LOG.error("Could not handle request: " + request.getRequestURI(), e);
@@ -49,6 +56,45 @@ public class IdentityContextCreatorValve extends ValveBase {
             // This will destroy the identity context data holder on the current thread.
             IdentityContext.destroyCurrentContext();
         }
+    }
+
+    private void initAccessTokenIssuedOrganization(String requestURI) {
+
+        if (StringUtils.isBlank(requestURI)) {
+            return;
+        }
+
+        requestURI = requestURI.trim().toLowerCase();
+        if (!requestURI.endsWith(TOKEN_PATH)) {
+            return;
+        }
+        /*
+         * Possible structures:
+         * 1. t/<tenant>/oauth2/token                    => issuer = root
+         * 2. t/<tenant>/o/<org>/oauth2/token           => issuer = root
+         * 3. o/<org>/oauth2/token                      => issuer = sub-org
+         */
+        if (requestURI.startsWith(URL_SEPERATOR)) {
+            requestURI = requestURI.substring(1);
+        }
+
+        String[] parts = requestURI.split(URL_SEPERATOR);
+        if (parts.length < 3) {
+            return;
+        }
+
+        String accessTokenIssuedOrganization;
+        if (TENANT_SEPERATOR.equals(parts[0])) {
+            // Case 1 & 2: /t/<tenant>/oauth2/token
+            // Case 3: /t/<tenant>/o/<org>/oauth2/token (virtual org)
+            accessTokenIssuedOrganization = parts[1];
+        } else if (ORG_SEPERATOR.equals(parts[0])) {
+            // Case 4: /o/<org>/oauth2/token
+            accessTokenIssuedOrganization = parts[1];
+        } else {
+            return;
+        }
+        IdentityContext.getThreadLocalIdentityContext().setAccessTokenIssuedOrganization(accessTokenIssuedOrganization);
     }
 
     public void initIdentityContext() {

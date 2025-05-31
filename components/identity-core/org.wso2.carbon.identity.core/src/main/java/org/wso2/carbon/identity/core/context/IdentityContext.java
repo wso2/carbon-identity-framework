@@ -141,6 +141,18 @@ public class IdentityContext extends CarbonContext {
         return identityContextDataHolder.getActor() instanceof ApplicationActor;
     }
 
+    public void setAccessTokenIssuedOrganization(String accessTokenIssuedOrganization) {
+
+        if (identityContextDataHolder.getAccessTokenIssuedOrganization() == null) {
+            identityContextDataHolder.setAccessTokenIssuedOrganization(accessTokenIssuedOrganization);
+        }
+    }
+
+    public String getAccessTokenIssuedOrganization() {
+
+        return identityContextDataHolder.getAccessTokenIssuedOrganization();
+    }
+
     public static void destroyCurrentContext() {
 
         CarbonUtils.checkSecurity();

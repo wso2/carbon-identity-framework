@@ -28,6 +28,8 @@ public class Organization {
 
     private final String name;
 
+    private String orgHandle;
+
     public Organization(String id, String name) {
 
         this.id = id;
@@ -42,5 +44,15 @@ public class Organization {
     public String getName() {
 
         return name;
+    }
+
+    public String getOrgHandle() {
+
+        return orgHandle;
+    }
+
+    public void setOrgHandle(String orgHandle) {
+
+        this.orgHandle = orgHandle;
     }
 }
