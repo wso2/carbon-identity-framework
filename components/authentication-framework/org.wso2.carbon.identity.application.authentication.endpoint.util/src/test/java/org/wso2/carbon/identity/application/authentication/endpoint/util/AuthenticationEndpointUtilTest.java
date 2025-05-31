@@ -241,7 +241,7 @@ public class AuthenticationEndpointUtilTest {
     }
 
     @Test(dataProvider = "URLProvider")
-    public void isSchemeSafeURL(String url, boolean expectedValidity) throws Exception {
+    public void testISchemeSafeURL(String url, boolean expectedValidity) throws Exception {
 
         boolean validity = AuthenticationEndpointUtil.isSchemeSafeURL(url);
         Assert.assertEquals(validity, expectedValidity);
