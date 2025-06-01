@@ -29,6 +29,7 @@ public class IdentityContextDataHolder {
 
     private Flow flow;
     private Actor actor;
+    private String accessTokenIssuedOrganization;
 
     private static final ThreadLocal<IdentityContextDataHolder> currentContextHolder =
             new ThreadLocal<IdentityContextDataHolder>() {
@@ -96,6 +97,17 @@ public class IdentityContextDataHolder {
     public Actor getActor() {
 
         return actor;
+    }
+
+    public String getAccessTokenIssuedOrganization() {
+
+        return accessTokenIssuedOrganization;
+    }
+
+    public void setAccessTokenIssuedOrganization(String accessTokenIssuedOrganization) {
+
+        CarbonUtils.checkSecurity();
+        this.accessTokenIssuedOrganization = accessTokenIssuedOrganization;
     }
 
     /**
