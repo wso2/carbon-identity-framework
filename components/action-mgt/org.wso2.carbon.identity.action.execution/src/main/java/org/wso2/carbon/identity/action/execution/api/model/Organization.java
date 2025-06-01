@@ -36,6 +36,13 @@ public class Organization {
         this.name = name;
     }
 
+    public Organization(String id, String name, String orgHandle) {
+
+        this.id = id;
+        this.name = name;
+        this.orgHandle = orgHandle;
+    }
+
     public String getId() {
 
         return id;
@@ -49,10 +56,5 @@ public class Organization {
     public String getOrgHandle() {
 
         return orgHandle;
-    }
-
-    public void setOrgHandle(String orgHandle) {
-
-        this.orgHandle = orgHandle;
     }
 }
