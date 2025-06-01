@@ -1053,7 +1053,7 @@
     </PasswordPolicy>
 
     <Attribute>
-        <returnPreviousAdditionalProperties>false</returnPreviousAdditionalProperties>
+        <ReturnPreviousAdditionalProperties>false</ReturnPreviousAdditionalProperties>
     </Attribute>
 
     <!--Recovery>
