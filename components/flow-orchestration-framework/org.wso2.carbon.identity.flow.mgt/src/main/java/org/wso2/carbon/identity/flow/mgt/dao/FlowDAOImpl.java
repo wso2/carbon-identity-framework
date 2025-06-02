@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.mgt.dao;
 
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
@@ -385,7 +386,7 @@ public class FlowDAOImpl implements FlowDAO {
                     throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
                             stepDTO.getId(), tenantId);
                 }
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
+            } else if (REDIRECTION.equals(stepDTO.getType()) || INTERACT.equals(stepDTO.getType())) {
                 ActionDTO action = OBJECT_MAPPER.readValue(pageContent, ActionDTO.class);
                 if (action != null) {
                     stepDTO.setData(new DataDTO.Builder().action(action).build());
@@ -412,7 +413,7 @@ public class FlowDAOImpl implements FlowDAO {
             if (VIEW.equals(stepDTO.getType())) {
                 List<ComponentDTO> components = stepDTO.getData().getComponents();
                 return Optional.of(serializeObject(components));
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
+            } else if (REDIRECTION.equals(stepDTO.getType()) || INTERACT.equals(stepDTO.getType())) {
                 ActionDTO action = stepDTO.getData().getAction();
                 return Optional.of(serializeObject(action));
             } else {

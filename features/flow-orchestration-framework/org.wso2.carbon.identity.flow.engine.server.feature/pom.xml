@@ -16,32 +16,26 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>flow-orchestration-framework-feature</artifactId>
-        <version>7.8.196-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>7.8.188-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.identity.flow.orchestration.framework.feature</artifactId>
+    <artifactId>org.wso2.carbon.identity.flow.engine.server.feature</artifactId>
     <packaging>pom</packaging>
-    <name>Flow orchestration Framework Feature</name>
-    <url>http://wso2.org</url>
-    <description>This feature contains the bundles required for flow orchestration framework aggregated functionality
-    </description>
+    <name>User Flow Engine Feature</name>
+    <url>https://wso2.com</url>
+    <description>This feature contains the core bundles required to run the flow engine.</description>
 
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.flow.mgt.server.feature</artifactId>
-            <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.flow.engine.server.feature</artifactId>
-            <type>zip</type>
+            <artifactId>org.wso2.carbon.identity.flow.engine</artifactId>
         </dependency>
     </dependencies>
 
@@ -59,14 +53,18 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>org.wso2.carbon.identity.flow.orchestration.framework</id>
+                            <id>org.wso2.carbon.identity.flow.engine.server</id>
                             <propertiesFile>../../etc/feature.properties</propertiesFile>
-                            <includedFeatures>
-                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.mgt.server.feature
-                                </includedFeatureDef>
-                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.execution.engine.server.feature
-                                </includedFeatureDef>
-                            </includedFeatures>
+                            <adviceFile>
+                                <properties>
+                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
+                                </properties>
+                            </adviceFile>
+                            <bundles>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.engine
+                                </bundleDef>
+                            </bundles>
                         </configuration>
                     </execution>
                 </executions>

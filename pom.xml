@@ -83,6 +83,7 @@
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
         <module>features/extension-mgt</module>
+        <module>features/flow-orchestration-framework</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
         <module>features/security-mgt</module>
@@ -809,6 +810,12 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.user.registration.engine.server.feature</artifactId>
+                <type>zip</type>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.flow.engine.server.feature</artifactId>
                 <type>zip</type>
                 <version>${project.version}</version>
             </dependency>
@@ -1876,6 +1883,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.flow.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.flow.engine</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
