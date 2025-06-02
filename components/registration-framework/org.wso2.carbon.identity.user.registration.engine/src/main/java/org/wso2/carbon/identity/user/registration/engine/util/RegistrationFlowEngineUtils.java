@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.registration.engine.util;
 
+import java.util.regex.Pattern;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -60,6 +61,8 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorM
 public class RegistrationFlowEngineUtils {
 
     private static final Log LOG = LogFactory.getLog(RegistrationFlowEngineUtils.class);
+    private static final String USER_TENANT_HINT_PLACE_HOLDER = "${UserTenantHint}";
+    private static final String SUPER_TENANT = "carbon.super";
 
     /**
      * Add registration context to cache.
@@ -236,7 +239,7 @@ public class RegistrationFlowEngineUtils {
         if (StringUtils.isBlank(myAccountAccessUrl)) {
             myAccountAccessUrl = ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig(tenantDomain);
         }
-        return myAccountAccessUrl;
+        return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
     }
 
     /**
@@ -306,5 +309,27 @@ public class RegistrationFlowEngineUtils {
             throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, appName, tenantDomain);
         }
         return null;
+    }
+
+    /**
+     * Replace the ${UserTenantHint} placeholder in the url with the tenant domain.
+     *
+     * @param url           Url with the placeholder.
+     * @param tenantDomain  Tenant Domain.
+     * @return              Processed url.
+     */
+    private static String replaceUserTenantHintPlaceholder(String url, String tenantDomain) {
+
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        if (!url.contains(USER_TENANT_HINT_PLACE_HOLDER)) {
+            return url;
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = SUPER_TENANT;
+        }
+        return url.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
+                .replaceAll(Pattern.quote("/t/" + SUPER_TENANT), "");
     }
 }
