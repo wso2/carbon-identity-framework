@@ -80,15 +80,9 @@ public class TopicManagementDAOImplTest {
         assertFalse(topicManagementDAOImpl.isTopicExists("nonexistent-topic", TENANT_ID));
     }
 
-    @Test(dependsOnMethods = {"testAddTopic"})
+    @Test(dependsOnMethods = {"testAddTopic"}, expectedExceptions = TopicManagementException.class)
     public void testAddDuplicateTopic() throws TopicManagementException {
 
-        boolean exceptionThrown = false;
-        try {
-            topicManagementDAOImpl.addTopic(TOPIC, TENANT_ID);
-        } catch (TopicManagementException e) {
-            exceptionThrown = true;
-        }
-        assertTrue(exceptionThrown, "Expected exception when adding duplicate topic");
+        topicManagementDAOImpl.addTopic(TOPIC, TENANT_ID);
     }
 }
