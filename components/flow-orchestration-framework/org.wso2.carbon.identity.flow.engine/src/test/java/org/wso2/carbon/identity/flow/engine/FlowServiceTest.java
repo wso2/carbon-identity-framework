@@ -59,6 +59,7 @@ public class FlowServiceTest {
     private static final String TENANT_DOMAIN = "test.com";
     private static final String TEST_CALLBACK_URL = "https://localhost:3000/myapp/callback";
     private static final String TEST_APPLICATION_ID = "testAppId";
+    private static final String FLOW_TYPE = "REGISTRATION";
     private FlowContext testRegContext;
 
     @Mock
@@ -77,6 +78,7 @@ public class FlowServiceTest {
         context.setTenantDomain(TENANT_DOMAIN);
         context.setGraphConfig(new GraphConfig());
         context.setContextIdentifier(UUID.randomUUID().toString());
+        context.setFlowType(FLOW_TYPE);
         return context;
     }
 
@@ -90,7 +92,7 @@ public class FlowServiceTest {
                                     anyString()))
                     .thenThrow(new FlowEngineException("Failed"));
             FlowService.getInstance().executeFlow(TENANT_DOMAIN,
-                    TEST_APPLICATION_ID, TEST_CALLBACK_URL, null, null, "REGISTRATION", null);
+                    TEST_APPLICATION_ID, TEST_CALLBACK_URL, null, null, FLOW_TYPE, null);
         }
     }
 
@@ -107,7 +109,7 @@ public class FlowServiceTest {
             engineMockedStatic.when(FlowEngine::getInstance).thenReturn(engineMock);
             when(engineMock.execute(testRegContext)).thenThrow(FlowEngineException.class);
             FlowService.getInstance().executeFlow(TENANT_DOMAIN,
-                    TEST_APPLICATION_ID, TEST_CALLBACK_URL, null, null, "REGISTRATION", null);
+                    TEST_APPLICATION_ID, TEST_CALLBACK_URL, null, null, FLOW_TYPE, null);
         }
     }
 
@@ -135,7 +137,7 @@ public class FlowServiceTest {
             FlowStep returnedStep =
                     FlowService.getInstance()
                             .executeFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL, null,
-                                    null, "REGISTRATION", null);
+                                    null, FLOW_TYPE, null);
             assertEquals(returnedStep, expectedStep);
         }
     }
@@ -171,7 +173,7 @@ public class FlowServiceTest {
             FlowStep returnedStep =
                     FlowService.getInstance()
                             .executeFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL, null,
-                                    null, "REGISTRATION", userInputMap);
+                                    null, FLOW_TYPE, userInputMap);
             assertEquals(returnedStep, expectedStep);
         }
     }
@@ -232,13 +234,14 @@ public class FlowServiceTest {
                 MockedStatic<FlowEngine> engineMockedStatic = mockStatic(FlowEngine.class)
         ) {
             engineMockedStatic.when(FlowEngine::getInstance).thenReturn(engineMock);
-            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(flowId))
+            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(testRegContext.getFlowType(),
+                            flowId))
                     .thenReturn(testRegContext);
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
 
             FlowService service = FlowService.getInstance();
             FlowStep result = service.executeFlow(null, null, null,
-                    flowId, null, "REGISTRATION", new HashMap<>());
+                    flowId, null, FLOW_TYPE, new HashMap<>());
 
             assertEquals(result, expectedStep);
             utilsMockedStatic.verify(() -> FlowEngineUtils.addRegContextToCache(testRegContext));
@@ -261,13 +264,14 @@ public class FlowServiceTest {
                 MockedStatic<FlowEngine> engineMockedStatic = mockStatic(FlowEngine.class)
         ) {
             engineMockedStatic.when(FlowEngine::getInstance).thenReturn(engineMock);
-            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(flowId))
+            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(testRegContext.getFlowType(),
+                            flowId))
                     .thenReturn(testRegContext);
             when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
 
             FlowService service = FlowService.getInstance();
             FlowStep result = service.executeFlow(null, null, null,
-                    flowId, null, "REGISTRATION", new HashMap<>());
+                    flowId, null, FLOW_TYPE, new HashMap<>());
 
             assertEquals(result, expectedStep);
             utilsMockedStatic.verify(() -> FlowEngineUtils.removeRegContextFromCache(flowId));
@@ -283,10 +287,10 @@ public class FlowServiceTest {
         try (MockedStatic<FlowEngineUtils> utilsMockedStatic = mockStatic(
                 FlowEngineUtils.class)
         ) {
-            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(flowId))
+            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, flowId))
                     .thenThrow(new FlowEngineException("Failed"));
             FlowService.getInstance().executeFlow(null, null, null,
-                    flowId, "actionId", "REGISTRATION", inputMap);
+                    flowId, "actionId", FLOW_TYPE, inputMap);
         }
     }
 }

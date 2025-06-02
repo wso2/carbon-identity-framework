@@ -49,9 +49,9 @@ import java.util.UUID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.flow.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
-import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE;
+import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
@@ -82,13 +82,14 @@ public class FlowEngineUtils {
      * Retrieve flow context from cache.
      *
      * @param contextId Context identifier.
+     * @param flowType  Flow type.
      * @return Flow context.
      * @throws FlowEngineException Flow engined exception.
      */
-    public static FlowContext retrieveFlowContextFromCache(String contextId) throws FlowEngineException {
+    public static FlowContext retrieveFlowContextFromCache(String flowType, String contextId) throws FlowEngineException {
 
         if (contextId == null) {
-            throw handleClientException(ERROR_CODE_UNDEFINED_FLOW_ID);
+            throw handleClientException(ERROR_CODE_UNDEFINED_FLOW_ID, flowType);
         }
         FlowContextCacheEntry entry =
                 FlowContextCache.getInstance().getValueFromCache(new FlowContextCacheKey(contextId));
@@ -138,12 +139,13 @@ public class FlowEngineUtils {
                             .getGraphConfig(flowType, tenantId);
 
             if (graphConfig == null) {
-                throw handleServerException(ERROR_CODE_REG_FLOW_NOT_FOUND, tenantDomain);
+                throw handleServerException(ERROR_CODE_FLOW_NOT_FOUND, flowType, tenantDomain);
             }
             context.setTenantDomain(tenantDomain);
             context.setGraphConfig(graphConfig);
             context.setContextIdentifier(UUID.randomUUID().toString());
             context.setApplicationId(applicationId);
+            context.setFlowType(flowType);
             if (StringUtils.isNotEmpty(callbackUrl)) {
                 context.setCallbackUrl(callbackUrl);
             } else {
@@ -152,11 +154,11 @@ public class FlowEngineUtils {
             }
             return context;
         } catch (URLBuilderException e) {
-            throw handleServerException(ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE, tenantDomain);
+            throw handleServerException(ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE, flowType, tenantDomain);
         } catch (IdentityRuntimeException e) {
             throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         } catch (FlowMgtFrameworkException e) {
-            throw handleServerException(ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE, tenantDomain);
+            throw handleServerException(ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType, tenantDomain);
         }
     }
 
@@ -165,14 +167,14 @@ public class FlowEngineUtils {
      *
      * @param contextId Context identifier.
      */
-    public static void rollbackContext(String contextId) {
+    public static void rollbackContext(String flowType, String contextId) {
 
         if (StringUtils.isBlank(contextId)) {
             LOG.debug("Context id is null or empty. Hence skipping rollback of the flow context.");
             return;
         }
         try {
-            FlowContext context = retrieveFlowContextFromCache(contextId);
+            FlowContext context = retrieveFlowContextFromCache(flowType, contextId);
             if (context != null) {
                 context.getCompletedNodes().forEach((config) -> {
                     if (Constants.NodeTypes.TASK_EXECUTION.equals(config.getType())) {

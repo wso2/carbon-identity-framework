@@ -55,6 +55,7 @@ public class FlowContext implements Serializable {
     private Response currentNodeResponse;
     private String callbackUrl;
     private String applicationId;
+    private String flowType;
 
     public NodeConfig getCurrentNode() {
 
@@ -240,5 +241,15 @@ public class FlowContext implements Serializable {
     public void setApplicationId(String applicationId) {
 
         this.applicationId = applicationId;
+    }
+
+    public String getFlowType() {
+
+        return flowType;
+    }
+
+    public void setFlowType(String flowType) {
+
+        this.flowType = flowType;
     }
 }

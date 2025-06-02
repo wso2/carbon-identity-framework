@@ -92,7 +92,7 @@ public class UserOnboardingExecutor implements Executor {
         try {
             String userStoreDomainName = resolveUserStoreDomain(user.getUsername());
             UserStoreManager userStoreManager = getUserStoreManager(context.getTenantDomain(), userStoreDomainName,
-                    context.getContextIdentifier());
+                    context.getContextIdentifier(), context.getFlowType());
             userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
                     String.valueOf(password), null, userClaims, null);
             String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
@@ -119,11 +119,11 @@ public class UserOnboardingExecutor implements Executor {
                 }
             }
         });
-        user.setUsername(resolveUsername(user, context.getContextIdentifier()));
+        user.setUsername(resolveUsername(user, context.getContextIdentifier(), context.getFlowType()));
         return user;
     }
 
-    private UserStoreManager getUserStoreManager(String tenantDomain, String userdomain, String flowId)
+    private UserStoreManager getUserStoreManager(String tenantDomain, String userdomain, String flowId, String flowType)
             throws FlowEngineException {
 
         RealmService realmService = FlowEngineDataHolder.getInstance().getRealmService();
@@ -137,11 +137,11 @@ public class UserOnboardingExecutor implements Executor {
                         ((UserStoreManager) tenantUserRealm.getUserStoreManager()).getSecondaryUserStoreManager(userdomain);
             }
             if (userStoreManager == null) {
-                throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, tenantDomain, flowId);
+                throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, tenantDomain, flowType, flowId);
             }
             return userStoreManager;
         } catch (UserStoreException e) {
-            throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, e, tenantDomain, flowId);
+            throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, e, tenantDomain, flowType, flowId);
         }
     }
 
@@ -162,12 +162,12 @@ public class UserOnboardingExecutor implements Executor {
                 IdentityUtil.getPrimaryDomainName().toUpperCase(ENGLISH);
     }
 
-    private String resolveUsername(FlowUser user, String flowId) throws FlowEngineException {
+    private String resolveUsername(FlowUser user, String flowId, String flowType) throws FlowEngineException {
 
         String username = Optional.ofNullable(user.getUsername())
                 .orElseGet(() -> Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse(""));
         if (StringUtils.isBlank(username)) {
-            throw handleClientException(ERROR_CODE_USERNAME_NOT_PROVIDED, flowId);
+            throw handleClientException(ERROR_CODE_USERNAME_NOT_PROVIDED, flowType, flowId);
         }
         if (IdentityUtil.isEmailUsernameEnabled() && !username.contains("@")) {
             throw handleClientException(ERROR_CODE_INVALID_USERNAME, username);

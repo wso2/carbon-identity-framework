@@ -84,7 +84,8 @@ public class FlowEngine {
 
         String tenantDomain = context.getTenantDomain();
         if (graph.getFirstNodeId() == null) {
-            throw handleServerException(ERROR_CODE_FIRST_NODE_NOT_FOUND, graph.getId(), tenantDomain);
+            throw handleServerException(ERROR_CODE_FIRST_NODE_NOT_FOUND, context.getFlowType(), graph.getId(),
+                    tenantDomain);
         }
 
         NodeConfig currentNode = context.getCurrentNode();
@@ -178,7 +179,7 @@ public class FlowEngine {
             case Constants.NodeTypes.PROMPT_ONLY:
                 return new PagePromptNode().execute(context, nodeConfig);
             default:
-                throw handleServerException(ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(),
+                throw handleServerException(ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(),context.getFlowType(),
                         context.getGraphConfig().getId(), context.getTenantDomain());
         }
     }

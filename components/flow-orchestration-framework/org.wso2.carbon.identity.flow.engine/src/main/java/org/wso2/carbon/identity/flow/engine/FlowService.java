@@ -75,7 +75,7 @@ public class FlowService {
                 context = FlowEngineUtils.initiateContext(tenantDomain, callbackUrl, applicationId,
                         flowType);
             } else {
-                context = FlowEngineUtils.retrieveFlowContextFromCache(flowId);
+                context = FlowEngineUtils.retrieveFlowContextFromCache(flowType, flowId);
             }
             Optional.ofNullable(inputs).ifPresent(inputs1 -> context.getUserInputData().putAll(inputs1));
             context.setCurrentActionId(actionId);
@@ -99,7 +99,7 @@ public class FlowService {
             }
             return step;
         } catch (FlowEngineException e) {
-            FlowEngineUtils.rollbackContext(flowId);
+            FlowEngineUtils.rollbackContext(flowType, flowId);
             FlowEngineUtils.removeRegContextFromCache(flowId);
             throw e;
         }

@@ -44,7 +44,7 @@ import java.util.Map;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_GET_IDP_CONFIG_FAILURE;
-import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_REGISTRATION_FAILURE;
+import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_REQUEST_PROCESSING_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS;
@@ -84,21 +84,21 @@ public class TaskExecutionNode implements Node {
             throws FlowEngineException {
 
         if (configs.getExecutorConfig() == null) {
-            throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getGraphConfig().getId(),
-                    context.getTenantDomain());
+            throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
+                    context.getGraphConfig().getId(), context.getTenantDomain());
         }
         addIdpConfigsToContext(context, configs.getExecutorConfig());
         return triggerExecutor(context, configs);
     }
 
-    private Executor resolveExecutor(NodeConfig configs, String graphId, String tenantDomain)
+    private Executor resolveExecutor(String flowType, NodeConfig configs, String graphId, String tenantDomain)
             throws FlowEngineException {
 
         String executorName = configs.getExecutorConfig().getName();
 
         Executor mappedRegExecutor = FlowEngineDataHolder.getInstance().getExecutors().get(executorName);
         if (mappedRegExecutor == null) {
-            throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR, executorName, graphId, tenantDomain);
+            throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR, executorName, flowType, graphId, tenantDomain);
         }
         return mappedRegExecutor;
     }
@@ -107,10 +107,11 @@ public class TaskExecutionNode implements Node {
     public Response rollback(FlowContext context, NodeConfig config) throws FlowEngineException {
 
         if (config.getExecutorConfig() == null) {
-            throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getGraphConfig().getId(),
-                    context.getTenantDomain());
+            throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
+                    context.getGraphConfig().getId(), context.getTenantDomain());
         }
-        Executor mappedRegExecutor = resolveExecutor(config, context.getGraphConfig().getId(), context.getTenantDomain());
+        Executor mappedRegExecutor = resolveExecutor(context.getFlowType(), config, context.getGraphConfig().getId(),
+                context.getTenantDomain());
         mappedRegExecutor.rollback(context);
         context.setCurrentNode(context.getGraphConfig().getNodeConfigs().get(config.getPreviousNodeId()));
         // Ignore the response from executor for rollback.
@@ -120,7 +121,8 @@ public class TaskExecutionNode implements Node {
     private Response triggerExecutor(FlowContext context, NodeConfig configs)
             throws FlowEngineException {
 
-        Executor mappedRegExecutor = resolveExecutor(configs, context.getGraphConfig().getId(), context.getTenantDomain());
+        Executor mappedRegExecutor = resolveExecutor(context.getFlowType(), configs, context.getGraphConfig().getId(),
+                context.getTenantDomain());
         ExecutorResponse response = mappedRegExecutor.execute(context);
         if (response == null) {
             throw handleServerException(ERROR_CODE_EXECUTOR_FAILURE, "Executor response is null for executor: "
@@ -179,9 +181,11 @@ public class TaskExecutionNode implements Node {
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_USER_ERROR:
-                throw handleClientException(ERROR_CODE_REGISTRATION_FAILURE, response.getErrorMessage());
+                throw handleClientException(ERROR_CODE_FLOW_FAILURE, context.getFlowType(),
+                        response.getErrorMessage());
             case STATUS_ERROR:
-                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, response.getErrorMessage());
+                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, context.getFlowType(),
+                        response.getErrorMessage());
             default:
                 throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
         }

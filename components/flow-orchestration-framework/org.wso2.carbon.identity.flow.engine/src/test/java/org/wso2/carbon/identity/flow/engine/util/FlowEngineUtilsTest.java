@@ -55,9 +55,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 import static org.wso2.carbon.identity.flow.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
-import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE;
+import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
 
@@ -72,6 +72,7 @@ public class FlowEngineUtilsTest {
     private static final String TEST_CALLBACK_URL = "https://localhost:3000/myapp/callback";
     private static final String TEST_APP_URL = "https://localhost:3000/myapp";
     private static final String DEFAULT_MY_ACCOUNT_URL = "https://localhost:9443/myaccount";
+    private static final String FLOW_TYPE = "REGISTRATION";
     private static final int TENANT_ID = -1234;
     private FlowContext testContext;
 
@@ -100,8 +101,7 @@ public class FlowEngineUtilsTest {
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN))
                 .thenThrow(IdentityRuntimeException.class);
         try {
-            FlowEngineUtils.initiateContext(TENANT_DOMAIN, TEST_CALLBACK_URL, null,
-                    "REGISTRATION");
+            FlowEngineUtils.initiateContext(TENANT_DOMAIN, TEST_CALLBACK_URL, null, FLOW_TYPE);
         } catch (FlowEngineException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_TENANT_RESOLVE_FAILURE.getCode());
         }
@@ -110,34 +110,31 @@ public class FlowEngineUtilsTest {
     @Test
     public void testInitContextGraphNotDefined() throws Exception {
 
-        String flowType = "REGISTRATION";
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
         try (MockedStatic<FlowEngineDataHolder> dataHolderMockedStatic = mockStatic(
                 FlowEngineDataHolder.class)) {
             dataHolderMockedStatic.when(FlowEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getFlowMgtService()).thenReturn(mgtServiceMock);
-            when(mgtServiceMock.getGraphConfig(flowType, TENANT_ID)).thenReturn(null);
-            FlowEngineUtils.initiateContext(TENANT_DOMAIN, TEST_CALLBACK_URL, null,
-                    flowType);
+            when(mgtServiceMock.getGraphConfig(FLOW_TYPE, TENANT_ID)).thenReturn(null);
+            FlowEngineUtils.initiateContext(TENANT_DOMAIN, TEST_CALLBACK_URL, null, FLOW_TYPE);
         } catch (FlowEngineException e) {
-            assertEquals(e.getErrorCode(), ERROR_CODE_REG_FLOW_NOT_FOUND.getCode());
+            assertEquals(e.getErrorCode(), ERROR_CODE_FLOW_NOT_FOUND.getCode());
         }
     }
 
     @Test
     public void testGraphRetrievalFailure() throws Exception {
 
-        String flowType = "REGISTRATION";
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
         try (MockedStatic<FlowEngineDataHolder> dataHolderMockedStatic = mockStatic(
                 FlowEngineDataHolder.class)) {
 
             dataHolderMockedStatic.when(FlowEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getFlowMgtService()).thenReturn(mgtServiceMock);
-            when(mgtServiceMock.getGraphConfig(flowType, TENANT_ID)).thenThrow(FlowMgtFrameworkException.class);
-            FlowEngineUtils.initiateContext(TENANT_DOMAIN, TEST_CALLBACK_URL, null, flowType);
+            when(mgtServiceMock.getGraphConfig(FLOW_TYPE, TENANT_ID)).thenThrow(FlowMgtFrameworkException.class);
+            FlowEngineUtils.initiateContext(TENANT_DOMAIN, TEST_CALLBACK_URL, null, FLOW_TYPE);
         } catch (FlowEngineException e) {
-            assertEquals(e.getErrorCode(), ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE.getCode());
+            assertEquals(e.getErrorCode(), ERROR_CODE_GET_DEFAULT_FLOW_FAILURE.getCode());
         }
     }
 
@@ -145,7 +142,7 @@ public class FlowEngineUtilsTest {
     public void testContextRetrievalWithEmptyId() {
 
         try {
-            FlowEngineUtils.retrieveFlowContextFromCache(null);
+            FlowEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, null);
         } catch (FlowEngineException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_UNDEFINED_FLOW_ID.getCode());
         }
@@ -158,7 +155,7 @@ public class FlowEngineUtilsTest {
                 FlowContextCache.class)) {
             regContextCacheMockedStatic.when(FlowContextCache::getInstance).thenReturn(regContextCacheMock);
             lenient().when(regContextCacheMock.getValueFromCache(any())).thenReturn(null);
-            FlowEngineUtils.retrieveFlowContextFromCache("invalidFlowId");
+            FlowEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, "invalidFlowId");
         } catch (FlowEngineException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_INVALID_FLOW_ID.getCode());
         }
@@ -179,7 +176,6 @@ public class FlowEngineUtilsTest {
         String firstNodeId = "testNode123";
         GraphConfig graphConfig = new GraphConfig();
         graphConfig.setFirstNodeId(firstNodeId);
-        String flowType = "REGISTRATION";
 
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
         try (MockedStatic<FlowEngineDataHolder> dataHolderMockedStatic = mockStatic(
@@ -198,8 +194,8 @@ public class FlowEngineUtilsTest {
 
             dataHolderMockedStatic.when(FlowEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getFlowMgtService()).thenReturn(mgtServiceMock);
-            when(mgtServiceMock.getGraphConfig(flowType, TENANT_ID)).thenReturn(graphConfig);
-            FlowContext context = FlowEngineUtils.initiateContext(TENANT_DOMAIN, callback, appId, flowType);
+            when(mgtServiceMock.getGraphConfig(FLOW_TYPE, TENANT_ID)).thenReturn(graphConfig);
+            FlowContext context = FlowEngineUtils.initiateContext(TENANT_DOMAIN, callback, appId, FLOW_TYPE);
             assertNotNull(context);
             assertEquals(context.getTenantDomain(), TENANT_DOMAIN);
             assertNotNull(context.getGraphConfig());
@@ -231,7 +227,7 @@ public class FlowEngineUtilsTest {
             regContextCacheMockedStatic.when(FlowContextCache::getInstance).thenReturn(regContextCacheMock);
             lenient().when(regContextCacheMock.getValueFromCache(any())).thenReturn(entry);
             FlowContext context =
-                    FlowEngineUtils.retrieveFlowContextFromCache(testContext.getContextIdentifier());
+                    FlowEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, testContext.getContextIdentifier());
             assertNotNull(context);
             assertEquals(context, testContext);
         } catch (Exception e) {
