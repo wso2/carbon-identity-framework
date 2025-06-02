@@ -179,7 +179,7 @@ public class FlowEngine {
             case Constants.NodeTypes.PROMPT_ONLY:
                 return new PagePromptNode().execute(context, nodeConfig);
             default:
-                throw handleServerException(ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(),context.getFlowType(),
+                throw handleServerException(ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(), context.getFlowType(),
                         context.getGraphConfig().getId(), context.getTenantDomain());
         }
     }

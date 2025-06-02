@@ -74,7 +74,7 @@ public class FlowEngineTest {
     @BeforeClass
     public void setup() {
 
-        defaultGraph = buildRegistrationGraphWithDecision();
+        defaultGraph = buildGraphWithDecision();
         listeners.add(new InputValidationListener());
     }
 
@@ -406,7 +406,7 @@ public class FlowEngineTest {
         defaultGraph.setFirstNodeId(firstNodeId);
     }
 
-    private GraphConfig buildRegistrationGraphWithDecision() {
+    private GraphConfig buildGraphWithDecision() {
 
         NodeConfig decisionNode = new NodeConfig.Builder()
                 .id("decisionNode")

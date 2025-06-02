@@ -48,10 +48,10 @@ import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.flow.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
+import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
@@ -68,7 +68,7 @@ public class FlowEngineUtils {
      *
      * @param context Flow context.
      */
-    public static void addRegContextToCache(FlowContext context) {
+    public static void addFlowContextToCache(FlowContext context) {
 
         FlowContextCacheEntry cacheEntry = new FlowContextCacheEntry(context);
         FlowContextCacheKey cacheKey = new FlowContextCacheKey(context.getContextIdentifier());
@@ -81,8 +81,8 @@ public class FlowEngineUtils {
     /**
      * Retrieve flow context from cache.
      *
+     * @param flowType Type of the flow.
      * @param contextId Context identifier.
-     * @param flowType  Flow type.
      * @return Flow context.
      * @throws FlowEngineException Flow engined exception.
      */
@@ -104,7 +104,7 @@ public class FlowEngineUtils {
      *
      * @param contextId Context identifier.
      */
-    public static void removeRegContextFromCache(String contextId) {
+    public static void removeFlowContextFromCache(String contextId) {
 
         if (contextId == null) {
             if (LOG.isDebugEnabled()) {
@@ -165,6 +165,7 @@ public class FlowEngineUtils {
     /**
      * Rollback the flow context.
      *
+     * @param flowType Type of the flow.
      * @param contextId Context identifier.
      */
     public static void rollbackContext(String flowType, String contextId) {

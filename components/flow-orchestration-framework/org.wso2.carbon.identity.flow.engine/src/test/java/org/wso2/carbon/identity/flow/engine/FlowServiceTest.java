@@ -60,7 +60,7 @@ public class FlowServiceTest {
     private static final String TEST_CALLBACK_URL = "https://localhost:3000/myapp/callback";
     private static final String TEST_APPLICATION_ID = "testAppId";
     private static final String FLOW_TYPE = "REGISTRATION";
-    private FlowContext testRegContext;
+    private FlowContext testFlowContext;
 
     @Mock
     private FlowEngine engineMock;
@@ -69,7 +69,7 @@ public class FlowServiceTest {
     public void setup() {
 
         MockitoAnnotations.openMocks(this);
-        testRegContext = initTestContext();
+        testFlowContext = initTestContext();
     }
 
     private FlowContext initTestContext() {
@@ -105,9 +105,9 @@ public class FlowServiceTest {
             utilsMockedStatic.when(
                             () -> FlowEngineUtils.initiateContext(anyString(), anyString(), anyString(),
                                     anyString()))
-                    .thenReturn(testRegContext);
+                    .thenReturn(testFlowContext);
             engineMockedStatic.when(FlowEngine::getInstance).thenReturn(engineMock);
-            when(engineMock.execute(testRegContext)).thenThrow(FlowEngineException.class);
+            when(engineMock.execute(testFlowContext)).thenThrow(FlowEngineException.class);
             FlowService.getInstance().executeFlow(TENANT_DOMAIN,
                     TEST_APPLICATION_ID, TEST_CALLBACK_URL, null, null, FLOW_TYPE, null);
         }
@@ -117,7 +117,7 @@ public class FlowServiceTest {
     public void testInitiateDefaultFlowExecution() throws Exception {
 
         FlowStep expectedStep = new FlowStep.Builder()
-                .flowId(testRegContext.getContextIdentifier())
+                .flowId(testFlowContext.getContextIdentifier())
                 .flowStatus("INCOMPLETE")
                 .stepType("VIEW")
                 .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
@@ -129,11 +129,11 @@ public class FlowServiceTest {
             utilsMockedStatic.when(
                             () -> FlowEngineUtils.initiateContext(anyString(), anyString(), anyString(),
                                     anyString()))
-                    .thenReturn(testRegContext);
+                    .thenReturn(testFlowContext);
 
             engineMockedStatic.when(FlowEngine::getInstance).thenReturn(engineMock);
 
-            when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
+            when(engineMock.execute(testFlowContext)).thenReturn(expectedStep);
             FlowStep returnedStep =
                     FlowService.getInstance()
                             .executeFlow(TENANT_DOMAIN, TEST_APPLICATION_ID, TEST_CALLBACK_URL, null,
@@ -146,14 +146,14 @@ public class FlowServiceTest {
     public void testInitiateDefaultFlowExecutionWithInput() throws Exception {
 
         GraphConfig graphConfig = buildGraphWithDecision();
-        testRegContext.setGraphConfig(graphConfig);
+        testFlowContext.setGraphConfig(graphConfig);
         FlowEngineDataHolder.getInstance().addFlowExecutionListeners(new InputValidationListener());
         Map<String, String> userInputMap = new HashMap<>();
         userInputMap.put("input1", "value1");
-        testRegContext.getUserInputData().putAll(userInputMap);
+        testFlowContext.getUserInputData().putAll(userInputMap);
 
         FlowStep expectedStep = new FlowStep.Builder()
-                .flowId(testRegContext.getContextIdentifier())
+                .flowId(testFlowContext.getContextIdentifier())
                 .flowStatus("INCOMPLETE")
                 .stepType("VIEW")
                 .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
@@ -165,7 +165,7 @@ public class FlowServiceTest {
             utilsMockedStatic.when(
                             () -> FlowEngineUtils.initiateContext(anyString(), anyString(), anyString(),
                                     anyString()))
-                    .thenReturn(testRegContext);
+                    .thenReturn(testFlowContext);
 
             engineMockedStatic.when(FlowEngine::getInstance).thenReturn(engineMock);
 
@@ -220,13 +220,13 @@ public class FlowServiceTest {
     public void testContinueFlowIncompleteFlow() throws Exception {
 
         FlowStep expectedStep = new FlowStep.Builder()
-                .flowId(testRegContext.getContextIdentifier())
+                .flowId(testFlowContext.getContextIdentifier())
                 .flowStatus("INCOMPLETE")
                 .stepType("VIEW")
                 .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
                 .build();
 
-        String flowId = testRegContext.getContextIdentifier();
+        String flowId = testFlowContext.getContextIdentifier();
 
         try (
                 MockedStatic<FlowEngineUtils> utilsMockedStatic = mockStatic(
@@ -234,17 +234,17 @@ public class FlowServiceTest {
                 MockedStatic<FlowEngine> engineMockedStatic = mockStatic(FlowEngine.class)
         ) {
             engineMockedStatic.when(FlowEngine::getInstance).thenReturn(engineMock);
-            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(testRegContext.getFlowType(),
+            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(testFlowContext.getFlowType(),
                             flowId))
-                    .thenReturn(testRegContext);
-            when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
+                    .thenReturn(testFlowContext);
+            when(engineMock.execute(testFlowContext)).thenReturn(expectedStep);
 
             FlowService service = FlowService.getInstance();
             FlowStep result = service.executeFlow(null, null, null,
                     flowId, null, FLOW_TYPE, new HashMap<>());
 
             assertEquals(result, expectedStep);
-            utilsMockedStatic.verify(() -> FlowEngineUtils.addRegContextToCache(testRegContext));
+            utilsMockedStatic.verify(() -> FlowEngineUtils.addFlowContextToCache(testFlowContext));
         }
     }
 
@@ -252,11 +252,11 @@ public class FlowServiceTest {
     public void testContinueFlowWithCompletion() throws Exception {
 
         FlowStep expectedStep = new FlowStep.Builder()
-                .flowId(testRegContext.getContextIdentifier())
+                .flowId(testFlowContext.getContextIdentifier())
                 .flowStatus("COMPLETE")
                 .build();
 
-        String flowId = testRegContext.getContextIdentifier();
+        String flowId = testFlowContext.getContextIdentifier();
 
         try (
                 MockedStatic<FlowEngineUtils> utilsMockedStatic = mockStatic(
@@ -264,17 +264,17 @@ public class FlowServiceTest {
                 MockedStatic<FlowEngine> engineMockedStatic = mockStatic(FlowEngine.class)
         ) {
             engineMockedStatic.when(FlowEngine::getInstance).thenReturn(engineMock);
-            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(testRegContext.getFlowType(),
+            utilsMockedStatic.when(() -> FlowEngineUtils.retrieveFlowContextFromCache(testFlowContext.getFlowType(),
                             flowId))
-                    .thenReturn(testRegContext);
-            when(engineMock.execute(testRegContext)).thenReturn(expectedStep);
+                    .thenReturn(testFlowContext);
+            when(engineMock.execute(testFlowContext)).thenReturn(expectedStep);
 
             FlowService service = FlowService.getInstance();
             FlowStep result = service.executeFlow(null, null, null,
                     flowId, null, FLOW_TYPE, new HashMap<>());
 
             assertEquals(result, expectedStep);
-            utilsMockedStatic.verify(() -> FlowEngineUtils.removeRegContextFromCache(flowId));
+            utilsMockedStatic.verify(() -> FlowEngineUtils.removeFlowContextFromCache(flowId));
         }
     }
 

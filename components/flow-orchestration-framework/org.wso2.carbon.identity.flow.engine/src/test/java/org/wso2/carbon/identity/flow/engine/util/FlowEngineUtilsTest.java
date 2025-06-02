@@ -83,7 +83,7 @@ public class FlowEngineUtilsTest {
     private FlowEngineDataHolder dataHolderMock;
 
     @Mock
-    private FlowContextCache regContextCacheMock;
+    private FlowContextCache flowContextCacheMock;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
@@ -151,10 +151,10 @@ public class FlowEngineUtilsTest {
     @Test
     public void testContextRetrievalWithInvalidId() {
 
-        try (MockedStatic<FlowContextCache> regContextCacheMockedStatic = mockStatic(
+        try (MockedStatic<FlowContextCache> flowContextCacheMockedStatic = mockStatic(
                 FlowContextCache.class)) {
-            regContextCacheMockedStatic.when(FlowContextCache::getInstance).thenReturn(regContextCacheMock);
-            lenient().when(regContextCacheMock.getValueFromCache(any())).thenReturn(null);
+            flowContextCacheMockedStatic.when(FlowContextCache::getInstance).thenReturn(flowContextCacheMock);
+            lenient().when(flowContextCacheMock.getValueFromCache(any())).thenReturn(null);
             FlowEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, "invalidFlowId");
         } catch (FlowEngineException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_INVALID_FLOW_ID.getCode());
@@ -171,7 +171,7 @@ public class FlowEngineUtilsTest {
     }
 
     @Test(dataProvider = "initiateContextScenarios")
-    public void testRegContextInitiation(String appId, String callback, String expectedCallback) throws Exception {
+    public void testFlowContextInitiation(String appId, String callback, String expectedCallback) throws Exception {
 
         String firstNodeId = "testNode123";
         GraphConfig graphConfig = new GraphConfig();
@@ -206,26 +206,26 @@ public class FlowEngineUtilsTest {
         }
     }
 
-    @Test(dependsOnMethods = {"testRegContextInitiation"})
-    public void testRegContextCacheAddition() {
+    @Test(dependsOnMethods = {"testFlowContextInitiation"})
+    public void testFlowContextCacheAddition() {
 
-        lenient().doNothing().when(regContextCacheMock).addToCache(any(), any());
+        lenient().doNothing().when(flowContextCacheMock).addToCache(any(), any());
         try {
-            FlowEngineUtils.addRegContextToCache(testContext);
+            FlowEngineUtils.addFlowContextToCache(testContext);
         } catch (Exception e) {
             fail("Method threw an exception: " + e.getMessage());
         }
     }
 
-    @Test(dependsOnMethods = {"testRegContextCacheAddition"})
-    public void testRegContextCacheRetrieval() {
+    @Test(dependsOnMethods = {"testFlowContextCacheAddition"})
+    public void testFlowContextCacheRetrieval() {
 
         FlowContextCacheEntry entry = new FlowContextCacheEntry(testContext);
 
-        try (MockedStatic<FlowContextCache> regContextCacheMockedStatic = mockStatic(
+        try (MockedStatic<FlowContextCache> flowContextCacheMockedStatic = mockStatic(
                 FlowContextCache.class)) {
-            regContextCacheMockedStatic.when(FlowContextCache::getInstance).thenReturn(regContextCacheMock);
-            lenient().when(regContextCacheMock.getValueFromCache(any())).thenReturn(entry);
+            flowContextCacheMockedStatic.when(FlowContextCache::getInstance).thenReturn(flowContextCacheMock);
+            lenient().when(flowContextCacheMock.getValueFromCache(any())).thenReturn(entry);
             FlowContext context =
                     FlowEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, testContext.getContextIdentifier());
             assertNotNull(context);

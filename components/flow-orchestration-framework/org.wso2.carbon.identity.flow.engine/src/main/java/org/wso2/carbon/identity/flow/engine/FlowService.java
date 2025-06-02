@@ -93,14 +93,14 @@ public class FlowService {
                 }
             }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
-                FlowEngineUtils.removeRegContextFromCache(flowId);
+                FlowEngineUtils.removeFlowContextFromCache(flowId);
             } else {
-                FlowEngineUtils.addRegContextToCache(context);
+                FlowEngineUtils.addFlowContextToCache(context);
             }
             return step;
         } catch (FlowEngineException e) {
             FlowEngineUtils.rollbackContext(flowType, flowId);
-            FlowEngineUtils.removeRegContextFromCache(flowId);
+            FlowEngineUtils.removeFlowContextFromCache(flowId);
             throw e;
         }
     }
