@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +36,7 @@ public class DataDTO implements Serializable {
     private List<ComponentDTO> components;
     private List<String> requiredParams;
     private Map<String, String> additionalData;
+    @JsonIgnore
     private Map<String, String> interactionData;
 
     public DataDTO() {
