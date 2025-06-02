@@ -18,36 +18,6 @@
 
 package org.wso2.carbon.identity.flow.mgt.utils;
 
-import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.EXECUTOR;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.NEXT;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.BUTTON;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.FORM;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_ACTION_DATA_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_COMPONENT_DATA_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_INFO_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_FIRST_NODE;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_FOR_BUTTON;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_TYPE;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_MULTIPLE_STEP_EXECUTORS;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_NEXT_ACTION_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
-import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
-import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
-import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
-import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleClientException;
-import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,10 +27,42 @@ import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
-import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.EXECUTOR;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.NEXT;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.BUTTON;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.FORM;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_ACTION_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_COMPONENT_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_INFO_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_FOR_BUTTON;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_TYPE;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_FIRST_NODE;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_MULTIPLE_STEP_EXECUTORS;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_NEXT_ACTION_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
+import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
+import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleClientException;
+import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 
 /**
  * This class is responsible for building the flow graph.
@@ -103,8 +105,8 @@ public class GraphBuilder {
                 case USER_ONBOARD:
                     processUserOnboardStep(step);
                     break;
-                case INTERACT:
-                    processInteractStep(step);
+                case WEBAUTHN:
+                    processWebAuthnStep(step);
                     break;
                 default:
                     throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
@@ -137,10 +139,10 @@ public class GraphBuilder {
         }
         ActionDTO action = step.getData().getAction();
         if (action == null) {
-            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId());
+            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
         }
         if (!EXECUTOR.equals(action.getType())) {
-            throw handleClientException(ERROR_CODE_INVALID_ACTION_TYPE, action.getType(), step.getId());
+            throw handleClientException(ERROR_CODE_INVALID_ACTION_TYPE, action.getType(), step.getId(), step.getType());
         }
         if (action.getExecutor() == null) {
             throw handleClientException(ERROR_CODE_EXECUTOR_INFO_NOT_FOUND, step.getId());
@@ -151,17 +153,17 @@ public class GraphBuilder {
         nodeEdges.add(new NodeEdge(redirectionNode.getId(), action.getNextId(), null));
     }
 
-    private void processInteractStep(StepDTO step) throws FlowMgtFrameworkException {
+    private void processWebAuthnStep(StepDTO step) throws FlowMgtFrameworkException {
 
         if (step.getData() == null) {
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
         }
         ActionDTO action = step.getData().getAction();
         if (action == null) {
-            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId());
+            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
         }
         if (!EXECUTOR.equals(action.getType())) {
-            throw handleClientException(ERROR_CODE_INVALID_ACTION_TYPE, action.getType(), step.getId());
+            throw handleClientException(ERROR_CODE_INVALID_ACTION_TYPE, action.getType(), step.getId(), step.getType());
         }
         if (action.getExecutor() == null) {
             throw handleClientException(ERROR_CODE_EXECUTOR_INFO_NOT_FOUND, step.getId());

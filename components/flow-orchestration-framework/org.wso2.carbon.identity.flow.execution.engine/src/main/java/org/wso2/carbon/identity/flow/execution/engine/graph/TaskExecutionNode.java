@@ -61,10 +61,10 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_IN
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 
 /**
  * Implementation of a node specific to executing a flow executor.
@@ -169,7 +169,7 @@ public class TaskExecutionNode implements Node {
             case STATUS_WEBAUTHN:
                 return new NodeResponse.Builder()
                         .status(STATUS_INCOMPLETE)
-                        .type(INTERACT)
+                        .type(WEBAUTHN)
                         .requiredData(response.getRequiredData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();

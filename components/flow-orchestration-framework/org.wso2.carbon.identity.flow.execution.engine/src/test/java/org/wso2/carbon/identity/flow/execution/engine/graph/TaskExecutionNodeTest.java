@@ -66,8 +66,8 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 
 /**
  * Test class for TaskExecutionNode.
@@ -308,7 +308,7 @@ public class TaskExecutionNodeTest {
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_INCOMPLETE);
-            assertEquals(nodeResponse.getType(), INTERACT);
+            assertEquals(nodeResponse.getType(), WEBAUTHN);
             assertNotNull(nodeResponse.getRequiredData());
             assertEquals(nodeResponse.getRequiredData().size(), 2);
             assertEquals(nodeResponse.getAdditionalInfo().get("interactionData"), "{\"form\":\"data\"}");

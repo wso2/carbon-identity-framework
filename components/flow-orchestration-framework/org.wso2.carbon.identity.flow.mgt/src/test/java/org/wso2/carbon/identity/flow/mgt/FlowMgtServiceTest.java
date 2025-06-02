@@ -20,10 +20,6 @@ package org.wso2.carbon.identity.flow.mgt;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
@@ -40,9 +36,14 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.fail;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.EXECUTOR;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.NEXT;
@@ -50,9 +51,9 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.BUTTON;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_ACTION_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_COMPONENT_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_INFO_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_FIRST_NODE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_FOR_BUTTON;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_TYPE;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_FIRST_NODE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_NEXT_STEP;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_MULTIPLE_STEP_EXECUTORS;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_NEXT_ACTION_NOT_FOUND;
@@ -60,10 +61,10 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CO
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 import static org.wso2.carbon.identity.flow.mgt.TestHelperMethods.closeH2Database;
 import static org.wso2.carbon.identity.flow.mgt.TestHelperMethods.getFilePath;
 
@@ -175,11 +176,11 @@ public class FlowMgtServiceTest {
                         ERROR_CODE_INVALID_NEXT_STEP.getCode()},
 
                 {"redirectionStepWithoutData",
-                        new StepDTO.Builder().id("STEP_1").type(INTERACT).build(),
+                        new StepDTO.Builder().id("STEP_1").type(WEBAUTHN).build(),
                         ERROR_CODE_STEP_DATA_NOT_FOUND.getCode()},
 
                 {"interactStepWithoutAction",
-                        new StepDTO.Builder().id("STEP_1").type(INTERACT)
+                        new StepDTO.Builder().id("STEP_1").type(WEBAUTHN)
                                 .data(new DataDTO.Builder().build()).build(),
                         ERROR_CODE_ACTION_DATA_NOT_FOUND.getCode()},
         };

@@ -48,19 +48,19 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INTERACTION_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REQUIRED_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.INTERACTION_DATA;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.WEBAUTHN_DATA;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 
 /**
  * Unit tests for FlowExecutionEngine.
@@ -206,36 +206,36 @@ public class FlowEngineTest {
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
             assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
             assertEquals(step.getStepType(), REDIRECTION);
-            assertEquals(step.getData().getUrl(), "https://test.com");
+            assertEquals(step.getData().getRedirectURL(), "https://test.com");
         }
     }
 
     @Test
-    public void testInteractionNodeResponse() throws Exception {
+    public void testWebAuthnNodeResponse() throws Exception {
 
-        NodeConfig interactionNode = new NodeConfig.Builder()
-                .id("interactionNode")
+        NodeConfig webAuthnNode = new NodeConfig.Builder()
+                .id("webAuthnNode")
                 .type(TASK_EXECUTION)
                 .build();
 
         Map<String, NodeConfig> nodeMap = new HashMap<>();
-        nodeMap.put("interactionNode", interactionNode);
+        nodeMap.put("webAuthnNode", webAuthnNode);
 
-        GraphConfig graphWithInteraction = new GraphConfig();
-        graphWithInteraction.setFirstNodeId("interactionNode");
-        graphWithInteraction.setNodeConfigs(nodeMap);
+        GraphConfig graphWithWebAuthn = new GraphConfig();
+        graphWithWebAuthn.setFirstNodeId("webAuthnNode");
+        graphWithWebAuthn.setNodeConfigs(nodeMap);
 
         FlowExecutionContext newContext = initiateFlowContext();
-        newContext.setGraphConfig(graphWithInteraction);
+        newContext.setGraphConfig(graphWithWebAuthn);
 
         Map<String, String> additionalTestInfo = new HashMap<>();
-        additionalTestInfo.put(INTERACTION_DATA, "{\"field1\":\"value1\",\"field2\":\"value2\"}");
+        additionalTestInfo.put(WEBAUTHN_DATA, "{\"field1\":\"value1\",\"field2\":\"value2\"}");
 
         try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status(STATUS_INCOMPLETE)
-                                 .type(INTERACT)
+                                 .type(WEBAUTHN)
                                  .additionalInfo(additionalTestInfo)
                                  .requiredData(Arrays.asList("username", "email"))
                                  .build();
@@ -244,30 +244,30 @@ public class FlowEngineTest {
 
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
             assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
-            assertEquals(step.getStepType(), INTERACT);
+            assertEquals(step.getStepType(), WEBAUTHN);
             assertEquals(step.getData().getRequiredParams().size(), 2);
-            assertEquals(step.getData().getAdditionalData().get(INTERACTION_DATA),
-                    "{\"field1\":\"value1\",\"field2\":\"value2\"}");
+            assertEquals(step.getData().getWebAuthnData().size(),2);
+            assertEquals(step.getData().getWebAuthnData().get("field1"), "value1");
         }
     }
 
     @Test
-    public void testInteractionNodeResponseWithoutInteractionData() throws Exception {
+    public void testWebAuthnNodeResponseWithoutWebAuthnData() throws Exception {
 
-        NodeConfig interactionNode = new NodeConfig.Builder()
-                .id("interactionNodeWithoutData")
+        NodeConfig webAuthnNode = new NodeConfig.Builder()
+                .id("webAuthnNodeWithoutData")
                 .type(TASK_EXECUTION)
                 .build();
 
         Map<String, NodeConfig> nodeMap = new HashMap<>();
-        nodeMap.put("interactionNodeWithoutData", interactionNode);
+        nodeMap.put("webAuthnNodeWithoutData", webAuthnNode);
 
-        GraphConfig graphWithInteraction = new GraphConfig();
-        graphWithInteraction.setFirstNodeId("interactionNodeWithoutData");
-        graphWithInteraction.setNodeConfigs(nodeMap);
+        GraphConfig graphWithWebAuthn = new GraphConfig();
+        graphWithWebAuthn.setFirstNodeId("webAuthnNodeWithoutData");
+        graphWithWebAuthn.setNodeConfigs(nodeMap);
 
         FlowExecutionContext newContext = initiateFlowContext();
-        newContext.setGraphConfig(graphWithInteraction);
+        newContext.setGraphConfig(graphWithWebAuthn);
 
         Map<String, String> emptyAdditionalInfo = new HashMap<>();
 
@@ -275,7 +275,7 @@ public class FlowEngineTest {
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status(STATUS_INCOMPLETE)
-                                 .type(INTERACT)
+                                 .type(WEBAUTHN)
                                  .additionalInfo(emptyAdditionalInfo)
                                  .requiredData(Arrays.asList("username", "email"))
                                  .build();
@@ -284,7 +284,7 @@ public class FlowEngineTest {
 
             FlowExecutionEngine.getInstance().execute(newContext);
         } catch (FlowEngineServerException e) {
-            assertEquals(e.getErrorCode(), ERROR_CODE_INTERACTION_DATA_NOT_FOUND.getCode());
+            assertEquals(e.getErrorCode(), ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND.getCode());
         }
     }
 

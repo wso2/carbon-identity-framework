@@ -47,17 +47,17 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INTERACTION_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REQUIRED_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.INTERACTION_DATA;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.WEBAUTHN_DATA;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.WEBAUTHN;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 
@@ -228,13 +228,13 @@ public class RegistrationFlowEngineTest {
         newContext.setRegGraph(graphWithInteraction);
 
         Map<String, String> additionalTestInfo = new HashMap<>();
-        additionalTestInfo.put(INTERACTION_DATA, "{\"field1\":\"value1\",\"field2\":\"value2\"}");
+        additionalTestInfo.put(WEBAUTHN_DATA, "{\"field1\":\"value1\",\"field2\":\"value2\"}");
 
         try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          Response response = new Response.Builder()
                                  .status(STATUS_INCOMPLETE)
-                                 .type(INTERACT)
+                                 .type(WEBAUTHN)
                                  .additionalInfo(additionalTestInfo)
                                  .requiredData(Arrays.asList("username", "email"))
                                  .build();
@@ -243,9 +243,9 @@ public class RegistrationFlowEngineTest {
 
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(newContext);
             assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
-            assertEquals(step.getStepType(), INTERACT);
+            assertEquals(step.getStepType(), WEBAUTHN);
             assertEquals(step.getData().getRequiredParams().size(), 2);
-            assertEquals(step.getData().getAdditionalData().get(INTERACTION_DATA),
+            assertEquals(step.getData().getAdditionalData().get(WEBAUTHN_DATA),
                     "{\"field1\":\"value1\",\"field2\":\"value2\"}");
         }
     }
@@ -274,7 +274,7 @@ public class RegistrationFlowEngineTest {
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          Response response = new Response.Builder()
                                  .status(STATUS_INCOMPLETE)
-                                 .type(INTERACT)
+                                 .type(WEBAUTHN)
                                  .additionalInfo(emptyAdditionalInfo)
                                  .requiredData(Arrays.asList("username", "email"))
                                  .build();
@@ -283,7 +283,7 @@ public class RegistrationFlowEngineTest {
 
             RegistrationFlowEngine.getInstance().execute(newContext);
         } catch (RegistrationEngineServerException e) {
-            assertEquals(e.getErrorCode(), ERROR_CODE_INTERACTION_DATA_NOT_FOUND.getCode());
+            assertEquals(e.getErrorCode(), ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND.getCode());
         }
     }
 
