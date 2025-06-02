@@ -64,7 +64,7 @@
                             <includedFeatures>
                                 <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.mgt.server.feature
                                 </includedFeatureDef>
-                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.execution.engine.server.feature
+                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.engine.server.feature
                                 </includedFeatureDef>
                             </includedFeatures>
                         </configuration>

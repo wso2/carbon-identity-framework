@@ -22,7 +22,8 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>flow-orchestration-framework-feature</artifactId>
-        <version>7.8.188-SNAPSHOT</version>
+        <version>7.8.196-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>

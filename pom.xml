@@ -83,7 +83,6 @@
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
         <module>features/extension-mgt</module>
-        <module>features/flow-orchestration-framework</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
         <module>features/security-mgt</module>
