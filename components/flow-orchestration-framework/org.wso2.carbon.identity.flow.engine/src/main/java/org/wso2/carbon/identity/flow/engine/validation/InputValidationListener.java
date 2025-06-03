@@ -27,6 +27,10 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Listener to handle input validation.
@@ -59,7 +63,16 @@ public class InputValidationListener extends AbstractFlowListener {
                 MapUtils.isEmpty(FlowContext.getCurrentStepInputs())) {
             GraphConfig graphConfig = FlowContext.getGraphConfig();
             NodeConfig currentNode = graphConfig.getNodeConfigs().get(graphConfig.getFirstNodeId());
-            DataDTO dataDTO = FlowContext.getGraphConfig().getNodePageMappings().get(currentNode.getId()).getData();
+
+            Map<String, StepDTO> mappings = Optional.ofNullable(FlowContext.getGraphConfig())
+                    .map(GraphConfig::getNodePageMappings)
+                    .orElse(null);
+            StepDTO stepDTO = null;
+            if (mappings != null && currentNode != null) {
+                stepDTO = mappings.get(currentNode.getId());
+            }
+            DataDTO dataDTO = (stepDTO != null) ? stepDTO.getData() : null;
+
             // If the current node is Prompt node then there is nothing to execute
             // hence assigning next node as the current node.
             if (Constants.NodeTypes.PROMPT_ONLY.equalsIgnoreCase(currentNode.getType())) {
