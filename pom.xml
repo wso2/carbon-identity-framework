@@ -74,7 +74,6 @@
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
         <module>components/webhook-mgt</module>
-        <module>components/topic-mgt</module>
         <module>components/action-mgt</module>
         <module>components/ai-services-mgt</module>
         <module>components/certificate-mgt</module>
@@ -120,7 +119,6 @@
         <module>features/trusted-app-mgt</module>
         <module>features/rule-mgt</module>
         <module>features/webhook-mgt</module>
-        <module>features/topic-mgt</module>
         <module>features/action-mgt</module>
         <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
