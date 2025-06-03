@@ -18,7 +18,34 @@
 
 package org.wso2.carbon.identity.flow.mgt.dao;
 
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
@@ -48,47 +75,13 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
-import org.wso2.carbon.identity.core.util.JdbcUtils;
-import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
-import org.wso2.carbon.identity.flow.mgt.Constants;
-import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
-import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
-import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
-import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
-import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
-import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
-import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
-import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
-import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
-
 /**
  * The DAO class for the flow.
  */
 public class FlowDAOImpl implements FlowDAO {
 
     private static final Log LOG = LogFactory.getLog(FlowDAOImpl.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     public void updateFlow(String flowType, GraphConfig graphConfig, int tenantId, String flowName)
@@ -173,9 +166,9 @@ public class FlowDAOImpl implements FlowDAO {
                                 preparedStatement.setInt(2, regNodeId);
                                 preparedStatement.setString(3, stepDTO.getId());
                                 if (pageContent.isPresent()) {
-                                    preparedStatement.setBinaryStream(4, new ByteArrayInputStream(pageContent.get()));
+                                    preparedStatement.setBytes(4, pageContent.get());
                                 } else {
-                                    preparedStatement.setBinaryStream(4, null);
+                                    preparedStatement.setBytes(4, null);
                                 }
                                 preparedStatement.setString(5, stepDTO.getType());
                             }, entry, true);
@@ -213,7 +206,7 @@ public class FlowDAOImpl implements FlowDAO {
                                 .width(resultSet.getDouble(DB_SCHEMA_COLUMN_NAME_WIDTH))
                                 .build();
 
-                        resolvePageContent(stepDTO, resultSet.getBinaryStream(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+                        resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
                         return stepDTO;
                     })), preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
@@ -313,7 +306,7 @@ public class FlowDAOImpl implements FlowDAO {
                     .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
                     .type(VIEW)
                     .build();
-            resolvePageContent(stepDTO, resultSet.getBinaryStream(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+            resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
             nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
             return null;
         })), preparedStatement -> {
@@ -363,7 +356,7 @@ public class FlowDAOImpl implements FlowDAO {
         return graphConfig;
     }
 
-    private void resolvePageContent(StepDTO stepDTO, InputStream pageContent, int tenantId)
+    private void resolvePageContent(StepDTO stepDTO, byte[] pageContent, int tenantId)
             throws FlowMgtServerException {
 
         try {
@@ -372,55 +365,32 @@ public class FlowDAOImpl implements FlowDAO {
                 stepDTO.setData(new DataDTO.Builder().build());
                 return;
             }
-            try (ObjectInputStream ois = new ObjectInputStream(pageContent)) {
-                Object obj = ois.readObject();
-                if (VIEW.equals(stepDTO.getType()) && obj instanceof List<?>) {
-                    List<?> tempList = (List<?>) obj;
-                    if (!tempList.isEmpty() && tempList.get(0) instanceof ComponentDTO) {
-                        List<ComponentDTO> components = tempList.stream()
-                                .map(ComponentDTO.class::cast)
-                                .collect(Collectors.toList());
-                        stepDTO.setData(new DataDTO.Builder().components(components).build());
-                    } else {
-                        throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
-                                                    stepDTO.getId(), tenantId);
-                    }
-                } else if (REDIRECTION.equals(stepDTO.getType())) {
-                    if (obj instanceof ActionDTO) {
-                        ActionDTO action = (ActionDTO) obj;
-                        stepDTO.setData(new DataDTO.Builder().action(action).build());
-                    }
-                }
+            DataDTO dataDTO = OBJECT_MAPPER.readValue(pageContent, DataDTO.class);
+            if (dataDTO != null) {
+                stepDTO.setData(dataDTO);
+            } else {
+                throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
+                        stepDTO.getId(), tenantId);
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepDTO.getId(),
-                                        tenantId);
+                    tenantId);
         }
     }
 
     private static byte[] serializeObject(Object obj) throws IOException {
 
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-            oos.writeObject(obj);
-            oos.flush();
-            return baos.toByteArray();
-        }
+        return OBJECT_MAPPER.writeValueAsBytes(obj);
     }
 
     private static Optional<byte[]> serializeStepData(StepDTO stepDTO, int tenantId)
             throws FlowMgtFrameworkException {
 
         try {
-            if (VIEW.equals(stepDTO.getType())) {
-                List<ComponentDTO> components = stepDTO.getData().getComponents();
-                return Optional.of(serializeObject(components));
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
-                ActionDTO action = stepDTO.getData().getAction();
-                return Optional.of(serializeObject(action));
-            } else {
+            if (stepDTO.getData() == null) {
                 return Optional.empty();
             }
+            return Optional.of(serializeObject(stepDTO.getData()));
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
                                         stepDTO.getId(), tenantId);

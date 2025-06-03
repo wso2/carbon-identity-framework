@@ -54,7 +54,6 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
@@ -162,6 +161,8 @@ public class RegistrationFlowEngineUtilsTest {
 
     @DataProvider(name = "initiateContextScenarios")
     public Object[][] initiateContextScenarios() {
+
+        String DEFAULT_MY_ACCOUNT_URL = "https://localhost:9443/myaccount";
         return new Object[][] {
                 // applicationId, callbackUrl, expectedCallBackUrl
                 {"test-app-id-1", TEST_CALLBACK_URL, TEST_CALLBACK_URL},
@@ -237,20 +238,24 @@ public class RegistrationFlowEngineUtilsTest {
     @DataProvider(name = "redirectionUrlScenarios")
     public Object[][] redirectionUrlScenarios() {
 
+        String tenantMyAccountUrl = "https://myaccount.is.io/t/${UserTenantHint}";
+
         return new Object[][] {
-                // appAccessUrl, appFound, expectedUrl
-                {TEST_APP_URL, true, TEST_APP_URL}, // App URL found, use app URL.
-                {null, true, DEFAULT_MY_ACCOUNT_URL}, // No app URL, use myaccount URL.
-                {null, false, DEFAULT_MY_ACCOUNT_URL}, // App not found, use myaccount URL.
+                // tenantDomain, appAccessUrl, appFound, myAccountUrl, expectedUrl
+                {TENANT_DOMAIN, TEST_APP_URL, true, DEFAULT_MY_ACCOUNT_URL, TEST_APP_URL},
+                {TENANT_DOMAIN, null, true, DEFAULT_MY_ACCOUNT_URL, DEFAULT_MY_ACCOUNT_URL},
+                {TENANT_DOMAIN, null, false, DEFAULT_MY_ACCOUNT_URL, DEFAULT_MY_ACCOUNT_URL},
+                {"test.com", null, false, tenantMyAccountUrl, "https://myaccount.is.io/t/test.com"}
         };
     }
 
     @Test(dataProvider = "redirectionUrlScenarios")
-    public void testResolveCompletionRedirectionUrl(String appAccessUrl, boolean appFound, String expectedUrl)
+    public void testResolveCompletionRedirectionUrl(String tenantDomain, String appAccessUrl, boolean appFound,
+                                                    String myAccountUrl, String expectedUrl)
             throws Exception {
 
         RegistrationContext context = new RegistrationContext();
-        context.setTenantDomain(TENANT_DOMAIN);
+        context.setTenantDomain(tenantDomain);
         context.setApplicationId("test-app-id");
 
         ApplicationManagementService appMgmtService = mock(ApplicationManagementService.class);
@@ -267,12 +272,12 @@ public class RegistrationFlowEngineUtilsTest {
                 ApplicationBasicInfo appInfo = new ApplicationBasicInfo();
                 appInfo.setApplicationResourceId("test-app-id");
                 appInfo.setAccessUrl(appAccessUrl);
-                when(appMgmtService.getApplicationBasicInfoByResourceId("test-app-id", TENANT_DOMAIN)).thenReturn(appInfo);
+                when(appMgmtService.getApplicationBasicInfoByResourceId("test-app-id", tenantDomain))
+                        .thenReturn(appInfo);
             }
 
-            appMgtUtilMockedStatic.when(() -> ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig(TENANT_DOMAIN))
-                    .thenReturn(DEFAULT_MY_ACCOUNT_URL);
-
+            appMgtUtilMockedStatic.when(() -> ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig(tenantDomain))
+                    .thenReturn(myAccountUrl);
             String redirectUrl = RegistrationFlowEngineUtils.resolveCompletionRedirectionUrl(context);
             assertEquals(redirectUrl, expectedUrl);
         }
