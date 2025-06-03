@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>rule-management-feature</artifactId>
-        <version>7.8.179-SNAPSHOT</version>
+        <version>7.8.200-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.179-SNAPSHOT</version>
+    <version>7.8.200-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -80,6 +80,7 @@
         <module>components/servlet-mgt</module>
         <module>components/system-config-mgt</module>
         <module>components/registration-framework</module>
+        <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
@@ -124,6 +125,7 @@
         <module>features/servlet-mgt</module>
         <module>features/system-config-mgt</module>
         <module>features/registration-framework</module>
+        <module>features/flow-orchestration-framework</module>
         <module>features/async-operation-status-mgt</module>
         <module>features/workflow-mgt</module>
     </modules>
@@ -789,6 +791,18 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.user.registration.mgt.server.feature</artifactId>
+                <type>zip</type>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.flow.mgt.server.feature</artifactId>
+                <type>zip</type>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.flow.orchestration.framework.feature</artifactId>
                 <type>zip</type>
                 <version>${project.version}</version>
             </dependency>
@@ -1857,6 +1871,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.user.registration.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.flow.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

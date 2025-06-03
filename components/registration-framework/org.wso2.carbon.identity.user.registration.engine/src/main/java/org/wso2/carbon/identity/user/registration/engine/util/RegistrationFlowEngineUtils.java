@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.registration.engine.util;
 
+import java.util.regex.Pattern;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -37,8 +38,10 @@ import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationConte
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineClientException;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
+import org.wso2.carbon.identity.user.registration.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 
@@ -60,6 +63,8 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorM
 public class RegistrationFlowEngineUtils {
 
     private static final Log LOG = LogFactory.getLog(RegistrationFlowEngineUtils.class);
+    private static final String USER_TENANT_HINT_PLACE_HOLDER = "${UserTenantHint}";
+    private static final String SUPER_TENANT = "carbon.super";
 
     /**
      * Add registration context to cache.
@@ -159,6 +164,35 @@ public class RegistrationFlowEngineUtils {
     }
 
     /**
+     * Rollback the registration context.
+     *
+     * @param contextId Context identifier.
+     */
+    public static void rollbackContext(String contextId) {
+
+        if (StringUtils.isBlank(contextId)) {
+            LOG.debug("Context id is null or empty. Hence skipping rollback of the flow context.");
+            return;
+        }
+        try {
+            RegistrationContext context = retrieveRegContextFromCache(contextId);
+            if (context != null) {
+                context.getCompletedNodes().forEach((config) -> {
+                    if (Constants.NodeTypes.TASK_EXECUTION.equals(config.getType())) {
+                        try {
+                            new TaskExecutionNode().rollback(context, config);
+                        } catch (RegistrationEngineException ex) {
+                            LOG.error("Error occurred while executing rollback for node: " + config.getId(), ex);
+                        }
+                    }
+                });
+            }
+        } catch (RegistrationEngineException e) {
+            LOG.error("Error occurred while retrieving the flow context with flow id: " + contextId, e);
+        }
+    }
+
+    /**
      * Handle the registration flow engine server exceptions.
      *
      * @param error Error message.
@@ -236,7 +270,7 @@ public class RegistrationFlowEngineUtils {
         if (StringUtils.isBlank(myAccountAccessUrl)) {
             myAccountAccessUrl = ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig(tenantDomain);
         }
-        return myAccountAccessUrl;
+        return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
     }
 
     /**
@@ -306,5 +340,27 @@ public class RegistrationFlowEngineUtils {
             throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, appName, tenantDomain);
         }
         return null;
+    }
+
+    /**
+     * Replace the ${UserTenantHint} placeholder in the url with the tenant domain.
+     *
+     * @param url           Url with the placeholder.
+     * @param tenantDomain  Tenant Domain.
+     * @return              Processed url.
+     */
+    private static String replaceUserTenantHintPlaceholder(String url, String tenantDomain) {
+
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        if (!url.contains(USER_TENANT_HINT_PLACE_HOLDER)) {
+            return url;
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = SUPER_TENANT;
+        }
+        return url.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
+                .replaceAll(Pattern.quote("/t/" + SUPER_TENANT), "");
     }
 }

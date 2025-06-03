@@ -36,13 +36,18 @@ import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphCon
 
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ERROR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INTERACTION_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REQUIRED_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.INTERACTION_DATA;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 
@@ -101,6 +106,17 @@ public class RegistrationFlowEngine {
                     REDIRECTION.equals(nodeResponse.getType())) {
                 return resolveStepDetailsForRedirection(context, nodeResponse);
             }
+
+            if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
+                    INTERACT.equals(nodeResponse.getType())) {
+                return resolveStepDetailsForInteraction(context, nodeResponse);
+            }
+
+            if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
+                    INTERNAL_PROMPT.equals(nodeResponse.getType())) {
+                return resolveStepDetailsForProvide(context, nodeResponse);
+            }
+
             RegistrationStep step = resolveStepDetailsForPrompt(graph, currentNode, context, nodeResponse);
             if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) && VIEW.equals(nodeResponse.getType())) {
                 return step;
@@ -194,6 +210,41 @@ public class RegistrationFlowEngine {
                 .stepType(REDIRECTION)
                 .data(new DataDTO.Builder()
                         .url(redirectUrl)
+                        .additionalData(response.getAdditionalInfo())
+                        .requiredParams(response.getRequiredData())
+                        .build())
+                .build();
+    }
+
+    private RegistrationStep resolveStepDetailsForInteraction(RegistrationContext context, Response response)
+            throws RegistrationEngineServerException {
+
+        if (response.getAdditionalInfo() == null || response.getAdditionalInfo().isEmpty() ||
+                !response.getAdditionalInfo().containsKey(INTERACTION_DATA)) {
+            throw handleServerException(ERROR_CODE_INTERACTION_DATA_NOT_FOUND);
+        }
+        return new RegistrationStep.Builder()
+                .flowId(context.getContextIdentifier())
+                .flowStatus(STATUS_INCOMPLETE)
+                .stepType(INTERACT)
+                .data(new DataDTO.Builder()
+                        .additionalData(response.getAdditionalInfo())
+                        .requiredParams(response.getRequiredData())
+                        .build())
+                .build();
+    }
+
+    private RegistrationStep resolveStepDetailsForProvide(RegistrationContext context, Response response)
+            throws RegistrationEngineServerException {
+
+        if (response.getRequiredData() == null || response.getRequiredData().isEmpty()) {
+            throw handleServerException(ERROR_CODE_REQUIRED_DATA_NOT_FOUND);
+        }
+        return new RegistrationStep.Builder()
+                .flowId(context.getContextIdentifier())
+                .flowStatus(STATUS_INCOMPLETE)
+                .stepType(INTERNAL_PROMPT)
+                .data(new DataDTO.Builder()
                         .additionalData(response.getAdditionalInfo())
                         .requiredParams(response.getRequiredData())
                         .build())

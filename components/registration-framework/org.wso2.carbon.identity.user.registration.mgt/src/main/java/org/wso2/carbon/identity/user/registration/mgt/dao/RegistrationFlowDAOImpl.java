@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.dao;
 
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.DELETE_FLOW;
@@ -54,13 +55,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,6 +89,7 @@ import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
 public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
 
     private static final Log LOG = LogFactory.getLog(RegistrationFlowDAOImpl.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     public void updateDefaultRegistrationFlowByTenant(RegistrationGraphConfig regFlowConfig, int tenantId,
@@ -253,7 +255,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             // Step 2: Process Data to Avoid Duplication.
             RegistrationGraphConfig regGraph = buildGraph(rows);
 
-            // Step 3: Fetch Page Content with JOIN (Updated Query).
+            // Step 3: Fetch Page Content with JOIN query.
             Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(regGraph.getId(),tenantId, jdbcTemplate);
 
             // Step 4: Set the page mappings.
@@ -274,6 +276,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             }, preparedStatement -> {
                 preparedStatement.setBoolean(1, true);
                 preparedStatement.setInt(2, tenantId);
+                preparedStatement.setString(3, REGISTRATION_FLOW);
             });
             return stepIds.isEmpty() ? null : stepIds.get(0);
         } catch (DataAccessException e) {
@@ -363,13 +366,21 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
     private void resolvePageContent(StepDTO stepDTO, InputStream pageContent, int tenantId)
             throws RegistrationServerException {
 
+        if (pageContent == null) {
+            stepDTO.setData(new DataDTO.Builder().build());
+            return;
+        }
+
         try {
-            if (pageContent == null) {
-                // The step does not have any data to be resolved.
-                stepDTO.setData(new DataDTO.Builder().build());
-                return;
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            byte[] data = new byte[4096];
+            int nRead;
+            while ((nRead = pageContent.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
             }
-            try (ObjectInputStream ois = new ObjectInputStream(pageContent)) {
+            buffer.flush();
+            byte[] contentBytes = buffer.toByteArray();
+            try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(contentBytes))) {
                 Object obj = ois.readObject();
                 if (VIEW.equals(stepDTO.getType()) && obj instanceof List<?>) {
                     List<?> tempList = (List<?>) obj;
@@ -382,26 +393,34 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                         throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
                                                     stepDTO.getId(), tenantId);
                     }
-                } else if (REDIRECTION.equals(stepDTO.getType())) {
+                } else if (REDIRECTION.equals(stepDTO.getType()) || INTERACT.equals(stepDTO.getType())) {
                     if (obj instanceof ActionDTO) {
                         ActionDTO action = (ActionDTO) obj;
                         stepDTO.setData(new DataDTO.Builder().action(action).build());
                     }
                 }
+            } catch (IOException e) {
+                try {
+                    DataDTO dataDTO = OBJECT_MAPPER.readValue(new ByteArrayInputStream(contentBytes), DataDTO.class);
+                    stepDTO.setData(dataDTO);
+                } catch (IOException ex) {
+                    throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, ex,
+                            stepDTO.getId(), tenantId);
+                }
             }
+
         } catch (IOException | ClassNotFoundException e) {
-            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepDTO.getId(),
-                                        tenantId);
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e,
+                    stepDTO.getId(), tenantId);
         }
     }
 
     private static byte[] serializeObject(Object obj) throws IOException {
 
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-            oos.writeObject(obj);
-            oos.flush();
-            return baos.toByteArray();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            objectMapper.writeValue(byteArrayOutputStream, obj);
+            return byteArrayOutputStream.toByteArray();
         }
     }
 
@@ -409,15 +428,10 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             throws RegistrationFrameworkException {
 
         try {
-            if (VIEW.equals(stepDTO.getType())) {
-                List<ComponentDTO> components = stepDTO.getData().getComponents();
-                return Optional.of(serializeObject(components));
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
-                ActionDTO action = stepDTO.getData().getAction();
-                return Optional.of(serializeObject(action));
-            } else {
+            if (stepDTO.getData() == null) {
                 return Optional.empty();
             }
+            return Optional.of(serializeObject(stepDTO.getData()));
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
                                         stepDTO.getId(), tenantId);

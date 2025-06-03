@@ -39,6 +39,7 @@ public class RegistrationFlowMgtService {
 
     private static final RegistrationFlowMgtService instance = new RegistrationFlowMgtService();
     private static final RegistrationFlowDAO registrationFlowDAO = new RegistrationFlowDAOImpl();
+    private static final String SELF_REGISTRATION = "SELF_REGISTRATION";
 
     private RegistrationFlowMgtService() {
 
@@ -65,7 +66,7 @@ public class RegistrationFlowMgtService {
                     new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                                                  flowConfig.getId(),
                                                  LoggerUtils.Target.Flow.name(),
-                                                 LogConstants.RegistrationFlowManagement.UPDATE_REGISTRATION_FLOW);
+                            String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, SELF_REGISTRATION));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }

@@ -22,7 +22,7 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Cherry pick commits from last PR
         run: |
           echo "Clean up any existing files"

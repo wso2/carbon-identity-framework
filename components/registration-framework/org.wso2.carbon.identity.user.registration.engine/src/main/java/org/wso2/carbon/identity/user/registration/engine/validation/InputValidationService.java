@@ -181,43 +181,45 @@ public class InputValidationService {
         context.getCurrentStepInputs().clear();
         context.getCurrentRequiredInputs().clear();
 
-        for (ComponentDTO component : dataDTO.getComponents()) {
+        if (dataDTO.getComponents() != null) {
+            for (ComponentDTO component : dataDTO.getComponents()) {
 
-            if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(component.getType())) {
-                context.getCurrentStepInputs().put(component.getId(), new HashSet<>());
-            }
-
-            if (!Constants.ComponentTypes.FORM.equalsIgnoreCase(component.getType())) {
-                continue;
-            }
-
-            List<ComponentDTO> children = component.getComponents();
-            if (children == null || children.isEmpty()) {
-                continue;
-            }
-
-            Set<String> inputIdentifiers = new HashSet<>();
-            Set<String> requiredInputIdentifiers = new HashSet<>();
-
-            for (ComponentDTO child : children) {
-                if (Constants.ComponentTypes.INPUT.equalsIgnoreCase(child.getType())) {
-                    String identifier = getIdentifier(child);
-                    if (identifier != null) {
-                        if (isRequiredField(child)) {
-                            requiredInputIdentifiers.add(identifier);
-                        }
-                        inputIdentifiers.add(identifier);
-                    }
+                if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(component.getType())) {
+                    context.getCurrentStepInputs().put(component.getId(), new HashSet<>());
                 }
-                if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(child.getType())) {
-                    // If the button has an executor, add the required inputs defined from the executor.
-                    // Ideally these should be available within the form.
-                    if (child.getAction() != null && child.getAction().getExecutor() != null &&
-                            dataDTO.getRequiredParams() != null) {
-                        requiredInputIdentifiers.addAll(dataDTO.getRequiredParams());
+
+                if (!Constants.ComponentTypes.FORM.equalsIgnoreCase(component.getType())) {
+                    continue;
+                }
+
+                List<ComponentDTO> children = component.getComponents();
+                if (children == null || children.isEmpty()) {
+                    continue;
+                }
+
+                Set<String> inputIdentifiers = new HashSet<>();
+                Set<String> requiredInputIdentifiers = new HashSet<>();
+
+                for (ComponentDTO child : children) {
+                    if (Constants.ComponentTypes.INPUT.equalsIgnoreCase(child.getType())) {
+                        String identifier = getIdentifier(child);
+                        if (identifier != null) {
+                            if (isRequiredField(child)) {
+                                requiredInputIdentifiers.add(identifier);
+                            }
+                            inputIdentifiers.add(identifier);
+                        }
                     }
-                    context.getCurrentStepInputs().put(child.getId(), inputIdentifiers);
-                    context.getCurrentRequiredInputs().put(child.getId(), requiredInputIdentifiers);
+                    if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(child.getType())) {
+                        // If the button has an executor, add the required inputs defined from the executor.
+                        // Ideally these should be available within the form.
+                        if (child.getAction() != null && child.getAction().getExecutor() != null &&
+                                dataDTO.getRequiredParams() != null) {
+                            requiredInputIdentifiers.addAll(dataDTO.getRequiredParams());
+                        }
+                        context.getCurrentStepInputs().put(child.getId(), inputIdentifiers);
+                        context.getCurrentRequiredInputs().put(child.getId(), requiredInputIdentifiers);
+                    }
                 }
             }
         }

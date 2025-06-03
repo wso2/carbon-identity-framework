@@ -73,13 +73,11 @@ public class UserRegistrationFlowService {
             if (StringUtils.isBlank(flowId)) {
                 // No flowId present hence initiate the registration flow.
                 context = RegistrationFlowEngineUtils.initiateContext(tenantDomain, callbackUrl, applicationId);
-                Optional.ofNullable(inputs).ifPresent(inputs1 -> context.getUserInputData().putAll(inputs1));
-                context.setCurrentActionId(actionId);
             } else {
                 context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
-                Optional.ofNullable(inputs).ifPresent(inputs1 -> context.getUserInputData().putAll(inputs1));
-                context.setCurrentActionId(actionId);
             }
+            Optional.ofNullable(inputs).ifPresent(inputs1 -> context.getUserInputData().putAll(inputs1));
+            context.setCurrentActionId(actionId);
             for (FlowExecutionListener listener :
                     RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
                 if (listener.isEnabled() && !listener.doPreExecute(context)) {
@@ -100,6 +98,7 @@ public class UserRegistrationFlowService {
             }
             return step;
         } catch (RegistrationEngineException e) {
+            RegistrationFlowEngineUtils.rollbackContext(flowId);
             RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);
             throw e;
         }

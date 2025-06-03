@@ -78,6 +78,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getAllowedClaimProfiles;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
 
@@ -702,7 +703,16 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
         for (Map.Entry<String, String> property : claimProperties.entrySet()) {
             String value = property.getValue();
-            if (StringUtils.isNotBlank(value) && value.length() > MAX_CLAIM_PROPERTY_LENGTH) {
+            // Validating the sub-attributes property separately as it can contain multiple sub-attributes.
+            if (SUB_ATTRIBUTES_PROPERTY.equals(property.getKey())) {
+                for (String subAttribute : StringUtils.split(value, ' ')) {
+                    if (StringUtils.isNotBlank(subAttribute) && subAttribute.length() > MAX_CLAIM_PROPERTY_LENGTH) {
+                        throw new ClaimMetadataClientException(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getCode(),
+                                String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(),
+                                        property.getKey(), MAX_CLAIM_PROPERTY_LENGTH));
+                    }
+                }
+            } else if (StringUtils.isNotBlank(value) && value.length() > MAX_CLAIM_PROPERTY_LENGTH) {
                 throw new ClaimMetadataClientException(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getCode(),
                         String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(), property.getKey(),
                                 MAX_CLAIM_PROPERTY_LENGTH));

@@ -28,10 +28,19 @@ public class Organization {
 
     private final String name;
 
+    private String orgHandle;
+
     public Organization(String id, String name) {
 
         this.id = id;
         this.name = name;
+    }
+
+    public Organization(String id, String name, String orgHandle) {
+
+        this.id = id;
+        this.name = name;
+        this.orgHandle = orgHandle;
     }
 
     public String getId() {
@@ -42,5 +51,10 @@ public class Organization {
     public String getName() {
 
         return name;
+    }
+
+    public String getOrgHandle() {
+
+        return orgHandle;
     }
 }

@@ -32,6 +32,7 @@ public class User {
     private final List<UserClaim> claims =  new ArrayList<>();
     private final List<String> groups = new ArrayList<>();
     private final List<String> roles = new ArrayList<>();
+    private Organization organization;
 
     public User(String id) {
 
@@ -44,6 +45,7 @@ public class User {
         this.claims.addAll(builder.claims);
         this.groups.addAll(builder.groups);
         this.roles.addAll(builder.roles);
+        this.organization = builder.organization;
     }
 
     public String getId() {
@@ -66,6 +68,11 @@ public class User {
         return Collections.unmodifiableList(roles);
     }
 
+    public Organization getOrganization() {
+
+        return organization;
+    }
+
     /**
      * Builder for the User.
      */
@@ -75,6 +82,7 @@ public class User {
         private final List<UserClaim> claims = new ArrayList<>();
         private final List<String> groups = new ArrayList<>();
         private final List<String> roles = new ArrayList<>();
+        private Organization organization;
 
         public Builder(String id) {
 
@@ -96,6 +104,12 @@ public class User {
         public Builder roles(List<String> roles) {
 
             this.roles.addAll(roles);
+            return this;
+        }
+
+        public Builder organization(Organization organization) {
+
+            this.organization = organization;
             return this;
         }
 
