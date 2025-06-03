@@ -531,7 +531,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             ServiceURLBuilder uriBuilder = ServiceURLBuilder.create();
             uriBuilder = uriBuilder.addPath(FrameworkConstants.VERIFY_ENDPOINT);
             uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
-            response.sendRedirect(uriBuilder.build().getAbsoluteInternalURL());
+            response.sendRedirect(uriBuilder.build().getAbsolutePublicURL());
         } catch (IOException | URLBuilderException e) {
             throw new PostAuthenticationFailedException("URL generation failed",
                     "Error occurred while building the redirect URL for the OTP verification page.", e);
