@@ -41,7 +41,8 @@ public interface TopicManager {
      * @return Constructed topic string.
      * @throws TopicManagementException If an error occurs during topic construction.
      */
-    public String constructTopic(String channelUri, String tenantDomain) throws TopicManagementException;
+    public String constructTopic(String channelUri, String eventProfileVersion, String tenantDomain)
+            throws TopicManagementException;
 
     /**
      * Registers a topic in the system.

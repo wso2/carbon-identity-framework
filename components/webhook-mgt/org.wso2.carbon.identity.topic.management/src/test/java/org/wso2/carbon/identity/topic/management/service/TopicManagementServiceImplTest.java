@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.topic.management.api.service.TopicManager;
 import org.wso2.carbon.identity.topic.management.internal.component.TopicManagementComponentServiceHolder;
 import org.wso2.carbon.identity.topic.management.internal.dao.TopicManagementDAO;
 import org.wso2.carbon.identity.topic.management.internal.service.impl.TopicManagementServiceImpl;
+import org.wso2.carbon.identity.topic.management.internal.util.TopicManagementExceptionHandler;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -41,9 +42,11 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage.ERROR_CODE_TOPIC_CONSTRUCT_ERROR;
+import static org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage.ERROR_CODE_TOPIC_DEREGISTRATION_ERROR;
+import static org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage.ERROR_CODE_TOPIC_REGISTRATION_ERROR;
 
 @WithCarbonHome
 public class TopicManagementServiceImplTest {
@@ -98,32 +101,11 @@ public class TopicManagementServiceImplTest {
         when(componentServiceHolderMock.getTopicManagers())
                 .thenReturn(Collections.singletonList(topicManager));
         when(topicManager.getName()).thenReturn(WEBSUBHUBTOPICMANAGER);
+        when(topicManager.constructTopic(CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN)).thenReturn(TOPIC);
 
         Field daoField = TopicManagementServiceImpl.class.getDeclaredField("topicManagementDAO");
         daoField.setAccessible(true);
         daoField.set(topicManagementService, topicManagementDAO);
-    }
-
-    @Test
-    public void testConstructTopic() throws TopicManagementException {
-
-        when(topicManager.constructTopic(CHANNEL_URI, TENANT_DOMAIN)).thenReturn(TOPIC);
-
-        String result = topicManagementService.constructTopic(CHANNEL_URI, TENANT_DOMAIN);
-        assertEquals(result, TOPIC);
-    }
-
-    @Test(expectedExceptions = TopicManagementException.class)
-    public void testConstructTopicWithNullUri() throws TopicManagementException {
-
-        topicManagementService.constructTopic(null, TENANT_DOMAIN);
-    }
-
-    @Test(expectedExceptions = TopicManagementException.class)
-    public void testConstructTopicWithNoManagers() throws TopicManagementException {
-
-        when(componentServiceHolderMock.getTopicManagers()).thenReturn(Collections.emptyList());
-        topicManagementService.constructTopic(CHANNEL_URI, TENANT_DOMAIN);
     }
 
     @Test
@@ -133,15 +115,18 @@ public class TopicManagementServiceImplTest {
         doNothing().when(topicManager).registerTopic(TOPIC, TENANT_DOMAIN);
         doNothing().when(topicManagementDAO).addTopic(TOPIC, CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_ID);
 
-        topicManagementService.registerTopic(TOPIC, CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
+        topicManagementService.registerTopic(CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
 
         verify(topicManagementDAO).addTopic(TOPIC, CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_ID);
     }
 
     @Test(expectedExceptions = TopicManagementException.class)
-    public void testRegisterTopicWithNullTopic() throws TopicManagementException {
+    public void testRegisterTopicWithNullUri() throws TopicManagementException {
 
-        topicManagementService.registerTopic(null, CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
+        when(topicManager.constructTopic(null, EVENT_PROFILE_VERSION, TENANT_DOMAIN)).thenThrow(
+                TopicManagementExceptionHandler.handleServerException(ERROR_CODE_TOPIC_REGISTRATION_ERROR));
+
+        topicManagementService.registerTopic(null, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = TopicManagementException.class)
@@ -149,7 +134,7 @@ public class TopicManagementServiceImplTest {
 
         when(topicManagementDAO.isTopicExists(TOPIC, TENANT_ID)).thenReturn(true);
 
-        topicManagementService.registerTopic(TOPIC, CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
+        topicManagementService.registerTopic(CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
 
         // Verify that addTopic was never called since the topic already exists
         verify(topicManagementDAO, never()).addTopic(TOPIC, CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_ID);
@@ -161,15 +146,18 @@ public class TopicManagementServiceImplTest {
         doNothing().when(topicManager).deregisterTopic(TOPIC, TENANT_DOMAIN);
         doNothing().when(topicManagementDAO).deleteTopic(TOPIC, TENANT_ID);
 
-        topicManagementService.deregisterTopic(TOPIC, TENANT_DOMAIN);
+        topicManagementService.deregisterTopic(CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
 
         verify(topicManagementDAO).deleteTopic(TOPIC, TENANT_ID);
     }
 
     @Test(expectedExceptions = TopicManagementException.class)
-    public void testDeregisterTopicWithNullTopic() throws TopicManagementException {
+    public void testDeregisterTopicWithNullUri() throws TopicManagementException {
 
-        topicManagementService.deregisterTopic(null, TENANT_DOMAIN);
+        when(topicManager.constructTopic(null, EVENT_PROFILE_VERSION, TENANT_DOMAIN)).thenThrow(
+                TopicManagementExceptionHandler.handleServerException(ERROR_CODE_TOPIC_DEREGISTRATION_ERROR));
+
+        topicManagementService.deregisterTopic(null, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
     }
 
     @Test
@@ -177,7 +165,7 @@ public class TopicManagementServiceImplTest {
 
         when(topicManagementDAO.isTopicExists(TOPIC, TENANT_ID)).thenReturn(true);
 
-        boolean result = topicManagementService.isTopicExists(TOPIC, TENANT_DOMAIN);
+        boolean result = topicManagementService.isTopicExists(CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
         assertTrue(result);
     }
 
@@ -186,13 +174,24 @@ public class TopicManagementServiceImplTest {
 
         when(topicManagementDAO.isTopicExists(TOPIC, TENANT_ID)).thenReturn(false);
 
-        boolean result = topicManagementService.isTopicExists(TOPIC, TENANT_DOMAIN);
+        boolean result = topicManagementService.isTopicExists(CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
         assertFalse(result);
     }
 
     @Test(expectedExceptions = TopicManagementException.class)
-    public void testIsTopicExistsWithNullTopic() throws TopicManagementException {
+    public void testIsTopicExistsWithNullUri() throws TopicManagementException {
 
-        topicManagementService.isTopicExists(null, TENANT_DOMAIN);
+        when(topicManager.constructTopic(null, EVENT_PROFILE_VERSION, TENANT_DOMAIN)).thenThrow(
+                TopicManagementExceptionHandler.handleServerException(ERROR_CODE_TOPIC_CONSTRUCT_ERROR));
+
+        topicManagementService.isTopicExists(null, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
+    }
+
+    @Test(expectedExceptions = TopicManagementException.class)
+    public void testWithNoManagers() throws TopicManagementException {
+
+        when(componentServiceHolderMock.getTopicManagers()).thenReturn(Collections.emptyList());
+
+        topicManagementService.registerTopic(CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN);
     }
 }

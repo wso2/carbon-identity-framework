@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
+import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementServerException;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManager;
 import org.wso2.carbon.identity.topic.management.internal.component.TopicManagementComponentServiceHolder;
@@ -61,146 +62,75 @@ public class TopicManagementServiceImpl implements TopicManagementService {
     }
 
     /**
-     * Constructs a topic from the channel URI.
-     *
-     * @param channelUri   The channel URI for the topic.
-     * @param tenantDomain Tenant domain.
-     * @return Constructed topic string.
-     * @throws TopicManagementException If an error occurs during topic construction.
-     */
-    @Override
-    public String constructTopic(String channelUri, String tenantDomain) throws TopicManagementException {
-
-        if (channelUri == null || channelUri.trim().isEmpty()) {
-            throw TopicManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_INVALID_CHANNEL_URI, "Channel URI cannot be null or empty");
-        }
-
-        List<TopicManager> managers =
-                TopicManagementComponentServiceHolder.getInstance().getTopicManagers();
-        if (managers.isEmpty()) {
-            throw TopicManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_TOPIC_MANAGER_NOT_FOUND, tenantDomain);
-        }
-
-        for (TopicManager manager : managers) {
-            if (ADAPTOR.equals(manager.getName())) {
-                try {
-                    return manager.constructTopic(channelUri, tenantDomain);
-                } catch (TopicManagementException e) {
-                    throw TopicManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_TOPIC_CONSTRUCT_ERROR, e, channelUri);
-                }
-            }
-        }
-
-        throw TopicManagementExceptionHandler.handleServerException(
-                ErrorMessage.ERROR_CODE_TOPIC_MANAGER_NOT_FOUND, tenantDomain);
-    }
-
-    /**
      * Registers a topic in the system.
      *
-     * @param topic               The topic to register.
      * @param channelUri          The channel URI associated with the topic.
      * @param eventProfileVersion The version of the event profile.
      * @param tenantDomain        Tenant domain.
      * @throws TopicManagementException If an error occurs during topic registration.
      */
     @Override
-    public void registerTopic(String topic, String channelUri, String eventProfileVersion, String tenantDomain)
+    public void registerTopic(String channelUri, String eventProfileVersion, String tenantDomain)
             throws TopicManagementException {
 
-        if (topic == null || topic.trim().isEmpty()) {
-            throw TopicManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_INVALID_TOPIC);
-        }
-
-        if (isTopicExists(topic, tenantDomain)) {
-            throw TopicManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_TOPIC_ALREADY_EXISTS, topic);
-        }
-
-        List<TopicManager> managers =
-                TopicManagementComponentServiceHolder.getInstance().getTopicManagers();
-        if (managers.isEmpty()) {
-            throw TopicManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_TOPIC_MANAGER_NOT_FOUND, tenantDomain);
-        }
-
-        for (TopicManager manager : managers) {
-            if (ADAPTOR.equals(manager.getName())) {
-                try {
-                    manager.registerTopic(topic, tenantDomain);
-                    int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-                    topicManagementDAO.addTopic(topic, channelUri, eventProfileVersion, tenantId);
-
-                    LOG.debug("Topic registered successfully: " + topic + " for tenant: " + tenantDomain);
-                    return; // Exit after successful registration
-                } catch (TopicManagementException e) {
-                    throw TopicManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_TOPIC_REGISTRATION_ERROR, e, topic);
-                }
+        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
+        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
+        try {
+            if (isTopicExists(channelUri, eventProfileVersion, tenantDomain)) {
+                throw TopicManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_CODE_TOPIC_ALREADY_EXISTS, topic);
             }
-        }
+            adaptorManager.registerTopic(topic, tenantDomain);
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            topicManagementDAO.addTopic(topic, channelUri, eventProfileVersion, tenantId);
 
-        throw TopicManagementExceptionHandler.handleServerException(
-                ErrorMessage.ERROR_CODE_TOPIC_MANAGER_NOT_FOUND, tenantDomain);
+            LOG.debug("Topic registered successfully: " + topic + " for tenant: " + tenantDomain);
+        } catch (TopicManagementException e) {
+            throw TopicManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_TOPIC_REGISTRATION_ERROR, e, topic);
+        }
     }
 
     /**
      * Deregisters a topic from the system.
      *
-     * @param topic        The topic to deregister.
-     * @param tenantDomain Tenant domain.
+     * @param channelUri          The channel URI associated with the topic.
+     * @param eventProfileVersion The version of the event profile.
+     * @param tenantDomain        Tenant domain.
      * @throws TopicManagementException If an error occurs during topic deregistration.
      */
     @Override
-    public void deregisterTopic(String topic, String tenantDomain) throws TopicManagementException {
+    public void deregisterTopic(String channelUri, String eventProfileVersion, String tenantDomain)
+            throws TopicManagementException {
 
-        if (topic == null || topic.trim().isEmpty()) {
-            throw TopicManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_INVALID_TOPIC);
-        }
+        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
+        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
         LOG.debug("Topic deregistration initiated: " + topic + " for tenant domain: " + tenantDomain);
-        List<TopicManager> managers =
-                TopicManagementComponentServiceHolder.getInstance().getTopicManagers();
-        if (managers.isEmpty()) {
+        try {
+            adaptorManager.deregisterTopic(topic, tenantDomain);
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            topicManagementDAO.deleteTopic(topic, tenantId);
+            LOG.debug("Topic deregistered successfully: " + topic + " for tenant: " + tenantDomain);
+        } catch (TopicManagementException e) {
             throw TopicManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_TOPIC_MANAGER_NOT_FOUND, tenantDomain);
+                    ErrorMessage.ERROR_CODE_TOPIC_DEREGISTRATION_ERROR, e, topic);
         }
-
-        for (TopicManager manager : managers) {
-            if (ADAPTOR.equals(manager.getName())) {
-                try {
-                    manager.deregisterTopic(topic, tenantDomain);
-                    int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-                    topicManagementDAO.deleteTopic(topic, tenantId);
-
-                    LOG.debug("Topic deregistered successfully: " + topic + " for tenant: " + tenantDomain);
-                    return; // Exit after successful deregistration
-                } catch (TopicManagementException e) {
-                    throw TopicManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_TOPIC_DEREGISTRATION_ERROR, e, topic);
-                }
-            }
-        }
-
-        throw TopicManagementExceptionHandler.handleServerException(
-                ErrorMessage.ERROR_CODE_TOPIC_MANAGER_NOT_FOUND, tenantDomain);
     }
 
     /**
      * Check if a topic exists in the system.
      *
-     * @param topic        The topic to check.
-     * @param tenantDomain Tenant domain.
-     * @return True if the topic exists, false otherwise.
+     * @param channelUri          The channel URI associated with the topic.
+     * @param eventProfileVersion The version of the event profile.
+     * @param tenantDomain        Tenant domain.
      * @throws TopicManagementException If an error occurs while checking if the topic exists.
      */
     @Override
-    public boolean isTopicExists(String topic, String tenantDomain) throws TopicManagementException {
+    public boolean isTopicExists(String channelUri, String eventProfileVersion, String tenantDomain)
+            throws TopicManagementException {
 
+        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
+        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
         if (topic == null || topic.trim().isEmpty()) {
             throw TopicManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_INVALID_TOPIC);
@@ -218,5 +148,20 @@ public class TopicManagementServiceImpl implements TopicManagementService {
             throw TopicManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_TOPIC_EXISTS_CHECK_ERROR, e, topic);
         }
+    }
+
+    private TopicManager retrieveAdaptorManager(String adaptor) throws TopicManagementServerException {
+
+        List<TopicManager> managers =
+                TopicManagementComponentServiceHolder.getInstance().getTopicManagers();
+
+        for (TopicManager manager : managers) {
+            if (adaptor.equals(manager.getName())) {
+                return manager;
+            }
+        }
+
+        throw TopicManagementExceptionHandler.handleServerException(
+                ErrorMessage.ERROR_CODE_TOPIC_MANAGER_NOT_FOUND);
     }
 }
