@@ -26,6 +26,7 @@ import java.util.List;
 public class EventProfile {
 
     private String profile;
+    private String uri;
     private List<Channel> channels;
 
     /**
@@ -39,11 +40,13 @@ public class EventProfile {
      * Constructor with all parameters.
      *
      * @param profile  Name of the event profile
+     * @param uri      URI of the event profile
      * @param channels List of channels in the profile
      */
-    public EventProfile(String profile, List<Channel> channels) {
+    public EventProfile(String profile, String uri, List<Channel> channels) {
 
         this.profile = profile;
+        this.uri = uri;
         this.channels = channels;
     }
 
@@ -55,6 +58,16 @@ public class EventProfile {
     public String getProfile() {
 
         return profile;
+    }
+
+    /**
+     * Get the URI of the event profile.
+     *
+     * @return URI of the event profile
+     */
+    public String getUri() {
+
+        return uri;
     }
 
     /**

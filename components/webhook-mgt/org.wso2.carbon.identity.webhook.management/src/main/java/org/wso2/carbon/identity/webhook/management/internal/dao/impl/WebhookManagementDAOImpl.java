@@ -116,7 +116,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 return new Webhook.BuilderWithoutSecret()
                         .uuid(webhook.getUuid())
                         .endpoint(webhook.getEndpoint())
-                        .description(webhook.getDescription())
+                        .name(webhook.getName())
                         .tenantId(webhook.getTenantId())
                         .eventSchemaName(webhook.getEventSchemaName())
                         .eventSchemaUri(webhook.getEventSchemaUri())
@@ -202,7 +202,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         return new Webhook.BuilderWithoutSecret()
                 .uuid(resultSet.getString(WebhookSQLConstants.Column.UUID))
                 .endpoint(resultSet.getString(WebhookSQLConstants.Column.ENDPOINT))
-                .description(resultSet.getString(WebhookSQLConstants.Column.DESCRIPTION))
+                .name(resultSet.getString(WebhookSQLConstants.Column.NAME))
                 .eventSchemaName(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME))
                 .eventSchemaUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI))
                 .status(WebhookStatus.valueOf(resultSet.getString(WebhookSQLConstants.Column.STATUS)))
@@ -220,7 +220,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         statement -> {
                             statement.setString(WebhookSQLConstants.Column.UUID, webhook.getUuid());
                             statement.setString(WebhookSQLConstants.Column.ENDPOINT, webhook.getEndpoint());
-                            statement.setString(WebhookSQLConstants.Column.DESCRIPTION, webhook.getDescription());
+                            statement.setString(WebhookSQLConstants.Column.NAME, webhook.getName());
                             statement.setString(WebhookSQLConstants.Column.SECRET, webhook.getSecret());
                             statement.setString(WebhookSQLConstants.Column.VERSION, WEBHOOK_VERSION);
                             statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME,
@@ -241,7 +241,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
             template.executeUpdate(WebhookSQLConstants.Query.UPDATE_WEBHOOK,
                     statement -> {
                         statement.setString(WebhookSQLConstants.Column.ENDPOINT, webhook.getEndpoint());
-                        statement.setString(WebhookSQLConstants.Column.DESCRIPTION, webhook.getDescription());
+                        statement.setString(WebhookSQLConstants.Column.NAME, webhook.getName());
                         statement.setString(WebhookSQLConstants.Column.SECRET, webhook.getSecret());
                         statement.setString(WebhookSQLConstants.Column.VERSION, WEBHOOK_VERSION);
                         statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME, webhook.getEventSchemaName());

@@ -91,7 +91,7 @@ public class WebhookManagementServiceImplTest {
         Webhook inputWebhook = mock(Webhook.class);
         when(inputWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
         when(inputWebhook.getStatus()).thenReturn(null);
-        when(inputWebhook.getDescription()).thenReturn("desc");
+        when(inputWebhook.getName()).thenReturn("name");
         when(inputWebhook.getSecret()).thenReturn("secret");
         when(inputWebhook.getEventSchemaName()).thenReturn("schema");
         when(inputWebhook.getEventSchemaUri()).thenReturn("uri");
@@ -146,7 +146,7 @@ public class WebhookManagementServiceImplTest {
         Webhook updatedWebhook = mock(Webhook.class);
         when(existingWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
         when(existingWebhook.getStatus()).thenReturn(null);
-        when(existingWebhook.getDescription()).thenReturn("desc");
+        when(existingWebhook.getName()).thenReturn("name");
         when(existingWebhook.getSecret()).thenReturn("secret");
         when(existingWebhook.getEventSchemaName()).thenReturn("schema");
         when(existingWebhook.getEventSchemaUri()).thenReturn("uri");
