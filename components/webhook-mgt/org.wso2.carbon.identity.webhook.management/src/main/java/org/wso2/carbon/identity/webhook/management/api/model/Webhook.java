@@ -34,7 +34,7 @@ public class Webhook {
 
     private final String uuid;
     private final String endpoint;
-    private final String description;
+    private final String name;
     private final String secret;
     private final int tenantId;
     private final String eventSchemaName;
@@ -48,7 +48,7 @@ public class Webhook {
 
         this.uuid = builder.uuid;
         this.endpoint = builder.endpoint;
-        this.description = builder.description;
+        this.name = builder.name;
         this.secret = builder.secret;
         this.tenantId = builder.tenantId;
         this.eventSchemaName = builder.eventSchemaName;
@@ -63,7 +63,7 @@ public class Webhook {
 
         this.uuid = builder.uuid;
         this.endpoint = builder.endpoint;
-        this.description = builder.description;
+        this.name = builder.name;
         this.secret = null;
         this.tenantId = builder.tenantId;
         this.eventSchemaName = builder.eventSchemaName;
@@ -84,9 +84,9 @@ public class Webhook {
         return endpoint;
     }
 
-    public String getDescription() {
+    public String getName() {
 
-        return description;
+        return name;
     }
 
     public String getSecret() {
@@ -148,7 +148,7 @@ public class Webhook {
         return tenantId == webhook.tenantId &&
                 Objects.equals(uuid, webhook.uuid) &&
                 Objects.equals(endpoint, webhook.endpoint) &&
-                Objects.equals(description, webhook.description) &&
+                Objects.equals(name, webhook.name) &&
                 Objects.equals(eventSchemaName, webhook.eventSchemaName) &&
                 Objects.equals(eventSchemaUri, webhook.eventSchemaUri) &&
                 status == webhook.status &&
@@ -160,7 +160,7 @@ public class Webhook {
     @Override
     public int hashCode() {
 
-        return Objects.hash(uuid, endpoint, description, secret, tenantId,
+        return Objects.hash(uuid, endpoint, name, secret, tenantId,
                 eventSchemaName, eventSchemaUri, status, createdAt, updatedAt, eventsSubscribed);
     }
 
@@ -171,7 +171,7 @@ public class Webhook {
 
         private String uuid;
         private String endpoint;
-        private String description;
+        private String name;
         private String secret;
         private int tenantId;
         private String eventSchemaName;
@@ -193,9 +193,9 @@ public class Webhook {
             return this;
         }
 
-        public Builder description(String description) {
+        public Builder name(String name) {
 
-            this.description = description;
+            this.name = name;
             return this;
         }
 
@@ -266,7 +266,7 @@ public class Webhook {
 
         private String uuid;
         private String endpoint;
-        private String description;
+        private String name;
         private int tenantId;
         private String eventSchemaName;
         private String eventSchemaUri;
@@ -287,9 +287,9 @@ public class Webhook {
             return this;
         }
 
-        public BuilderWithoutSecret description(String description) {
+        public BuilderWithoutSecret name(String name) {
 
-            this.description = description;
+            this.name = name;
             return this;
         }
 

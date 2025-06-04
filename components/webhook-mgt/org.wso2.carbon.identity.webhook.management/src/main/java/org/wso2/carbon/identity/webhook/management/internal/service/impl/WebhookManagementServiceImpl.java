@@ -76,7 +76,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         Webhook webhookToCreate = new Webhook.Builder()
                 .uuid(generatedWebhookId)
                 .endpoint(webhook.getEndpoint())
-                .description(webhook.getDescription())
+                .name(webhook.getName())
                 .secret(webhook.getSecret())
                 .tenantId(tenantId)
                 .eventSchemaName(webhook.getEventSchemaName())
@@ -99,7 +99,12 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     webhookId, tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        return daoFACADE.getWebhook(webhookId, tenantId);
+        Webhook webhook = daoFACADE.getWebhook(webhookId, tenantId);
+        if (webhook == null) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
+        }
+        return webhook;
     }
 
     @Override

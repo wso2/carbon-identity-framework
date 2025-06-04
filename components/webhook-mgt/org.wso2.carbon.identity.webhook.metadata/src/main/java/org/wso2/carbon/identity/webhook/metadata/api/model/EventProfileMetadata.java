@@ -18,36 +18,31 @@
 
 package org.wso2.carbon.identity.webhook.metadata.api.model;
 
-import java.util.List;
-
 /**
- * Represents a webhook event profile.
+ * Represents a webhook event profile metadata.
  */
-public class EventProfile {
+public class EventProfileMetadata {
 
-    private String profile;
+    private String name;
     private String uri;
-    private List<Channel> channels;
 
     /**
      * Default constructor.
      */
-    public EventProfile() {
+    public EventProfileMetadata() {
 
     }
 
     /**
      * Constructor with all parameters.
      *
-     * @param profile  Name of the event profile
-     * @param uri      URI of the event profile
-     * @param channels List of channels in the profile
+     * @param name Name of the event profile
+     * @param uri  URI of the event profile
      */
-    public EventProfile(String profile, String uri, List<Channel> channels) {
+    public EventProfileMetadata(String name, String uri) {
 
-        this.profile = profile;
+        this.name = name;
         this.uri = uri;
-        this.channels = channels;
     }
 
     /**
@@ -55,9 +50,9 @@ public class EventProfile {
      *
      * @return Name of the event profile
      */
-    public String getProfile() {
+    public String getName() {
 
-        return profile;
+        return name;
     }
 
     /**
@@ -68,15 +63,5 @@ public class EventProfile {
     public String getUri() {
 
         return uri;
-    }
-
-    /**
-     * Get the list of channels in the profile.
-     *
-     * @return List of channels
-     */
-    public List<Channel> getChannels() {
-
-        return channels;
     }
 }

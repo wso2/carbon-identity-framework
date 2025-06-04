@@ -45,7 +45,7 @@ public enum ErrorMessage {
 
     // Server errors (65xxx range)
     ERROR_CODE_WEBHOOK_ADD_ERROR("WEBHOOKMGT-65001", "Error occurred while adding webhook",
-            "An internal server error occurred while adding the webhook: %s."),
+            "An internal server error occurred while adding the webhook."),
     ERROR_CODE_WEBHOOK_UPDATE_ERROR("WEBHOOKMGT-65002", "Error occurred while updating webhook",
             "An internal server error occurred while updating the webhook: %s."),
     ERROR_CODE_WEBHOOK_DELETE_ERROR("WEBHOOKMGT-65003", "Error occurred while deleting webhook",

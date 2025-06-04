@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataCl
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
+import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfileMetadata;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.WebhookMetadataServiceImpl;
 
@@ -46,6 +47,7 @@ public class WebhookMetadataServiceImplTest {
 
     private static final String TEST_PROFILE_NAME = "Test";
     private static final String TEST_PROFILE_URI = "https://schemas.identity.wso2.org/events/test";
+    private static final String TEST_URI = "https://schemas.identity.wso2.org";
 
     @Mock
     private FileBasedWebhookMetadataDAOImpl mockDAO;
@@ -72,14 +74,17 @@ public class WebhookMetadataServiceImplTest {
     @Test
     public void testGetSupportedEventProfiles() throws Exception {
 
-        List<String> profiles = Arrays.asList(TEST_PROFILE_NAME, "AnotherProfile");
+        List<EventProfileMetadata> profiles = Arrays.asList(
+                new EventProfileMetadata(TEST_PROFILE_NAME, "https://schemas.identity.wso2.org/events/test"),
+                new EventProfileMetadata("AnotherProfile", "https://schemas.identity.wso2.org/events/another")
+        );
         when(mockDAO.getSupportedEventProfiles()).thenReturn(profiles);
 
-        List<String> result = service.getSupportedEventProfiles();
+        List<EventProfileMetadata> result = service.getSupportedEventProfiles();
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 2);
-        Assert.assertEquals(result.get(0), TEST_PROFILE_NAME);
+        Assert.assertEquals(result.get(0).getName(), TEST_PROFILE_NAME);
     }
 
     @Test(expectedExceptions = WebhookMetadataServerException.class)
@@ -93,7 +98,7 @@ public class WebhookMetadataServiceImplTest {
     @Test
     public void testGetEventProfile() throws Exception {
 
-        EventProfile mockProfile = new EventProfile(TEST_PROFILE_NAME, new ArrayList<>());
+        EventProfile mockProfile = new EventProfile(TEST_PROFILE_NAME, TEST_URI, new ArrayList<>());
         when(mockDAO.getEventProfile(TEST_PROFILE_NAME)).thenReturn(mockProfile);
 
         EventProfile result = service.getEventProfile(TEST_PROFILE_NAME);

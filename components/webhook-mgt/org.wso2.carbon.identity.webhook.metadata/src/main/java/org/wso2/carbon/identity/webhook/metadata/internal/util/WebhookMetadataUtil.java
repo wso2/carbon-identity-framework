@@ -33,7 +33,7 @@ import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessag
 public class WebhookMetadataUtil {
 
     private static final String EVENT_PROFILES_DIR = "eventprofiles";
-    private static final String EVENT_PROFILES_PATH = "repository/conf/" + EVENT_PROFILES_DIR;
+    private static final String EVENT_PROFILES_PATH = "repository/resources/identity/" + EVENT_PROFILES_DIR;
 
     private static Path eventProfilesDirectory = null;
 
