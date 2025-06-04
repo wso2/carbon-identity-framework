@@ -1677,7 +1677,7 @@
   "myaccount.ui.app_white_logo_path": "/assets/images/branding/logo-inverted.svg",
   "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
-  "myaccount.theme": "default",
+  "myaccount.theme": "wso2is",
   "myaccount.product_version.configs.versionOverride": "",
   "myaccount.authenticator_app_configs.enabled": true,
   "myaccount.applications.enabled": true,
