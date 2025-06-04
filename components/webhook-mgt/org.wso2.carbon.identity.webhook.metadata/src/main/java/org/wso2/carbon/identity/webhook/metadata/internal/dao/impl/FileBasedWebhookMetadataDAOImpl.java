@@ -148,11 +148,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
             throw WebhookMetadataExceptionHandler.handleClientException(
                     ERROR_CODE_PROFILES_RETRIEVE_ERROR);
         }
-        return new ArrayList<>(profileCache.values())
-                .stream()
-                .map(profile -> new EventProfile(profile.getProfile(), profile.getUri(),
-                        profile.getChannels()))
-                .collect(Collectors.toList());
+        return (List<EventProfile>) profileCache.values();
     }
 
     @Override
