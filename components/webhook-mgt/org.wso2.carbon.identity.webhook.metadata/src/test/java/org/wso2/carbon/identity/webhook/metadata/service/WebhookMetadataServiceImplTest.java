@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataCl
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfileMetadata;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.WebhookMetadataServiceImpl;
 
@@ -74,17 +73,19 @@ public class WebhookMetadataServiceImplTest {
     @Test
     public void testGetSupportedEventProfiles() throws Exception {
 
-        List<EventProfileMetadata> profiles = Arrays.asList(
-                new EventProfileMetadata(TEST_PROFILE_NAME, "https://schemas.identity.wso2.org/events/test"),
-                new EventProfileMetadata("AnotherProfile", "https://schemas.identity.wso2.org/events/another")
+        List<EventProfile> profiles = Arrays.asList(
+                new EventProfile(TEST_PROFILE_NAME, "https://schemas.identity.wso2.org/events/test",
+                        new ArrayList<>()),
+                new EventProfile("AnotherProfile", "https://schemas.identity.wso2.org/events/another",
+                        new ArrayList<>())
         );
         when(mockDAO.getSupportedEventProfiles()).thenReturn(profiles);
 
-        List<EventProfileMetadata> result = service.getSupportedEventProfiles();
+        List<EventProfile> result = service.getSupportedEventProfiles();
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 2);
-        Assert.assertEquals(result.get(0).getName(), TEST_PROFILE_NAME);
+        Assert.assertEquals(result.get(0).getProfile(), TEST_PROFILE_NAME);
     }
 
     @Test(expectedExceptions = WebhookMetadataServerException.class)

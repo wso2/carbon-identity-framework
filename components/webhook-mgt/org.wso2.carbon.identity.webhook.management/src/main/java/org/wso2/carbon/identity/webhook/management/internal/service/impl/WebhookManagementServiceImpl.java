@@ -99,12 +99,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     webhookId, tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        Webhook webhook = daoFACADE.getWebhook(webhookId, tenantId);
-        if (webhook == null) {
-            throw WebhookManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
-        }
-        return webhook;
+        return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
     @Override

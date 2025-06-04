@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataSe
 import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfileMetadata;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil;
@@ -143,7 +142,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
     }
 
     @Override
-    public List<EventProfileMetadata> getSupportedEventProfiles() throws WebhookMetadataException {
+    public List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
@@ -151,7 +150,8 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
         }
         return new ArrayList<>(profileCache.values())
                 .stream()
-                .map(profile -> new EventProfileMetadata(profile.getProfile(), profile.getUri()))
+                .map(profile -> new EventProfile(profile.getProfile(), profile.getUri(),
+                        profile.getChannels()))
                 .collect(Collectors.toList());
     }
 

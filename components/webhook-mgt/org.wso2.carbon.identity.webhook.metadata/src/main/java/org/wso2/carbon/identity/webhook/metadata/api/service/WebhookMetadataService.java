@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.webhook.metadata.api.service;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfileMetadata;
 
 import java.util.List;
 
@@ -36,7 +35,7 @@ public interface WebhookMetadataService {
      * @return List of event profiles
      * @throws WebhookMetadataException If an error occurs while retrieving event profiles
      */
-    List<EventProfileMetadata> getSupportedEventProfiles() throws WebhookMetadataException;
+    List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException;
 
     /**
      * Get details of a specific event profile including its channels.

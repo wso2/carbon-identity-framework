@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataEx
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfileMetadata;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
 
 import java.io.File;
@@ -77,10 +76,10 @@ public class FileBasedWebhookMetadataDAOImplTest {
     @Test
     public void testGetSupportedEventProfiles() throws Exception {
 
-        List<EventProfileMetadata> profiles = dao.getSupportedEventProfiles();
+        List<EventProfile> profiles = dao.getSupportedEventProfiles();
         Assert.assertNotNull(profiles);
         Assert.assertEquals(profiles.size(), 1);
-        Assert.assertEquals(profiles.get(0).getName(), TEST_PROFILE_NAME);
+        Assert.assertEquals(profiles.get(0).getProfile(), TEST_PROFILE_NAME);
     }
 
     @Test
@@ -188,8 +187,8 @@ public class FileBasedWebhookMetadataDAOImplTest {
         resetDAOState(dao);
         dao.init();
 
-        List<EventProfileMetadata> profiles = dao.getSupportedEventProfiles();
-        Assert.assertTrue(profiles.stream().anyMatch(p -> "fallbackProfile".equals(p.getName())));
+        List<EventProfile> profiles = dao.getSupportedEventProfiles();
+        Assert.assertTrue(profiles.stream().anyMatch(p -> "fallbackProfile".equals(p.getProfile())));
         EventProfile profile = dao.getEventProfile("fallbackProfile");
         Assert.assertNotNull(profile);
         Assert.assertEquals(profile.getProfile(), "fallbackProfile");

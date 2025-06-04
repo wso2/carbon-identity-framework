@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataEx
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfileMetadata;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
@@ -70,7 +69,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     }
 
     @Override
-    public List<EventProfileMetadata> getSupportedEventProfiles() throws WebhookMetadataException {
+    public List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException {
 
         try {
             return webhookMetadataDAO.getSupportedEventProfiles();
