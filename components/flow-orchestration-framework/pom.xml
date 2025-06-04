@@ -36,7 +36,7 @@
 
     <modules>
         <module>org.wso2.carbon.identity.flow.mgt</module>
-        <module>org.wso2.carbon.identity.flow.engine</module>
+        <module>org.wso2.carbon.identity.flow.execution.engine</module>
     </modules>
 
 </project>

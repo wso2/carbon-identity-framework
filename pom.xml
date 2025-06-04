@@ -814,7 +814,7 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.flow.engine.server.feature</artifactId>
+                <artifactId>org.wso2.carbon.identity.flow.execution.engine.server.feature</artifactId>
                 <type>zip</type>
                 <version>${project.version}</version>
             </dependency>
@@ -1886,7 +1886,7 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.flow.engine</artifactId>
+                <artifactId>org.wso2.carbon.identity.flow.execution.engine</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
