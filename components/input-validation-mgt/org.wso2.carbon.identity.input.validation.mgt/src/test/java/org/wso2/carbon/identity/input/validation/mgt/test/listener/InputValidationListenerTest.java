@@ -1,42 +1,71 @@
 package org.wso2.carbon.identity.input.validation.mgt.test.listener;
 
 import org.mockito.MockedStatic;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder;
 import org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
 
 public class InputValidationListenerTest {
 
+    private InputValidationListener inputValidationListener;
     private UserStoreManager userStoreManager;
-    private MockedStatic<UserCoreUtil> userCoreUtilMock;
+    private ConfigurationManager configurationManager;
+
+    private MockedStatic<UserCoreUtil> userCoreUtilStaticMock;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilStaticMock;
+    private MockedStatic<InputValidationDataHolder> inputValidationDataHolderStaticMock;
 
     @BeforeMethod
     public void setup() {
 
+        inputValidationListener = new InputValidationListener();
+
         userStoreManager = mock(UserStoreManager.class);
-        userCoreUtilMock = mockStatic(UserCoreUtil.class);
+        configurationManager = mock(ConfigurationManager.class);
+
+        userCoreUtilStaticMock = mockStatic(UserCoreUtil.class);
+        identityTenantUtilStaticMock = mockStatic(IdentityTenantUtil.class);
+        inputValidationDataHolderStaticMock = mockStatic(InputValidationDataHolder.class);
 
         AbstractIdentityUserOperationEventListener userOperationEventListener =
                 mock(AbstractIdentityUserOperationEventListener.class);
         doReturn(true).when(userOperationEventListener).isEnable();
+
+        identityTenantUtilStaticMock.when(() -> IdentityTenantUtil.getTenantId("carbon.super"))
+                .thenReturn(1234);
     }
 
     @AfterMethod
     public void tearDown() {
-        userCoreUtilMock.close();
+        userCoreUtilStaticMock.close();
+        identityTenantUtilStaticMock.close();
+        inputValidationDataHolderStaticMock.close();
     }
 
     @DataProvider(name = "preUpdateCredentialByAdminWithIDDataProvider")
@@ -48,25 +77,30 @@ public class InputValidationListenerTest {
         user.setUserStoreDomain("PRIMARY");
         user.setUserId("123456");
 
-        // skipPasswordValidation, user, newCredential
+        // skipPasswordValidation, user, newCredential, expectedResult
         return new Object[][]{
-                { true, user, "pw" },
-                { true, user, "newPassword" }
+                { true, user, "pw", false },
+                { false, user, "pw", false },
+                { false, user, "newPassword", false }
         };
     }
 
 
     @Test(dataProvider = "preUpdateCredentialByAdminWithIDDataProvider")
     public void doPreUpdateCredentialByAdminWithIDTest(boolean skipPasswordValidation, AuthenticatedUser user,
-                                                       String newCredential)
-            throws UserStoreException, UserIdNotFoundException {
+                                                       String newCredential, boolean expectedResult)
+            throws UserStoreException, UserIdNotFoundException, ConfigurationManagementException {
 
         when(UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()).thenReturn(skipPasswordValidation);
 
+        ConfigurationManager configurationManager = mock(ConfigurationManager.class);
+        when(InputValidationDataHolder.getConfigurationManager()).thenReturn(configurationManager);
+        when(configurationManager.getResourcesByType(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME)).thenReturn(getResources());
 
-        InputValidationListener inputValidationListener = mock(InputValidationListener.class);
-        when(inputValidationListener.doPreUpdateCredentialByAdmin(user.getUserId(), newCredential,
-                userStoreManager)).thenReturn(true);
+        boolean isValid = inputValidationListener.doPreUpdateCredentialByAdminWithID(user.getUserId(), newCredential,
+                userStoreManager);
+        Assert.assertEquals(isValid, expectedResult);
+
     }
 
     @DataProvider(name = "doPreUpdateCredentialByAdminDataProvider")
@@ -78,22 +112,52 @@ public class InputValidationListenerTest {
         user.setUserStoreDomain("PRIMARY");
         user.setUserId("123456");
 
-        // skipPasswordValidation, user, newCredential
+        // skipPasswordValidation, user, newCredential, expectedResult
         return new Object[][]{
-                { true, user, "pw" },
-                { false, user, "newPassword" }
+                { true, user, "pw", false },
+                { false, user, "pw", false },
+                { false, user, "newPassword", false }
         };
     }
 
-
     @Test(dataProvider = "doPreUpdateCredentialByAdminDataProvider")
     public void doPreUpdateCredentialByAdminTest(boolean skipPasswordValidation, AuthenticatedUser user,
-                                                       String newCredential) throws UserStoreException {
+                                                       String newCredential, boolean expectedResult)
+            throws UserStoreException, ConfigurationManagementException {
 
         when(UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()).thenReturn(skipPasswordValidation);
 
-        InputValidationListener inputValidationListener = mock(InputValidationListener.class);
-        when(inputValidationListener.doPreUpdateCredentialByAdmin(user.getUserName(), newCredential,
-                userStoreManager)).thenReturn(true);
+        ConfigurationManager configurationManager = mock(ConfigurationManager.class);
+        when(InputValidationDataHolder.getConfigurationManager()).thenReturn(configurationManager);
+        when(configurationManager.getResourcesByType(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME)).thenReturn(getResources());
+
+        boolean isValid = inputValidationListener.doPreUpdateCredentialByAdminWithID(user.getUserName(), newCredential,
+                userStoreManager);
+        Assert.assertEquals(isValid, expectedResult);
+    }
+
+    private Resources getResources() {
+
+        Resources resources = new Resources();
+        List<Resource> resourceList = new ArrayList<>();
+        List<Attribute> attributesForPassword = new ArrayList<>();
+
+        Attribute lengthAttribute = new Attribute();
+        lengthAttribute.setKey("LengthValidator.min.length");
+        lengthAttribute.setValue("5");
+        attributesForPassword.add(lengthAttribute);
+
+        Attribute attributeType = new Attribute();
+        attributeType.setKey("validation.type");
+        attributeType.setValue("RULE");
+        attributesForPassword.add(attributeType);
+
+        Resource resourceForPassword = new Resource();
+        resourceForPassword.setAttributes(attributesForPassword);
+        resourceForPassword.setResourceName(INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + "password");
+        resourceList.add(resourceForPassword);
+
+        resources.setResources(resourceList);
+        return resources;
     }
 }
