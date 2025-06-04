@@ -131,7 +131,7 @@ public class InputValidationListenerTest {
         when(InputValidationDataHolder.getConfigurationManager()).thenReturn(configurationManager);
         when(configurationManager.getResourcesByType(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME)).thenReturn(getResources());
 
-        boolean isValid = inputValidationListener.doPreUpdateCredentialByAdminWithID(user.getUserName(), newCredential,
+        boolean isValid = inputValidationListener.doPreUpdateCredentialByAdmin(user.getUserName(), newCredential,
                 userStoreManager);
         Assert.assertEquals(isValid, expectedResult);
     }
