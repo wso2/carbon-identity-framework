@@ -212,7 +212,6 @@
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
-  "oauth.dcrm.return_null_fields_in_response": false,
   "oauth.dcr.enable_fapi_enforcement": false,
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
