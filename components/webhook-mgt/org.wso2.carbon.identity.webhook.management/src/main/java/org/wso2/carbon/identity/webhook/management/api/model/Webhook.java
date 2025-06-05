@@ -18,14 +18,12 @@
 
 package org.wso2.carbon.identity.webhook.management.api.model;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -130,9 +128,6 @@ public class Webhook {
 
         if (eventsSubscribed != null) {
             return eventsSubscribed;
-        }
-        if (StringUtils.isEmpty(getUuid())) {
-            return Collections.emptyList();
         }
         // Fetch from service and cache the result
         this.eventsSubscribed = WebhookManagementServiceImpl.getInstance()
