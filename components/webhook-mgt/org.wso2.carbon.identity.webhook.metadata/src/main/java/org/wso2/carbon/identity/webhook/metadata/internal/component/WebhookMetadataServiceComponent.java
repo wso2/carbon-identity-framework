@@ -52,8 +52,6 @@ public class WebhookMetadataServiceComponent {
             context.getBundleContext().registerService(WebhookMetadataService.class.getName(),
                     webhookMetadataService, null);
 
-            WebhookMetadataServiceComponentHolder.getInstance().setWebhookMetadataService(webhookMetadataService);
-
             log.info("Webhook Metadata component activated successfully");
         } catch (Throwable e) {
             log.error("Error activating Webhook Metadata component", e);

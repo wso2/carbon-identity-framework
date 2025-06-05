@@ -18,20 +18,15 @@
 
 package org.wso2.carbon.identity.webhook.metadata.internal.component;
 
-import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
-import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.WebhookMetadataServiceImpl;
-
 /**
  * Component holder for webhook metadata services.
  */
 public class WebhookMetadataServiceComponentHolder {
 
     private static final WebhookMetadataServiceComponentHolder INSTANCE = new WebhookMetadataServiceComponentHolder();
-    private WebhookMetadataService webhookMetadataService;
 
     private WebhookMetadataServiceComponentHolder() {
 
-        this.webhookMetadataService = WebhookMetadataServiceImpl.getInstance();
     }
 
     /**
@@ -42,25 +37,5 @@ public class WebhookMetadataServiceComponentHolder {
     public static WebhookMetadataServiceComponentHolder getInstance() {
 
         return INSTANCE;
-    }
-
-    /**
-     * Get the webhook metadata service.
-     *
-     * @return WebhookMetadataService
-     */
-    public WebhookMetadataService getWebhookMetadataService() {
-
-        return webhookMetadataService;
-    }
-
-    /**
-     * Set the webhook metadata service.
-     *
-     * @param webhookMetadataService WebhookMetadataService
-     */
-    public void setWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
-
-        this.webhookMetadataService = webhookMetadataService;
     }
 }
