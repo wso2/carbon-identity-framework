@@ -1207,7 +1207,7 @@ public class IdPManagementDAO {
             defaultAuthName = federatedIdp.getDefaultAuthenticatorConfig().getName();
         }
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.GET_ALL_IDP_AUTH_SQL;
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_ALL_IDP_AUTH_SQL_WITH_AMR;
         Set<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new HashSet<FederatedAuthenticatorConfig>();
         try {
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
@@ -1227,6 +1227,9 @@ public class IdPManagementDAO {
                 }
 
                 authnConfig.setDisplayName(rs.getString("DISPLAY_NAME"));
+
+                String amrValue = rs.getString("AMR_VALUE");
+                authnConfig.setAmrValue(amrValue != null ? amrValue : authnConfig.getName());
 
                 if (defaultAuthName != null && authnConfig.getName().equals(defaultAuthName)) {
                     federatedIdp.getDefaultAuthenticatorConfig().setDisplayName(authnConfig.getDisplayName());
@@ -1404,7 +1407,7 @@ public class IdPManagementDAO {
         PreparedStatement prepStmt1 = null;
 
         try {
-            String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_AUTH_SQL;
+            String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_AUTH_SQL_WITH_AMR;
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
 
             if (newFederatedAuthenticatorConfig.isEnabled()) {
@@ -1412,8 +1415,9 @@ public class IdPManagementDAO {
             } else {
                 prepStmt1.setString(1, IdPManagementConstants.IS_FALSE_VALUE);
             }
-            prepStmt1.setInt(2, idpId);
-            prepStmt1.setString(3, newFederatedAuthenticatorConfig.getName());
+            prepStmt1.setString(2, newFederatedAuthenticatorConfig.getAmrValue());
+            prepStmt1.setInt(3, idpId);
+            prepStmt1.setString(4, newFederatedAuthenticatorConfig.getName());
             prepStmt1.executeUpdate();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId,
@@ -1490,7 +1494,7 @@ public class IdPManagementDAO {
 
         PreparedStatement prepStmt1 = null;
         PreparedStatement prepStmt2 = null;
-        String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_SQL;
+        String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_SQL_WITH_AMR;
 
         try {
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
@@ -1507,6 +1511,7 @@ public class IdPManagementDAO {
             /* Federated authenticators are always intended to authenticate externally managed users and share user
             identity and attributes. Therefore, always will be the 'IDENTIFICATION' type. */
             prepStmt1.setString(7, AuthenticationType.IDENTIFICATION.toString());
+            prepStmt1.setString(8, authnConfig.getAmrValue());
             prepStmt1.execute();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());
@@ -2416,6 +2421,7 @@ public class IdPManagementDAO {
             samlFederatedAuthConfig = new FederatedAuthenticatorConfig();
             samlFederatedAuthConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
             samlFederatedAuthConfig.setDefinedByType(DefinedByType.SYSTEM);
+            samlFederatedAuthConfig.setAmrValue(samlFederatedAuthConfig.getAmrValue());
         }
 
         List<Property> propertiesList = new ArrayList<>();
@@ -2800,6 +2806,7 @@ public class IdPManagementDAO {
             openIdFedAuthn = new FederatedAuthenticatorConfig();
             openIdFedAuthn.setName(IdentityApplicationConstants.Authenticator.OpenID.NAME);
             openIdFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
+            openIdFedAuthn.setAmrValue(openIdFedAuthn.getAmrValue());
         }
         propertiesList = new ArrayList<>(Arrays.asList(openIdFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(openIdFedAuthn.getProperties(),
@@ -2823,6 +2830,7 @@ public class IdPManagementDAO {
             oauth1FedAuthn = new FederatedAuthenticatorConfig();
             oauth1FedAuthn.setName(IdentityApplicationConstants.OAuth10A.NAME);
             oauth1FedAuthn.setDefinedByType(DefinedByType.SYSTEM);
+            oauth1FedAuthn.setAmrValue(oauth1FedAuthn.getAmrValue());
         }
         propertiesList = new ArrayList<>(Arrays.asList(oauth1FedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
@@ -2859,6 +2867,7 @@ public class IdPManagementDAO {
             oidcFedAuthn = new FederatedAuthenticatorConfig();
             oidcFedAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
             oidcFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
+            oidcFedAuthn.setAmrValue(oidcFedAuthn.getAmrValue());
         }
         propertiesList = new ArrayList<>();
 
@@ -2931,6 +2940,7 @@ public class IdPManagementDAO {
             passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
             passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
             passiveSTSFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
+            passiveSTSFedAuthn.setAmrValue(passiveSTSFedAuthn.getAmrValue());
         }
 
         propertiesList = new ArrayList<>();
@@ -2971,6 +2981,7 @@ public class IdPManagementDAO {
             stsFedAuthn = new FederatedAuthenticatorConfig();
             stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
             stsFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
+            stsFedAuthn.setAmrValue(stsFedAuthn.getAmrValue());
         }
         propertiesList = new ArrayList<>(Arrays.asList(stsFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
@@ -2986,6 +2997,7 @@ public class IdPManagementDAO {
         FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
         sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
         sessionTimeoutConfig.setDefinedByType(DefinedByType.SYSTEM);
+        sessionTimeoutConfig.setAmrValue(sessionTimeoutConfig.getAmrValue());
 
         propertiesList = new ArrayList<>(Arrays.asList(sessionTimeoutConfig.getProperties()));
 
@@ -6118,6 +6130,7 @@ public class IdPManagementDAO {
                     federatedAuthenticatorConfig.setName(resultSet.getString("NAME"));
                     federatedAuthenticatorConfig.setDisplayName(resultSet.getString("DISPLAY_NAME"));
                     federatedAuthenticatorConfig.setEnabled(resultSet.getBoolean("IS_ENABLED"));
+                    federatedAuthenticatorConfig.setAmrValue(resultSet.getString("AMR_VALUE"));
                     federatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
                     federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
                     int authnId = resultSet.getInt("ID");

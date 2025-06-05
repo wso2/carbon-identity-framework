@@ -100,6 +100,10 @@
         <Scopes>
             <Scope displayName="View Authenticators" name="internal_authenticator_view"
                    description="View the authenticators in the organization (root)"/>
+            <Scope displayName="View System Authenticator By ID" name="internal_system_authenticator_get"
+                   description="View system-defined local authenticator by ID"/>
+            <Scope displayName="Patch System Authenticator" name="internal_system_authenticator_patch"
+                   description="Update the AMR value of system-defined local authenticators"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API"
@@ -109,6 +113,10 @@
         <Scopes>
             <Scope displayName="View Authenticators" name="internal_org_authenticator_view"
                    description="View authenticators of the organization"/>
+            <Scope displayName="View System Authenticator By ID" name="internal_system_authenticator_get"
+                   description="View system-defined local authenticator by ID"/>
+            <Scope displayName="Patch System Authenticator" name="internal_system_authenticator_patch"
+                   description="Update the AMR value of system-defined local authenticators"/>
         </Scopes>
     </APIResource>
     <APIResource name="Action Management API" identifier="/api/server/v1/actions"

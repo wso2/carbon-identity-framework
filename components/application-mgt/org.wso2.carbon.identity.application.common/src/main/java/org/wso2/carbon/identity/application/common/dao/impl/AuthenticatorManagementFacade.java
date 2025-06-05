@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDA
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder;
@@ -111,6 +112,22 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     }
 
     /**
+     * Update the AMR value of the system local authenticator.
+     *
+     * @param authenticatorName Name of the authenticator.
+     * @param amrValue Amr value of the authenticator.
+     * @param tenantId Tenant ID.
+     * @throws AuthenticatorMgtException If an error occurs while updating the local authenticator.
+     */
+    @Override
+    public void updateSystemLocalAuthenticatorAmrValue(
+            String authenticatorName, String amrValue, int tenantId)
+            throws AuthenticatorMgtException {
+
+        dao.updateSystemLocalAuthenticatorAmrValue(authenticatorName, amrValue, tenantId);
+    }
+
+    /**
      * Get user defined local authenticator by name and resolving associated data (endpoint configurations)
      * by invoking external service.
      *
@@ -132,6 +149,21 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e,
                     authenticatorConfigName);
         }
+    }
+
+    /**
+     * Get system local authenticator by name.
+     *
+     * @param authenticatorConfigName Name of the system local authenticator.
+     * @param tenantId Tenant ID.
+     * @return System local authenticator.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving the system local authenticator.
+     */
+    @Override
+    public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
+            throws AuthenticatorMgtException {
+
+        return dao.getSystemLocalAuthenticator(authenticatorConfigName, tenantId);
     }
 
     /**
@@ -201,6 +233,34 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             throw handleAuthenticatorMgtException(AuthenticatorMgtError
                             .ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e, authenticatorName);
         }
+    }
+
+    /**
+     * Add a system local authenticator.
+     *
+     * @param authenticatorConfig System local authenticator configuration.
+     * @param tenantId            Tenant ID.
+     * @return System local authenticator configuration.
+     * @throws AuthenticatorMgtException If an error occurs while adding the system local authenticator.
+     */
+    @Override
+    public LocalAuthenticatorConfig addSystemLocalAuthenticator(
+            LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
+
+        return dao.addSystemLocalAuthenticator(authenticatorConfig, tenantId);
+    }
+
+    /**
+     * Get all system local authenticators.
+     * @param tenantId Tenant Id.
+     * @return List of system local authenticators.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving all system local authenticators.
+     */
+    @Override
+    public List<LocalAuthenticatorConfig> getAllSystemLocalAuthenticators(int tenantId)
+            throws AuthenticatorMgtException {
+
+        return dao.getAllSystemLocalAuthenticators(tenantId);
     }
 
     /**

@@ -67,6 +67,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
     @XmlElement(name = "DefinedBy")
     protected DefinedByType definedByType;
 
+    @XmlElement(name = "AmrValue")
+    protected String amrValue;
+
     public FederatedAuthenticatorConfig() {
 
         definedByType = DefinedByType.SYSTEM;
@@ -112,11 +115,17 @@ public class FederatedAuthenticatorConfig implements Serializable {
                 }
             } else if ("DefinedBy".equals(elementName)) {
                 federatedAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(element.getText()));
+            } else if ("AmrValue".equals(elementName)) {
+                federatedAuthenticatorConfig.setAmrValue(element.getText());
             }
         }
 
         if (federatedAuthenticatorConfig.getDefinedByType() == null) {
             federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        }
+
+        if (federatedAuthenticatorConfig.getAmrValue() == null) {
+            federatedAuthenticatorConfig.setAmrValue(federatedAuthenticatorConfig.getName());
         }
 
         return federatedAuthenticatorConfig;
@@ -264,5 +273,25 @@ public class FederatedAuthenticatorConfig implements Serializable {
     public void setDefinedByType(DefinedByType type) {
 
         definedByType = type;
+    }
+
+    /**
+     * Get the amr value of the federated authenticator config.
+     *
+     * @return amrValue.
+     */
+    public String getAmrValue() {
+
+        return amrValue;
+    }
+
+    /**
+     * Set the amr value of the federated authenticator config.
+     *
+     * @param amrValue The amr value of the federated authenticator config.
+     */
+    public void setAmrValue(String amrValue) {
+
+        this.amrValue = amrValue;
     }
 }

@@ -3380,6 +3380,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     Arrays.stream(localAuthenticatorConfigs).forEach(config -> {
                         if (StringUtils.equals(localAuthenticator.getName(), config.getName())) {
                             localAuthenticator.setDisplayName(config.getDisplayName());
+                            localAuthenticator.setAmrValue(config.getAmrValue());
                         }
                     });
                 }

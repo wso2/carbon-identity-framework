@@ -269,8 +269,11 @@ public class IdPManagementConstants {
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
 
-        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY FROM " +
-                "IDP_AUTHENTICATOR WHERE IDP_ID = ?";
+        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY " +
+                "FROM IDP_AUTHENTICATOR WHERE IDP_ID = ?";
+
+        public static final String GET_ALL_IDP_AUTH_SQL_WITH_AMR = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY, " +
+                "AMR_VALUE FROM IDP_AUTHENTICATOR WHERE IDP_ID = ?";
 
         public static final String GET_IDP_AUTH_SQL = "SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = ? AND NAME = ?";
 
@@ -328,6 +331,9 @@ public class IdPManagementConstants {
 
         public static final String UPDATE_IDP_AUTH_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED=? WHERE IDP_ID=? " +
                 "AND NAME=?";
+
+        public static final String UPDATE_IDP_AUTH_SQL_WITH_AMR = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED=?, " +
+                "AMR_VALUE=? WHERE IDP_ID=? AND NAME=?";
 
         public static final String UPDATE_IDP_AUTH_PROP_SQL = "UPDATE IDP_AUTHENTICATOR_PROPERTY SET " +
                 "PROPERTY_VALUE = ?, IS_SECRET = ? WHERE AUTHENTICATOR_ID = ? AND PROPERTY_KEY = ?";
@@ -393,6 +399,11 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE) VALUES " +
                 "(?,?,?,?,?,?,?)";
+
+        public static final String ADD_IDP_AUTH_SQL_WITH_AMR = "INSERT INTO IDP_AUTHENTICATOR " +
+                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE, AMR_VALUE) " +
+                "VALUES " +
+                "(?,?,?,?,?,?,?,?)";
 
         public static final String DELETE_IDP_AUTH_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE IDP_ID=? AND NAME=?";
 

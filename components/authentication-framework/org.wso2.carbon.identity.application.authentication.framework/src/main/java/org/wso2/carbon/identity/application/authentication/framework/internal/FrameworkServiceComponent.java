@@ -517,6 +517,7 @@ public class FrameworkServiceComponent {
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+            localAuthenticatorConfig.setAmrValue(fileBasedConfig.getAmrValue());
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
@@ -525,6 +526,8 @@ public class FrameworkServiceComponent {
             federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
             federatedAuthenticatorConfig.setTags(getTags(authenticator));
             federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+            AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
+            federatedAuthenticatorConfig.setAmrValue(fileBasedConfig.getAmrValue());
             ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
@@ -535,6 +538,7 @@ public class FrameworkServiceComponent {
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             reqPathAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             reqPathAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+            reqPathAuthenticatorConfig.setAmrValue(fileBasedConfig.getAmrValue());
             ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
         }
 
