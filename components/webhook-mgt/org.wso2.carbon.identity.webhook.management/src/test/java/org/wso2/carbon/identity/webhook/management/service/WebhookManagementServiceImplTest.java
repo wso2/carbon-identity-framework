@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.webhook.management.internal.service.impl.Webhook
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -92,12 +93,13 @@ public class WebhookManagementServiceImplTest {
         when(inputWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
         when(inputWebhook.getStatus()).thenReturn(null);
         when(inputWebhook.getName()).thenReturn("name");
-        when(inputWebhook.getSecret()).thenReturn("secret");
+        when(inputWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
         when(inputWebhook.getEventSchemaName()).thenReturn("schema");
         when(inputWebhook.getEventSchemaUri()).thenReturn("uri");
         when(inputWebhook.getCreatedAt()).thenReturn(null);
         when(inputWebhook.getUpdatedAt()).thenReturn(null);
-        when(inputWebhook.getEventsSubscribed()).thenReturn(null);
+        when(inputWebhook.getEventsSubscribed()).thenReturn(
+                Collections.singletonList("schemas.identity.wso2.org/events/logins"));
 
         // Endpoint does not exist
         when(webhookManagementDAO.isWebhookEndpointExists("https://test.com/webhook", 1)).thenReturn(false);
@@ -147,7 +149,7 @@ public class WebhookManagementServiceImplTest {
         when(existingWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
         when(existingWebhook.getStatus()).thenReturn(null);
         when(existingWebhook.getName()).thenReturn("name");
-        when(existingWebhook.getSecret()).thenReturn("secret");
+        when(existingWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
         when(existingWebhook.getEventSchemaName()).thenReturn("schema");
         when(existingWebhook.getEventSchemaUri()).thenReturn("uri");
         when(existingWebhook.getCreatedAt()).thenReturn(null);
