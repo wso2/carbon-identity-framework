@@ -1566,6 +1566,16 @@
                     description = "Allows to impersonate another user"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Organization User Impersonation" identifier="org:impersonation"
+                requiresAuthorization="true"
+                description="Resource representation of the Organization User Impersonation Organization"
+                type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="User Impersonation Scope for Organizations"
+                name="internal_org_user_impersonate"
+                description = "Allows to impersonate another user in a Organizations"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Rule Metadata API" identifier="/api/server/v1/rules/metadata"
                      requiresAuthorization="true"
                      description="API representation of the Rules Metadata API" type="TENANT">
