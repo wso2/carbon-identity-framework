@@ -43,6 +43,9 @@ public enum ErrorMessage {
             "The webhook could not be activated for webhook id %s"),
     ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR("WEBHOOKMGT-60009", "Webhook deactivation error",
             "The webhook could not be deactivated for webhook id %s"),
+    ERROR_EMPTY_WEBHOOK_REQUEST_FIELD("WEBHOOKMGT-60011", "Invalid request.", "%s is empty."),
+    ERROR_INVALID_WEBHOOK_REQUEST_FIELD("WEBHOOKMGT-60012", "Invalid request.",
+            "%s is invalid."),
 
     // Server errors (65xxx range) | Remaining codes are continued in API layer.
     // Continuation of server error codes can be found in the Webhook Management API layer as well.
