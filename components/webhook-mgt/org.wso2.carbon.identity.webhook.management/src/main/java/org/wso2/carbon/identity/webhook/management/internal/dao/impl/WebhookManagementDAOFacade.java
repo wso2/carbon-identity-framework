@@ -89,7 +89,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 LOG.warn("Error unsubscribing webhook during rollback: ", ex);
             }
             throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_UNEXPECTED_ERROR, e);
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR, e);
         }
     }
 
@@ -196,7 +196,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         } catch (TransactionException e) {
             LOG.debug("Error updating webhook: " + webhook.getUuid() +
                     " in tenant ID: " + tenantId, e);
-            throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_UNEXPECTED_ERROR);
+            throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR);
         }
     }
 
@@ -234,7 +234,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         } catch (TransactionException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_UNEXPECTED_ERROR);
+                    ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR);
         }
     }
 

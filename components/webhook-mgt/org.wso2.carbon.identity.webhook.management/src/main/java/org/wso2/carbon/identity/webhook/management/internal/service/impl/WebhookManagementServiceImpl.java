@@ -76,7 +76,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         Webhook webhookToCreate = new Webhook.Builder()
                 .uuid(generatedWebhookId)
                 .endpoint(webhook.getEndpoint())
-                .description(webhook.getDescription())
+                .name(webhook.getName())
                 .secret(webhook.getSecret())
                 .tenantId(tenantId)
                 .eventSchemaName(webhook.getEventSchemaName())

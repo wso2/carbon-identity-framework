@@ -24,6 +24,7 @@ package org.wso2.carbon.identity.webhook.management.api.constant;
 public enum ErrorMessage {
 
     // Client errors (6xxxx range)
+    // Continuation of client error codes can be found in the Webhook Management API layer as well.
     ERROR_CODE_WEBHOOK_NOT_FOUND("WEBHOOKMGT-60001", "Webhook not found",
             "The requested webhook could not be found in the system."),
     ERROR_CODE_WEBHOOK_ALREADY_EXISTS("WEBHOOKMGT-60002", "Webhook endpoint already exists",
@@ -43,9 +44,10 @@ public enum ErrorMessage {
     ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR("WEBHOOKMGT-60009", "Webhook deactivation error",
             "The webhook could not be deactivated for webhook id %s"),
 
-    // Server errors (65xxx range)
+    // Server errors (65xxx range) | Remaining codes are continued in API layer.
+    // Continuation of server error codes can be found in the Webhook Management API layer as well.
     ERROR_CODE_WEBHOOK_ADD_ERROR("WEBHOOKMGT-65001", "Error occurred while adding webhook",
-            "An internal server error occurred while adding the webhook: %s."),
+            "An internal server error occurred while adding the webhook."),
     ERROR_CODE_WEBHOOK_UPDATE_ERROR("WEBHOOKMGT-65002", "Error occurred while updating webhook",
             "An internal server error occurred while updating the webhook: %s."),
     ERROR_CODE_WEBHOOK_DELETE_ERROR("WEBHOOKMGT-65003", "Error occurred while deleting webhook",

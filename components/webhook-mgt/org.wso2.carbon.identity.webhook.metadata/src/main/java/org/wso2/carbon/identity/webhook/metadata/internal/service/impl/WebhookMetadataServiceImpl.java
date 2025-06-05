@@ -69,7 +69,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     }
 
     @Override
-    public List<String> getSupportedEventProfiles() throws WebhookMetadataException {
+    public List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException {
 
         try {
             return webhookMetadataDAO.getSupportedEventProfiles();

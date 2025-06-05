@@ -1,5 +1,6 @@
 {
   "profile": "WSO2",
+  "uri": "https://schemas.identity.wso2.org",
   "channels": [
     {
       "name": "Login Channel",

@@ -838,29 +838,50 @@ public class IdPManagementDAO {
     int getCountOfFilteredIdPs(int tenantId, List<ExpressionNode> expressionNode)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL;
         int countOfFilteredIdp = 0;
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
         appendFilterQuery(expressionNode, filterQueryBuilder);
-        Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
-        sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() +
-                IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL_TAIL;
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
-            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
-                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+        String filterClause = filterQueryBuilder.getFilterQuery();
+        Map<Integer, String> filterValues = filterQueryBuilder.getFilterAttributeValue();
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String dbName = dbConnection.getMetaData().getDatabaseProductName();
+
+            String sqlTail;
+            if (dbName.contains("MySQL") || dbName.contains("MariaDB") || dbName.contains("H2")) {
+                sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_MYSQL_TAIL;
+            } else if (dbName.contains("Oracle") || dbName.contains("DB2") || dbName.contains("Informix")) {
+                sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_ORACLE_TAIL;
+            } else if (dbName.contains("Microsoft") || dbName.contains("PostgreSQL")) {
+                sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_MSSQL_TAIL;
+            } else {
+                String message = "Error while loading IdP count from DB: Database driver " +
+                        "could not be identified or not supported.";
+                throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                        .ERROR_CODE_CONNECTING_DATABASE, message);
             }
-            prepStmt.setInt(filterAttributeValue.entrySet().size() + 1, tenantId);
-            try (ResultSet rs = prepStmt.executeQuery()) {
-                if (rs.next()) {
-                    countOfFilteredIdp = Integer.parseInt(rs.getString(1));
+
+            String sql = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL
+                    + filterClause
+                    + sqlTail;
+
+            try (PreparedStatement prepStmt = dbConnection.prepareStatement(sql)) {
+                for (Map.Entry<Integer,String> entry : filterValues.entrySet()) {
+                    prepStmt.setString(entry.getKey(), entry.getValue());
+                }
+                prepStmt.setInt(filterValues.size() + 1, tenantId);
+
+                try (ResultSet rs = prepStmt.executeQuery()) {
+                    if (rs.next()) {
+                        countOfFilteredIdp = Integer.parseInt(rs.getString(1));
+                    }
                 }
             }
         } catch (SQLException e) {
-            String message = "Error occurred while retrieving Identity Provider count for a tenant : " +
-                    IdentityTenantUtil.getTenantDomain(tenantId);
-            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_CONNECTING_DATABASE, message, e);
+            String message = "Error occurred while retrieving Identity Provider count for tenant: "
+                    + IdentityTenantUtil.getTenantDomain(tenantId);
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_CONNECTING_DATABASE, message, e);
         }
         return countOfFilteredIdp;
     }
