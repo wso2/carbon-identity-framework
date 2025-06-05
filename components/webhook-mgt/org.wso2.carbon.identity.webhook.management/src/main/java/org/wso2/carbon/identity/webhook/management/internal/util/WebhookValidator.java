@@ -38,9 +38,7 @@ public class WebhookValidator {
 
     private static final String WEBHOOK_NAME_REGEX = "^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$";
     private static final String ENDPOINT_URI_REGEX = "^https?://[^\\s/$.?#]\\S*";
-    // According to RFC 9910 a header name must contain only alphanumeric characters, period (.) and hyphen (-),
-    // and should start with an alphanumeric character.
-    private static final String SECRET_REGEX = "^[A-Za-z0-9._~+-]{32,128}$";
+    private static final String SECRET_REGEX = "^[\\x20-\\x7E]{32,128}$";
 
     private final Pattern webhookNameRegexPattern = Pattern.compile(WEBHOOK_NAME_REGEX);
     private final Pattern endpointUriRegexPattern = Pattern.compile(ENDPOINT_URI_REGEX);
