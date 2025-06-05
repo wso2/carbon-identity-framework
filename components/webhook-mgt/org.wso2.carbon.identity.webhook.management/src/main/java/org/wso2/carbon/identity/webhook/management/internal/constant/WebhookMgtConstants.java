@@ -28,6 +28,7 @@ public class WebhookMgtConstants {
     public static final String EVENT_PROFILE_NAME_FIELD = "Event Profile Name";
     public static final String EVENT_PROFILE_URI_FIELD = "Event Profile URI";
     public static final String CHANNELS_SUBSCRIBED_FIELD = "Channels Subscribed";
+    public static final String SECRET_FIELD = "Secret";
     public static final String STATUS_FIELD = "Status";
 
     private WebhookMgtConstants() {

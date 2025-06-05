@@ -28,6 +28,7 @@ import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMess
 import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_INVALID_WEBHOOK_REQUEST_FIELD;
 import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants.CHANNELS_SUBSCRIBED_FIELD;
 import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants.ENDPOINT_URI_FIELD;
+import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants.SECRET_FIELD;
 import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants.WEBHOOK_NAME_FIELD;
 
 /**
@@ -100,7 +101,7 @@ public class WebhookValidator {
         boolean isValidSecret = secretRegexPattern.matcher(secret).matches();
         if (!isValidSecret) {
             throw WebhookManagementExceptionHandler.handleClientException(
-                    ERROR_INVALID_WEBHOOK_REQUEST_FIELD, SECRET_REGEX);
+                    ERROR_INVALID_WEBHOOK_REQUEST_FIELD, SECRET_FIELD);
         }
     }
 
