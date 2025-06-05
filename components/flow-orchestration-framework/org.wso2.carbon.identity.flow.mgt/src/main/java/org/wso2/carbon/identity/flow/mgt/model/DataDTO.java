@@ -128,7 +128,6 @@ public class DataDTO implements Serializable {
         private String url;
         private List<String> requiredParams;
         private Map<String, String> additionalData;
-        private Map<String, String> interactionData;
 
         public Builder components(List<ComponentDTO> components) {
 
@@ -157,12 +156,6 @@ public class DataDTO implements Serializable {
         public Builder additionalData(Map<String, String> additionalData) {
 
             this.additionalData = additionalData;
-            return this;
-        }
-
-        public Builder interactionData(Map<String, String> interactionData) {
-
-            this.interactionData = interactionData;
             return this;
         }
 

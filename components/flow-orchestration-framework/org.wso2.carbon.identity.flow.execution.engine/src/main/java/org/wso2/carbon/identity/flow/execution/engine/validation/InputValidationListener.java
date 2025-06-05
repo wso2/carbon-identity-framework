@@ -75,7 +75,7 @@ public class InputValidationListener extends AbstractFlowExecutionListener {
 
             // If the current node is Prompt node then there is nothing to execute
             // hence assigning next node as the current node.
-            if (Constants.NodeTypes.PROMPT_ONLY.equalsIgnoreCase(currentNode.getType())) {
+            if (currentNode != null && Constants.NodeTypes.PROMPT_ONLY.equalsIgnoreCase(currentNode.getType())) {
                 if (currentNode.getEdges() != null && !currentNode.getEdges().isEmpty()) {
                     currentNode.setNextNodeId(currentNode.getEdges().get(0).getTargetNodeId());
                 }
