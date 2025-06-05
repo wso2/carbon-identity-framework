@@ -31,9 +31,10 @@ public class DataDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     private ActionDTO action;
     private String url;
-    private List<ComponentDTO> components = new ArrayList<>();
+    private List<ComponentDTO> components;
     private List<String> requiredParams;
     private Map<String, String> additionalData;
+    private Map<String, String> interactionData;
 
     public DataDTO() {
 
@@ -55,6 +56,9 @@ public class DataDTO implements Serializable {
 
     public void addComponent(ComponentDTO component) {
 
+        if (this.components == null) {
+            this.components = new ArrayList<>();
+        }
         this.components.add(component);
     }
 
@@ -96,12 +100,30 @@ public class DataDTO implements Serializable {
         this.additionalData.put(key, value);
     }
 
+    public Map<String, String> getInteractionData() {
+
+        return interactionData;
+    }
+
+    public void setInteractionData(Map<String, String> interactionData) {
+
+        this.interactionData = interactionData;
+    }
+
+    public void addInteractionData(String key, String value) {
+
+        if (this.interactionData == null) {
+            this.interactionData = new java.util.HashMap<>();
+        }
+        this.interactionData.put(key, value);
+    }
+
     /**
      * Builder class to build {@link DataDTO} objects.
      */
     public static class Builder {
 
-        private final List<ComponentDTO> components = new ArrayList<>();
+        private List<ComponentDTO> components;
         private ActionDTO action;
         private String url;
         private List<String> requiredParams;
@@ -109,9 +131,7 @@ public class DataDTO implements Serializable {
 
         public Builder components(List<ComponentDTO> components) {
 
-            if (components != null && !components.isEmpty()) {
-                this.components.addAll(components);
-            }
+            this.components = components;
             return this;
         }
 

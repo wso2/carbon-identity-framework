@@ -1391,7 +1391,7 @@
         <Scopes>internal_custom_authenticator_delete</Scopes>
     </Resource>
 
-    <!-- Registration execution API -->
+    <!-- Flow execution API -->
     <Resource context="(.*)/api/server/v1/registration/(.*)" secured="false" http-method="POST" />
 
     <!-- Registration flow management API -->
@@ -1401,6 +1401,9 @@
     <Resource context="(.*)/api/server/v1/registration-flow(.*)" secured="true" http-method="PUT">
         <Scopes>internal_registration_flow_update</Scopes>
     </Resource>
+
+    <!-- Flow execution API -->
+    <Resource context="(.*)/api/server/v1/flow/(.*)" secured="false" http-method="POST" />
 
     <!-- Flow management API -->
     <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">

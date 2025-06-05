@@ -60,6 +60,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CO
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
@@ -171,7 +172,16 @@ public class FlowMgtServiceTest {
 
                 {"redirectionStepWithInvalidNext",
                         createRedirectionStep("STEP_1", createExecutorAction("step_x")),
-                        ERROR_CODE_INVALID_NEXT_STEP.getCode()}
+                        ERROR_CODE_INVALID_NEXT_STEP.getCode()},
+
+                {"redirectionStepWithoutData",
+                        new StepDTO.Builder().id("STEP_1").type(INTERACT).build(),
+                        ERROR_CODE_STEP_DATA_NOT_FOUND.getCode()},
+
+                {"interactStepWithoutAction",
+                        new StepDTO.Builder().id("STEP_1").type(INTERACT)
+                                .data(new DataDTO.Builder().build()).build(),
+                        ERROR_CODE_ACTION_DATA_NOT_FOUND.getCode()},
         };
     }
 
