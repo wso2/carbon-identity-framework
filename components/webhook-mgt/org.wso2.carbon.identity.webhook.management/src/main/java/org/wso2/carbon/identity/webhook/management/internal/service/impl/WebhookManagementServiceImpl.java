@@ -139,9 +139,23 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         if (!existingWebhook.getEndpoint().equals(webhook.getEndpoint()) &&
                 daoFACADE.isWebhookEndpointExists(webhook.getEndpoint(), tenantId)) {
             throw WebhookManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_EXISTS);
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS, webhook.getEndpoint());
         }
-        daoFACADE.updateWebhook(webhook, tenantId);
+        Webhook webhookToUpdate = new Webhook.Builder()
+                .uuid(webhookId)
+                .endpoint(webhook.getEndpoint())
+                .name(webhook.getName())
+                .secret(webhook.getSecret() != null ? webhook.getSecret() : existingWebhook.getSecret())
+                .tenantId(tenantId)
+                .eventSchemaName(webhook.getEventSchemaName())
+                .eventSchemaUri(webhook.getEventSchemaUri())
+                .status(webhook.getStatus())
+                .createdAt(existingWebhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
+        doPreAddWebhookValidations(webhookToUpdate);
+        daoFACADE.updateWebhook(webhookToUpdate, tenantId);
         return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
@@ -219,6 +233,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_NAME_FIELD, webhook.getEventSchemaName());
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_URI_FIELD, webhook.getEventSchemaUri());
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.STATUS_FIELD, String.valueOf(webhook.getStatus()));
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.SECRET_FIELD, webhook.getSecret());
         WEBHOOK_VALIDATOR.validateWebhookName(webhook.getName());
         WEBHOOK_VALIDATOR.validateEndpointUri(webhook.getEndpoint());
         WEBHOOK_VALIDATOR.validateWebhookSecret(webhook.getSecret());

@@ -27,9 +27,7 @@ public enum ErrorMessage {
     // Continuation of client error codes can be found in the Webhook Management API layer as well.
     ERROR_CODE_WEBHOOK_NOT_FOUND("WEBHOOKMGT-60001", "Webhook not found",
             "The requested webhook could not be found in the system."),
-    ERROR_CODE_WEBHOOK_ALREADY_EXISTS("WEBHOOKMGT-60002", "Webhook endpoint already exists",
-            "A webhook with the given ID already exists in the system."),
-    ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS("WEBHOOKMGT-60003", "Webhook already exists",
+    ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS("WEBHOOKMGT-60003", "Webhook endpoint already exists",
             "A webhook with the given endpoint: %s already exists in the system."),
     ERROR_CODE_INVALID_REQUEST("WEBHOOKMGT-60004", "Invalid request",
             "The request is invalid. %s"),
@@ -59,7 +57,7 @@ public enum ErrorMessage {
             "An internal server error occurred while retrieving the webhook: %s."),
     ERROR_CODE_WEBHOOK_LIST_ERROR("WEBHOOKMGT-65005", "Error occurred while listing webhooks",
             "An internal server error occurred while listing webhooks for tenant: %s."),
-    ERROR_CODE_WEBHOOK_ENDPOINT_LIST_ERROR("WEBHOOKMGT-65006", "Error occurred while listing webhooks endpoints",
+    ERROR_CODE_WEBHOOK_ENDPOINT_LIST_ERROR("WEBHOOKMGT-65006", "Error occurred while listing webhook endpoints",
             "An internal server error occurred while listing webhook endpoints for tenant: %s."),
     ERROR_CODE_WEBHOOK_ENDPOINT_GET_ERROR("WEBHOOKMGT-65007", "Error occurred while retrieving webhook endpoint",
             "An internal server error occurred while retrieving the webhook endpoint: %s."),
@@ -80,7 +78,10 @@ public enum ErrorMessage {
     ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR("WEBHOOKMGT-65015", "Webhook unsubscription error",
             "An error occurred while unsubscribing from the webhook: %s."),
     ERROR_CODE_WEBHOOK_SUBSCRIBERS_NOT_FOUND("WEBHOOKMGT-65016", "Webhook subscribers not found",
-            "No webhook subscribers found in the system for tenant: %s.");
+            "No webhook subscribers found in the system for tenant: %s."),
+    ERROR_CODE_WEBHOOK_ENDPOINT_EXISTENCE_CHECK_ERROR("WEBHOOKMGT-65017",
+            "Error occurred while checking webhook endpoint existence",
+            "An internal server error occurred while checking the existence of the webhook endpoint: %s.");
 
     private final String code;
     private final String message;

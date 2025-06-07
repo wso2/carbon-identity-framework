@@ -157,19 +157,12 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 // Get the existing webhook
                 Webhook existingWebhook = webhookManagementDAO.getWebhook(webhook.getUuid(), tenantId);
 
-                // If endpoint is being changed, check if the new endpoint already exists
-                if (!existingWebhook.getEndpoint().equals(webhook.getEndpoint()) &&
-                        isWebhookEndpointExists(webhook.getEndpoint(), tenantId)) {
-                    throw WebhookManagementExceptionHandler.handleClientException(
-                            ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_EXISTS);
-                }
-
                 // First unsubscribe the existing webhook
                 try {
                     subscriberService.unsubscribe(existingWebhook, tenantDomain);
                 } catch (WebhookMgtException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, webhook.getUuid());
+                            ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, e, webhook.getUuid());
                 }
 
                 // Then try to subscribe with the updated webhook
@@ -196,7 +189,8 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         } catch (TransactionException e) {
             LOG.debug("Error updating webhook: " + webhook.getUuid() +
                     " in tenant ID: " + tenantId, e);
-            throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR);
+            throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR,
+                    e);
         }
     }
 
@@ -234,7 +228,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         } catch (TransactionException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR);
+                    ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR, e);
         }
     }
 
