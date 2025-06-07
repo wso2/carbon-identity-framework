@@ -64,7 +64,7 @@ public class EventSubscriberService {
                 }
             } catch (WebhookMgtException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIPTION_ERROR, webhook.getUuid());
+                        ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIPTION_ERROR, e, webhook.getUuid());
             }
         }
     }
@@ -95,7 +95,7 @@ public class EventSubscriberService {
                 }
             } catch (WebhookMgtException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, webhook.getUuid());
+                        ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, e, webhook.getUuid());
             }
         }
     }
