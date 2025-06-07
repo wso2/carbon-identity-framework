@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.UserSession
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
@@ -44,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -70,6 +73,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.publishUserSessionTerminateEvent;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER;
@@ -107,10 +111,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     /**
      * Retrieves the unique user id of the given username.
      *
-     * @param tenantId          id of the tenant domain of the user
-     * @param userStoreDomain   userstore of the user
-     * @param username          username
-     * @return                  unique user id of the user
+     * @param tenantId        id of the tenant domain of the user
+     * @param userStoreDomain userstore of the user
+     * @param username        username
+     * @return unique user id of the user
      * @throws UserSessionException
      */
     private String resolveUserIdFromUsername(int tenantId, String userStoreDomain, String username) throws
@@ -145,7 +149,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     /**
      * Retrieves the username of the given userId.
      *
-     * @param userId Id of the user.
+     * @param userId   Id of the user.
      * @param tenantId Id of the tenant domain of the user.
      * @return username.
      * @throws UserSessionException
@@ -319,11 +323,48 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Terminating all the active sessions of user: " + userId + ".");
             }
         }
+
+        // Publish the event for user session termination.
+        List<UserSession> userSessions = getSessionsByUserId(userId);
+        publishUserSessionTerminateEventByUserId(userId, userSessions, true);
+
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
         }
         return true;
+    }
+
+    private void publishUserSessionTerminateEventByUser(User user, boolean isBulkTerminate) {
+
+        try {
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
+            List<UserSession> userSessions = getSessionsByUserId(authenticatedUser.getUserId());
+
+            publishUserSessionTerminateEvent(authenticatedUser, userSessions, isBulkTerminate);
+        } catch (UserIdNotFoundException | SessionManagementException | IdentityEventException e) {
+            log.error("Error while publishing user session termination event for user: " +
+                    user.getLoggableMaskedUserId(), e);
+        }
+    }
+
+    private void publishUserSessionTerminateEventByUserId(String userId, List<UserSession> userSessions,
+                                                          boolean isBulkTerminate) {
+
+        try {
+
+            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+            User user = User.getUserFromUserName(getUsernameFromUserId(userId, tenantId)
+                    .concat("@" + tenantDomain));
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
+
+            publishUserSessionTerminateEvent(authenticatedUser, userSessions, isBulkTerminate);
+
+        } catch (UserSessionException | IdentityEventException e) {
+            log.error("Error while publishing user session termination event for userId: " + userId, e);
+        }
     }
 
     @Override
@@ -337,7 +378,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_SESSION, null);
         }
         if (log.isDebugEnabled()) {
-            log.debug("Retrieving session: " + sessionId + " of user: " + userId + ".");
+            log.debug("Retrieving the session.");
         }
 
         Optional<UserSession> userSession;
@@ -409,10 +450,17 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
 
         if (isUserSessionMappingExist(userIdToSearch, sessionId)) {
+
+            // publish user session termination event
+            Optional<UserSession> userSession = getSessionBySessionId(userId, sessionId);
+            List<UserSession> userSessions = new ArrayList<>();
+            userSession.ifPresent(userSessions::add);
+            publishUserSessionTerminateEventByUserId(userId, userSessions, false);
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
             sessionManagementService.removeSession(sessionId);
+
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -420,6 +468,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } else {
             throw handleSessionManagementClientException(ERROR_CODE_FORBIDDEN_ACTION, userId);
         }
+
     }
 
     @Override
@@ -479,6 +528,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             log.debug("Terminating all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
+        // Publish the event for user session termination.
+        publishUserSessionTerminateEventByUser(user, true);
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -502,6 +553,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
+            // publish user session termination event
+            publishUserSessionTerminateEventByUser(user, false);
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
@@ -578,8 +631,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * Returns the active sessions from given list of session IDs.
      *
      * @param sessionIdList list of sessionIds.
-     * @param idpId Id of the authenticated idp.
-     * @param idpName Name of the authenticated idp.
+     * @param idpId         Id of the authenticated idp.
+     * @param idpName       Name of the authenticated idp.
      * @return list of user sessions.
      * @throws SessionManagementServerException if an error occurs when retrieving the UserSessions.
      */
@@ -670,7 +723,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         ApplicationManagementService applicationManager =
                 FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
-        for (Application app: userSession.getApplications()) {
+        for (Application app : userSession.getApplications()) {
             ServiceProvider serviceProvider = applicationManager
                     .getServiceProvider(Integer.parseInt(app.getAppId()));
             if (serviceProvider == null) {
@@ -678,7 +731,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
             boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
                     .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
-                    Boolean.parseBoolean(property.getValue()));
+                            Boolean.parseBoolean(property.getValue()));
             if (!isFragmentApp) {
                 return false;
             }
@@ -701,7 +754,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         ApplicationManagementService applicationManager =
                 FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
-        for (Application app: userSession.getApplications()) {
+        for (Application app : userSession.getApplications()) {
             ServiceProvider serviceProvider = applicationManager
                     .getServiceProvider(Integer.parseInt(app.getAppId()));
             if (serviceProvider == null) {
@@ -784,7 +837,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * internal userId stored in IDN_AUTH_USER table.
      *
      * @param tenantId Tenant Id.
-     * @param userId User Id.
+     * @param userId   User Id.
      * @return A map keyed by AuthSessionUserKeys.
      */
     private Map<SessionMgtConstants.AuthSessionUserKeys, String> getAuthSessionUserMapFromFedAssociationMapping(
@@ -860,7 +913,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      *
      * @param tenantDomain Tenant domain of the user.
      * @param userSessions List of user sessions containing idpId.
-     * @param userId Optional userId. If passed, will be set to each session if userId is not found.
+     * @param userId       Optional userId. If passed, will be set to each session if userId is not found.
      * @throws UserSessionException Exception is thrown if any error occurred.
      */
     private void parseIdpInfoToSessionsResponse(String tenantDomain, List<UserSession> userSessions, String userId)
