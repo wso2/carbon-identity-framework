@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.CachedBackedConf
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -81,15 +83,15 @@ public class ConfigurationManagerComponent {
             bundleContext.registerService(ConfigurationDAO.class.getName(),
                     new CachedBackedConfigurationDAO(configurationDAO), null);
 
+            ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled
+                    (isConfigurationManagementEnabled());
+            setUseCreatedTime();
             ConfigurationManagerConfigurationHolder configurationManagerConfigurationHolder =
                     new ConfigurationManagerConfigurationHolder();
             configurationManagerConfigurationHolder.setConfigurationDAOS(configurationDAOs);
 
             bundleContext.registerService(ConfigurationManager.class.getName(),
                     new ConfigurationManagerImpl(configurationManagerConfigurationHolder), null);
-            ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled
-                    (isConfigurationManagementEnabled());
-            setUseCreatedTime();
         } catch (Throwable e) {
             log.error("Error while activating ConfigurationManagerComponent.", e);
         }
@@ -164,6 +166,40 @@ public class ConfigurationManagerComponent {
             log.debug("Unsetting the Realm Service");
         }
         ConfigurationManagerComponentDataHolder.getInstance().setRealmService(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        ConfigurationManagerComponentDataHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        ConfigurationManagerComponentDataHolder.getInstance().setOrganizationManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service",
+            service = OrgResourceResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrgResourceResolverService"
+    )
+    protected void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
+    }
+
+    protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(null);
     }
 
     private void setUseCreatedTime() throws DataAccessException {

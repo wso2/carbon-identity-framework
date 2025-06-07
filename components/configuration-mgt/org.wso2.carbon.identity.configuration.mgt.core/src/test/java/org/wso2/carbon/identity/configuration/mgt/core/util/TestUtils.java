@@ -19,8 +19,10 @@ package org.wso2.carbon.identity.configuration.mgt.core.util;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
@@ -43,6 +45,7 @@ import static org.mockito.Mockito.spy;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_KEY;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME3;
@@ -119,6 +122,14 @@ public class TestUtils {
 
         ResourceTypeAdd resourceTypeAdd = new ResourceTypeAdd();
         resourceTypeAdd.setName(SAMPLE_RESOURCE_TYPE_NAME2);
+        resourceTypeAdd.setDescription(SAMPLE_RESOURCE_TYPE_DESCRIPTION);
+        return resourceTypeAdd;
+    }
+
+    public static ResourceTypeAdd getInheritableSampleResourceTypeAdd() {
+
+        ResourceTypeAdd resourceTypeAdd = new ResourceTypeAdd();
+        resourceTypeAdd.setName(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME);
         resourceTypeAdd.setDescription(SAMPLE_RESOURCE_TYPE_DESCRIPTION);
         return resourceTypeAdd;
     }
