@@ -59,6 +59,8 @@ public class Flow {
         FLOW_DEFINITIONS.put(Name.SESSION_REVOKE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
                         InitiatingPersona.SYSTEM));
+        FLOW_DEFINITIONS.put(Name.USER_SELF_REGISTER, EnumSet.of(InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.REGISTER_WITH_PASSWORD, EnumSet.of(InitiatingPersona.ADMIN));
     }
 
     /**
@@ -79,7 +81,9 @@ public class Flow {
         ACCOUNT_LOCK,
         ACCOUNT_UNLOCK,
         ACCOUNT_DISABLE,
-        SESSION_REVOKE
+        SESSION_REVOKE,
+        USER_SELF_REGISTER,
+        REGISTER_WITH_PASSWORD
     }
 
     /**
