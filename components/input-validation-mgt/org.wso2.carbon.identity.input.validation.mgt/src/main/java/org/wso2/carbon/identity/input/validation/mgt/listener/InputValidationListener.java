@@ -97,7 +97,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
             return true;
         }
 
-        // skip password validation during on-demand password migration
+        // Skips password validation if the relevant thread local flag is set.
         if (UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
             return validate(Collections.emptyMap(), userStoreManager);
         }
