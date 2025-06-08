@@ -330,7 +330,16 @@ public class IdentityEventConstants {
         SESSION_EXPIRE,
         SESSION_EXTEND,
         VERIFICATION,
-        USER_SESSION_TERMINATE
+        USER_SESSION_TERMINATE,
+        POST_ADD_NEW_PASSWORD,
+        POST_UPDATE_CREDENTIAL_BY_SCIM,
+        POST_ADD_USER,
+        POST_SELF_SIGNUP_CONFIRM,
+        POST_UPDATE_USER_LIST_OF_ROLE,
+        PRE_DELETE_USER_WITH_ID,
+        POST_DELETE_USER,
+        POST_UNLOCK_ACCOUNT,
+        POST_LOCK_ACCOUNT
     }
 
     public class EventProperty {
