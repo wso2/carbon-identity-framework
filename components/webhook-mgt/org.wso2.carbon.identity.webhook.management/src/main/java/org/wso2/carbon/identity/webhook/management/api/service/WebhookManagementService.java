@@ -103,7 +103,7 @@ public interface WebhookManagementService {
      *
      * @param webhookId    Webhook subscription ID.
      * @param tenantDomain Tenant domain.
-     * @return Activated webhook subscription.
+     * @return Deactivated webhook subscription.
      * @throws WebhookMgtException If an error occurs while disabling the webhook.
      */
     public Webhook deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;

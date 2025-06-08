@@ -109,7 +109,7 @@ public interface WebhookManagementDAO {
      *
      * @param webhookId Webhook subscription ID.
      * @param tenantId  Tenant ID.
-     * @return Activated webhook subscription.
+     * @return Deactivated webhook subscription.
      * @throws WebhookMgtException If an error occurs while disabling the webhook.
      */
     public Webhook deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
