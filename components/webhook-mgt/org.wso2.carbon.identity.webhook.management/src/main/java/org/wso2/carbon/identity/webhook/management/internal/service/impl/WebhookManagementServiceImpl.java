@@ -184,7 +184,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
     }
 
     @Override
-    public void activateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
+    public Webhook activateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Activating webhook with ID: %s for tenant: %s",
@@ -195,11 +195,11 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        daoFACADE.activateWebhook(webhookId, tenantId);
+        return daoFACADE.activateWebhook(webhookId, tenantId);
     }
 
     @Override
-    public void deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
+    public Webhook deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Deactivating webhook with ID: %s for tenant: %s",
@@ -210,7 +210,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        daoFACADE.deactivateWebhook(webhookId, tenantId);
+        return daoFACADE.deactivateWebhook(webhookId, tenantId);
     }
 
     private boolean isWebhookExists(String webhookId, int tenantId) throws WebhookMgtException {

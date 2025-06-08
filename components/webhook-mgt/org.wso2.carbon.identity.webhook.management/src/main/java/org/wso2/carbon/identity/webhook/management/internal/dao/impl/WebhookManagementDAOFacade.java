@@ -251,12 +251,13 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
      *
      * @param webhookId Webhook subscription ID.
      * @param tenantId  Tenant ID.
+     * @return Activated webhook subscription.
      * @throws WebhookMgtException If an error occurs while enabling the webhook.
      */
     @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public Webhook activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
-        toggleWebhookStatus(webhookId, tenantId, true);
+        return toggleWebhookStatus(webhookId, tenantId, true);
     }
 
     /**
@@ -264,15 +265,16 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
      *
      * @param webhookId Webhook subscription ID.
      * @param tenantId  Tenant ID.
+     * @return Activated webhook subscription.
      * @throws WebhookMgtException If an error occurs while disabling the webhook.
      */
     @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public Webhook deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
-        toggleWebhookStatus(webhookId, tenantId, false);
+        return toggleWebhookStatus(webhookId, tenantId, false);
     }
 
-    private void toggleWebhookStatus(String webhookId, int tenantId, boolean activate) throws WebhookMgtException {
+    private Webhook toggleWebhookStatus(String webhookId, int tenantId, boolean activate) throws WebhookMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         EventSubscriberService subscriberService =
@@ -280,16 +282,15 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
 
         try {
-            jdbcTemplate.withTransaction(template -> {
+            return jdbcTemplate.withTransaction(template -> {
                 Webhook existingWebhook = webhookManagementDAO.getWebhook(webhookId, tenantId);
                 if (activate) {
                     subscriberService.subscribe(existingWebhook, tenantDomain);
-                    webhookManagementDAO.activateWebhook(webhookId, tenantId);
+                    return webhookManagementDAO.activateWebhook(webhookId, tenantId);
                 } else {
                     subscriberService.unsubscribe(existingWebhook, tenantDomain);
-                    webhookManagementDAO.deactivateWebhook(webhookId, tenantId);
+                    return webhookManagementDAO.deactivateWebhook(webhookId, tenantId);
                 }
-                return null;
             });
         } catch (TransactionException e) {
             String operation = activate ? "activating" : "deactivating";
