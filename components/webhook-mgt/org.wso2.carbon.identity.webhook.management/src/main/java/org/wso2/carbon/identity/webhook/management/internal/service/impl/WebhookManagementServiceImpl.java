@@ -167,11 +167,9 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     webhookId, tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (!isWebhookExists(webhookId, tenantId)) {
-            throw WebhookManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
+        if (isWebhookExists(webhookId, tenantId)) {
+            daoFACADE.deleteWebhook(webhookId, tenantId);
         }
-        daoFACADE.deleteWebhook(webhookId, tenantId);
     }
 
     @Override
