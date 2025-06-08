@@ -93,16 +93,18 @@ public interface WebhookManagementService {
      *
      * @param webhookId    Webhook subscription ID.
      * @param tenantDomain Tenant domain.
+     * @return Activated webhook subscription.
      * @throws WebhookMgtException If an error occurs while enabling the webhook.
      */
-    public void activateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+    public Webhook activateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Disable a webhook subscription.
      *
      * @param webhookId    Webhook subscription ID.
      * @param tenantDomain Tenant domain.
+     * @return Deactivated webhook subscription.
      * @throws WebhookMgtException If an error occurs while disabling the webhook.
      */
-    public void deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+    public Webhook deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
 }
