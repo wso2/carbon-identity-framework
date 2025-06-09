@@ -35,22 +35,24 @@ import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
+import java.util.Map;
+
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INTERACTION_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REQUIRED_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.INTERACTION_DATA;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_PROMPT_ONLY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.WEBAUTHN_DATA;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 
 /**
  * Engine to execute the  flow.
@@ -106,20 +108,20 @@ public class FlowExecutionEngine {
             }
             if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
                     REDIRECTION.equals(nodeResponse.getType())) {
-                return resolveStepDetailsForRedirection(context, nodeResponse);
+                return resolveStepForRedirection(context, nodeResponse);
             }
 
             if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
-                    INTERACT.equals(nodeResponse.getType())) {
-                return resolveStepDetailsForInteraction(context, nodeResponse);
+                    WEBAUTHN.equals(nodeResponse.getType())) {
+                return resolveStepForWebAuthn(context, nodeResponse);
             }
 
             if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
                     INTERNAL_PROMPT.equals(nodeResponse.getType())) {
-                return resolveStepDetailsForProvide(context, nodeResponse);
+                return resolveStepForInternalPrompt(context, nodeResponse);
             }
 
-            FlowExecutionStep step = resolveStepDetailsForPrompt(graph, currentNode, context, nodeResponse);
+            FlowExecutionStep step = resolveStepForPrompt(graph, currentNode, context, nodeResponse);
             if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) && VIEW.equals(nodeResponse.getType())) {
                 return step;
             }
@@ -184,8 +186,8 @@ public class FlowExecutionEngine {
         }
     }
 
-    private FlowExecutionStep resolveStepDetailsForPrompt(GraphConfig graph, NodeConfig currentNode,
-                                                          FlowExecutionContext context, NodeResponse nodeResponse) {
+    private FlowExecutionStep resolveStepForPrompt(GraphConfig graph, NodeConfig currentNode,
+                                                   FlowExecutionContext context, NodeResponse nodeResponse) {
 
         DataDTO dataDTO = graph.getNodePageMappings().get(currentNode.getId()).getData();
         handleError(dataDTO, nodeResponse);
@@ -197,7 +199,7 @@ public class FlowExecutionEngine {
                 .build();
     }
 
-    private FlowExecutionStep resolveStepDetailsForRedirection(FlowExecutionContext context, NodeResponse nodeResponse)
+    private FlowExecutionStep resolveStepForRedirection(FlowExecutionContext context, NodeResponse nodeResponse)
             throws FlowEngineServerException {
 
         if (nodeResponse.getAdditionalInfo() == null || nodeResponse.getAdditionalInfo().isEmpty() ||
@@ -218,25 +220,29 @@ public class FlowExecutionEngine {
                 .build();
     }
 
-    private FlowExecutionStep resolveStepDetailsForInteraction(FlowExecutionContext context, NodeResponse nodeResponse)
+    private FlowExecutionStep resolveStepForWebAuthn(FlowExecutionContext context, NodeResponse nodeResponse)
             throws FlowEngineServerException {
 
         if (nodeResponse.getAdditionalInfo() == null || nodeResponse.getAdditionalInfo().isEmpty() ||
-                !nodeResponse.getAdditionalInfo().containsKey(INTERACTION_DATA)) {
-            throw handleServerException(ERROR_CODE_INTERACTION_DATA_NOT_FOUND);
+                !nodeResponse.getAdditionalInfo().containsKey(WEBAUTHN_DATA)) {
+            throw handleServerException(ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND);
         }
+
+        Map<String, Object> webAuthnData = FlowExecutionEngineUtils.getMapFromJSONString(nodeResponse
+                .getAdditionalInfo().get(WEBAUTHN_DATA));
+
         return new FlowExecutionStep.Builder()
                 .flowId(context.getContextIdentifier())
                 .flowStatus(STATUS_INCOMPLETE)
-                .stepType(INTERACT)
+                .stepType(WEBAUTHN)
                 .data(new DataDTO.Builder()
-                        .additionalData(nodeResponse.getAdditionalInfo())
+                        .webAuthnData(webAuthnData)
                         .requiredParams(nodeResponse.getRequiredData())
                         .build())
                 .build();
     }
 
-    private FlowExecutionStep resolveStepDetailsForProvide(FlowExecutionContext context, NodeResponse nodeResponse)
+    private FlowExecutionStep resolveStepForInternalPrompt(FlowExecutionContext context, NodeResponse nodeResponse)
             throws FlowEngineServerException {
 
         if (nodeResponse.getRequiredData() == null || nodeResponse.getRequiredData().isEmpty()) {

@@ -37,7 +37,7 @@ public class Constants {
     public static final String IDENTIFIER = "identifier";
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
-    public static final String INTERACTION_DATA = "interactionData";
+    public static final String WEBAUTHN_DATA = "webAuthnData";
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
     public static final String DEFAULT_REGISTRATION_CALLBACK = "/authenticationendpoint/register.do";
@@ -114,12 +114,15 @@ public class Constants {
                 "Error while resolving default callback URL.",
                 "Error occurred while resolving the default callback URL for the " +
                         "%s request in tenant: %s."),
-        ERROR_CODE_INTERACTION_DATA_NOT_FOUND("65018",
-                "Interaction data not found.",
-                "Error occurred while resolving interaction data."),
+        ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND("65018",
+                "WebAuthn data not found.",
+                "Error occurred while resolving WebAuthn data."),
         ERROR_CODE_REQUIRED_DATA_NOT_FOUND("65019",
                 "Required data not found.",
                 "Error occurred while resolving required data."),
+        ERROR_CODE_NODE_RESPONSE_PROCESSING_FAILURE("65020",
+                "Error while processing node response.",
+                "Error occurred while processing the node response."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",

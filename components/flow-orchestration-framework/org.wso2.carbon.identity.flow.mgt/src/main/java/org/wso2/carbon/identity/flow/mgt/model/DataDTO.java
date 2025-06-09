@@ -30,11 +30,11 @@ public class DataDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private ActionDTO action;
-    private String url;
+    private String redirectURL;
     private List<ComponentDTO> components;
     private List<String> requiredParams;
     private Map<String, String> additionalData;
-    private Map<String, String> interactionData;
+    private Map<String, Object> webAuthnData;
 
     public DataDTO() {
 
@@ -44,9 +44,10 @@ public class DataDTO implements Serializable {
 
         this.components = builder.components;
         this.action = builder.action;
-        this.url = builder.url;
+        this.redirectURL = builder.redirectURL;
         this.requiredParams = builder.requiredParams;
         this.additionalData = builder.additionalData;
+        this.webAuthnData = builder.webAuthnData;
     }
 
     public List<ComponentDTO> getComponents() {
@@ -72,14 +73,14 @@ public class DataDTO implements Serializable {
         this.action = action;
     }
 
-    public String getUrl() {
+    public String getRedirectURL() {
 
-        return url;
+        return redirectURL;
     }
 
-    public void setUrl(String url) {
+    public void setRedirectURL(String redirectURL) {
 
-        this.url = url;
+        this.redirectURL = redirectURL;
     }
 
     public List<String> getRequiredParams() {
@@ -100,22 +101,9 @@ public class DataDTO implements Serializable {
         this.additionalData.put(key, value);
     }
 
-    public Map<String, String> getInteractionData() {
+    public Map<String, Object> getWebAuthnData() {
 
-        return interactionData;
-    }
-
-    public void setInteractionData(Map<String, String> interactionData) {
-
-        this.interactionData = interactionData;
-    }
-
-    public void addInteractionData(String key, String value) {
-
-        if (this.interactionData == null) {
-            this.interactionData = new java.util.HashMap<>();
-        }
-        this.interactionData.put(key, value);
+        return webAuthnData;
     }
 
     /**
@@ -125,9 +113,10 @@ public class DataDTO implements Serializable {
 
         private List<ComponentDTO> components;
         private ActionDTO action;
-        private String url;
+        private String redirectURL;
         private List<String> requiredParams;
         private Map<String, String> additionalData;
+        private Map<String, Object> webAuthnData;
 
         public Builder components(List<ComponentDTO> components) {
 
@@ -143,7 +132,7 @@ public class DataDTO implements Serializable {
 
         public Builder url(String url) {
 
-            this.url = url;
+            this.redirectURL = url;
             return this;
         }
 
@@ -156,6 +145,12 @@ public class DataDTO implements Serializable {
         public Builder additionalData(Map<String, String> additionalData) {
 
             this.additionalData = additionalData;
+            return this;
+        }
+
+        public Builder webAuthnData(Map<String, Object> webAuthnData) {
+
+            this.webAuthnData = webAuthnData;
             return this;
         }
 

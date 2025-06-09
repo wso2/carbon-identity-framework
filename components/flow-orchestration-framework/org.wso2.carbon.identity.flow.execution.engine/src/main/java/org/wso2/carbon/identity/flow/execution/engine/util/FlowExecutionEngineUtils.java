@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -44,6 +47,7 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
@@ -62,6 +66,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 public class FlowExecutionEngineUtils {
 
     private static final Log LOG = LogFactory.getLog(FlowExecutionEngineUtils.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Add flow context to cache.
@@ -334,5 +339,15 @@ public class FlowExecutionEngineUtils {
             throw handleServerException(ERROR_CODE_GET_APP_CONFIG_FAILURE, e, appName, tenantDomain);
         }
         return null;
+    }
+
+    public static Map<String, Object> getMapFromJSONString(String json) throws FlowEngineServerException {
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+        } catch (JsonProcessingException e) {
+            throw handleServerException(
+                    ErrorMessages.ERROR_CODE_NODE_RESPONSE_PROCESSING_FAILURE, e,
+                    "JSON String to Map conversion failed.");
+        }
     }
 }

@@ -37,7 +37,7 @@ public class Constants {
     public static final String IDENTIFIER = "identifier";
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
-    public static final String INTERACTION_DATA = "interactionData";
+    public static final String WEBAUTHN_DATA = "webAuthnData";
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
     public static final String DEFAULT_REGISTRATION_CALLBACK = "/authenticationendpoint/register.do";
@@ -63,7 +63,7 @@ public class Constants {
 
         public static final String STATUS_USER_INPUT_REQUIRED = "USER_INPUT_REQUIRED";
         public static final String STATUS_EXTERNAL_REDIRECTION = "EXTERNAL_REDIRECTION";
-        public static final String STATUS_INTERACTION = "INTERACTION";
+        public static final String STATUS_WEBAUTHN = "PROMPT_WEBAUTHN";
         public static final String STATUS_USER_CREATED = "USER_CREATED";
         public static final String STATUS_COMPLETE = "COMPLETE";
         public static final String STATUS_RETRY = "RETRY";
@@ -141,9 +141,9 @@ public class Constants {
                                                     "Error while resolving default callback URL.",
                                                     "Error occurred while resolving the default callback URL for the " +
                                                             "registration request in tenant: %s."),
-        ERROR_CODE_INTERACTION_DATA_NOT_FOUND("65018",
-                "Interaction data not found.",
-                "Error occurred while resolving interaction data."),
+        ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND("65018",
+                "WebAuthn data not found.",
+                "Error occurred while resolving webAuthn data."),
         ERROR_CODE_REQUIRED_DATA_NOT_FOUND("65019",
                 "Required data not found.",
                 "Error occurred while resolving required data."),

@@ -75,9 +75,9 @@ public class Constants {
         ERROR_CODE_INVALID_NEXT_STEP("600009", "Invalid next step configuration.", "Cannot resolve a step for the " +
                 "next id, %s."),
         ERROR_CODE_ACTION_DATA_NOT_FOUND("60010", "Action data not found.",
-                "The step, %s of type redirection must have action defined"),
+                "The step, %s of type %s must have action defined"),
         ERROR_CODE_INVALID_ACTION_TYPE("60011", "Invalid action type.",
-                "The action type, %s is not supported for step, %s of type redirection."),
+                "The action type, %s is not supported for step, %s of type %s."),
         ERROR_CODE_INVALID_FIRST_NODE("60012", "Invalid first node.",
                 "Invalid first node configuration: either no first node is defined or multiple " +
                         "first nodes are present.")
@@ -138,8 +138,8 @@ public class Constants {
 
         public static final String VIEW = "VIEW";
         public static final String REDIRECTION = "REDIRECTION";
-        public static final String INTERACT = "INTERACT";
         public static final String INTERNAL_PROMPT = "INTERNAL_PROMPT";
+        public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
 
         private StepTypes() {

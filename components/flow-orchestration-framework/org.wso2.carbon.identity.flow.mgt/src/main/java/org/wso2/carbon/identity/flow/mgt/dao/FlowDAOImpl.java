@@ -46,8 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERACT;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;

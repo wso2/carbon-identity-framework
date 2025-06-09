@@ -51,7 +51,7 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorM
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_CLIENT_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_ERROR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_INTERACTION;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_WEBAUTHN;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
@@ -61,7 +61,7 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.WEBAUTHN;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
@@ -162,17 +162,17 @@ public class TaskExecutionNode implements Node {
                         .requiredData(response.getRequiredData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
-            case STATUS_INTERACTION:
-                return new Response.Builder()
-                        .status(STATUS_INCOMPLETE)
-                        .type(INTERACT)
-                        .requiredData(response.getRequiredData())
-                        .additionalInfo(response.getAdditionalInfo())
-                        .build();
             case STATUS_EXTERNAL_REDIRECTION:
                 return new Response.Builder()
                         .status(STATUS_INCOMPLETE)
                         .type(REDIRECTION)
+                        .requiredData(response.getRequiredData())
+                        .additionalInfo(response.getAdditionalInfo())
+                        .build();
+            case STATUS_WEBAUTHN:
+                return new Response.Builder()
+                        .status(STATUS_INCOMPLETE)
+                        .type(WEBAUTHN)
                         .requiredData(response.getRequiredData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
