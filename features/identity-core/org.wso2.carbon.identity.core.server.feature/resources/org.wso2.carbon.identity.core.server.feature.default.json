@@ -1819,6 +1819,8 @@
 
   "notification_templates.sms_templates.apply": true,
 
-  "attribute.return_previous_additional_properties.enabled": false
+  "attribute.return_previous_additional_properties.enabled": false,
+
+  "organization_discovery.default_param": "orgHandle"
 }
 
