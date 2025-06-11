@@ -1,0 +1,10 @@
+name: Trigger on PR Open
+on:
+  pull_request:
+    types: [opened]
+jobs:
+  example_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Example step
+        run: echo "Pull request opened!"
