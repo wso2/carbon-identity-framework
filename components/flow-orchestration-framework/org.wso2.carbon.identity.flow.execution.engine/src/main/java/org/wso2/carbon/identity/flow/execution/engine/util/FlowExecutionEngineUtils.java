@@ -30,8 +30,6 @@ import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
@@ -51,12 +49,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
 
@@ -149,11 +145,7 @@ public class FlowExecutionEngineUtils {
             context.setContextIdentifier(UUID.randomUUID().toString());
             context.setApplicationId(applicationId);
             context.setFlowType(flowType);
-            context.setCallbackUrl(ServiceURLBuilder.create().addPath(DEFAULT_REGISTRATION_CALLBACK).build()
-                    .getAbsolutePublicURL());
             return context;
-        } catch (URLBuilderException e) {
-            throw handleServerException(ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE, flowType, tenantDomain);
         } catch (IdentityRuntimeException e) {
             throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         } catch (FlowMgtFrameworkException e) {

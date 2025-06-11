@@ -242,4 +242,14 @@ public class FlowExecutionContext implements Serializable {
 
         this.flowType = flowType;
     }
+
+    public String getPortalUrl() {
+
+        return portalUrl;
+    }
+
+    public void setPortalUrl(String portalUrl) {
+
+        this.portalUrl = portalUrl;
+    }
 }

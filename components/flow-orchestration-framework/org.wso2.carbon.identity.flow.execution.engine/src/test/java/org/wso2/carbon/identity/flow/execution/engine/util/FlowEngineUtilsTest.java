@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
-import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
@@ -55,7 +54,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.AssertJUnit.fail;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_PORTAL_URL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
@@ -100,7 +99,7 @@ public class FlowEngineUtilsTest {
         ServiceURL serviceURL = mock(ServiceURL.class);
         serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
         serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(DEFAULT_REGISTRATION_CALLBACK)).thenReturn(serviceURLBuilder);
+        when(serviceURLBuilder.addPath(DEFAULT_REGISTRATION_PORTAL_URL)).thenReturn(serviceURLBuilder);
         when(serviceURLBuilder.build()).thenReturn(serviceURL);
         when(serviceURL.getAbsolutePublicURL()).thenReturn(DEFAULT_MY_ACCOUNT_URL);
     }

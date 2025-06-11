@@ -51,7 +51,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_PORTAL_URL;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
@@ -82,7 +82,7 @@ public class FlowServiceTest {
         ServiceURL serviceURL = mock(ServiceURL.class);
         serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
         serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(DEFAULT_REGISTRATION_CALLBACK)).thenReturn(serviceURLBuilder);
+        when(serviceURLBuilder.addPath(DEFAULT_REGISTRATION_PORTAL_URL)).thenReturn(serviceURLBuilder);
         when(serviceURLBuilder.build()).thenReturn(serviceURL);
         when(serviceURL.getAbsolutePublicURL()).thenReturn(DEFAULT_MY_ACCOUNT_URL);
     }
