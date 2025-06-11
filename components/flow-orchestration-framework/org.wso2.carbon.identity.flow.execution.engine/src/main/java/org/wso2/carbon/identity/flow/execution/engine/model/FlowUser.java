@@ -33,6 +33,7 @@ public class FlowUser implements Serializable {
     private final Map<String, String> claims = new HashMap<>();
     private final Map<String, char[]> userCredentials = new HashMap<>();
     private String username;
+    private String userId;
 
     public String getUsername() {
 
@@ -76,5 +77,15 @@ public class FlowUser implements Serializable {
     public void setUserCredentials(Map<String, char[]> credentials) {
 
         this.userCredentials.putAll(credentials);
+    }
+
+    public String getUserId() {
+
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+
+        this.userId = userId;
     }
 }

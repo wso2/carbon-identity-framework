@@ -102,7 +102,7 @@ public class UserOnboardingExecutor implements Executor {
             userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
                     String.valueOf(password), null, userClaims, null);
             String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
-            context.setUserId(userid);
+            context.getFlowUser().setUserId(userid);
             return new ExecutorResponse(STATUS_USER_CREATED);
         } catch (UserStoreException e) {
             if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
