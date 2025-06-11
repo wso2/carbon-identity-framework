@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.mgt.dao;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -365,6 +366,7 @@ public class FlowDAOImpl implements FlowDAO {
                 stepDTO.setData(new DataDTO.Builder().build());
                 return;
             }
+            OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             DataDTO dataDTO = OBJECT_MAPPER.readValue(pageContent, DataDTO.class);
             if (dataDTO != null) {
                 stepDTO.setData(dataDTO);
