@@ -1220,6 +1220,7 @@
     "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [],
+  "console.ui.hidden_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
