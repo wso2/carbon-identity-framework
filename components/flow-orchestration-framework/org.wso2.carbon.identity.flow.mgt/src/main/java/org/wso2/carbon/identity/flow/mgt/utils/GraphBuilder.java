@@ -57,6 +57,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONB
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END_NODE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
@@ -110,7 +111,7 @@ public class GraphBuilder {
                     break;
                 default:
                     throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
-                                                step.getType());
+                            step.getType());
             }
             stepContentMap.put(step.getId(), step);
         }
@@ -193,7 +194,7 @@ public class GraphBuilder {
         }
         List<NodeConfig> stepNodes = new ArrayList<>();
         for (ComponentDTO component : components) {
-             processComponent(component, stepNodes, step.getId());
+            processComponent(component, stepNodes, step.getId());
         }
         handleTempNodesInStep(stepNodes, step);
     }
@@ -260,7 +261,7 @@ public class GraphBuilder {
                 if (TASK_EXECUTION.equals(nodeConfig.getType())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("A node with an execution found in the step. Therefore adding it to the node list " +
-                                          "with id, " + nodeConfig.getId());
+                                "with id, " + nodeConfig.getId());
                     }
                     this.nodeMap.put(nodeConfig.getId(), nodeConfig);
                     this.nodeEdges.add(new NodeEdge(nodeConfig.getId(), nodeConfig.getNextNodeId(), null));
@@ -294,13 +295,23 @@ public class GraphBuilder {
 
         Set<String> referencedNodes = new HashSet<>();
         for (NodeEdge edge : nodeEdges) {
-            referencedNodes.add(edge.getTargetNodeId());
+            String targetNodeId = edge.getTargetNodeId();
+            referencedNodes.add(targetNodeId);
             if (!nodeMap.containsKey(edge.getSourceNodeId())) {
                 throw handleServerException(Constants.ErrorMessages.ERROR_CODE_INVALID_NODE, edge.getSourceNodeId());
             }
-            if (StringUtils.isNotEmpty(edge.getTargetNodeId()) && !nodeMap.containsKey(edge.getTargetNodeId())) {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INVALID_NEXT_STEP,
-                                            edge.getTargetNodeId());
+            if (StringUtils.isNotBlank(targetNodeId)) {
+                if (END_NODE.equalsIgnoreCase(targetNodeId)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format("Edge with target node %s found for source node: %s. "
+                                + "This is considered the last node in the flow.", END_NODE, edge.getSourceNodeId()));
+                    }
+                    continue;
+                }
+
+                if (!nodeMap.containsKey(targetNodeId)) {
+                    throw handleClientException(Constants.ErrorMessages.ERROR_CODE_INVALID_NEXT_STEP, targetNodeId);
+                }
             }
             nodeMap.get(edge.getSourceNodeId()).addEdge(edge);
         }
