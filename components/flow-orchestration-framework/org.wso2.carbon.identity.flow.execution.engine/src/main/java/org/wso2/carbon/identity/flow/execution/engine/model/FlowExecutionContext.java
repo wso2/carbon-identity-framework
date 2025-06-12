@@ -49,13 +49,13 @@ public class FlowExecutionContext implements Serializable {
     private FlowUser flowUser = new FlowUser();
     private String tenantDomain;
     private String contextIdentifier;
-    private String userId;
     private String currentActionId;
-    private ExternalIdPConfig externalIdPConfig;
     private NodeResponse currentNodeNodeResponse;
     private String callbackUrl;
+    private String portalUrl;
     private String applicationId;
     private String flowType;
+    private ExternalIdPConfig externalIdPConfig;
 
     public NodeConfig getCurrentNode() {
 
@@ -135,16 +135,6 @@ public class FlowExecutionContext implements Serializable {
     public void setProperty(String key, Object value) {
 
         this.properties.put(key, value);
-    }
-
-    public String getUserId() {
-
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-
-        this.userId = userId;
     }
 
     public String getCurrentActionId() {
@@ -251,5 +241,15 @@ public class FlowExecutionContext implements Serializable {
     public void setFlowType(String flowType) {
 
         this.flowType = flowType;
+    }
+
+    public String getPortalUrl() {
+
+        return portalUrl;
+    }
+
+    public void setPortalUrl(String portalUrl) {
+
+        this.portalUrl = portalUrl;
     }
 }

@@ -40,7 +40,6 @@ public class Constants {
     public static final String WEBAUTHN_DATA = "webAuthnData";
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
-    public static final String DEFAULT_REGISTRATION_CALLBACK = "/authenticationendpoint/register.do";
 
     // Constants related for OTP field length handling.
     public static final String OTP_LENGTH = "otpLength";
