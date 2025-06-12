@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.ServiceURL;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheEntry;
@@ -54,7 +53,6 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.AssertJUnit.fail;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_PORTAL_URL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
@@ -86,21 +84,15 @@ public class FlowEngineUtilsTest {
     private FlowExecCtxCache flowContextCacheMock;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
-    private MockedStatic<ServiceURLBuilder> serviceURLBuilderMockedStatic;
 
     @BeforeClass
-    public void setup() throws Exception{
+    public void setup() throws Exception {
 
         MockitoAnnotations.openMocks(this);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
 
-        ServiceURLBuilder serviceURLBuilder = mock(ServiceURLBuilder.class);
         ServiceURL serviceURL = mock(ServiceURL.class);
-        serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
-        serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(DEFAULT_REGISTRATION_PORTAL_URL)).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.build()).thenReturn(serviceURL);
         when(serviceURL.getAbsolutePublicURL()).thenReturn(DEFAULT_MY_ACCOUNT_URL);
     }
 
@@ -172,6 +164,7 @@ public class FlowEngineUtilsTest {
 
     @DataProvider(name = "initiateContextScenarios")
     public Object[][] initiateContextScenarios() {
+
         return new Object[][]{
                 // applicationId, callbackUrl
                 {"test-app-id-1"},
@@ -310,9 +303,6 @@ public class FlowEngineUtilsTest {
 
         if (identityTenantUtil != null) {
             identityTenantUtil.close();
-        }
-        if (serviceURLBuilderMockedStatic != null) {
-            serviceURLBuilderMockedStatic.close();
         }
     }
 }

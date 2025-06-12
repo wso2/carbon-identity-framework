@@ -22,11 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.ServiceURL;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -51,7 +49,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_PORTAL_URL;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
@@ -70,20 +67,13 @@ public class FlowServiceTest {
     @Mock
     private FlowExecutionEngine engineMock;
 
-    private MockedStatic<ServiceURLBuilder> serviceURLBuilderMockedStatic;
-
     @BeforeClass
-    public void setup() throws Exception{
+    public void setup() throws Exception {
 
         MockitoAnnotations.openMocks(this);
         testFlowContext = initTestContext();
 
-        ServiceURLBuilder serviceURLBuilder = mock(ServiceURLBuilder.class);
         ServiceURL serviceURL = mock(ServiceURL.class);
-        serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
-        serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(DEFAULT_REGISTRATION_PORTAL_URL)).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.build()).thenReturn(serviceURL);
         when(serviceURL.getAbsolutePublicURL()).thenReturn(DEFAULT_MY_ACCOUNT_URL);
     }
 
@@ -122,7 +112,7 @@ public class FlowServiceTest {
             engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
             when(engineMock.execute(testFlowContext)).thenThrow(FlowEngineException.class);
             FlowExecutionService.getInstance().executeFlow(TENANT_DOMAIN,
-                    TEST_APPLICATION_ID,null, null, FLOW_TYPE, null);
+                    TEST_APPLICATION_ID, null, null, FLOW_TYPE, null);
         }
     }
 
@@ -302,14 +292,6 @@ public class FlowServiceTest {
                     .thenThrow(new FlowEngineException("Failed"));
             FlowExecutionService.getInstance().executeFlow(null, null,
                     flowId, "actionId", FLOW_TYPE, inputMap);
-        }
-    }
-
-    @AfterClass
-    public void teardown() {
-
-        if (serviceURLBuilderMockedStatic != null) {
-            serviceURLBuilderMockedStatic.close();
         }
     }
 }
