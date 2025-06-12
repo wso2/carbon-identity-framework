@@ -84,8 +84,13 @@ public class AuthenticationEndpointFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
+            return filter(servletRequest, servletResponse, filterChain);
+       
+    }
 
-        Object skipFilterAttribute = servletRequest.getAttribute(ATTRIBUTE_SKIP_PROPERTY);
+    private void filter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) 
+        throws IOException, ServletException {
+         Object skipFilterAttribute = servletRequest.getAttribute(ATTRIBUTE_SKIP_PROPERTY);
         if (skipFilterAttribute != null) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
