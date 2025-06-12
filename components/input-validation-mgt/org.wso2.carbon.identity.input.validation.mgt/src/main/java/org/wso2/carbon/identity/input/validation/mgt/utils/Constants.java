@@ -202,7 +202,10 @@ public class Constants {
                 "Error occurred while adding the input validation configurations for the tenant: %s"),
         ERROR_WHILE_UPDATING_CONFIGURATIONS("65003",
                 "Unable to update configurations.",
-                "Error occurred while updating the input validation configurations for the tenant: %s");
+                "Error occurred while updating the input validation configurations for the tenant: %s"),
+        ERROR_WHILE_DELETING_CONFIGURATIONS("65004",
+                "Unable to delete configurations.",
+                "Error occurred while deleting the input validation configurations for the tenant: %s");
 
 
         private final String code;
