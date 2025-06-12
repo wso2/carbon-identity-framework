@@ -61,7 +61,7 @@ public class WebhookManagementDAOFacadeTest {
     public static final String TENANT_DOMAIN = "carbon.super";
     private static final String WEBHOOK_ENDPOINT1 = "https://example.com/webhook1";
     private static final String WEBHOOK_ENDPOINT2 = "https://example.com/webhook2";
-    private static final String WEBHOOK_DESCRIPTION = "Test webhook description";
+    private static final String WEBHOOK_NAME = "Test webhook";
     private static final String WEBHOOK_SECRET = "test-secret";
     private static final String WEBHOOK_EVENT_SCHEMA_NAME = "user-events";
     private static final String WEBHOOK_EVENT_SCHEMA_URI = "https://schemas.org/user-events";
@@ -116,7 +116,7 @@ public class WebhookManagementDAOFacadeTest {
         testWebhook = new Webhook.Builder()
                 .uuid(testWebhook.getUuid())
                 .endpoint(testWebhook.getEndpoint())
-                .description("Updated description")
+                .name("Updated name")
                 .secret(testWebhook.getSecret())
                 .tenantId(testWebhook.getTenantId())
                 .eventSchemaName(testWebhook.getEventSchemaName())
@@ -131,7 +131,7 @@ public class WebhookManagementDAOFacadeTest {
 
         Webhook updatedWebhook = daoFacade.getWebhook(testWebhook.getUuid(), TENANT_ID);
 
-        Assert.assertEquals(updatedWebhook.getDescription(), "Updated description");
+        Assert.assertEquals(updatedWebhook.getName(), "Updated name");
     }
 
     @Test(priority = 3)
@@ -251,7 +251,7 @@ public class WebhookManagementDAOFacadeTest {
         testWebhook = new Webhook.Builder()
                 .uuid(testWebhook.getUuid())
                 .endpoint(WEBHOOK_ENDPOINT2)
-                .description(testWebhook.getDescription())
+                .name(testWebhook.getName())
                 .secret(testWebhook.getSecret())
                 .tenantId(testWebhook.getTenantId())
                 .eventSchemaName(testWebhook.getEventSchemaName())
@@ -292,7 +292,7 @@ public class WebhookManagementDAOFacadeTest {
         testWebhook = new Webhook.Builder()
                 .uuid(UUID.randomUUID().toString())
                 .endpoint(WEBHOOK_ENDPOINT1)
-                .description(WEBHOOK_DESCRIPTION)
+                .name(WEBHOOK_NAME)
                 .secret(WEBHOOK_SECRET)
                 .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
                 .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
@@ -353,7 +353,7 @@ public class WebhookManagementDAOFacadeTest {
         return new Webhook.Builder()
                 .uuid(UUID.randomUUID().toString())
                 .endpoint(WEBHOOK_ENDPOINT1)
-                .description(WEBHOOK_DESCRIPTION)
+                .name(WEBHOOK_NAME)
                 .secret(WEBHOOK_SECRET)
                 .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
                 .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
@@ -369,7 +369,7 @@ public class WebhookManagementDAOFacadeTest {
 
         Assert.assertEquals(actualWebhook.getUuid(), expectedWebhook.getUuid());
         Assert.assertEquals(actualWebhook.getEndpoint(), expectedWebhook.getEndpoint());
-        Assert.assertEquals(actualWebhook.getDescription(), expectedWebhook.getDescription());
+        Assert.assertEquals(actualWebhook.getName(), expectedWebhook.getName());
         Assert.assertEquals(actualWebhook.getEventSchemaName(), expectedWebhook.getEventSchemaName());
         Assert.assertEquals(actualWebhook.getEventSchemaUri(), expectedWebhook.getEventSchemaUri());
         Assert.assertEquals(actualWebhook.getStatus(), expectedWebhook.getStatus());

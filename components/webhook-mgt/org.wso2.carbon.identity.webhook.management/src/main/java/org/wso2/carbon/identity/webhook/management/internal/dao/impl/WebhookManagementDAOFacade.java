@@ -89,7 +89,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 LOG.warn("Error unsubscribing webhook during rollback: ", ex);
             }
             throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_UNEXPECTED_ERROR, e);
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR, e);
         }
     }
 
@@ -157,19 +157,12 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 // Get the existing webhook
                 Webhook existingWebhook = webhookManagementDAO.getWebhook(webhook.getUuid(), tenantId);
 
-                // If endpoint is being changed, check if the new endpoint already exists
-                if (!existingWebhook.getEndpoint().equals(webhook.getEndpoint()) &&
-                        isWebhookEndpointExists(webhook.getEndpoint(), tenantId)) {
-                    throw WebhookManagementExceptionHandler.handleClientException(
-                            ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_EXISTS);
-                }
-
                 // First unsubscribe the existing webhook
                 try {
                     subscriberService.unsubscribe(existingWebhook, tenantDomain);
                 } catch (WebhookMgtException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, webhook.getUuid());
+                            ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, e, webhook.getUuid());
                 }
 
                 // Then try to subscribe with the updated webhook
@@ -196,7 +189,8 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         } catch (TransactionException e) {
             LOG.debug("Error updating webhook: " + webhook.getUuid() +
                     " in tenant ID: " + tenantId, e);
-            throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_UNEXPECTED_ERROR);
+            throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR,
+                    e);
         }
     }
 
@@ -234,7 +228,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         } catch (TransactionException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_UNEXPECTED_ERROR);
+                    ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR, e);
         }
     }
 
@@ -257,12 +251,13 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
      *
      * @param webhookId Webhook subscription ID.
      * @param tenantId  Tenant ID.
+     * @return Activated webhook subscription.
      * @throws WebhookMgtException If an error occurs while enabling the webhook.
      */
     @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public Webhook activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
-        toggleWebhookStatus(webhookId, tenantId, true);
+        return toggleWebhookStatus(webhookId, tenantId, true);
     }
 
     /**
@@ -270,15 +265,16 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
      *
      * @param webhookId Webhook subscription ID.
      * @param tenantId  Tenant ID.
+     * @return Deactivated webhook subscription.
      * @throws WebhookMgtException If an error occurs while disabling the webhook.
      */
     @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public Webhook deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
-        toggleWebhookStatus(webhookId, tenantId, false);
+        return toggleWebhookStatus(webhookId, tenantId, false);
     }
 
-    private void toggleWebhookStatus(String webhookId, int tenantId, boolean activate) throws WebhookMgtException {
+    private Webhook toggleWebhookStatus(String webhookId, int tenantId, boolean activate) throws WebhookMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         EventSubscriberService subscriberService =
@@ -286,16 +282,15 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
 
         try {
-            jdbcTemplate.withTransaction(template -> {
+            return jdbcTemplate.withTransaction(template -> {
                 Webhook existingWebhook = webhookManagementDAO.getWebhook(webhookId, tenantId);
                 if (activate) {
                     subscriberService.subscribe(existingWebhook, tenantDomain);
-                    webhookManagementDAO.activateWebhook(webhookId, tenantId);
+                    return webhookManagementDAO.activateWebhook(webhookId, tenantId);
                 } else {
                     subscriberService.unsubscribe(existingWebhook, tenantDomain);
-                    webhookManagementDAO.deactivateWebhook(webhookId, tenantId);
+                    return webhookManagementDAO.deactivateWebhook(webhookId, tenantId);
                 }
-                return null;
             });
         } catch (TransactionException e) {
             String operation = activate ? "activating" : "deactivating";

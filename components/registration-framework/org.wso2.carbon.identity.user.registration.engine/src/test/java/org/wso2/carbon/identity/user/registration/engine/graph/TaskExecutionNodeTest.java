@@ -27,7 +27,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -67,7 +66,7 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.Execut
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.WEBAUTHN;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 
 /**
@@ -348,7 +347,7 @@ public class TaskExecutionNodeTest {
     public void testExecutorInteractionStatus() throws Exception {
 
         ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(Constants.ExecutorStatus.STATUS_INTERACTION);
+        executorResponse.setResult(Constants.ExecutorStatus.STATUS_WEBAUTHN);
         List<String> requiredData = new ArrayList<>();
         requiredData.add("interactionField1");
         requiredData.add("interactionField2");
@@ -360,7 +359,7 @@ public class TaskExecutionNodeTest {
         try (MockedStatic<RegistrationFlowEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
             Response response = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-            assertEquals(response.getType(), INTERACT);
+            assertEquals(response.getType(), WEBAUTHN);
             assertNotNull(response.getRequiredData());
             assertEquals(response.getRequiredData().size(), 2);
             assertEquals(response.getAdditionalInfo().get("interactionData"), "{\"form\":\"data\"}");

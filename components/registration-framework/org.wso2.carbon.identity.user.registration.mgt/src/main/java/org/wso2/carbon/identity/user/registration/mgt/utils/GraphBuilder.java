@@ -35,7 +35,7 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.ExecutorT
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.WEBAUTHN;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.USER_ONBOARD;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
@@ -103,8 +103,8 @@ public class GraphBuilder {
                 case USER_ONBOARD:
                     processUserOnboardStep(step);
                     break;
-                case INTERACT:
-                    processInteractStep(step);
+                case WEBAUTHN:
+                    processWebAuthnStep(step);
                     break;
                 default:
                     throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
@@ -151,7 +151,7 @@ public class GraphBuilder {
         nodeEdges.add(new NodeEdge(redirectionNode.getId(), action.getNextId(), null));
     }
 
-    private void processInteractStep(StepDTO step) throws RegistrationFrameworkException {
+    private void processWebAuthnStep(StepDTO step) throws RegistrationFrameworkException {
 
         if (step.getData() == null) {
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
@@ -167,9 +167,9 @@ public class GraphBuilder {
             throw handleClientException(ERROR_CODE_EXECUTOR_INFO_NOT_FOUND, step.getId());
         }
 
-        NodeConfig interactNode = createTaskExecutionNode(step.getId(), action.getExecutor());
-        nodeMap.put(interactNode.getId(), interactNode);
-        nodeEdges.add(new NodeEdge(interactNode.getId(), action.getNextId(), null));
+        NodeConfig webAuthnNode = createTaskExecutionNode(step.getId(), action.getExecutor());
+        nodeMap.put(webAuthnNode.getId(), webAuthnNode);
+        nodeEdges.add(new NodeEdge(webAuthnNode.getId(), action.getNextId(), null));
     }
 
     private void processUserOnboardStep(StepDTO step) {

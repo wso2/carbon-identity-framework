@@ -36,7 +36,7 @@ public final class WebhookSQLConstants {
         public static final String ID = "ID";
         public static final String UUID = "UUID";
         public static final String ENDPOINT = "ENDPOINT";
-        public static final String DESCRIPTION = "DESCRIPTION";
+        public static final String NAME = "NAME";
         public static final String SECRET = "SECRET";
         public static final String VERSION = "VERSION";
         public static final String EVENT_SCHEMA_NAME = "EVENT_SCHEMA_NAME";
@@ -60,14 +60,14 @@ public final class WebhookSQLConstants {
     public static final class Query {
 
         public static final String CREATE_WEBHOOK =
-                "INSERT INTO IDN_WEBHOOK (UUID, ENDPOINT, DESCRIPTION, SECRET, VERSION, EVENT_SCHEMA_NAME, " +
+                "INSERT INTO IDN_WEBHOOK (UUID, ENDPOINT, NAME, SECRET, VERSION, EVENT_SCHEMA_NAME, " +
                         "EVENT_SCHEMA_URI, EVENT_SCHEMA_VERSION, STATUS, TENANT_ID, CREATED_AT, UPDATED_AT) " +
-                        "VALUES (:UUID;, :ENDPOINT;, :DESCRIPTION;, :SECRET;, :VERSION;, :EVENT_SCHEMA_NAME;, " +
+                        "VALUES (:UUID;, :ENDPOINT;, :NAME;, :SECRET;, :VERSION;, :EVENT_SCHEMA_NAME;, " +
                         ":EVENT_SCHEMA_URI;, :EVENT_SCHEMA_VERSION;, :STATUS;, :TENANT_ID;, CURRENT_TIMESTAMP, " +
                         "CURRENT_TIMESTAMP)";
 
         public static final String UPDATE_WEBHOOK =
-                "UPDATE IDN_WEBHOOK SET ENDPOINT = :ENDPOINT;, DESCRIPTION = :DESCRIPTION;, SECRET = :SECRET;, " +
+                "UPDATE IDN_WEBHOOK SET ENDPOINT = :ENDPOINT;, NAME = :NAME;, SECRET = :SECRET;, " +
                         "VERSION = :VERSION;, EVENT_SCHEMA_NAME = :EVENT_SCHEMA_NAME;, " +
                         "EVENT_SCHEMA_URI = :EVENT_SCHEMA_URI;, " +
                         "EVENT_SCHEMA_VERSION = :EVENT_SCHEMA_VERSION;, STATUS = :STATUS;," +

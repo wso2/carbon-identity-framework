@@ -138,8 +138,8 @@ public class Constants {
 
         public static final String VIEW = "VIEW";
         public static final String REDIRECTION = "REDIRECTION";
-        public static final String INTERACT = "INTERACT";
         public static final String INTERNAL_PROMPT = "INTERNAL_PROMPT";
+        public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
 
         private StepTypes() {

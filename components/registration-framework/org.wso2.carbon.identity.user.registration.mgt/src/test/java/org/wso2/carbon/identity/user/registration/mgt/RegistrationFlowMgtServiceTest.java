@@ -60,7 +60,7 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMess
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.INTERACT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.WEBAUTHN;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.USER_ONBOARD;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
@@ -174,11 +174,11 @@ public class RegistrationFlowMgtServiceTest {
                         ERROR_CODE_INVALID_NEXT_STEP.getCode()},
 
                 {"redirectionStepWithoutData",
-                        new StepDTO.Builder().id("STEP_1").type(INTERACT).build(),
+                        new StepDTO.Builder().id("STEP_1").type(WEBAUTHN).build(),
                         ERROR_CODE_STEP_DATA_NOT_FOUND.getCode()},
 
                 {"interactStepWithoutAction",
-                        new StepDTO.Builder().id("STEP_1").type(INTERACT)
+                        new StepDTO.Builder().id("STEP_1").type(WEBAUTHN)
                                 .data(new DataDTO.Builder().build()).build(),
                         ERROR_CODE_ACTION_DATA_NOT_FOUND.getCode()},
         };

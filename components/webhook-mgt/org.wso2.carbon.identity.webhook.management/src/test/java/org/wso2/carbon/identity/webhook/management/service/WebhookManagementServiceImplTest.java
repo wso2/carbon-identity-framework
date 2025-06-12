@@ -30,11 +30,13 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -91,13 +93,14 @@ public class WebhookManagementServiceImplTest {
         Webhook inputWebhook = mock(Webhook.class);
         when(inputWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
         when(inputWebhook.getStatus()).thenReturn(null);
-        when(inputWebhook.getDescription()).thenReturn("desc");
-        when(inputWebhook.getSecret()).thenReturn("secret");
+        when(inputWebhook.getName()).thenReturn("name");
+        when(inputWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
         when(inputWebhook.getEventSchemaName()).thenReturn("schema");
         when(inputWebhook.getEventSchemaUri()).thenReturn("uri");
         when(inputWebhook.getCreatedAt()).thenReturn(null);
         when(inputWebhook.getUpdatedAt()).thenReturn(null);
-        when(inputWebhook.getEventsSubscribed()).thenReturn(null);
+        when(inputWebhook.getEventsSubscribed()).thenReturn(
+                Collections.singletonList("schemas.identity.wso2.org/events/logins"));
 
         // Endpoint does not exist
         when(webhookManagementDAO.isWebhookEndpointExists("https://test.com/webhook", 1)).thenReturn(false);
@@ -121,7 +124,7 @@ public class WebhookManagementServiceImplTest {
     }
 
     @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp =
-            "Webhook already exists")
+            "Webhook endpoint already exists")
     public void testAddWebhookWithExistingEndpoint() throws WebhookMgtException {
 
         Webhook webhook = mock(Webhook.class);
@@ -142,34 +145,50 @@ public class WebhookManagementServiceImplTest {
         // Mock input and existing webhooks
         Webhook updateWebhook = mock(Webhook.class);
         Webhook existingWebhook = mock(Webhook.class);
+        Webhook resultWebhook = mock(Webhook.class);
 
-        Webhook updatedWebhook = mock(Webhook.class);
+        // Configure complete data for updateWebhook
+        when(updateWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
+        when(updateWebhook.getName()).thenReturn("updated-name");
+        when(updateWebhook.getUuid()).thenReturn(webhookId);
+        when(updateWebhook.getEventSchemaName()).thenReturn("updated-schema");
+        when(updateWebhook.getEventSchemaUri()).thenReturn("updated-uri");
+        when(updateWebhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
+        when(updateWebhook.getSecret()).thenReturn("updated-test12-secret-1234567890");
+
+        // Make sure eventsSubscribed isn't null
+        List<String> events = new ArrayList<>();
+        events.add("event1");
+        when(updateWebhook.getEventsSubscribed()).thenReturn(events);
+
+        // Configure existing webhook
         when(existingWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
-        when(existingWebhook.getStatus()).thenReturn(null);
-        when(existingWebhook.getDescription()).thenReturn("desc");
-        when(existingWebhook.getSecret()).thenReturn("secret");
+        when(existingWebhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
+        when(existingWebhook.getName()).thenReturn("name");
+        when(existingWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
         when(existingWebhook.getEventSchemaName()).thenReturn("schema");
         when(existingWebhook.getEventSchemaUri()).thenReturn("uri");
-        when(existingWebhook.getCreatedAt()).thenReturn(null);
-        when(existingWebhook.getUpdatedAt()).thenReturn(null);
-        when(existingWebhook.getEventsSubscribed()).thenReturn(null);
+        when(existingWebhook.getUuid()).thenReturn(webhookId);
+        when(existingWebhook.getEventsSubscribed()).thenReturn(events);
+
+        // Set up result webhook
+        when(resultWebhook.getUuid()).thenReturn(webhookId);
 
         // Simulate DAO behavior
-        when(webhookManagementDAO.getWebhook(webhookId, tenantId)).thenReturn(existingWebhook);
+        when(webhookManagementDAO.getWebhook(webhookId, tenantId))
+                .thenReturn(existingWebhook) // First call during validation
+                .thenReturn(existingWebhook) // Second call
+                .thenReturn(resultWebhook);  // Third call when returning the updated webhook
+
+        // Mock endpoint check
         when(webhookManagementDAO.isWebhookEndpointExists("https://test.com/webhook", tenantId)).thenReturn(false);
 
-        WebhookManagementServiceImpl service = WebhookManagementServiceImpl.getInstance();
+        Webhook result = webhookManagementService.updateWebhook(webhookId, updateWebhook, tenantDomain);
 
-        // Inject mock DAO
-        Field daoField = WebhookManagementServiceImpl.class.getDeclaredField("daoFACADE");
-        daoField.setAccessible(true);
-        daoField.set(service, webhookManagementDAO);
-
-        Webhook result = service.updateWebhook(webhookId, updateWebhook, tenantDomain);
-
-        verify(webhookManagementDAO).updateWebhook(updateWebhook, tenantId);
+        verify(webhookManagementDAO).updateWebhook(any(Webhook.class), eq(tenantId));
         verify(webhookManagementDAO, times(3)).getWebhook(webhookId, tenantId);
-        assertEquals(result.getUuid(), updatedWebhook.getUuid());
+
+        assertEquals(result, resultWebhook);
     }
 
     @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp =

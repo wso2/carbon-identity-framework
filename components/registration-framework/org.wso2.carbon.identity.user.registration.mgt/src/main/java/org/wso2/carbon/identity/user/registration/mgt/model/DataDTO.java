@@ -37,7 +37,7 @@ public class DataDTO implements Serializable {
     private List<String> requiredParams;
     private Map<String, String> additionalData;
     @JsonIgnore
-    private Map<String, String> interactionData;
+    private Map<String, String> webAuthnData;
 
     public DataDTO() {
 
@@ -50,7 +50,7 @@ public class DataDTO implements Serializable {
         this.url = builder.url;
         this.requiredParams = builder.requiredParams;
         this.additionalData = builder.additionalData;
-        this.interactionData = builder.interactionData;
+        this.webAuthnData = builder.webAuthnData;
     }
 
     public List<ComponentDTO> getComponents() {
@@ -104,24 +104,6 @@ public class DataDTO implements Serializable {
         this.additionalData.put(key, value);
     }
 
-    public Map<String, String> getInteractionData() {
-
-        return interactionData;
-    }
-
-    public void setInteractionData(Map<String, String> interactionData) {
-
-        this.interactionData = interactionData;
-    }
-
-    public void addInteractionData(String key, String value) {
-
-        if (this.interactionData == null) {
-            this.interactionData = new java.util.HashMap<>();
-        }
-        this.interactionData.put(key, value);
-    }
-
     /**
      * Builder class to build {@link DataDTO} objects.
      */
@@ -132,7 +114,7 @@ public class DataDTO implements Serializable {
         private String url;
         private List<String> requiredParams;
         private Map<String, String> additionalData;
-        private Map<String, String> interactionData;
+        private Map<String, String> webAuthnData;
 
         public Builder components(List<ComponentDTO> components) {
 
@@ -164,9 +146,9 @@ public class DataDTO implements Serializable {
             return this;
         }
 
-        public Builder interactionData(Map<String, String> interactionData) {
+        public Builder webAuthnData(Map<String, String> webAuthnData) {
 
-            this.interactionData = interactionData;
+            this.webAuthnData = webAuthnData;
             return this;
         }
 
