@@ -31,8 +31,13 @@ import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClien
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
+import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
+import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
+import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
+import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -57,6 +62,8 @@ public class WebhookManagementServiceImplTest {
     private WebhookManagementDAO webhookManagementDAO;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic;
+    private MockedStatic<WebhookManagementComponentServiceHolder> webhookComponentHolderMockedStatic;
+    private WebhookMetadataService webhookMetadataService;
 
     public static final String WEBHOOK_ID = "webhookId";
     public static final String TENANT_DOMAIN = "test.com";
@@ -64,18 +71,34 @@ public class WebhookManagementServiceImplTest {
     public static final String WEBHOOK_ENDPOINT = "https://example.com/webhook";
 
     @BeforeClass
-    public void setUpClass() {
+    public void setUpClass() throws WebhookMetadataException {
 
         webhookManagementService = WebhookManagementServiceImpl.getInstance();
-
         identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+
+        // Mock WebhookManagementComponentServiceHolder and WebhookMetadataService
+        webhookComponentHolderMockedStatic = mockStatic(WebhookManagementComponentServiceHolder.class);
+        WebhookManagementComponentServiceHolder holder = mock(WebhookManagementComponentServiceHolder.class);
+        webhookMetadataService = mock(WebhookMetadataService.class);
+
+        webhookComponentHolderMockedStatic.when(WebhookManagementComponentServiceHolder::getInstance)
+                .thenReturn(holder);
+        when(holder.getWebhookMetadataService()).thenReturn(webhookMetadataService);
+
+        // Setup a valid EventProfile and Channel for validation
+        Channel channel = new Channel("logins", "Logins Channel", "schemas.identity.wso2.org/events/logins",
+                Collections.emptyList());
+        EventProfile eventProfile = new EventProfile("schema", "uri", Collections.singletonList(channel));
+        when(webhookMetadataService.getSupportedEventProfiles())
+                .thenReturn(Collections.singletonList(eventProfile));
     }
 
     @AfterClass
     public void tearDownClass() {
 
         identityTenantUtilMockedStatic.close();
+        webhookComponentHolderMockedStatic.close();
     }
 
     @BeforeMethod
@@ -138,6 +161,14 @@ public class WebhookManagementServiceImplTest {
     @Test
     public void testUpdateWebhook() throws Exception {
 
+        // Setup a valid EventProfile and Channel for validation
+        Channel channel = new Channel("logins", "Logins Channel", "schemas.identity.wso2.org/events/logins",
+                Collections.emptyList());
+        EventProfile eventProfile =
+                new EventProfile("updated-schema", "updated-uri", Collections.singletonList(channel));
+        when(webhookMetadataService.getSupportedEventProfiles())
+                .thenReturn(Collections.singletonList(eventProfile));
+
         String webhookId = "webhook-123";
         String tenantDomain = "test.com";
         int tenantId = 1;
@@ -158,7 +189,7 @@ public class WebhookManagementServiceImplTest {
 
         // Make sure eventsSubscribed isn't null
         List<String> events = new ArrayList<>();
-        events.add("event1");
+        events.add("schemas.identity.wso2.org/events/logins");
         when(updateWebhook.getEventsSubscribed()).thenReturn(events);
 
         // Configure existing webhook
@@ -246,7 +277,7 @@ public class WebhookManagementServiceImplTest {
         webhookManagementService.deactivateWebhook(WEBHOOK_ID, TENANT_DOMAIN);
 
         verify(webhookManagementDAO).deactivateWebhook(WEBHOOK_ID, TENANT_ID);
-        verify(webhookManagementDAO, times(1)).getWebhook(WEBHOOK_ID, TENANT_ID);
+        verify(webhookManagementDAO, times(2)).getWebhook(WEBHOOK_ID, TENANT_ID);
     }
 
     @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp =
@@ -288,7 +319,7 @@ public class WebhookManagementServiceImplTest {
         webhookManagementService.activateWebhook(WEBHOOK_ID, TENANT_DOMAIN);
 
         verify(webhookManagementDAO).activateWebhook(WEBHOOK_ID, TENANT_ID);
-        verify(webhookManagementDAO, times(1)).getWebhook(WEBHOOK_ID, TENANT_ID);
+        verify(webhookManagementDAO, times(2)).getWebhook(WEBHOOK_ID, TENANT_ID);
     }
 
     @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp =

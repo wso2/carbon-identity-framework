@@ -39,22 +39,26 @@ public interface EventSubscriber {
     /**
      * Subscribe a webhook to the external system.
      *
-     * @param events       List of events to subscribe to.
-     * @param endpoint     The endpoint URL to which the webhook will send notifications.
-     * @param tenantDomain Tenant domain.
-     * @return True if subscription is successful, false otherwise.
+     * @param channels            List of channels to subscribe to.
+     * @param eventProfileVersion The version of the event profile to use.
+     * @param endpoint            The endpoint URL to which the webhook will send notifications.
+     * @param secret              The secret key for authentication.
+     * @param tenantDomain        Tenant domain.
      * @throws WebhookMgtException If an error occurs during subscription.
      */
-    boolean subscribe(List<String> events, String endpoint, String tenantDomain) throws WebhookMgtException;
+    void subscribe(List<String> channels, String eventProfileVersion, String endpoint, String secret,
+                   String tenantDomain)
+            throws WebhookMgtException;
 
     /**
      * Unsubscribe a webhook from the external system.
      *
-     * @param events       List of events to unsubscribe from.
-     * @param endpoint     The endpoint URL from which the webhook will stop sending notifications.
-     * @param tenantDomain Tenant domain.
-     * @return True if unsubscription is successful, false otherwise.
+     * @param channels            List of channels to unsubscribe from.
+     * @param eventProfileVersion The version of the event profile to use.
+     * @param endpoint            The endpoint URL from which the webhook will stop sending notifications.
+     * @param tenantDomain        Tenant domain.
      * @throws WebhookMgtException If an error occurs during unsubscription.
      */
-    boolean unsubscribe(List<String> events, String endpoint, String tenantDomain) throws WebhookMgtException;
+    void unsubscribe(List<String> channels, String eventProfileVersion, String endpoint, String tenantDomain)
+            throws WebhookMgtException;
 }

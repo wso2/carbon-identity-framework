@@ -99,18 +99,16 @@ public interface WebhookManagementDAO {
      *
      * @param webhookId Webhook subscription ID.
      * @param tenantId  Tenant ID.
-     * @return Activated webhook subscription.
      * @throws WebhookMgtException If an error occurs while enabling the webhook.
      */
-    public Webhook activateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
+    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
 
     /**
      * Disable a webhook subscription in the database.
      *
      * @param webhookId Webhook subscription ID.
      * @param tenantId  Tenant ID.
-     * @return Deactivated webhook subscription.
      * @throws WebhookMgtException If an error occurs while disabling the webhook.
      */
-    public Webhook deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
+    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
 }

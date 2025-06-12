@@ -25,15 +25,16 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
-import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriberService;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -49,12 +50,15 @@ public class EventSubscriberServiceTest {
     @Mock
     private EventSubscriber subscriber2;
 
-    @Mock
-    private Webhook webhook;
-
     private MockedStatic<WebhookManagementComponentServiceHolder> mockedStaticHolder;
     private WebhookManagementComponentServiceHolder mockedHolder;
 
+    private static final String WEBHOOK_ID = "webhook-id";
+    private static final String ADAPTOR = "Subscriber1";
+    private static final List<String> CHANNELS = Arrays.asList("channel1", "channel2");
+    private static final String EVENT_PROFILE_VERSION = "v1";
+    private static final String ENDPOINT = "https://endpoint";
+    private static final String SECRET = "secret";
     private static final String TENANT_DOMAIN = "carbon.super";
 
     @BeforeMethod
@@ -83,15 +87,14 @@ public class EventSubscriberServiceTest {
 
         List<EventSubscriber> subscribers = Arrays.asList(subscriber1, subscriber2);
         when(mockedHolder.getEventSubscribers()).thenReturn(subscribers);
-        when(subscriber1.subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
-                true);
-        when(subscriber2.subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
-                true);
 
-        eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
+        doNothing().when(subscriber1).subscribe(CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, SECRET, TENANT_DOMAIN);
+        doNothing().when(subscriber2).subscribe(CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, SECRET, TENANT_DOMAIN);
 
-        verify(subscriber1).subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
-        verify(subscriber2).subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
+        eventSubscriberService.subscribe(WEBHOOK_ID, ADAPTOR, CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, SECRET,
+                TENANT_DOMAIN);
+
+        verify(subscriber1).subscribe(CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, SECRET, TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = WebhookMgtException.class)
@@ -99,23 +102,8 @@ public class EventSubscriberServiceTest {
 
         when(mockedHolder.getEventSubscribers()).thenReturn(new ArrayList<>());
 
-        eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
-    }
-
-    @Test
-    public void testSubscribeWithPartialFailure() throws WebhookMgtException {
-
-        List<EventSubscriber> subscribers = Arrays.asList(subscriber1, subscriber2);
-        when(mockedHolder.getEventSubscribers()).thenReturn(subscribers);
-        when(subscriber1.subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
-                true);
-        when(subscriber2.subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
-                false);
-
-        eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
-
-        verify(subscriber1).subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
-        verify(subscriber2).subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
+        eventSubscriberService.subscribe(WEBHOOK_ID, ADAPTOR, CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, SECRET,
+                TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = WebhookMgtException.class)
@@ -123,10 +111,12 @@ public class EventSubscriberServiceTest {
 
         List<EventSubscriber> subscribers = Arrays.asList(subscriber1, subscriber2);
         when(mockedHolder.getEventSubscribers()).thenReturn(subscribers);
-        when(subscriber1.subscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenThrow(
-                new WebhookMgtException("Subscription error"));
 
-        eventSubscriberService.subscribe(webhook, TENANT_DOMAIN);
+        doThrow(new WebhookMgtException("Subscription error"))
+                .when(subscriber1).subscribe(CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, SECRET, TENANT_DOMAIN);
+
+        eventSubscriberService.subscribe(WEBHOOK_ID, ADAPTOR, CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, SECRET,
+                TENANT_DOMAIN);
     }
 
     @Test
@@ -134,15 +124,14 @@ public class EventSubscriberServiceTest {
 
         List<EventSubscriber> subscribers = Arrays.asList(subscriber1, subscriber2);
         when(mockedHolder.getEventSubscribers()).thenReturn(subscribers);
-        when(subscriber1.unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
-                true);
-        when(subscriber2.unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
-                true);
 
-        eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
+        doNothing().when(subscriber1).unsubscribe(CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, TENANT_DOMAIN);
+        doNothing().when(subscriber2).unsubscribe(CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, TENANT_DOMAIN);
 
-        verify(subscriber1).unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
-        verify(subscriber2).unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
+        eventSubscriberService.unsubscribe(WEBHOOK_ID, ADAPTOR, CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT,
+                TENANT_DOMAIN);
+
+        verify(subscriber1).unsubscribe(CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = WebhookMgtException.class)
@@ -150,23 +139,8 @@ public class EventSubscriberServiceTest {
 
         when(mockedHolder.getEventSubscribers()).thenReturn(new ArrayList<>());
 
-        eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
-    }
-
-    @Test
-    public void testUnsubscribeWithPartialFailure() throws WebhookMgtException {
-
-        List<EventSubscriber> subscribers = Arrays.asList(subscriber1, subscriber2);
-        when(mockedHolder.getEventSubscribers()).thenReturn(subscribers);
-        when(subscriber1.unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
-                true);
-        when(subscriber2.unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenReturn(
-                false);
-
-        eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
-
-        verify(subscriber1).unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
-        verify(subscriber2).unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN);
+        eventSubscriberService.unsubscribe(WEBHOOK_ID, ADAPTOR, CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT,
+                TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = WebhookMgtException.class)
@@ -174,9 +148,11 @@ public class EventSubscriberServiceTest {
 
         List<EventSubscriber> subscribers = Arrays.asList(subscriber1, subscriber2);
         when(mockedHolder.getEventSubscribers()).thenReturn(subscribers);
-        when(subscriber1.unsubscribe(webhook.getEventsSubscribed(), webhook.getEndpoint(), TENANT_DOMAIN)).thenThrow(
-                new WebhookMgtException("Unsubscription error"));
 
-        eventSubscriberService.unsubscribe(webhook, TENANT_DOMAIN);
+        doThrow(new WebhookMgtException("Unsubscription error"))
+                .when(subscriber1).unsubscribe(CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT, TENANT_DOMAIN);
+
+        eventSubscriberService.unsubscribe(WEBHOOK_ID, ADAPTOR, CHANNELS, EVENT_PROFILE_VERSION, ENDPOINT,
+                TENANT_DOMAIN);
     }
 }

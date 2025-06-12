@@ -202,15 +202,15 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     }
 
     @Override
-    public Webhook activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
-        return updateWebhookStatus(webhookId, tenantId, WebhookStatus.ACTIVE.name());
+        updateWebhookStatus(webhookId, tenantId, WebhookStatus.ACTIVE.name());
     }
 
     @Override
-    public Webhook deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
-        return updateWebhookStatus(webhookId, tenantId, WebhookStatus.INACTIVE.name());
+        updateWebhookStatus(webhookId, tenantId, WebhookStatus.INACTIVE.name());
     }
 
     // --- Private helper methods ---
@@ -316,7 +316,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         });
     }
 
-    private Webhook updateWebhookStatus(String webhookId, int tenantId, String status) throws WebhookMgtException {
+    private void updateWebhookStatus(String webhookId, int tenantId, String status) throws WebhookMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
@@ -331,7 +331,6 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         });
                 return null;
             });
-            return getWebhook(webhookId, tenantId);
         } catch (TransactionException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
                     ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR, e, status);

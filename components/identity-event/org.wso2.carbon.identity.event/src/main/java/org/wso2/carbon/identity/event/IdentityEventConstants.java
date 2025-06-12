@@ -50,6 +50,17 @@ public class IdentityEventConstants {
 
         public static final String PRE_AUTHENTICATION = "PRE_AUTHENTICATION";
         public static final String POST_AUTHENTICATION = "POST_AUTHENTICATION";
+        public static final String AUTHENTICATION_STEP_SUCCESS = "AUTHENTICATION_STEP_SUCCESS";
+        public static final String AUTHENTICATION_STEP_FAILURE = "AUTHENTICATION_STEP_FAILURE";
+        public static final String AUTHENTICATION_SUCCESS = "AUTHENTICATION_SUCCESS";
+        public static final String AUTHENTICATION_FAILURE = "AUTHENTICATION_FAILURE";
+        public static final String SESSION_CREATE = "SESSION_CREATE";
+        public static final String SESSION_UPDATE = "SESSION_UPDATE";
+        public static final String SESSION_TERMINATE = "SESSION_TERMINATE";
+        public static final String SESSION_EXPIRE = "SESSION_EXPIRE";
+        public static final String SESSION_EXTEND = "SESSION_EXTEND";
+        public static final String VERIFICATION = "VERIFICATION";
+        public static final String USER_SESSION_TERMINATE = "USER_SESSION_TERMINATE";
         public static final String PRE_SET_USER_CLAIMS = "PRE_SET_USER_CLAIMS";
         public static final String POST_SET_USER_CLAIMS = "POST_SET_USER_CLAIMS";
         public static final String PRE_ADD_USER= "PRE_ADD_USER";

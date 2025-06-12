@@ -44,7 +44,7 @@ public class TopicManagementServiceImpl implements TopicManagementService {
     private static final TopicManagementServiceImpl topicManagementServiceImpl = new TopicManagementServiceImpl();
     private final TopicManagementDAO topicManagementDAO;
     //TODO: Get the topic manager name from a configuration
-    private static final String ADAPTOR = "WEBSUBHUB";
+    private static final String ADAPTOR = "webSubHubAdapter";
 
     private TopicManagementServiceImpl() {
 
