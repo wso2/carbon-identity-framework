@@ -1469,6 +1469,29 @@ public class FrameworkUtils {
         }
     }
 
+    public static void publishEventOnUserRegistrationFailure(String errorCode, String errorMessage,
+                                                             Map<String, String> claims, String tenantDomain,
+                                                             String idpName) {
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.ERROR_CODE, errorCode);
+        properties.put(IdentityEventConstants.EventProperty.ERROR_MESSAGE, errorMessage);
+
+        properties.put(IdentityEventConstants.EventProperty.USER_CLAIMS, claims);
+        properties.put(FrameworkConstants.FEDERATED_IDP_NAME, idpName);
+        properties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        properties.put(IdentityEventConstants.EventProperty.TENANT_ID, PrivilegedCarbonContext
+                .getThreadLocalCarbonContext().getTenantId());
+
+        Event identityMgtEvent = new Event(IdentityEventConstants.Event.USER_REGISTRATION_FAILED, properties);
+
+        try {
+            FrameworkServiceDataHolder.getInstance().getIdentityEventService().handleEvent(identityMgtEvent);
+        } catch (IdentityEventException e) {
+            log.error("Error in triggering session expire event for the session: ", e);
+        }
+    }
+
     /**
      * @param key
      * @deprecated to use {{@link #removeSessionContextFromCache(String, String)}} to support maintaining cache in

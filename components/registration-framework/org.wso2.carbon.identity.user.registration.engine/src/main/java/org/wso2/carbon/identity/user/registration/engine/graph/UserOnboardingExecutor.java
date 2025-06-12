@@ -43,6 +43,7 @@ import java.util.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
@@ -98,6 +99,8 @@ public class UserOnboardingExecutor implements Executor {
             context.setUserId(userid);
             return new ExecutorResponse(STATUS_USER_CREATED);
         } catch (UserStoreException e) {
+            FrameworkUtils.publishEventOnUserRegistrationFailure(null, e.getMessage(), userClaims,
+                    context.getTenantDomain(), context.getAuthenticatorProperties().get("name"));
             if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
                 throw handleClientException(ERROR_CODE_USERNAME_ALREADY_EXISTS, context.getTenantDomain());
             }

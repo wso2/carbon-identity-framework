@@ -324,6 +324,8 @@ public class IdentityEventConstants {
         public static final String POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
                 "POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
 
+        public static final String USER_REGISTRATION_FAILED = "USER_REGISTRATION_FAILED";
+
     }
 
     /**
@@ -471,6 +473,9 @@ public class IdentityEventConstants {
         public static final String AUTHORIZED_API = "AUTHORIZED_API";
         public static final String ADDED_AUTHORIZATION_DETAILS_TYPES = "ADDED_AUTHORIZATION_DETAILS_TYPES";
         public static final String DELETED_AUTHORIZATION_DETAILS_TYPES = "DELETED_AUTHORIZATION_DETAILS_TYPES";
+
+        public static final String ERROR_CODE = "ERROR_CODE";
+        public static final String ERROR_MESSAGE = "ERROR_MESSAGE";
 
         public static final String SCENARIO = "SCENARIO";
 
