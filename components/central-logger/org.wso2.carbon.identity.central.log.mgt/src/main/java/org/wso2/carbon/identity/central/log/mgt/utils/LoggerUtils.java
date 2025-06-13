@@ -69,6 +69,12 @@ public class LoggerUtils {
     private static final String TENANT_DOMAIN = "tenantDomain";
     public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
 
+    // Related to V1 audit logs.
+    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    private static final Gson GSON = new Gson();
+    private static final String AUDIT_TEMPLATE =
+            "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : Success";
+
     /**
      * Defines the Initiators of the logs.
      */
@@ -101,11 +107,17 @@ public class LoggerUtils {
             if (!isLoggingEnabled) {
                 return;
             }
-            IdentityEventService eventMgtService =
-                    CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
-            Event auditEvent = new Event(PUBLISH_AUDIT_LOG,
-                    Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLogBuilder.build()));
-            eventMgtService.handleEvent(auditEvent);
+            AuditLog auditLog = auditLogBuilder.build();
+            if (isEnableV2AuditLogs()) {
+                IdentityEventService eventMgtService =
+                        CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
+                Event auditEvent =
+                        new Event(PUBLISH_AUDIT_LOG, Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog));
+                eventMgtService.handleEvent(auditEvent);
+            } else if (!CarbonUtils.isLegacyAuditLogsDisabled()) {
+                AUDIT_LOG.info(String.format(AUDIT_TEMPLATE, auditLog.getInitiatorId(), auditLog.getAction(),
+                        auditLog.getTargetId(), GSON.toJson(auditLog.getData())));
+            }
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";
             log.error(errorLog, e);
