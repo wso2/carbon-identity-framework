@@ -83,6 +83,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -853,6 +854,27 @@ public class DefaultStepHandler implements StepHandler {
             // store authenticated idp
             stepConfig.setAuthenticatedIdP(idpName);
             authenticatedIdPData.setIdpName(idpName);
+
+            // This fix needs to be generalized and improved for non organization login flows as well.
+            if (isLoggedInWithOrganizationLogin(authenticatorConfig)) {
+                String orgId = authenticatedUser.getUserResidentOrganization();
+                List<AuthenticatorConfig> authenticators = authenticatedIdPData.getAuthenticators();
+                Iterator<AuthenticatorConfig> iterator = authenticators.iterator();
+                while (iterator.hasNext()) {
+                    AuthenticatorConfig config = iterator.next();
+                    if (config.getParameterMap() != null && StringUtils.equals(orgId,
+                            config.getParameterMap().get(FrameworkConstants.ORG_ID_PARAMETER))) {
+                        iterator.remove();
+                        authenticatedIdPData.setAuthenticators(authenticators);
+                        break;
+                    }
+                }
+                if (authenticatorConfig.getParameterMap() == null) {
+                    authenticatorConfig.setParameterMap(new HashMap<>());
+                }
+                authenticatorConfig.getParameterMap().put(FrameworkConstants.ORG_ID_PARAMETER, orgId);
+            }
+
             authenticatedIdPData.addAuthenticator(authenticatorConfig);
             //add authenticated idp data to the session wise map
             context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
