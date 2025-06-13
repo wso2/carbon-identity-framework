@@ -858,17 +858,7 @@ public class DefaultStepHandler implements StepHandler {
             // This fix needs to be generalized and improved for non organization login flows as well.
             if (isLoggedInWithOrganizationLogin(authenticatorConfig)) {
                 String orgId = authenticatedUser.getUserResidentOrganization();
-                List<AuthenticatorConfig> authenticators = authenticatedIdPData.getAuthenticators();
-                Iterator<AuthenticatorConfig> iterator = authenticators.iterator();
-                while (iterator.hasNext()) {
-                    AuthenticatorConfig config = iterator.next();
-                    if (config.getParameterMap() != null && StringUtils.equals(orgId,
-                            config.getParameterMap().get(FrameworkConstants.ORG_ID_PARAMETER))) {
-                        iterator.remove();
-                        authenticatedIdPData.setAuthenticators(authenticators);
-                        break;
-                    }
-                }
+                removeDuplicateAuthenticatorsByOrgID(authenticatedIdPData, orgId);
                 if (authenticatorConfig.getParameterMap() == null) {
                     authenticatorConfig.setParameterMap(new HashMap<>());
                 }
@@ -1536,5 +1526,28 @@ public class DefaultStepHandler implements StepHandler {
                     name), e);
         }
         return propertyMap;
+    }
+
+    /**
+     * Remove duplicate OrganizationAuthenticator authenticators by organization ID from the authenticated IDP data.
+     * This is to ensure that only one OrganizationAuthenticator authenticator for a specific organization is present.
+     *
+     * @param authenticatedIdPData Authenticated IDP data.
+     * @param orgId                Organization ID to check for duplicates.
+     */
+    private void removeDuplicateAuthenticatorsByOrgID(AuthenticatedIdPData authenticatedIdPData, String orgId) {
+
+        List<AuthenticatorConfig> authenticators = authenticatedIdPData.getAuthenticators();
+        Iterator<AuthenticatorConfig> iterator = authenticators.iterator();
+        while (iterator.hasNext()) {
+            AuthenticatorConfig config = iterator.next();
+            if (config.getParameterMap() != null && StringUtils.equals(orgId,
+                    config.getParameterMap().get(FrameworkConstants.ORG_ID_PARAMETER))
+                    && isLoggedInWithOrganizationLogin(config)) {
+                iterator.remove();
+                authenticatedIdPData.setAuthenticators(authenticators);
+                break;
+            }
+        }
     }
 }
