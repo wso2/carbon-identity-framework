@@ -118,7 +118,7 @@ public class WebhookManagementServiceImplTest {
         when(inputWebhook.getStatus()).thenReturn(null);
         when(inputWebhook.getName()).thenReturn("name");
         when(inputWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
-        when(inputWebhook.getEventProfileName()).thenReturn("schema");
+        when(inputWebhook.getEventProfileName()).thenReturn("profile");
         when(inputWebhook.getEventProfileUri()).thenReturn("uri");
         when(inputWebhook.getCreatedAt()).thenReturn(null);
         when(inputWebhook.getUpdatedAt()).thenReturn(null);

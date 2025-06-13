@@ -126,8 +126,8 @@ public class WebhookManagementDAOFacadeTest {
                 .name("Updated name")
                 .secret(testWebhook.getSecret())
                 .tenantId(testWebhook.getTenantId())
-                .eventSchemaName(testWebhook.getEventSchemaName())
-                .eventSchemaUri(testWebhook.getEventSchemaUri())
+                .eventProfileName(testWebhook.getEventProfileName())
+                .eventProfileUri(testWebhook.getEventProfileUri())
                 .status(testWebhook.getStatus())
                 .createdAt(testWebhook.getCreatedAt())
                 .updatedAt(testWebhook.getUpdatedAt())
@@ -223,8 +223,8 @@ public class WebhookManagementDAOFacadeTest {
                 .name(testWebhook.getName())
                 .secret(testWebhook.getSecret())
                 .tenantId(testWebhook.getTenantId())
-                .eventSchemaName(testWebhook.getEventSchemaName())
-                .eventSchemaUri(testWebhook.getEventSchemaUri())
+                .eventProfileName(testWebhook.getEventProfileName())
+                .eventProfileUri(testWebhook.getEventProfileUri())
                 .status(testWebhook.getStatus())
                 .createdAt(testWebhook.getCreatedAt())
                 .updatedAt(testWebhook.getUpdatedAt())
@@ -263,8 +263,8 @@ public class WebhookManagementDAOFacadeTest {
                 .endpoint(WEBHOOK_ENDPOINT1)
                 .name(WEBHOOK_NAME)
                 .secret(WEBHOOK_SECRET)
-                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
-                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .eventProfileName(WEBHOOK_EVENT_SCHEMA_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_SCHEMA_URI)
                 .status(WebhookStatus.INACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
@@ -300,7 +300,7 @@ public class WebhookManagementDAOFacadeTest {
         String webhookId = testWebhook.getUuid();
         String adaptor = "WebSubHubAdapter"; // Assuming WebSubHubAdapter is the adaptor used
         List<String> channels = testWebhook.getEventsSubscribed();
-        String eventProfileVersion = testWebhook.getEventSchemaName();
+        String eventProfileVersion = testWebhook.getEventProfileName();
         String endpoint = testWebhook.getEndpoint();
         String secret = testWebhook.getSecret();
         String tenantDomain = IdentityTenantUtil.getTenantDomain(testWebhook.getTenantId());
@@ -321,8 +321,8 @@ public class WebhookManagementDAOFacadeTest {
                 .endpoint(WEBHOOK_ENDPOINT1)
                 .name(WEBHOOK_NAME)
                 .secret(WEBHOOK_SECRET)
-                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
-                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .eventProfileName(WEBHOOK_EVENT_SCHEMA_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_SCHEMA_URI)
                 .status(WebhookStatus.ACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
@@ -336,8 +336,8 @@ public class WebhookManagementDAOFacadeTest {
         Assert.assertEquals(actualWebhook.getUuid(), expectedWebhook.getUuid());
         Assert.assertEquals(actualWebhook.getEndpoint(), expectedWebhook.getEndpoint());
         Assert.assertEquals(actualWebhook.getName(), expectedWebhook.getName());
-        Assert.assertEquals(actualWebhook.getEventSchemaName(), expectedWebhook.getEventSchemaName());
-        Assert.assertEquals(actualWebhook.getEventSchemaUri(), expectedWebhook.getEventSchemaUri());
+        Assert.assertEquals(actualWebhook.getEventProfileName(), expectedWebhook.getEventProfileName());
+        Assert.assertEquals(actualWebhook.getEventProfileUri(), expectedWebhook.getEventProfileUri());
         Assert.assertEquals(actualWebhook.getStatus(), expectedWebhook.getStatus());
         Assert.assertEquals(actualWebhook.getTenantId(), expectedWebhook.getTenantId());
     }

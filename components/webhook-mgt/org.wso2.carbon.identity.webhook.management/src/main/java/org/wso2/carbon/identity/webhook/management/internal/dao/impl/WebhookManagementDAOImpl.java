@@ -224,7 +224,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 .eventProfileName(resultSet.getString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME))
                 .eventProfileUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_PROFILE_URI))
                 .status(WebhookStatus.valueOf(resultSet.getString(WebhookSQLConstants.Column.STATUS)))
-                .secret(resultSet.getString(WebhookSQLConstants.Column.SECRET))
+                .secret(resultSet.getString(WebhookSQLConstants.Column.SECRET_ALIAS))
                 .tenantId(resultSet.getInt(WebhookSQLConstants.Column.TENANT_ID))
                 .createdAt(resultSet.getTimestamp(WebhookSQLConstants.Column.CREATED_AT))
                 .updatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.UPDATED_AT))
@@ -240,7 +240,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                             statement.setString(WebhookSQLConstants.Column.UUID, webhook.getUuid());
                             statement.setString(WebhookSQLConstants.Column.ENDPOINT, webhook.getEndpoint());
                             statement.setString(WebhookSQLConstants.Column.NAME, webhook.getName());
-                            statement.setString(WebhookSQLConstants.Column.SECRET, webhook.getSecret());
+                            statement.setString(WebhookSQLConstants.Column.SECRET_ALIAS, webhook.getSecret());
                             statement.setString(WebhookSQLConstants.Column.VERSION, WEBHOOK_VERSION);
                             statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME,
                                     webhook.getEventProfileName());
@@ -261,7 +261,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                     statement -> {
                         statement.setString(WebhookSQLConstants.Column.ENDPOINT, webhook.getEndpoint());
                         statement.setString(WebhookSQLConstants.Column.NAME, webhook.getName());
-                        statement.setString(WebhookSQLConstants.Column.SECRET, webhook.getSecret());
+                        statement.setString(WebhookSQLConstants.Column.SECRET_ALIAS, webhook.getSecret());
                         statement.setString(WebhookSQLConstants.Column.VERSION, WEBHOOK_VERSION);
                         statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME, webhook.getEventProfileName());
                         statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_URI, webhook.getEventProfileUri());
