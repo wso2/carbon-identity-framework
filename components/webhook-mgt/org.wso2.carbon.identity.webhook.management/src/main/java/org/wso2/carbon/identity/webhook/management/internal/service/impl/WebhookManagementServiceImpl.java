@@ -84,8 +84,8 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                 .name(webhook.getName())
                 .secret(webhook.getSecret())
                 .tenantId(tenantId)
-                .eventSchemaName(webhook.getEventSchemaName())
-                .eventSchemaUri(webhook.getEventSchemaUri())
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
                 .status(status)
                 .createdAt(webhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
@@ -147,8 +147,8 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                 .name(webhook.getName())
                 .secret(webhook.getSecret() != null ? webhook.getSecret() : existingWebhook.getSecret())
                 .tenantId(tenantId)
-                .eventSchemaName(webhook.getEventSchemaName())
-                .eventSchemaUri(webhook.getEventSchemaUri())
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
                 .status(webhook.getStatus())
                 .createdAt(existingWebhook.getCreatedAt())
                 .updatedAt(webhook.getUpdatedAt())
@@ -230,13 +230,13 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
 
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.WEBHOOK_NAME_FIELD, webhook.getName());
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.ENDPOINT_URI_FIELD, webhook.getEndpoint());
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_NAME_FIELD, webhook.getEventSchemaName());
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_URI_FIELD, webhook.getEventSchemaUri());
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_NAME_FIELD, webhook.getEventProfileName());
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_URI_FIELD, webhook.getEventProfileUri());
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.STATUS_FIELD, String.valueOf(webhook.getStatus()));
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.SECRET_FIELD, webhook.getSecret());
         WEBHOOK_VALIDATOR.validateWebhookName(webhook.getName());
         WEBHOOK_VALIDATOR.validateEndpointUri(webhook.getEndpoint());
         WEBHOOK_VALIDATOR.validateWebhookSecret(webhook.getSecret());
-        WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventSchemaName(), webhook.getEventsSubscribed());
+        WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventProfileName(), webhook.getEventsSubscribed());
     }
 }

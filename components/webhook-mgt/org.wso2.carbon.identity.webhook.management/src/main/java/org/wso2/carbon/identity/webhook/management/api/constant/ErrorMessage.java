@@ -90,7 +90,13 @@ public enum ErrorMessage {
             "The specified webhook subscriber: %s could not be found in the system."),
     ERROR_CODE_WEBHOOK_SUBSCRIBED_CHANNEL_VALIDATION_ERROR("WEBHOOKMGT-65019",
             "Webhook subscribed channel validation error",
-            "The provided subscribed channels are invalid or not supported.");
+            "The provided subscribed channels are invalid or not supported."),
+    ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR("WEBHOOKMGT-65020", "Webhook endpoint secret encryption error",
+            "An error occurred while encrypting the webhook: %s endpoint secret."),
+    ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DELETE_ERROR("WEBHOOKMGT-65021", "Webhook endpoint secret delete error",
+            "An error occurred while deleting the webhook: %s endpoint secret."),
+    ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR("WEBHOOKMGT-65022", "Webhook endpoint secret decryption error",
+            "An error occurred while decrypting the webhook: %s endpoint secret.");
 
     private final String code;
     private final String message;

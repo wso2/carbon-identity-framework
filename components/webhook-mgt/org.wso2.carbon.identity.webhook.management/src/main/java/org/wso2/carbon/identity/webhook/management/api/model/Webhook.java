@@ -37,8 +37,8 @@ public class Webhook {
     private final String name;
     private final String secret;
     private final int tenantId;
-    private final String eventSchemaName;
-    private final String eventSchemaUri;
+    private final String eventProfileName;
+    private final String eventProfileUri;
     private final WebhookStatus status;
     private final Timestamp createdAt;
     private final Timestamp updatedAt;
@@ -51,8 +51,8 @@ public class Webhook {
         this.name = builder.name;
         this.secret = builder.secret;
         this.tenantId = builder.tenantId;
-        this.eventSchemaName = builder.eventSchemaName;
-        this.eventSchemaUri = builder.eventSchemaUri;
+        this.eventProfileName = builder.eventProfileName;
+        this.eventProfileUri = builder.eventProfileUri;
         this.status = builder.status;
         this.createdAt = builder.createdAt;
         this.updatedAt = builder.updatedAt;
@@ -84,14 +84,14 @@ public class Webhook {
         return tenantId;
     }
 
-    public String getEventSchemaName() {
+    public String getEventProfileName() {
 
-        return eventSchemaName;
+        return eventProfileName;
     }
 
-    public String getEventSchemaUri() {
+    public String getEventProfileUri() {
 
-        return eventSchemaUri;
+        return eventProfileUri;
     }
 
     public WebhookStatus getStatus() {
@@ -134,8 +134,8 @@ public class Webhook {
                 Objects.equals(uuid, webhook.uuid) &&
                 Objects.equals(endpoint, webhook.endpoint) &&
                 Objects.equals(name, webhook.name) &&
-                Objects.equals(eventSchemaName, webhook.eventSchemaName) &&
-                Objects.equals(eventSchemaUri, webhook.eventSchemaUri) &&
+                Objects.equals(eventProfileName, webhook.eventProfileName) &&
+                Objects.equals(eventProfileUri, webhook.eventProfileUri) &&
                 status == webhook.status &&
                 Objects.equals(createdAt, webhook.createdAt) &&
                 Objects.equals(updatedAt, webhook.updatedAt) &&
@@ -146,7 +146,7 @@ public class Webhook {
     public int hashCode() {
 
         return Objects.hash(uuid, endpoint, name, secret, tenantId,
-                eventSchemaName, eventSchemaUri, status, createdAt, updatedAt, eventsSubscribed);
+                eventProfileName, eventProfileUri, status, createdAt, updatedAt, eventsSubscribed);
     }
 
     /**
@@ -159,8 +159,8 @@ public class Webhook {
         private String name;
         private String secret;
         private int tenantId;
-        private String eventSchemaName;
-        private String eventSchemaUri;
+        private String eventProfileName;
+        private String eventProfileUri;
         private WebhookStatus status;
         private Timestamp createdAt;
         private Timestamp updatedAt;
@@ -196,15 +196,15 @@ public class Webhook {
             return this;
         }
 
-        public Builder eventSchemaName(String eventSchemaName) {
+        public Builder eventProfileName(String eventProfileName) {
 
-            this.eventSchemaName = eventSchemaName;
+            this.eventProfileName = eventProfileName;
             return this;
         }
 
-        public Builder eventSchemaUri(String eventSchemaUri) {
+        public Builder eventProfileUri(String eventProfileUri) {
 
-            this.eventSchemaUri = eventSchemaUri;
+            this.eventProfileUri = eventProfileUri;
             return this;
         }
 

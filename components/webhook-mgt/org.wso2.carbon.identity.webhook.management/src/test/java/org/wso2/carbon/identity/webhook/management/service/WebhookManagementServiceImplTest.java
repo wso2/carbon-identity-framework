@@ -89,7 +89,7 @@ public class WebhookManagementServiceImplTest {
         // Setup a valid EventProfile and Channel for validation
         Channel channel = new Channel("logins", "Logins Channel", "schemas.identity.wso2.org/events/logins",
                 Collections.emptyList());
-        EventProfile eventProfile = new EventProfile("schema", "uri", Collections.singletonList(channel));
+        EventProfile eventProfile = new EventProfile("profile", "uri", Collections.singletonList(channel));
         when(webhookMetadataService.getSupportedEventProfiles())
                 .thenReturn(Collections.singletonList(eventProfile));
     }
@@ -118,8 +118,8 @@ public class WebhookManagementServiceImplTest {
         when(inputWebhook.getStatus()).thenReturn(null);
         when(inputWebhook.getName()).thenReturn("name");
         when(inputWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
-        when(inputWebhook.getEventSchemaName()).thenReturn("schema");
-        when(inputWebhook.getEventSchemaUri()).thenReturn("uri");
+        when(inputWebhook.getEventProfileName()).thenReturn("schema");
+        when(inputWebhook.getEventProfileUri()).thenReturn("uri");
         when(inputWebhook.getCreatedAt()).thenReturn(null);
         when(inputWebhook.getUpdatedAt()).thenReturn(null);
         when(inputWebhook.getEventsSubscribed()).thenReturn(
@@ -165,7 +165,7 @@ public class WebhookManagementServiceImplTest {
         Channel channel = new Channel("logins", "Logins Channel", "schemas.identity.wso2.org/events/logins",
                 Collections.emptyList());
         EventProfile eventProfile =
-                new EventProfile("updated-schema", "updated-uri", Collections.singletonList(channel));
+                new EventProfile("updated-profile", "updated-uri", Collections.singletonList(channel));
         when(webhookMetadataService.getSupportedEventProfiles())
                 .thenReturn(Collections.singletonList(eventProfile));
 
@@ -182,8 +182,8 @@ public class WebhookManagementServiceImplTest {
         when(updateWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
         when(updateWebhook.getName()).thenReturn("updated-name");
         when(updateWebhook.getUuid()).thenReturn(webhookId);
-        when(updateWebhook.getEventSchemaName()).thenReturn("updated-schema");
-        when(updateWebhook.getEventSchemaUri()).thenReturn("updated-uri");
+        when(updateWebhook.getEventProfileName()).thenReturn("updated-profile");
+        when(updateWebhook.getEventProfileUri()).thenReturn("updated-uri");
         when(updateWebhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
         when(updateWebhook.getSecret()).thenReturn("updated-test12-secret-1234567890");
 
@@ -197,8 +197,8 @@ public class WebhookManagementServiceImplTest {
         when(existingWebhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
         when(existingWebhook.getName()).thenReturn("name");
         when(existingWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
-        when(existingWebhook.getEventSchemaName()).thenReturn("schema");
-        when(existingWebhook.getEventSchemaUri()).thenReturn("uri");
+        when(existingWebhook.getEventProfileName()).thenReturn("profile");
+        when(existingWebhook.getEventProfileUri()).thenReturn("uri");
         when(existingWebhook.getUuid()).thenReturn(webhookId);
         when(existingWebhook.getEventsSubscribed()).thenReturn(events);
 
