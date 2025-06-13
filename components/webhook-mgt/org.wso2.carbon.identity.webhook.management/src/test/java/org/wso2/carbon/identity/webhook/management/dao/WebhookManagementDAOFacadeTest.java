@@ -65,8 +65,8 @@ public class WebhookManagementDAOFacadeTest {
     private static final String WEBHOOK_ENDPOINT2 = "https://example.com/webhook2";
     private static final String WEBHOOK_NAME = "Test webhook";
     private static final String WEBHOOK_SECRET = "test-secret";
-    private static final String WEBHOOK_EVENT_SCHEMA_NAME = "user-events";
-    private static final String WEBHOOK_EVENT_SCHEMA_URI = "https://schemas.org/user-events";
+    private static final String WEBHOOK_EVENT_PROFILE_NAME = "user-events";
+    private static final String WEBHOOK_EVENT_PROFILE_URI = "https://schemas.org/user-events";
 
     Webhook testWebhook;
 
@@ -263,8 +263,8 @@ public class WebhookManagementDAOFacadeTest {
                 .endpoint(WEBHOOK_ENDPOINT1)
                 .name(WEBHOOK_NAME)
                 .secret(WEBHOOK_SECRET)
-                .eventProfileName(WEBHOOK_EVENT_SCHEMA_NAME)
-                .eventProfileUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
                 .status(WebhookStatus.INACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
@@ -300,7 +300,7 @@ public class WebhookManagementDAOFacadeTest {
         String webhookId = testWebhook.getUuid();
         String adaptor = "WebSubHubAdapter"; // Assuming WebSubHubAdapter is the adaptor used
         List<String> channels = testWebhook.getEventsSubscribed();
-        String eventProfileVersion = testWebhook.getEventProfileName();
+        String eventProfileVersion = "v1";
         String endpoint = testWebhook.getEndpoint();
         String secret = testWebhook.getSecret();
         String tenantDomain = IdentityTenantUtil.getTenantDomain(testWebhook.getTenantId());
@@ -321,8 +321,8 @@ public class WebhookManagementDAOFacadeTest {
                 .endpoint(WEBHOOK_ENDPOINT1)
                 .name(WEBHOOK_NAME)
                 .secret(WEBHOOK_SECRET)
-                .eventProfileName(WEBHOOK_EVENT_SCHEMA_NAME)
-                .eventProfileUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
                 .status(WebhookStatus.ACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
