@@ -160,6 +160,13 @@ public class IdPManagementConstants {
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
 
+    public static final List<String> INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES = List.of(
+            "Organization.SelfService.Enable",
+            "Organization.SelfService.AdminEmailVerification",
+            "Organization.SelfService.OnboardAdminToOrg",
+            "Organization.SelfService.EnableAutoLogin");
+
+
     public static class SQLConstants {
 
         public static final String DEFINED_BY_COLUMN = "DEFINED_BY";

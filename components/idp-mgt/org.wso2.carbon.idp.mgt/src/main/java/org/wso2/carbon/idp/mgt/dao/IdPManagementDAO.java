@@ -3506,6 +3506,12 @@ public class IdPManagementDAO {
     private List<IdentityProviderProperty> mergePropertyLists(List<IdentityProviderProperty> list1,
                                                               List<IdentityProviderProperty> list2) {
 
+        // Filter properties that should not be inherited.
+        list2 = list2.stream()
+                .filter(property -> !IdPManagementConstants.INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES
+                        .contains(property.getName()))
+                .collect(Collectors.toList());
+
         for (IdentityProviderProperty property : list2) {
             if (list1.stream().noneMatch(p -> p.getName().equals(property.getName()))) {
                 list1.add(property);
