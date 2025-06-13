@@ -263,7 +263,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         statement.setString(WebhookSQLConstants.Column.NAME, webhook.getName());
                         statement.setString(WebhookSQLConstants.Column.SECRET_ALIAS, webhook.getSecret());
                         statement.setString(WebhookSQLConstants.Column.VERSION, WEBHOOK_VERSION);
-                        statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME, webhook.getEventProfileName());
+                        statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME,
+                                webhook.getEventProfileName());
                         statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_URI, webhook.getEventProfileUri());
                         statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_VERSION, WEBHOOK_SCHEMA_VERSION);
                         statement.setString(WebhookSQLConstants.Column.STATUS, String.valueOf(webhook.getStatus()));
