@@ -44,6 +44,10 @@ public enum ErrorMessage {
     ERROR_EMPTY_WEBHOOK_REQUEST_FIELD("WEBHOOKMGT-60011", "Invalid request.", "%s is empty."),
     ERROR_INVALID_WEBHOOK_REQUEST_FIELD("WEBHOOKMGT-60012", "Invalid request.",
             "%s is invalid."),
+    ERROR_CODE_WEBHOOK_ALREADY_ACTIVE("WEBHOOKMGT-60013", "Webhook already active",
+            "The webhook: %s is already active and cannot be activated again."),
+    ERROR_CODE_WEBHOOK_ALREADY_INACTIVE("WEBHOOKMGT-60014", "Webhook already inactive",
+            "The webhook: %s is already inactive and cannot be deactivated again."),
 
     // Server errors (65xxx range) | Remaining codes are continued in API layer.
     // Continuation of server error codes can be found in the Webhook Management API layer as well.
@@ -78,10 +82,15 @@ public enum ErrorMessage {
     ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR("WEBHOOKMGT-65015", "Webhook unsubscription error",
             "An error occurred while unsubscribing from the webhook: %s."),
     ERROR_CODE_WEBHOOK_SUBSCRIBERS_NOT_FOUND("WEBHOOKMGT-65016", "Webhook subscribers not found",
-            "No webhook subscribers found in the system for tenant: %s."),
+            "No webhook subscribers found in the system"),
     ERROR_CODE_WEBHOOK_ENDPOINT_EXISTENCE_CHECK_ERROR("WEBHOOKMGT-65017",
             "Error occurred while checking webhook endpoint existence",
-            "An internal server error occurred while checking the existence of the webhook endpoint: %s.");
+            "An internal server error occurred while checking the existence of the webhook endpoint: %s."),
+    ERROR_CODE_WEBHOOK_SUBSCRIBER_NOT_FOUND("WEBHOOKMGT-65018", "Webhook subscriber not found",
+            "The specified webhook subscriber: %s could not be found in the system."),
+    ERROR_CODE_WEBHOOK_SUBSCRIBED_CHANNEL_VALIDATION_ERROR("WEBHOOKMGT-65019",
+            "Webhook subscribed channel validation error",
+            "The provided subscribed channels are invalid or not supported.");
 
     private final String code;
     private final String message;

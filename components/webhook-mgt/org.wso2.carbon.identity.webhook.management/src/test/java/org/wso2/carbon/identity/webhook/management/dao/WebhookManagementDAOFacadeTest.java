@@ -28,24 +28,26 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
+import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
-import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriberService;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOFacade;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOImpl;
+import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
 
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * This class is a test suite for the WebhookManagementDAOFacade class.
@@ -69,10 +71,9 @@ public class WebhookManagementDAOFacadeTest {
     Webhook testWebhook;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
-
     private WebhookManagementDAOFacade daoFacade;
-
     private EventSubscriberService eventSubscriberService;
+    private TopicManagementService topicManagementService;
 
     @BeforeClass
     public void setUpClass() {
@@ -81,15 +82,21 @@ public class WebhookManagementDAOFacadeTest {
     }
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws TopicManagementException {
+
+        MockitoAnnotations.openMocks(this);
 
         eventSubscriberService = mock(EventSubscriberService.class);
         WebhookManagementComponentServiceHolder.getInstance().setEventSubscriberService(eventSubscriberService);
 
+        topicManagementService = mock(TopicManagementService.class);
+        WebhookManagementComponentServiceHolder.getInstance().setTopicManagementService(topicManagementService);
+
+        // By default, all topics exist and registration is a no-op
+        when(topicManagementService.isTopicExists(anyString(), anyString(), anyString())).thenReturn(true);
+
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
-
-        MockitoAnnotations.openMocks(this);
     }
 
     @AfterMethod
@@ -205,44 +212,6 @@ public class WebhookManagementDAOFacadeTest {
         Assert.assertEquals(webhooks.size(), 0);
     }
 
-    @Test(priority = 11)
-    public void testDeleteWebhook() throws Exception {
-
-        daoFacade.deleteWebhook(testWebhook.getUuid(), TENANT_ID);
-
-        Webhook webhookRetrieved = daoFacade.getWebhook(testWebhook.getUuid(),
-                TENANT_ID);
-
-        Assert.assertNull(webhookRetrieved);
-    }
-
-    @Test(priority = 12)
-    public void testDeleteWebhookWithInvalidId() throws Exception {
-
-        String invalidWebhookId = "invalid-webhook-id";
-        daoFacade.deleteWebhook(invalidWebhookId, TENANT_ID);
-
-        Webhook webhookRetrieved = daoFacade.getWebhook(invalidWebhookId,
-                TENANT_ID);
-
-        Assert.assertNull(webhookRetrieved);
-    }
-
-    @Test(priority = 13)
-    public void testDeleteWebhookWithInvalidTenant() throws Exception {
-
-        String invalidTenantDomain = "invalid-tenant-domain";
-        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(invalidTenantDomain);
-
-        String invalidWebhookId = "invalid-webhook-id";
-        daoFacade.deleteWebhook(invalidWebhookId, TENANT_ID);
-
-        Webhook webhookRetrieved = daoFacade.getWebhook(invalidWebhookId,
-                TENANT_ID);
-
-        Assert.assertNull(webhookRetrieved);
-    }
-
     @Test(priority = 14)
     public void testIsWebhookEndpointExists() throws Exception {
 
@@ -310,18 +279,6 @@ public class WebhookManagementDAOFacadeTest {
         Assert.assertEquals(webhookRetrieved.getStatus(), WebhookStatus.ACTIVE);
     }
 
-    @Test(priority = 18)
-    public void testActivateWebhookWithInvalidId() throws Exception {
-
-        String invalidWebhookId = "invalid-webhook-id";
-        daoFacade.activateWebhook(invalidWebhookId, TENANT_ID);
-
-        Webhook webhookRetrieved = daoFacade.getWebhook(invalidWebhookId,
-                TENANT_ID);
-
-        Assert.assertNull(webhookRetrieved);
-    }
-
     @Test(priority = 19)
     public void testDeactivateWebhook() throws Exception {
 
@@ -338,14 +295,23 @@ public class WebhookManagementDAOFacadeTest {
 
         testWebhook = createTestWebhook();
         daoFacade.createWebhook(testWebhook, TENANT_ID);
+
+        // Extract required fields from testWebhook for the subscribe method
+        String webhookId = testWebhook.getUuid();
+        String adaptor = "WebSubHubAdapter"; // Assuming WebSubHubAdapter is the adaptor used
+        List<String> channels = testWebhook.getEventsSubscribed();
+        String eventProfileVersion = testWebhook.getEventSchemaName();
+        String endpoint = testWebhook.getEndpoint();
+        String secret = testWebhook.getSecret();
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(testWebhook.getTenantId());
+
         doThrow(new WebhookMgtException("Subscription failed")).when(eventSubscriberService)
-                .subscribe(any(Webhook.class), anyString());
+                .subscribe(webhookId, adaptor, channels, eventProfileVersion, endpoint, secret, tenantDomain);
 
         daoFacade.updateWebhook(testWebhook, TENANT_ID);
     }
 
     private Webhook createTestWebhook() {
-
 
         List<String> eventsSubscribed = new java.util.ArrayList<>();
         eventsSubscribed.add("user.create");

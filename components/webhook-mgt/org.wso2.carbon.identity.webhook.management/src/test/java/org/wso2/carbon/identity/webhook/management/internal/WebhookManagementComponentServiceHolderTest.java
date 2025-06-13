@@ -21,14 +21,19 @@ package org.wso2.carbon.identity.webhook.management.internal;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
+import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 public class WebhookManagementComponentServiceHolderTest {
@@ -71,5 +76,37 @@ public class WebhookManagementComponentServiceHolderTest {
         List<EventSubscriber> subscribers = holder.getEventSubscribers();
         assertEquals(subscribers.size(), 1);
         assertEquals(subscribers.get(0), subscriber);
+    }
+
+    @Test
+    public void testSetAndGetEventSubscriberService() {
+
+        EventSubscriberService eventSubscriberService = Mockito.mock(EventSubscriberService.class);
+        holder.setEventSubscriberService(eventSubscriberService);
+        assertSame(holder.getEventSubscriberService(), eventSubscriberService);
+    }
+
+    @Test
+    public void testSetAndGetSecretManager() {
+
+        SecretManager secretManager = Mockito.mock(SecretManager.class);
+        holder.setSecretManager(secretManager);
+        assertSame(holder.getSecretManager(), secretManager);
+    }
+
+    @Test
+    public void testSetAndGetTopicManagementService() {
+
+        TopicManagementService topicManagementService = Mockito.mock(TopicManagementService.class);
+        holder.setTopicManagementService(topicManagementService);
+        assertSame(holder.getTopicManagementService(), topicManagementService);
+    }
+
+    @Test
+    public void testSetAndGetWebhookMetadataService() {
+
+        WebhookMetadataService webhookMetadataService = Mockito.mock(WebhookMetadataService.class);
+        holder.setWebhookMetadataService(webhookMetadataService);
+        assertSame(holder.getWebhookMetadataService(), webhookMetadataService);
     }
 }

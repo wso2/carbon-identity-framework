@@ -195,7 +195,8 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        return daoFACADE.activateWebhook(webhookId, tenantId);
+        daoFACADE.activateWebhook(webhookId, tenantId);
+        return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
     @Override
@@ -210,7 +211,8 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        return daoFACADE.deactivateWebhook(webhookId, tenantId);
+        daoFACADE.deactivateWebhook(webhookId, tenantId);
+        return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
     private boolean isWebhookExists(String webhookId, int tenantId) throws WebhookMgtException {
@@ -235,6 +237,6 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         WEBHOOK_VALIDATOR.validateWebhookName(webhook.getName());
         WEBHOOK_VALIDATOR.validateEndpointUri(webhook.getEndpoint());
         WEBHOOK_VALIDATOR.validateWebhookSecret(webhook.getSecret());
-        WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventsSubscribed());
+        WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventSchemaName(), webhook.getEventsSubscribed());
     }
 }

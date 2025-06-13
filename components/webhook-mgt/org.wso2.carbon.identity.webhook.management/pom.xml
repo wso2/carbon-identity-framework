@@ -44,6 +44,18 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.topic.management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.webhook.metadata</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.secret.mgt.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
         <dependency>
@@ -119,6 +131,16 @@
                             org.wso2.carbon.identity.event.handler;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.services;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core.exception;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.topic.management.api.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.webhook.metadata.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",

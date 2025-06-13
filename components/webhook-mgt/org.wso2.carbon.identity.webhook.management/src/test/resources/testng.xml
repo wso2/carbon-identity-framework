@@ -37,4 +37,9 @@
             <class name="org.wso2.carbon.identity.webhook.management.internal.WebhookManagementComponentServiceHolderTest"/>
         </classes>
     </test>
+    <test name="webhook-management-util-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.webhook.management.util.WebhookValidatorTest"/>
+        </classes>
+    </test>
 </suite>

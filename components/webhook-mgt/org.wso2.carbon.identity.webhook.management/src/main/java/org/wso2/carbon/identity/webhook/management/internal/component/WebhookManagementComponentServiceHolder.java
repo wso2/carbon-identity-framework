@@ -20,8 +20,11 @@ package org.wso2.carbon.identity.webhook.management.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
-import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriberService;
+import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
+import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +41,9 @@ public class WebhookManagementComponentServiceHolder {
             new WebhookManagementComponentServiceHolder();
     private List<EventSubscriber> eventSubscribers = new ArrayList<>();
     private EventSubscriberService eventSubscriberService;
+    private SecretManager secretManager;
+    private TopicManagementService topicManagementService;
+    private WebhookMetadataService webhookMetadataService;
 
     private WebhookManagementComponentServiceHolder() {
 
@@ -98,5 +104,65 @@ public class WebhookManagementComponentServiceHolder {
     public void setEventSubscriberService(EventSubscriberService eventSubscriberService) {
 
         this.eventSubscriberService = eventSubscriberService;
+    }
+
+    /**
+     * Get the SecretManager.
+     *
+     * @return SecretManager instance.
+     */
+    public SecretManager getSecretManager() {
+
+        return secretManager;
+    }
+
+    /**
+     * Set the SecretManager.
+     *
+     * @param secretManager SecretManager instance.
+     */
+    public void setSecretManager(SecretManager secretManager) {
+
+        this.secretManager = secretManager;
+    }
+
+    /**
+     * Get the TopicManagementService.
+     *
+     * @return TopicManagementService instance.
+     */
+    public TopicManagementService getTopicManagementService() {
+
+        return topicManagementService;
+    }
+
+    /**
+     * Set the TopicManagementService.
+     *
+     * @param topicManagementService TopicManagementService instance.
+     */
+    public void setTopicManagementService(TopicManagementService topicManagementService) {
+
+        this.topicManagementService = topicManagementService;
+    }
+
+    /**
+     * Get the webhook metadata service.
+     *
+     * @return Webhook metadata service.
+     */
+    public WebhookMetadataService getWebhookMetadataService() {
+
+        return webhookMetadataService;
+    }
+
+    /**
+     * Set the webhook metadata service.
+     *
+     * @param webhookMetadataService Webhook metadata service.
+     */
+    public void setWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
+
+        this.webhookMetadataService = webhookMetadataService;
     }
 }

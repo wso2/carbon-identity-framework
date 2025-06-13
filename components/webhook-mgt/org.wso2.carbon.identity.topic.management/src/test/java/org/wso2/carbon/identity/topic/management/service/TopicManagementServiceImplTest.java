@@ -62,7 +62,7 @@ public class TopicManagementServiceImplTest {
     private static final String CHANNEL_URI = "example.com/events";
     public static final String EVENT_PROFILE_VERSION = "v1";
     private static final String TOPIC = "https://example.com/events/carbon.super";
-    private static final String WEBSUBHUBTOPICMANAGER = "WEBSUBHUB";
+    private static final String WEBSUBHUBADAPTOR = "webSubHubAdapter";
 
     @BeforeClass
     public void setUpClass() throws Exception {
@@ -100,7 +100,7 @@ public class TopicManagementServiceImplTest {
 
         when(componentServiceHolderMock.getTopicManagers())
                 .thenReturn(Collections.singletonList(topicManager));
-        when(topicManager.getName()).thenReturn(WEBSUBHUBTOPICMANAGER);
+        when(topicManager.getName()).thenReturn(WEBSUBHUBADAPTOR);
         when(topicManager.constructTopic(CHANNEL_URI, EVENT_PROFILE_VERSION, TENANT_DOMAIN)).thenReturn(TOPIC);
 
         Field daoField = TopicManagementServiceImpl.class.getDeclaredField("topicManagementDAO");
