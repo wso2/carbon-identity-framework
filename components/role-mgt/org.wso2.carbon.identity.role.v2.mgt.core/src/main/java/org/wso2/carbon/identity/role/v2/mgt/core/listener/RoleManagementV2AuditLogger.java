@@ -57,6 +57,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnabl
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.role.v2.mgt.core.listener.utils.ListenerUtils.getInitiatorId;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This v2 audit logger logs the RoleManagement related operations.
@@ -72,7 +73,7 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     @Override
     public boolean isEnable() {
 
-        return isEnableV2AuditLogs();
+        return isEnableV2AuditLogs() || !isLegacyAuditLogsDisabled();
     }
 
     @Override

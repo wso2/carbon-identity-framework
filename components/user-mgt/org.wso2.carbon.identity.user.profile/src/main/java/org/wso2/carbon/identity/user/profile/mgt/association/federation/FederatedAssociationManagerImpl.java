@@ -87,13 +87,11 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             UserProfileMgtDAO.getInstance().createAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
 
-            if (UserProfileUtil.isEnableV2AuditLogs()) {
-                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                        LoggerUtils.getInitiatorType(getInitiatorId()),
-                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
-                        LogConstants.UserManagement.CREATE_FEDERATED_USER_ASSOCIATION);
-                triggerAuditLogEvent(auditLogBuilder, true);
-            }
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()),
+                    user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                    LogConstants.UserManagement.CREATE_FEDERATED_USER_ASSOCIATION);
+            triggerAuditLogEvent(auditLogBuilder);
         } catch (UserProfileException e) {
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER
                     , e, false);
@@ -227,13 +225,11 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             UserProfileMgtDAO.getInstance().deleteAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
 
-            if (UserProfileUtil.isEnableV2AuditLogs()) {
-                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                        LoggerUtils.getInitiatorType(getInitiatorId()),
-                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
-                        LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION);
-                triggerAuditLogEvent(auditLogBuilder, true);
-            }
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()),
+                    user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                    LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION);
+            triggerAuditLogEvent(auditLogBuilder);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association with idpId: " + idpName + ", and " +
@@ -255,13 +251,11 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             UserProfileMgtDAO.getInstance().deleteFederatedAssociation(user.getUserStoreDomain(), user.getUserName(),
                     federatedAssociationId);
 
-            if (UserProfileUtil.isEnableV2AuditLogs()) {
-                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                        LoggerUtils.getInitiatorType(getInitiatorId()),
-                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
-                        LogConstants.UserManagement.DELETE_FEDERATED_USER_ASSOCIATION);
-                triggerAuditLogEvent(auditLogBuilder, true);
-            }
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()),
+                    user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                    LogConstants.UserManagement.DELETE_FEDERATED_USER_ASSOCIATION);
+            triggerAuditLogEvent(auditLogBuilder);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association: " + federatedAssociationId
@@ -283,13 +277,11 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             UserProfileMgtDAO.getInstance().deleteFederatedAssociation(tenantId, user.getUserStoreDomain(),
                     user.getUserName());
 
-            if (UserProfileUtil.isEnableV2AuditLogs()) {
-                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                        LoggerUtils.getInitiatorType(getInitiatorId()),
-                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
-                        LogConstants.UserManagement.DELETE_FEDERATED_USER_ASSOCIATION);
-                triggerAuditLogEvent(auditLogBuilder, true);
-            }
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()),
+                    user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                    LogConstants.UserManagement.DELETE_FEDERATED_USER_ASSOCIATION);
+            triggerAuditLogEvent(auditLogBuilder);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated associations of user: "

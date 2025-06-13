@@ -43,6 +43,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnabl
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorId;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This v2 audit logger logs the Group Management success activities.
@@ -53,7 +54,7 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            return isEnableV2AuditLogs();
+            return isEnableV2AuditLogs() || !isLegacyAuditLogsDisabled();
         }
         return false;
     }

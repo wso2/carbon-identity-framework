@@ -61,14 +61,12 @@ public class RegistrationFlowMgtService {
 
         RegistrationGraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         registrationFlowDAO.updateDefaultRegistrationFlowByTenant(flowConfig, tenantID, DEFAULT_FLOW_NAME);
-        if (isEnableV2AuditLogs()) {
-            AuditLog.AuditLogBuilder auditLogBuilder =
-                    new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                                                 flowConfig.getId(),
-                                                 LoggerUtils.Target.Flow.name(),
-                            String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, SELF_REGISTRATION));
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
+        AuditLog.AuditLogBuilder auditLogBuilder =
+                new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                                             flowConfig.getId(),
+                                             LoggerUtils.Target.Flow.name(),
+                        String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, SELF_REGISTRATION));
+        triggerAuditLogEvent(auditLogBuilder);
     }
 
     /**
