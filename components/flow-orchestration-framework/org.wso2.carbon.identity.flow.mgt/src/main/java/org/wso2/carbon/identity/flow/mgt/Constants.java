@@ -183,4 +183,14 @@ public class Constants {
 
         }
     }
+
+    /**
+     * Constants for supported flow types.
+     */
+    public enum FlowTypes {
+
+        REGISTRATION,
+        PASSWORD_RECOVERY,
+        ASK_PASSWORD;
+    }
 }
