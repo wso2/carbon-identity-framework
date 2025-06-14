@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.webhook.management.internal.component;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
@@ -42,6 +43,7 @@ public class WebhookManagementComponentServiceHolder {
     private List<EventSubscriber> eventSubscribers = new ArrayList<>();
     private EventSubscriberService eventSubscriberService;
     private SecretManager secretManager;
+    private SecretResolveManager secretResolveManager;
     private TopicManagementService topicManagementService;
     private WebhookMetadataService webhookMetadataService;
 
@@ -124,6 +126,26 @@ public class WebhookManagementComponentServiceHolder {
     public void setSecretManager(SecretManager secretManager) {
 
         this.secretManager = secretManager;
+    }
+
+    /**
+     * Get the SecretResolveManager.
+     *
+     * @return SecretResolveManager instance.
+     */
+    public SecretResolveManager getSecretResolveManager() {
+
+        return secretResolveManager;
+    }
+
+    /**
+     * Set the SecretResolveManager.
+     *
+     * @param secretResolveManager SecretResolveManager instance.
+     */
+    public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        this.secretResolveManager = secretResolveManager;
     }
 
     /**

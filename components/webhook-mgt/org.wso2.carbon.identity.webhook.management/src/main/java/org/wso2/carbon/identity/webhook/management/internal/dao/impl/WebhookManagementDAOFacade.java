@@ -24,6 +24,7 @@ import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
@@ -34,11 +35,14 @@ import org.wso2.carbon.identity.webhook.management.internal.component.WebhookMan
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
+import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretProcessor;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR;
 
 /**
  * Facade for WebhookManagementDAO to handle webhook management operations.
@@ -49,10 +53,12 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     private static final String EVENT_PROFILE_VERSION = "v1";
     private static final String ADAPTOR = "webSubHubAdapter";
     private final WebhookManagementDAO webhookManagementDAO;
+    private final WebhookSecretProcessor webhookSecretProcessor;
 
     public WebhookManagementDAOFacade(WebhookManagementDAO webhookManagementDAO) {
 
         this.webhookManagementDAO = webhookManagementDAO;
+        this.webhookSecretProcessor = new WebhookSecretProcessor();
     }
 
     @Override
@@ -70,7 +76,8 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                     ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR);
         }
 
-        runTransaction(jdbcTemplate, () -> webhookManagementDAO.createWebhook(webhook, tenantId),
+        runTransaction(jdbcTemplate,
+                () -> webhookManagementDAO.createWebhook(encryptAddingWebhookSecrets(webhook), tenantId),
                 ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR,
                 "creating webhook: " + webhook.getUuid() + " in tenant ID: " + tenantId, null);
     }
@@ -103,10 +110,12 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         withTopicRegistrationIfActive(jdbcTemplate, webhook, tenantDomain, tenantId,
                 ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR);
 
-        Webhook existingWebhook = webhookManagementDAO.getWebhook(webhook.getUuid(), tenantId);
+        Webhook existingWebhook =
+                getWebhookWithDecryptedSecretValue(webhookManagementDAO.getWebhook(webhook.getUuid(), tenantId));
         handleWebhookUpdate(subscriberService, webhook, existingWebhook, tenantDomain);
 
-        runTransaction(jdbcTemplate, () -> webhookManagementDAO.updateWebhook(webhook, tenantId),
+        runTransaction(jdbcTemplate,
+                () -> webhookManagementDAO.updateWebhook(encryptAddingWebhookSecrets(webhook), tenantId),
                 ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR,
                 "updating webhook: " + webhook.getUuid() + " in tenant ID: " + tenantId, () -> {
                     if (WebhookStatus.ACTIVE.equals(webhook.getStatus())) {
@@ -131,6 +140,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                         LOG.warn("Error unsubscribing webhook during deletion: " + existingWebhook.getUuid(), e);
                     }
                     webhookManagementDAO.deleteWebhook(webhookId, tenantId);
+                    deleteAuthenticationSecrets(existingWebhook);
                 }, ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR,
                 "deleting webhook: " + webhookId + " in tenant ID: " + tenantId, null);
     }
@@ -151,6 +161,53 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
         toggleWebhookStatus(webhookId, tenantId, false);
+    }
+
+    /**
+     * Encrypts the webhook secret and adds it to the webhook object.
+     *
+     * @param webhook Webhook object.
+     * @return Webhook with encrypted secrets.
+     * @throws WebhookMgtException If an error occurs while encrypting the webhook secrets.
+     */
+    private Webhook encryptAddingWebhookSecrets(Webhook webhook) throws WebhookMgtException {
+
+        try {
+            String encryptedSecretAlias = webhookSecretProcessor.encryptAssociatedSecrets(
+                    webhook.getUuid(), webhook.getSecret());
+
+            return addEncryptedWebhookSecretsToBuilder(webhook, encryptedSecretAlias);
+        } catch (SecretManagementException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR, e, webhook.getUuid());
+        }
+    }
+
+    /**
+     * Deletes the authentication secrets associated with the webhook.
+     *
+     * @param webhook Webhook object.
+     * @throws WebhookMgtException If an error occurs while deleting the authentication secrets.
+     */
+    private void deleteAuthenticationSecrets(Webhook webhook) throws WebhookMgtException {
+
+        try {
+            webhookSecretProcessor.deleteAssociatedSecrets(webhook.getUuid());
+        } catch (SecretManagementException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DELETE_ERROR, e, webhook.getUuid());
+        }
+    }
+
+    public Webhook getWebhookWithDecryptedSecretValue(Webhook webhook) throws WebhookMgtException {
+
+        try {
+            String decryptedSecret = webhookSecretProcessor.decryptAssociatedSecrets(webhook.getUuid());
+            return addEncryptedWebhookSecretsToBuilder(webhook, decryptedSecret);
+        } catch (SecretManagementException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR, e, webhook.getUuid());
+        }
     }
 
     private void toggleWebhookStatus(String webhookId, int tenantId, boolean activate) throws WebhookMgtException {
@@ -360,5 +417,31 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         } catch (WebhookMgtException e) {
             throw WebhookManagementExceptionHandler.handleServerException(errorMessage, e);
         }
+    }
+
+    /**
+     * Adds encrypted webhook secrets to the builder.
+     *
+     * @param webhook              Webhook object.
+     * @param encryptedSecretAlias Encrypted secret alias.
+     * @return Webhook with encrypted secrets.
+     * @throws WebhookMgtException If an error occurs while adding encrypted secrets.
+     */
+    private Webhook addEncryptedWebhookSecretsToBuilder(Webhook webhook, String encryptedSecretAlias)
+            throws WebhookMgtException {
+
+        return new Webhook.Builder()
+                .uuid(webhook.getUuid())
+                .endpoint(webhook.getEndpoint())
+                .name(webhook.getName())
+                .secret(encryptedSecretAlias)
+                .tenantId(webhook.getTenantId())
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
+                .status(webhook.getStatus())
+                .createdAt(webhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
     }
 }
