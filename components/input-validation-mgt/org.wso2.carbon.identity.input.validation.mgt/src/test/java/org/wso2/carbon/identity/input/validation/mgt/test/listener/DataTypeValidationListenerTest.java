@@ -101,7 +101,13 @@ public class DataTypeValidationListenerTest {
         localClaim3.setClaimProperty(ClaimConstants.DATA_TYPE_PROPERTY, "12.5");
         localClaims.add(localClaim3);
 
-        Map<String, String> claims = Map.of("accountNumber", "101001N", "age", "29", "rate", "12.5");
+        LocalClaim localClaim4 = new LocalClaim("accountType");
+        localClaim4.setClaimProperty(ClaimConstants.CANONICAL_VALUES_PROPERTY,
+                "[{\"label\":\"Savings\",\"value\":\"SAV\"},{\"label\":\"Current\",\"value\":\"CUR\"}]");
+        localClaims.add(localClaim4);
+
+        Map<String, String> claims = Map.of("accountNumber", "101001N", "age", "29", "rate", "12.5",
+                                           "accountType", "SAV");
 
         when(claimMetadataManagementService.getLocalClaims(tenantDomain)).thenReturn(localClaims);
 
@@ -119,6 +125,22 @@ public class DataTypeValidationListenerTest {
         localClaims.add(localClaim);
 
         Map<String, String> claims = Map.of(claimUri, value);
+
+        when(claimMetadataManagementService.getLocalClaims(tenantDomain)).thenReturn(localClaims);
+
+        DataTypeValidationListener dataTypeValidationListener = new DataTypeValidationListener();
+        dataTypeValidationListener.doPreAddUser("user", "pass", new String[]{}, claims, "profile", null);
+    }
+
+    @Test(expectedExceptions = UserStoreClientException.class)
+    void testNotAllowedValuesForAttributes() throws UserStoreException, ClaimMetadataException {
+
+        List<LocalClaim> localClaims = new ArrayList<>();
+        LocalClaim localClaim = new LocalClaim("accountType");
+        localClaim.setClaimProperty(ClaimConstants.CANONICAL_VALUES_PROPERTY,
+                "[{\"label\":\"Savings\",\"value\":\"SAV\"},{\"label\":\"Current\",\"value\":\"CUR\"}]");
+        localClaims.add(localClaim);
+        Map<String, String> claims = Map.of("accountType", "FD");
 
         when(claimMetadataManagementService.getLocalClaims(tenantDomain)).thenReturn(localClaims);
 

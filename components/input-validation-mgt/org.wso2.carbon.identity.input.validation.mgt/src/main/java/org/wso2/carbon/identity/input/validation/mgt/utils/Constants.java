@@ -194,6 +194,8 @@ public class Constants {
                 "Invalid validators combination is provided for field %s."),
         ERROR_INVALID_ATTRIBUTE_VALUE_TYPE("60028", "INVALID VALUE FOR ATTRIBUTE",
                 "Attribute '%s' expects a value of type '%s'."),
+        ERROR_NOT_ALLOWED_ATTRIBUTE_VALUE("60029", "NOT ALLOWED VALUE FOR ATTRIBUTE",
+                "Invalid value '%s' for claim '%s'. Allowed values are: %s"),
 
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
