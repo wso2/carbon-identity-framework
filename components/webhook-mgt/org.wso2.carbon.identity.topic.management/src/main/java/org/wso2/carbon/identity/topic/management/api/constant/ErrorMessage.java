@@ -52,7 +52,7 @@ public enum ErrorMessage {
             "An internal server error occurred while persisting the topic: %s in the database."),
     ERROR_CODE_TOPIC_DEREGISTRATION_ERROR("TOPICMGT-65009", "Error occurred while deregistering topic",
             "An internal server error occurred while deregistering the topic: %s."),
-    ERROR_CODE_TOPIC_DELETION_ERROR("TOPICMGT-650010", "Error occurred while deleting topic",
+    ERROR_CODE_TOPIC_DELETION_ERROR("TOPICMGT-65010", "Error occurred while deleting topic",
             "An internal server error occurred while deleting the topic: %s from database."),
     ERROR_CODE_TOPIC_EXISTS_CHECK_ERROR("TOPICMGT-65011", "Error occurred while checking if topic exists",
             "An internal server error occurred while checking if the topic exists: %s."),

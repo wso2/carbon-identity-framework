@@ -176,7 +176,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
             String encryptedSecretAlias = webhookSecretProcessor.encryptAssociatedSecrets(
                     webhook.getUuid(), webhook.getSecret());
 
-            return addEncryptedWebhookSecretsToBuilder(webhook, encryptedSecretAlias);
+            return addSecretToBuilder(webhook, encryptedSecretAlias);
         } catch (SecretManagementException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
                     ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR, e, webhook.getUuid());
@@ -203,7 +203,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         try {
             String decryptedSecret = webhookSecretProcessor.decryptAssociatedSecrets(webhook.getUuid());
-            return addEncryptedWebhookSecretsToBuilder(webhook, decryptedSecret);
+            return addSecretToBuilder(webhook, decryptedSecret);
         } catch (SecretManagementException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR, e, webhook.getUuid());
@@ -420,21 +420,21 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     }
 
     /**
-     * Adds encrypted webhook secrets to the builder.
+     * Adds a secret alias to the builder.
      *
-     * @param webhook              Webhook object.
-     * @param encryptedSecretAlias Encrypted secret alias.
-     * @return Webhook with encrypted secrets.
-     * @throws WebhookMgtException If an error occurs while adding encrypted secrets.
+     * @param webhook     Webhook object.
+     * @param secretAlias Secret alias (encrypted or plain).
+     * @return Webhook with the secret alias added.
+     * @throws WebhookMgtException If an error occurs while adding the secret alias.
      */
-    private Webhook addEncryptedWebhookSecretsToBuilder(Webhook webhook, String encryptedSecretAlias)
+    private Webhook addSecretToBuilder(Webhook webhook, String secretAlias)
             throws WebhookMgtException {
 
         return new Webhook.Builder()
                 .uuid(webhook.getUuid())
                 .endpoint(webhook.getEndpoint())
                 .name(webhook.getName())
-                .secret(encryptedSecretAlias)
+                .secret(secretAlias)
                 .tenantId(webhook.getTenantId())
                 .eventProfileName(webhook.getEventProfileName())
                 .eventProfileUri(webhook.getEventProfileUri())
