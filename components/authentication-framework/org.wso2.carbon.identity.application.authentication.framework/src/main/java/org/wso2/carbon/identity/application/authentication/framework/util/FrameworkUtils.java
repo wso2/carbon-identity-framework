@@ -1469,27 +1469,81 @@ public class FrameworkUtils {
         }
     }
 
+    /* * Publish an event on user registration failure.
+     *
+     * @param errorCode Error code.
+     * @param errorMessage Error message.
+     * @param claims User claims.
+     * @param tenantDomain Tenant domain.
+     * @param idp Identity provider name.
+     */
     public static void publishEventOnUserRegistrationFailure(String errorCode, String errorMessage,
                                                              Map<String, String> claims, String tenantDomain,
-                                                             String idpName) {
+                                                             String idp) {
+
+        String stepId = String.valueOf(
+                IdentityUtil.threadLocalProperties.get().get(IdentityEventConstants.EventProperty.STEP_ID));
+        String authenticator = String.valueOf(IdentityUtil.threadLocalProperties.get()
+                .get(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR));
+
+        IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.STEP_ID);
+        IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR);
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.IDP, idp);
+        properties.put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, authenticator);
+        properties.put(IdentityEventConstants.EventProperty.STEP_ID, stepId);
+
+        properties.put(IdentityEventConstants.EventProperty.ERROR_CODE, errorCode);
+        properties.put(IdentityEventConstants.EventProperty.ERROR_MESSAGE, errorMessage);
+
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_FAILED, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
+
+    private static void publishEventOnUserRegistration(Map<String, String> claims,
+                                                       String tenantDomain, Event event) {
+
+        Map<String, Object> properties = event.getEventProperties();
+
+        properties.put(IdentityEventConstants.EventProperty.USER_CLAIMS, claims);
+        properties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        properties.put(IdentityEventConstants.EventProperty.TENANT_ID,
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+
+        try {
+            FrameworkServiceDataHolder.getInstance().getIdentityEventService().handleEvent(event);
+        } catch (IdentityEventException e) {
+            log.error("Error in triggering registration failure event", e);
+        }
+    }
+
+    /*
+     * Publish an event on user registration failure.
+     *
+     * @param errorCode Error code.
+     * @param errorMessage Error message.
+     * @param claims User claims.
+     * @param tenantDomain Tenant domain.
+     */
+    public static void  publishEventOnUserRegistrationFailure(String errorCode, String errorMessage,
+                                                             Map<String, String> claims, String tenantDomain) {
 
         HashMap<String, Object> properties = new HashMap<>();
         properties.put(IdentityEventConstants.EventProperty.ERROR_CODE, errorCode);
         properties.put(IdentityEventConstants.EventProperty.ERROR_MESSAGE, errorMessage);
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_FAILED, properties);
 
-        properties.put(IdentityEventConstants.EventProperty.USER_CLAIMS, claims);
-        properties.put(FrameworkConstants.FEDERATED_IDP_NAME, idpName);
-        properties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        properties.put(IdentityEventConstants.EventProperty.TENANT_ID, PrivilegedCarbonContext
-                .getThreadLocalCarbonContext().getTenantId());
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
 
-        Event identityMgtEvent = new Event(IdentityEventConstants.Event.USER_REGISTRATION_FAILED, properties);
+    public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String tenantDomain) {
 
-        try {
-            FrameworkServiceDataHolder.getInstance().getIdentityEventService().handleEvent(identityMgtEvent);
-        } catch (IdentityEventException e) {
-            log.error("Error in triggering session expire event for the session: ", e);
-        }
+        HashMap<String, Object> properties = new HashMap<>();
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
     }
 
     /**

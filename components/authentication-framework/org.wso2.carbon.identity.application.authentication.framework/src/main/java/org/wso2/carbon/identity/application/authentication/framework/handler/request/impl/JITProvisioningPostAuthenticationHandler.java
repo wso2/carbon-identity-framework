@@ -67,6 +67,7 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -934,6 +935,12 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             excludeUnmappedRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
         }
+
+        IdentityUtil.threadLocalProperties.get()
+                .put(IdentityEventConstants.EventProperty.STEP_ID, context.getCurrentStep());
+        IdentityUtil.threadLocalProperties.get()
+                .put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, context.getCurrentAuthenticator());
+
         try {
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 // This block handle the JIT provisioning in legacy authz runtime with v1 roles.
