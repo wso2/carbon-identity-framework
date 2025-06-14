@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
@@ -116,25 +117,6 @@ public class WebhookManagementServiceComponent {
     }
 
     @Reference(
-            name = "org.wso2.carbon.identity.secret.mgt.core.SecretManager",
-            service = SecretManager.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetSecretManager"
-    )
-    private void setSecretManager(SecretManager secretManager) {
-
-        WebhookManagementComponentServiceHolder.getInstance().setSecretManager(secretManager);
-        LOG.debug("SecretManager set in WebhookManagementComponentServiceHolder bundle.");
-    }
-
-    private void unsetSecretManager(SecretManager secretManager) {
-
-        WebhookManagementComponentServiceHolder.getInstance().setSecretManager(null);
-        LOG.debug("SecretManager unset in WebhookManagementComponentServiceHolder bundle.");
-    }
-
-    @Reference(
             name = "topic.management.service.component",
             service = TopicManagementService.class,
             cardinality = ReferenceCardinality.MANDATORY,
@@ -168,5 +150,43 @@ public class WebhookManagementServiceComponent {
     protected void unsetWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
 
         WebhookManagementComponentServiceHolder.getInstance().setWebhookMetadataService(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretManager",
+            service = SecretManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretManager"
+    )
+    private void setSecretManager(SecretManager secretManager) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setSecretManager(secretManager);
+        LOG.debug("SecretManager set in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    private void unsetSecretManager(SecretManager secretManager) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setSecretManager(null);
+        LOG.debug("SecretManager unset in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager",
+            service = SecretResolveManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretResolveManager"
+    )
+    private void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setSecretResolveManager(secretResolveManager);
+        LOG.debug("SecretResolveManager set in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    private void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setSecretResolveManager(null);
+        LOG.debug("SecretResolveManager unset in WebhookManagementComponentServiceHolder bundle.");
     }
 }

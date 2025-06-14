@@ -28,6 +28,11 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
@@ -74,6 +79,9 @@ public class WebhookManagementDAOFacadeTest {
     private WebhookManagementDAOFacade daoFacade;
     private EventSubscriberService eventSubscriberService;
     private TopicManagementService topicManagementService;
+    private SecretManager secretManager;
+    private SecretResolveManager secretResolveManager;
+    private SecretType secretType;
 
     @BeforeClass
     public void setUpClass() {
@@ -82,7 +90,7 @@ public class WebhookManagementDAOFacadeTest {
     }
 
     @BeforeMethod
-    public void setUp() throws TopicManagementException {
+    public void setUp() throws TopicManagementException, SecretManagementException {
 
         MockitoAnnotations.openMocks(this);
 
@@ -92,17 +100,34 @@ public class WebhookManagementDAOFacadeTest {
         topicManagementService = mock(TopicManagementService.class);
         WebhookManagementComponentServiceHolder.getInstance().setTopicManagementService(topicManagementService);
 
-        // By default, all topics exist and registration is a no-op
         when(topicManagementService.isTopicExists(anyString(), anyString(), anyString())).thenReturn(true);
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+
+        secretManager = mock(SecretManager.class);
+        secretResolveManager = mock(SecretResolveManager.class);
+        secretType = mock(SecretType.class);
+
+        WebhookManagementComponentServiceHolder.getInstance().setSecretManager(secretManager);
+        WebhookManagementComponentServiceHolder.getInstance().setSecretResolveManager(secretResolveManager);
+
+        // Correct for non-void methods:
+        when(secretManager.getSecretType(anyString())).thenReturn(secretType);
+        when(secretType.getId()).thenReturn("WEBHOOK_SECRETS");
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
+
+        ResolvedSecret resolvedSecret = mock(ResolvedSecret.class);
+        when(resolvedSecret.getResolvedSecretValue()).thenReturn(WEBHOOK_SECRET);
+        when(secretResolveManager.getResolvedSecret(anyString(), anyString())).thenReturn(resolvedSecret);
     }
 
     @AfterMethod
     public void tearDown() {
 
-        identityTenantUtil.close();
+        if (identityTenantUtil != null) {
+            identityTenantUtil.close();
+        }
     }
 
     @Test(priority = 1)
@@ -120,6 +145,7 @@ public class WebhookManagementDAOFacadeTest {
     @Test(priority = 2)
     public void testUpdateWebhook() throws Exception {
 
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(true);
         testWebhook = new Webhook.Builder()
                 .uuid(testWebhook.getUuid())
                 .endpoint(testWebhook.getEndpoint())
@@ -139,6 +165,9 @@ public class WebhookManagementDAOFacadeTest {
         Webhook updatedWebhook = daoFacade.getWebhook(testWebhook.getUuid(), TENANT_ID);
 
         Assert.assertEquals(updatedWebhook.getName(), "Updated name");
+
+        // Update the reference for subsequent tests
+        testWebhook = updatedWebhook;
     }
 
     @Test(priority = 3)

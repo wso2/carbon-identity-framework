@@ -1932,6 +1932,8 @@ INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('ce234fd5-3fb4-4a40-9911-818be9b4ee10', 'REMOTE_LOGGING_SECRETS', 'Secret type to uniquely identify secrets relevant to remote logging properties')
 INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('a1b2c3d4-5e6f-7a89-b012-3456789ab8de', 'EMAIL_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to email provider properties')
+INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
+('e2bc9d81-91a0-4efc-9091-c37afc46663b', 'WEBHOOK_SECRETS', 'Secret type to uniquely identify secrets relevant to webhook configurations')
 SELECT 1 FROM dual
 /
 

@@ -1187,7 +1187,8 @@ INSERT INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('33f0a41b-569d-4ea5-a891-6c0e78a1c3b0', 'ACTION_API_ENDPOINT_AUTH_SECRETS', 'Secret type to uniquely identify secrets relevant to action endpoint authentication properties'),
 ('b411dafd-e2c4-4d2f-afba-3900d802725a', 'PUSH_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to push provider properties'),
 ('ce234fd5-3fb4-4a40-9911-818be9b4ee10', 'REMOTE_LOGGING_SECRETS', 'Secret type to uniquely identify secrets relevant to remote logging properties'),
-('a1b2c3d4-5e6f-7a89-b012-3456789ab8de', 'EMAIL_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to email provider properties');
+('a1b2c3d4-5e6f-7a89-b012-3456789ab8de', 'EMAIL_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to email provider properties'),
+('e2bc9d81-91a0-4efc-9091-c37afc46663b', 'WEBHOOK_SECRETS', 'Secret type to uniquely identify secrets relevant to webhook configurations');
 
 CREATE TABLE IF NOT EXISTS IDN_SECRET (
     ID VARCHAR(255) NOT NULL,

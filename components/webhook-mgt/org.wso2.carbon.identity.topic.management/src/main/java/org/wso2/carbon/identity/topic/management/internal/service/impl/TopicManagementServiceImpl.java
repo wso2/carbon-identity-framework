@@ -75,20 +75,25 @@ public class TopicManagementServiceImpl implements TopicManagementService {
 
         TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
         String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
+        if (isTopicExists(channelUri, eventProfileVersion, tenantDomain)) {
+            throw TopicManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_TOPIC_ALREADY_EXISTS, topic);
+        }
         try {
-            if (isTopicExists(channelUri, eventProfileVersion, tenantDomain)) {
-                throw TopicManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_CODE_TOPIC_ALREADY_EXISTS, topic);
-            }
             adaptorManager.registerTopic(topic, tenantDomain);
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            topicManagementDAO.addTopic(topic, channelUri, eventProfileVersion, tenantId);
-
-            LOG.debug("Topic registered successfully: " + topic + " for tenant: " + tenantDomain);
         } catch (TopicManagementException e) {
             throw TopicManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_TOPIC_REGISTRATION_ERROR, e, topic);
         }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            topicManagementDAO.addTopic(topic, channelUri, eventProfileVersion, tenantId);
+        } catch (TopicManagementException e) {
+            adaptorManager.deregisterTopic(topic, tenantDomain);
+            throw TopicManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_TOPIC_PERSISTENCE_ERROR, e, topic);
+        }
+        LOG.debug("Topic registered successfully: " + topic + " for tenant: " + tenantDomain);
     }
 
     /**
@@ -108,13 +113,19 @@ public class TopicManagementServiceImpl implements TopicManagementService {
         LOG.debug("Topic deregistration initiated: " + topic + " for tenant domain: " + tenantDomain);
         try {
             adaptorManager.deregisterTopic(topic, tenantDomain);
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            topicManagementDAO.deleteTopic(topic, tenantId);
-            LOG.debug("Topic deregistered successfully: " + topic + " for tenant: " + tenantDomain);
         } catch (TopicManagementException e) {
             throw TopicManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_TOPIC_DEREGISTRATION_ERROR, e, topic);
         }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            topicManagementDAO.deleteTopic(topic, tenantId);
+        } catch (TopicManagementException e) {
+            adaptorManager.registerTopic(topic, tenantDomain);
+            throw TopicManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_TOPIC_DELETION_ERROR, e, topic);
+        }
+        LOG.debug("Topic deregistered successfully: " + topic + " for tenant: " + tenantDomain);
     }
 
     /**
