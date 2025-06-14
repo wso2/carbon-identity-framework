@@ -455,6 +455,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else {
             // If isShowErrorPage is false, set parameters specific to fail function to context.
             setErrorPropertiesToContext(node, context);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.FAIL_COMPLETED);
         }
     }
 
