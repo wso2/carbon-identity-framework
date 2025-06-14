@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
@@ -126,7 +127,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     /**
-     * Executes the authentication flow
+     * Executes the authentication flow.
      *
      * @param request
      * @param response
@@ -305,7 +306,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     /**
-     * Handle the start of a Sequence
+     * Handle the start of a Sequence.
      *
      * @param request
      * @param response
@@ -359,7 +360,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     /**
-     * Sends the response to the servlet that initiated the authentication flow
+     * Sends the response to the servlet that initiated the authentication flow.
      *
      * @param request
      * @param response
@@ -688,9 +689,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     }
                 }
             }
-            FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
-                        .getAuthenticatedUser(), analyticsSessionAction);
-            publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
+            List<Application> applications = new ArrayList<>();
+            Application application = new Application(appConfig.getSubjectClaimUri(),
+                    appConfig.getApplicationName(), String.valueOf(appConfig.getApplicationID()));
+
+            applications.add(application);
+            FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext,
+                    authenticationResult.getSubject(), analyticsSessionAction, applications);
+            publishAuthenticationSuccess(request, context, authenticationResult.getSubject());
         }
 
         // Passing the federated tokens to the authentication result.
@@ -1036,7 +1042,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     /**
-     * Add authentication request as request attribute
+     * Add authentication request as request attribute.
      *
      * @param request
      * @param authenticationResult
