@@ -2376,6 +2376,11 @@
                        name="org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLogger"
                        orderId="{{event.default_listener.user_failure_audit_logger.priority}}"
                        enable="{{event.default_listener.user_failure_audit_logger.enable}}"/>
+        <EventListener id="user_failure_event_trigger"
+                               type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
+                               name="org.wso2.carbon.user.mgt.listeners.UserOperationFailureTriggerEventListener"
+                               orderId="{{event.default_listener.user_failure_event_trigger.priority}}"
+                               enable="{{event.default_listener.user_failure_event_trigger.enable}}"/>
        <EventListener id="unique_claim_user_operation_event_listener"
                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                       name="org.wso2.carbon.identity.unique.claim.mgt.listener.UniqueClaimUserOperationEventListener"

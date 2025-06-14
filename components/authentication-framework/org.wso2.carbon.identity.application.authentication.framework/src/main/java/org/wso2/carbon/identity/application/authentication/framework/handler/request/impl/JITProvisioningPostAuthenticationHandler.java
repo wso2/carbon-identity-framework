@@ -64,9 +64,12 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -155,6 +158,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             AuthenticatedUser authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
             log.debug("Continuing with JIT flow for the user: " + authenticatedUser);
         }
+
+        IdentityContext.getThreadLocalIdentityContext().setFlow(
+                new Flow.Builder().name(Flow.Name.REGISTER_USER).initiatingPersona(Flow.InitiatingPersona.USER)
+                        .build());
+
         Object isProvisionUIRedirectionTriggered = context
                 .getProperty(FrameworkConstants.PASSWORD_PROVISION_REDIRECTION_TRIGGERED);
         if (isProvisionUIRedirectionTriggered != null && (boolean) isProvisionUIRedirectionTriggered) {
@@ -857,6 +865,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                                 Map<String, String> localClaimValues, StepConfig stepConfig)
             throws PostAuthenticationFailedException {
 
+        setThreadLocalStepInformation(stepConfig);
+
         boolean useDefaultIdpDialect = externalIdPConfig.useDefaultLocalIdpDialect();
         ApplicationAuthenticator authenticator
                 = stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
@@ -995,6 +1005,18 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             username, externalIdPConfig.getName()),
                     ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getCode(), e);
         }
+    }
+
+    private void setThreadLocalStepInformation(StepConfig stepConfig) {
+
+        int step = stepConfig.getOrder();
+        String authenticatorName = stepConfig.getAuthenticatedIdP();
+        String idpId = stepConfig.getAuthenticatedAutenticator().getIdps().get(authenticatorName).getId();
+
+        IdentityUtil.threadLocalProperties.get().put(IdentityEventConstants.EventProperty.STEP, String.valueOf(step));
+        IdentityUtil.threadLocalProperties.get()
+                .put(IdentityEventConstants.EventProperty.AUTHENTICATOR, String.valueOf(authenticatorName));
+        IdentityUtil.threadLocalProperties.get().put(IdentityEventConstants.EventProperty.IDP, String.valueOf(idpId));
     }
 
     /**
