@@ -141,6 +141,7 @@ public class Constants {
         public static final String INTERNAL_PROMPT = "INTERNAL_PROMPT";
         public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
+        public static final String END_NODE = "END";
 
         private StepTypes() {
 

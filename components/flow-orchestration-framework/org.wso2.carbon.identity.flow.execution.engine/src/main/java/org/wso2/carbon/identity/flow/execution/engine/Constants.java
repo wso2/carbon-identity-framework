@@ -143,7 +143,7 @@ public class Constants {
                 "%s failed.",
                 "%s"),
         ERROR_CODE_REQUEST_PROCESSING_FAILURE("60007",
-                "Error while processing the %s request.",
+                "Error while processing the request.",
                 "%s"),
         ERROR_CODE_INVALID_USER_INPUT("60008",
                 "Invalid user inputs.",

@@ -70,6 +70,7 @@ public class InputValidationService {
 
     private static final Log LOG = LogFactory.getLog(InputValidationService.class);
     private static final InputValidationService instance = new InputValidationService();
+    public static final String CONFIRMATION_CODE = "confirmationCode";
 
     private InputValidationService() {
 
@@ -111,6 +112,10 @@ public class InputValidationService {
 
         // Fail if extra inputs are there.
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
+            if (CONFIRMATION_CODE.equalsIgnoreCase(userInput.getKey())) {
+                context.setProperty(CONFIRMATION_CODE, userInput.getValue());
+                continue;
+            }
             if (!context.getCurrentStepInputs().get(actionId).contains(userInput.getKey())) {
                 throw FlowExecutionEngineUtils.handleClientException(ERROR_CODE_INVALID_USER_INPUT, context.getFlowType());
             }
