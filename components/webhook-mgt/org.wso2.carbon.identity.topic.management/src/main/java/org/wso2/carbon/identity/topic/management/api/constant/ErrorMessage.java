@@ -48,13 +48,17 @@ public enum ErrorMessage {
             "An internal server error occurred while constructing the topic from channel URI: %s."),
     ERROR_CODE_TOPIC_REGISTRATION_ERROR("TOPICMGT-65007", "Error occurred while registering topic",
             "An internal server error occurred while registering the topic: %s."),
-    ERROR_CODE_TOPIC_DEREGISTRATION_ERROR("TOPICMGT-65008", "Error occurred while deregistering topic",
+    ERROR_CODE_TOPIC_PERSISTENCE_ERROR("TOPICMGT-65008", "Error occurred while persisting topic",
+            "An internal server error occurred while persisting the topic: %s in the database."),
+    ERROR_CODE_TOPIC_DEREGISTRATION_ERROR("TOPICMGT-65009", "Error occurred while deregistering topic",
             "An internal server error occurred while deregistering the topic: %s."),
-    ERROR_CODE_TOPIC_EXISTS_CHECK_ERROR("TOPICMGT-65009", "Error occurred while checking if topic exists",
+    ERROR_CODE_TOPIC_DELETION_ERROR("TOPICMGT-65010", "Error occurred while deleting topic",
+            "An internal server error occurred while deleting the topic: %s from database."),
+    ERROR_CODE_TOPIC_EXISTS_CHECK_ERROR("TOPICMGT-65011", "Error occurred while checking if topic exists",
             "An internal server error occurred while checking if the topic exists: %s."),
-    ERROR_CODE_UNEXPECTED_ERROR("TOPICMGT-65010", "Unexpected error occurred",
+    ERROR_CODE_UNEXPECTED_ERROR("TOPICMGT-65012", "Unexpected error occurred",
             "An unexpected error occurred while processing the request."),
-    ERROR_CODE_TOPIC_MANAGER_NOT_FOUND("TOPICMGT-65011", "Topic manager not found",
+    ERROR_CODE_TOPIC_MANAGER_NOT_FOUND("TOPICMGT-65013", "Topic manager not found",
             "No suitable topic manager found in the system for tenant: %s.");
 
     private final String code;
