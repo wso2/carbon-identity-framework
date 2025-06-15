@@ -140,7 +140,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                         LOG.warn("Error unsubscribing webhook during deletion: " + existingWebhook.getUuid(), e);
                     }
                     webhookManagementDAO.deleteWebhook(webhookId, tenantId);
-                    deleteAuthenticationSecrets(existingWebhook);
+                    deleteWebhookSecrets(existingWebhook);
                 }, ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR,
                 "deleting webhook: " + webhookId + " in tenant ID: " + tenantId, null);
     }
@@ -189,7 +189,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
      * @param webhook Webhook object.
      * @throws WebhookMgtException If an error occurs while deleting the authentication secrets.
      */
-    private void deleteAuthenticationSecrets(Webhook webhook) throws WebhookMgtException {
+    private void deleteWebhookSecrets(Webhook webhook) throws WebhookMgtException {
 
         try {
             webhookSecretProcessor.deleteAssociatedSecrets(webhook.getUuid());
