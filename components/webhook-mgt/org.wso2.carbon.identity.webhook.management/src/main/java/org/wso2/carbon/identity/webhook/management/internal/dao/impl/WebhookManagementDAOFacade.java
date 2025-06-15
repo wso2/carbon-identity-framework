@@ -176,7 +176,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
             String encryptedSecretAlias = webhookSecretProcessor.encryptAssociatedSecrets(
                     webhook.getUuid(), webhook.getSecret());
 
-            return addSecretAliasToBuilder(webhook, encryptedSecretAlias);
+            return addSecretOrAliasToBuilder(webhook, encryptedSecretAlias);
         } catch (SecretManagementException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
                     ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR, e, webhook.getUuid());
@@ -203,7 +203,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         try {
             String decryptedSecret = webhookSecretProcessor.decryptAssociatedSecrets(webhook.getUuid());
-            return addSecretAliasToBuilder(webhook, decryptedSecret);
+            return addSecretOrAliasToBuilder(webhook, decryptedSecret);
         } catch (SecretManagementException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR, e, webhook.getUuid());
@@ -427,7 +427,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
      * @return Webhook with the secret alias added.
      * @throws WebhookMgtException If an error occurs while adding the secret alias.
      */
-    private Webhook addSecretAliasToBuilder(Webhook webhook, String secretAlias)
+    private Webhook addSecretOrAliasToBuilder(Webhook webhook, String secretAlias)
             throws WebhookMgtException {
 
         return new Webhook.Builder()
