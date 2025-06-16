@@ -46,6 +46,7 @@ import org.wso2.carbon.user.mgt.listeners.UserManagementAuditLogger;
 import org.wso2.carbon.user.mgt.listeners.UserManagementV2AuditLogger;
 import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
 import org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLogger;
+import org.wso2.carbon.user.mgt.listeners.UserOperationFailureTriggerEventListener;
 import org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder;
 import org.wso2.carbon.user.mgt.recorder.UserDeletionEventRecorder;
 import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
@@ -152,6 +153,18 @@ public class UserMgtDSComponent {
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("UserMgtFailureAuditLogger successfully registered.");
+                }
+            }
+
+            serviceRegistration = ctxt.getBundleContext()
+                    .registerService(UserManagementErrorEventListener.class.getName(),
+                            new UserOperationFailureTriggerEventListener(),
+                            null);
+            if (serviceRegistration == null) {
+                log.error("Error while registering UserOperationFailureTriggerEventListener.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserOperationFailureTriggerEventListener successfully registered.");
                 }
             }
 
