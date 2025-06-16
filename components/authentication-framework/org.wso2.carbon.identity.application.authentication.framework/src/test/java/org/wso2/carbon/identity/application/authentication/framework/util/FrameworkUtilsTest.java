@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -64,6 +65,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -75,14 +77,19 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,6 +103,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -1164,6 +1172,149 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
             assertEquals(result, "rolesClaimInDialect");
         }
+    }
+    @Test
+    public void testGetAuthenticatedSubjectIdentifierReturnsUserId() throws Exception {
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserId("user-123");
+        user.setUserName("alice");
+        user.setUserStoreDomain("PRIMARY");
+        user.setTenantDomain("tenant.com");
+
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getSubjectClaimUri()).thenReturn(null);
+        when(appConfig.isUseUserstoreDomainInLocalSubjectIdentifier()).thenReturn(false);
+        when(appConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(false);
+
+        Method method = FrameworkUtils.class.getDeclaredMethod("getAuthenticatedSubjectIdentifier",
+                AuthenticatedUser.class, ApplicationConfig.class);
+        method.setAccessible(true);
+        String result = (String) method.invoke(null, user, appConfig);
+        assertEquals(result, "user-123");
+    }
+
+    @Test
+    public void testGetAuthenticatedSubjectIdentifierWithSubjectClaimUri() throws Exception {
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserId("user-123");
+        user.setUserName("alice");
+        user.setUserStoreDomain("PRIMARY");
+        user.setTenantDomain("tenant.com");
+
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getSubjectClaimUri()).thenReturn("http://wso2.org/claims/emailaddress");
+        when(appConfig.isUseUserstoreDomainInLocalSubjectIdentifier()).thenReturn(false);
+        when(appConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(false);
+
+        RealmService realmService = mock(RealmService.class);
+        UserRealm userRealm = mock(UserRealm.class);
+        org.wso2.carbon.user.api.UserStoreManager userStoreManager
+                = mock(org.wso2.carbon.user.api.UserStoreManager.class);
+
+        when(realmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
+        when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+
+        Map<String, String> claimMap = new HashMap<>();
+        claimMap.put("http://wso2.org/claims/emailaddress", "alice@tenant.com");
+        when(userStoreManager.getUserClaimValues(anyString(), any(String[].class), anyString())).thenReturn(claimMap);
+
+        try (MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+            FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
+            tenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            identityUtil.when(() -> IdentityUtil.addDomainToName(anyString(), anyString())).thenAnswer(
+                    i -> i.getArgument(0) + "/" + i.getArgument(1));
+
+            Method method = FrameworkUtils.class.getDeclaredMethod("getAuthenticatedSubjectIdentifier",
+                    AuthenticatedUser.class, ApplicationConfig.class);
+            method.setAccessible(true);
+
+            String result = (String) method.invoke(null, user, appConfig);
+            assertEquals(result, "alice@tenant.com");
+        }
+    }
+
+    @Test
+    public void testGetAuthenticatedSubjectIdentifierWithUserStoreDomain() throws Exception {
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserId("user-123");
+        user.setUserName("alice");
+        user.setUserStoreDomain("PRIMARY");
+        user.setTenantDomain("tenant.com");
+
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getSubjectClaimUri()).thenReturn(null);
+        when(appConfig.isUseUserstoreDomainInLocalSubjectIdentifier()).thenReturn(true);
+        when(appConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(false);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.addDomainToName(anyString(), anyString()))
+                    .thenAnswer(i -> i.getArgument(1) + "/" + i.getArgument(0));
+
+            Method method = FrameworkUtils.class.getDeclaredMethod("getAuthenticatedSubjectIdentifier",
+                    AuthenticatedUser.class, ApplicationConfig.class);
+            method.setAccessible(true);
+
+            String result = (String) method.invoke(null, user, appConfig);
+            assertEquals(result, "PRIMARY/user-123");
+        }
+    }
+
+    @Test
+    public void testGetAuthenticatedSubjectIdentifierWithTenantDomain() throws Exception {
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserId("user-123");
+        user.setUserName("alice");
+        user.setUserStoreDomain("PRIMARY");
+        user.setTenantDomain("tenant.com");
+
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getSubjectClaimUri()).thenReturn(null);
+        when(appConfig.isUseUserstoreDomainInLocalSubjectIdentifier()).thenReturn(false);
+        when(appConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(true);
+
+        try (MockedStatic<UserCoreUtil> userCoreUtil = mockStatic(UserCoreUtil.class)) {
+            userCoreUtil.when(() -> UserCoreUtil.addTenantDomainToEntry(anyString(), anyString()))
+                    .thenAnswer(i -> i.getArgument(0) + "@" + i.getArgument(1));
+            Method method = FrameworkUtils.class.getDeclaredMethod("getAuthenticatedSubjectIdentifier",
+                    AuthenticatedUser.class, ApplicationConfig.class);
+            method.setAccessible(true);
+
+            String result = (String) method.invoke(null, user, appConfig);
+            assertEquals(result, "user-123@tenant.com");
+        }
+    }
+
+    @Test
+    public void testGetAuthenticatedSubjectIdentifierFederatedOrgLogin() throws Exception {
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserId("user-123");
+        user.setUserName("alice");
+        user.setUserStoreDomain("PRIMARY");
+        user.setTenantDomain("tenant.com");
+        user.setUserResidentOrganization("org.com");
+        user.setFederatedIdPName("ORGANIZATION_LOGIN_IDP");
+        // Simulate federated user
+        AuthenticatedUser spyUser = spy(user);
+        when(spyUser.isFederatedUser()).thenReturn(true);
+
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getSubjectClaimUri()).thenReturn(null);
+        when(appConfig.isUseUserstoreDomainInLocalSubjectIdentifier()).thenReturn(true);
+        when(appConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(false);
+
+        Method method = FrameworkUtils.class.getDeclaredMethod("getAuthenticatedSubjectIdentifier",
+                AuthenticatedUser.class, ApplicationConfig.class);
+        method.setAccessible(true);
+
+        String result = (String) method.invoke(null, spyUser, appConfig);
+        assertEquals(result, "user-123");
     }
 
     @Test
