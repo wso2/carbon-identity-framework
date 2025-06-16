@@ -180,7 +180,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
                 if (CollectionUtils.isNotEmpty(apiResource.getScopes())) {
                     // Add scopes.
-                    addScopes(dbConnection, generatedAPIId, apiResource.getScopes(), tenantId);
+                    addScopes(dbConnection, generatedAPIId, apiResource.getScopes(), tenantId, apiResource.getType());
                 }
                 if (CollectionUtils.isNotEmpty(apiResource.getProperties())) {
                     // Add properties.
@@ -1088,6 +1088,54 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     }
 
     /**
+     * Add scopes to the API resource.
+     *
+     * @param dbConnection Database connection.
+     * @param apiId        API resource id.
+     * @param scopes       List of scopes.
+     * @param tenantId     Tenant id.
+     * @throws APIResourceMgtException If an error occurs while adding scopes.
+     */
+    private void addScopes(Connection dbConnection, String apiId, List<Scope> scopes, Integer tenantId,
+                           String apiResourceType) throws APIResourceMgtException {
+
+        if (CollectionUtils.isEmpty(scopes)) {
+            return;
+        }
+
+        try {
+            PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_SCOPE);
+            for (Scope scope : scopes) {
+
+                boolean scopeExists;
+                if (isManagementOrOrganizationAPIResourceType(apiResourceType)) {
+                    scopeExists = isScopeExistsByApiID(dbConnection, scope.getName(), tenantId, apiId);
+                } else {
+                    scopeExists = isScopeExists(dbConnection, scope.getName(), tenantId);
+                }
+
+                if (scopeExists) {
+                    throw APIResourceManagementUtil.handleClientException(
+                            APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS,
+                            String.valueOf(tenantId));
+                }
+
+                prepStmt.setString(1, UUID.randomUUID().toString());
+                prepStmt.setString(2, scope.getName());
+                prepStmt.setString(3, scope.getDisplayName());
+                prepStmt.setString(4, scope.getDescription());
+                prepStmt.setString(5, apiId);
+                prepStmt.setObject(6, tenantId == 0 ? null : tenantId);
+                prepStmt.addBatch();
+            }
+            prepStmt.executeBatch();
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_SCOPES, e);
+        }
+    }
+
+    /**
      * Delete scopes from the API resource.
      *
      * @param dbConnection Database connection.
@@ -1251,6 +1299,44 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
         if (CollectionUtils.isNotEmpty(authorizationDetailsTypes)) {
             apiResource.setAuthorizationDetailsTypes(authorizationDetailsTypes);
+        }
+    }
+
+    /**
+     * Check whether the API resource is a tenant or organization API resource type.
+     *
+     * @param apiResourceType The API resource type to check.
+     * @return true if the API resource is a management or organization API resource type, false otherwise.
+     * @throws APIResourceMgtException If an error occurs while retrieving the API resource type.
+     */
+    private boolean isManagementOrOrganizationAPIResourceType(String apiResourceType) throws APIResourceMgtException {
+
+        return APIResourceManagementConstants.APIResourceTypes.TENANT.equals(apiResourceType)
+                || APIResourceManagementConstants.APIResourceTypes.ORGANIZATION.equals(apiResourceType);
+    }
+
+    private boolean isScopeExistsByApiID(Connection connection, String name, Integer tenantId, String apiId)
+            throws APIResourceMgtServerException {
+
+        int tenantIdToSearchScopes;
+        try {
+            tenantIdToSearchScopes = OrganizationManagementUtil.isOrganization(tenantId) ?
+                    getRootOrganizationTenantId(tenantId) : tenantId;
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)) {
+            preparedStatement.setString(1, name);
+            preparedStatement.setInt(2, tenantIdToSearchScopes);
+            preparedStatement.setString(3, apiId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return resultSet.next();
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_CHECKING_EXISTENCE_OF_SCOPE, e);
         }
     }
 }
