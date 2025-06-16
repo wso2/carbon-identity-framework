@@ -141,9 +141,6 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
-import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -4706,48 +4703,10 @@ public class FrameworkUtils {
         authenticatedImpersonatingUser.setUserName(userName);
         authenticatedImpersonatingUser.setUserStoreDomain(userStoreDomain);
         authenticatedImpersonatingUser.setTenantDomain(tenantDomain);
-
-        if (userResidentOrg != null) {
-            UserAssociation association = getUserAssociation(userId, userResidentOrg);
-            if (association != null) {
-                // User from a different org.
-                userResidentOrg = association.getUserResidentOrganizationId();
-                userId = association.getAssociatedUserId();
-                try {
-                    if (OrganizationManagementUtil.isOrganization(userResidentOrg)) {
-                        // Org is another sub org.
-                        authenticatedImpersonatingUser.setFederatedUser(true);
-                        authenticatedImpersonatingUser.setFederatedIdPName(ORGANIZATION_LOGIN_IDP_NAME);
-                        authenticatedImpersonatingUser.setUserResidentOrganization(userResidentOrg);
-                        authenticatedImpersonatingUser.setAccessingOrganization(userAccessingOrg);
-                    }
-                } catch (OrganizationManagementException e) {
-                    throw new FrameworkException(INVALID_REQUEST.getCode(),
-                            "Invalid User Id provided for the request. Unable to find the user for given " +
-                                    "user id : " + userId + " organization : " + userResidentOrg, e);
-                }
-            } else {
-                // User from the same sub org.
-                authenticatedImpersonatingUser.setFederatedUser(true);
-                authenticatedImpersonatingUser.setFederatedIdPName(ORGANIZATION_LOGIN_IDP_NAME);
-                authenticatedImpersonatingUser.setUserResidentOrganization(userResidentOrg);
-                authenticatedImpersonatingUser.setAccessingOrganization(userAccessingOrg);
-            }
-        }
-        // User from parent org.
         authenticatedImpersonatingUser.setUserId(userId);
+        authenticatedImpersonatingUser.setUserResidentOrganization(userResidentOrg);
+        authenticatedImpersonatingUser.setAccessingOrganization(userAccessingOrg);
         return authenticatedImpersonatingUser;
-    }
-
-    private static UserAssociation getUserAssociation(String userId, String userResidentOrg)
-            throws FrameworkException {
-
-        try {
-            return FrameworkServiceDataHolder.getInstance()
-                    .getOrganizationUserSharingService().getUserAssociation(userId, userResidentOrg);
-        } catch (OrganizationManagementException e) {
-            throw new FrameworkException("Error while retrieving user association for user: " + userId, e);
-        }
     }
 
     /**

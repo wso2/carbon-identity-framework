@@ -110,7 +110,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
-import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -1134,20 +1133,5 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
         log.debug("UserDefinedAuthenticatorService unset in FrameworkServiceComponent bundle.");
-    }
-
-    @Reference(
-            name = "organization.user.sharing.service",
-            service = OrganizationUserSharingService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetOrganizationUserSharingService"
-    )
-    protected void setOrganizationUserSharingService(OrganizationUserSharingService organizationUserSharingService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Setting the organization user sharing service.");
-        }
-        FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(organizationUserSharingService);
     }
 }
