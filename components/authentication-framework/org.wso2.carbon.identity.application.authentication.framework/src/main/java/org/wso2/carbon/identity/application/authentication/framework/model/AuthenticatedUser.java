@@ -66,6 +66,7 @@ public class AuthenticatedUser extends User {
     private Map<ClaimMapping, String> userAttributes = new HashMap<>();
     private String sharedUserId;
     private String userSharedOrganizationId;
+    private ImpersonatedUser impersonatedUser;
 
     /**
      * Instantiates an AuthenticatedUser
@@ -103,6 +104,7 @@ public class AuthenticatedUser extends User {
         }
         this.accessingOrganization = authenticatedUser.getAccessingOrganization();
         this.userResidentOrganization = authenticatedUser.getUserResidentOrganization();
+        this.impersonatedUser = authenticatedUser.getImpersonatedUser();
     }
 
     public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
@@ -589,5 +591,16 @@ public class AuthenticatedUser extends User {
     public void setUserSharedOrganizationId(String sharedUserOrganizationId) {
 
         this.userSharedOrganizationId = sharedUserOrganizationId;
+    }
+
+    public ImpersonatedUser getImpersonatedUser() {
+
+        return impersonatedUser;
+    }
+
+    public void setImpersonatedUser(
+            ImpersonatedUser impersonatedUser) {
+
+        this.impersonatedUser = impersonatedUser;
     }
 }
