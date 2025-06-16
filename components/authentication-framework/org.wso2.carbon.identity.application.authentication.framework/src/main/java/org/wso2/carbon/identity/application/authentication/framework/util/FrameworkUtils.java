@@ -262,6 +262,8 @@ public class FrameworkUtils {
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
 
+    public static final String REGISTRATION_FLOW_TYPE = "REGISTRATION";
+
     private FrameworkUtils() {
     }
 
@@ -4634,5 +4636,21 @@ public class FrameworkUtils {
             tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
         return tenantDomain;
+    }
+
+    public static void addRegistrationEventContext(AuthenticationContext context) {
+
+        if (context != null) {
+            IdentityUtil.threadLocalProperties.get()
+                    .put(IdentityEventConstants.EventProperty.STEP_ID, context.getCurrentStep());
+            IdentityUtil.threadLocalProperties.get()
+                    .put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, context.getCurrentAuthenticator());
+        }
+    }
+
+    public static void removeRegistrationEventContext() {
+
+        IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.STEP_ID);
+        IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR);
     }
 }

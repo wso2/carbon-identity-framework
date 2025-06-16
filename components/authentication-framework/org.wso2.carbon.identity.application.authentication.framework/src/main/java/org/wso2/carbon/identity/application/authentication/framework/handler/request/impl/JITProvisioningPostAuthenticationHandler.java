@@ -67,7 +67,6 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -936,10 +935,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
         }
 
-        IdentityUtil.threadLocalProperties.get()
-                .put(IdentityEventConstants.EventProperty.STEP_ID, context.getCurrentStep());
-        IdentityUtil.threadLocalProperties.get()
-                .put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, context.getCurrentAuthenticator());
+        FrameworkUtils.addRegistrationEventContext(context);
 
         try {
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
@@ -1001,6 +997,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     String.format(ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getMessage(),
                             username, externalIdPConfig.getName()),
                     ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getCode(), e);
+        } finally {
+            FrameworkUtils.removeRegistrationEventContext();
         }
     }
 

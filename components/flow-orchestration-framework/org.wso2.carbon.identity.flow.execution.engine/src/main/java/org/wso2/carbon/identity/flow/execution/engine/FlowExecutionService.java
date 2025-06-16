@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUt
 
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.REGISTRATION_FLOW_TYPE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 
 /**
@@ -94,9 +95,13 @@ public class FlowExecutionService {
                 }
             }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
-                Map<String, String> userClaims =
-                        context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
-                FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, tenantDomain);
+
+                if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+                    Map<String, String> userClaims =
+                            context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
+                    FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, tenantDomain);
+                }
+
                 FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);
@@ -104,11 +109,12 @@ public class FlowExecutionService {
             return step;
         } catch (FlowEngineException e) {
 
-            Map<String, String> userClaims =
-                    context != null && context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
-
-            FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getDescription(),
-                    userClaims, tenantDomain);
+            if (context != null && REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+                Map<String, String> userClaims =
+                        context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
+                FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getDescription(),
+                        userClaims, tenantDomain);
+            }
 
             FlowExecutionEngineUtils.rollbackContext(flowType, flowId);
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
