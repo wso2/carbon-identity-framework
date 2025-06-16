@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -125,6 +126,7 @@ public class FrameworkServiceDataHolder {
     private RoleManagementService roleManagementServiceV2;
     private SecretResolveManager secretConfigManager;
     private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
+    private OrganizationUserSharingService organizationUserSharingService;
 
     private FrameworkServiceDataHolder() {
 
@@ -841,5 +843,25 @@ public class FrameworkServiceDataHolder {
     public UserDefinedAuthenticatorService getUserDefinedAuthenticatorService() {
 
         return userDefinedAuthenticatorService;
+    }
+
+    /**
+     * Get the organization user sharing service.
+     *
+     * @return OrganizationUserSharingService instance.
+     */
+    public OrganizationUserSharingService getOrganizationUserSharingService() {
+
+        return organizationUserSharingService;
+    }
+
+    /**
+     * Set the organization user sharing service.
+     *
+     * @param organizationUserSharingService OrganizationUserSharingService instance.
+     */
+    public void setOrganizationUserSharingService(OrganizationUserSharingService organizationUserSharingService) {
+
+        this.organizationUserSharingService = organizationUserSharingService;
     }
 }

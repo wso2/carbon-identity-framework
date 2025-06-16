@@ -76,6 +76,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
@@ -117,6 +118,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -139,6 +141,9 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -211,6 +216,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_IDP_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
@@ -218,6 +224,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_NAME;
@@ -4557,5 +4564,265 @@ public class FrameworkUtils {
             tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
         return tenantDomain;
+    }
+
+    /**
+     * Get Authenticated user object.
+     *
+     * @param userId            User id of the user.
+     * @param tenantDomain      Tenant domain of the user.
+     * @param applicationConfig Application configuration.
+     *
+     * @return An Authenticated user object.
+     * @throws FrameworkException Throws if an error occurred while getting the authenticated user.
+     */
+    public static AuthenticatedUser getAuthenticatedUser(String userId, String tenantDomain,
+                                                         ApplicationConfig applicationConfig)
+            throws FrameworkException {
+
+        try {
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+
+            User user = null;
+            try {
+                AbstractUserStoreManager userStoreManager =
+                        (AbstractUserStoreManager) realmService.getTenantUserRealm(tenantId).getUserStoreManager();
+                if (StringUtils.isNotEmpty(userId) && userStoreManager.isExistingUserWithID(userId)) {
+                    user = getUser(userStoreManager.getUser(userId, null));
+                } else {
+                    throw new FrameworkException(INVALID_REQUEST.getCode(),
+                            "Invalid User Id provided for the request. Unable to find the user for given " +
+                                    "user id : " + userId + " tenant id : " + tenantId);
+                }
+                AuthenticatedUser authenticatedUser = getAuthenticatedUser(userId, user.getUserName(), tenantDomain,
+                        user.getUserStoreDomain(), userId);
+                String subjectIdentifier = getAuthenticatedSubjectIdentifier(authenticatedUser, applicationConfig);
+                authenticatedUser.setAuthenticatedSubjectIdentifier(subjectIdentifier);
+
+                return authenticatedUser;
+            } catch (UserStoreException e) {
+                throw new FrameworkException("Error finding user in tenant.", e);
+            }
+        } catch (UserStoreException e) {
+            throw new FrameworkException(INVALID_REQUEST.getCode(),
+                    "Use mapped local subject is mandatory but a local user couldn't be found");
+        }
+    }
+
+    /**
+     * Get Authenticated user object.
+     *
+     * @param userId          User id of the user.
+     * @param tenantDomain    Tenant domain of the user.
+     * @return An Authenticated user object.
+     * @throws FrameworkException Throws if an error occurred while getting the authenticated user.
+     */
+    public static AuthenticatedUser getAuthenticatedUser(String userId, String tenantDomain, String userAccessingOrg,
+                                                         String userResidentOrg, ApplicationConfig applicationConfig)
+            throws FrameworkException {
+
+
+        try {
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            int userResidentOrgId = realmService.getTenantManager().getTenantId(userResidentOrg);
+
+            AbstractUserStoreManager userStoreManager =
+                    (AbstractUserStoreManager) realmService.getTenantUserRealm(userResidentOrgId).getUserStoreManager();
+            User user = null;
+            if (StringUtils.isNotEmpty(userId) && userStoreManager.isExistingUserWithID(userId)) {
+                user = getUser(userStoreManager.getUser(userId, null));
+            } else {
+                throw new FrameworkException(INVALID_REQUEST.getCode(),
+                        "Invalid User Id provided for the request. Unable to find the user for given " +
+                                "user id : " + userId + " tenant id : " + userResidentOrgId);
+            }
+
+            AuthenticatedUser authenticatedUser = getAuthenticatedUser(userId, user.getUserName(), tenantDomain,
+                    userAccessingOrg, userResidentOrg,
+                    user.getUserStoreDomain(), userId);
+            String subjectIdentifier = getAuthenticatedSubjectIdentifier(authenticatedUser, applicationConfig);
+            authenticatedUser.setAuthenticatedSubjectIdentifier(subjectIdentifier);
+
+            return authenticatedUser;
+        } catch (UserStoreException e) {
+            throw new FrameworkException(INVALID_REQUEST.getCode(),
+                    "Use mapped local subject is mandatory but a local user couldn't be found");
+        }
+    }
+
+    private static User getUser(org.wso2.carbon.user.core.common.User coreUser) {
+
+        User user = new User();
+        user.setUserName(coreUser.getUsername());
+        user.setUserStoreDomain(coreUser.getUserStoreDomain());
+        user.setTenantDomain(coreUser.getTenantDomain());
+        return user;
+    }
+
+    /**
+     * Get Authenticated user using user id and tenant domain.
+     *
+     * @param userId            User id of the user.
+     * @param userName          Username of the user.
+     * @param tenantDomain      Tenant domain of the user.
+     * @param userStoreDomain   User store domain of the user.
+     * @param subjectIdentifier Subject identifier of the user.
+     * @return An Authenticated user object.
+     */
+    private static AuthenticatedUser getAuthenticatedUser(String userId, String userName,
+                                                         String tenantDomain, String userStoreDomain,
+                                                         String subjectIdentifier) {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId(userId);
+        authenticatedUser.setAuthenticatedSubjectIdentifier(subjectIdentifier);
+        authenticatedUser.setUserName(userName);
+        authenticatedUser.setUserStoreDomain(userStoreDomain);
+        authenticatedUser.setTenantDomain(tenantDomain);
+        return authenticatedUser;
+    }
+
+    /**
+     * Get Authenticated user using user id and tenant domain.
+     *
+     * @param userId           User id of the user.
+     * @param userName         Username of the user.
+     * @param tenantDomain     Tenant domain of the user.
+     * @param userAccessingOrg Accessing organization of the user.
+     * @param userResidentOrg  Resident organization of the user.
+     * @param userStoreDomain  User store domain of the user.
+     * @return An Authenticated user object.
+     * @throws FrameworkException Throws if an error occurred while getting the authenticated user.
+     */
+    public static AuthenticatedUser getAuthenticatedUser(String userId, String userName,
+                                                         String tenantDomain, String userAccessingOrg,
+                                                         String userResidentOrg, String userStoreDomain,
+                                                         String subjectIdentifier)
+            throws FrameworkException {
+
+        AuthenticatedUser authenticatedImpersonatingUser = new AuthenticatedUser();
+        authenticatedImpersonatingUser.setAuthenticatedSubjectIdentifier(subjectIdentifier);
+        authenticatedImpersonatingUser.setUserName(userName);
+        authenticatedImpersonatingUser.setUserStoreDomain(userStoreDomain);
+        authenticatedImpersonatingUser.setTenantDomain(tenantDomain);
+
+        if (userResidentOrg != null) {
+            UserAssociation association = getUserAssociation(userId, userResidentOrg);
+            if (association != null) {
+                // User from a different org.
+                userResidentOrg = association.getUserResidentOrganizationId();
+                userId = association.getAssociatedUserId();
+                try {
+                    if (OrganizationManagementUtil.isOrganization(userResidentOrg)) {
+                        // Org is another sub org.
+                        authenticatedImpersonatingUser.setFederatedUser(true);
+                        authenticatedImpersonatingUser.setFederatedIdPName(ORGANIZATION_LOGIN_IDP_NAME);
+                        authenticatedImpersonatingUser.setUserResidentOrganization(userResidentOrg);
+                        authenticatedImpersonatingUser.setAccessingOrganization(userAccessingOrg);
+                    }
+                } catch (OrganizationManagementException e) {
+                    throw new FrameworkException(INVALID_REQUEST.getCode(),
+                            "Invalid User Id provided for the request. Unable to find the user for given " +
+                                    "user id : " + userId + " organization : " + userResidentOrg, e);
+                }
+            } else {
+                // User from the same sub org.
+                authenticatedImpersonatingUser.setFederatedUser(true);
+                authenticatedImpersonatingUser.setFederatedIdPName(ORGANIZATION_LOGIN_IDP_NAME);
+                authenticatedImpersonatingUser.setUserResidentOrganization(userResidentOrg);
+                authenticatedImpersonatingUser.setAccessingOrganization(userAccessingOrg);
+            }
+        }
+        // User from parent org.
+        authenticatedImpersonatingUser.setUserId(userId);
+        return authenticatedImpersonatingUser;
+    }
+
+    private static UserAssociation getUserAssociation(String userId, String userResidentOrg)
+            throws FrameworkException {
+
+        try {
+            return FrameworkServiceDataHolder.getInstance()
+                    .getOrganizationUserSharingService().getUserAssociation(userId, userResidentOrg);
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while retrieving user association for user: " + userId, e);
+        }
+    }
+
+    /**
+     * Returns the user subject identifier
+     *
+     * @param authenticatedUser Authenticated user object.
+     * @param applicationConfig  Application configuration.
+     * @throws FrameworkException Throws if an error occurred while getting the authenticated user.
+     *
+     * @return Authenticated user subject identifier.
+     * @throws FrameworkException Throws if an error occurred while getting the authenticated user.
+     */
+    private static String getAuthenticatedSubjectIdentifier(AuthenticatedUser authenticatedUser,
+                                                           ApplicationConfig applicationConfig)
+            throws FrameworkException {
+
+        String subjectIdentifier = null;
+        try {
+            subjectIdentifier = authenticatedUser.getUserId();
+            String userStoreDomain = authenticatedUser.getUserStoreDomain();
+            String tenantDomain = authenticatedUser.getTenantDomain();
+            if (authenticatedUser.isFederatedUser()
+                    && ORGANIZATION_LOGIN_IDP_NAME.equals(authenticatedUser.getFederatedIdPName())) {
+                tenantDomain = authenticatedUser.getUserResidentOrganization();
+            }
+            String userName = authenticatedUser.getUserName();
+
+            String subjectClaimUri = applicationConfig.getSubjectClaimUri();
+            boolean useUserStoreDomainInLocalSubjectIdentifier = applicationConfig
+                    .isUseUserstoreDomainInLocalSubjectIdentifier();
+            if (authenticatedUser.isFederatedUser()
+                    && ORGANIZATION_LOGIN_IDP_NAME.equals(authenticatedUser.getFederatedIdPName())) {
+                useUserStoreDomainInLocalSubjectIdentifier = false;
+            }
+            boolean useTenantDomainInLocalSubjectIdentifier = applicationConfig
+                    .isUseTenantDomainInLocalSubjectIdentifier();
+
+            if (subjectClaimUri != null) {
+                RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+                String subjectClaimValue = getClaimValue(IdentityUtil.addDomainToName(userName, userStoreDomain),
+                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain))
+                                .getUserStoreManager(), subjectClaimUri);
+
+                if (subjectClaimValue != null) {
+                    subjectIdentifier = subjectClaimValue;
+                }
+            }
+
+            if (useUserStoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
+                subjectIdentifier = IdentityUtil.addDomainToName(subjectIdentifier,
+                        userStoreDomain);
+            }
+            if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain) &&
+                    StringUtils.countMatches(subjectIdentifier,
+                            UserCoreConstants.TENANT_DOMAIN_COMBINER) < 2) {
+                subjectIdentifier = UserCoreUtil.addTenantDomainToEntry(subjectIdentifier,
+                        tenantDomain);
+            }
+        } catch (UserStoreException | UserIdNotFoundException e) {
+            throw new FrameworkException("Error while obtaining subject identifier.", e);
+        }
+        return subjectIdentifier;
+    }
+
+    private static String getClaimValue(String domainQualifiedUserName,
+                                        org.wso2.carbon.user.api.UserStoreManager userStoreManager,
+                                        String claimURI) throws FrameworkException {
+
+        try {
+            Map<String, String> claimValues = userStoreManager.getUserClaimValues(domainQualifiedUserName,
+                    new String[]{claimURI},
+                    UserCoreConstants.DEFAULT_PROFILE);
+            return claimValues.get(claimURI);
+        } catch (UserStoreException e) {
+            throw new FrameworkException("Error occurred while retrieving claim: " + claimURI, e);
+        }
     }
 }
