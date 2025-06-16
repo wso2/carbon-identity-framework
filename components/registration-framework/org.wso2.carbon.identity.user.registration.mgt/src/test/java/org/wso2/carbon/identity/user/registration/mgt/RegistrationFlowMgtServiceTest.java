@@ -30,6 +30,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
@@ -39,8 +40,10 @@ import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
+import org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils;
 
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.mockito.Mockito.mockStatic;
@@ -95,8 +98,14 @@ public class RegistrationFlowMgtServiceTest {
     @Test
     public void testUpdateDefaultRegistrationFlow() throws Exception {
 
-        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<RegistrationMgtUtils> registrationMgtUtils = mockStatic(RegistrationMgtUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+            registrationMgtUtils.when(RegistrationMgtUtils::getInitiatorId)
+                    .thenReturn(LoggerUtils.Initiator.System.name());
+
             service.updateDefaultRegistrationFlow(createSampleRegistrationGraphConfig(), TEST_TENANT_ID);
         }
     }

@@ -26,6 +26,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
@@ -35,12 +36,14 @@ import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -96,11 +99,15 @@ public class FlowMgtServiceTest {
     @Test
     public void testUpdateFlow() throws Exception {
 
-        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
-            FlowDTO asd = createSampleGraphConfig();
-            service.updateFlow(createSampleGraphConfig(), TEST_TENANT_ID);
-        }
+            loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+            flowMgtUtils.when(FlowMgtUtils::getInitiatorId)
+                    .thenReturn(LoggerUtils.Initiator.System.name());
+
+            service.updateFlow(createSampleGraphConfig(), TEST_TENANT_ID);        }
     }
 
     @Test(dependsOnMethods = {"testUpdateFlow"})

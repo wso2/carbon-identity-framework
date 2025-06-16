@@ -19,7 +19,9 @@
 package org.wso2.carbon.identity.action.management.service;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -41,6 +43,7 @@ import org.wso2.carbon.identity.rule.management.api.service.RuleManagementServic
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
+import org.wso2.carbon.utils.CarbonUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -48,6 +51,7 @@ import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_PATH;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_DOMAIN;
@@ -79,6 +83,7 @@ public class ActionManagementServiceImplTest {
     private ActionManagementService actionManagementService;
     private Action sampleAction;
     private Rule sampleRule;
+    private MockedStatic<CarbonUtils> carbonUtilsMockedStatic;
 
     @BeforeClass
     public void setUpClass() {
@@ -101,6 +106,15 @@ public class ActionManagementServiceImplTest {
         when(ruleManagementService.getRuleByRuleId(any(), any())).thenReturn(sampleRule);
         when(ruleManagementService.addRule(any(), any())).thenReturn(sampleRule);
         when(ruleManagementService.updateRule(any(), any())).thenReturn(sampleRule);
+
+        carbonUtilsMockedStatic = mockStatic(CarbonUtils.class);
+        carbonUtilsMockedStatic.when(CarbonUtils::isLegacyAuditLogsDisabled).thenReturn(true);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        carbonUtilsMockedStatic.close();
     }
 
     @Test(priority = 1)
