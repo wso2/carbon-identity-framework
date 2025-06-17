@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.util.AuditLogBuilderForRule;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuditLog;
-import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.Map;
@@ -54,9 +53,6 @@ public class ActionManagementAuditLogger {
      */
     public void printAuditLog(Operation operation, ActionDTO actionDTO) throws ActionMgtException {
 
-        if (!LoggerUtils.isEnableV2AuditLogs() && CarbonUtils.isLegacyAuditLogsDisabled()) {
-            return;
-        }
         JSONObject data = createAuditLogEntry(actionDTO);
         buildAuditLog(operation, data);
     }
@@ -70,9 +66,6 @@ public class ActionManagementAuditLogger {
      */
     public void printAuditLog(Operation operation, String actionType, String actionId) {
 
-        if (!LoggerUtils.isEnableV2AuditLogs() && CarbonUtils.isLegacyAuditLogsDisabled()) {
-            return;
-        }
         JSONObject data = createAuditLogEntry(actionType, actionId);
         buildAuditLog(operation, data);
     }

@@ -39,25 +39,14 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserMa
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.Target;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorId;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This v2 audit logger logs the Group Management success activities.
  */
 public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperationEventListener {
-
-    @Override
-    public boolean isEnable() {
-
-        if (super.isEnable()) {
-            return isEnableV2AuditLogs() || !isLegacyAuditLogsDisabled();
-        }
-        return false;
-    }
 
     @Override
     public boolean postAddGroup(String groupName, String groupId, List<String> userIds, List<Claim> claims,

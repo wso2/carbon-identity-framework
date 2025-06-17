@@ -72,8 +72,6 @@ public class LoggerUtils {
     // Related to V1 audit logs.
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static final Gson GSON = new Gson();
-    private static final String AUDIT_TEMPLATE =
-            "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : Success";
 
     /**
      * Defines the Initiators of the logs.
@@ -114,9 +112,10 @@ public class LoggerUtils {
                 Event auditEvent =
                         new Event(PUBLISH_AUDIT_LOG, Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog));
                 eventMgtService.handleEvent(auditEvent);
-            } else if (!CarbonUtils.isLegacyAuditLogsDisabled()) {
-                AUDIT_LOG.info(String.format(AUDIT_TEMPLATE, auditLog.getInitiatorId(), auditLog.getAction(),
-                        auditLog.getTargetId(), GSON.toJson(auditLog.getData())));
+            } else {
+                AUDIT_LOG.info(
+                        String.format(CarbonConstants.AUDIT_MESSAGE, auditLog.getInitiatorId(), auditLog.getAction(),
+                                auditLog.getTargetId(), GSON.toJson(auditLog.getData()), "Success"));
             }
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";

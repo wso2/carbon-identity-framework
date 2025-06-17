@@ -41,9 +41,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiator;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getTargetForAuditLog;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This audit logger logs the User Management success activities.
@@ -68,7 +68,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            return !isLegacyAuditLogsDisabled();
+            return !isEnableV2AuditLogs();
         }
         return false;
     }

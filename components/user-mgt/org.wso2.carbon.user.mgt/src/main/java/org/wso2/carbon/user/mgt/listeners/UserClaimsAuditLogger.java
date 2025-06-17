@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 
 /**
  * User operation listener which takes the claim changes and logs into "Audit" log.
@@ -64,7 +64,7 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            return !isLegacyAuditLogsDisabled();
+            return !isEnableV2AuditLogs();
         }
         return false;
     }

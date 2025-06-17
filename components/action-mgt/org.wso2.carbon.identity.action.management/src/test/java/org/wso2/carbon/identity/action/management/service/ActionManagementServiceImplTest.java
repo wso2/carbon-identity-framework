@@ -34,16 +34,17 @@ import org.wso2.carbon.identity.action.management.api.service.ActionManagementSe
 import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionManagementServiceImpl;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.management.api.util.AuditLogBuilderForRule;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
-import org.wso2.carbon.utils.CarbonUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -83,7 +84,8 @@ public class ActionManagementServiceImplTest {
     private ActionManagementService actionManagementService;
     private Action sampleAction;
     private Rule sampleRule;
-    private MockedStatic<CarbonUtils> carbonUtilsMockedStatic;
+    private MockedStatic<LoggerUtils> loggerUtilsMockedStatic;
+    private MockedStatic<AuditLogBuilderForRule> auditLogBuilderForRuleMockedStatic;
 
     @BeforeClass
     public void setUpClass() {
@@ -107,14 +109,18 @@ public class ActionManagementServiceImplTest {
         when(ruleManagementService.addRule(any(), any())).thenReturn(sampleRule);
         when(ruleManagementService.updateRule(any(), any())).thenReturn(sampleRule);
 
-        carbonUtilsMockedStatic = mockStatic(CarbonUtils.class);
-        carbonUtilsMockedStatic.when(CarbonUtils::isLegacyAuditLogsDisabled).thenReturn(true);
+        loggerUtilsMockedStatic = mockStatic(LoggerUtils.class);
+        loggerUtilsMockedStatic.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+        auditLogBuilderForRuleMockedStatic = mockStatic(AuditLogBuilderForRule.class);
+        auditLogBuilderForRuleMockedStatic.when(() -> AuditLogBuilderForRule.buildRuleValue(any(Rule.class)))
+                .thenReturn("");
     }
 
     @AfterMethod
     public void tearDown() {
 
-        carbonUtilsMockedStatic.close();
+        loggerUtilsMockedStatic.close();
+        auditLogBuilderForRuleMockedStatic.close();
     }
 
     @Test(priority = 1)
