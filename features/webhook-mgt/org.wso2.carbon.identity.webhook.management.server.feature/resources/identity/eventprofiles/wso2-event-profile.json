@@ -38,7 +38,7 @@
     },
     {
       "name": "User management operations",
-      "description": "User profile updated, user account enabled or disabled, user account locked or unlocked, user deleted, groups updated",
+      "description": "User profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
       "uri": "https://schemas.identity.wso2.org/events/user",
       "events": [
         {
