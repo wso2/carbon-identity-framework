@@ -254,7 +254,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
 
         boolean isAuthenticatorExecuted = false;
-        ImpersonatedUser impersonatedUser = getImpersonatedUser(request, context);
+        ImpersonatedUser impersonatedUser = null;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
@@ -264,6 +264,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 continue;
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
+            impersonatedUser = getImpersonatedUser(request, context, stepConfig.getAuthenticatedUser());
 
             if (!(authenticator instanceof AuthenticationFlowHandler)) {
                 isAuthenticatorExecuted = true;
@@ -465,7 +466,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
     }
 
-    private ImpersonatedUser getImpersonatedUser(HttpServletRequest request, AuthenticationContext context)
+    private ImpersonatedUser getImpersonatedUser(HttpServletRequest request, AuthenticationContext context,
+                                                 AuthenticatedUser impersonatingActor)
             throws FrameworkException {
 
         ImpersonatedUser impersonatedUser = null;
@@ -485,7 +487,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 // Create an impersonated user object using the requested subject.
                 impersonatedUser = new ImpersonatedUser(getImpersonatedUser(requestedSubject,
                         context.getTenantDomain(), context.getSequenceConfig().getApplicationConfig(),
-                        context.getSequenceConfig().getAuthenticatedUser()));
+                        impersonatingActor));
             } catch (UserIdNotFoundException e) {
                 throw new FrameworkException("User ID not found for the impersonated user: " + requestedSubject, e);
             }
@@ -527,7 +529,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             }
         }
 
-        return null;
+        return requestedSubject;
     }
 
     /**

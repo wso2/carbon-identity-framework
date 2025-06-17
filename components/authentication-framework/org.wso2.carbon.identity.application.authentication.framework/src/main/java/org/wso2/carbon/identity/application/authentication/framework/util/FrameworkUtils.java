@@ -4706,6 +4706,8 @@ public class FrameworkUtils {
         authenticatedImpersonatingUser.setUserId(userId);
         authenticatedImpersonatingUser.setUserResidentOrganization(userResidentOrg);
         authenticatedImpersonatingUser.setAccessingOrganization(userAccessingOrg);
+        authenticatedImpersonatingUser.setFederatedUser(true);
+        authenticatedImpersonatingUser.setFederatedIdPName(ORGANIZATION_LOGIN_IDP_NAME);
         return authenticatedImpersonatingUser;
     }
 
@@ -4727,10 +4729,12 @@ public class FrameworkUtils {
         try {
             subjectIdentifier = authenticatedUser.getUserId();
             String userStoreDomain = authenticatedUser.getUserStoreDomain();
+            String userResidentOrg = authenticatedUser.getTenantDomain();
             String tenantDomain = authenticatedUser.getTenantDomain();
             if (authenticatedUser.isFederatedUser()
                     && ORGANIZATION_LOGIN_IDP_NAME.equals(authenticatedUser.getFederatedIdPName())) {
-                tenantDomain = authenticatedUser.getUserResidentOrganization();
+                userResidentOrg = authenticatedUser.getUserResidentOrganization();
+                userStoreDomain = null;
             }
             String userName = authenticatedUser.getUserName();
 
@@ -4747,7 +4751,7 @@ public class FrameworkUtils {
             if (subjectClaimUri != null) {
                 RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
                 String subjectClaimValue = getClaimValue(IdentityUtil.addDomainToName(userName, userStoreDomain),
-                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain))
+                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(userResidentOrg))
                                 .getUserStoreManager(), subjectClaimUri);
 
                 if (subjectClaimValue != null) {
