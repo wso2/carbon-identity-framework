@@ -262,8 +262,6 @@ public class FrameworkUtils {
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
 
-    public static final String REGISTRATION_FLOW_TYPE = "REGISTRATION";
-
     private FrameworkUtils() {
     }
 

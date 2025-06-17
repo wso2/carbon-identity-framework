@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUt
 
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.REGISTRATION_FLOW_TYPE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.REGISTRATION_FLOW_TYPE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 
 /**
