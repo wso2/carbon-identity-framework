@@ -1486,9 +1486,6 @@ public class FrameworkUtils {
         String authenticator = String.valueOf(IdentityUtil.threadLocalProperties.get()
                 .get(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR));
 
-        IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.STEP_ID);
-        IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR);
-
         HashMap<String, Object> properties = new HashMap<>();
         properties.put(IdentityEventConstants.EventProperty.IDP, idp);
         properties.put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, authenticator);
