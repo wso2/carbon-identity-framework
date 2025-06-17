@@ -1463,6 +1463,34 @@
         <Scopes>internal_async_operation_status_view</Scopes>
     </Resource>
 
+    <!-- Workflow Management API -->
+    <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="GET">
+        <Scopes>internal_workflow_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="POST">
+        <Scopes>internal_workflow_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_workflow_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_workflow_delete</Scopes>
+    </Resource>
+
+    <!-- Workflow Association Management API -->
+    <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="GET">
+        <Scopes>internal_workflow_association_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="POST">
+        <Scopes>internal_workflow_association_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_workflow_association_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_workflow_association_delete</Scopes>
+    </Resource>
+
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>

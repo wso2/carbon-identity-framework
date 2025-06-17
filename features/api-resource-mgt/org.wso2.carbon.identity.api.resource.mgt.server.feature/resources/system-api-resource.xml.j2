@@ -1644,4 +1644,32 @@
                    description="View Asynchronous Operation Status in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Workflow Management API" identifier="/api/server/v1/workflows"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow" name="internal_workflow_view"
+                   description="View workflows"/>
+            <Scope displayName="Create Workflow" name="internal_workflow_create"
+                   description="Create new workflow"/>
+            <Scope displayName="Update Workflow" name="internal_workflow_update"
+                   description="Update workflow"/>
+            <Scope displayName="Delete Workflow" name="internal_workflow_delete"
+                   description="Delete workflow"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Association Management API" identifier="/api/server/v1/workflow-associations"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Association Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow Association" name="internal_workflow_association_view"
+                   description="View workflow associations"/>
+            <Scope displayName="Create Workflow Association" name="internal_workflow_association_create"
+                   description="Create new workflow association"/>
+            <Scope displayName="Update Workflow Association" name="internal_workflow_association_update"
+                   description="Update workflow association"/>
+            <Scope displayName="Delete Workflow Association" name="internal_workflow_association_delete"
+                   description="Delete workflow association"/>
+        </Scopes>
+    </APIResource>
 </APIResources>
