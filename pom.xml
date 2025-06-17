@@ -2003,7 +2003,7 @@
     </dependencies>
 
     <properties>
-        <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
+        <apache.tomcat-catalina.version>9.0.106</apache.tomcat-catalina.version>
         <apache.cxf-rt-frontend-jaxrs.version>3.6.4</apache.cxf-rt-frontend-jaxrs.version>
         <apache.cxf-rt-rs-service-description.version>3.3.7</apache.cxf-rt-rs-service-description.version>
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
