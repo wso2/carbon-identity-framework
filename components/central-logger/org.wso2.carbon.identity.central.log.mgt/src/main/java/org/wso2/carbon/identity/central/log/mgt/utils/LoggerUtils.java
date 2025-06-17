@@ -55,6 +55,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.Applic
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_CLIENT_ID;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.SUCCESS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
 
@@ -115,7 +116,7 @@ public class LoggerUtils {
             } else {
                 AUDIT_LOG.info(
                         String.format(CarbonConstants.AUDIT_MESSAGE, auditLog.getInitiatorId(), auditLog.getAction(),
-                                auditLog.getTargetId(), GSON.toJson(auditLog.getData()), "Success"));
+                                auditLog.getTargetId(), GSON.toJson(auditLog.getData()), SUCCESS));
             }
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";
