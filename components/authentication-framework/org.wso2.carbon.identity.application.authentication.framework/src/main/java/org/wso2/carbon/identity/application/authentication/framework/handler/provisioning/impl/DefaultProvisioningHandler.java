@@ -324,6 +324,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
                 userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
             } catch (UserStoreException e) {
+
+                FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getMessage(), userClaims,
+                        tenantDomain, idp);
                 // Add user operation will fail if a user operation workflow is already defined for the same user.
                 if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
                     userWorkflowEngaged = true;

@@ -48,6 +48,8 @@ public class Constants {
 
     public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
 
+    public static final String REGISTRATION_FLOW_TYPE = "REGISTRATION";
+
     private Constants() {
 
     }
