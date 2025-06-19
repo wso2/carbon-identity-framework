@@ -46,7 +46,7 @@ public final class WebhookSQLConstants {
         public static final String TENANT_ID = "TENANT_ID";
         public static final String CREATED_AT = "CREATED_AT";
         public static final String UPDATED_AT = "UPDATED_AT";
-        public static final String EVENT_NAME = "EVENT_NAME";
+        public static final String CHANNEL_URI = "CHANNEL_URI";
         public static final String WEBHOOK_ID = "WEBHOOK_ID";
 
         private Column() {
@@ -96,14 +96,14 @@ public final class WebhookSQLConstants {
                 "UPDATE IDN_WEBHOOK SET STATUS = 'INACTIVE' WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
 
         public static final String ADD_WEBHOOK_EVENT =
-                "INSERT INTO IDN_WEBHOOK_EVENTS (WEBHOOK_ID, EVENT_NAME) VALUES (:WEBHOOK_ID;, :EVENT_NAME;)";
+                "INSERT INTO IDN_WEBHOOK_CHANNELS (WEBHOOK_ID, CHANNEL_URI) VALUES (:WEBHOOK_ID;, :CHANNEL_URI;)";
 
-        public static final String LIST_WEBHOOK_EVENTS_BY_UUID = "SELECT E.EVENT_NAME FROM IDN_WEBHOOK_EVENTS E " +
+        public static final String LIST_WEBHOOK_EVENTS_BY_UUID = "SELECT E.CHANNEL_URI FROM IDN_WEBHOOK_CHANNELS E " +
                 "INNER JOIN IDN_WEBHOOK W ON E.WEBHOOK_ID = W.ID " +
                 "WHERE W.UUID = :UUID; AND W.TENANT_ID = :TENANT_ID;";
 
         public static final String DELETE_WEBHOOK_EVENTS =
-                "DELETE FROM IDN_WEBHOOK_EVENTS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
+                "DELETE FROM IDN_WEBHOOK_CHANNELS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
 
         private Query() {
 
