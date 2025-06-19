@@ -553,6 +553,67 @@ public class IdentityKeyStoreResolver {
 
     }
 
+    /**
+     * Return custom key store.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param keyStoreName Name of the custom key store.
+     * @return Custom key store.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
+     */
+    public KeyStore getCustomKeyStore(String tenantDomain, String keyStoreName)
+            throws IdentityKeyStoreResolverException {
+
+        if (StringUtils.isEmpty(tenantDomain)) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
+        }
+        if (StringUtils.isEmpty(keyStoreName)) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Key store name"));
+        }
+
+        String customKeyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(keyStoreName);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Custom key store configuration available. " +
+                    "Retrieving keystore " + customKeyStoreName);
+        }
+
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+            return keyStoreManager.getKeyStore(customKeyStoreName);
+        } catch (Exception e) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE.getDescription(),
+                            customKeyStoreName), e);
+        }
+    }
+
+    /**
+     * Returns the trust store.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Trust store.
+     * @throws IdentityKeyStoreResolverException if an error occurs while retrieving the trust store.
+     */
+    public KeyStore getTrustStore(String tenantDomain) throws IdentityKeyStoreResolverException {
+
+        try {
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(IdentityTenantUtil.getTenantId(tenantDomain));
+            return keyStoreManager.getTrustStore();
+        } catch (CarbonException e) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TRUSTSTORE.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TRUSTSTORE.getDescription(), tenantDomain),
+                    e);
+        }
+    }
+
     private String getPrimaryKeyStoreConfig(String configName) throws IdentityKeyStoreResolverException {
 
         try {
@@ -605,7 +666,7 @@ public class IdentityKeyStoreResolver {
         }
     }
 
-    private String getCustomKeyStoreConfig(String keyStoreName, String configName)
+    public String getCustomKeyStoreConfig(String keyStoreName, String configName)
             throws IdentityKeyStoreResolverException {
 
         try {

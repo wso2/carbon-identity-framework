@@ -25,6 +25,7 @@ public class Constants {
 
     public static final String COMPLETE = "COMPLETE";
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
+    public static final String END_NODE_ID = "END";
 
     private Constants() {
 
@@ -80,7 +81,9 @@ public class Constants {
                 "The action type, %s is not supported for step, %s of type %s."),
         ERROR_CODE_INVALID_FIRST_NODE("60012", "Invalid first node.",
                 "Invalid first node configuration: either no first node is defined or multiple " +
-                        "first nodes are present.")
+                        "first nodes are present."),
+        ERROR_CODE_UNSUPPORTED_NODE_ID("60013", "Node id is not supported.", "%s cannot be " +
+                "used as a Node ID."),
         ;
 
         private static final String ERROR_PREFIX = "RFM";

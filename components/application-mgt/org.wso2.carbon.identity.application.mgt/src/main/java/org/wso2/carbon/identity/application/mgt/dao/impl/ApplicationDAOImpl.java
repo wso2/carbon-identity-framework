@@ -226,6 +226,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
     private static final String UUID = "UUID";
     private static final String SPACE = " ";
+    private static final String ID = "ID";
 
     private static final Log log = LogFactory.getLog(ApplicationDAOImpl.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -4100,6 +4101,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 while (appNameResultSet.next()) {
                     ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
                     basicInfo.setUuid(appNameResultSet.getString(UUID));
+                    basicInfo.setApplicationId(appNameResultSet.getInt(ID));
                     appInfo.add(basicInfo);
                 }
 

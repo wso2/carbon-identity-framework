@@ -22,9 +22,14 @@ import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.ServiceURL;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -67,6 +72,7 @@ public class FlowServiceTest {
     @Mock
     private FlowExecutionEngine engineMock;
 
+    private MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolderMockedStatic;
     @BeforeClass
     public void setup() throws Exception {
 
@@ -75,6 +81,17 @@ public class FlowServiceTest {
 
         ServiceURL serviceURL = mock(ServiceURL.class);
         when(serviceURL.getAbsolutePublicURL()).thenReturn(DEFAULT_MY_ACCOUNT_URL);
+        frameworkServiceDataHolderMockedStatic = mockStatic(FrameworkServiceDataHolder.class);
+
+        IdentityEventService mockIdentityEventService = mock(IdentityEventService.class);
+        FrameworkServiceDataHolder mockFrameworkServiceDataHolder = mock(FrameworkServiceDataHolder.class);
+        frameworkServiceDataHolderMockedStatic.when(FrameworkServiceDataHolder::getInstance)
+                .thenReturn(mockFrameworkServiceDataHolder);
+        when(mockFrameworkServiceDataHolder.getIdentityEventService()).thenReturn(mockIdentityEventService);
+
+        System.setProperty(CarbonBaseConstants.CARBON_HOME, this.getClass().getResource("/").getFile());
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(-1234);
     }
 
     private FlowExecutionContext initTestContext() {
@@ -292,6 +309,14 @@ public class FlowServiceTest {
                     .thenThrow(new FlowEngineException("Failed"));
             FlowExecutionService.getInstance().executeFlow(null, null,
                     flowId, "actionId", FLOW_TYPE, inputMap);
+        }
+    }
+
+    @AfterClass
+    public void teardown() {
+
+        if (frameworkServiceDataHolderMockedStatic != null) {
+            frameworkServiceDataHolderMockedStatic.close();
         }
     }
 }
