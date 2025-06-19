@@ -263,7 +263,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 continue;
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
-            impersonatedUser = getImpersonatedUser(request, context, stepConfig.getAuthenticatedUser());
+
+            String requestedSubject = resolveRequestedSubject(request, context);
+            if (StringUtils.isNotBlank(requestedSubject)) {
+                impersonatedUser = getImpersonatedUser(requestedSubject, context, stepConfig.getAuthenticatedUser());
+            }
 
             if (!(authenticator instanceof AuthenticationFlowHandler)) {
                 isAuthenticatorExecuted = true;
@@ -410,12 +414,15 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
                     if (impersonatedUser != null) {
                         AuthenticatedUser authenticatedUser = stepConfig.getAuthenticatedUser();
+
                         stepConfig.setAuthenticatedUser(impersonatedUser);
 
                         Map<String, String> mappedAttrsImpUser = handleClaimMappings(stepConfig, context,
                                 null, false);
                         handleRoleMapping(context, sequenceConfig, mappedAttrsImpUser);
                         impersonatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrsImpUser);
+                        impersonatedUser.setUserAttributes(impersonatedUserAttributes);
+                        sequenceConfig.getAuthenticatedUser().setImpersonatedUser(impersonatedUser);
 
                         stepConfig.setAuthenticatedUser(authenticatedUser);
                     }
@@ -447,74 +454,67 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
-        if (impersonatedUser != null) {
-            sequenceConfig.getAuthenticatedUser().setImpersonatedUser(impersonatedUser);
-            // Reset the user attributes returned from federate IdP if the requested claims are not empty.
-            if (!selectedRequestedClaims.isEmpty()) {
-                sequenceConfig.getAuthenticatedUser().getImpersonatedUser()
-                        .setUserAttributes(Collections.unmodifiableMap(new HashMap<>()));
-            }
-            if (isSPStandardClaimDialect(context.getRequestType()) && impersonatedUserAttributes.isEmpty()) {
-                sequenceConfig.getAuthenticatedUser().getImpersonatedUser()
-                        .setUserAttributes(impersonatedUserAttributes);
-            }
-            if (!impersonatedUserAttributes.isEmpty()) {
-                sequenceConfig.getAuthenticatedUser().getImpersonatedUser()
-                        .setUserAttributes(impersonatedUserAttributes);
-            }
-        }
     }
 
-    private ImpersonatedUser getImpersonatedUser(HttpServletRequest request, AuthenticationContext context,
-                                                 AuthenticatedUser impersonatingActor)
-            throws FrameworkException {
+    private String resolveRequestedSubject(HttpServletRequest request, AuthenticationContext context) {
 
-        ImpersonatedUser impersonatedUser = null;
-        // Get subject parameter from request.
-        String requestedSubject = extractFromQueryParams(request, context);
+        // Get the subject from request params.
+        String requestedSubject = request.getParameter(REQUESTED_SUBJECT);
+
+        // Get the subject from previously stored query string.
         if (requestedSubject == null) {
-            // Get the subject from session context.
+            requestedSubject = extractFromQueryParams(request, context);
+        }
+
+        // Get the subject from session context.
+        if (requestedSubject == null) {
             SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(),
                     context.getLoginTenantDomain());
             if (sessionContext != null && sessionContext.getImpersonatedUser() != null) {
                 requestedSubject = sessionContext.getImpersonatedUser();
             }
         }
-        if (requestedSubject != null && context.getSequenceConfig() != null &&
-                context.getSequenceConfig().getApplicationConfig() != null) {
+
+        return requestedSubject;
+    }
+
+    private ImpersonatedUser getImpersonatedUser(String requestedSubject, AuthenticationContext context,
+                                                 AuthenticatedUser impersonatingActor)
+            throws FrameworkException {
+
+        if (context.getSequenceConfig() != null && context.getSequenceConfig().getApplicationConfig() != null) {
+
+            String tenantDomain = context.getTenantDomain();
+            String accessingOrganization = impersonatingActor.getAccessingOrganization();
+            String userResidentOrganization = impersonatingActor.getUserResidentOrganization();
+            ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
+
             try {
                 // Create an impersonated user object using the requested subject.
-                impersonatedUser = new ImpersonatedUser(
-                        FrameworkUtils.getImpersonatedUser(requestedSubject, context.getTenantDomain(),
-                                impersonatingActor.getAccessingOrganization(),
-                                impersonatingActor.getUserResidentOrganization(),
-                                context.getSequenceConfig().getApplicationConfig()));
+                return new ImpersonatedUser(
+                        FrameworkUtils.getImpersonatedUser(requestedSubject, tenantDomain,
+                                accessingOrganization, userResidentOrganization, applicationConfig));
             } catch (UserIdNotFoundException e) {
                 throw new FrameworkException("User ID not found for the impersonated user: " + requestedSubject, e);
             }
         }
-
-        return impersonatedUser;
+        return null;
     }
 
     private String extractFromQueryParams(HttpServletRequest request, AuthenticationContext context) {
 
-        String requestedSubject = request.getParameter(REQUESTED_SUBJECT);
-        if (requestedSubject == null) {
-            String queryString = context.getQueryParams();
-            if (StringUtils.isNotBlank(queryString)) {
-                String[] pairs = queryString.split("&");
-                for (String pair : pairs) {
-                    String[] keyValue = pair.split("=", 2);
-                    String key = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8);
-                    if (REQUESTED_SUBJECT.equals(key)) {
-                        return keyValue.length > 1 ? URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8) : null;
-                    }
+        String queryString = context.getQueryParams();
+        if (StringUtils.isNotBlank(queryString)) {
+            String[] pairs = queryString.split("&");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=", 2);
+                String key = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8);
+                if (REQUESTED_SUBJECT.equals(key)) {
+                    return keyValue.length > 1 ? URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8) : null;
                 }
             }
         }
-
-        return requestedSubject;
+        return null;
     }
 
     /**
