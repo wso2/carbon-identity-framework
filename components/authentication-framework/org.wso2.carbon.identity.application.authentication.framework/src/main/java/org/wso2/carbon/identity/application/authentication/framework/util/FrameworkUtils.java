@@ -1469,6 +1469,80 @@ public class FrameworkUtils {
         }
     }
 
+    /* * Publish an event on user registration failure.
+     *
+     * @param errorCode Error code.
+     * @param errorMessage Error message.
+     * @param claims User claims.
+     * @param tenantDomain Tenant domain.
+     * @param idp Identity provider name.
+     */
+    public static void publishEventOnUserRegistrationFailure(String errorCode, String errorMessage,
+                                                             Map<String, String> claims, String tenantDomain,
+                                                             String idp) {
+
+        String stepId = String.valueOf(
+                IdentityUtil.threadLocalProperties.get().get(IdentityEventConstants.EventProperty.STEP_ID));
+        String authenticator = String.valueOf(IdentityUtil.threadLocalProperties.get()
+                .get(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR));
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.IDP, idp);
+        properties.put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, authenticator);
+        properties.put(IdentityEventConstants.EventProperty.STEP_ID, stepId);
+
+        properties.put(IdentityEventConstants.EventProperty.ERROR_CODE, errorCode);
+        properties.put(IdentityEventConstants.EventProperty.ERROR_MESSAGE, errorMessage);
+
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_FAILED, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
+
+    private static void publishEventOnUserRegistration(Map<String, String> claims,
+                                                       String tenantDomain, Event event) {
+
+        Map<String, Object> properties = event.getEventProperties();
+
+        properties.put(IdentityEventConstants.EventProperty.USER_CLAIMS, claims);
+        properties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        properties.put(IdentityEventConstants.EventProperty.TENANT_ID,
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+
+        try {
+            FrameworkServiceDataHolder.getInstance().getIdentityEventService().handleEvent(event);
+        } catch (IdentityEventException e) {
+            log.error("Error in triggering registration failure event", e);
+        }
+    }
+
+    /*
+     * Publish an event on user registration failure.
+     *
+     * @param errorCode Error code.
+     * @param errorMessage Error message.
+     * @param claims User claims.
+     * @param tenantDomain Tenant domain.
+     */
+    public static void  publishEventOnUserRegistrationFailure(String errorCode, String errorMessage,
+                                                             Map<String, String> claims, String tenantDomain) {
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.ERROR_CODE, errorCode);
+        properties.put(IdentityEventConstants.EventProperty.ERROR_MESSAGE, errorMessage);
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_FAILED, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
+
+    public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String tenantDomain) {
+
+        HashMap<String, Object> properties = new HashMap<>();
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
+
     /**
      * @param key
      * @deprecated to use {{@link #removeSessionContextFromCache(String, String)}} to support maintaining cache in
@@ -4557,5 +4631,21 @@ public class FrameworkUtils {
             tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
         return tenantDomain;
+    }
+
+    public static void addRegistrationEventContext(AuthenticationContext context) {
+
+        if (context != null) {
+            IdentityUtil.threadLocalProperties.get()
+                    .put(IdentityEventConstants.EventProperty.STEP_ID, context.getCurrentStep());
+            IdentityUtil.threadLocalProperties.get()
+                    .put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, context.getCurrentAuthenticator());
+        }
+    }
+
+    public static void removeRegistrationEventContext() {
+
+        IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.STEP_ID);
+        IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR);
     }
 }

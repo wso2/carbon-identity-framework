@@ -271,12 +271,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 break;
             }
         }
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                getInitiatorId(username, tenantDomain),  LoggerUtils.Target.User.name(),
-                getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
-                LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
-                .data(buildSPData(serviceProvider));
-        triggerAuditLogEvent(auditLogBuilder);
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain),  LoggerUtils.Target.User.name(),
+                    getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
+                    .data(buildSPData(serviceProvider));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
         return serviceProvider;
     }
 
@@ -811,12 +813,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
-                getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
-                LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
-                .data(buildSPData(serviceProvider));
-        triggerAuditLogEvent(auditLogBuilder);
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
+                    .data(buildSPData(serviceProvider));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
     }
 
     // Will be supported with 'Advance Consent Management Feature'.
@@ -925,11 +929,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(), getAppId(serviceProvider),
-                LoggerUtils.Target.Application.name(),
-                LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
-        triggerAuditLogEvent(auditLogBuilder);
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(), getAppId(serviceProvider),
+                    LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
     }
 
     /**
@@ -2627,12 +2633,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw buildServerException("Server encountered an unexpected error when creating the application.");
             }
         }
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(), resourceId,
-                LoggerUtils.Target.Application.name(),
-                LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
-                .data(buildSPData(application));
-        triggerAuditLogEvent(auditLogBuilder);
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(), resourceId,
+                    LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
+                    .data(buildSPData(application));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
         return resourceId;
     }
     
@@ -2820,12 +2828,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
-                resourceId, LoggerUtils.Target.Application.name(),
-                LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
-                .data(buildSPData(updatedApp));
-        triggerAuditLogEvent(auditLogBuilder);
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    resourceId, LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
+                    .data(buildSPData(updatedApp));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
     }
     
     /**
@@ -3234,11 +3244,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
-                resourceId, LoggerUtils.Target.Application.name(),
-                LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
-        triggerAuditLogEvent(auditLogBuilder);
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    resourceId, LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
     }
 
     @Override

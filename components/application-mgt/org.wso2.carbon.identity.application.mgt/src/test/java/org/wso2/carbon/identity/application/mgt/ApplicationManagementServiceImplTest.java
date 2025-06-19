@@ -24,9 +24,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
@@ -73,7 +71,6 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
-import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtServerException;
@@ -229,8 +226,6 @@ public class ApplicationManagementServiceImplTest {
     private String l1AppId;
     private String l2AppId;
 
-    private MockedStatic<LoggerUtils> loggerUtilsMockedStatic;
-
     @BeforeClass
     public void setup() throws RegistryException, UserStoreException, SecretManagementException {
 
@@ -271,19 +266,6 @@ public class ApplicationManagementServiceImplTest {
 
         organizationManager = mock(OrganizationManager.class);
         ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
-    }
-
-    @BeforeMethod
-    public void setUpMethod() {
-
-        loggerUtilsMockedStatic = Mockito.mockStatic(LoggerUtils.class);
-        loggerUtilsMockedStatic.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
-    }
-
-    @AfterMethod
-    public void tearDown() {
-
-        loggerUtilsMockedStatic.close();
     }
 
     @DataProvider(name = "addApplicationDataProvider")

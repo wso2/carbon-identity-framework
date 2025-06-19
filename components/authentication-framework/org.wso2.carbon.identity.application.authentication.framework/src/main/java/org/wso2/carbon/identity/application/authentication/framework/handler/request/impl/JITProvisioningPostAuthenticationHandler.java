@@ -934,6 +934,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             excludeUnmappedRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
         }
+
+        FrameworkUtils.addRegistrationEventContext(context);
+
         try {
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 // This block handle the JIT provisioning in legacy authz runtime with v1 roles.
@@ -994,6 +997,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     String.format(ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getMessage(),
                             username, externalIdPConfig.getName()),
                     ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getCode(), e);
+        } finally {
+            FrameworkUtils.removeRegistrationEventContext();
         }
     }
 
