@@ -32,10 +32,10 @@ public interface WebhookMetadataDAO {
     /**
      * Get all supported event profiles.
      *
-     * @return List of event profile names
+     * @return List of event profiles
      * @throws WebhookMetadataException If an error occurs while retrieving event profiles
      */
-    List<String> getSupportedEventProfiles() throws WebhookMetadataException;
+    List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException;
 
     /**
      * Get details of a specific event profile including its channels.

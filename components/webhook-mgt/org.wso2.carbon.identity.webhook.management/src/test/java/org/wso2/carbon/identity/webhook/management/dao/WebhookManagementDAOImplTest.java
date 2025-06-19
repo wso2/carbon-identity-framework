@@ -46,10 +46,10 @@ public class WebhookManagementDAOImplTest {
     private static final String WEBHOOK_ENDPOINT = "https://example.com/webhook";
     private static final String WEBHOOK_ENDPOINT2 = "https://example.com/webhook2";
     private static final String WEBHOOK_ENDPOINT3 = "https://example.com/webhook3";
-    private static final String WEBHOOK_DESCRIPTION = "Test webhook description";
+    private static final String WEBHOOK_NAME = "Test webhook";
     private static final String WEBHOOK_SECRET = "test-secret";
-    private static final String WEBHOOK_EVENT_SCHEMA_NAME = "user-events";
-    private static final String WEBHOOK_EVENT_SCHEMA_URI = "https://schemas.org/user-events";
+    private static final String WEBHOOK_EVENT_PROFILE_NAME = "user-events";
+    private static final String WEBHOOK_EVENT_PROFILE_URI = "https://schemas.org/user-events";
     Webhook testWebhook;
 
     public static final int TENANT_ID = 1;
@@ -89,10 +89,10 @@ public class WebhookManagementDAOImplTest {
         testWebhook = new Webhook.Builder()
                 .uuid(UUID.randomUUID().toString())
                 .endpoint(WEBHOOK_ENDPOINT2)
-                .description(WEBHOOK_DESCRIPTION)
+                .name(WEBHOOK_NAME)
                 .secret(WEBHOOK_SECRET)
-                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
-                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
                 .status(WebhookStatus.ACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
@@ -116,11 +116,11 @@ public class WebhookManagementDAOImplTest {
         testWebhook = new Webhook.Builder()
                 .uuid(testWebhook.getUuid())
                 .endpoint(testWebhook.getEndpoint())
-                .description("Updated description")
+                .name("Updated name")
                 .secret(testWebhook.getSecret())
                 .tenantId(testWebhook.getTenantId())
-                .eventSchemaName(testWebhook.getEventSchemaName())
-                .eventSchemaUri(testWebhook.getEventSchemaUri())
+                .eventProfileName(testWebhook.getEventProfileName())
+                .eventProfileUri(testWebhook.getEventProfileUri())
                 .status(testWebhook.getStatus())
                 .createdAt(testWebhook.getCreatedAt())
                 .updatedAt(testWebhook.getUpdatedAt())
@@ -132,7 +132,7 @@ public class WebhookManagementDAOImplTest {
         Webhook updatedWebhook = webhookManagementDAOImpl.getWebhook(createdWebhook.getUuid(), TENANT_ID);
         assertNotNull(updatedWebhook);
         assertEquals(createdWebhook.getUuid(), updatedWebhook.getUuid());
-        Assert.assertEquals(updatedWebhook.getDescription(), "Updated description");
+        Assert.assertEquals(updatedWebhook.getName(), "Updated name");
     }
 
     @Test(dependsOnMethods = {"testUpdateWebhook"})
@@ -169,10 +169,10 @@ public class WebhookManagementDAOImplTest {
         Webhook secondWebhook = new Webhook.Builder()
                 .uuid(UUID.randomUUID().toString())
                 .endpoint(WEBHOOK_ENDPOINT3)
-                .description("Another test webhook")
+                .name("Another test webhook")
                 .secret(WEBHOOK_SECRET)
-                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
-                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
                 .status(WebhookStatus.ACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
@@ -231,10 +231,10 @@ public class WebhookManagementDAOImplTest {
         Webhook webhookWithEvents = new Webhook.Builder()
                 .uuid(UUID.randomUUID().toString())
                 .endpoint("https://example.com/webhook-events")
-                .description("Webhook with events")
+                .name("Webhook with events")
                 .secret(WEBHOOK_SECRET)
-                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
-                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
                 .status(WebhookStatus.ACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))
@@ -258,10 +258,10 @@ public class WebhookManagementDAOImplTest {
         return new Webhook.Builder()
                 .uuid(UUID.randomUUID().toString())
                 .endpoint(WEBHOOK_ENDPOINT)
-                .description(WEBHOOK_DESCRIPTION)
+                .name(WEBHOOK_NAME)
                 .secret(WEBHOOK_SECRET)
-                .eventSchemaName(WEBHOOK_EVENT_SCHEMA_NAME)
-                .eventSchemaUri(WEBHOOK_EVENT_SCHEMA_URI)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
                 .status(WebhookStatus.ACTIVE)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .updatedAt(new Timestamp(System.currentTimeMillis()))

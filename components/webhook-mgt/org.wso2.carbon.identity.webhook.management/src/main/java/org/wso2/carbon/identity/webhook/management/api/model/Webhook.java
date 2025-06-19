@@ -34,11 +34,11 @@ public class Webhook {
 
     private final String uuid;
     private final String endpoint;
-    private final String description;
+    private final String name;
     private final String secret;
     private final int tenantId;
-    private final String eventSchemaName;
-    private final String eventSchemaUri;
+    private final String eventProfileName;
+    private final String eventProfileUri;
     private final WebhookStatus status;
     private final Timestamp createdAt;
     private final Timestamp updatedAt;
@@ -48,26 +48,11 @@ public class Webhook {
 
         this.uuid = builder.uuid;
         this.endpoint = builder.endpoint;
-        this.description = builder.description;
+        this.name = builder.name;
         this.secret = builder.secret;
         this.tenantId = builder.tenantId;
-        this.eventSchemaName = builder.eventSchemaName;
-        this.eventSchemaUri = builder.eventSchemaUri;
-        this.status = builder.status;
-        this.createdAt = builder.createdAt;
-        this.updatedAt = builder.updatedAt;
-        this.eventsSubscribed = builder.eventsSubscribed;
-    }
-
-    private Webhook(BuilderWithoutSecret builder) {
-
-        this.uuid = builder.uuid;
-        this.endpoint = builder.endpoint;
-        this.description = builder.description;
-        this.secret = null;
-        this.tenantId = builder.tenantId;
-        this.eventSchemaName = builder.eventSchemaName;
-        this.eventSchemaUri = builder.eventSchemaUri;
+        this.eventProfileName = builder.eventProfileName;
+        this.eventProfileUri = builder.eventProfileUri;
         this.status = builder.status;
         this.createdAt = builder.createdAt;
         this.updatedAt = builder.updatedAt;
@@ -84,9 +69,9 @@ public class Webhook {
         return endpoint;
     }
 
-    public String getDescription() {
+    public String getName() {
 
-        return description;
+        return name;
     }
 
     public String getSecret() {
@@ -99,14 +84,14 @@ public class Webhook {
         return tenantId;
     }
 
-    public String getEventSchemaName() {
+    public String getEventProfileName() {
 
-        return eventSchemaName;
+        return eventProfileName;
     }
 
-    public String getEventSchemaUri() {
+    public String getEventProfileUri() {
 
-        return eventSchemaUri;
+        return eventProfileUri;
     }
 
     public WebhookStatus getStatus() {
@@ -148,9 +133,9 @@ public class Webhook {
         return tenantId == webhook.tenantId &&
                 Objects.equals(uuid, webhook.uuid) &&
                 Objects.equals(endpoint, webhook.endpoint) &&
-                Objects.equals(description, webhook.description) &&
-                Objects.equals(eventSchemaName, webhook.eventSchemaName) &&
-                Objects.equals(eventSchemaUri, webhook.eventSchemaUri) &&
+                Objects.equals(name, webhook.name) &&
+                Objects.equals(eventProfileName, webhook.eventProfileName) &&
+                Objects.equals(eventProfileUri, webhook.eventProfileUri) &&
                 status == webhook.status &&
                 Objects.equals(createdAt, webhook.createdAt) &&
                 Objects.equals(updatedAt, webhook.updatedAt) &&
@@ -160,8 +145,8 @@ public class Webhook {
     @Override
     public int hashCode() {
 
-        return Objects.hash(uuid, endpoint, description, secret, tenantId,
-                eventSchemaName, eventSchemaUri, status, createdAt, updatedAt, eventsSubscribed);
+        return Objects.hash(uuid, endpoint, name, secret, tenantId,
+                eventProfileName, eventProfileUri, status, createdAt, updatedAt, eventsSubscribed);
     }
 
     /**
@@ -171,11 +156,11 @@ public class Webhook {
 
         private String uuid;
         private String endpoint;
-        private String description;
+        private String name;
         private String secret;
         private int tenantId;
-        private String eventSchemaName;
-        private String eventSchemaUri;
+        private String eventProfileName;
+        private String eventProfileUri;
         private WebhookStatus status;
         private Timestamp createdAt;
         private Timestamp updatedAt;
@@ -193,9 +178,9 @@ public class Webhook {
             return this;
         }
 
-        public Builder description(String description) {
+        public Builder name(String name) {
 
-            this.description = description;
+            this.name = name;
             return this;
         }
 
@@ -211,15 +196,15 @@ public class Webhook {
             return this;
         }
 
-        public Builder eventSchemaName(String eventSchemaName) {
+        public Builder eventProfileName(String eventProfileName) {
 
-            this.eventSchemaName = eventSchemaName;
+            this.eventProfileName = eventProfileName;
             return this;
         }
 
-        public Builder eventSchemaUri(String eventSchemaUri) {
+        public Builder eventProfileUri(String eventProfileUri) {
 
-            this.eventSchemaUri = eventSchemaUri;
+            this.eventProfileUri = eventProfileUri;
             return this;
         }
 
@@ -248,94 +233,6 @@ public class Webhook {
         }
 
         public Builder addEventSubscribed(String event) {
-
-            this.eventsSubscribed.add(event);
-            return this;
-        }
-
-        public Webhook build() {
-
-            return new Webhook(this);
-        }
-    }
-
-    /**
-     * Builder class without secret field.
-     */
-    public static class BuilderWithoutSecret {
-
-        private String uuid;
-        private String endpoint;
-        private String description;
-        private int tenantId;
-        private String eventSchemaName;
-        private String eventSchemaUri;
-        private WebhookStatus status;
-        private Timestamp createdAt;
-        private Timestamp updatedAt;
-        private List<String> eventsSubscribed = new ArrayList<>();
-
-        public BuilderWithoutSecret uuid(String uuid) {
-
-            this.uuid = uuid;
-            return this;
-        }
-
-        public BuilderWithoutSecret endpoint(String endpoint) {
-
-            this.endpoint = endpoint;
-            return this;
-        }
-
-        public BuilderWithoutSecret description(String description) {
-
-            this.description = description;
-            return this;
-        }
-
-        public BuilderWithoutSecret tenantId(int tenantId) {
-
-            this.tenantId = tenantId;
-            return this;
-        }
-
-        public BuilderWithoutSecret eventSchemaName(String eventSchemaName) {
-
-            this.eventSchemaName = eventSchemaName;
-            return this;
-        }
-
-        public BuilderWithoutSecret eventSchemaUri(String eventSchemaUri) {
-
-            this.eventSchemaUri = eventSchemaUri;
-            return this;
-        }
-
-        public BuilderWithoutSecret status(WebhookStatus status) {
-
-            this.status = status;
-            return this;
-        }
-
-        public BuilderWithoutSecret createdAt(Timestamp createdAt) {
-
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public BuilderWithoutSecret updatedAt(Timestamp updatedAt) {
-
-            this.updatedAt = updatedAt;
-            return this;
-        }
-
-        public BuilderWithoutSecret eventsSubscribed(List<String> eventsSubscribed) {
-
-            this.eventsSubscribed = eventsSubscribed != null ? new ArrayList<>(eventsSubscribed) : new ArrayList<>();
-            return this;
-        }
-
-        public BuilderWithoutSecret addEventSubscribed(String event) {
 
             this.eventsSubscribed.add(event);
             return this;

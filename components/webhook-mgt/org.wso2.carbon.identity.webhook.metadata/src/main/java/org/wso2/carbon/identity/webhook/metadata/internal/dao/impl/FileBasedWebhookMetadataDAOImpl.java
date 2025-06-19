@@ -127,7 +127,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
                     // Only use filename as a fallback if profile name is not specified in the JSON
                     if (profile.getProfile() == null || profile.getProfile().isEmpty()) {
                         String fileName = FilenameUtils.getBaseName(jsonFile.getFileName().toString());
-                        profile = new EventProfile(fileName, profile.getChannels());
+                        profile = new EventProfile(fileName, profile.getUri(), profile.getChannels());
                         log.debug("Profile name not found in JSON, using filename: " + fileName);
                     }
 
@@ -142,13 +142,13 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
     }
 
     @Override
-    public List<String> getSupportedEventProfiles() throws WebhookMetadataException {
+    public List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException {
 
         if (!isInitialized) {
             throw WebhookMetadataExceptionHandler.handleClientException(
                     ERROR_CODE_PROFILES_RETRIEVE_ERROR);
         }
-        return new ArrayList<>(profileCache.keySet());
+        return new ArrayList<>(profileCache.values());
     }
 
     @Override

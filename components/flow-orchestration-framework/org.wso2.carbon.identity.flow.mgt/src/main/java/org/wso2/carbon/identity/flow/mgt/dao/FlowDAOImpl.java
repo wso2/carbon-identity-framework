@@ -18,7 +18,35 @@
 
 package org.wso2.carbon.identity.flow.mgt.dao;
 
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
@@ -47,42 +75,6 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
-import org.wso2.carbon.identity.core.util.JdbcUtils;
-import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
-import org.wso2.carbon.identity.flow.mgt.Constants;
-import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
-import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
-import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
-import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
-import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
-import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
-import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
-import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
-import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
-import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
 /**
  * The DAO class for the flow.
@@ -374,25 +366,13 @@ public class FlowDAOImpl implements FlowDAO {
                 stepDTO.setData(new DataDTO.Builder().build());
                 return;
             }
-
-            if (VIEW.equals(stepDTO.getType())) {
-                List<ComponentDTO> components = OBJECT_MAPPER.readValue(pageContent,
-                        OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, ComponentDTO.class));
-
-                if (components != null && !components.isEmpty()) {
-                    stepDTO.setData(new DataDTO.Builder().components(components).build());
-                } else {
-                    throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
-                            stepDTO.getId(), tenantId);
-                }
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
-                ActionDTO action = OBJECT_MAPPER.readValue(pageContent, ActionDTO.class);
-                if (action != null) {
-                    stepDTO.setData(new DataDTO.Builder().action(action).build());
-                } else {
-                    throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
-                            stepDTO.getId(), tenantId);
-                }
+            OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            DataDTO dataDTO = OBJECT_MAPPER.readValue(pageContent, DataDTO.class);
+            if (dataDTO != null) {
+                stepDTO.setData(dataDTO);
+            } else {
+                throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
+                        stepDTO.getId(), tenantId);
             }
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepDTO.getId(),
@@ -409,15 +389,10 @@ public class FlowDAOImpl implements FlowDAO {
             throws FlowMgtFrameworkException {
 
         try {
-            if (VIEW.equals(stepDTO.getType())) {
-                List<ComponentDTO> components = stepDTO.getData().getComponents();
-                return Optional.of(serializeObject(components));
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
-                ActionDTO action = stepDTO.getData().getAction();
-                return Optional.of(serializeObject(action));
-            } else {
+            if (stepDTO.getData() == null) {
                 return Optional.empty();
             }
+            return Optional.of(serializeObject(stepDTO.getData()));
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
                                         stepDTO.getId(), tenantId);

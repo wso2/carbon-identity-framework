@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.197-SNAPSHOT</version>
+    <version>7.8.233-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -79,7 +79,6 @@
         <module>components/certificate-mgt</module>
         <module>components/servlet-mgt</module>
         <module>components/system-config-mgt</module>
-        <module>components/registration-framework</module>
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
         <module>features/extension-mgt</module>
@@ -124,7 +123,6 @@
         <module>features/certificate-mgt</module>
         <module>features/servlet-mgt</module>
         <module>features/system-config-mgt</module>
-        <module>features/registration-framework</module>
         <module>features/flow-orchestration-framework</module>
         <module>features/async-operation-status-mgt</module>
         <module>features/workflow-mgt</module>
@@ -349,6 +347,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.webhook.metadata</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.topic.management</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -790,12 +793,6 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.registration.mgt.server.feature</artifactId>
-                <type>zip</type>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.flow.mgt.server.feature</artifactId>
                 <type>zip</type>
                 <version>${project.version}</version>
@@ -808,7 +805,7 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.registration.engine.server.feature</artifactId>
+                <artifactId>org.wso2.carbon.identity.flow.execution.engine.server.feature</artifactId>
                 <type>zip</type>
                 <version>${project.version}</version>
             </dependency>
@@ -1870,17 +1867,12 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.registration.mgt</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.flow.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.registration.engine</artifactId>
+                <artifactId>org.wso2.carbon.identity.flow.execution.engine</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2169,7 +2161,7 @@
         <orbit.version.commons.fileuploader>1.2.0.wso2v1</orbit.version.commons.fileuploader>
         <opensaml.version>3.3.1</opensaml.version>
         <shibboleth.version>7.3.0</shibboleth.version>
-        <opensaml2.wso2.version>3.3.1.wso2v13</opensaml2.wso2.version>
+        <opensaml2.wso2.version>3.3.1.wso2v14</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[3.3.1,3.4.0)</opensaml2.wso2.osgi.version.range>
         <joda.version>2.9.4</joda.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>

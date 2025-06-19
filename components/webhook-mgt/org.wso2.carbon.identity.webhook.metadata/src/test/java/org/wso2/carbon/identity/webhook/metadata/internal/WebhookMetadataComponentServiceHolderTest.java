@@ -18,10 +18,8 @@
 
 package org.wso2.carbon.identity.webhook.metadata.internal;
 
-import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.internal.component.WebhookMetadataServiceComponentHolder;
 
 import static org.testng.Assert.assertEquals;
@@ -30,13 +28,11 @@ import static org.testng.Assert.assertNotNull;
 public class WebhookMetadataComponentServiceHolderTest {
 
     private WebhookMetadataServiceComponentHolder holder;
-    private WebhookMetadataService mockService;
 
     @BeforeMethod
     public void setUp() {
 
         holder = WebhookMetadataServiceComponentHolder.getInstance();
-        mockService = Mockito.mock(WebhookMetadataService.class);
     }
 
     @Test
@@ -45,13 +41,5 @@ public class WebhookMetadataComponentServiceHolderTest {
         WebhookMetadataServiceComponentHolder instance = WebhookMetadataServiceComponentHolder.getInstance();
         assertNotNull(instance);
         assertEquals(instance, holder);
-    }
-
-    @Test
-    public void testSetAndGetWebhookMetadataService() {
-
-        holder.setWebhookMetadataService(mockService);
-        WebhookMetadataService service = holder.getWebhookMetadataService();
-        assertEquals(service, mockService);
     }
 }

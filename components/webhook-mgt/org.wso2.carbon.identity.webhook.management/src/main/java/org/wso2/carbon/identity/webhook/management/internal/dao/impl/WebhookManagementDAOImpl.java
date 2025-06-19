@@ -21,17 +21,27 @@ package org.wso2.carbon.identity.webhook.management.internal.dao.impl;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtServerException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.constant.WebhookSQLConstants;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
+import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
+
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR;
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR;
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_EXISTENCE_CHECK_ERROR;
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_EVENT_LIST_ERROR;
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_GET_ERROR;
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_LIST_ERROR;
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR;
+import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR;
 
 /**
  * Implementation of WebhookManagementDAO.
@@ -53,7 +63,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while creating the webhook in the system.", e);
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_ADD_ERROR, e);
         }
     }
 
@@ -70,7 +81,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while updating the webhook in the system.", e);
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_UPDATE_ERROR, e, webhook.getUuid());
         }
     }
 
@@ -88,7 +100,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while deleting the webhook in the system.", e);
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_DELETE_ERROR, e, webhookId);
         }
     }
 
@@ -113,13 +126,14 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 List<String> events = getWebhookEvents(webhookId, tenantId);
 
                 // Build the Webhook without the secret
-                return new Webhook.BuilderWithoutSecret()
+                return new Webhook.Builder()
                         .uuid(webhook.getUuid())
                         .endpoint(webhook.getEndpoint())
-                        .description(webhook.getDescription())
+                        .name(webhook.getName())
                         .tenantId(webhook.getTenantId())
-                        .eventSchemaName(webhook.getEventSchemaName())
-                        .eventSchemaUri(webhook.getEventSchemaUri())
+                        .eventProfileName(webhook.getEventProfileName())
+                        .eventProfileUri(webhook.getEventProfileUri())
+                        .secret(webhook.getSecret())
                         .status(webhook.getStatus())
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
@@ -127,7 +141,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         .build();
             });
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while retrieving the webhook from the system.", e);
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_GET_ERROR, e, webhookId);
         }
     }
 
@@ -147,7 +162,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                     )
             );
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while retrieving webhook events from the system.", e);
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_EVENT_LIST_ERROR, e);
         }
     }
 
@@ -161,7 +177,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                             (resultSet, rowNumber) -> mapResultSetToWebhook(resultSet),
                             statement -> statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId)));
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while retrieving webhooks from the system.", e);
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_LIST_ERROR, e, IdentityTenantUtil.getTenantDomain(tenantId));
         }
     }
 
@@ -179,7 +196,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                             }) != null
             );
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while checking webhook endpoint existence.", e);
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_ENDPOINT_EXISTENCE_CHECK_ERROR, e, endpoint);
         }
     }
 
@@ -199,13 +217,14 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
     private Webhook mapResultSetToWebhook(ResultSet resultSet) throws SQLException {
 
-        return new Webhook.BuilderWithoutSecret()
+        return new Webhook.Builder()
                 .uuid(resultSet.getString(WebhookSQLConstants.Column.UUID))
                 .endpoint(resultSet.getString(WebhookSQLConstants.Column.ENDPOINT))
-                .description(resultSet.getString(WebhookSQLConstants.Column.DESCRIPTION))
-                .eventSchemaName(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME))
-                .eventSchemaUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI))
+                .name(resultSet.getString(WebhookSQLConstants.Column.NAME))
+                .eventProfileName(resultSet.getString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME))
+                .eventProfileUri(resultSet.getString(WebhookSQLConstants.Column.EVENT_PROFILE_URI))
                 .status(WebhookStatus.valueOf(resultSet.getString(WebhookSQLConstants.Column.STATUS)))
+                .secret(resultSet.getString(WebhookSQLConstants.Column.SECRET_ALIAS))
                 .tenantId(resultSet.getInt(WebhookSQLConstants.Column.TENANT_ID))
                 .createdAt(resultSet.getTimestamp(WebhookSQLConstants.Column.CREATED_AT))
                 .updatedAt(resultSet.getTimestamp(WebhookSQLConstants.Column.UPDATED_AT))
@@ -220,14 +239,14 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         statement -> {
                             statement.setString(WebhookSQLConstants.Column.UUID, webhook.getUuid());
                             statement.setString(WebhookSQLConstants.Column.ENDPOINT, webhook.getEndpoint());
-                            statement.setString(WebhookSQLConstants.Column.DESCRIPTION, webhook.getDescription());
-                            statement.setString(WebhookSQLConstants.Column.SECRET, webhook.getSecret());
+                            statement.setString(WebhookSQLConstants.Column.NAME, webhook.getName());
+                            statement.setString(WebhookSQLConstants.Column.SECRET_ALIAS, webhook.getSecret());
                             statement.setString(WebhookSQLConstants.Column.VERSION, WEBHOOK_VERSION);
-                            statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME,
-                                    webhook.getEventSchemaName());
-                            statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI,
-                                    webhook.getEventSchemaUri());
-                            statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_VERSION,
+                            statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME,
+                                    webhook.getEventProfileName());
+                            statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_URI,
+                                    webhook.getEventProfileUri());
+                            statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_VERSION,
                                     WEBHOOK_SCHEMA_VERSION);
                             statement.setString(WebhookSQLConstants.Column.STATUS, String.valueOf(webhook.getStatus()));
                             statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
@@ -241,12 +260,13 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
             template.executeUpdate(WebhookSQLConstants.Query.UPDATE_WEBHOOK,
                     statement -> {
                         statement.setString(WebhookSQLConstants.Column.ENDPOINT, webhook.getEndpoint());
-                        statement.setString(WebhookSQLConstants.Column.DESCRIPTION, webhook.getDescription());
-                        statement.setString(WebhookSQLConstants.Column.SECRET, webhook.getSecret());
+                        statement.setString(WebhookSQLConstants.Column.NAME, webhook.getName());
+                        statement.setString(WebhookSQLConstants.Column.SECRET_ALIAS, webhook.getSecret());
                         statement.setString(WebhookSQLConstants.Column.VERSION, WEBHOOK_VERSION);
-                        statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_NAME, webhook.getEventSchemaName());
-                        statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_URI, webhook.getEventSchemaUri());
-                        statement.setString(WebhookSQLConstants.Column.EVENT_SCHEMA_VERSION, WEBHOOK_SCHEMA_VERSION);
+                        statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME,
+                                webhook.getEventProfileName());
+                        statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_URI, webhook.getEventProfileUri());
+                        statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_VERSION, WEBHOOK_SCHEMA_VERSION);
                         statement.setString(WebhookSQLConstants.Column.STATUS, String.valueOf(webhook.getStatus()));
                         statement.setString(WebhookSQLConstants.Column.UUID, webhook.getUuid());
                         statement.setString(WebhookSQLConstants.Column.CREATED_AT, String.valueOf(Instant.now()));
@@ -313,7 +333,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw new WebhookMgtServerException("Error while updating webhook status.", e);
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR, e, status);
         }
     }
 }

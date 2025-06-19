@@ -36,12 +36,12 @@ public final class WebhookSQLConstants {
         public static final String ID = "ID";
         public static final String UUID = "UUID";
         public static final String ENDPOINT = "ENDPOINT";
-        public static final String DESCRIPTION = "DESCRIPTION";
-        public static final String SECRET = "SECRET";
+        public static final String NAME = "NAME";
+        public static final String SECRET_ALIAS = "SECRET_ALIAS";
         public static final String VERSION = "VERSION";
-        public static final String EVENT_SCHEMA_NAME = "EVENT_SCHEMA_NAME";
-        public static final String EVENT_SCHEMA_URI = "EVENT_SCHEMA_URI";
-        public static final String EVENT_SCHEMA_VERSION = "EVENT_SCHEMA_VERSION";
+        public static final String EVENT_PROFILE_NAME = "EVENT_PROFILE_NAME";
+        public static final String EVENT_PROFILE_URI = "EVENT_PROFILE_URI";
+        public static final String EVENT_PROFILE_VERSION = "EVENT_PROFILE_VERSION";
         public static final String STATUS = "STATUS";
         public static final String TENANT_ID = "TENANT_ID";
         public static final String CREATED_AT = "CREATED_AT";
@@ -60,17 +60,17 @@ public final class WebhookSQLConstants {
     public static final class Query {
 
         public static final String CREATE_WEBHOOK =
-                "INSERT INTO IDN_WEBHOOK (UUID, ENDPOINT, DESCRIPTION, SECRET, VERSION, EVENT_SCHEMA_NAME, " +
-                        "EVENT_SCHEMA_URI, EVENT_SCHEMA_VERSION, STATUS, TENANT_ID, CREATED_AT, UPDATED_AT) " +
-                        "VALUES (:UUID;, :ENDPOINT;, :DESCRIPTION;, :SECRET;, :VERSION;, :EVENT_SCHEMA_NAME;, " +
-                        ":EVENT_SCHEMA_URI;, :EVENT_SCHEMA_VERSION;, :STATUS;, :TENANT_ID;, CURRENT_TIMESTAMP, " +
+                "INSERT INTO IDN_WEBHOOK (UUID, ENDPOINT, NAME, SECRET_ALIAS, VERSION, EVENT_PROFILE_NAME, " +
+                        "EVENT_PROFILE_URI, EVENT_PROFILE_VERSION, STATUS, TENANT_ID, CREATED_AT, UPDATED_AT) " +
+                        "VALUES (:UUID;, :ENDPOINT;, :NAME;, :SECRET_ALIAS;, :VERSION;, :EVENT_PROFILE_NAME;, " +
+                        ":EVENT_PROFILE_URI;, :EVENT_PROFILE_VERSION;, :STATUS;, :TENANT_ID;, CURRENT_TIMESTAMP, " +
                         "CURRENT_TIMESTAMP)";
 
         public static final String UPDATE_WEBHOOK =
-                "UPDATE IDN_WEBHOOK SET ENDPOINT = :ENDPOINT;, DESCRIPTION = :DESCRIPTION;, SECRET = :SECRET;, " +
-                        "VERSION = :VERSION;, EVENT_SCHEMA_NAME = :EVENT_SCHEMA_NAME;, " +
-                        "EVENT_SCHEMA_URI = :EVENT_SCHEMA_URI;, " +
-                        "EVENT_SCHEMA_VERSION = :EVENT_SCHEMA_VERSION;, STATUS = :STATUS;," +
+                "UPDATE IDN_WEBHOOK SET ENDPOINT = :ENDPOINT;, NAME = :NAME;, SECRET_ALIAS = :SECRET_ALIAS;, " +
+                        "VERSION = :VERSION;, EVENT_PROFILE_NAME = :EVENT_PROFILE_NAME;, " +
+                        "EVENT_PROFILE_URI = :EVENT_PROFILE_URI;, " +
+                        "EVENT_PROFILE_VERSION = :EVENT_PROFILE_VERSION;, STATUS = :STATUS;," +
                         " UPDATED_AT = CURRENT_TIMESTAMP " +
                         "WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
 

@@ -126,6 +126,9 @@ public class IdentityKeyStoreResolverConstants {
                         "Context Keystore doesn't exist."),
         ERROR_WHILE_LOADING_REGISTRY("IKSR-10011", "Error while loading registry.",
                 "Error occurred while loading registry for tenant: %s."),
+        ERROR_CODE_ERROR_RETRIEVING_TRUSTSTORE(
+                "IKSR-10012", "Error retrieving trust store.",
+                "Error occurred when retrieving trust store for tenant: %s."),
 
         // Errors occurred within the IdentityKeyStoreResolver
         ERROR_CODE_INVALID_ARGUMENT(

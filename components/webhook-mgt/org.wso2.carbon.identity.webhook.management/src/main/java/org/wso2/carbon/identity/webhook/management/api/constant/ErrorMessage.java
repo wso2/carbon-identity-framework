@@ -24,11 +24,10 @@ package org.wso2.carbon.identity.webhook.management.api.constant;
 public enum ErrorMessage {
 
     // Client errors (6xxxx range)
+    // Continuation of client error codes can be found in the Webhook Management API layer as well.
     ERROR_CODE_WEBHOOK_NOT_FOUND("WEBHOOKMGT-60001", "Webhook not found",
             "The requested webhook could not be found in the system."),
-    ERROR_CODE_WEBHOOK_ALREADY_EXISTS("WEBHOOKMGT-60002", "Webhook endpoint already exists",
-            "A webhook with the given ID already exists in the system."),
-    ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS("WEBHOOKMGT-60003", "Webhook already exists",
+    ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS("WEBHOOKMGT-60003", "Webhook endpoint already exists",
             "A webhook with the given endpoint: %s already exists in the system."),
     ERROR_CODE_INVALID_REQUEST("WEBHOOKMGT-60004", "Invalid request",
             "The request is invalid. %s"),
@@ -42,10 +41,18 @@ public enum ErrorMessage {
             "The webhook could not be activated for webhook id %s"),
     ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR("WEBHOOKMGT-60009", "Webhook deactivation error",
             "The webhook could not be deactivated for webhook id %s"),
+    ERROR_EMPTY_WEBHOOK_REQUEST_FIELD("WEBHOOKMGT-60011", "Invalid request.", "%s is empty."),
+    ERROR_INVALID_WEBHOOK_REQUEST_FIELD("WEBHOOKMGT-60012", "Invalid request.",
+            "%s is invalid."),
+    ERROR_CODE_WEBHOOK_ALREADY_ACTIVE("WEBHOOKMGT-60013", "Webhook already active",
+            "The webhook: %s is already active and cannot be activated again."),
+    ERROR_CODE_WEBHOOK_ALREADY_INACTIVE("WEBHOOKMGT-60014", "Webhook already inactive",
+            "The webhook: %s is already inactive and cannot be deactivated again."),
 
-    // Server errors (65xxx range)
+    // Server errors (65xxx range) | Remaining codes are continued in API layer.
+    // Continuation of server error codes can be found in the Webhook Management API layer as well.
     ERROR_CODE_WEBHOOK_ADD_ERROR("WEBHOOKMGT-65001", "Error occurred while adding webhook",
-            "An internal server error occurred while adding the webhook: %s."),
+            "An internal server error occurred while adding the webhook."),
     ERROR_CODE_WEBHOOK_UPDATE_ERROR("WEBHOOKMGT-65002", "Error occurred while updating webhook",
             "An internal server error occurred while updating the webhook: %s."),
     ERROR_CODE_WEBHOOK_DELETE_ERROR("WEBHOOKMGT-65003", "Error occurred while deleting webhook",
@@ -54,7 +61,7 @@ public enum ErrorMessage {
             "An internal server error occurred while retrieving the webhook: %s."),
     ERROR_CODE_WEBHOOK_LIST_ERROR("WEBHOOKMGT-65005", "Error occurred while listing webhooks",
             "An internal server error occurred while listing webhooks for tenant: %s."),
-    ERROR_CODE_WEBHOOK_ENDPOINT_LIST_ERROR("WEBHOOKMGT-65006", "Error occurred while listing webhooks endpoints",
+    ERROR_CODE_WEBHOOK_ENDPOINT_LIST_ERROR("WEBHOOKMGT-65006", "Error occurred while listing webhook endpoints",
             "An internal server error occurred while listing webhook endpoints for tenant: %s."),
     ERROR_CODE_WEBHOOK_ENDPOINT_GET_ERROR("WEBHOOKMGT-65007", "Error occurred while retrieving webhook endpoint",
             "An internal server error occurred while retrieving the webhook endpoint: %s."),
@@ -75,7 +82,21 @@ public enum ErrorMessage {
     ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR("WEBHOOKMGT-65015", "Webhook unsubscription error",
             "An error occurred while unsubscribing from the webhook: %s."),
     ERROR_CODE_WEBHOOK_SUBSCRIBERS_NOT_FOUND("WEBHOOKMGT-65016", "Webhook subscribers not found",
-            "No webhook subscribers found in the system for tenant: %s.");
+            "No webhook subscribers found in the system"),
+    ERROR_CODE_WEBHOOK_ENDPOINT_EXISTENCE_CHECK_ERROR("WEBHOOKMGT-65017",
+            "Error occurred while checking webhook endpoint existence",
+            "An internal server error occurred while checking the existence of the webhook endpoint: %s."),
+    ERROR_CODE_WEBHOOK_SUBSCRIBER_NOT_FOUND("WEBHOOKMGT-65018", "Webhook subscriber not found",
+            "The specified webhook subscriber: %s could not be found in the system."),
+    ERROR_CODE_WEBHOOK_SUBSCRIBED_CHANNEL_VALIDATION_ERROR("WEBHOOKMGT-65019",
+            "Webhook subscribed channel validation error",
+            "The provided subscribed channels are invalid or not supported."),
+    ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR("WEBHOOKMGT-65020", "Webhook endpoint secret encryption error",
+            "An error occurred while encrypting the webhook: %s endpoint secret."),
+    ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DELETE_ERROR("WEBHOOKMGT-65021", "Webhook endpoint secret delete error",
+            "An error occurred while deleting the webhook: %s endpoint secret."),
+    ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR("WEBHOOKMGT-65022", "Webhook endpoint secret decryption error",
+            "An error occurred while decrypting the webhook: %s endpoint secret.");
 
     private final String code;
     private final String message;
