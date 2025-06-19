@@ -37,8 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
-
 /**
  * User operation listener which takes the claim changes and logs into "Audit" log.
  * The claim values available with config found in "identity.xml" under key
@@ -64,7 +62,7 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            return !isEnableV2AuditLogs();
+            return !LoggerUtils.isEnableV2AuditLogs();
         }
         return false;
     }

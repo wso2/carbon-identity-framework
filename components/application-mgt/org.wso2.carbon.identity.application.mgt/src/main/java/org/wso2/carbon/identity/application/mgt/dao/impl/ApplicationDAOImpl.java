@@ -83,6 +83,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.Authenticati
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
@@ -190,7 +191,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.addDis
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL_ORACLE;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.GET_FILTERED_SHARED_APPLICATIONS;
@@ -6703,7 +6703,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      */
     private void audit(String action, String data, String result) {
 
-        if (isEnableV2AuditLogs()) {
+        if (LoggerUtils.isEnableV2AuditLogs()) {
             return;
         }
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();

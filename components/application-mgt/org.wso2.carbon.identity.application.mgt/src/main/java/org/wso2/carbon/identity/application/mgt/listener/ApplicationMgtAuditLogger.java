@@ -43,7 +43,6 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.util.Arrays;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isEnableV2AuditLogs;
 
 /**
  * Audit log implementation for Application (Service Provider) changes.
@@ -60,7 +59,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
 
         if (super.isEnable()) {
             // V2 audit logs should be disabled to log these audit logs.
-            return !isEnableV2AuditLogs();
+            return !LoggerUtils.isEnableV2AuditLogs();
         }
         return false;
     }
