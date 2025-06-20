@@ -1219,11 +1219,17 @@
         <Resource context="(.*)/o/api/server/v1/organizations" secured="true" http-method="GET">
             <Scopes>internal_org_organization_view</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
-            <Scopes>internal_org_organization_view</Scopes>
-        </Resource>
         <Resource context="(.*)/o/api/server/v1/organizations" secured="true" http-method="POST">
             <Scopes>internal_org_organization_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/organizations/self" secured="true" http-method="GET">
+            <Scopes>internal_org_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/organizations/self" secured="true" http-method="PATCH">
+            <Scopes>internal_org_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_organization_view</Scopes>
         </Resource>
         <Resource context="(.*)/o/api/server/v1/organizations/(.*)" secured="true" http-method="PATCH">
             <Scopes>internal_org_organization_update</Scopes>
@@ -1245,11 +1251,17 @@
         <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
             <Scopes>internal_organization_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
-            <Scopes>internal_organization_view</Scopes>
-        </Resource>
         <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="POST">
             <Scopes>internal_organization_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/self" secured="true" http-method="GET">
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/self" secured="true" http-method="PATCH">
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
+            <Scopes>internal_organization_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PATCH">
             <Scopes>internal_organization_update</Scopes>
