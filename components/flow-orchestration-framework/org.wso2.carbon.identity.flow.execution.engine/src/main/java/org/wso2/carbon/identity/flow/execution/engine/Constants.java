@@ -48,6 +48,8 @@ public class Constants {
 
     public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
 
+    public static final String REGISTRATION_FLOW_TYPE = "REGISTRATION";
+
     private Constants() {
 
     }
@@ -143,7 +145,7 @@ public class Constants {
                 "%s failed.",
                 "%s"),
         ERROR_CODE_REQUEST_PROCESSING_FAILURE("60007",
-                "Error while processing the %s request.",
+                "Error while processing the request.",
                 "%s"),
         ERROR_CODE_INVALID_USER_INPUT("60008",
                 "Invalid user inputs.",

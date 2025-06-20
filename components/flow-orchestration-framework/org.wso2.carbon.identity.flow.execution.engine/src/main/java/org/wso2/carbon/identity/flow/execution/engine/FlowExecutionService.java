@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -30,8 +31,8 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 
 import java.util.Map;
-import java.util.Optional;
 
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.REGISTRATION_FLOW_TYPE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 
 /**
@@ -66,15 +67,19 @@ public class FlowExecutionService {
                                          String flowType, Map<String, String> inputs) throws FlowEngineException {
 
         FlowExecutionStep step;
+        FlowExecutionContext context = null;
         try {
-            FlowExecutionContext context;
             if (StringUtils.isBlank(flowId)) {
                 // No flowId present hence initiate the flow.
                 context = FlowExecutionEngineUtils.initiateContext(tenantDomain, applicationId, flowType);
             } else {
                 context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowType, flowId);
             }
-            Optional.ofNullable(inputs).ifPresent(inputs1 -> context.getUserInputData().putAll(inputs1));
+
+            if (inputs != null) {
+                context.getUserInputData().putAll(inputs);
+            }
+            
             context.setCurrentActionId(actionId);
             for (FlowExecutionListener listener :
                     FlowExecutionEngineDataHolder.getInstance().getFlowListeners()) {
@@ -90,12 +95,27 @@ public class FlowExecutionService {
                 }
             }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
+
+                if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+                    Map<String, String> userClaims =
+                            context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
+                    FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, tenantDomain);
+                }
+
                 FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);
             }
             return step;
         } catch (FlowEngineException e) {
+
+            if (context != null && REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+                Map<String, String> userClaims =
+                        context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
+                FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getDescription(),
+                        userClaims, tenantDomain);
+            }
+
             FlowExecutionEngineUtils.rollbackContext(flowType, flowId);
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             throw e;

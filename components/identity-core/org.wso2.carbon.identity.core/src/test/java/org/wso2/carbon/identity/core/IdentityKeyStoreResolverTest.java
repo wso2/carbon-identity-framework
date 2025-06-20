@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
@@ -44,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.*;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.InboundProtocol;
 
 /**
  * Test cases for IdentityKeyStoreResolver.
@@ -256,6 +257,34 @@ public class IdentityKeyStoreResolverTest extends TestCase {
 
         keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
         assertEquals(expectedCert, identityKeyStoreResolver.getCertificate(tenantDomain, inboundProtocol));
+    }
+
+    @Test
+    public void testGetCustomKeyStore_Success() throws Exception {
+
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(TENANT_DOMAIN)).thenReturn(".jks");
+        KeyStore result = identityKeyStoreResolver.getCustomKeyStore(TENANT_DOMAIN, CUSTOM_KEY_STORE);
+        assertEquals(customKeyStore, result);
+    }
+
+    @Test(expectedExceptions = IdentityKeyStoreResolverException.class)
+    public void testGetCustomKeyStore_InvalidTenantDomain() throws Exception {
+
+        identityKeyStoreResolver.getCustomKeyStore("", CUSTOM_KEY_STORE);
+    }
+
+    @Test(expectedExceptions = IdentityKeyStoreResolverException.class)
+    public void testGetCustomKeyStore_InvalidKeyStoreName() throws Exception {
+
+        identityKeyStoreResolver.getCustomKeyStore(TENANT_DOMAIN, "");
+    }
+
+    @Test(expectedExceptions = IdentityKeyStoreResolverException.class)
+    public void testGetTrustStore_Exception() throws Exception {
+
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(Integer.valueOf(TENANT_ID));
+        when(keyStoreManager.getTrustStore()).thenThrow(new org.wso2.carbon.CarbonException("error"));
+        identityKeyStoreResolver.getTrustStore(TENANT_DOMAIN);
     }
 
     private KeyStore getKeyStoreFromFile(String keystoreName, String password, String home) throws Exception {

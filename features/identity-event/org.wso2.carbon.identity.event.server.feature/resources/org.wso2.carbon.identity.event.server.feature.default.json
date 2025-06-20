@@ -317,5 +317,44 @@
   "identity_mgt.events.schemes.dpopEventHandler.subscriptions": [
     "PRE_HANDLE_PAR_REQUEST",
     "POST_ISSUE_CODE"
+  ],
+  "identity_mgt.events.schemes.LoginEventHook.module_index": "50",
+  "identity_mgt.events.schemes.LoginEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.LoginEventHook.subscriptions": [
+    "AUTHENTICATION_SUCCESS",
+    "AUTHENTICATION_STEP_FAILURE",
+    "AUTHENTICATION_FAILURE"
+  ],
+  "identity_mgt.events.schemes.RegistrationEventHook.module_index": "51",
+  "identity_mgt.events.schemes.RegistrationEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.RegistrationEventHook.subscriptions": [
+    "POST_ADD_USER",
+    "POST_SELF_SIGNUP_CONFIRM",
+    "POST_ADD_NEW_PASSWORD",
+    "USER_REGISTRATION_SUCCESS",
+    "USER_REGISTRATION_FAILED"
+  ],
+  "identity_mgt.events.schemes.UserOperationEventHook.module_index": "52",
+  "identity_mgt.events.schemes.UserOperationEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.UserOperationEventHook.subscriptions": [
+    "PRE_DELETE_USER_WITH_ID",
+    "POST_DELETE_USER",
+    "POST_UNLOCK_ACCOUNT",
+    "POST_LOCK_ACCOUNT"
+    ],
+  "identity_mgt.events.schemes.SessionEventHook.module_index": "53",
+  "identity_mgt.events.schemes.SessionEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.SessionEventHook.subscriptions": [
+    "USER_SESSION_TERMINATE",
+    "SESSION_EXPIRE",
+    "SESSION_CREATE",
+    "SESSION_UPDATE",
+    "SESSION_EXTEND"
+  ],
+  "identity_mgt.events.schemes.CredentialEventHook.module_index": "54",
+  "identity_mgt.events.schemes.CredentialEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.CredentialEventHook.subscriptions": [
+    "POST_ADD_NEW_PASSWORD",
+    "POST_UPDATE_CREDENTIAL_BY_SCIM"
   ]
 }
