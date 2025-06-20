@@ -296,8 +296,8 @@ public class APIClient {
         DIAGNOSTIC_LOGGER.logAPICallRetry(request, currentAttempt, retryCount);
         if (currentAttempt < retryCount) {
             LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying attempt " +
-                    (currentAttempt + 1) + " of " + (retryCount - 1) + ".");
-        } else if (currentAttempt == retryCount) {
+                    currentAttempt + " of " + (retryCount - 1) + ".");
+        } else {
             LOG.debug("API: " + request.getURI() + " seems to be unavailable. Maximum retry attempts reached.");
         }
     }
@@ -307,8 +307,8 @@ public class APIClient {
         DIAGNOSTIC_LOGGER.logAPICallTimeout(request, currentAttempt, retryCount);
         if (currentAttempt < retryCount) {
             LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying attempt " +
-                    (currentAttempt + 1) + " of " + (retryCount - 1) + ".");
-        } else if (currentAttempt == retryCount) {
+                    currentAttempt + " of " + (retryCount - 1) + ".");
+        } else {
             LOG.debug("Request for API: " + request.getURI() + " timed out. Maximum retry attempts reached.");
         }
     }
