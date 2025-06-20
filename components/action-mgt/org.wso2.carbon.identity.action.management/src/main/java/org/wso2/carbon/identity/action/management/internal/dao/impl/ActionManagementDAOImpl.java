@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.action.management.internal.dao.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -55,6 +57,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private static final String V1 = "1.0.0";
     private static final String URI_PROPERTY = "uri";
     private static final String AUTHN_TYPE_PROPERTY = "authnType";
+    private static final String ALLOWED_HEADERS_PROPERTY = "allowedHeaders";
+    private static final String ALLOWED_PARAMETERS_PROPERTY = "allowedParameters";
     private static final String RULE_PROPERTY = "rule";
 
     @Override
@@ -312,9 +316,30 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             endpoint.getAuthentication().getProperties().forEach(
                     authProperty -> endpointProperties.put(authProperty.getName(),
                             new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
+            endpointProperties.put(ALLOWED_HEADERS_PROPERTY, createActionProperty(endpoint.getAllowedHeaders()));
+            endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY, createActionProperty(endpoint.getAllowedParameters()));
             addActionPropertiesToDB(actionDTO.getId(), endpointProperties, tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while adding Action Endpoint configurations in the system.", e);
+        }
+    }
+
+    /**
+     * Creates an ActionProperty object from a list of attributes by converting them into a JSON string.
+     *
+     * @param attributes List of attributes to be converted into an ActionProperty.
+     * @return An ActionProperty object containing the JSON representation of the attributes.
+     * @throws ActionMgtServerException If an error occurs while converting the attributes to a JSON string.
+     */
+    private ActionProperty createActionProperty(List<String> attributes) throws ActionMgtServerException {
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            BinaryObject attributesBinaryObject = BinaryObject.fromJsonString(objectMapper
+                    .writeValueAsString(attributes));
+            return new ActionProperty.BuilderForDAO(attributesBinaryObject).build();
+        } catch (JsonProcessingException e) {
+            throw new ActionMgtServerException("Failed to convert object values to JSON string.", e);
         }
     }
 
