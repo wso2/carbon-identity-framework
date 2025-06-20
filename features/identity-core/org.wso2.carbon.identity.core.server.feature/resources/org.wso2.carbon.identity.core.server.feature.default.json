@@ -1834,6 +1834,8 @@
 
   "notification_templates.sms_templates.apply": true,
 
-  "attribute.return_previous_additional_properties.enabled": false
+  "attribute.return_previous_additional_properties.enabled": false,
+
+  "agent_identity.enabled": false
 }
 
