@@ -35,17 +35,23 @@ public class ImpersonatedUser extends AuthenticatedUser {
         super(authenticatedUser);
     }
 
-    @Override
+    /**
+     * As the ImpersonatedUser cannot have an impersonated user this method should not be implemented.
+     *
+     * @param impersonatedUser the impersonated user to set.
+     */
+    public void setImpersonatedUser(ImpersonatedUser impersonatedUser) {
+
+        throw new UnsupportedOperationException("ImpersonatedUser cannot have another impersonated user.");
+    }
+
+    /**
+     * As the ImpersonatedUser cannot have an impersonated user this method will always return null.
+     *
+     * @return the impersonated user, which is always null for ImpersonatedUser.
+     */
     public ImpersonatedUser getImpersonatedUser() {
 
         return null;
-    }
-
-    @Override
-    public void setImpersonatedUser(ImpersonatedUser impersonatedUser) {
-
-        if (impersonatedUser != null) {
-            throw new UnsupportedOperationException("ImpersonatedUser cannot have another impersonated user.");
-        }
     }
 }

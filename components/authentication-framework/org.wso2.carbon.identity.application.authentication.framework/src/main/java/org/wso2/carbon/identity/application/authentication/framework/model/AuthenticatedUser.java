@@ -598,8 +598,7 @@ public class AuthenticatedUser extends User {
         return impersonatedUser;
     }
 
-    public void setImpersonatedUser(
-            ImpersonatedUser impersonatedUser) {
+    public void setImpersonatedUser(ImpersonatedUser impersonatedUser) {
 
         this.impersonatedUser = impersonatedUser;
     }

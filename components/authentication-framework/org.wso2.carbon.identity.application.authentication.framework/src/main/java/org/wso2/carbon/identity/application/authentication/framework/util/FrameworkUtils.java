@@ -4725,13 +4725,13 @@ public class FrameworkUtils {
             if (impersonatedUser.isFederatedUser()
                     && ORGANIZATION_LOGIN_IDP_NAME.equals(impersonatedUser.getFederatedIdPName())) {
                 userResidentOrg = impersonatedUser.getUserResidentOrganization();
-                userStoreDomain = null;
             }
             String userName = impersonatedUser.getUserName();
 
             String subjectClaimUri = applicationConfig.getSubjectClaimUri();
             boolean useUserStoreDomainInLocalSubjectIdentifier = applicationConfig
                     .isUseUserstoreDomainInLocalSubjectIdentifier();
+            // For sub org users the user store domain is not added in the local subject identifier.
             if (impersonatedUser.isFederatedUser()
                     && ORGANIZATION_LOGIN_IDP_NAME.equals(impersonatedUser.getFederatedIdPName())) {
                 useUserStoreDomainInLocalSubjectIdentifier = false;

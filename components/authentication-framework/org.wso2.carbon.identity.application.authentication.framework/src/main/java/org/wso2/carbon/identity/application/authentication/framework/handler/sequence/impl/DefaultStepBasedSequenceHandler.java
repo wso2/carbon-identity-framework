@@ -249,7 +249,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         boolean subjectAttributesFoundInStep = false;
         int stepCount = 1;
         Map<String, String> mappedAttrs = new HashMap<>();
-        Map<ClaimMapping, String> impersonatedUserAttributes = new HashMap<>();
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
 
         boolean isAuthenticatorExecuted = false;
@@ -412,19 +411,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     mappedAttrs = handleClaimMappings(stepConfig, context, null, false);
                     handleRoleMapping(context, sequenceConfig, mappedAttrs);
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
-                    if (impersonatedUser != null) {
-                        AuthenticatedUser authenticatedUser = stepConfig.getAuthenticatedUser();
 
-                        stepConfig.setAuthenticatedUser(impersonatedUser);
-
-                        Map<String, String> mappedAttrsImpUser = handleClaimMappings(stepConfig, context,
-                                null, false);
-                        handleRoleMapping(context, sequenceConfig, mappedAttrsImpUser);
-                        impersonatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrsImpUser);
-                        impersonatedUser.setUserAttributes(impersonatedUserAttributes);
-                        sequenceConfig.getAuthenticatedUser().setImpersonatedUser(impersonatedUser);
-
-                        stepConfig.setAuthenticatedUser(authenticatedUser);
+                    if (StringUtils.isNotBlank(requestedSubject)) {
+                        handleImpersonatedUserClaimMappings(impersonatedUser, sequenceConfig.getApplicationConfig(),
+                                context.getRequestType(), context.getTenantDomain());
                     }
                 }
             }
@@ -453,7 +443,31 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
         if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+            sequenceConfig.getAuthenticatedUser().setImpersonatedUser(impersonatedUser);
         }
+    }
+
+    private void handleImpersonatedUserClaimMappings(ImpersonatedUser impersonatedUser,
+                                                     ApplicationConfig applicationConfig, String requestType,
+                                                     String tenantDomain) throws FrameworkException {
+
+        // Prepare stepConfig.
+        StepConfig stepConfig = new StepConfig();
+        stepConfig.setAuthenticatedUser(impersonatedUser);
+        stepConfig.setSubjectAttributeStep(true);
+        // Prepare sequenceConfig.
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        sequenceConfig.setApplicationConfig(applicationConfig);
+        // Prepare authentication context.
+        AuthenticationContext context = new AuthenticationContext();
+        context.setSequenceConfig(sequenceConfig);
+        context.setRequestType(requestType);
+        context.setTenantDomain(tenantDomain);
+
+        Map<String, String> mappedAttributes = handleClaimMappings(stepConfig, context,
+                null, false);
+        handleRoleMapping(context, sequenceConfig, mappedAttributes);
+        impersonatedUser.setUserAttributes(FrameworkUtils.buildClaimMappings(mappedAttributes));
     }
 
     private String resolveRequestedSubject(HttpServletRequest request, AuthenticationContext context) {
