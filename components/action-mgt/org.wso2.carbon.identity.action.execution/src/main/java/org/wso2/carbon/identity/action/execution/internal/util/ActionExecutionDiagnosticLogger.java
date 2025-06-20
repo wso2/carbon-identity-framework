@@ -208,7 +208,7 @@ public class ActionExecutionDiagnosticLogger {
             return;
         }
 
-        String message = "Request for external endpoint " + request.getURI() + " for action is timed out. " +
+        String message = "Request to the external endpoint " + request.getURI() + " for action execution timed out. " +
                 (currentAttempt < retryCount
                         ? "Executing attempt " + (currentAttempt + 1) + " of " + retryCount + "."
                         : "Maximum retry attempts reached.");
