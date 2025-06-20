@@ -112,10 +112,6 @@ public class InputValidationService {
 
         // Fail if extra inputs are there.
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
-            if (CONFIRMATION_CODE.equalsIgnoreCase(userInput.getKey())) {
-                context.setProperty(CONFIRMATION_CODE, userInput.getValue());
-                continue;
-            }
             if (!context.getCurrentStepInputs().get(actionId).contains(userInput.getKey())) {
                 throw FlowExecutionEngineUtils.handleClientException(ERROR_CODE_INVALID_USER_INPUT, context.getFlowType());
             }

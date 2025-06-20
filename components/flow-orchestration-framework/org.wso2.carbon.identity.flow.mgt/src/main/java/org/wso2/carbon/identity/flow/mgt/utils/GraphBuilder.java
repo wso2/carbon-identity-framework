@@ -58,6 +58,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONB
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
@@ -104,13 +105,12 @@ public class GraphBuilder {
                     processViewStep(step);
                     break;
                 case REDIRECTION:
-                    processRedirectionStep(step);
+                case WEBAUTHN:
+                case EXECUTION:
+                    processExecutionStep(step);
                     break;
                 case USER_ONBOARD:
                     processUserOnboardStep(step);
-                    break;
-                case WEBAUTHN:
-                    processWebAuthnStep(step);
                     break;
                 default:
                     throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
@@ -136,7 +136,7 @@ public class GraphBuilder {
         return graphConfig;
     }
 
-    private void processRedirectionStep(StepDTO step) throws FlowMgtFrameworkException {
+    private void processExecutionStep(StepDTO step) throws FlowMgtClientException {
 
         if (step.getData() == null) {
             throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
@@ -152,30 +152,9 @@ public class GraphBuilder {
             throw handleClientException(ERROR_CODE_EXECUTOR_INFO_NOT_FOUND, step.getId());
         }
 
-        NodeConfig redirectionNode = createTaskExecutionNode(step.getId(), action.getExecutor());
-        nodeMap.put(redirectionNode.getId(), redirectionNode);
-        nodeEdges.add(new NodeEdge(redirectionNode.getId(), action.getNextId(), null));
-    }
-
-    private void processWebAuthnStep(StepDTO step) throws FlowMgtFrameworkException {
-
-        if (step.getData() == null) {
-            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
-        }
-        ActionDTO action = step.getData().getAction();
-        if (action == null) {
-            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId(), step.getType());
-        }
-        if (!EXECUTOR.equals(action.getType())) {
-            throw handleClientException(ERROR_CODE_INVALID_ACTION_TYPE, action.getType(), step.getId(), step.getType());
-        }
-        if (action.getExecutor() == null) {
-            throw handleClientException(ERROR_CODE_EXECUTOR_INFO_NOT_FOUND, step.getId());
-        }
-
-        NodeConfig interactNode = createTaskExecutionNode(step.getId(), action.getExecutor());
-        nodeMap.put(interactNode.getId(), interactNode);
-        nodeEdges.add(new NodeEdge(interactNode.getId(), action.getNextId(), null));
+        NodeConfig executionNodeConfig = createTaskExecutionNode(step.getId(), action.getExecutor());
+        nodeMap.put(executionNodeConfig.getId(), executionNodeConfig);
+        nodeEdges.add(new NodeEdge(executionNodeConfig.getId(), action.getNextId(), null));
     }
 
     private void processUserOnboardStep(StepDTO step) {
