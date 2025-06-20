@@ -125,4 +125,16 @@ public interface InputValidationManagementService {
 
         return new ValidationConfiguration();
     }
+
+    /**
+     * Method to delete input validation configurations for provided fields.
+     *
+     * @param fields        List of fields that configurations need to be deleted.
+     * @param tenantDomain  Tenant domain name.
+     * @throws InputValidationMgtServerException If an error occurred when deleting configurations.
+     */
+    default void revertInputValidationConfiguration(List<String> fields, String tenantDomain)
+            throws InputValidationMgtServerException {
+
+    }
 }
