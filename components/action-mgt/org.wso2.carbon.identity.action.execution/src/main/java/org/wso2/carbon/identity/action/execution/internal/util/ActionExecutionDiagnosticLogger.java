@@ -195,7 +195,7 @@ public class ActionExecutionDiagnosticLogger {
 
         String message = "External endpoint " + request.getURI() + " for action execution seems to be unavailable. " +
                 (currentAttempt < retryCount
-                        ? "Executing API call attempt " + (currentAttempt + 1) + " of " + retryCount + "."
+                        ? "Retrying API call attempt " + (currentAttempt + 1) + " of " + (retryCount - 1) + "."
                         : "Maximum retry attempts reached.");
 
         triggerLogEvent(initializeDiagnosticLogBuilder(ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
@@ -210,7 +210,7 @@ public class ActionExecutionDiagnosticLogger {
 
         String message = "Request to the external endpoint " + request.getURI() + " for action execution timed out. " +
                 (currentAttempt < retryCount
-                        ? "Executing attempt " + (currentAttempt + 1) + " of " + retryCount + "."
+                        ? "Retrying attempt " + (currentAttempt + 1) + " of " + (retryCount - 1) + "."
                         : "Maximum retry attempts reached.");
 
         triggerLogEvent(initializeDiagnosticLogBuilder(ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
