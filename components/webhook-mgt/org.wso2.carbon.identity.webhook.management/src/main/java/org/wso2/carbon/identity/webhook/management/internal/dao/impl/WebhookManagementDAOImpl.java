@@ -154,7 +154,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
             return jdbcTemplate.withTransaction(template ->
                     template.executeQuery(
                             WebhookSQLConstants.Query.LIST_WEBHOOK_EVENTS_BY_UUID,
-                            (resultSet, rowNumber) -> resultSet.getString(WebhookSQLConstants.Column.EVENT_NAME),
+                            (resultSet, rowNumber) -> resultSet.getString(WebhookSQLConstants.Column.CHANNEL_URI),
                             statement -> {
                                 statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
                                 statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
@@ -299,7 +299,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                     statement -> {
                         for (String event : events) {
                             statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
-                            statement.setString(WebhookSQLConstants.Column.EVENT_NAME, event);
+                            statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, event);
                             statement.addBatch();
                         }
                     }, null);
