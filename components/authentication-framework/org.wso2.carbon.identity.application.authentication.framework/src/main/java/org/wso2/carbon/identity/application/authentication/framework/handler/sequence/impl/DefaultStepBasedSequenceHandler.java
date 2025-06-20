@@ -263,6 +263,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
+            // If requested subject exist that means this is an impersonation requested.
+            // Therefore, resolve the impersonated user for future references.
             String requestedSubject = resolveRequestedSubject(request, context);
             if (StringUtils.isNotBlank(requestedSubject)) {
                 impersonatedUser = getImpersonatedUser(requestedSubject, context, stepConfig.getAuthenticatedUser());
@@ -447,6 +449,20 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
     }
 
+    /**
+     * This method handles the claim mappings for the impersonated user.
+     * <p>
+     * The stepConfig, sequenceConfig, and authentication context are mocked with the required details
+     * and passed to the method to avoid any modification to the original variables.
+     * The handleClaimMappings method should be improved so that the exact values set in the method can be
+     * directly passed and get the claim mappings.
+     *
+     * @param impersonatedUser  the impersonated user object
+     * @param applicationConfig the application configuration
+     * @param requestType       the request type (e.g., OIDC, SAML, etc.)
+     * @param tenantDomain      the tenant domain of the impersonated user
+     * @throws FrameworkException if an error occurs while handling claim mappings
+     */
     private void handleImpersonatedUserClaimMappings(ImpersonatedUser impersonatedUser,
                                                      ApplicationConfig applicationConfig, String requestType,
                                                      String tenantDomain) throws FrameworkException {

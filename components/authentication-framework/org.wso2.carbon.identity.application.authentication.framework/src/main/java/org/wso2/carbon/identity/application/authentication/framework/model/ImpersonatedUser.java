@@ -48,7 +48,7 @@ public class ImpersonatedUser extends AuthenticatedUser {
     /**
      * As the ImpersonatedUser cannot have an impersonated user this method will always return null.
      *
-     * @return the impersonated user, which is always null for ImpersonatedUser.
+     * @return the impersonated user, which always be null for ImpersonatedUser class.
      */
     public ImpersonatedUser getImpersonatedUser() {
 
