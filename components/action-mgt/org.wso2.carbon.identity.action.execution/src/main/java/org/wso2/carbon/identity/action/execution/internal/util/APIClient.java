@@ -116,14 +116,10 @@ public class APIClient {
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
                     return actionInvocationResponse;
                 }
-                DIAGNOSTIC_LOGGER.logAPICallRetry(request, attempts + 1, retryCount);
-                LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
-                        (attempts + 1) + " of " + retryCount);
+                logEndpointUnavailability(request, attempts + 1, retryCount);
             } catch (ConnectTimeoutException | SocketTimeoutException e) {
                 throwable = e;
-                DIAGNOSTIC_LOGGER.logAPICallTimeout(request, attempts + 1, retryCount);
-                LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
-                        (attempts + 1) + " of " + retryCount);
+                logEndpointTimeout(request, attempts + 1, retryCount);
             } catch (Exception e) {
                 DIAGNOSTIC_LOGGER.logAPICallError(request);
                 LOG.error("Request for API: " + request.getURI() + " failed due to an error.", e);
@@ -293,5 +289,27 @@ public class APIClient {
 
         return responseEntity != null && responseEntity.getContentType() != null &&
                 responseEntity.getContentType().getValue().contains("application/json");
+    }
+
+    private static void logEndpointUnavailability(HttpPost request, int currentAttempt, int retryCount) {
+
+        DIAGNOSTIC_LOGGER.logAPICallRetry(request, currentAttempt, retryCount);
+        if (currentAttempt < retryCount) {
+            LOG.debug("API: " + request.getURI() + " seems to be unavailable. Executing attempt " +
+                    (currentAttempt + 1) + " of " + retryCount + ".");
+        } else if (currentAttempt == retryCount) {
+            LOG.debug("API: " + request.getURI() + " seems to be unavailable. Maximum retry attempts reached.");
+        }
+    }
+
+    private static void logEndpointTimeout(HttpPost request, int currentAttempt, int retryCount) {
+
+        DIAGNOSTIC_LOGGER.logAPICallTimeout(request, currentAttempt, retryCount);
+        if (currentAttempt < retryCount) {
+            LOG.debug("Request for API: " + request.getURI() + " timed out. Executing attempt " +
+                    (currentAttempt + 1) + " of " + retryCount + ".");
+        } else if (currentAttempt == retryCount) {
+            LOG.debug("Request for API: " + request.getURI() + " timed out. Maximum retry attempts reached.");
+        }
     }
 }
