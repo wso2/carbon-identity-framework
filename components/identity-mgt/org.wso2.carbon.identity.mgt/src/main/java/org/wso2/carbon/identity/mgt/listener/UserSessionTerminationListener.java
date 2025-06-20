@@ -22,11 +22,12 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceDataHolder;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -46,6 +47,7 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
 
     private static final String USER_SESSION_MAPPING_ENABLED =
             "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+    static final String ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT = "Error while setting flow in the context.";
 
     @Override
     public int getExecutionOrderId() {
@@ -74,7 +76,17 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
             log.debug("Terminating all the active sessions of the password reset user: " + username);
         }
 
+        Flow flow = new Flow.Builder()
+                .name(Flow.Name.UPDATE_CREDENTIAL_PASSWORD)
+                .initiatingPersona(Flow.InitiatingPersona.ADMIN)
+                .build();
+        try {
+            IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        } catch (IllegalStateException e) {
+            log.error(ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT, e);
+        }
         terminateSessionsOfUser(username, userStoreManager);
+
         return true;
     }
 
@@ -92,7 +104,15 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
         if (log.isDebugEnabled()) {
             log.debug("Terminating all the active sessions of the deleted user: " + username);
         }
-
+        Flow flow = new Flow.Builder()
+                .name(Flow.Name.DELETE_USER)
+                .initiatingPersona(Flow.InitiatingPersona.ADMIN)
+                .build();
+        try {
+            IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        } catch (IllegalStateException e) {
+            log.error(ERROR_WHILE_SETTING_FLOW_IN_THE_CONTEXT, e);
+        }
         terminateSessionsOfUser(username, userStoreManager);
         return true;
     }

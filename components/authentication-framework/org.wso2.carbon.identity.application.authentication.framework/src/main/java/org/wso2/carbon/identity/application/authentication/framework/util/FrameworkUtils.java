@@ -101,12 +101,14 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -128,6 +130,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -2351,8 +2355,34 @@ public class FrameworkUtils {
         return appendQueryParamsStringToUrl(url, queryString);
     }
 
+    public static void publishUserSessionTerminateEvent(AuthenticatedUser user, List<UserSession> userSessions,
+                                                        boolean isBulkTerminate)
+            throws IdentityEventException {
+
+            Map<String, Object> properties = new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
+
+            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+
+            params.put("user", user);
+            params.put("sessions", userSessions);
+            params.put("eventTimestamp", System.currentTimeMillis());
+            params.put("isBulkTerminate", isBulkTerminate);
+            Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+            properties.put("flow", flow);
+            properties.put("params", params);
+            Event event = new Event(IdentityEventConstants.EventName.USER_SESSION_TERMINATE.name(), properties);
+            eventService.handleEvent(event);
+    }
+
+    public static void publishSessionEvent(String sessionId, HttpServletRequest request,
+            AuthenticationContext context, SessionContext sessionContext, AuthenticatedUser user, String status) {
+        publishSessionEvent(sessionId, request, context, sessionContext, user, status, Collections.emptyList());
+    }
+
     public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
-            context, SessionContext sessionContext, AuthenticatedUser user, String status) {
+            context, SessionContext sessionContext, AuthenticatedUser user, String status,
+                                           List<Application> applications) {
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
@@ -2361,6 +2391,7 @@ public class FrameworkUtils {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.APPLICATIONS, applications);
 
             String isPublishingSessionCountEnabledValue = IdentityUtil.getProperty(FrameworkConstants.Config
                     .PUBLISH_ACTIVE_SESSION_COUNT);
@@ -3518,7 +3549,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the server config for skip user local search during federated authentication flow
+     * Get the server config for skip user local search during federated authentication flow.
      *
      * @return isSkipLocalUserSearchForAuthenticationFlowHandlersEnabled value
      */
