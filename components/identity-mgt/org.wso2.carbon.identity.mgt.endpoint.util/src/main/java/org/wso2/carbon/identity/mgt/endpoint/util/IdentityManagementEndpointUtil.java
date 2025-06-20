@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -87,6 +88,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.My_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.SUPER_TENANT;
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.USER_TENANT_HINT_PLACE_HOLDER;
 
 /**
@@ -839,10 +841,11 @@ public class IdentityManagementEndpointUtil {
                     basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
                             .getAbsoluteInternalURL();
                     if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
-                    /* Resolving tenant domain from organization ID is not provided by an API. Hence, the retrieval
-                       client will have to assume organization ID is same as tenant domain. */
-                    basePath = basePath.replace(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX,
-                                FrameworkConstants.TENANT_CONTEXT_PREFIX);
+                        String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                .getOrganizationId();
+                        basePath = basePath.replace(
+                                FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId,
+                                FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain);
                     }
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
