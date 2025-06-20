@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -45,6 +47,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -114,7 +117,11 @@ public class AuthorizedAPIManagementServiceImplTest {
     @AfterMethod
     public void tearDown() throws Exception {
 
-        applicationManagementService.deleteApplication("TestApp", tenantDomain, "user 1");
+        try (MockedStatic<LoggerUtils> loggerUtils = Mockito.mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+
+            applicationManagementService.deleteApplication("TestApp", tenantDomain, "user 1");
+        }
     }
 
     @DataProvider
@@ -386,9 +393,13 @@ public class AuthorizedAPIManagementServiceImplTest {
 
     private String addApplication() throws Exception {
 
-        ServiceProvider serviceProvider = new ServiceProvider();
-        serviceProvider.setApplicationName("TestApp");
-        return applicationManagementService.createApplication(serviceProvider, tenantDomain, "user 1");
+        try (MockedStatic<LoggerUtils> loggerUtils = Mockito.mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+
+            ServiceProvider serviceProvider = new ServiceProvider();
+            serviceProvider.setApplicationName("TestApp");
+            return applicationManagementService.createApplication(serviceProvider, tenantDomain, "user 1");
+        }
     }
 
     private void removeTestAPIResources() throws Exception {

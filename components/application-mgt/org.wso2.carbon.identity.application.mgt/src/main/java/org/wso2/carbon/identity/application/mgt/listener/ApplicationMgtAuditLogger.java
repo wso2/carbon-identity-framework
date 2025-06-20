@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.CarbonUtils;
 
 import java.util.Arrays;
 
@@ -59,8 +58,8 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            // Legacy audit logs should be enabled to log these audit logs.
-            return !CarbonUtils.isLegacyAuditLogsDisabled();
+            // V2 audit logs should be disabled to log these audit logs.
+            return !LoggerUtils.isEnableV2AuditLogs();
         }
         return false;
     }
