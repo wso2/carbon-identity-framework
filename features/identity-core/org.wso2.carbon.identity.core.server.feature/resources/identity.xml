@@ -2815,4 +2815,9 @@
             <EnableSMSUsernameRecoveryIfConnectorEnabled>false</EnableSMSUsernameRecoveryIfConnectorEnabled>
         </OnInitialUse>
     </OnDemandConfig>
+
+    <AgentIdentity>
+        <Enabled>true</Enabled>
+    </AgentIdentity>
+
 </Server>
