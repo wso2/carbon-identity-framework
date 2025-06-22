@@ -48,6 +48,7 @@ public abstract class FrameworkConstants {
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
     public static final String ROLES_CLAIM = "http://wso2.org/claims/roles";
+    public static final String VERIFIED_MOBILE_NUMBERS_CLAIM = "http://wso2.org/claims/verifiedMobileNumbers";
 
     public static final String GROUPS_CLAIM = "http://wso2.org/claims/groups";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";

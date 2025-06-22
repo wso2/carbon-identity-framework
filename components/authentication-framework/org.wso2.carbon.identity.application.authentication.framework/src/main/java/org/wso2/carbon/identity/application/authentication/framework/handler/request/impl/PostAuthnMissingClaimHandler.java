@@ -453,6 +453,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 UserRealm realm = getUserRealm(user.getTenantDomain());
                 AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
 
+                IdentityUtil.threadLocalProperties.get().put("isProgressiveProfileVerification", "true");
                 userStoreManager.setUserClaimValuesWithID(user.getUserId(), localIdpClaims, null);
                 /* If the `otpVerificationTriggeredClaims` set in the local thread, redirect to OTP verification page
                  and set relevant properties to the authentication context. */
@@ -517,6 +518,48 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         return user;
     }
 
+    private AuthenticatedUser getAssociatedAuthenticatedUser(AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
+        for (Map.Entry<Integer, StepConfig> entry : context.getSequenceConfig().getStepMap().entrySet()) {
+            StepConfig stepConfig = entry.getValue();
+            if (stepConfig.isSubjectAttributeStep()) {
+
+                if (stepConfig.getAuthenticatedUser() != null) {
+                    user = stepConfig.getAuthenticatedUser();
+                }
+
+                if (!user.isFederatedUser()) {
+                    return user;
+                } else {
+                    String associatedID;
+                    String subject = user.getAuthenticatedSubjectIdentifier();
+                    try {
+                        FederatedAssociationManager federatedAssociationManager = FrameworkUtils
+                                .getFederatedAssociationManager();
+                        associatedID = federatedAssociationManager.getUserForFederatedAssociation(context
+                                .getTenantDomain(), stepConfig.getAuthenticatedIdP(), subject);
+                        if (StringUtils.isNotBlank(associatedID)) {
+                            String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
+                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER
+                                            + context.getTenantDomain());
+                            UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedID));
+                            user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
+                                    fullQualifiedAssociatedUserId);
+                            return user;
+                        }
+                    } catch (FederatedAssociationManagerException | FrameworkException e) {
+                        throw new PostAuthenticationFailedException("Error while handling missing mandatory claims. " +
+                                "Error in association.", "Error while getting association for " + subject, e);
+                    }
+                }
+                break;
+            }
+        }
+        return user;
+    }
+
     private ClaimMetadataManagementService getClaimMetadataManagementService() {
 
         return FrameworkServiceDataHolder.getInstance().getClaimMetadataManagementService();
@@ -526,12 +569,10 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             throws PostAuthenticationFailedException {
 
         try {
-            context.addEndpointParam(
-                    FrameworkConstants.USERNAME, getAuthenticatedUser(context).toFullQualifiedUsername());
-            ServiceURLBuilder urlBuilder = ServiceURLBuilder.create();
-            urlBuilder = urlBuilder.addPath(FrameworkConstants.VERIFY_ENDPOINT);
-            urlBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
-            response.sendRedirect(urlBuilder.build().getAbsolutePublicURL());
+            ServiceURLBuilder uriBuilder = ServiceURLBuilder.create();
+            uriBuilder = uriBuilder.addPath(FrameworkConstants.VERIFY_ENDPOINT);
+            uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
+            response.sendRedirect(uriBuilder.build().getAbsolutePublicURL());
         } catch (IOException | URLBuilderException e) {
             throw new PostAuthenticationFailedException("URL generation failed",
                     "Error occurred while building the redirect URL for the OTP verification page.", e);
@@ -539,12 +580,21 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
     }
 
     private void setOtpVerificationPendingClaimToContext(AuthenticationContext context, Map<String,
-            String> claimValues) {
+            String> claimValues) throws PostAuthenticationFailedException {
 
         /* Store the pending claim and its value in the authentication context based the otpVerificationTriggeredClaim.
          This allows to ensure the value is verified and saved to the user claim. */
         String triggeredClaim = IdentityUtil.threadLocalProperties.get()
                 .remove(FrameworkConstants.CLAIM_FOR_PENDING_OTP_VERIFICATION).toString();
+
+        String recoveryScenario = "PROGRESSIVE_PROFILE_MOBILE_VERIFICATION_ON_UPDATE";
+        if (FrameworkConstants.VERIFIED_MOBILE_NUMBERS_CLAIM.equals(triggeredClaim)) {
+            recoveryScenario = "PROGRESSIVE_PROFILE_MOBILE_VERIFICATION_ON_VERIFIED_LIST_UPDATE";
+        }
+        context.addEndpointParam("recoveryScenario", recoveryScenario);
+        context.addEndpointParam(
+                FrameworkConstants.USERNAME, getAssociatedAuthenticatedUser(context).toFullQualifiedUsername());
+
         Map<String, String> pendingClaim = new HashMap<>();
         pendingClaim.put("uri", triggeredClaim);
         pendingClaim.put("value", claimValues.get(triggeredClaim));
@@ -560,7 +610,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             return false;
         }
 
-        AuthenticatedUser user = getAuthenticatedUser(context);
+        AuthenticatedUser user = getAssociatedAuthenticatedUser(context);
         try {
             UserRealm realm = getUserRealm(user.getTenantDomain());
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
