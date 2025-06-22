@@ -694,9 +694,16 @@ public class APIResourceManagementDAOImplTest {
             PreparedStatement mockInsertStmt = mock(PreparedStatement.class);
             PreparedStatement mockExistStmt = mock(PreparedStatement.class);
             ResultSet mockResultSet = mock(ResultSet.class);
-            Scope scope1 = createScope("tenant_scope_1");
-            Scope scope2 = createScope("tenant_scope_2");
-            List<Scope> scopes = Arrays.asList(scope1, scope2);
+
+            Scope testScope1 = createScope("testScope1");
+            Scope testScope2 = createScope("testScope2");
+            List<Scope> testScopes = Arrays.asList(testScope1, testScope2);
+            addAPIResourceToDB("testAPI1", testScopes, "TENANT", getConnection(),
+                    TENANT_ID, organizationManagementUtil);
+
+            Scope testScope3 = createScope("testScope1");
+            Scope testScope4 = createScope("testScope3");
+            List<Scope> scopes = Arrays.asList(testScope3, testScope4);
 
             APIResource apiResource = addAPIResourceToDB("testAPI", scopes, "TENANT", getConnection(),
                     TENANT_ID, organizationManagementUtil);
