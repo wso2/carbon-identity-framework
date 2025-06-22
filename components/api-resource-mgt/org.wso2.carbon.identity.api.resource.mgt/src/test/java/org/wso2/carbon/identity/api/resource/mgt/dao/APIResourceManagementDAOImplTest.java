@@ -29,6 +29,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtClientException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
+import org.wso2.carbon.identity.api.resource.mgt.constant.SQLConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
@@ -40,8 +41,11 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +61,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class APIResourceManagementDAOImplTest {
 
@@ -599,6 +605,106 @@ public class APIResourceManagementDAOImplTest {
             deleteAPIResourceFromDB(apiResource.getId(), TENANT_ID);
         }
 
+    }
+
+    @Test(priority = 15)
+    public void testIsManagementOrOrganizationAPIResourceType_withTenant() throws Exception {
+
+        boolean result = invokeIsManagementOrOrganizationAPIResourceType(
+                APIResourceManagementConstants.APIResourceTypes.TENANT);
+        Assert.assertTrue(result, "TENANT type should be identified as management or organization type");
+    }
+
+    @Test(priority = 16)
+    public void testIsManagementOrOrganizationAPIResourceType_withOrganization() throws Exception {
+
+        boolean result = invokeIsManagementOrOrganizationAPIResourceType(
+                APIResourceManagementConstants.APIResourceTypes.ORGANIZATION);
+        Assert.assertTrue(result, "ORGANIZATION type should be identified " +
+                "as management or organization type");
+    }
+
+    @Test(priority = 17)
+    public void testIsManagementOrOrganizationAPIResourceType_withBusiness() throws Exception {
+
+        boolean result = invokeIsManagementOrOrganizationAPIResourceType(
+                APIResourceManagementConstants.APIResourceTypes.BUSINESS);
+        Assert.assertFalse(result, "BUSINESS type should not be identified " +
+                "as management or organization type");
+    }
+
+    @Test(priority = 18)
+    public void testIsScopeExistsByApiID_whenScopeExists() throws Exception {
+
+        try (
+                MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                        mockStatic(OrganizationManagementUtil.class)
+        ) {
+            Connection connection = mock(Connection.class);
+            PreparedStatement preparedStatement = mock(PreparedStatement.class);
+            ResultSet resultSet = mock(ResultSet.class);
+
+            when(connection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)).thenReturn(preparedStatement);
+            when(preparedStatement.executeQuery()).thenReturn(resultSet);
+            when(resultSet.next()).thenReturn(true);
+
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenReturn(false);
+
+            boolean result = invokeIsScopeExistsByApiID(connection, "read", 1, "api-123");
+            Assert.assertTrue(result, "Scope should exist when resultSet.next() returns true");
+
+            verify(preparedStatement).setString(1, "read");
+            verify(preparedStatement).setInt(2, 1);
+            verify(preparedStatement).setString(3, "api-123");
+        }
+    }
+
+    @Test(priority = 19)
+    public void testIsScopeExistsByApiID_whenScopeDoesNotExist() throws Exception {
+
+        try (
+                MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+                MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                        mockStatic(OrganizationManagementUtil.class)
+        ) {
+            Connection connection = mock(Connection.class);
+            PreparedStatement preparedStatement = mock(PreparedStatement.class);
+            ResultSet resultSet = mock(ResultSet.class);
+
+            when(connection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)).thenReturn(preparedStatement);
+            when(preparedStatement.executeQuery()).thenReturn(resultSet);
+            when(resultSet.next()).thenReturn(false);
+
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenReturn(false);
+
+            boolean result = invokeIsScopeExistsByApiID(connection, "write", 1, "api-123");
+            Assert.assertFalse(result, "Scope should not exist when resultSet.next() returns false");
+        }
+    }
+
+    private boolean invokeIsScopeExistsByApiID(Connection connection, String scope,
+                                               int tenantId, String apiId) throws Exception {
+
+        APIResourceManagementDAOImpl daoImpl = new APIResourceManagementDAOImpl();
+        Method method = APIResourceManagementDAOImpl.class.getDeclaredMethod(
+                "isScopeExistsByApiID", Connection.class, String.class, Integer.class, String.class);
+        method.setAccessible(true);
+        try {
+            return (boolean) method.invoke(daoImpl, connection, scope, tenantId, apiId);
+        } finally {
+            method.setAccessible(false);
+        }
+    }
+
+    private boolean invokeIsManagementOrOrganizationAPIResourceType(String type) throws Exception {
+
+        APIResourceManagementDAOImpl daoImpl = new APIResourceManagementDAOImpl();
+        Method method = APIResourceManagementDAOImpl.class.getDeclaredMethod(
+                "isManagementOrOrganizationAPIResourceType", String.class);
+        method.setAccessible(true);
+        return (boolean) method.invoke(daoImpl, type);
     }
 
     /**
