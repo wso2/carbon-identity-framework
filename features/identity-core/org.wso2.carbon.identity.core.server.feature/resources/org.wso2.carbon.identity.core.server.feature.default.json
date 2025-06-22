@@ -1834,6 +1834,7 @@
 
   "notification_templates.sms_templates.apply": true,
 
-  "attribute.return_previous_additional_properties.enabled": false
+  "attribute.return_previous_additional_properties.enabled": false,
+  "branding_configuration.custom_content.max_file_size": 1048576
 }
 
