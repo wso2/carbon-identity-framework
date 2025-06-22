@@ -88,4 +88,33 @@ public class APIResourceManagementUtilTest {
                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         Assert.assertEquals(ORGANIZATION_LEVEL_API, apiResource.getType());
     }
+
+    @Test
+    void testIsSystemAPI_WithBusinessType() {
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("BUSINESS"));
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("business"));
+    }
+
+    @Test
+    void testIsSystemAPI_WithSystemType() {
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("SYSTEM"));
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("system"));
+    }
+
+    @Test
+    void testIsSystemAPI_WithMCPType() {
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("MCP"));
+        Assert.assertFalse(APIResourceManagementUtil.isSystemAPI("mcp"));
+    }
+
+    @Test
+    void testIsSystemAPI_WithUnknownType() {
+        Assert.assertTrue(APIResourceManagementUtil.isSystemAPI("INTERNAL"));
+        Assert.assertTrue(APIResourceManagementUtil.isSystemAPI("custom"));
+    }
+
+    @Test
+    void testIsSystemAPI_WithNullType() {
+        Assert.assertTrue(APIResourceManagementUtil.isSystemAPI(null));
+    }
 }
