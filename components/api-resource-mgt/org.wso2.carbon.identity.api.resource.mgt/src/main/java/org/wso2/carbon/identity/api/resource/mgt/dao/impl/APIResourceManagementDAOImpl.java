@@ -1109,7 +1109,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
                 boolean scopeExists;
                 if (isManagementOrOrganizationAPIResourceType(apiResourceType)) {
-                    scopeExists = isScopeExistsByApiID(dbConnection, scope.getName(), tenantId, apiId);
+                    scopeExists = isScopeExistsByApiId(dbConnection, scope.getName(), tenantId, apiId);
                 } else {
                     scopeExists = isScopeExists(dbConnection, scope.getName(), tenantId);
                 }
@@ -1315,7 +1315,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 || APIResourceManagementConstants.APIResourceTypes.ORGANIZATION.equals(apiResourceType);
     }
 
-    private boolean isScopeExistsByApiID(Connection connection, String name, Integer tenantId, String apiId)
+    private boolean isScopeExistsByApiId(Connection connection, String name, Integer tenantId, String apiId)
             throws APIResourceMgtServerException {
 
         int tenantIdToSearchScopes;
