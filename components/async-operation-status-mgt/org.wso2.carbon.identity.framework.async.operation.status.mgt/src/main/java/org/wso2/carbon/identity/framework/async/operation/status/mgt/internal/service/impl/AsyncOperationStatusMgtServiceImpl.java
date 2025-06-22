@@ -46,7 +46,6 @@ import org.wso2.carbon.identity.organization.management.service.model.BasicOrgan
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -59,6 +58,7 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.api.
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.api.constants.ErrorMessage.ERROR_WHILE_RETRIEVING_ORG_NAME_FROM_ORG_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.AsyncOperationStatusMgtConstants.AND;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.AsyncOperationStatusMgtConstants.DESC_SORT_ORDER;
+import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.AsyncOperationStatusMgtConstants.ENABLE_DATA_PERSISTENCE;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtExceptionHandler.handleClientException;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtExceptionHandler.handleServerException;
 
@@ -92,6 +92,9 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
     public String registerOperationStatus(OperationInitDTO record, boolean updateIfExists)
             throws AsyncOperationStatusMgtException {
 
+        if (!Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE))) {
+            return null;
+        }
         if (updateIfExists) {
             return ASYNC_OPERATION_STATUS_MGT_DAO.registerAsyncStatusWithUpdate(record);
         }
@@ -102,14 +105,18 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
     public void updateOperationStatus(String operationId, OperationStatus status)
             throws AsyncOperationStatusMgtException {
 
-        ASYNC_OPERATION_STATUS_MGT_DAO.updateAsyncStatus(operationId, status);
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE))) {
+            ASYNC_OPERATION_STATUS_MGT_DAO.updateAsyncStatus(operationId, status);
+        }
     }
 
     @Override
     public void registerUnitOperationStatus(UnitOperationInitDTO unitOperationInitDTO) throws
             AsyncOperationStatusMgtException {
 
-        operationDataBuffer.add(unitOperationInitDTO);
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_DATA_PERSISTENCE))) {
+            operationDataBuffer.add(unitOperationInitDTO);
+        }
     }
 
     @Override
@@ -145,6 +152,7 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
 
         return new UnitOperationResponseDTO.Builder()
                 .unitOperationId(unitOperationDO.getUnitOperationId())
+                .cursorKey(unitOperationDO.getCursorKey())
                 .operationId(unitOperationDO.getOperationId())
                 .operationInitiatedResourceId(unitOperationDO.getOperationInitiatedResourceId())
                 .targetOrgId(unitOperationDO.getTargetOrgId())
@@ -184,6 +192,7 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
                 } else {
                     UnitOperationResponseDTO dto = new UnitOperationResponseDTO.Builder()
                             .unitOperationId(unitOperationDO.getUnitOperationId())
+                            .cursorKey(unitOperationDO.getCursorKey())
                             .operationId(unitOperationDO.getOperationId())
                             .operationInitiatedResourceId(unitOperationDO.getOperationInitiatedResourceId())
                             .targetOrgId(unitOperationDO.getTargetOrgId())
@@ -255,12 +264,10 @@ public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusM
         try {
             if (StringUtils.isNotBlank(before)) {
                 String decodedString = new String(Base64.getDecoder().decode(before), StandardCharsets.UTF_8);
-                Timestamp.valueOf(decodedString);
                 paginatedFilter += StringUtils.isNotBlank(paginatedFilter) ? " and before gt " + decodedString :
                         "before gt " + decodedString;
             } else if (StringUtils.isNotBlank(after)) {
                 String decodedString = new String(Base64.getDecoder().decode(after), StandardCharsets.UTF_8);
-                Timestamp.valueOf(decodedString);
                 paginatedFilter += StringUtils.isNotBlank(paginatedFilter) ? " and after lt " + decodedString :
                         "after lt " + decodedString;
             }

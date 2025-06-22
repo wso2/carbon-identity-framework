@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2016-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
@@ -36,6 +38,7 @@ public class ClaimConstants {
     public static final String REQUIRED_PROPERTY = "Required";
     public static final String DISPLAY_ORDER_PROPERTY = "DisplayOrder";
     public static final String SUPPORTED_BY_DEFAULT_PROPERTY = "SupportedByDefault";
+    public static final String CANONICAL_VALUES_PROPERTY = "canonicalValues";
     public static final String REGULAR_EXPRESSION_PROPERTY = "RegEx";
     public static final String READ_ONLY_PROPERTY = "ReadOnly";
     public static final String CLAIM_URI_PROPERTY = "ClaimURI";
@@ -58,6 +61,8 @@ public class ClaimConstants {
     public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT =
             "ExternalClaimAdditionNotAllowedForDialect";
     public static final String MULTI_VALUED_PROPERTY = "multiValued";
+    public static final String SUB_ATTRIBUTES_PROPERTY = "subAttributes";
+    public static final String SUB_ATTRIBUTE_PREFIX = "subAttribute.";
 
     /**
      * Enum for error messages.

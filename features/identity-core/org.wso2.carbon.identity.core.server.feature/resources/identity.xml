@@ -1052,6 +1052,10 @@
         <MaxPasswordAllowedLength>64</MaxPasswordAllowedLength>
     </PasswordPolicy>
 
+    <Attribute>
+        <ReturnPreviousAdditionalProperties>false</ReturnPreviousAdditionalProperties>
+    </Attribute>
+
     <!--Recovery>
         <EnableV1API>false</EnableV1API>
         <ReCaptcha>

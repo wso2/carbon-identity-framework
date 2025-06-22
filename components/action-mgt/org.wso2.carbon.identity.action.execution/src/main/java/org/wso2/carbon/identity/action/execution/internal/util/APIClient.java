@@ -108,6 +108,7 @@ public class APIClient {
         int attempts = 0;
         int retryCount = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
         ActionInvocationResponse actionInvocationResponse = null;
+        Throwable throwable = null;
 
         while (attempts < retryCount) {
             try (CloseableHttpResponse response = httpClient.execute(request)) {
@@ -115,13 +116,10 @@ public class APIClient {
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
                     return actionInvocationResponse;
                 }
-                DIAGNOSTIC_LOGGER.logAPICallRetry(request, attempts + 1, retryCount);
-                LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
-                        (attempts + 1) + " of " + retryCount);
+                logEndpointUnavailability(request, attempts + 1, retryCount);
             } catch (ConnectTimeoutException | SocketTimeoutException e) {
-                DIAGNOSTIC_LOGGER.logAPICallTimeout(request, attempts + 1, retryCount);
-                LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
-                        (attempts + 1) + " of " + retryCount);
+                throwable = e;
+                logEndpointTimeout(request, attempts + 1, retryCount);
             } catch (Exception e) {
                 DIAGNOSTIC_LOGGER.logAPICallError(request);
                 LOG.error("Request for API: " + request.getURI() + " failed due to an error.", e);
@@ -132,7 +130,7 @@ public class APIClient {
             attempts++;
         }
 
-        LOG.warn("Maximum retry attempts reached for API: " + request.getURI());
+        LOG.warn("Maximum retry attempts reached for API: " + request.getURI(), throwable);
         return actionInvocationResponse != null ? actionInvocationResponse : new ActionInvocationResponse.Builder()
                 .errorLog("Failed to execute the action request or maximum retry attempts reached.").build();
     }
@@ -291,5 +289,27 @@ public class APIClient {
 
         return responseEntity != null && responseEntity.getContentType() != null &&
                 responseEntity.getContentType().getValue().contains("application/json");
+    }
+
+    private static void logEndpointUnavailability(HttpPost request, int currentAttempt, int retryCount) {
+
+        DIAGNOSTIC_LOGGER.logAPICallRetry(request, currentAttempt, retryCount);
+        if (currentAttempt < retryCount) {
+            LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying attempt " +
+                    currentAttempt + " of " + (retryCount - 1) + ".");
+        } else {
+            LOG.debug("API: " + request.getURI() + " seems to be unavailable. Maximum retry attempts reached.");
+        }
+    }
+
+    private static void logEndpointTimeout(HttpPost request, int currentAttempt, int retryCount) {
+
+        DIAGNOSTIC_LOGGER.logAPICallTimeout(request, currentAttempt, retryCount);
+        if (currentAttempt < retryCount) {
+            LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying attempt " +
+                    currentAttempt + " of " + (retryCount - 1) + ".");
+        } else {
+            LOG.debug("Request for API: " + request.getURI() + " timed out. Maximum retry attempts reached.");
+        }
     }
 }

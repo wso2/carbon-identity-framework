@@ -867,6 +867,28 @@
                    description="Delete certificate validation configurations in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Webhook Management API" identifier="/api/server/v1/webhooks"
+                 requiresAuthorization="true"
+                 description="API representation of the Webhook Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Webhooks" name="internal_webhook_mgt_view"
+                   description="View webhooks in the organization (root)"/>
+            <Scope displayName="Create Webhooks" name="internal_webhook_mgt_create"
+                   description="Create webhooks in the organization (root)"/>
+            <Scope displayName="Update Webhooks" name="internal_webhook_mgt_update"
+                   description="Update webhooks in the organization (root)"/>
+            <Scope displayName="Delete Webhooks" name="internal_webhook_mgt_delete"
+                   description="Delete webhooks in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Webhook Metadata API" identifier="/api/server/v1/webhooks/metadata"
+                 requiresAuthorization="true"
+                 description="API representation of the Webhook Metadata API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
+                   description="View webhook metadata in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Email Template Management API v1/v2"
                  identifier="/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API" type="TENANT">
@@ -1494,6 +1516,19 @@
                     description="Manage edits of actions from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Webhook Management Feature" identifier="console:webhooks"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Webhook Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Webhook Feature" name="console:webhooks"
+                   description="Manage webhooks from the Console"/>
+            <Scope displayName="Webhook View Feature" name="console:webhooks_view"
+                   description="Manage views of webhooks from the Console"/>
+            <Scope displayName="Webhook Edit Feature" name="console:webhooks_edit"
+                   description="Manage edits of webhooks from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Tenant Management Feature" identifier="console:tenants"
                  requiresAuthorization="true"
                  description="Resource representation of the Tenant Management Feature"
@@ -1531,6 +1566,16 @@
                     description = "Allows to impersonate another user"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Organization User Impersonation" identifier="org:impersonation"
+                requiresAuthorization="true"
+                description="Resource representation of the Organization User Impersonation Organization"
+                type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="User Impersonation Scope for Organizations"
+                name="internal_org_user_impersonate"
+                description = "Allows to impersonate another user in a Organizations"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Rule Metadata API" identifier="/api/server/v1/rules/metadata"
                      requiresAuthorization="true"
                      description="API representation of the Rules Metadata API" type="TENANT">
@@ -1563,14 +1608,58 @@
                        description="Delete user defined local authenticator in the organization"/>
             </Scopes>
         </APIResource>
-    <APIResource name="Registration Flow Management API" identifier="/api/server/v1/registration-flow"
+    <APIResource name="Asynchronous Operation Status API" identifier="/api/server/v1/async-operations"
                  requiresAuthorization="true"
-                 description="API representation of the Registration Flow Management API" type="TENANT">
+                 description="API representation of the Asynchronous Operation Status API" type="TENANT">
         <Scopes>
-            <Scope displayName="View Registration Flow" name="internal_registration_flow_view"
-                   description="View registration flow in the organization (root)"/>
-            <Scope displayName="Update Registration Flow" name="internal_registration_flow_update"
-                   description="Update registration flow in the organization (root)"/>
+            <Scope displayName="View Async Operation status" name="internal_async_operation_status_view"
+                   description="View Asynchronous Operation Status"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Management API" identifier="/api/server/v1/flow"
+                 requiresAuthorization="true"
+                 description="API representation of the Flow Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Flow" name="internal_flow_view"
+                   description="View flow in the organization (root)"/>
+            <Scope displayName="Update Flow" name="internal_flow_update"
+                   description="Update flow in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Asynchronous Operation Status API" identifier="/o/api/server/v1/async-operations"
+                 requiresAuthorization="true"
+                 description="API representation of the Asynchronous Operation Status API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Async Operation status" name="internal_org_async_operation_status_view"
+                   description="View Asynchronous Operation Status in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Management API" identifier="/api/server/v1/workflows"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow" name="internal_workflow_view"
+                   description="View workflows"/>
+            <Scope displayName="Create Workflow" name="internal_workflow_create"
+                   description="Create new workflow"/>
+            <Scope displayName="Update Workflow" name="internal_workflow_update"
+                   description="Update workflow"/>
+            <Scope displayName="Delete Workflow" name="internal_workflow_delete"
+                   description="Delete workflow"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Association Management API" identifier="/api/server/v1/workflow-associations"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Association Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow Association" name="internal_workflow_association_view"
+                   description="View workflow associations"/>
+            <Scope displayName="Create Workflow Association" name="internal_workflow_association_create"
+                   description="Create new workflow association"/>
+            <Scope displayName="Update Workflow Association" name="internal_workflow_association_update"
+                   description="Update workflow association"/>
+            <Scope displayName="Delete Workflow Association" name="internal_workflow_association_delete"
+                   description="Delete workflow association"/>
         </Scopes>
     </APIResource>
 </APIResources>

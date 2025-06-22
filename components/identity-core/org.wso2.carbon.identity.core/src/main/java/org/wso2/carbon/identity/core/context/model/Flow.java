@@ -54,6 +54,8 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.ACCOUNT_LOCK,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.SYSTEM, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ACCOUNT_UNLOCK,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.SYSTEM, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.SESSION_REVOKE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
                         InitiatingPersona.SYSTEM));
@@ -75,6 +77,7 @@ public class Flow {
         UPDATE_CREDENTIAL_PASSWORD,
         DELETE_USER,
         ACCOUNT_LOCK,
+        ACCOUNT_UNLOCK,
         ACCOUNT_DISABLE,
         SESSION_REVOKE
     }

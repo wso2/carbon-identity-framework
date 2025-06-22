@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
@@ -37,13 +39,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTE_PREFIX;
+
 /**
  * Data access object for org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim.
  */
 public class LocalClaimDAO extends ClaimDAO {
 
     private static final Log log = LogFactory.getLog(LocalClaimDAO.class);
-
 
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
@@ -143,7 +147,19 @@ public class LocalClaimDAO extends ClaimDAO {
                     existingAttributeMap = new HashMap<>();
                 }
 
-                existingAttributeMap.put(propertyName, propertyValue);
+                // If the property is a sub-attribute, we need to append it to the existing property value.
+                if (propertyName.startsWith(SUB_ATTRIBUTE_PREFIX)) {
+                    String subAttributes = existingAttributeMap.get(SUB_ATTRIBUTES_PROPERTY);
+                    if (subAttributes == null) {
+                        subAttributes = StringUtils.EMPTY;
+                    } else {
+                        subAttributes += " ";
+                    }
+                    subAttributes += propertyValue;
+                    existingAttributeMap.put(SUB_ATTRIBUTES_PROPERTY, subAttributes);
+                } else {
+                    existingAttributeMap.put(propertyName, propertyValue);
+                }
                 claimPropertyMap.put(localClaimId, existingAttributeMap);
             }
         } catch (SQLException e) {

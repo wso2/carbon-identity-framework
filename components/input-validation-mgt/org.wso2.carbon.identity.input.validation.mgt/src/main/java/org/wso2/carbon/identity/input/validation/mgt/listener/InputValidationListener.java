@@ -96,6 +96,12 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!isEnable()) {
             return true;
         }
+
+        // Skips password validation if the relevant thread local flag is set.
+        if (UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
+            return validate(Collections.emptyMap(), userStoreManager);
+        }
+
         return validate(Collections.singletonMap(PASSWORD, newCredential.toString()), userStoreManager);
     }
 
@@ -105,6 +111,12 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!isEnable()) {
             return true;
         }
+
+        // skip password validation during on-demand password migration
+        if (UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
+            return validate(Collections.emptyMap(), userStoreManager);
+        }
+
         return validate(Collections.singletonMap(PASSWORD, newCredential.toString()), userStoreManager);
     }
 

@@ -527,6 +527,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTime);
                 }
 
+                Long updatedTime = (Long) sessionContext.getProperty(FrameworkConstants.UPDATED_TIMESTAMP);
+                if (updatedTime != null) {
+                    authenticationResult.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedTime);
+                }
+
                 // Authentication context properties received from newly authenticated IdPs
                 if (context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
                     authenticationContextProperties.addAll((List<AuthenticationContextProperty>) context

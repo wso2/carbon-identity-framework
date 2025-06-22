@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>async-operation-status-mgt</artifactId>
-        <version>7.8.147-SNAPSHOT</version>
+        <version>7.8.240-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -42,6 +42,11 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -147,7 +152,6 @@
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
-                            javax.sql,
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",

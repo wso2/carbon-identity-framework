@@ -518,11 +518,14 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 String resourceId = getResourceId(tenantId, resourceTypeId, resourceName);
                 deleteFiles(resourceId);
             }
-            jdbcTemplate.executeUpdate(SQLConstants.DELETE_RESOURCE_SQL, preparedStatement -> {
-                int initialParameterIndex = 1;
-                preparedStatement.setString(initialParameterIndex, resourceName);
-                preparedStatement.setInt(++initialParameterIndex, tenantId);
-                preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+            jdbcTemplate.withTransaction((template) -> {
+                template.executeUpdate(SQLConstants.DELETE_RESOURCE_SQL, preparedStatement -> {
+                    int initialParameterIndex = 1;
+                    preparedStatement.setString(initialParameterIndex, resourceName);
+                    preparedStatement.setInt(++initialParameterIndex, tenantId);
+                    preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                });
+                return null;
             });
         } catch (DataAccessException | TransactionException e) {
             throw handleServerException(ERROR_CODE_DELETE_RESOURCE_TYPE, resourceName, e);
@@ -1441,15 +1444,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             if (isPostgreSQLDB()) {
-                return jdbcTemplate.fetchSingleRecord(getFileGetByIdSQL(), (resultSet, rowNumber) ->
+                return jdbcTemplate.withTransaction((template) ->
+                        template.fetchSingleRecord(getFileGetByIdSQL(), (resultSet, rowNumber) ->
                                 resultSet.getBinaryStream(DB_SCHEMA_COLUMN_NAME_VALUE), preparedStatement ->
-                        setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement));
+                        setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement)));
             }
-            Blob fileBlob = jdbcTemplate.fetchSingleRecord(getFileGetByIdSQL(),
+            Blob fileBlob = jdbcTemplate.withTransaction((template) -> template.fetchSingleRecord(getFileGetByIdSQL(),
                     (resultSet, rowNumber) -> resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE), preparedStatement ->
-                            setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement));
+                            setPreparedStatementForFileGetById(resourceType, resourceName, fileId,
+                                    preparedStatement)));
             return fileBlob != null ? fileBlob.getBinaryStream() : null;
-        } catch (DataAccessException | SQLException e) {
+        } catch (TransactionException | DataAccessException | SQLException e) {
             throw handleServerException(ERROR_CODE_GET_FILE, fileId, e);
         }
     }
@@ -1515,13 +1520,14 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL, ((resultSet, rowNumber) -> {
-                String resourceFileId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
-                String resourceFileName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME);
-                return new ResourceFile(resourceFileId, getFilePath(resourceFileId, resourceTypeName, resourceName),
-                        resourceFileName);
-            }), preparedStatement -> preparedStatement.setString(1, resourceId));
-        } catch (DataAccessException e) {
+            return jdbcTemplate.withTransaction((template ->
+                    template.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL, (resultSet, rowNumber) -> {
+                        String resourceFileId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                        String resourceFileName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME);
+                        return new ResourceFile(resourceFileId, getFilePath(resourceFileId, resourceTypeName, resourceName),
+                                resourceFileName);
+                        }, preparedStatement -> preparedStatement.setString(1, resourceId))));
+        } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_GET_FILES, resourceName, e);
         }
     }

@@ -26,6 +26,7 @@ import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.constants.OperationStatus;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.exception.AsyncOperationStatusMgtException;
 import org.wso2.carbon.identity.framework.async.operation.status.mgt.api.exception.AsyncOperationStatusMgtRuntimeException;
@@ -72,6 +73,7 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.inte
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CORRELATION_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.COUNT;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CREATED_AT;
+import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.CURSOR_KEY;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.INITIATED_ORG_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.INITIATED_USER_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.LAST_MODIFIED;
@@ -86,8 +88,6 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.inte
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.TARGET_ORG_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.SQLPlaceholders.UNIT_OPERATION_ID;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.constant.SQLConstants.UPDATE_ASYNC_OPERATION;
-import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtDbUtil.isMSSqlDB;
-import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtDbUtil.isOracleDB;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtExceptionHandler.handleServerException;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.AsyncOperationStatusMgtExceptionHandler.throwRuntimeException;
 import static org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.util.FilterQueryBuilderUtil.buildFilterQuery;
@@ -346,12 +346,16 @@ public class AsyncOperationOperationStatusMgtDAOImpl implements AsyncOperationSt
             throws AsyncOperationStatusMgtServerException {
 
         String sqlStmtTail;
-        if (isOracleDB()) {
-            sqlStmtTail = GET_OPERATIONS_TAIL_ORACLE;
-        } else if (isMSSqlDB()) {
-            sqlStmtTail = GET_OPERATIONS_TAIL_MSSQL;
-        } else {
-            sqlStmtTail = GET_OPERATIONS_TAIL;
+        try {
+            if (JdbcUtils.isOracleDB()) {
+                sqlStmtTail = GET_OPERATIONS_TAIL_ORACLE;
+            } else if (JdbcUtils.isMSSqlDB()) {
+                sqlStmtTail = GET_OPERATIONS_TAIL_MSSQL;
+            } else {
+                sqlStmtTail = GET_OPERATIONS_TAIL;
+            }
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_WHILE_RETRIEVING_ASYNC_OPERATION_STATUS, e);
         }
 
         if (StringUtils.isNotBlank(filterQueryBuilder.getFilterQuery())) {
@@ -364,12 +368,16 @@ public class AsyncOperationOperationStatusMgtDAOImpl implements AsyncOperationSt
             throws AsyncOperationStatusMgtServerException {
 
         String sqlStmtTail;
-        if (isOracleDB()) {
-            sqlStmtTail = GET_UNIT_OPERATIONS_TAIL_ORACLE;
-        } else if (isMSSqlDB()) {
-            sqlStmtTail = GET_UNIT_OPERATIONS_TAIL_MSSQL;
-        } else {
-            sqlStmtTail = GET_UNIT_OPERATIONS_TAIL;
+        try {
+            if (JdbcUtils.isOracleDB()) {
+                sqlStmtTail = GET_UNIT_OPERATIONS_TAIL_ORACLE;
+            } else if (JdbcUtils.isMSSqlDB()) {
+                sqlStmtTail = GET_UNIT_OPERATIONS_TAIL_MSSQL;
+            } else {
+                sqlStmtTail = GET_UNIT_OPERATIONS_TAIL;
+            }
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_WHILE_RETRIEVING_ASYNC_OPERATION_STATUS_UNIT, e);
         }
         if (StringUtils.isNotBlank(filterQueryBuilder.getFilterQuery())) {
             return GET_UNIT_OPERATIONS + " AND " + filterQueryBuilder.getFilterQuery() + sqlStmtTail;
@@ -382,6 +390,7 @@ public class AsyncOperationOperationStatusMgtDAOImpl implements AsyncOperationSt
 
         return new OperationResponseDTO.Builder()
                 .operationId(resultSet.getString(OPERATION_ID))
+                .cursorKey(resultSet.getInt(CURSOR_KEY))
                 .correlationId(resultSet.getString(CORRELATION_ID))
                 .operationType(resultSet.getString(OPERATION_TYPE))
                 .operationSubjectType(resultSet.getString(SUBJECT_TYPE))
@@ -401,6 +410,7 @@ public class AsyncOperationOperationStatusMgtDAOImpl implements AsyncOperationSt
 
         UnitOperationDO record = new UnitOperationDO();
         record.setUnitOperationId(resultSet.getString(UNIT_OPERATION_ID));
+        record.setCursorKey(resultSet.getInt(CURSOR_KEY));
         record.setOperationId(resultSet.getString(OPERATION_ID));
         record.setOperationInitiatedResourceId(resultSet.getString(RESIDENT_RESOURCE_ID));
         record.setTargetOrgId(resultSet.getString(TARGET_ORG_ID));

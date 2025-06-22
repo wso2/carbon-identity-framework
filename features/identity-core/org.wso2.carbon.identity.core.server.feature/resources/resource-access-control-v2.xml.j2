@@ -175,6 +175,25 @@
             <Scopes>internal_cert_validation_mgt_delete</Scopes>
         </Resource>
 
+        <!-- Webhook Metadata API -->
+        <Resource context="(.*)/api/server/v1/webhooks/metadata/(.*)" secured="true" http-method="GET">
+            <Scopes>internal_webhook_meta_view</Scopes>
+        </Resource>
+
+        <!-- Webhook Management API -->
+        <Resource context="(.*)/api/server/v1/webhooks(.*)" secured="true" http-method="POST">
+            <Scopes>internal_webhook_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/webhooks(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_webhook_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/webhooks(.*)" secured="true" http-method="GET">
+            <Scopes>internal_webhook_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/webhooks(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_webhook_mgt_delete</Scopes>
+        </Resource>
+
         <!-- Secret Type Management API -->
         <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_type_mgt_add</Scopes>
@@ -1441,15 +1460,15 @@
              <Scopes>internal_custom_authenticator_delete</Scopes>
          </Resource>
 
-         <!-- Registration execution API -->
-         <Resource context="(.*)/api/server/v1/registration/(.*)" secured="false" http-method="POST" />
+         <!-- Flow execution API -->
+          <Resource context="(.*)/api/server/v1/flow/(.*)" secured="false" http-method="POST" />
 
-         <!-- Registration flow management API -->
-         <Resource context="(.*)/api/server/v1/registration-flow(.*)" secured="true" http-method="GET">
-             <Scopes>internal_registration_flow_view</Scopes>
+         <!-- Flow management API -->
+         <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">
+             <Scopes>internal_flow_view</Scopes>
          </Resource>
-         <Resource context="(.*)/api/server/v1/registration-flow(.*)" secured="true" http-method="PUT">
-             <Scopes>internal_registration_flow_update</Scopes>
+         <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="PUT">
+             <Scopes>internal_flow_update</Scopes>
          </Resource>
 
           <!-- [Organization] User share API -->
@@ -1490,6 +1509,44 @@
          </Resource>
          <Resource context="(.*)/api/server/v1/users/(.*)/shared-roles" secured="true" http-method="GET">
              <Scopes>internal_user_shared_access_view</Scopes>
+         </Resource>
+
+         <!-- [Organization] Async Operation Management API -->
+         <Resource context="(.*)/o/api/server/v1/async-operations(.*)" secured="true" http-method="GET">
+             <Scopes>internal_org_async_operation_status_view</Scopes>
+         </Resource>
+
+         <!-- Async Operation Management API -->
+         <Resource context="(.*)/api/server/v1/async-operations(.*)" secured="true" http-method="GET">
+             <Scopes>internal_async_operation_status_view</Scopes>
+         </Resource>
+
+         <!-- Workflow Management API -->
+         <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="GET">
+             <Scopes>internal_workflow_view</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="POST">
+             <Scopes>internal_workflow_create</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="PUT">
+             <Scopes>internal_workflow_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="DELETE">
+             <Scopes>internal_workflow_delete</Scopes>
+         </Resource>
+
+         <!-- Workflow Association Management API -->
+         <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="GET">
+             <Scopes>internal_workflow_association_view</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="POST">
+             <Scopes>internal_workflow_association_create</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="PATCH">
+             <Scopes>internal_workflow_association_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="DELETE">
+             <Scopes>internal_workflow_association_delete</Scopes>
          </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
