@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.management.internal.dao.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
@@ -403,10 +404,37 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 throw new ActionMgtServerException("Authentication type is not defined for the Action Endpoint.");
         }
 
+        List<String> allowedHeaders = getAllowedPropertiesList(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
+        List<String> allowedParameters = getAllowedPropertiesList(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
+
         return new EndpointConfig.EndpointConfigBuilder()
                 .uri(propertiesFromDB.remove(URI_PROPERTY).getValue().toString())
                 .authentication(authentication)
+                .allowedHeaders(allowedHeaders)
+                .allowedParameters(allowedParameters)
                 .build();
+    }
+
+    /**
+     * Retrieves a list of allowed properties from the database based on the given property name.
+     *
+     * @param properties            A map of action properties retrieved from the database.
+     * @param allowedPropertyToRead The name of the property to read from the database.
+     * @return A list of allowed properties as strings.
+     * @throws ActionMgtServerException If an error occurs while reading the property from the database.
+     */
+    private List<String> getAllowedPropertiesList(Map<String, ActionProperty> properties,
+                                                  String allowedPropertyToRead) throws ActionMgtServerException {
+
+        Object allowedHeaders = properties.remove(allowedPropertyToRead).getValue();
+        String allowedHeaderJson = ((BinaryObject) allowedHeaders).getJSONString();
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(allowedHeaderJson, new TypeReference<List<String>>() { });
+        } catch (JsonProcessingException e) {
+            throw new ActionMgtServerException("Error while reading" + allowedPropertyToRead + " from the database.");
+        }
     }
 
     /**
