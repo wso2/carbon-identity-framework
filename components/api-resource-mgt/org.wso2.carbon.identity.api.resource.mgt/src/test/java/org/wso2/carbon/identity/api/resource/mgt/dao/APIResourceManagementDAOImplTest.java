@@ -61,6 +61,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -664,7 +665,6 @@ public class APIResourceManagementDAOImplTest {
     public void testIsScopeExistsByApiID_whenScopeDoesNotExist() throws Exception {
 
         try (
-                MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
                 MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                         mockStatic(OrganizationManagementUtil.class)
         ) {
@@ -684,12 +684,51 @@ public class APIResourceManagementDAOImplTest {
         }
     }
 
+    @Test(priority = 20)
+    public void testAddScopesWithTenantResourceType() throws Exception {
+
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+
+            Connection mockConnection = mock(Connection.class);
+            PreparedStatement mockInsertStmt = mock(PreparedStatement.class);
+            PreparedStatement mockExistStmt = mock(PreparedStatement.class);
+            ResultSet mockResultSet = mock(ResultSet.class);
+            Scope scope1 = createScope("tenant_scope_1");
+            Scope scope2 = createScope("tenant_scope_2");
+            List<Scope> scopes = Arrays.asList(scope1, scope2);
+
+            APIResource apiResource = addAPIResourceToDB("testAPI", scopes, "TENANT", getConnection(),
+                    TENANT_ID, organizationManagementUtil);
+            String apiId = apiResource.getId();
+            String apiType = apiResource.getType();
+
+            when(mockConnection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)).thenReturn(mockExistStmt);
+            when(mockExistStmt.executeQuery()).thenReturn(mockResultSet);
+            when(mockResultSet.next()).thenReturn(false);
+            when(mockConnection.prepareStatement(SQLConstants.ADD_SCOPE)).thenReturn(mockInsertStmt);
+
+            Method addScopesMethod = APIResourceManagementDAOImpl.class.getDeclaredMethod(
+                    "addScopes", Connection.class, String.class, List.class, Integer.class, String.class);
+            addScopesMethod.setAccessible(true);
+            addScopesMethod.invoke(daoImpl, mockConnection, apiId, scopes, TENANT_ID, apiType);
+
+            // Verifications
+            verify(mockConnection, times(scopes.size()))
+                    .prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID);
+            verify(mockConnection, times(1))
+                    .prepareStatement(SQLConstants.ADD_SCOPE);
+            verify(mockInsertStmt, times(scopes.size())).addBatch();
+            verify(mockInsertStmt, times(1)).executeBatch();
+        }
+    }
+
     private boolean invokeIsScopeExistsByApiID(Connection connection, String scope,
                                                int tenantId, String apiId) throws Exception {
 
         APIResourceManagementDAOImpl daoImpl = new APIResourceManagementDAOImpl();
         Method method = APIResourceManagementDAOImpl.class.getDeclaredMethod(
-                "isScopeExistsByApiID", Connection.class, String.class, Integer.class, String.class);
+                "isScopeExistsByApiId", Connection.class, String.class, Integer.class, String.class);
         method.setAccessible(true);
         try {
             return (boolean) method.invoke(daoImpl, connection, scope, tenantId, apiId);
