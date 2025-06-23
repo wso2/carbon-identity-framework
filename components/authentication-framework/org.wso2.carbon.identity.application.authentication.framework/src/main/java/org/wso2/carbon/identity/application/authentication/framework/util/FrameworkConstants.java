@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 /**
- * Constants used in Application Authenticators Framework
+ * Constants used in Application Authenticators Framework.
  */
 public abstract class FrameworkConstants {
 
@@ -551,6 +551,7 @@ public abstract class FrameworkConstants {
         public static final String SESSION_UPDATE = "sessionUpdated";
         public static final String SESSION_TERMINATE = "sessionTerminated";
         public static final String ACTIVE_SESSION_COUNT = "activeSessionCount";
+        public static final String APPLICATIONS = "applications";
     }
 
     /**

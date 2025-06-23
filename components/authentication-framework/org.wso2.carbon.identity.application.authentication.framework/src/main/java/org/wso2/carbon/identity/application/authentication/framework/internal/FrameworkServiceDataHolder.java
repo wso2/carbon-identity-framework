@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
+import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
@@ -125,6 +126,7 @@ public class FrameworkServiceDataHolder {
     private RoleManagementService roleManagementServiceV2;
     private SecretResolveManager secretConfigManager;
     private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
+    private UserSessionManagementService userSessionManagementService;
 
     private FrameworkServiceDataHolder() {
 
@@ -831,6 +833,26 @@ public class FrameworkServiceDataHolder {
     public void setUserDefinedAuthenticatorService(UserDefinedAuthenticatorService userDefinedAuthenticatorService) {
 
         this.userDefinedAuthenticatorService = userDefinedAuthenticatorService;
+    }
+
+    /**
+     * Get {@link UserSessionManagementService}.
+     *
+     * @return Instance of {@link UserSessionManagementService}.
+     */
+    public UserSessionManagementService getUserSessionManagementService() {
+
+        return userSessionManagementService;
+    }
+
+    /**
+     * Set {@link UserSessionManagementService}.
+     *
+     * @param userSessionManagementService Instance of {@link UserSessionManagementService}.
+     */
+    public void setUserSessionManagementService(UserSessionManagementService userSessionManagementService) {
+
+        this.userSessionManagementService = userSessionManagementService;
     }
 
     /**
