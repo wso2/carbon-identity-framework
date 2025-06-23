@@ -367,16 +367,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                 updatingEndpoint.getUri()).build()), tenantId);
             }
 
-            if (!updatingEndpoint.getAllowedHeaders().isEmpty()) {
+            if (updatingEndpoint.getAllowedHeaders() != null) {
                 updateAllowedProperty(updatingActionDTO.getId(), ALLOWED_HEADERS_PROPERTY,
-                        updatingEndpoint.getAllowedHeaders(),
-                        existingActionDTO.getEndpoint().getAllowedHeaders(), tenantId);
+                        updatingEndpoint.getAllowedHeaders(), tenantId);
             }
 
-            if (!updatingEndpoint.getAllowedParameters().isEmpty()) {
+            if (updatingEndpoint.getAllowedParameters() != null) {
                 updateAllowedProperty(updatingActionDTO.getId(), ALLOWED_PARAMETERS_PROPERTY,
-                        updatingEndpoint.getAllowedHeaders(),
-                        existingActionDTO.getEndpoint().getAllowedParameters(), tenantId);
+                        updatingEndpoint.getAllowedParameters(), tenantId);
             }
 
             updateEndpointAuthentication(updatingActionDTO.getId(), updatingEndpoint.getAuthentication(),
@@ -393,24 +391,15 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param updatingActionId     Action ID.
      * @param updatingPropertyKey  Key of the property being updated (e.g., allowedHeaders or allowedParameters).
      * @param updatingValues       Updating values.
-     * @param existingProperties   Existing values.
      * @param tenantId             Tenant ID.
      * @throws ActionMgtException  If an error occurs while updating the action properties in the database.
      */
     private void updateAllowedProperty(String updatingActionId,
                                       String updatingPropertyKey,
                                       List<String> updatingValues,
-                                      List<String> existingProperties,
                                       Integer tenantId) throws ActionMgtException {
 
         Map<String, ActionProperty> endpointProperties = new HashMap<>();
-
-        // Since this operation is treated as a PUT in DAO layer,
-        // the existing properties should be sent to the DAO layer, if no properties are updated.
-        if (updatingValues == null && existingProperties != null) {
-            updatingValues = existingProperties;
-        }
-
         try {
             deleteActionPropertiesInDB(updatingActionId, Collections.singletonList(updatingPropertyKey), tenantId);
             endpointProperties.put(updatingPropertyKey, createActionProperty(updatingValues));

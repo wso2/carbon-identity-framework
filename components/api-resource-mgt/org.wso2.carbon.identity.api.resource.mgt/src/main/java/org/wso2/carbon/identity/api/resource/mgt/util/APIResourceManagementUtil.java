@@ -201,12 +201,13 @@ public class APIResourceManagementUtil {
      * {@code APIResourceTypes.SYSTEM} indicates API resources owned only by the super tenant.
      *
      * @param type The API resource type to check.
-     * @return {@code true} if the API resource type is neither "BUSINESS" nor "SYSTEM".
+     * @return {@code true} if the API resource type is neither "BUSINESS" nor "MCP" nor "SYSTEM".
      */
     public static boolean isSystemAPI(String type) {
 
         return !APIResourceManagementConstants.APIResourceTypes.BUSINESS.equalsIgnoreCase(type)
-                && !APIResourceManagementConstants.APIResourceTypes.SYSTEM.equalsIgnoreCase(type);
+                && !APIResourceManagementConstants.APIResourceTypes.SYSTEM.equalsIgnoreCase(type)
+                && !APIResourceManagementConstants.APIResourceTypes.MCP.equalsIgnoreCase(type);
     }
 
     /**

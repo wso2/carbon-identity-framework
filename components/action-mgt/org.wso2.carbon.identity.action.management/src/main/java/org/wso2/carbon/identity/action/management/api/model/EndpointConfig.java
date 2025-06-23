@@ -54,12 +54,12 @@ public class EndpointConfig {
 
     public List<String> getAllowedHeaders() {
 
-        return (allowedHeaders == null) ? Collections.emptyList() : Collections.unmodifiableList(allowedHeaders);
+        return (allowedHeaders == null) ? null : Collections.unmodifiableList(allowedHeaders);
     }
 
     public List<String> getAllowedParameters() {
 
-        return (allowedParameters == null) ? Collections.emptyList() : Collections.unmodifiableList(allowedParameters);
+        return (allowedParameters == null) ? null : Collections.unmodifiableList(allowedParameters);
     }
 
     /**

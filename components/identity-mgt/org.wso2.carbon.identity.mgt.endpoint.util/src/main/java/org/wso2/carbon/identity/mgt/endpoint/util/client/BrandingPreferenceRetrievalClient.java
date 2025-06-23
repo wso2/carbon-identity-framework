@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2021-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -233,16 +233,7 @@ public class BrandingPreferenceRetrievalClient {
             throws BrandingPreferenceRetrievalClientException {
 
         try {
-            String brandingPreferenceURL = IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
-            /* Branding preference retrieval API has exposed as an organization qualified API when accessing the
-               branding preferences of organizations. */
-            if (StringUtils.isNotEmpty(PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId()) &&
-                    brandingPreferenceURL != null &&
-                    brandingPreferenceURL.contains(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
-                brandingPreferenceURL = brandingPreferenceURL.replace(FrameworkConstants.TENANT_CONTEXT_PREFIX,
-                        FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX);
-            }
-            return brandingPreferenceURL;
+            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
         } catch (ApiException e) {
             throw new BrandingPreferenceRetrievalClientException("Error while building url for context: " + context);
         }
