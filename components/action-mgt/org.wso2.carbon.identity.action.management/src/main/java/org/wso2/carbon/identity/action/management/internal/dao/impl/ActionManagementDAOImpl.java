@@ -367,10 +367,57 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                 updatingEndpoint.getUri()).build()), tenantId);
             }
 
+            if (!updatingEndpoint.getAllowedHeaders().isEmpty()) {
+                updateAllowedProperty(updatingActionDTO.getId(), ALLOWED_HEADERS_PROPERTY,
+                        updatingEndpoint.getAllowedHeaders(),
+                        existingActionDTO.getEndpoint().getAllowedHeaders(), tenantId);
+            }
+
+            if (!updatingEndpoint.getAllowedParameters().isEmpty()) {
+                updateAllowedProperty(updatingActionDTO.getId(), ALLOWED_PARAMETERS_PROPERTY,
+                        updatingEndpoint.getAllowedHeaders(),
+                        existingActionDTO.getEndpoint().getAllowedParameters(), tenantId);
+            }
+
             updateEndpointAuthentication(updatingActionDTO.getId(), updatingEndpoint.getAuthentication(),
                     existingActionDTO.getEndpoint().getAuthentication(), tenantId);
         } catch (ActionMgtException | TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action Endpoint information in the system.", e);
+        }
+    }
+
+    /**
+     * Updates the allowed properties (headers or parameters) for an action.
+     * This operation is treated as a PUT in the DAO layer, replacing the existing properties with the new ones.
+     *
+     * @param updatingActionId     Action ID.
+     * @param updatingPropertyKey  Key of the property being updated (e.g., allowedHeaders or allowedParameters).
+     * @param updatingValues       Updating values.
+     * @param existingProperties   Existing values.
+     * @param tenantId             Tenant ID.
+     * @throws ActionMgtException  If an error occurs while updating the action properties in the database.
+     */
+    private void updateAllowedProperty(String updatingActionId,
+                                      String updatingPropertyKey,
+                                      List<String> updatingValues,
+                                      List<String> existingProperties,
+                                      Integer tenantId) throws ActionMgtException {
+
+        Map<String, ActionProperty> endpointProperties = new HashMap<>();
+
+        // Since this operation is treated as a PUT in DAO layer,
+        // the existing properties should be sent to the DAO layer, if no properties are updated.
+        if (updatingValues == null && existingProperties != null) {
+            updatingValues = existingProperties;
+        }
+
+        try {
+            deleteActionPropertiesInDB(updatingActionId, Collections.singletonList(updatingPropertyKey), tenantId);
+            endpointProperties.put(updatingPropertyKey, createActionProperty(updatingValues));
+            addActionPropertiesToDB(updatingActionId, endpointProperties, tenantId);
+        } catch (TransactionException e) {
+            throw new ActionMgtServerException("Error while updating Action's " +
+                    updatingPropertyKey + " in the system.", e);
         }
     }
 
@@ -419,21 +466,21 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * Retrieves a list of allowed properties from the database based on the given property name.
      *
      * @param properties            A map of action properties retrieved from the database.
-     * @param allowedPropertyToRead The name of the property to read from the database.
+     * @param propertyKeyToRead     The name of the property to read from the database.
      * @return A list of allowed properties as strings.
      * @throws ActionMgtServerException If an error occurs while reading the property from the database.
      */
     private List<String> getAllowedPropertiesList(Map<String, ActionProperty> properties,
-                                                  String allowedPropertyToRead) throws ActionMgtServerException {
+                                                  String propertyKeyToRead) throws ActionMgtServerException {
 
-        Object allowedHeaders = properties.remove(allowedPropertyToRead).getValue();
+        Object allowedHeaders = properties.remove(propertyKeyToRead).getValue();
         String allowedHeaderJson = ((BinaryObject) allowedHeaders).getJSONString();
 
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue(allowedHeaderJson, new TypeReference<List<String>>() { });
         } catch (JsonProcessingException e) {
-            throw new ActionMgtServerException("Error while reading" + allowedPropertyToRead + " from the database.");
+            throw new ActionMgtServerException("Error while reading" + propertyKeyToRead + " from the database.");
         }
     }
 
