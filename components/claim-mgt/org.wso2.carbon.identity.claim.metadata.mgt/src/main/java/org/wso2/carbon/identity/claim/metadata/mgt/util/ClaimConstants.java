@@ -39,6 +39,7 @@ public class ClaimConstants {
     public static final String DISPLAY_ORDER_PROPERTY = "DisplayOrder";
     public static final String SUPPORTED_BY_DEFAULT_PROPERTY = "SupportedByDefault";
     public static final String CANONICAL_VALUES_PROPERTY = "canonicalValues";
+    public static final String INPUT_FORMAT_PROPERTY = "inputFormat";
     public static final String REGULAR_EXPRESSION_PROPERTY = "RegEx";
     public static final String READ_ONLY_PROPERTY = "ReadOnly";
     public static final String CLAIM_URI_PROPERTY = "ClaimURI";

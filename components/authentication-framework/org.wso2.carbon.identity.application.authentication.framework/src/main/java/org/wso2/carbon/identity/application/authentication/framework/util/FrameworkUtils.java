@@ -1479,7 +1479,7 @@ public class FrameworkUtils {
      */
     public static void publishEventOnUserRegistrationFailure(String errorCode, String errorMessage,
                                                              Map<String, String> claims, String tenantDomain,
-                                                             String idp) {
+                                                             String userStoreDomain, String idp) {
 
         String stepId = String.valueOf(
                 IdentityUtil.threadLocalProperties.get().get(IdentityEventConstants.EventProperty.STEP_ID));
@@ -1487,6 +1487,8 @@ public class FrameworkUtils {
                 .get(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR));
 
         HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, userStoreDomain);
+
         properties.put(IdentityEventConstants.EventProperty.IDP, idp);
         properties.put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, authenticator);
         properties.put(IdentityEventConstants.EventProperty.STEP_ID, stepId);
