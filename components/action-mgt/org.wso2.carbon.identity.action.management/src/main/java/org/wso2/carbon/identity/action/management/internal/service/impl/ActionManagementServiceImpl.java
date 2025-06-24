@@ -39,6 +39,9 @@ import org.wso2.carbon.identity.action.management.internal.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -342,6 +345,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ACTION_VALIDATOR.validateActionName(action.getName());
         ACTION_VALIDATOR.validateEndpointUri(action.getEndpoint().getUri());
         doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
+        doAllowedHeadersAndParamsValidation(action.getEndpoint().getAllowedHeaders(),
+                action.getEndpoint().getAllowedParameters());
     }
 
     /**
@@ -362,6 +367,25 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
             doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
         }
+    }
+
+    /**
+     * Encodes a list of allowed parameters using URL encoding.
+     * Each parameter is encoded using UTF-8 character encoding.
+     *
+     * @param params List of parameters to encode.
+     * @return List of encoded parameters.
+     * @throws RuntimeException If UTF-8 encoding is not supported.
+     */
+    private List<String> encodeAllowedParameters(List<String> params) {
+
+        return params.stream().map(param -> {
+            try {
+                return URLEncoder.encode(param, StandardCharsets.UTF_8.name());
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -399,17 +423,65 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
     }
 
+    /**
+     * Validates the provided headers and parameters for an action.
+     * Ensures that headers and parameters are not blank and conform to the required format.
+     * Additionally, encodes allowed parameters if they contain subcomponent delimiters as per RFC 3986.
+     *
+     * @param allowedHeaders   List of allowed headers to validate.
+     * @param allowedParameters List of allowed parameters to validate.
+     * @throws ActionMgtClientException If any header or parameter is invalid.
+     */
+    private void doAllowedHeadersAndParamsValidation(List<String> allowedHeaders, List<String> allowedParameters)
+            throws ActionMgtClientException {
+
+        for (String header : allowedHeaders) {
+            ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, header);
+            ACTION_VALIDATOR.validateHeader(header);
+        }
+
+        for (String param : allowedParameters) {
+            ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, param);
+            ACTION_VALIDATOR.validateParameter(param);
+        }
+    }
+
+    /**
+     * Builds an `ActionDTO` object based on the provided action type, action ID, and action model.
+     * This method resolves the action type and status, applies necessary transformations, and constructs
+     * the `ActionDTO` object using the provided data.
+     *
+     * @param actionType The type of the action.
+     * @param actionId The unique identifier for the action.
+     * @param action The action model containing details for the action.
+     * @return The constructed `ActionDTO` object.
+     */
     private ActionDTO buildActionDTO(String actionType, String actionId, Action action) {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
         Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.IN_FLOW ?
                 Action.Status.ACTIVE : Action.Status.INACTIVE;
 
-        ActionConverter actionConverter =
-                ActionConverterFactory.getActionConverter(Action.ActionTypes.valueOf(actionType));
+        ActionConverter actionConverter = ActionConverterFactory.getActionConverter(
+                Action.ActionTypes.valueOf(actionType));
+
+        EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
+
         if (actionConverter != null) {
             ActionDTO actionDTO = actionConverter.buildActionDTO(action);
 
+            if (actionDTO.getEndpoint().getAllowedHeaders() != null) {
+                endpointConfigBuilder.allowedHeaders(actionDTO.getEndpoint().getAllowedHeaders());
+            }
+            if (actionDTO.getEndpoint().getAllowedParameters() != null) {
+                // URLEncode the request params. RFC 3986.
+                List<String> encodedAllowedParams = encodeAllowedParameters(
+                        actionDTO.getEndpoint().getAllowedParameters());
+                endpointConfigBuilder.allowedParameters(encodedAllowedParams);
+            }
+            actionDTO = new ActionDTOBuilder(actionDTO)
+                    .endpoint(endpointConfigBuilder.build())
+                    .build();
             return new ActionDTOBuilder(actionDTO)
                     .id(actionId)
                     .type(resolvedActionType)
@@ -417,6 +489,19 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                     .build();
         }
 
+        if (action.getEndpoint().getAllowedHeaders() != null) {
+            endpointConfigBuilder.allowedHeaders(action.getEndpoint().getAllowedHeaders());
+        }
+        if (action.getEndpoint().getAllowedParameters() != null) {
+            // URLEncode the request params. RFC 3986.
+            List<String> encodedAllowedParams = encodeAllowedParameters(action.getEndpoint().getAllowedParameters());
+            endpointConfigBuilder.allowedParameters(encodedAllowedParams);
+        }
+        action = new Action.ActionRequestBuilder()
+                .name(action.getName())
+                .description(action.getDescription())
+                .rule(action.getActionRule())
+                .endpoint(endpointConfigBuilder.build()).build();
         return new ActionDTOBuilder(action)
                 .id(actionId)
                 .type(resolvedActionType)
