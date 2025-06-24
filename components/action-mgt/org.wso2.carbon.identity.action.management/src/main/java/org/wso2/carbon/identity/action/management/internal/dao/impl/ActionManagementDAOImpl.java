@@ -317,8 +317,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             endpoint.getAuthentication().getProperties().forEach(
                     authProperty -> endpointProperties.put(authProperty.getName(),
                             new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
-            endpointProperties.put(ALLOWED_HEADERS_PROPERTY, createActionProperty(endpoint.getAllowedHeaders()));
-            endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY, createActionProperty(endpoint.getAllowedParameters()));
+            endpointProperties.put(ALLOWED_HEADERS_PROPERTY, buildActionPropertyFromList(endpoint.getAllowedHeaders()));
+            endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY, buildActionPropertyFromList(endpoint.getAllowedParameters()));
             addActionPropertiesToDB(actionDTO.getId(), endpointProperties, tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while adding Action Endpoint configurations in the system.", e);
@@ -332,7 +332,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @return An ActionProperty object containing the JSON representation of the attributes.
      * @throws ActionMgtServerException If an error occurs while converting the attributes to a JSON string.
      */
-    private ActionProperty createActionProperty(List<String> attributes) throws ActionMgtServerException {
+    private ActionProperty buildActionPropertyFromList(List<String> attributes) throws ActionMgtServerException {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -402,7 +402,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         Map<String, ActionProperty> endpointProperties = new HashMap<>();
         try {
             deleteActionPropertiesInDB(updatingActionId, Collections.singletonList(updatingPropertyKey), tenantId);
-            endpointProperties.put(updatingPropertyKey, createActionProperty(updatingValues));
+            endpointProperties.put(updatingPropertyKey, buildActionPropertyFromList(updatingValues));
             addActionPropertiesToDB(updatingActionId, endpointProperties, tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action's " +
@@ -440,8 +440,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 throw new ActionMgtServerException("Authentication type is not defined for the Action Endpoint.");
         }
 
-        List<String> allowedHeaders = getAllowedPropertiesList(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
-        List<String> allowedParameters = getAllowedPropertiesList(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
+        List<String> allowedHeaders = readHeadersAndParametersFromDB(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
+        List<String> allowedParameters = readHeadersAndParametersFromDB(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
 
         return new EndpointConfig.EndpointConfigBuilder()
                 .uri(propertiesFromDB.remove(URI_PROPERTY).getValue().toString())
@@ -452,24 +452,24 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     }
 
     /**
-     * Retrieves a list of allowed properties from the database based on the given property name.
+     * Read a list of allowed headers and parameters from the database based on the given property name.
      *
      * @param properties            A map of action properties retrieved from the database.
-     * @param propertyKeyToRead     The name of the property to read from the database.
+     * @param dbPropertyToRead     The name of the property to read from the database.
      * @return A list of allowed properties as strings.
      * @throws ActionMgtServerException If an error occurs while reading the property from the database.
      */
-    private List<String> getAllowedPropertiesList(Map<String, ActionProperty> properties,
-                                                  String propertyKeyToRead) throws ActionMgtServerException {
+    private List<String> readHeadersAndParametersFromDB(Map<String, ActionProperty> properties,
+                                                        String dbPropertyToRead) throws ActionMgtServerException {
 
-        Object allowedHeaders = properties.remove(propertyKeyToRead).getValue();
+        Object allowedHeaders = properties.remove(dbPropertyToRead).getValue();
         String allowedHeaderJson = ((BinaryObject) allowedHeaders).getJSONString();
 
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue(allowedHeaderJson, new TypeReference<List<String>>() { });
         } catch (JsonProcessingException e) {
-            throw new ActionMgtServerException("Error while reading" + propertyKeyToRead + " from the database.");
+            throw new ActionMgtServerException("Error while reading" + dbPropertyToRead + " from the database.");
         }
     }
 
