@@ -61,6 +61,7 @@ public class ClaimConstants {
     public static final String FLOW_INITIATOR = "FlowInitiator";
     public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT =
             "ExternalClaimAdditionNotAllowedForDialect";
+    public static final String DATA_TYPE_PROPERTY = "dataType";
     public static final String MULTI_VALUED_PROPERTY = "multiValued";
     public static final String SUB_ATTRIBUTES_PROPERTY = "subAttributes";
     public static final String SUB_ATTRIBUTE_PREFIX = "subAttribute.";
@@ -149,6 +150,18 @@ public class ClaimConstants {
         public String getMessage() {
             return message;
         }
+    }
+
+    /**
+     * Enum for data types of claims.
+     */
+    public enum ClaimDataType {
+        STRING,
+        INTEGER,
+        DECIMAL,
+        BOOLEAN,
+        DATE_TIME,
+        COMPLEX
     }
 
     /**
