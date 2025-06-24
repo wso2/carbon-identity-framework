@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.model;
+package org.wso2.carbon.identity.webhook.management.api.model.webhook;
 
 /**
  * Enum for webhook status.
@@ -29,7 +29,17 @@ public enum WebhookStatus {
     ACTIVE,
 
     /**
+     * At least one of the subscriptions of the webhook is failed.
+     */
+    PENDING_ACTIVATION,
+
+    /**
      * Webhook is inactive and will not receive events.
      */
-    INACTIVE
+    INACTIVE,
+
+    /**
+     * At least one of the subscriptions of the webhook is failed to unsubscribe.
+     */
+    PENDING_DEACTIVATION
 }

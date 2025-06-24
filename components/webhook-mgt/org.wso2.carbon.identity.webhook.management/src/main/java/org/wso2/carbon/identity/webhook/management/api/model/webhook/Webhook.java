@@ -16,10 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.model;
+package org.wso2.carbon.identity.webhook.management.api.model.webhook;
 
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 
 import java.sql.Timestamp;
@@ -42,7 +43,7 @@ public class Webhook {
     private final WebhookStatus status;
     private final Timestamp createdAt;
     private final Timestamp updatedAt;
-    private List<String> eventsSubscribed;
+    private List<Subscription> eventsSubscribed;
 
     private Webhook(Builder builder) {
 
@@ -109,7 +110,7 @@ public class Webhook {
         return updatedAt;
     }
 
-    public List<String> getEventsSubscribed() throws WebhookMgtException {
+    public List<Subscription> getEventsSubscribed() throws WebhookMgtException {
 
         if (eventsSubscribed != null) {
             return eventsSubscribed;
@@ -164,7 +165,7 @@ public class Webhook {
         private WebhookStatus status;
         private Timestamp createdAt;
         private Timestamp updatedAt;
-        private List<String> eventsSubscribed = new ArrayList<>();
+        private List<Subscription> eventsSubscribed = new ArrayList<>();
 
         public Builder uuid(String uuid) {
 
@@ -226,13 +227,13 @@ public class Webhook {
             return this;
         }
 
-        public Builder eventsSubscribed(List<String> eventsSubscribed) {
+        public Builder eventsSubscribed(List<Subscription> eventsSubscribed) {
 
             this.eventsSubscribed = eventsSubscribed != null ? new ArrayList<>(eventsSubscribed) : new ArrayList<>();
             return this;
         }
 
-        public Builder addEventSubscribed(String event) {
+        public Builder addEventSubscribed(Subscription event) {
 
             this.eventsSubscribed.add(event);
             return this;

@@ -24,7 +24,9 @@ import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCache;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheEntry;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheKey;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.webhook.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.webhook.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 
 import java.util.Collections;
@@ -79,7 +81,7 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     }
 
     @Override
-    public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
+    public List<Subscription> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
 
         WebhookCacheEntry webhookCacheEntry = webhookCache.getValueFromCache(new WebhookCacheKey(webhookId), tenantId);
         if (webhookCacheEntry != null && webhookCacheEntry.getWebhook() != null &&
@@ -133,18 +135,29 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     }
 
     @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public void activateWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
+                                String webhookEndpoint) throws WebhookMgtException {
 
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhookId), tenantId);
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhookId + " for webhook activate.");
-        webhookManagementDAO.activateWebhook(webhookId, tenantId);
+        webhookManagementDAO.activateWebhook(webhookId, tenantId, channels, status, webhookEndpoint);
     }
 
     @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public void deactivateWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
+                                  String webhookEndpoint) throws WebhookMgtException {
 
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhookId), tenantId);
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhookId + " for webhook deactivate.");
-        webhookManagementDAO.deactivateWebhook(webhookId, tenantId);
+        webhookManagementDAO.deactivateWebhook(webhookId, tenantId, channels, status, webhookEndpoint);
+    }
+
+    @Override
+    public void retryWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
+                             String webhookEndpoint) throws WebhookMgtException {
+
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhookId), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhookId + " for webhook retry.");
+        webhookManagementDAO.retryWebhook(webhookId, tenantId, channels, status, webhookEndpoint);
     }
 }

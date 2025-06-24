@@ -29,18 +29,19 @@ import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementEx
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
-import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
+import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.subscription.SubscriptionStatus;
+import org.wso2.carbon.identity.webhook.management.api.model.webhook.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.webhook.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretProcessor;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR;
 
@@ -67,19 +68,47 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         EventSubscriberService subscriberService = getSubscriberService();
+        try {
+            ensureTopicsExist(webhook.getEventsSubscribed(), tenantDomain);
+        } catch (TopicManagementException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR, e);
+        }
 
-        withTopicRegistrationIfActive(jdbcTemplate, webhook, tenantDomain, tenantId,
-                ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR);
-
+        Webhook webhookToPersist;
         if (webhook.getStatus() == WebhookStatus.ACTIVE) {
-            safeSubscribe(subscriberService, webhook, tenantDomain, webhook.getEventsSubscribed(),
-                    ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR);
+            List<Subscription> subscriptions = subscriberService.subscribe(
+                    ADAPTOR, webhook.getEventsSubscribed(), EVENT_PROFILE_VERSION,
+                    webhook.getEndpoint(), webhook.getSecret(), tenantDomain);
+
+            boolean allError = subscriptions.stream()
+                    .allMatch(s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
+
+            if (allError) {
+                throw WebhookManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR);
+            } else {
+                webhookToPersist = new Webhook.Builder()
+                        .uuid(webhook.getUuid())
+                        .endpoint(webhook.getEndpoint())
+                        .name(webhook.getName())
+                        .secret(webhook.getSecret())
+                        .tenantId(webhook.getTenantId())
+                        .eventProfileName(webhook.getEventProfileName())
+                        .eventProfileUri(webhook.getEventProfileUri())
+                        .status(WebhookStatus.PENDING_ACTIVATION)
+                        .createdAt(webhook.getCreatedAt())
+                        .updatedAt(webhook.getUpdatedAt())
+                        .eventsSubscribed(subscriptions)
+                        .build();
+            }
+        } else {
+            webhookToPersist = webhook;
         }
 
         runTransaction(jdbcTemplate,
-                () -> webhookManagementDAO.createWebhook(encryptAddingWebhookSecrets(webhook), tenantId),
+                () -> webhookManagementDAO.createWebhook(encryptAddingWebhookSecrets(webhookToPersist), tenantId),
                 ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR,
-                "creating webhook: " + webhook.getUuid() + " in tenant ID: " + tenantId, null);
+                "creating webhook: " + webhook.getUuid() + " in tenant ID: " + tenantId);
     }
 
     @Override
@@ -95,54 +124,21 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     }
 
     @Override
-    public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
+    public List<Subscription> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
 
         return webhookManagementDAO.getWebhookEvents(webhookId, tenantId);
-    }
-
-    @Override
-    public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        EventSubscriberService subscriberService = getSubscriberService();
-
-        withTopicRegistrationIfActive(jdbcTemplate, webhook, tenantDomain, tenantId,
-                ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR);
-
-        Webhook existingWebhook =
-                getWebhookWithDecryptedSecretValue(webhookManagementDAO.getWebhook(webhook.getUuid(), tenantId));
-        handleWebhookUpdate(subscriberService, webhook, existingWebhook, tenantDomain);
-
-        runTransaction(jdbcTemplate,
-                () -> webhookManagementDAO.updateWebhook(encryptAddingWebhookSecrets(webhook), tenantId),
-                ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR,
-                "updating webhook: " + webhook.getUuid() + " in tenant ID: " + tenantId, () -> {
-                    if (WebhookStatus.ACTIVE.equals(webhook.getStatus())) {
-                        unsubscribeWebhook(subscriberService, webhook, tenantDomain, webhook.getEventsSubscribed());
-                    }
-                });
     }
 
     @Override
     public void deleteWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        EventSubscriberService subscriberService = getSubscriberService();
-
         runTransaction(jdbcTemplate, () -> {
                     Webhook existingWebhook = webhookManagementDAO.getWebhook(webhookId, tenantId);
-                    try {
-                        unsubscribeWebhook(subscriberService, existingWebhook, tenantDomain,
-                                existingWebhook.getEventsSubscribed());
-                    } catch (WebhookMgtException e) {
-                        LOG.warn("Error unsubscribing webhook during deletion: " + existingWebhook.getUuid(), e);
-                    }
                     webhookManagementDAO.deleteWebhook(webhookId, tenantId);
                     deleteWebhookSecrets(existingWebhook);
                 }, ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR,
-                "deleting webhook: " + webhookId + " in tenant ID: " + tenantId, null);
+                "deleting webhook: " + webhookId + " in tenant ID: " + tenantId);
     }
 
     @Override
@@ -152,30 +148,137 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     }
 
     @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public void activateWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
+                                String webhookEndpoint) throws WebhookMgtException {
 
-        toggleWebhookStatus(webhookId, tenantId, true);
+        processSubscriptions(
+                webhookId, tenantId, channels, webhookEndpoint,
+                SubscriptionActionType.SUBSCRIBE,
+                s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_PENDING
+                        || s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR
+                        || s.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED,
+                ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ERROR,
+                updatedSubs -> webhookManagementDAO.deactivateWebhook(
+                        webhookId, tenantId, updatedSubs, WebhookStatus.PENDING_ACTIVATION, webhookEndpoint),
+                true
+        );
     }
 
     @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public void deactivateWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
+                                  String webhookEndpoint) throws WebhookMgtException {
 
-        toggleWebhookStatus(webhookId, tenantId, false);
+        processSubscriptions(
+                webhookId, tenantId, channels, webhookEndpoint,
+                SubscriptionActionType.UNSUBSCRIBE,
+                s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ACCEPTED,
+                ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR,
+                updatedSubs -> webhookManagementDAO.deactivateWebhook(
+                        webhookId, tenantId, updatedSubs, WebhookStatus.PENDING_DEACTIVATION, webhookEndpoint),
+                false
+        );
+    }
+
+    @Override
+    public void retryWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
+                             String webhookEndpoint) throws WebhookMgtException {
+
+        if (status == WebhookStatus.PENDING_ACTIVATION) {
+            processSubscriptions(
+                    webhookId, tenantId, channels, webhookEndpoint,
+                    SubscriptionActionType.SUBSCRIBE,
+                    s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR
+                            || s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ACCEPTED,
+                    ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_ERROR,
+                    updatedSubs -> webhookManagementDAO.retryWebhook(
+                            webhookId, tenantId, updatedSubs, WebhookStatus.PENDING_ACTIVATION, webhookEndpoint),
+                    true
+            );
+        } else if (status == WebhookStatus.PENDING_DEACTIVATION) {
+            processSubscriptions(
+                    webhookId, tenantId, channels, webhookEndpoint,
+                    SubscriptionActionType.UNSUBSCRIBE,
+                    s -> s.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED
+                            || s.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR,
+                    ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_ERROR,
+                    updatedSubs -> webhookManagementDAO.retryWebhook(
+                            webhookId, tenantId, updatedSubs, WebhookStatus.PENDING_DEACTIVATION, webhookEndpoint),
+                    false
+            );
+        }
+    }
+
+    // --- Helper for subscription/unsubscription processing ---
+
+    private enum SubscriptionActionType { SUBSCRIBE, UNSUBSCRIBE }
+
+    @FunctionalInterface
+    private interface SubscriptionUpdater {
+
+        void update(List<Subscription> updatedSubscriptions) throws WebhookMgtException;
+    }
+
+    private void processSubscriptions(String webhookId, int tenantId, List<Subscription> channels,
+                                      String webhookEndpoint, SubscriptionActionType actionType,
+                                      Predicate<Subscription> filterPredicate, ErrorMessage errorMessage,
+                                      SubscriptionUpdater updater, boolean isSubscribe) throws WebhookMgtException {
+
+        EventSubscriberService subscriberService = getSubscriberService();
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+
+        List<Subscription> filtered = channels.stream()
+                .filter(filterPredicate)
+                .collect(Collectors.toList());
+
+        List<Subscription> allResults;
+        if (actionType == SubscriptionActionType.SUBSCRIBE) {
+            allResults = subscriberService.subscribe(
+                    ADAPTOR, filtered, EVENT_PROFILE_VERSION,
+                    webhookEndpoint, getWebhookDecryptedSecretValue(webhookId), tenantDomain);
+        } else {
+            allResults = subscriberService.unsubscribe(
+                    ADAPTOR, filtered, EVENT_PROFILE_VERSION,
+                    webhookEndpoint, tenantDomain);
+        }
+
+        boolean allError = !allResults.isEmpty() && allResults.stream()
+                .allMatch(r -> (actionType == SubscriptionActionType.SUBSCRIBE)
+                        ? r.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR
+                        : r.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR);
+
+        if (allError) {
+            if (isSubscribe) {
+                throw WebhookManagementExceptionHandler.handleClientException(errorMessage);
+            } else {
+                throw WebhookManagementExceptionHandler.handleServerException(errorMessage, webhookId);
+            }
+        } else {
+            List<Subscription> updatedSubscriptions = channels.stream()
+                    .map(sub -> allResults.stream()
+                            .filter(r -> r.getChannelUri().equals(sub.getChannelUri()))
+                            .findFirst()
+                            .orElse(sub))
+                    .collect(Collectors.toList());
+            updater.update(updatedSubscriptions);
+        }
     }
 
     /**
-     * Encrypts the webhook secret and adds it to the webhook object.
-     *
-     * @param webhook Webhook object.
-     * @return Webhook with encrypted secrets.
-     * @throws WebhookMgtException If an error occurs while encrypting the webhook secrets.
+     * Not implemented yet.
+     * Update a webhook subscription in the database.
      */
+    @Override
+    public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
+
+        LOG.debug("Update webhook operation is not implemented yet. " +
+                "Please use createWebhook method to update the webhook: " + webhook.getUuid());
+    }
+
     private Webhook encryptAddingWebhookSecrets(Webhook webhook) throws WebhookMgtException {
 
         try {
             String encryptedSecretAlias = webhookSecretProcessor.encryptAssociatedSecrets(
                     webhook.getUuid(), webhook.getSecret());
-
             return addSecretOrAliasToBuilder(webhook, encryptedSecretAlias);
         } catch (SecretManagementException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
@@ -183,12 +286,6 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         }
     }
 
-    /**
-     * Deletes the authentication secrets associated with the webhook.
-     *
-     * @param webhook Webhook object.
-     * @throws WebhookMgtException If an error occurs while deleting the authentication secrets.
-     */
     private void deleteWebhookSecrets(Webhook webhook) throws WebhookMgtException {
 
         try {
@@ -199,69 +296,6 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         }
     }
 
-    public Webhook getWebhookWithDecryptedSecretValue(Webhook webhook) throws WebhookMgtException {
-
-        try {
-            String decryptedSecret = webhookSecretProcessor.decryptAssociatedSecrets(webhook.getUuid());
-            return addSecretOrAliasToBuilder(webhook, decryptedSecret);
-        } catch (SecretManagementException e) {
-            throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR, e, webhook.getUuid());
-        }
-    }
-
-    private void toggleWebhookStatus(String webhookId, int tenantId, boolean activate) throws WebhookMgtException {
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        EventSubscriberService subscriberService = getSubscriberService();
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        Webhook existingWebhook = webhookManagementDAO.getWebhook(webhookId, tenantId);
-
-        if ((activate && existingWebhook.getStatus() == WebhookStatus.ACTIVE) ||
-                (!activate && existingWebhook.getStatus() == WebhookStatus.INACTIVE)) {
-            LOG.debug("Webhook with ID: " + webhookId + " is already " + (activate ? "active" : "inactive") +
-                    " in tenant ID: " + tenantId);
-            return;
-        }
-
-        try {
-            if (activate) {
-                subscribeWebhook(subscriberService, existingWebhook, tenantDomain,
-                        existingWebhook.getEventsSubscribed());
-            } else {
-                unsubscribeWebhook(subscriberService, existingWebhook, tenantDomain,
-                        existingWebhook.getEventsSubscribed());
-            }
-        } catch (WebhookMgtException e) {
-            throw WebhookManagementExceptionHandler.handleClientException(
-                    activate ? ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ERROR :
-                            ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR, webhookId);
-        }
-
-        runTransaction(jdbcTemplate, () -> {
-                    if (activate) {
-                        webhookManagementDAO.activateWebhook(webhookId, tenantId);
-                    } else {
-                        webhookManagementDAO.deactivateWebhook(webhookId, tenantId);
-                    }
-                }, activate ? ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ERROR :
-                        ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR,
-                (activate ? "activating" : "deactivating") + " webhook: " + webhookId + " in tenant ID: " + tenantId,
-                () -> {
-                    try {
-                        if (activate) {
-                            unsubscribeWebhook(subscriberService, existingWebhook, tenantDomain,
-                                    existingWebhook.getEventsSubscribed());
-                        } else {
-                            subscribeWebhook(subscriberService, existingWebhook, tenantDomain,
-                                    existingWebhook.getEventsSubscribed());
-                        }
-                    } catch (WebhookMgtException ignore) {
-                        // Already logged in subscribe/unsubscribe
-                    }
-                });
-    }
-
     // --- Helper methods below ---
 
     private EventSubscriberService getSubscriberService() {
@@ -269,103 +303,15 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         return WebhookManagementComponentServiceHolder.getInstance().getEventSubscriberService();
     }
 
-    private void ensureTopicsExist(List<String> events, String tenantDomain) throws TopicManagementException {
+    private void ensureTopicsExist(List<Subscription> events, String tenantDomain) throws TopicManagementException {
 
         TopicManagementService topicManagementService =
                 WebhookManagementComponentServiceHolder.getInstance().getTopicManagementService();
-        for (String event : events) {
-            if (!topicManagementService.isTopicExists(event, EVENT_PROFILE_VERSION, tenantDomain)) {
-                topicManagementService.registerTopic(event, EVENT_PROFILE_VERSION, tenantDomain);
+        for (Subscription event : events) {
+            if (!topicManagementService.isTopicExists(event.getChannelUri(), EVENT_PROFILE_VERSION, tenantDomain)) {
+                topicManagementService.registerTopic(event.getChannelUri(), EVENT_PROFILE_VERSION, tenantDomain);
             }
         }
-    }
-
-    private void rollbackTopicsExist(List<String> events, String tenantDomain) throws TopicManagementException {
-
-        TopicManagementService topicManagementService =
-                WebhookManagementComponentServiceHolder.getInstance().getTopicManagementService();
-        for (String event : events) {
-            if (!topicManagementService.isTopicExists(event, EVENT_PROFILE_VERSION, tenantDomain)) {
-                topicManagementService.deregisterTopic(event, EVENT_PROFILE_VERSION, tenantDomain);
-            }
-        }
-    }
-
-    private void subscribeWebhook(EventSubscriberService subscriberService, Webhook webhook, String tenantDomain,
-                                  List<String> events) throws WebhookMgtException {
-
-        subscriberService.subscribe(webhook.getUuid(), ADAPTOR, events, EVENT_PROFILE_VERSION, webhook.getEndpoint(),
-                webhook.getSecret(), tenantDomain);
-    }
-
-    private void unsubscribeWebhook(EventSubscriberService subscriberService, Webhook webhook, String tenantDomain,
-                                    List<String> events) throws WebhookMgtException {
-
-        subscriberService.unsubscribe(webhook.getUuid(), ADAPTOR, events, EVENT_PROFILE_VERSION, webhook.getEndpoint(),
-                tenantDomain);
-    }
-
-    private void handleWebhookUpdate(EventSubscriberService subscriberService, Webhook newWebhook, Webhook oldWebhook,
-                                     String tenantDomain) throws WebhookMgtException {
-
-        List<String> oldEvents = oldWebhook.getEventsSubscribed();
-        List<String> newEvents = newWebhook.getEventsSubscribed();
-        Set<String> oldSet = new HashSet<>(oldEvents);
-        Set<String> newSet = new HashSet<>(newEvents);
-
-        if (WebhookStatus.ACTIVE.equals(newWebhook.getStatus())) {
-            if (!newWebhook.getStatus().equals(oldWebhook.getStatus())) {
-                safeSubscribe(subscriberService, oldWebhook, tenantDomain, oldEvents,
-                        ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR);
-            } else if (!oldSet.equals(newSet) || !Objects.equals(newWebhook.getEndpoint(), oldWebhook.getEndpoint()) ||
-                    !newWebhook.getSecret().equals(oldWebhook.getSecret())) {
-                safeUnsubscribe(subscriberService, oldWebhook, tenantDomain, oldWebhook.getEventsSubscribed(),
-                        ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR);
-                try {
-                    //TODO: Onboard polling mechanism to verify the existing subscriber status
-                    Thread.sleep(2000); // Wait for 2 seconds to ensure unsubscription is processed
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    LOG.warn("Thread interrupted while waiting for unsubscription to complete.", e);
-                }
-                try {
-                    subscribeWebhook(subscriberService, newWebhook, tenantDomain, newWebhook.getEventsSubscribed());
-                } catch (WebhookMgtException e) {
-                    subscribeWebhook(subscriberService, oldWebhook, tenantDomain, oldWebhook.getEventsSubscribed());
-                    throw WebhookManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR, e);
-                }
-            }
-        } else if (!newWebhook.getStatus().equals(oldWebhook.getStatus())) {
-            safeUnsubscribe(subscriberService, oldWebhook, tenantDomain,
-                    oldWebhook.getEventsSubscribed(), ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR);
-        }
-    }
-
-    /**
-     * Helper to register topics if webhook is ACTIVE, with rollback on failure.
-     */
-    private void withTopicRegistrationIfActive(NamedJdbcTemplate jdbcTemplate, Webhook webhook, String tenantDomain,
-                                               int tenantId, ErrorMessage errorMessage) throws WebhookMgtException {
-
-        runTransaction(jdbcTemplate, () -> {
-                    if (webhook.getStatus() == WebhookStatus.ACTIVE) {
-                        try {
-                            ensureTopicsExist(webhook.getEventsSubscribed(), tenantDomain);
-                        } catch (TopicManagementException e) {
-                            throw WebhookManagementExceptionHandler.handleServerException(errorMessage, e);
-                        }
-                    }
-                }, errorMessage,
-                "registering topics for webhook: " + webhook.getUuid() + " in tenant ID: " + tenantId, () -> {
-                    if (WebhookStatus.ACTIVE.equals(webhook.getStatus())) {
-                        try {
-                            rollbackTopicsExist(webhook.getEventsSubscribed(), tenantDomain);
-                        } catch (TopicManagementException e) {
-                            LOG.error("Error during rollback of topics: ", e);
-                        }
-                    }
-                });
     }
 
     // --- Utility methods ---
@@ -377,7 +323,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     }
 
     private void runTransaction(NamedJdbcTemplate jdbcTemplate, WebhookRunnable action, ErrorMessage errorMessage,
-                                String debugMsg, WebhookRunnable onError) throws WebhookMgtException {
+                                String debugMsg) throws WebhookMgtException {
 
         try {
             jdbcTemplate.withTransaction(template -> {
@@ -388,45 +334,10 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
             if (debugMsg != null) {
                 LOG.debug("Error " + debugMsg, e);
             }
-            if (onError != null) {
-                try {
-                    onError.run();
-                } catch (Exception ex) {
-                    LOG.error("Error during rollback/cleanup: ", ex);
-                }
-            }
             throw WebhookManagementExceptionHandler.handleServerException(errorMessage, e);
         }
     }
 
-    private void safeSubscribe(EventSubscriberService subscriberService, Webhook webhook, String tenantDomain,
-                               List<String> events, ErrorMessage errorMessage) throws WebhookMgtException {
-
-        try {
-            subscribeWebhook(subscriberService, webhook, tenantDomain, events);
-        } catch (WebhookMgtException e) {
-            throw WebhookManagementExceptionHandler.handleServerException(errorMessage, e);
-        }
-    }
-
-    private void safeUnsubscribe(EventSubscriberService subscriberService, Webhook webhook, String tenantDomain,
-                                 List<String> events, ErrorMessage errorMessage) throws WebhookMgtException {
-
-        try {
-            unsubscribeWebhook(subscriberService, webhook, tenantDomain, events);
-        } catch (WebhookMgtException e) {
-            throw WebhookManagementExceptionHandler.handleServerException(errorMessage, e);
-        }
-    }
-
-    /**
-     * Adds a secret alias to the builder.
-     *
-     * @param webhook     Webhook object.
-     * @param secretAlias Secret alias (encrypted or plain).
-     * @return Webhook with the secret alias added.
-     * @throws WebhookMgtException If an error occurs while adding the secret alias.
-     */
     private Webhook addSecretOrAliasToBuilder(Webhook webhook, String secretAlias)
             throws WebhookMgtException {
 
@@ -443,5 +354,15 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 .updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed())
                 .build();
+    }
+
+    public String getWebhookDecryptedSecretValue(String webhookId) throws WebhookMgtException {
+
+        try {
+            return webhookSecretProcessor.decryptAssociatedSecrets(webhookId);
+        } catch (SecretManagementException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR, e, webhookId);
+        }
     }
 }

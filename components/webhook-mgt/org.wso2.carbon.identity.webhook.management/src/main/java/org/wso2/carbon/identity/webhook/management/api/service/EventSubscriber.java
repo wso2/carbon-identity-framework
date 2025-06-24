@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.api.service;
 
-import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
 
 import java.util.List;
 
@@ -44,11 +44,10 @@ public interface EventSubscriber {
      * @param endpoint            The endpoint URL to which the webhook will send notifications.
      * @param secret              The secret key for authentication.
      * @param tenantDomain        Tenant domain.
-     * @throws WebhookMgtException If an error occurs during subscription.
+     * @return List of subscriptions created for the specified channels.
      */
-    void subscribe(List<String> channels, String eventProfileVersion, String endpoint, String secret,
-                   String tenantDomain)
-            throws WebhookMgtException;
+    List<Subscription> subscribe(List<String> channels, String eventProfileVersion, String endpoint, String secret,
+                                 String tenantDomain);
 
     /**
      * Unsubscribe a webhook from the external system.
@@ -57,8 +56,8 @@ public interface EventSubscriber {
      * @param eventProfileVersion The version of the event profile to use.
      * @param endpoint            The endpoint URL from which the webhook will stop sending notifications.
      * @param tenantDomain        Tenant domain.
-     * @throws WebhookMgtException If an error occurs during unsubscription.
+     * @return List of subscriptions that were successfully unsubscribed.
      */
-    void unsubscribe(List<String> channels, String eventProfileVersion, String endpoint, String tenantDomain)
-            throws WebhookMgtException;
+    List<Subscription> unsubscribe(List<String> channels, String eventProfileVersion, String endpoint,
+                                   String tenantDomain);
 }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.webhook.management.internal.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
@@ -115,7 +116,7 @@ public class WebhookValidator {
      * @param channelsSubscribed Channels subscribed.
      * @throws WebhookMgtException if the channels subscribed is not valid.
      */
-    public void validateChannelsSubscribed(String eventProfile, List<String> channelsSubscribed)
+    public void validateChannelsSubscribed(String eventProfile, List<Subscription> channelsSubscribed)
             throws WebhookMgtException {
 
         if (channelsSubscribed == null || channelsSubscribed.isEmpty()) {
@@ -138,9 +139,9 @@ public class WebhookValidator {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ERROR_INVALID_WEBHOOK_REQUEST_FIELD, CHANNELS_SUBSCRIBED_FIELD);
         }
-        for (String channel : channelsSubscribed) {
+        for (Subscription channel : channelsSubscribed) {
             boolean isValidChannel = retrievedEventProfile.getChannels().stream()
-                    .anyMatch(c -> c.getUri().equalsIgnoreCase(channel));
+                    .anyMatch(c -> c.getUri().equalsIgnoreCase(channel.getChannelUri()));
             if (!isValidChannel) {
                 throw WebhookManagementExceptionHandler.handleClientException(
                         ERROR_INVALID_WEBHOOK_REQUEST_FIELD, CHANNELS_SUBSCRIBED_FIELD);

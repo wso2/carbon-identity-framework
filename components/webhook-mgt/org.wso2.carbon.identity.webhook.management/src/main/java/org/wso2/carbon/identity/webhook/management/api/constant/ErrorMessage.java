@@ -45,9 +45,11 @@ public enum ErrorMessage {
     ERROR_INVALID_WEBHOOK_REQUEST_FIELD("WEBHOOKMGT-60012", "Invalid request.",
             "%s is invalid."),
     ERROR_CODE_WEBHOOK_ALREADY_ACTIVE("WEBHOOKMGT-60013", "Webhook already active",
-            "The webhook: %s is already active and cannot be activated again."),
+            "The webhook: %s is already active and request accepted."),
     ERROR_CODE_WEBHOOK_ALREADY_INACTIVE("WEBHOOKMGT-60014", "Webhook already inactive",
-            "The webhook: %s is already inactive and cannot be deactivated again."),
+            "The webhook: %s is already inactive and request accepted."),
+    ERROR_CODE_WEBHOOK_RETRY_ERROR("WEBHOOKMGT-60015", "Webhook retry error",
+            "An error occurred while retrying the webhook: %s."),
 
     // Server errors (65xxx range) | Remaining codes are continued in API layer.
     // Continuation of server error codes can be found in the Webhook Management API layer as well.
@@ -96,7 +98,15 @@ public enum ErrorMessage {
     ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DELETE_ERROR("WEBHOOKMGT-65021", "Webhook endpoint secret delete error",
             "An error occurred while deleting the webhook: %s endpoint secret."),
     ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR("WEBHOOKMGT-65022", "Webhook endpoint secret decryption error",
-            "An error occurred while decrypting the webhook: %s endpoint secret.");
+            "An error occurred while decrypting the webhook: %s endpoint secret."),
+    ERROR_CODE_WEBHOOK_DELETE_NOT_ALLOWED_ERROR("WEBHOOKMGT-65023", "Webhook deletion not allowed",
+            "The webhook: %s cannot be deleted in this state."),
+    ERROR_CODE_WEBHOOK_ACTIVATION_NOT_ALLOWED_ERROR("WEBHOOKMGT-65024", "Webhook activation not allowed",
+            "The webhook: %s cannot be activated in this state."),
+    ERROR_CODE_WEBHOOK_DEACTIVATION_NOT_ALLOWED_ERROR("WEBHOOKMGT-65025", "Webhook deactivation not allowed",
+            "The webhook: %s cannot be deactivated in this state."),
+    ERROR_CODE_WEBHOOK_RETRY_STATUS_UPDATE_ERROR("WEBHOOKMGT-65026", "Webhook retry status update error",
+            "An error occurred while updating the retry status of the webhook: %s.");
 
     private final String code;
     private final String message;
