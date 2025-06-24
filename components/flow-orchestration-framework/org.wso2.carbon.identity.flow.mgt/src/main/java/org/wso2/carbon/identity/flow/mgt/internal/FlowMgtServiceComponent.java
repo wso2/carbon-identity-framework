@@ -25,8 +25,16 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
+/**
+ * OSGi declarative services component which handles registration and un-registration of flow management service.
+ */
 @Component(
         name = "flow.mgt.component",
         immediate = true)
@@ -37,7 +45,7 @@ public class FlowMgtServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        try{
+        try {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(FlowMgtService.class.getName(),
                     FlowMgtService.getInstance(), null);
@@ -53,5 +61,37 @@ public class FlowMgtServiceComponent {
         BundleContext bundleCtx = context.getBundleContext();
         bundleCtx.ungetService(bundleCtx.getServiceReference(FlowMgtService.class));
         LOG.debug("Flow Management bundle is deactivated.");
+    }
+
+    @Reference(
+            name = "organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        FlowMgtServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        FlowMgtServiceDataHolder.getInstance().setOrganizationManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service",
+            service = OrgResourceResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrgResourceResolverService")
+    protected void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        FlowMgtServiceDataHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
+    }
+
+    protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        FlowMgtServiceDataHolder.getInstance().setOrgResourceResolverService(null);
     }
 }

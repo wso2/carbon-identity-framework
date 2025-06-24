@@ -18,14 +18,16 @@
 
 package org.wso2.carbon.identity.flow.mgt.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * DTO class for Flow.
  */
-public class FlowDTO {
+public class FlowDTO implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private List<StepDTO> steps = new ArrayList<>();
     private String flowType;
 

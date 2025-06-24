@@ -18,20 +18,39 @@
 
 package org.wso2.carbon.identity.flow.mgt.utils;
 
-import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.ENABLE_V2_AUDIT_LOGS;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.cache.BaseCache;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.Constants.ErrorMessages;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtClientException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
+import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.ENABLE_V2_AUDIT_LOGS;
+
+/**
+ * Utility class for flow management operations.
+ * This class provides methods to handle exceptions, manage audit logs, and clear cache entries.
+ */
 public class FlowMgtUtils {
+
+    private static final Log LOG = LogFactory.getLog(FlowMgtUtils.class);
 
     private FlowMgtUtils() {
 
@@ -151,5 +170,41 @@ public class FlowMgtUtils {
             user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         return user;
+    }
+
+    /**
+     * Clear the cache entry for the given cache key and tenant ID,
+     * and recursively clear entries in all child organizations.
+     *
+     * @param cacheKey  The cache key to clear.
+     * @param baseCache The base cache to clear the entry from.
+     * @param tenantId  The tenant ID for which the cache entry should be cleared.
+     * @param <K>       Type of the cache key.
+     * @param <V>       Type of the cache value.
+     * @throws FlowMgtServerException If an error occurs while clearing the cache.
+     */
+    public static <K extends Serializable, V extends Serializable> void clearCache(
+            K cacheKey, BaseCache<K, V> baseCache, int tenantId) throws FlowMgtServerException {
+
+        try {
+            baseCache.clearCacheEntry(cacheKey, tenantId);
+            OrganizationManager organizationManager =
+                    FlowMgtServiceDataHolder.getInstance().getOrganizationManager();
+            String orgId = organizationManager.resolveOrganizationId(IdentityTenantUtil.getTenantDomain(tenantId));
+            List<String> childOrgIds = organizationManager.getChildOrganizationsIds(orgId);
+            CompletableFuture.runAsync(() -> {
+                for (String childOrgId : childOrgIds) {
+                    try {
+                        String tenantDomain = organizationManager.resolveTenantDomain(childOrgId);
+                        baseCache.clear(tenantDomain);
+                    } catch (OrganizationManagementException e) {
+                        LOG.warn("Failed to clear the cache entry for organization: " + childOrgId, e);
+                    }
+                }
+            });
+        } catch (OrganizationManagementException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CLEAR_CACHE_FAILED, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
     }
 }
