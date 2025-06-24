@@ -145,6 +145,8 @@ public class PreUpdatePasswordActionRequestBuilderTest {
                 {buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
                 {buildMockedFlow(Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD, Flow.InitiatingPersona.ADMIN),
+                        PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
+                {buildMockedFlow(Flow.Name.INVITED_USER_REGISTRATION, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN}
         };
     }
