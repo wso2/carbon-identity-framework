@@ -35,9 +35,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ALLOW_SYSTEM_PREFIX_FOR_ROLES;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
@@ -164,7 +162,7 @@ public class RoleManagementUtils {
         try {
             List<Scope> scopes = RoleManagementServiceComponentHolder.getInstance().getApiResourceManager().
                     getScopesByTenantDomain(tenantDomain, "");
-            List<String> scopeNameList = new ArrayList<>();
+            Set<String> scopeNameList = new HashSet<>();
             for (Scope scope : scopes) {
                 scopeNameList.add(scope.getName());
             }
