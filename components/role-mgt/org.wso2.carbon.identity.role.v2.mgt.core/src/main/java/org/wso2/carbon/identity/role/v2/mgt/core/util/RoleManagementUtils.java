@@ -35,10 +35,10 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
-import java.util.Locale;
-import java.util.List;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ALLOW_SYSTEM_PREFIX_FOR_ROLES;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
@@ -170,7 +170,6 @@ public class RoleManagementUtils {
                 scopeNameList.add(scope.getName());
             }
             for (Permission permission : permissions) {
-
                 if (!scopeNameList.contains(permission.getName())) {
                     throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
                             "Permission: " + permission.getName() + " not found");
