@@ -131,7 +131,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 audience = ORGANIZATION;
                 audienceId = RoleManagementUtils.getOrganizationIdByTenantDomain(tenantDomain);
             }
-            RoleManagementUtils.validatePermissions(permissions, audience, audienceId, tenantDomain);
+            RoleManagementUtils.validatePermissions(permissions, audience, tenantDomain);
             RoleBasicInfo roleBasicInfo = roleDAO.addRole(roleName, userList, groupList, permissions, audience,
                     audienceId, tenantDomain);
             roleManagementEventPublisherProxy.publishPostAddRole(roleBasicInfo.getId(), roleName, userList, groupList,
@@ -654,8 +654,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                         roleBasicInfo.getAudience(), roleBasicInfo.getAudienceId(), tenantDomain);
             }
         }
-        RoleManagementUtils.validatePermissions(
-                addedPermissions, roleBasicInfo.getAudience(), roleBasicInfo.getAudienceId(), tenantDomain);
+        RoleManagementUtils.validatePermissions(addedPermissions, roleBasicInfo.getAudience(), tenantDomain);
         roleDAO.updatePermissionListOfRole(roleId, addedPermissions,
                 deletedPermissions, tenantDomain);
         roleManagementEventPublisherProxy.publishPostUpdatePermissionsForRole(roleId, addedPermissions,

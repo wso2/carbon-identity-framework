@@ -186,12 +186,11 @@ public class RoleManagementUtils {
      *
      * @param permissions  Permissions.
      * @param audience     Audience.
-     * @param audienceId   Audience ID.
      * @param tenantDomain Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while validating permissions.
      */
-    public static void validatePermissions(List<Permission> permissions, String audience, String audienceId,
-                                           String tenantDomain) throws IdentityRoleManagementException {
+    public static void validatePermissions(List<Permission> permissions, String audience, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         if (audience.equals(ORGANIZATION)) {
             RoleManagementUtils.validatePermissionsForOrganization(permissions, tenantDomain);
