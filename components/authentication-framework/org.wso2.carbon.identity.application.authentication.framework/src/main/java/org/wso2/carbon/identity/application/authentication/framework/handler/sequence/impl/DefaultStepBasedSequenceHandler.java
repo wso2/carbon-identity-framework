@@ -493,7 +493,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
         // Get the subject from previously stored query string.
         if (requestedSubject == null) {
-            requestedSubject = extractFromQueryParams(request, context);
+            requestedSubject = extractFromQueryParams(context);
         }
 
         // Get the subject from session context.
@@ -531,7 +531,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         return null;
     }
 
-    private String extractFromQueryParams(HttpServletRequest request, AuthenticationContext context) {
+    private String extractFromQueryParams(AuthenticationContext context) {
 
         String queryString = context.getQueryParams();
         if (StringUtils.isNotBlank(queryString)) {
@@ -540,7 +540,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 String[] keyValue = pair.split("=", 2);
                 String key = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8);
                 if (REQUESTED_SUBJECT.equals(key)) {
-                    return keyValue.length > 1 ? URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8) : null;
+                    String requestedSubject = keyValue.length > 1 ?
+                            URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8) : null;
+                    return "null".equals(requestedSubject) ? null : requestedSubject;
                 }
             }
         }

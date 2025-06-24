@@ -4751,8 +4751,7 @@ public class FrameworkUtils {
             }
 
             if (useUserStoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
-                subjectIdentifier = IdentityUtil.addDomainToName(subjectIdentifier,
-                        userStoreDomain);
+                subjectIdentifier = IdentityUtil.addDomainToName(subjectIdentifier, userStoreDomain);
             }
             if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain) &&
                     StringUtils.countMatches(subjectIdentifier,
