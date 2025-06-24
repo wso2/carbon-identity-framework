@@ -21,15 +21,29 @@ package org.wso2.carbon.identity.role.v2.mgt.core.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
+import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ALLOW_SYSTEM_PREFIX_FOR_ROLES;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
 /**
  * Util class for role management functionality.
@@ -70,7 +84,7 @@ public class RoleManagementUtils {
     /**
      * Checks whether the given role is a shared role in the given tenant domain.
      *
-     * @param roleId The role ID.
+     * @param roleId       The role ID.
      * @param tenantDomain The tenant domain.
      * @return Whether the role is a shared role or not.
      * @throws IdentityRoleManagementException If an error occurs while checking the shared role.
@@ -89,5 +103,98 @@ public class RoleManagementUtils {
     public static boolean isAllowSystemPrefixForRole() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(ALLOW_SYSTEM_PREFIX_FOR_ROLES));
+    }
+
+    /**
+     * Get organization ID by tenantDomain.
+     *
+     * @param tenantDomain tenantDomain.
+     * @throws IdentityRoleManagementException Error occurred while retrieving organization id.
+     */
+    public static String getOrganizationIdByTenantDomain(String tenantDomain) throws IdentityRoleManagementException {
+
+        try {
+            return RoleManagementServiceComponentHolder.getInstance().
+                    getOrganizationManager().resolveOrganizationId(tenantDomain);
+
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the organization id for the given tenantDomain: "
+                    + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Validate organization role audience.
+     *
+     * @param audienceId               Audience ID.
+     * @param roleCreationTenantDomain Role creation tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while validating organization role audience.
+     */
+    public static void validateOrganizationRoleAudience(String audienceId, String roleCreationTenantDomain)
+            throws IdentityRoleManagementException {
+
+        try {
+            OrganizationManager organizationManager = RoleManagementServiceComponentHolder.getInstance().
+                    getOrganizationManager();
+            String orgIdOfTenantDomain = organizationManager.resolveOrganizationId(roleCreationTenantDomain);
+            if (orgIdOfTenantDomain == null || !orgIdOfTenantDomain.equalsIgnoreCase(audienceId)) {
+                throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                        "Invalid audience. Given Organization id: " + audienceId + " is invalid");
+            }
+            if (!organizationManager.isOrganizationExistById(audienceId)) {
+                throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                        "Invalid audience. No organization found with organization id: " + audienceId);
+            }
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while checking the organization exist by id : " + audienceId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Validate permissions for organization audience.
+     *
+     * @param permissions Permissions.
+     * @throws IdentityRoleManagementException Error occurred while validating permissions.
+     */
+    public static void validatePermissionsForOrganization(List<Permission> permissions, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        try {
+            List<Scope> scopes = RoleManagementServiceComponentHolder.getInstance().getApiResourceManager().
+                    getScopesByTenantDomain(tenantDomain, "");
+            List<String> scopeNameList = new ArrayList<>();
+            for (Scope scope : scopes) {
+                scopeNameList.add(scope.getName());
+            }
+            for (Permission permission : permissions) {
+
+                if (!scopeNameList.contains(permission.getName())) {
+                    throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
+                            "Permission: " + permission.getName() + " not found");
+                }
+            }
+        } catch (APIResourceMgtException e) {
+            throw new IdentityRoleManagementException("Error while retrieving scopes", "Error while retrieving scopes "
+                    + "for tenantDomain: " + tenantDomain, e);
+        }
+    }
+
+    /**
+     * Validate permissions.
+     *
+     * @param permissions  Permissions.
+     * @param audience     Audience.
+     * @param audienceId   Audience ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while validating permissions.
+     */
+    public static void validatePermissions(List<Permission> permissions, String audience, String audienceId,
+                                           String tenantDomain) throws IdentityRoleManagementException {
+
+        if (audience.equals(ORGANIZATION)) {
+            RoleManagementUtils.validatePermissionsForOrganization(permissions, tenantDomain);
+        }
     }
 }
