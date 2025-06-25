@@ -364,6 +364,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
             doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
         }
+        if (action.getEndpoint() != null) {
+            doAllowedHeadersAndParamsValidation(action.getEndpoint().getAllowedHeaders(),
+                    action.getEndpoint().getAllowedParameters());
+        }
     }
 
     /**
@@ -412,6 +416,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      */
     private void doAllowedHeadersAndParamsValidation(List<String> allowedHeaders, List<String> allowedParameters)
             throws ActionMgtClientException {
+
+        if (allowedHeaders == null && allowedParameters == null) {
+            return;
+        }
 
         for (String header : allowedHeaders) {
             ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, header);
