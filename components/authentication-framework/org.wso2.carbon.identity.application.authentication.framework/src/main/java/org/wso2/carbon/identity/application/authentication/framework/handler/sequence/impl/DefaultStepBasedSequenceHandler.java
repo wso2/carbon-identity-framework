@@ -33,11 +33,14 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -50,6 +53,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.utils.DiagnosticLog;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,6 +66,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.REQUESTED_SUBJECT;
 
 /**
  * Default implementation of step based sequence handler.
@@ -246,6 +252,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
 
         boolean isAuthenticatorExecuted = false;
+        ImpersonatedUser impersonatedUser = null;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
@@ -255,6 +262,13 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 continue;
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
+
+            // If requested subject exist that means this is an impersonation requested.
+            // Therefore, resolve the impersonated user for future references.
+            String requestedSubject = resolveRequestedSubject(request, context);
+            if (StringUtils.isNotBlank(requestedSubject)) {
+                impersonatedUser = getImpersonatedUser(requestedSubject, context, stepConfig.getAuthenticatedUser());
+            }
 
             if (!(authenticator instanceof AuthenticationFlowHandler)) {
                 isAuthenticatorExecuted = true;
@@ -399,6 +413,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     mappedAttrs = handleClaimMappings(stepConfig, context, null, false);
                     handleRoleMapping(context, sequenceConfig, mappedAttrs);
                     authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
+
+                    if (StringUtils.isNotBlank(requestedSubject)) {
+                        handleImpersonatedUserClaimMappings(impersonatedUser, sequenceConfig.getApplicationConfig(),
+                                context.getRequestType(), context.getTenantDomain());
+                    }
                 }
             }
         }
@@ -426,7 +445,108 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
         if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+            sequenceConfig.getAuthenticatedUser().setImpersonatedUser(impersonatedUser);
         }
+    }
+
+    /**
+     * This method handles the claim mappings for the impersonated user.
+     * <p>
+     * The stepConfig, sequenceConfig, and authentication context are mocked with the required details
+     * and passed to the method to avoid any modification to the original variables.
+     * The handleClaimMappings method should be improved so that the exact values set in the method can be
+     * directly passed and get the claim mappings.
+     *
+     * @param impersonatedUser  the impersonated user object
+     * @param applicationConfig the application configuration
+     * @param requestType       the request type (e.g., OIDC, SAML, etc.)
+     * @param tenantDomain      the tenant domain of the impersonated user
+     * @throws FrameworkException if an error occurs while handling claim mappings
+     */
+    private void handleImpersonatedUserClaimMappings(ImpersonatedUser impersonatedUser,
+                                                     ApplicationConfig applicationConfig, String requestType,
+                                                     String tenantDomain) throws FrameworkException {
+
+        // Prepare stepConfig.
+        StepConfig stepConfig = new StepConfig();
+        stepConfig.setAuthenticatedUser(impersonatedUser);
+        stepConfig.setSubjectAttributeStep(true);
+        // Prepare sequenceConfig.
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        sequenceConfig.setApplicationConfig(applicationConfig);
+        // Prepare authentication context.
+        AuthenticationContext context = new AuthenticationContext();
+        context.setSequenceConfig(sequenceConfig);
+        context.setRequestType(requestType);
+        context.setTenantDomain(tenantDomain);
+
+        Map<String, String> mappedAttributes = handleClaimMappings(stepConfig, context,
+                null, false);
+        handleRoleMapping(context, sequenceConfig, mappedAttributes);
+        impersonatedUser.setUserAttributes(FrameworkUtils.buildClaimMappings(mappedAttributes));
+    }
+
+    private String resolveRequestedSubject(HttpServletRequest request, AuthenticationContext context) {
+
+        // Get the subject from request params.
+        String requestedSubject = request.getParameter(REQUESTED_SUBJECT);
+
+        // Get the subject from previously stored query string.
+        if (requestedSubject == null) {
+            requestedSubject = extractFromQueryParams(context);
+        }
+
+        // Get the subject from session context.
+        if (requestedSubject == null) {
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(),
+                    context.getLoginTenantDomain());
+            if (sessionContext != null && sessionContext.getImpersonatedUser() != null) {
+                requestedSubject = sessionContext.getImpersonatedUser();
+            }
+        }
+
+        return requestedSubject;
+    }
+
+    private ImpersonatedUser getImpersonatedUser(String requestedSubject, AuthenticationContext context,
+                                                 AuthenticatedUser impersonatingActor)
+            throws FrameworkException {
+
+        if (context.getSequenceConfig() != null && context.getSequenceConfig().getApplicationConfig() != null) {
+
+            String tenantDomain = context.getTenantDomain();
+            String accessingOrganization = impersonatingActor.getAccessingOrganization();
+            String userResidentOrganization = impersonatingActor.getUserResidentOrganization();
+            ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
+
+            try {
+                // Create an impersonated user object using the requested subject.
+                return new ImpersonatedUser(
+                        FrameworkUtils.getImpersonatedUser(requestedSubject, tenantDomain,
+                                accessingOrganization, userResidentOrganization, applicationConfig));
+            } catch (UserIdNotFoundException e) {
+                throw new FrameworkException("User ID not found for the impersonated user: " + requestedSubject, e);
+            }
+        }
+        return null;
+    }
+
+    private String extractFromQueryParams(AuthenticationContext context) {
+
+        String queryString = context.getQueryParams();
+        if (StringUtils.isNotBlank(queryString)) {
+            String[] pairs = queryString.split("&");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=", 2);
+                String key = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8);
+                if (REQUESTED_SUBJECT.equals(key)) {
+                    String requestedSubject = keyValue.length > 1 ?
+                            URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8) : null;
+                    return "null".equals(requestedSubject) ? null : requestedSubject;
+                }
+            }
+        }
+        return null;
     }
 
     /**
