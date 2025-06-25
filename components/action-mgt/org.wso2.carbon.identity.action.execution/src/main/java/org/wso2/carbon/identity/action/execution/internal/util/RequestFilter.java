@@ -74,11 +74,11 @@ public class RequestFilter {
      * Only an allowed list of headers can be configured per action. At server level, both allowed headers and
      * excluded headers can be configured. Excluded headers configured at the server level are removed from
      * any allowed headers defined at either the server level or the action level.
-     * @param parameters Request parameters.
+     * @param headers Request headers.
      * @param actionType Action type.
      * @param action Action.
-     * @return A list of filtered parameters.
-     * @throws IllegalStateException If both allowed and excluded parameter configurations are present at the server level.
+     * @return A list of filtered headers.
+     * @throws IllegalStateException If both allowed and excluded parameter are configured at server level.
      */
     public static List<Header> getFilteredHeaders(List<Header> headers, ActionType actionType, Action action) {
 
@@ -159,7 +159,7 @@ public class RequestFilter {
      * @param actionType Action type.
      * @param action Action.
      * @return A list of filtered parameters.
-     * @throws IllegalStateException If both allowed and excluded parameter configurations are present at the server level.
+     * @throws IllegalStateException If both allowed and excluded parameter are configured at server-level.
      */
     public static List<Param> getFilteredParams(List<Param> parameters, ActionType actionType, Action action) {
 
