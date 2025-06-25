@@ -80,7 +80,7 @@ public class AssociationDAO {
 
     /**
      * @param associationDTO
-     * @throws InternalWorkflowException
+     * @throws InternalWorkflowException, WorkflowClientException
      */
     public void updateAssociation(Association associationDTO)
             throws InternalWorkflowException, WorkflowClientException {
@@ -243,7 +243,7 @@ public class AssociationDAO {
     /**
      * @param associationId
      * @return
-     * @throws InternalWorkflowException
+     * @throws InternalWorkflowException, WorkflowClientException
      */
     public Association getAssociation(String associationId) throws InternalWorkflowException, WorkflowClientException {
 
