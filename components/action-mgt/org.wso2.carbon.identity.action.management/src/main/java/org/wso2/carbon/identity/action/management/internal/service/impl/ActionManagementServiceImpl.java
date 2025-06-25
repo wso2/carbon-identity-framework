@@ -39,9 +39,6 @@ import org.wso2.carbon.identity.action.management.internal.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -370,25 +367,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     /**
-     * Encodes a list of allowed parameters using URL encoding.
-     * Each parameter is encoded using UTF-8 character encoding.
-     *
-     * @param params List of parameters to encode.
-     * @return List of encoded parameters.
-     * @throws RuntimeException If UTF-8 encoding is not supported.
-     */
-    private List<String> encodeAllowedParameters(List<String> params) {
-
-        return params.stream().map(param -> {
-            try {
-                return URLEncoder.encode(param, StandardCharsets.UTF_8.name());
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
-        }).collect(Collectors.toList());
-    }
-
-    /**
      * Perform pre validations on endpoint authentication model.
      *
      * @param authentication Endpoint authentication model.
@@ -476,10 +454,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 endpointConfigBuilder.allowedHeaders(actionDTO.getEndpoint().getAllowedHeaders());
             }
             if (actionDTO.getEndpoint().getAllowedParameters() != null) {
-                // URLEncode the request params. RFC 3986.
-                List<String> encodedAllowedParams = encodeAllowedParameters(
-                        actionDTO.getEndpoint().getAllowedParameters());
-                endpointConfigBuilder.allowedParameters(encodedAllowedParams);
+                endpointConfigBuilder.allowedParameters(actionDTO.getEndpoint().getAllowedParameters());
             }
             actionDTO = new ActionDTOBuilder(actionDTO)
                     .endpoint(endpointConfigBuilder.build())
@@ -495,9 +470,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             endpointConfigBuilder.allowedHeaders(action.getEndpoint().getAllowedHeaders());
         }
         if (action.getEndpoint().getAllowedParameters() != null) {
-            // URLEncode the request params. RFC 3986.
-            List<String> encodedAllowedParams = encodeAllowedParameters(action.getEndpoint().getAllowedParameters());
-            endpointConfigBuilder.allowedParameters(encodedAllowedParams);
+            endpointConfigBuilder.allowedParameters(action.getEndpoint().getAllowedParameters());
         }
         action = new Action.ActionRequestBuilder()
                 .name(action.getName())
