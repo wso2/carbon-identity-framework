@@ -465,7 +465,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionConverter actionConverter = ActionConverterFactory.getActionConverter(
                 Action.ActionTypes.valueOf(actionType));
 
-        EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
+        EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder()
+                .uri(action.getEndpoint().getUri())
+                .authentication(action.getEndpoint().getAuthentication());
 
         if (actionConverter != null) {
             ActionDTO actionDTO = actionConverter.buildActionDTO(action);

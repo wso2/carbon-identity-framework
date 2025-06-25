@@ -318,7 +318,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     authProperty -> endpointProperties.put(authProperty.getName(),
                             new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
             endpointProperties.put(ALLOWED_HEADERS_PROPERTY, buildActionPropertyFromList(endpoint.getAllowedHeaders()));
-            endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY, buildActionPropertyFromList(endpoint.getAllowedParameters()));
+            endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY, buildActionPropertyFromList(
+                    endpoint.getAllowedParameters()));
             addActionPropertiesToDB(actionDTO.getId(), endpointProperties, tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while adding Action Endpoint configurations in the system.", e);
