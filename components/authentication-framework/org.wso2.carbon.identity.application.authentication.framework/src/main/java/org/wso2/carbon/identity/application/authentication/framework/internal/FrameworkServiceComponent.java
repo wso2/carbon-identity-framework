@@ -59,6 +59,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.app
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.impl.AppAssociatedRolesResolverImpl;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.orgdiscovery.OrganizationDiscoveryService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
@@ -1133,5 +1134,24 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
         log.debug("UserDefinedAuthenticatorService unset in FrameworkServiceComponent bundle.");
+    }
+
+    @Reference(
+            name = "org.discovery.service",
+            service = OrganizationDiscoveryService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationDiscoveryService"
+    )
+    protected void setOrganizationDiscoveryService(OrganizationDiscoveryService organizationDiscoveryService) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationDiscoveryService(organizationDiscoveryService);
+        log.debug("OrganizationDiscoveryService set in FrameworkServiceComponent bundle.");
+    }
+
+    protected void unsetOrganizationDiscoveryService(OrganizationDiscoveryService organizationDiscoveryService) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationDiscoveryService(null);
+        log.debug("OrganizationDiscoveryService unset in FrameworkServiceComponent bundle.");
     }
 }

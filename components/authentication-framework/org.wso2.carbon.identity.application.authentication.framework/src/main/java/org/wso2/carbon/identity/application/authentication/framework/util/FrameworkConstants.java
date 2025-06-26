@@ -814,6 +814,22 @@ public abstract class FrameworkConstants {
     }
 
     /**
+     * Constants related to Organization Discovery Input parameters.
+     */
+    public static class OrganizationDiscoveryInputParameters {
+
+        public static final String ORG_ID = "orgId";
+        public static final String ORG_HANDLE = "orgHandle";
+        public static final String ORG_NAME = "org";
+        public static final String LOGIN_HINT = "login_hint";
+        public static final String ORG_DISCOVERY_TYPE = "orgDiscoveryType";
+
+        private OrganizationDiscoveryInputParameters() {
+
+        }
+    }
+
+    /**
      * Enum for authenticator param type.
      */
     public enum AuthenticatorParamType {

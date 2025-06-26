@@ -109,6 +109,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -215,6 +216,11 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_IDP_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.LOGIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.ORG_HANDLE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.ORG_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
@@ -4796,5 +4802,23 @@ public class FrameworkUtils {
 
         IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.STEP_ID);
         IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR);
+    }
+
+    /**
+     * Build OrganizationDiscoveryInput from request.
+     *
+     * @param request Http Servlet Request.
+     * @return OrganizationDiscoveryInput object.
+     */
+    public static OrganizationDiscoveryInput getOrganizationDiscoveryInput(HttpServletRequest request) {
+
+        return new OrganizationDiscoveryInput.Builder()
+                .orgId(request.getParameter(ORG_ID))
+                .orgHandle(request.getParameter(ORG_HANDLE))
+                .orgName(request.getParameter(ORG_NAME))
+                .loginHint(request.getParameter(LOGIN_HINT))
+                .orgDiscoveryType(request.getParameter(ORG_DISCOVERY_TYPE))
+                .build();
+
     }
 }
