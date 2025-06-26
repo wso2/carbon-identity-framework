@@ -145,7 +145,7 @@ public class ActionValidator {
 
         filterOutExcludedHeaders(allowedHeaders);
         for (String header : allowedHeaders) {
-            validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, header);
+            validateForBlank(ActionMgtConstants.ALLOWED_HEADERS_FIELD, header);
             validateHeader(header);
         }
     }
@@ -165,7 +165,7 @@ public class ActionValidator {
 
         filterOutExcludedParameters(allowedParameters);
         for (String param : allowedParameters) {
-            validateForBlank(ActionMgtConstants.ALLOWED_PARAMETERS, param);
+            validateForBlank(ActionMgtConstants.ALLOWED_PARAMETERS_FIELD, param);
             validateParameter(param);
         }
     }
@@ -185,7 +185,7 @@ public class ActionValidator {
         if (hasExcluded) {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ALLOWED_HEADERS);
+                    ActionMgtConstants.ALLOWED_HEADERS_FIELD);
         }
     }
 
@@ -204,7 +204,7 @@ public class ActionValidator {
         if (hasExcluded) {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ALLOWED_PARAMETERS);
+                    ActionMgtConstants.ALLOWED_PARAMETERS_FIELD);
         }
     }
 
@@ -263,7 +263,7 @@ public class ActionValidator {
         boolean isValidHeader = headerRegexPattern.matcher(header).matches();
         if (!isValidHeader) {
             throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.API_KEY_HEADER_FIELD);
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.HEADER_NAME_FIELD);
         }
     }
 
@@ -280,7 +280,7 @@ public class ActionValidator {
         if (hasGeneralDelimiters) {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ALLOWED_PARAMETERS);
+                    ActionMgtConstants.ALLOWED_PARAMETERS_FIELD);
         }
     }
 
