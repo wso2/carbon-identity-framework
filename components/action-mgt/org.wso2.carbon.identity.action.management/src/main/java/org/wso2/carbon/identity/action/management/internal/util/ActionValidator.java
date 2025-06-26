@@ -165,7 +165,7 @@ public class ActionValidator {
 
         filterOutExcludedParameters(allowedParameters);
         for (String param : allowedParameters) {
-            validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, param);
+            validateForBlank(ActionMgtConstants.ALLOWED_PARAMETERS, param);
             validateParameter(param);
         }
     }

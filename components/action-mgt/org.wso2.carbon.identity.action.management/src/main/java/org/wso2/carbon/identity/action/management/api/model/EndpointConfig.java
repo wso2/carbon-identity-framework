@@ -89,14 +89,13 @@ public class EndpointConfig {
 
         public EndpointConfigBuilder allowedHeaders(List<String> allowedHeaders) {
 
-            this.allowedHeaders = (allowedHeaders == null) ? Collections.emptyList() :
-                    Collections.unmodifiableList(allowedHeaders);
+            this.allowedHeaders = (allowedHeaders == null) ? null : Collections.unmodifiableList(allowedHeaders);
             return this;
         }
 
         public EndpointConfigBuilder allowedParameters(List<String> allowedParameters) {
 
-            this.allowedParameters = (allowedParameters == null) ? Collections.emptyList() :
+            this.allowedParameters = (allowedParameters == null) ? null :
                     Collections.unmodifiableList(allowedParameters);
             return this;
         }

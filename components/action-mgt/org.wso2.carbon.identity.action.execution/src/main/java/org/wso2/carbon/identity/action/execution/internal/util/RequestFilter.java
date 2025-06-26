@@ -23,14 +23,10 @@ import org.wso2.carbon.identity.action.execution.api.model.Header;
 import org.wso2.carbon.identity.action.execution.api.model.Param;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -98,21 +94,12 @@ public class RequestFilter {
         } else if (hasServerAllowedHeaders) {
             allAllowedHeadersSet.addAll(serverAllowedHeaders);
         }
-        // Removes excluded headers from configured allowed headers.
-        for (String header : serverExcludedHeaders) {
-            allAllowedHeadersSet.remove(header);
-        }
 
-        // Filters request headers by checking if the header key is configured in the allowed list of headers.
-        Collection<Header> filteredHeaders = headers.stream()
-                .map(reqHeader -> new AbstractMap.SimpleEntry<>(reqHeader.getName().toLowerCase(Locale.ROOT),
-                        reqHeader))
-                .filter(entry -> allAllowedHeadersSet.contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (first, second) -> first, LinkedHashMap::new))
-                .values();
-
-        return new ArrayList<>(filteredHeaders);
+        // Filter out excluded headers configured at server level.
+        allAllowedHeadersSet.removeAll(serverExcludedHeaders);
+        return headers.stream()
+                .filter(header -> allAllowedHeadersSet.contains(header.getName().toLowerCase(Locale.ROOT)))
+                .collect(Collectors.toList());
     }
 
     public static List<Param> getFilteredParams(List<Param> params, ActionType actionType) {
@@ -171,20 +158,11 @@ public class RequestFilter {
         } else if (hasServerAllowedParams) {
             allAllowedParamsSet.addAll(serverAllowedParams);
         }
-        // Removes excluded parameters from configured allowed parameters.
-        for (String param : serverExcludedParams) {
-            allAllowedParamsSet.remove(param);
-        }
 
-        // Filters request parameters by checking if the param name is configured in the allowed list of parameters.
-        Collection<Param> filteredParams = params.stream()
-                .map(reqParam -> new AbstractMap.SimpleEntry<>(reqParam.getName().toLowerCase(Locale.ROOT),
-                        reqParam))
-                .filter(entry -> allAllowedParamsSet.contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (first, second) -> first, LinkedHashMap::new))
-                .values();
-
-        return new ArrayList<>(filteredParams);
+        // Filter out excluded parameters configured at server level.
+        allAllowedParamsSet.removeAll(serverExcludedParams);
+        return params.stream()
+                .filter(header -> allAllowedParamsSet.contains(header.getName().toLowerCase(Locale.ROOT)))
+                .collect(Collectors.toList());
     }
 }

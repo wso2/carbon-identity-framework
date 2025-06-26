@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.action.management.internal.dao.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -37,6 +34,7 @@ import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.internal.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
+import org.wso2.carbon.identity.action.management.internal.util.ActionManagementDAOUtil;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
@@ -61,6 +59,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private static final String ALLOWED_HEADERS_PROPERTY = "allowedHeaders";
     private static final String ALLOWED_PARAMETERS_PROPERTY = "allowedParameters";
     private static final String RULE_PROPERTY = "rule";
+
+    private static final ActionManagementDAOUtil actionMgtDAOUtil = new ActionManagementDAOUtil();
 
     @Override
     public void addAction(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
@@ -317,31 +317,13 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             endpoint.getAuthentication().getProperties().forEach(
                     authProperty -> endpointProperties.put(authProperty.getName(),
                             new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
-            endpointProperties.put(ALLOWED_HEADERS_PROPERTY, buildActionPropertyFromList(endpoint.getAllowedHeaders()));
-            endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY, buildActionPropertyFromList(
-                    endpoint.getAllowedParameters()));
+            endpointProperties.put(ALLOWED_HEADERS_PROPERTY,
+                    actionMgtDAOUtil.buildActionPropertyFromList(endpoint.getAllowedHeaders()));
+            endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY,
+                    actionMgtDAOUtil.buildActionPropertyFromList(endpoint.getAllowedParameters()));
             addActionPropertiesToDB(actionDTO.getId(), endpointProperties, tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while adding Action Endpoint configurations in the system.", e);
-        }
-    }
-
-    /**
-     * Creates an ActionProperty object from a list of attributes by converting them into a JSON string.
-     *
-     * @param attributes List of attributes to be converted into an ActionProperty.
-     * @return An ActionProperty object containing the JSON representation of the attributes.
-     * @throws ActionMgtServerException If an error occurs while converting the attributes to a JSON string.
-     */
-    private ActionProperty buildActionPropertyFromList(List<String> attributes) throws ActionMgtServerException {
-
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            BinaryObject attributesBinaryObject = BinaryObject.fromJsonString(objectMapper
-                    .writeValueAsString(attributes));
-            return new ActionProperty.BuilderForDAO(attributesBinaryObject).build();
-        } catch (JsonProcessingException e) {
-            throw new ActionMgtServerException("Failed to convert object values to JSON string.", e);
         }
     }
 
@@ -360,54 +342,24 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         if (updatingEndpoint == null) {
             return;
         }
-
         try {
             if (updatingEndpoint.getUri() != null) {
                 updateActionPropertiesInDB(updatingActionDTO.getId(),
                         Collections.singletonMap(URI_PROPERTY, new ActionProperty.BuilderForDAO(
                                 updatingEndpoint.getUri()).build()), tenantId);
             }
-
             if (updatingEndpoint.getAllowedHeaders() != null) {
-                updateAllowedProperty(updatingActionDTO.getId(), ALLOWED_HEADERS_PROPERTY,
+                updateEndpointPropertiesInDB(updatingActionDTO.getId(), ALLOWED_HEADERS_PROPERTY,
                         updatingEndpoint.getAllowedHeaders(), tenantId);
             }
-
             if (updatingEndpoint.getAllowedParameters() != null) {
-                updateAllowedProperty(updatingActionDTO.getId(), ALLOWED_PARAMETERS_PROPERTY,
+                updateEndpointPropertiesInDB(updatingActionDTO.getId(), ALLOWED_PARAMETERS_PROPERTY,
                         updatingEndpoint.getAllowedParameters(), tenantId);
             }
-
             updateEndpointAuthentication(updatingActionDTO.getId(), updatingEndpoint.getAuthentication(),
                     existingActionDTO.getEndpoint().getAuthentication(), tenantId);
         } catch (ActionMgtException | TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action Endpoint information in the system.", e);
-        }
-    }
-
-    /**
-     * Updates the allowed properties (headers or parameters) for an action.
-     * This operation is treated as a PUT in the DAO layer, replacing the existing properties with the new ones.
-     *
-     * @param updatingActionId     Action ID.
-     * @param updatingPropertyKey  Key of the property being updated (e.g., allowedHeaders or allowedParameters).
-     * @param updatingValues       Updating values.
-     * @param tenantId             Tenant ID.
-     * @throws ActionMgtException  If an error occurs while updating the action properties in the database.
-     */
-    private void updateAllowedProperty(String updatingActionId,
-                                      String updatingPropertyKey,
-                                      List<String> updatingValues,
-                                      Integer tenantId) throws ActionMgtException {
-
-        Map<String, ActionProperty> endpointProperties = new HashMap<>();
-        try {
-            deleteActionPropertiesInDB(updatingActionId, Collections.singletonList(updatingPropertyKey), tenantId);
-            endpointProperties.put(updatingPropertyKey, buildActionPropertyFromList(updatingValues));
-            addActionPropertiesToDB(updatingActionId, endpointProperties, tenantId);
-        } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while updating Action's " +
-                    updatingPropertyKey + " in the system.", e);
         }
     }
 
@@ -440,9 +392,10 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             default:
                 throw new ActionMgtServerException("Authentication type is not defined for the Action Endpoint.");
         }
-
-        List<String> allowedHeaders = readHeadersAndParametersFromDB(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
-        List<String> allowedParameters = readHeadersAndParametersFromDB(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
+        List<String> allowedHeaders = actionMgtDAOUtil
+                .resolveListFromBinaryObject(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
+        List<String> allowedParameters = actionMgtDAOUtil
+                .resolveListFromBinaryObject(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
 
         return new EndpointConfig.EndpointConfigBuilder()
                 .uri(propertiesFromDB.remove(URI_PROPERTY).getValue().toString())
@@ -450,28 +403,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 .allowedHeaders(allowedHeaders)
                 .allowedParameters(allowedParameters)
                 .build();
-    }
-
-    /**
-     * Read a list of allowed headers and parameters from the database based on the given property name.
-     *
-     * @param properties            A map of action properties retrieved from the database.
-     * @param dbPropertyToRead     The name of the property to read from the database.
-     * @return A list of allowed properties as strings.
-     * @throws ActionMgtServerException If an error occurs while reading the property from the database.
-     */
-    private List<String> readHeadersAndParametersFromDB(Map<String, ActionProperty> properties,
-                                                        String dbPropertyToRead) throws ActionMgtServerException {
-
-        Object allowedHeaders = properties.remove(dbPropertyToRead).getValue();
-        String allowedHeaderJson = ((BinaryObject) allowedHeaders).getJSONString();
-
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.readValue(allowedHeaderJson, new TypeReference<List<String>>() { });
-        } catch (JsonProcessingException e) {
-            throw new ActionMgtServerException("Error while reading" + dbPropertyToRead + " from the database.");
-        }
     }
 
     /**
@@ -785,6 +716,29 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                 statement.addBatch();
                             }
                         }, null));
+    }
+
+    /**
+     * Update the list of values for a given properties of an {@link EndpointConfig}.
+     *
+     * @param updatingActionId   UUID of the Action to be updated.
+     * @param updatingPropertyKey Key of the property to be updated.
+     * @param updatingValues      List of new values for the property.
+     * @param tenantId            Tenant ID.
+     * @throws ActionMgtException If an error occurs while updating the property in the database.
+     */
+    private void updateEndpointPropertiesInDB(String updatingActionId, String updatingPropertyKey,
+                                              List<String> updatingValues, Integer tenantId) throws ActionMgtException {
+
+        Map<String, ActionProperty> endpointProperties = new HashMap<>();
+        try {
+            deleteActionPropertiesInDB(updatingActionId, Collections.singletonList(updatingPropertyKey), tenantId);
+            endpointProperties.put(updatingPropertyKey,
+                    actionMgtDAOUtil.buildActionPropertyFromList(updatingValues));
+            addActionPropertiesToDB(updatingActionId, endpointProperties, tenantId);
+        } catch (TransactionException e) {
+            throw new ActionMgtServerException("Error while updating " + updatingPropertyKey + e);
+        }
     }
 
     /**

@@ -32,6 +32,7 @@ public class ActionMgtConstants {
     public static final String API_KEY_HEADER_FIELD = "API key header name";
     public static final String API_KEY_VALUE_FIELD = "API key value";
     public static final String ALLOWED_HEADERS = "Allowed Headers";
+    public static final String ALLOWED_PARAMETERS = "Allowed Parameters";
 
     private ActionMgtConstants() {
     }
