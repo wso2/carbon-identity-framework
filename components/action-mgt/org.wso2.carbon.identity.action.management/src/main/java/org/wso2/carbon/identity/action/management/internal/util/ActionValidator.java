@@ -19,16 +19,12 @@
 package org.wso2.carbon.identity.action.management.internal.util;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
-import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -37,7 +33,7 @@ import java.util.regex.Pattern;
  */
 public class ActionValidator {
 
-    private static final Log LOG = LogFactory.getLog(ActionValidator.class);
+    private static final ActionManagementConfig ACTION_MGT_CONFIG = new ActionManagementConfig();
 
     private static final String ACTION_NAME_REGEX = "^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$";
     private static final String ENDPOINT_URI_REGEX = "^https?://[^\\s/$.?#]\\S*";
@@ -178,10 +174,9 @@ public class ActionValidator {
      */
     private void filterOutExcludedHeaders(List<String> allowedHeadersInAction) throws ActionMgtClientException {
 
-        List<String> excludedHeadersServerConfig = getPropertyValues(
-                ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
-        boolean hasExcluded = allowedHeadersInAction.stream()
-                .anyMatch(excludedHeadersServerConfig::contains);
+        List<String> excludedHeadersServerConfig = ACTION_MGT_CONFIG.getPropertyValues(
+                ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
+        boolean hasExcluded = allowedHeadersInAction.stream().anyMatch(excludedHeadersServerConfig::contains);
         if (hasExcluded) {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
@@ -197,8 +192,8 @@ public class ActionValidator {
      */
     private void filterOutExcludedParameters(List<String> allowedParametersInAction) throws ActionMgtClientException {
 
-        List<String> excludedParamsServerConfig = getPropertyValues(
-                ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
+        List<String> excludedParamsServerConfig = ACTION_MGT_CONFIG.getPropertyValues(
+                ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
         boolean hasExcluded = allowedParametersInAction.stream()
                 .anyMatch(excludedParamsServerConfig::contains);
         if (hasExcluded) {
@@ -281,63 +276,6 @@ public class ActionValidator {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
                     ActionMgtConstants.ALLOWED_PARAMETERS_FIELD);
-        }
-    }
-
-    /**
-     * Retrieves the property values for a given property key from the identity configuration of the server.
-     *
-     * @param propertyKey The key of the property to retrieve.
-     * @return A list of property values associated with the given key.
-     */
-    private List<String> getPropertyValues(String propertyKey) {
-
-        Object propertyValue = IdentityConfigParser.getInstance().getConfiguration().get(propertyKey);
-
-        if (propertyValue == null) {
-            return Collections.emptyList();
-        }
-
-        if (propertyValue instanceof String) {
-            return Collections.singletonList(propertyValue.toString());
-        }
-
-        if (propertyValue instanceof List) {
-            return (List<String>) propertyValue;
-        } else {
-            LOG.warn("Invalid system configuration for: " + propertyKey +
-                    " at /repository/conf/identity.xml. Expected a string list of values.");
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * Enum to hold the configuration properties for each action type.
-     */
-    private enum ActionTypeConfig {
-
-        PRE_ISSUE_ACCESS_TOKEN(
-                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter",
-                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header"
-        );
-
-        private final String excludedHeadersProperty;
-        private final String excludedParamsProperty;
-
-        ActionTypeConfig(String excludedHeadersProperty, String excludedParamsProperty) {
-
-            this.excludedHeadersProperty = excludedHeadersProperty;
-            this.excludedParamsProperty = excludedParamsProperty;
-        }
-
-        public String getExcludedHeadersProperty() {
-
-            return excludedHeadersProperty;
-        }
-
-        public String getExcludedParamsProperty() {
-
-            return excludedParamsProperty;
         }
     }
 }
