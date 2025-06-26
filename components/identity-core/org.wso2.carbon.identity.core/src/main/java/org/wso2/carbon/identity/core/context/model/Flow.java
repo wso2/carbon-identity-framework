@@ -59,6 +59,9 @@ public class Flow {
         FLOW_DEFINITIONS.put(Name.SESSION_REVOKE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
                         InitiatingPersona.SYSTEM));
+        // TODO Remove the deprecated flows once all usages are migrated.
+        FLOW_DEFINITIONS.put(Name.REGISTER_USER,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.USER_REGISTER,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
     }
