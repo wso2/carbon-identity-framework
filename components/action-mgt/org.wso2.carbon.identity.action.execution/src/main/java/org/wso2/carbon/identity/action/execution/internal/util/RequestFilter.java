@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  */
 public class RequestFilter {
 
+    @Deprecated
     public static List<Header> getFilteredHeaders(List<Header> headers, ActionType actionType) {
 
         List<Header> filteredHeaders = new ArrayList<>();
@@ -102,6 +103,7 @@ public class RequestFilter {
                 .collect(Collectors.toList());
     }
 
+    @Deprecated
     public static List<Param> getFilteredParams(List<Param> params, ActionType actionType) {
 
         List<Param> filteredParams = new ArrayList<>();

@@ -344,25 +344,11 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.IN_FLOW ?
                 Action.Status.ACTIVE : Action.Status.INACTIVE;
 
-        ActionConverter actionConverter = ActionConverterFactory.getActionConverter(
-                Action.ActionTypes.valueOf(actionType));
-
-        EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder()
-                .uri(action.getEndpoint().getUri())
-                .authentication(action.getEndpoint().getAuthentication());
-
+        ActionConverter actionConverter =
+                ActionConverterFactory.getActionConverter(Action.ActionTypes.valueOf(actionType));
         if (actionConverter != null) {
             ActionDTO actionDTO = actionConverter.buildActionDTO(action);
 
-            if (actionDTO.getEndpoint().getAllowedHeaders() != null) {
-                endpointConfigBuilder.allowedHeaders(actionDTO.getEndpoint().getAllowedHeaders());
-            }
-            if (actionDTO.getEndpoint().getAllowedParameters() != null) {
-                endpointConfigBuilder.allowedParameters(actionDTO.getEndpoint().getAllowedParameters());
-            }
-            actionDTO = new ActionDTOBuilder(actionDTO)
-                    .endpoint(endpointConfigBuilder.build())
-                    .build();
             return new ActionDTOBuilder(actionDTO)
                     .id(actionId)
                     .type(resolvedActionType)
@@ -370,17 +356,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                     .build();
         }
 
-        if (action.getEndpoint().getAllowedHeaders() != null) {
-            endpointConfigBuilder.allowedHeaders(action.getEndpoint().getAllowedHeaders());
-        }
-        if (action.getEndpoint().getAllowedParameters() != null) {
-            endpointConfigBuilder.allowedParameters(action.getEndpoint().getAllowedParameters());
-        }
-        action = new Action.ActionRequestBuilder()
-                .name(action.getName())
-                .description(action.getDescription())
-                .rule(action.getActionRule())
-                .endpoint(endpointConfigBuilder.build()).build();
         return new ActionDTOBuilder(action)
                 .id(actionId)
                 .type(resolvedActionType)

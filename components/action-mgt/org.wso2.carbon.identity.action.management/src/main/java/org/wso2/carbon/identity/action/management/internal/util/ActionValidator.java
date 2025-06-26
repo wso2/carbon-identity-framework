@@ -180,14 +180,13 @@ public class ActionValidator {
 
         List<String> excludedHeadersServerConfig = getPropertyValues(
                 ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
-        allowedHeadersInAction.stream()
-                .filter(excludedHeadersServerConfig::contains)
-                .findFirst()
-                .orElseThrow(() ->
-                        ActionManagementExceptionHandler.handleClientException(
-                                ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                                ActionMgtConstants.ACTION_NAME_FIELD)
-                            );
+        boolean hasExcluded = allowedHeadersInAction.stream()
+                .anyMatch(excludedHeadersServerConfig::contains);
+        if (hasExcluded) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
+                    ActionMgtConstants.ALLOWED_HEADERS);
+        }
     }
 
     /**
@@ -200,14 +199,13 @@ public class ActionValidator {
 
         List<String> excludedParamsServerConfig = getPropertyValues(
                 ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
-        allowedParametersInAction.stream()
-                .filter(excludedParamsServerConfig::contains)
-                .findFirst()
-                .orElseThrow(() ->
-                                ActionManagementExceptionHandler.handleClientException(
-                                        ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                                        ActionMgtConstants.ACTION_NAME_FIELD)
-                            );
+        boolean hasExcluded = allowedParametersInAction.stream()
+                .anyMatch(excludedParamsServerConfig::contains);
+        if (hasExcluded) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
+                    ActionMgtConstants.ALLOWED_PARAMETERS);
+        }
     }
 
     /**
@@ -282,7 +280,7 @@ public class ActionValidator {
         if (hasGeneralDelimiters) {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.API_KEY_HEADER_FIELD + " " + param);
+                    ActionMgtConstants.ALLOWED_PARAMETERS);
         }
     }
 
