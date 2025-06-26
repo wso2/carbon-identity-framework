@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
-import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOFacade;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
@@ -72,7 +71,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Adding Action for Action Type: %s.", actionType));
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
-        doPreAddActionValidations(action);
+        ACTION_VALIDATOR.doPreAddActionValidations(action);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
@@ -152,7 +151,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Updating Action for Action Type: %s and Action ID: %s.", actionType, actionId));
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
-        doPreUpdateActionValidations(action);
+        ACTION_VALIDATOR.doPreUpdateActionValidations(action);
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
 
@@ -327,109 +326,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
 
         return actionDTO;
-    }
-
-    /**
-     * Perform pre validations on action model when creating an action.
-     *
-     * @param action Action creation model.
-     * @throws ActionMgtClientException if action model is invalid.
-     */
-    private void doPreAddActionValidations(Action action) throws ActionMgtClientException {
-
-        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ACTION_NAME_FIELD, action.getName());
-        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
-        ACTION_VALIDATOR.validateActionName(action.getName());
-        ACTION_VALIDATOR.validateEndpointUri(action.getEndpoint().getUri());
-        doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
-        doAllowedHeadersAndParamsValidation(action.getEndpoint().getAllowedHeaders(),
-                action.getEndpoint().getAllowedParameters());
-    }
-
-    /**
-     * Perform pre validations on action model when updating an existing action.
-     * This is specifically used during HTTP PATCH operation and only validate non-null and non-empty fields.
-     *
-     * @param action Action update model.
-     * @throws ActionMgtClientException if action model is invalid.
-     */
-    private void doPreUpdateActionValidations(Action action) throws ActionMgtClientException {
-
-        if (action.getName() != null) {
-            ACTION_VALIDATOR.validateActionName(action.getName());
-        }
-        if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
-            ACTION_VALIDATOR.validateEndpointUri(action.getEndpoint().getUri());
-        }
-        if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
-            doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
-        }
-        if (action.getEndpoint() != null) {
-            doAllowedHeadersAndParamsValidation(action.getEndpoint().getAllowedHeaders(),
-                    action.getEndpoint().getAllowedParameters());
-        }
-    }
-
-    /**
-     * Perform pre validations on endpoint authentication model.
-     *
-     * @param authentication Endpoint authentication model.
-     * @throws ActionMgtClientException if endpoint authentication model is invalid.
-     */
-    private void doEndpointAuthenticationValidation(Authentication authentication) throws ActionMgtClientException {
-
-        Authentication.Type authenticationType = authentication.getType();
-        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ENDPOINT_AUTHENTICATION_TYPE_FIELD,
-                authenticationType.getName());
-        switch (authenticationType) {
-            case BASIC:
-                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.USERNAME_FIELD,
-                        authentication.getProperty(Authentication.Property.USERNAME).getValue());
-                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.PASSWORD_FIELD,
-                        authentication.getProperty(Authentication.Property.PASSWORD).getValue());
-                break;
-            case BEARER:
-                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ACCESS_TOKEN_FIELD,
-                        authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue());
-                break;
-            case API_KEY:
-                String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
-                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.API_KEY_HEADER_FIELD, apiKeyHeader);
-                ACTION_VALIDATOR.validateHeader(apiKeyHeader);
-                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
-                        authentication.getProperty(Authentication.Property.VALUE).getValue());
-                break;
-            case NONE:
-            default:
-                break;
-        }
-    }
-
-    /**
-     * Validates the provided headers and parameters for an action.
-     * Ensures that headers and parameters are not blank and conform to the required format.
-     * Additionally, encodes allowed parameters if they contain subcomponent delimiters as per RFC 3986.
-     *
-     * @param allowedHeaders   List of allowed headers to validate.
-     * @param allowedParameters List of allowed parameters to validate.
-     * @throws ActionMgtClientException If any header or parameter is invalid.
-     */
-    private void doAllowedHeadersAndParamsValidation(List<String> allowedHeaders, List<String> allowedParameters)
-            throws ActionMgtClientException {
-
-        if (allowedHeaders == null && allowedParameters == null) {
-            return;
-        }
-
-        for (String header : allowedHeaders) {
-            ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, header);
-            ACTION_VALIDATOR.validateHeader(header);
-        }
-
-        for (String param : allowedParameters) {
-            ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, param);
-            ACTION_VALIDATOR.validateParameter(param);
-        }
     }
 
     /**

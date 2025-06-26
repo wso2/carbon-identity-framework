@@ -19,16 +19,25 @@
 package org.wso2.carbon.identity.action.management.internal.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
  * Action validator class.
  */
 public class ActionValidator {
+
+    private static final Log LOG = LogFactory.getLog(ActionValidator.class);
 
     private static final String ACTION_NAME_REGEX = "^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$";
     private static final String ENDPOINT_URI_REGEX = "^https?://[^\\s/$.?#]\\S*";
@@ -44,6 +53,162 @@ public class ActionValidator {
     private final Pattern endpointUriRegexPattern = Pattern.compile(ENDPOINT_URI_REGEX);
     private final Pattern headerRegexPattern = Pattern.compile(HEADER_REGEX);
     private final Pattern generalDelimitersRegex = Pattern.compile(GENERAL_DELIMITERS_REGEX);
+
+    /**
+     * Perform pre validations on action model when creating an action.
+     *
+     * @param action Action creation model.
+     * @throws ActionMgtClientException if action model is invalid.
+     */
+    public void doPreAddActionValidations(Action action) throws ActionMgtClientException {
+
+        validateForBlank(ActionMgtConstants.ACTION_NAME_FIELD, action.getName());
+        validateForBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
+        validateActionName(action.getName());
+        validateEndpointUri(action.getEndpoint().getUri());
+        doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
+        doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
+        doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
+    }
+
+    /**
+     * Perform pre validations on action model when updating an existing action.
+     * This is specifically used during HTTP PATCH operation and only validate non-null and non-empty fields.
+     *
+     * @param action Action update model.
+     * @throws ActionMgtClientException if action model is invalid.
+     */
+    public void doPreUpdateActionValidations(Action action) throws ActionMgtClientException {
+
+        if (action.getName() != null) {
+            validateActionName(action.getName());
+        }
+        if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
+            validateEndpointUri(action.getEndpoint().getUri());
+        }
+        if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
+            doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
+        }
+        if (action.getEndpoint() != null) {
+            doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
+            doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
+        }
+    }
+
+    /**
+     * Perform pre validations on endpoint authentication model.
+     *
+     * @param authentication Endpoint authentication model.
+     * @throws ActionMgtClientException if endpoint authentication model is invalid.
+     */
+    public void doEndpointAuthenticationValidation(Authentication authentication) throws ActionMgtClientException {
+
+        Authentication.Type authenticationType = authentication.getType();
+        validateForBlank(ActionMgtConstants.ENDPOINT_AUTHENTICATION_TYPE_FIELD,
+                authenticationType.getName());
+        switch (authenticationType) {
+            case BASIC:
+                validateForBlank(ActionMgtConstants.USERNAME_FIELD,
+                        authentication.getProperty(Authentication.Property.USERNAME).getValue());
+                validateForBlank(ActionMgtConstants.PASSWORD_FIELD,
+                        authentication.getProperty(Authentication.Property.PASSWORD).getValue());
+                break;
+            case BEARER:
+                validateForBlank(ActionMgtConstants.ACCESS_TOKEN_FIELD,
+                        authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue());
+                break;
+            case API_KEY:
+                String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
+                validateForBlank(ActionMgtConstants.API_KEY_HEADER_FIELD, apiKeyHeader);
+                validateHeader(apiKeyHeader);
+                validateForBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
+                        authentication.getProperty(Authentication.Property.VALUE).getValue());
+                break;
+            case NONE:
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Validates the list of allowed headers for an action.
+     *
+     * @param allowedHeaders List of allowed headers to validate.
+     * @throws ActionMgtClientException If any header is invalid or excluded.
+     */
+    public void doValidateAllowedHeaders(List<String> allowedHeaders)
+            throws ActionMgtClientException {
+
+        if (allowedHeaders == null) {
+            return;
+        }
+
+        filterOutExcludedHeaders(allowedHeaders);
+        for (String header : allowedHeaders) {
+            validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, header);
+            validateHeader(header);
+        }
+    }
+
+    /**
+     * Validates the list of allowed parameters for an action.
+     *
+     * @param allowedParameters List of allowed parameters to validate.
+     * @throws ActionMgtClientException If any parameter is invalid or excluded.
+     */
+    public void doValidateAllowedParams(List<String> allowedParameters)
+            throws ActionMgtClientException {
+
+        if (allowedParameters == null) {
+            return;
+        }
+
+        filterOutExcludedParameters(allowedParameters);
+        for (String param : allowedParameters) {
+            validateForBlank(ActionMgtConstants.ALLOWED_HEADERS, param);
+            validateParameter(param);
+        }
+    }
+
+    /**
+     * Filters out headers that are excluded by the server configuration.
+     *
+     * @param allowedHeadersInAction List of allowed headers configured at action level.
+     * @throws ActionMgtClientException If any header is excluded by the server configuration.
+     */
+    private void filterOutExcludedHeaders(List<String> allowedHeadersInAction) throws ActionMgtClientException {
+
+        List<String> excludedHeadersServerConfig = getPropertyValues(
+                ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
+        allowedHeadersInAction.stream()
+                .filter(excludedHeadersServerConfig::contains)
+                .findFirst()
+                .orElseThrow(() ->
+                        ActionManagementExceptionHandler.handleClientException(
+                                ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
+                                ActionMgtConstants.ACTION_NAME_FIELD)
+                            );
+    }
+
+    /**
+     * Filters out parameters that are excluded by the server configuration.
+     *
+     * @param allowedParametersInAction List of allowed parameters configured at action level.
+     * @throws ActionMgtClientException If any parameter is excluded by the server configuration.
+     */
+    private void filterOutExcludedParameters(List<String> allowedParametersInAction) throws ActionMgtClientException {
+
+        List<String> excludedParamsServerConfig = getPropertyValues(
+                ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
+        allowedParametersInAction.stream()
+                .filter(excludedParamsServerConfig::contains)
+                .findFirst()
+                .orElseThrow(() ->
+                                ActionManagementExceptionHandler.handleClientException(
+                                        ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
+                                        ActionMgtConstants.ACTION_NAME_FIELD)
+                            );
+    }
 
     /**
      * Validate whether required fields exist.
@@ -118,6 +283,63 @@ public class ActionValidator {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
                     ActionMgtConstants.API_KEY_HEADER_FIELD + " " + param);
+        }
+    }
+
+    /**
+     * Retrieves the property values for a given property key from the identity configuration of the server.
+     *
+     * @param propertyKey The key of the property to retrieve.
+     * @return A list of property values associated with the given key.
+     */
+    private List<String> getPropertyValues(String propertyKey) {
+
+        Object propertyValue = IdentityConfigParser.getInstance().getConfiguration().get(propertyKey);
+
+        if (propertyValue == null) {
+            return Collections.emptyList();
+        }
+
+        if (propertyValue instanceof String) {
+            return Collections.singletonList(propertyValue.toString());
+        }
+
+        if (propertyValue instanceof List) {
+            return (List<String>) propertyValue;
+        } else {
+            LOG.warn("Invalid system configuration for: " + propertyKey +
+                    " at /repository/conf/identity.xml. Expected a string list of values.");
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Enum to hold the configuration properties for each action type.
+     */
+    private enum ActionTypeConfig {
+
+        PRE_ISSUE_ACCESS_TOKEN(
+                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header"
+        );
+
+        private final String excludedHeadersProperty;
+        private final String excludedParamsProperty;
+
+        ActionTypeConfig(String excludedHeadersProperty, String excludedParamsProperty) {
+
+            this.excludedHeadersProperty = excludedHeadersProperty;
+            this.excludedParamsProperty = excludedParamsProperty;
+        }
+
+        public String getExcludedHeadersProperty() {
+
+            return excludedHeadersProperty;
+        }
+
+        public String getExcludedParamsProperty() {
+
+            return excludedParamsProperty;
         }
     }
 }
