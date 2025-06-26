@@ -24,9 +24,9 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.webhook.Webhook;
-import org.wso2.carbon.identity.webhook.management.api.model.webhook.WebhookStatus;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
 import org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
@@ -46,14 +46,14 @@ import java.util.UUID;
 public class WebhookManagementServiceImpl implements WebhookManagementService {
 
     private static final Log LOG = LogFactory.getLog(WebhookManagementServiceImpl.class);
-    private static final WebhookManagementServiceImpl webhookManagementServiceImpl = new WebhookManagementServiceImpl();
+    private static final WebhookManagementServiceImpl webhookManagementServiceImpl =
+            new WebhookManagementServiceImpl();
     private final WebhookManagementDAO daoFACADE;
     private static final WebhookValidator WEBHOOK_VALIDATOR = new WebhookValidator();
 
     private WebhookManagementServiceImpl() {
 
-        daoFACADE =
-                new WebhookManagementDAOFacade(new CacheBackedWebhookManagementDAO(new WebhookManagementDAOImpl()));
+        daoFACADE = new WebhookManagementDAOFacade(new CacheBackedWebhookManagementDAO(new WebhookManagementDAOImpl()));
     }
 
     public static WebhookManagementServiceImpl getInstance() {
@@ -108,7 +108,8 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
     }
 
     @Override
-    public List<Subscription> getWebhookEvents(String webhookId, String tenantDomain) throws WebhookMgtException {
+    public List<Subscription> getWebhookEvents(String webhookId, String tenantDomain)
+            throws WebhookMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Getting events for webhook with ID: %s for tenant: %s",
@@ -125,10 +126,12 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
 
     // TODO: Implement updateWebhook method to support updating webhook details.
     @Override
-    public Webhook updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException {
+    public Webhook updateWebhook(String webhookId, Webhook webhook, String tenantDomain)
+            throws WebhookMgtException {
 
-        LOG.debug("Update webhook operation is called, but not implemented yet.");
-        return null;
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        daoFACADE.updateWebhook(webhook, tenantId);
+        return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
     @Override
@@ -143,15 +146,15 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         if (existingWebhook == null) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
-        } else {
-            if ((existingWebhook.getStatus() == WebhookStatus.INACTIVE) ||
-                    (existingWebhook.getStatus() == WebhookStatus.PENDING_DEACTIVATION)) {
-                daoFACADE.deleteWebhook(webhookId, tenantId);
-            } else if ((existingWebhook.getStatus() == WebhookStatus.ACTIVE) ||
-                    (existingWebhook.getStatus() == WebhookStatus.PENDING_ACTIVATION)) {
-                throw WebhookManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_NOT_ALLOWED_ERROR, webhookId);
-            }
+        }
+        if ((existingWebhook.getStatus() == WebhookStatus.ACTIVE) ||
+                (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVATED)) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_NOT_ALLOWED_ERROR, webhookId);
+        }
+        if ((existingWebhook.getStatus() == WebhookStatus.INACTIVE) ||
+                (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_DEACTIVATED)) {
+            daoFACADE.deleteWebhook(webhookId, tenantId);
         }
     }
 
@@ -169,34 +172,58 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
     @Override
     public Webhook activateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
 
-        return processWebhookStatusChange(
-                webhookId, tenantDomain,
-                WebhookStatus.ACTIVE,
-                WebhookStatus.PENDING_ACTIVATION,
-                new WebhookStatus[] {WebhookStatus.INACTIVE, WebhookStatus.PENDING_DEACTIVATION},
-                (id, tid, wh) -> daoFACADE.activateWebhook(id, tid, wh.getEventsSubscribed(), wh.getStatus(),
-                        wh.getEndpoint()),
-                ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_NOT_ALLOWED_ERROR
-        );
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Activating webhook with ID: %s for tenant: %s",
+                    webhookId, tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        Webhook existingWebhook = daoFACADE.getWebhook(webhookId, tenantId);
+        if (existingWebhook == null) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
+        }
+        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVATED) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_NOT_ALLOWED_ERROR, webhookId);
+        }
+        if (existingWebhook.getStatus() == WebhookStatus.INACTIVE ||
+                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_DEACTIVATED) {
+            daoFACADE.activateWebhook(existingWebhook, tenantId);
+        }
+        return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
     @Override
     public Webhook deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
 
-        return processWebhookStatusChange(
-                webhookId, tenantDomain,
-                WebhookStatus.INACTIVE,
-                WebhookStatus.PENDING_DEACTIVATION,
-                new WebhookStatus[] {WebhookStatus.ACTIVE, WebhookStatus.PENDING_ACTIVATION},
-                (id, tid, wh) -> daoFACADE.deactivateWebhook(id, tid, wh.getEventsSubscribed(), wh.getStatus(),
-                        wh.getEndpoint()),
-                ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_NOT_ALLOWED_ERROR
-        );
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Deactivating webhook with ID: %s for tenant: %s",
+                    webhookId, tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        Webhook existingWebhook = daoFACADE.getWebhook(webhookId, tenantId);
+        if (existingWebhook == null) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
+        }
+        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_DEACTIVATED) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_NOT_ALLOWED_ERROR, webhookId);
+        }
+        if (existingWebhook.getStatus() == WebhookStatus.ACTIVE ||
+                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVATED) {
+            daoFACADE.deactivateWebhook(existingWebhook, tenantId);
+        }
+        return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
     @Override
     public Webhook retryWebhook(String webhookId, String tenantDomain) throws WebhookMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrying webhook with ID: %s for tenant: %s",
+                    webhookId, tenantDomain));
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         Webhook existingWebhook = daoFACADE.getWebhook(webhookId, tenantId);
         if (existingWebhook == null) {
@@ -206,13 +233,14 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         if (existingWebhook.getStatus() == WebhookStatus.ACTIVE) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_ACTIVE, existingWebhook.getName());
-        } else if (existingWebhook.getStatus() == WebhookStatus.INACTIVE) {
+        }
+        if (existingWebhook.getStatus() == WebhookStatus.INACTIVE) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_INACTIVE, existingWebhook.getName());
-        } else if ((existingWebhook.getStatus() == WebhookStatus.PENDING_ACTIVATION) ||
-                (existingWebhook.getStatus() == WebhookStatus.PENDING_DEACTIVATION)) {
-            daoFACADE.retryWebhook(webhookId, tenantId, existingWebhook.getEventsSubscribed(),
-                    existingWebhook.getStatus(), existingWebhook.getEndpoint());
+        }
+        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVATED ||
+                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_DEACTIVATED) {
+            daoFACADE.retryWebhook(existingWebhook, tenantId);
         }
         return daoFACADE.getWebhook(webhookId, tenantId);
     }
@@ -232,48 +260,17 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
 
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.WEBHOOK_NAME_FIELD, webhook.getName());
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.ENDPOINT_URI_FIELD, webhook.getEndpoint());
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_NAME_FIELD, webhook.getEventProfileName());
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_URI_FIELD, webhook.getEventProfileUri());
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.STATUS_FIELD, String.valueOf(webhook.getStatus()));
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_NAME_FIELD,
+                webhook.getEventProfileName());
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_URI_FIELD,
+                webhook.getEventProfileUri());
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.STATUS_FIELD,
+                String.valueOf(webhook.getStatus()));
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.SECRET_FIELD, webhook.getSecret());
         WEBHOOK_VALIDATOR.validateWebhookName(webhook.getName());
         WEBHOOK_VALIDATOR.validateEndpointUri(webhook.getEndpoint());
         WEBHOOK_VALIDATOR.validateWebhookSecret(webhook.getSecret());
-        WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventProfileName(), webhook.getEventsSubscribed());
-    }
-
-    // --- Helper for status change processing ---
-
-    @FunctionalInterface
-    private interface WebhookStatusUpdater {
-
-        void update(String webhookId, int tenantId, Webhook webhook) throws WebhookMgtException;
-    }
-
-    private Webhook processWebhookStatusChange(String webhookId, String tenantDomain, WebhookStatus alreadyStatus,
-                                               WebhookStatus notAllowedStatus, WebhookStatus[] allowedStatuses,
-                                               WebhookStatusUpdater updater, ErrorMessage notAllowedError)
-            throws WebhookMgtException {
-
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        Webhook existingWebhook = daoFACADE.getWebhook(webhookId, tenantId);
-        if (existingWebhook == null) {
-            throw WebhookManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
-        }
-        if (existingWebhook.getStatus() == alreadyStatus) {
-            return existingWebhook;
-        } else if (existingWebhook.getStatus() == notAllowedStatus) {
-            throw WebhookManagementExceptionHandler.handleClientException(
-                    notAllowedError, webhookId);
-        } else {
-            for (WebhookStatus allowed : allowedStatuses) {
-                if (existingWebhook.getStatus() == allowed) {
-                    updater.update(webhookId, tenantId, existingWebhook);
-                    break;
-                }
-            }
-        }
-        return daoFACADE.getWebhook(webhookId, tenantId);
+        WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventProfileName(),
+                webhook.getEventsSubscribed());
     }
 }

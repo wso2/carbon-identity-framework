@@ -19,9 +19,8 @@
 package org.wso2.carbon.identity.webhook.management.internal.dao;
 
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.webhook.Webhook;
-import org.wso2.carbon.identity.webhook.management.api.model.webhook.WebhookStatus;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
 import java.util.List;
 
@@ -99,40 +98,27 @@ public interface WebhookManagementDAO {
     /**
      * Enable a webhook subscription in the database.
      *
-     * @param webhookId       Webhook subscription ID.
-     * @param tenantId        Tenant ID.
-     * @param channels        List of channels to retry.
-     * @param status          Status of the webhook (e.g., PENDING_ACTIVATION, PENDING_DEACTIVATION).
-     * @param webhookEndpoint Webhook endpoint URL.
+     * @param webhook  Webhook subscription to be activated.
+     * @param tenantId Tenant ID.
      * @throws WebhookMgtException If an error occurs while retrying the webhook.
      */
-    public void activateWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
-                                String webhookEndpoint) throws WebhookMgtException;
+    public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
 
     /**
      * Disable a webhook subscription in the database.
      *
-     * @param webhookId       Webhook subscription ID.
-     * @param tenantId        Tenant ID.
-     * @param channels        List of channels to retry.
-     * @param status          Status of the webhook (e.g., PENDING_ACTIVATION, PENDING_DEACTIVATION).
-     * @param webhookEndpoint Webhook endpoint URL.
+     * @param webhook  Webhook subscription to be deactivated.
+     * @param tenantId Tenant ID.
      * @throws WebhookMgtException If an error occurs while retrying the webhook.
      */
-    public void deactivateWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
-                                  String webhookEndpoint) throws WebhookMgtException;
+    public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
 
     /**
      * Retry a webhook subscription or unsubscription that has failed.
      *
-     * @param webhookId       Webhook subscription ID.
-     * @param tenantId        Tenant ID.
-     * @param channels        List of channels to retry.
-     * @param status          Status of the webhook (e.g., PENDING_ACTIVATION, PENDING_DEACTIVATION).
-     * @param webhookEndpoint Webhook endpoint URL.
+     * @param webhook  Webhook subscription to be retried.
+     * @param tenantId Tenant ID.
      * @throws WebhookMgtException If an error occurs while retrying the webhook.
      */
-    public void retryWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
-                             String webhookEndpoint)
-            throws WebhookMgtException;
+    public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
 }

@@ -20,13 +20,13 @@ package org.wso2.carbon.identity.webhook.management.internal.service.impl;
 
 import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service implementation for event subscription operations.
@@ -38,47 +38,30 @@ public class EventSubscriberService {
      * Subscribe events from external systems.
      * This method delegates to appropriate event subscribers.
      *
-     * @param adaptor             The name of the adaptor to use for subscription.
-     * @param channels            List of channels to subscribe.
-     * @param eventProfileVersion The version of the event profile to use.
-     * @param endpoint            The endpoint URL to which the webhook will send notifications.
-     * @param secret              The secret key for authentication.
-     * @param tenantDomain        Tenant domain.
+     * @param webhook      Webhook to be subscribed.
+     * @param adaptor      The name of the adaptor to use for subscription.
      * @return List of subscriptions that were successfully subscribed.
      */
-    public List<Subscription> subscribe(String adaptor, List<Subscription> channels,
-                                        String eventProfileVersion,
-                                        String endpoint, String secret, String tenantDomain)
+    public List<Subscription> subscribe(Webhook webhook, String adaptor)
             throws WebhookMgtException {
 
         EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
-        List<String> channelUris = channels.stream()
-                .map(Subscription::getChannelUri)
-                .collect(Collectors.toList());
-        return subscriber.subscribe(channelUris, eventProfileVersion, endpoint, secret, tenantDomain);
+        return subscriber.subscribe(webhook);
     }
 
     /**
      * Unsubscribe events from external systems.
      * This method delegates to appropriate event subscribers.
      *
-     * @param adaptor             The name of the adaptor to use for unsubscription.
-     * @param channels            List of channels to unsubscribe.
-     * @param eventProfileVersion The version of the event profile to use.
-     * @param endpoint            The endpoint URL to which the webhook will send notifications.
-     * @param tenantDomain        Tenant domain.
+     * @param webhook      Webhook to be unsubscribed.
+     * @param adaptor      The name of the adaptor to use for unsubscription.
      * @return List of subscriptions that were successfully unsubscribed.
      */
-    public List<Subscription> unsubscribe(String adaptor, List<Subscription> channels,
-                                          String eventProfileVersion,
-                            String endpoint, String tenantDomain)
+    public List<Subscription> unsubscribe(Webhook webhook, String adaptor)
             throws WebhookMgtException {
 
         EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
-        List<String> channelUris = channels.stream()
-                .map(Subscription::getChannelUri)
-                .collect(Collectors.toList());
-        return subscriber.unsubscribe(channelUris, eventProfileVersion, endpoint, tenantDomain);
+        return subscriber.unsubscribe(webhook);
     }
 
     private EventSubscriber retrieveAdaptorManager(String adaptor) throws WebhookMgtException {

@@ -23,10 +23,10 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.subscription.SubscriptionStatus;
-import org.wso2.carbon.identity.webhook.management.api.model.webhook.Webhook;
-import org.wso2.carbon.identity.webhook.management.api.model.webhook.WebhookStatus;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.SubscriptionStatus;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.constant.WebhookSQLConstants;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
@@ -210,26 +210,23 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     }
 
     @Override
-    public void activateWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
-                                String webhookEndpoint) throws WebhookMgtException {
+    public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        processWebhookStatusUpdate(webhookId, tenantId, channels, status,
+        processWebhookStatusUpdate(webhook.getUuid(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR);
     }
 
     @Override
-    public void deactivateWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
-                                  String webhookEndpoint) throws WebhookMgtException {
+    public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        processWebhookStatusUpdate(webhookId, tenantId, channels, status,
+        processWebhookStatusUpdate(webhook.getUuid(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR);
     }
 
     @Override
-    public void retryWebhook(String webhookId, int tenantId, List<Subscription> channels, WebhookStatus status,
-                             String webhookEndpoint) throws WebhookMgtException {
+    public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        processWebhookStatusUpdate(webhookId, tenantId, channels, status,
+        processWebhookStatusUpdate(webhook.getUuid(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_RETRY_STATUS_UPDATE_ERROR);
     }
 

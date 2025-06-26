@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.webhook.management.api.service;
 
-import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
 import java.util.List;
 
@@ -39,25 +40,16 @@ public interface EventSubscriber {
     /**
      * Subscribe a webhook to the external system.
      *
-     * @param channels            List of channels to subscribe to.
-     * @param eventProfileVersion The version of the event profile to use.
-     * @param endpoint            The endpoint URL to which the webhook will send notifications.
-     * @param secret              The secret key for authentication.
-     * @param tenantDomain        Tenant domain.
+     * @param webhook Webhook to be subscribed.
      * @return List of subscriptions created for the specified channels.
      */
-    List<Subscription> subscribe(List<String> channels, String eventProfileVersion, String endpoint, String secret,
-                                 String tenantDomain);
+    List<Subscription> subscribe(Webhook webhook);
 
     /**
      * Unsubscribe a webhook from the external system.
      *
-     * @param channels            List of channels to unsubscribe from.
-     * @param eventProfileVersion The version of the event profile to use.
-     * @param endpoint            The endpoint URL from which the webhook will stop sending notifications.
-     * @param tenantDomain        Tenant domain.
+     * @param webhook Webhook to be unsubscribed.
      * @return List of subscriptions that were successfully unsubscribed.
      */
-    List<Subscription> unsubscribe(List<String> channels, String eventProfileVersion, String endpoint,
-                                   String tenantDomain);
+    List<Subscription> unsubscribe(Webhook webhook);
 }

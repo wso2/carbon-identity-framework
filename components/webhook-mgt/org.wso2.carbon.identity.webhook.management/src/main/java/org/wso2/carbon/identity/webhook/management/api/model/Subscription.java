@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.model.subscription;
+package org.wso2.carbon.identity.webhook.management.api.model;
 
 /**
  * Represents a subscription to a webhook channel.
@@ -37,19 +37,9 @@ public class Subscription {
         return status;
     }
 
-    public void setStatus(SubscriptionStatus status) {
-
-        this.status = status;
-    }
-
     public String getChannelUri() {
 
         return channelUri;
-    }
-
-    public void setChannelUri(String channelUri) {
-
-        this.channelUri = channelUri;
     }
 
     public static Builder builder() {

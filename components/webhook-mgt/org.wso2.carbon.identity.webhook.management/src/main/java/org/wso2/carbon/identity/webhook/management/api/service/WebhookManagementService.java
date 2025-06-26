@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.webhook.management.api.service;
 
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.subscription.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.webhook.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
 import java.util.List;
 

@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.webhook.management.api.core.cache;
 
 import org.wso2.carbon.identity.core.cache.CacheEntry;
-import org.wso2.carbon.identity.webhook.management.api.model.webhook.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
 /**
  * Cache entry for webhook cache.
