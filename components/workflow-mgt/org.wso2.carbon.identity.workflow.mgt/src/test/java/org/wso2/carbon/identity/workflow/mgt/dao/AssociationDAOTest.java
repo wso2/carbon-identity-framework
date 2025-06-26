@@ -32,7 +32,7 @@ import static org.testng.Assert.assertThrows;
 public class AssociationDAOTest {
 
     @Test
-    void testGetAssociationNumberFormatException() {
+    public void testGetAssociationNumberFormatException() {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             Connection mockConnection = mock(Connection.class);
