@@ -62,7 +62,7 @@ public class Flow {
         // TODO Remove the deprecated flows once all usages are migrated.
         FLOW_DEFINITIONS.put(Name.REGISTER_USER,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
-        FLOW_DEFINITIONS.put(Name.USER_REGISTER,
+        FLOW_DEFINITIONS.put(Name.USER_REGISTRATION,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
     }
 
@@ -89,9 +89,9 @@ public class Flow {
         ACCOUNT_UNLOCK,
         ACCOUNT_DISABLE,
         SESSION_REVOKE,
-        @Deprecated // Use @USER_REGISTER instead
+        @Deprecated // Use @USER_REGISTRATION instead
         REGISTER_USER,
-        USER_REGISTER
+        USER_REGISTRATION
     }
 
     /**
