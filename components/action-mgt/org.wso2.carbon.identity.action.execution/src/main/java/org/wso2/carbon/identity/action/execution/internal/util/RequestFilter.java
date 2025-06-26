@@ -90,19 +90,12 @@ public class RequestFilter {
         List<String> actionAllowedHeaders = action.getEndpoint().getAllowedHeaders();
 
         boolean hasServerAllowedHeaders = !serverAllowedHeaders.isEmpty();
-        boolean hasServerExcludedHeaders = !serverExcludedHeaders.isEmpty();
         boolean hasActionAllowedHeaders = !actionAllowedHeaders.isEmpty();
-
-        if (hasServerAllowedHeaders && hasServerExcludedHeaders) {
-            throw new IllegalStateException(
-                    "Both allowed and excluded header configurations cannot be present for action type: " + actionType);
-        }
 
         Set<String> allAllowedHeadersSet = new HashSet<>();
         if (hasActionAllowedHeaders) {
             allAllowedHeadersSet.addAll(actionAllowedHeaders);
-        }
-        if (hasServerAllowedHeaders) {
+        } else if (hasServerAllowedHeaders) {
             allAllowedHeadersSet.addAll(serverAllowedHeaders);
         }
         // Removes excluded headers from configured allowed headers.
@@ -170,20 +163,12 @@ public class RequestFilter {
         List<String> actionAllowedParams = action.getEndpoint().getAllowedParameters();
 
         boolean hasServerAllowedParams = !serverAllowedParams.isEmpty();
-        boolean hasServerExcludedParams = !serverExcludedParams.isEmpty();
         boolean hasActionAllowedParams = !actionAllowedParams.isEmpty();
-
-        if (hasServerAllowedParams && hasServerExcludedParams) {
-            throw new IllegalStateException(
-                    "Both allowed and excluded parameters configurations cannot be present for action type: "
-                            + actionType);
-        }
 
         Set<String> allAllowedParamsSet = new HashSet<>();
         if (hasActionAllowedParams) {
             allAllowedParamsSet.addAll(actionAllowedParams);
-        }
-        if (hasServerAllowedParams) {
+        } else if (hasServerAllowedParams) {
             allAllowedParamsSet.addAll(serverAllowedParams);
         }
         // Removes excluded parameters from configured allowed parameters.
