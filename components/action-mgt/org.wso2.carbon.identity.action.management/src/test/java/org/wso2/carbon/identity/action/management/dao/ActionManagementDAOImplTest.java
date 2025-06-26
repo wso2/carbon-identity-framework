@@ -79,6 +79,8 @@ public class ActionManagementDAOImplTest {
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
                                 TestUtil.TEST_PASSWORD_SECRET_REFERENCE))
+                        .allowedHeaders(TestUtil.buildMockAllowedHeaders())
+                        .allowedParameters(TestUtil.buildMockAllowedParameters())
                         .build())
                 .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1,
                         new ActionProperty.BuilderForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_1).build())
@@ -99,6 +101,11 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getDescription(), creatingActionDTO.getDescription());
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(createdActionDTO.getEndpoint().getUri(), creatingActionDTO.getEndpoint().getUri());
+
+        Assert.assertEquals(createdActionDTO.getEndpoint().getAllowedHeaders(),
+                creatingActionDTO.getEndpoint().getAllowedHeaders());
+        Assert.assertEquals(createdActionDTO.getEndpoint().getAllowedParameters(),
+                creatingActionDTO.getEndpoint().getAllowedParameters());
 
         Authentication createdAuthentication = createdActionDTO.getEndpoint().getAuthentication();
         Assert.assertEquals(createdAuthentication.getType(),
@@ -191,6 +198,8 @@ public class ActionManagementDAOImplTest {
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
                                 TestUtil.TEST_PASSWORD_SECRET_REFERENCE))
+                        .allowedHeaders(TestUtil.buildMockAllowedHeaders())
+                        .allowedParameters(TestUtil.buildMockAllowedParameters())
                         .build())
                 .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1,
                         new ActionProperty.BuilderForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_1).build())
@@ -210,6 +219,11 @@ public class ActionManagementDAOImplTest {
         Assert.assertNull(createdActionDTO.getDescription());
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(createdActionDTO.getEndpoint().getUri(), creatingActionDTO.getEndpoint().getUri());
+
+        Assert.assertEquals(createdActionDTO.getEndpoint().getAllowedHeaders(),
+                creatingActionDTO.getEndpoint().getAllowedHeaders());
+        Assert.assertEquals(createdActionDTO.getEndpoint().getAllowedParameters(),
+                creatingActionDTO.getEndpoint().getAllowedParameters());
 
         Authentication createdAuthentication = createdActionDTO.getEndpoint().getAuthentication();
         Assert.assertEquals(createdAuthentication.getType(),
