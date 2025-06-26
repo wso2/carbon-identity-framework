@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.flow.mgt;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -99,7 +97,10 @@ public class FlowMgtService {
      */
     public FlowDTO getFlow(String flowType, int tenantID) throws FlowMgtFrameworkException {
 
-        int tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
+        Integer tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
+        if (tenantIdWithResource == null) {
+            return null;
+        }
         return FLOW_DAO.getFlow(flowType, tenantIdWithResource);
     }
 
@@ -111,11 +112,14 @@ public class FlowMgtService {
     public GraphConfig getGraphConfig(String flowType, int tenantID) throws FlowMgtFrameworkException {
 
         // Since graph config is built from the flow, we can reuse the logic to get the first tenant with the flow.
-        int tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
+        Integer tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
+        if (tenantIdWithResource == null) {
+            return null;
+        }
         return FLOW_DAO.getGraphConfig(flowType, tenantIdWithResource);
     }
 
-    private int getFirstTenantWithFlow(String flowType, int tenantID) throws FlowMgtServerException {
+    private Integer getFirstTenantWithFlow(String flowType, int tenantID) throws FlowMgtServerException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
         try {
@@ -130,12 +134,14 @@ public class FlowMgtService {
 
             OrgResourceResolverService resolverService = FlowMgtServiceDataHolder.getInstance()
                     .getOrgResourceResolverService();
-            int resolvedTenantId = resolverService.getResourcesFromOrgHierarchy(
+            Integer resolvedTenantId = resolverService.getResourcesFromOrgHierarchy(
                     currentOrgId,
                     LambdaExceptionUtils.rethrowFunction(orgId -> getTenantIdIfFlowExists(flowType, orgId)),
                     new FirstFoundAggregationStrategy<>());
 
-            FlowResolveCache.getInstance().addToCache(cacheKey, new FlowResolveCacheEntry(resolvedTenantId), tenantID);
+            if (resolvedTenantId != null) {
+                FlowResolveCache.getInstance().addToCache(cacheKey, new FlowResolveCacheEntry(resolvedTenantId), tenantID);
+            }
             return resolvedTenantId;
         } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantDomain);
