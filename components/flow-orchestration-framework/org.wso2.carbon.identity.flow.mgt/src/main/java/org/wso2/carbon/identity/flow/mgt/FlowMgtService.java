@@ -160,14 +160,14 @@ public class FlowMgtService {
 
     private void clearFlowResolveCache(int tenantId) throws FlowMgtServerException {
 
+        String currentTenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         try {
-            String currentTenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
             OrganizationManager organizationManager = FlowMgtServiceDataHolder.getInstance().getOrganizationManager();
             String orgId = organizationManager.resolveOrganizationId(currentTenantDomain);
             FlowResolveCacheKey cacheKey = new FlowResolveCacheKey(orgId);
             FlowMgtUtils.clearCache(cacheKey, FlowResolveCache.getInstance(), tenantId);
         } catch (OrganizationManagementException e) {
-            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CLEAR_CACHE_FAILED, e);
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CLEAR_CACHE_FAILED, e, currentTenantDomain);
         }
     }
 }

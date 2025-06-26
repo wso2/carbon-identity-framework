@@ -186,11 +186,12 @@ public class FlowMgtUtils {
     public static <K extends Serializable, V extends Serializable> void clearCache(
             K cacheKey, BaseCache<K, V> baseCache, int tenantId) throws FlowMgtServerException {
 
+        String currentTenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         try {
             baseCache.clearCacheEntry(cacheKey, tenantId);
             OrganizationManager organizationManager =
                     FlowMgtServiceDataHolder.getInstance().getOrganizationManager();
-            String orgId = organizationManager.resolveOrganizationId(IdentityTenantUtil.getTenantDomain(tenantId));
+            String orgId = organizationManager.resolveOrganizationId(currentTenantDomain);
             List<String> childOrgIds = organizationManager.getChildOrganizationsIds(orgId);
             CompletableFuture.runAsync(() -> {
                 for (String childOrgId : childOrgIds) {
@@ -203,8 +204,7 @@ public class FlowMgtUtils {
                 }
             });
         } catch (OrganizationManagementException e) {
-            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CLEAR_CACHE_FAILED, e,
-                    IdentityTenantUtil.getTenantDomain(tenantId));
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CLEAR_CACHE_FAILED, e, currentTenantDomain);
         }
     }
 }

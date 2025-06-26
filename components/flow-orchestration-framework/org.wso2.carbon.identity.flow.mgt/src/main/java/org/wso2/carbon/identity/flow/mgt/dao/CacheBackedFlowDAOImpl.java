@@ -52,8 +52,8 @@ public class CacheBackedFlowDAOImpl implements FlowDAO {
             throws FlowMgtFrameworkException {
 
         FlowMgtCacheKey flowMgtCacheKey = new FlowMgtCacheKey(flowType, flowName);
-        FlowMgtUtils.clearCache(flowMgtCacheKey, FlowMgtCache.getInstance(), tenantId);
-        FlowMgtUtils.clearCache(flowMgtCacheKey, GraphConfigCache.getInstance(), tenantId);
+        FlowMgtCache.getInstance().clearCacheEntry(flowMgtCacheKey, tenantId);
+        GraphConfigCache.getInstance().clearCacheEntry(flowMgtCacheKey, tenantId);
         FLOW_DAO.updateFlow(flowType, graphConfig, tenantId, flowName);
     }
 
