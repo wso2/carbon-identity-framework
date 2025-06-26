@@ -36,6 +36,8 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.USER_REGISTRATION_INVITE_WITH_PASSWORD,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.INVITED_USER_REGISTRATION,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.PROFILE_UPDATE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.BULK_RESOURCE_UPDATE,
@@ -71,6 +73,7 @@ public class Flow {
 
         PASSWORD_RESET,
         USER_REGISTRATION_INVITE_WITH_PASSWORD,
+        INVITED_USER_REGISTRATION,
         PROFILE_UPDATE,
         BULK_RESOURCE_UPDATE,
         USER_GROUP_UPDATE,

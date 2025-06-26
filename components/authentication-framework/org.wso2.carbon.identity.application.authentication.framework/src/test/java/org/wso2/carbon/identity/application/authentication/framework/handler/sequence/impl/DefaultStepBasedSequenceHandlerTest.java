@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.AfterMethod;
@@ -34,11 +35,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
@@ -57,6 +60,8 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -960,5 +965,126 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         assertEquals(context.getSequenceConfig().getAuthenticatedUser().getUserName(),
                 authenticatedUserNameInSequence);
+    }
+
+    @DataProvider
+    public static Object[][] dataProviderResolveRequestedSubject() {
+
+        return new Object[][]{
+                {"userId", null, null, "userId"},
+                {null, "&requested_subject=userId", null, "userId"},
+                {null, null, "userId", "userId"},
+                {null, null, null, null},
+        };
+    }
+
+    @Test(dataProvider = "dataProviderResolveRequestedSubject")
+    public void testResolveRequestedSubject(String userInReParam, String queryParams, String userInSessionContext,
+                                            String results) throws Exception {
+
+        DefaultStepBasedSequenceHandler handler = new DefaultStepBasedSequenceHandler();
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        AuthenticationContext context = mock(AuthenticationContext.class);
+
+        // Simulate no request param, no query param, but session context present
+        when(request.getParameter("requested_subject")).thenReturn(userInReParam);
+        when(context.getQueryParams()).thenReturn(queryParams);
+        when(context.getSessionIdentifier()).thenReturn("session123");
+        when(context.getLoginTenantDomain()).thenReturn("tenant1");
+
+        SessionContext sessionContext = mock(SessionContext.class);
+        when(sessionContext.getImpersonatedUser()).thenReturn(userInSessionContext);
+
+        try (MockedStatic<FrameworkUtils> utils = Mockito.mockStatic(FrameworkUtils.class)) {
+            utils.when(() -> FrameworkUtils.getSessionContextFromCache("session123", "tenant1"))
+                    .thenReturn(sessionContext);
+
+            Method method = DefaultStepBasedSequenceHandler.class
+                    .getDeclaredMethod("resolveRequestedSubject", HttpServletRequest.class,
+                            AuthenticationContext.class);
+            method.setAccessible(true);
+            String result = (String) method.invoke(handler, request, context);
+
+            assertEquals(result, results);
+        }
+    }
+
+
+    @DataProvider(name = "dataProviderExtractFromQueryParams")
+    public Object[][] dataProviderExtractFromQueryParams() {
+
+        return new Object[][]{
+                {"&requested_subject=testUser", "testUser"},
+                {"&requested_subject=null", null},
+                {null, null},
+        };
+    }
+
+    @Test(dataProvider = "dataProviderExtractFromQueryParams")
+    public void testExtractFromQueryParams(String queryParam, String requestedSubject)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        DefaultStepBasedSequenceHandler handler = new DefaultStepBasedSequenceHandler();
+        AuthenticationContext context = Mockito.mock(AuthenticationContext.class);
+
+        Mockito.when(context.getQueryParams()).thenReturn(queryParam);
+        Method method = DefaultStepBasedSequenceHandler.class
+                .getDeclaredMethod("extractFromQueryParams", AuthenticationContext.class);
+        method.setAccessible(true);
+        String result = (String) method.invoke(handler, context);
+
+        assertEquals(result, requestedSubject);
+    }
+
+    @DataProvider(name = "impersonatedUserProvider")
+    public Object[][] impersonatedUserProvider() {
+
+        return new Object[][]{
+                // requestedSubject, hasSeqConfig, hasAppConfig, expectNull
+                {"subject1", true, true, false},
+                {"subject2", false, true, true},
+                {"subject3", true, false, true},
+        };
+    }
+
+    @Test(dataProvider = "impersonatedUserProvider")
+    public void testGetImpersonatedUser(String requestedSubject, boolean hasSeqConfig, boolean hasAppConfig,
+                                        boolean expectNull) throws Exception {
+
+        DefaultStepBasedSequenceHandler handler = new DefaultStepBasedSequenceHandler();
+        AuthenticationContext context = mock(AuthenticationContext.class);
+        AuthenticatedUser impersonatingActor = mock(AuthenticatedUser.class);
+
+        SequenceConfig sequenceConfig = hasSeqConfig ? mock(SequenceConfig.class) : null;
+        ApplicationConfig applicationConfig = hasAppConfig ? mock(ApplicationConfig.class) : null;
+
+        when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+        if (sequenceConfig != null) {
+            when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+        }
+        when(context.getTenantDomain()).thenReturn("tenant1");
+        when(impersonatingActor.getAccessingOrganization()).thenReturn("orgA");
+        when(impersonatingActor.getUserResidentOrganization()).thenReturn("orgB");
+
+        try (MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = Mockito.mockStatic(FrameworkUtils.class)) {
+            if (!expectNull) {
+                ImpersonatedUser impersonated = mock(ImpersonatedUser.class);
+                frameworkUtilsMockedStatic.when(
+                        () -> FrameworkUtils.getImpersonatedUser(requestedSubject, "tenant1", "orgA", "orgB",
+                                applicationConfig)).thenReturn(impersonated);
+            }
+
+            Method method = DefaultStepBasedSequenceHandler.class.getDeclaredMethod(
+                    "getImpersonatedUser", String.class, AuthenticationContext.class, AuthenticatedUser.class);
+            method.setAccessible(true);
+            Object result = method.invoke(handler, requestedSubject, context, impersonatingActor);
+
+            if (expectNull) {
+                assertNull(result);
+            } else {
+                assertNotNull(result);
+                assertTrue(result instanceof ImpersonatedUser);
+            }
+        }
     }
 }
