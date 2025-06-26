@@ -18,13 +18,25 @@
 
 package org.wso2.carbon.identity.action.management.util;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.action.management.internal.util.ActionValidator;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Unit test class for ActionValidator class.
@@ -33,17 +45,25 @@ public class ActionValidatorTest {
 
     private static final String ERROR_INVALID_REQUEST = "Invalid request.";
     private ActionValidator actionValidator;
+    private ActionManagementConfig actionManagementConfigMock;
+    private IdentityConfigParser identityConfigParserMock;
+    private MockedStatic<IdentityConfigParser> identityConfigParserMockedStatic;
 
     @BeforeClass
     public void setUp() {
 
         actionValidator = new ActionValidator();
+
+        actionManagementConfigMock = mock(ActionManagementConfig.class);
+        identityConfigParserMockedStatic = mockStatic(IdentityConfigParser.class);
+        identityConfigParserMock = mock(IdentityConfigParser.class);
     }
 
     @AfterClass
     public void tearDown() {
 
         actionValidator = null;
+        identityConfigParserMockedStatic.close();
     }
 
     @DataProvider
@@ -175,7 +195,7 @@ public class ActionValidatorTest {
             actionValidator.validateHeader(header);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
-            Assert.assertEquals(e.getDescription(), "API key header name is invalid.");
+            Assert.assertEquals(e.getDescription(), "Header name is invalid.");
         }
     }
 
@@ -194,5 +214,86 @@ public class ActionValidatorTest {
     public void testIsValidHeader(String header) throws ActionMgtClientException {
 
         actionValidator.validateHeader(header);
+    }
+
+    @DataProvider
+    public Object[][] validateAllowedHeadersDataProvider() {
+
+        List<String> allowedHeadersTest1 = new ArrayList<>();
+        allowedHeadersTest1.add("test-header-1");
+        allowedHeadersTest1.add("test-header-2");
+        allowedHeadersTest1.add("test-header-3");
+
+        List<String> allowedHeadersTest2 = new ArrayList<>();
+        allowedHeadersTest2.add(" ");
+
+        List<String> allowedHeadersTest3 = new ArrayList<>();
+        allowedHeadersTest3.add("test-header-#");
+
+        return new Object[][]{
+                { allowedHeadersTest1,  null},
+                { allowedHeadersTest2, "Allowed headers is empty." },
+                { allowedHeadersTest3, "Header name is invalid." }
+        };
+    }
+
+    @Test(dataProvider = "validateAllowedHeadersDataProvider")
+    public void testDoValidateAllowedHeaders(List<String> allowedHeadersInAction, String expectedError) {
+
+        String propertyKey = ActionManagementConfig.ActionTypeConfig
+                .PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty();
+        Map<String, Object> idnConfigMap = new HashMap<>();
+        idnConfigMap.put(propertyKey, Collections.emptyList());
+
+        identityConfigParserMockedStatic.when(IdentityConfigParser::getInstance).thenReturn(identityConfigParserMock);
+        identityConfigParserMockedStatic.when(() -> IdentityConfigParser.getInstance().getConfiguration())
+                .thenReturn(idnConfigMap);
+
+        try {
+            actionValidator.doValidateAllowedHeaders(allowedHeadersInAction);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), expectedError);
+        }
+    }
+
+    @DataProvider
+    public Object[][] validateAllowedParamsDataProvider() {
+
+        List<String> allowedParams1 = new ArrayList<>();
+        allowedParams1.add("test-param-1");
+        allowedParams1.add("test-param-2");
+        allowedParams1.add("test-param-3");
+
+        List<String> allowedParams2 = new ArrayList<>();
+        allowedParams2.add("    ");
+
+        List<String> allowedParams3 = new ArrayList<>();
+        allowedParams3.add("test/param");
+
+        return new Object[][]{
+                { allowedParams1, null },
+                { allowedParams2, "Allowed parameters is empty." },
+                { allowedParams3, "Allowed parameters is invalid." }
+        };
+    }
+
+    @Test(dataProvider = "validateAllowedParamsDataProvider")
+    public void testDoValidateAllowedParams(List<String> allowedParams, String expectedError) {
+
+        String propertyKey = ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty();
+        Map<String, Object> idnConfigMap = new HashMap<>();
+        idnConfigMap.put(propertyKey, Collections.emptyList());
+
+        identityConfigParserMockedStatic.when(IdentityConfigParser::getInstance).thenReturn(identityConfigParserMock);
+        identityConfigParserMockedStatic.when(() -> IdentityConfigParser.getInstance().getConfiguration())
+                .thenReturn(idnConfigMap);
+
+        try {
+            actionValidator.doValidateAllowedParams(allowedParams);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), expectedError);
+        }
     }
 }
