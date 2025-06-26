@@ -77,6 +77,8 @@ public class Flow {
         USER_GROUP_UPDATE,
         GROUP_UPDATE,
         LOGOUT,
+        @Deprecated
+        UPDATE_CREDENTIAL_PASSWORD,
         @Deprecated // Use USER_DELETE instead.
         DELETE_USER,
         USER_DELETE,
