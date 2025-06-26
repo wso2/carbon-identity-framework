@@ -48,10 +48,8 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.LOGOUT,
                 EnumSet.of(InitiatingPersona.APPLICATION, InitiatingPersona.USER));
-        FLOW_DEFINITIONS.put(Name.DELETE_USER,
+        FLOW_DEFINITIONS.put(Name.USER_DELETE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
-        FLOW_DEFINITIONS.put(Name.UPDATE_CREDENTIAL_PASSWORD,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.ACCOUNT_DISABLE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.ACCOUNT_LOCK,
@@ -61,7 +59,7 @@ public class Flow {
         FLOW_DEFINITIONS.put(Name.SESSION_REVOKE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
                         InitiatingPersona.SYSTEM));
-        FLOW_DEFINITIONS.put(Name.REGISTER_USER,
+        FLOW_DEFINITIONS.put(Name.USER_REGISTER,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
     }
 
@@ -79,13 +77,16 @@ public class Flow {
         USER_GROUP_UPDATE,
         GROUP_UPDATE,
         LOGOUT,
-        UPDATE_CREDENTIAL_PASSWORD,
+        @Deprecated // Use USER_DELETE instead.
         DELETE_USER,
+        USER_DELETE,
         ACCOUNT_LOCK,
         ACCOUNT_UNLOCK,
         ACCOUNT_DISABLE,
         SESSION_REVOKE,
-        REGISTER_USER
+        @Deprecated // Use @USER_REGISTER instead
+        REGISTER_USER,
+        USER_REGISTER
     }
 
     /**
