@@ -162,6 +162,7 @@ public class Webhook {
         private String secret;
         private String eventProfileName;
         private String eventProfileUri;
+        private String eventProfileVersion;
         private WebhookStatus status;
         private Timestamp createdAt;
         private Timestamp updatedAt;
