@@ -17,9 +17,27 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.mockito.MockedStatic;
+import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.ServiceURL;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,12 +46,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 
 /**
  * This is a test class for {@link PostAuthnMissingClaimHandler}.
  */
 public class PostAuthnMissingClaimHandlerTest extends PostAuthnMissingClaimHandler {
+
+    private static final AuthenticationContext context = new AuthenticationContext();
+    private static final SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+    private static final ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+    private static final HttpServletRequest request = mock(HttpServletRequest.class);
+    private static final HttpServletResponse response = mock(HttpServletResponse.class);
+    private static final RealmService realmService = mock(RealmService.class);
+    private static final TenantManager tenantManager = mock(TenantManager.class);
+    private static final UserRealm userRealm = mock(UserRealm.class);
+    private static final AbstractUserStoreManager userStoreManager = mock(AbstractUserStoreManager.class);
+
+    private static final String MOBILE_CLAIM = "http://wso2.org/claims/mobile";
+    private static final String MOBILE_NUMBER = "+123456789";
+    private static final String REDIRECT_URL = "https://localhost:9443/dummmy";
 
     @SuppressWarnings("checkstyle:LocalVariableName")
     @Test(description = "This test case tests the related display names for mandatory missing claims are derived")
@@ -93,5 +135,96 @@ public class PostAuthnMissingClaimHandlerTest extends PostAuthnMissingClaimHandl
         displayName.setAccessible(true);
         String returnedDisplayNames = (String) displayName.invoke(obj, missingClaimMap, localClaims);
         assertEquals(returnedDisplayNames, relatedDisplayNames);
+    }
+
+    @Test(description = "Handle missing mobile claim response when verification on update is enabled.")
+    public void handleMissingMobileClaimResponseWithVerificationOnUpdateEnabled() throws Exception {
+
+        buildAuthenticationContext();
+        MockedStatic<ServiceURLBuilder> serviceUrlBuilder = mockServiceUrlBuilder();
+
+        Map<String, String[]> requestParameters = new HashMap<>();
+        requestParameters.put("claim_mand_" + MOBILE_CLAIM, new String[]{MOBILE_NUMBER});
+        requestParameters.put("sessionDataKey", new String[]{"76049b83-cf23-4aa7-b88b-75d3b0374e1e"});
+        when(request.getParameterMap()).thenReturn(requestParameters);
+
+        MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+        when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getTenantId("carbon.super")).thenReturn(1);
+        when(realmService.getTenantUserRealm(1)).thenReturn(userRealm);
+        FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
+        doNothing().when(userStoreManager).setUserClaimValuesWithID(any(), any(), any());
+        IdentityUtil.threadLocalProperties.get().put(
+                FrameworkConstants.CLAIM_FOR_PENDING_OTP_VERIFICATION, MOBILE_CLAIM);
+
+        PostAuthnMissingClaimHandler.getInstance().handlePostAuthenticationForMissingClaimsResponse(
+                request, response, context);
+
+        Assert.assertNull(IdentityUtil.threadLocalProperties.get().get(
+                FrameworkConstants.CLAIM_FOR_PENDING_OTP_VERIFICATION));
+        Assert.assertEquals(context.getProperty(FrameworkConstants.OTP_VERIFICATION_PENDING_CLAIM).toString(),
+                String.format("{uri=%s, value=%s}", MOBILE_CLAIM, MOBILE_NUMBER));
+        verify(response).sendRedirect(REDIRECT_URL);
+
+        loggerUtils.close();
+        serviceUrlBuilder.close();
+    }
+
+    @Test(description = "Handle missing mobile claim response when after successful verification.",
+            dependsOnMethods = {"handleMissingMobileClaimResponseWithVerificationOnUpdateEnabled"})
+    public void handleMissingMobileClaimResponseAfterVerification() throws Exception {
+
+        context.setProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);
+        when(userStoreManager.getUserClaimValueWithID(any(), any(), any())).thenReturn(MOBILE_NUMBER);
+
+        PostAuthnHandlerFlowStatus status = PostAuthnMissingClaimHandler.getInstance().handle(
+                request, response, context);
+
+        Assert.assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
+    }
+
+    private AuthenticatedUser buildAuthenticatedUser() throws Exception {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserStoreDomain("PRIMARY");
+        authenticatedUser.setTenantDomain("carbon.super");
+        authenticatedUser.setUserName("testuser");
+        authenticatedUser.setUserId("f9fef46c-2fad-499b-bd9b-f31323f16767");
+        authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedUser.getUserId());
+        return authenticatedUser;
+    }
+
+    private void buildAuthenticationContext() throws Exception {
+
+        AuthenticatedUser authenticatedUser = buildAuthenticatedUser();
+
+        Map<Integer, StepConfig> stepMap = new HashMap<>();
+        StepConfig stepConfig = new StepConfig();
+        stepConfig.setAuthenticatedUser(authenticatedUser);
+        stepConfig.setSubjectAttributeStep(true);
+        stepMap.put(1, stepConfig);
+
+        context.setSequenceConfig(sequenceConfig);
+        when(sequenceConfig.getAuthenticatedUser()).thenReturn(authenticatedUser);
+        when(sequenceConfig.getStepMap()).thenReturn(stepMap);
+        when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+        when(applicationConfig.getClaimMappings()).thenReturn(new HashMap<>());
+    }
+
+    private MockedStatic<ServiceURLBuilder> mockServiceUrlBuilder() throws Exception {
+
+        ServiceURL serviceURL = mock(ServiceURL.class);
+        when(serviceURL.getAbsolutePublicURL()).thenReturn(REDIRECT_URL);
+        MockedStatic<ServiceURLBuilder> mockedServiceURLBuilder = mockStatic(ServiceURLBuilder.class);
+        ServiceURLBuilder mockBuilder = mock(ServiceURLBuilder.class);
+        mockedServiceURLBuilder.when(ServiceURLBuilder::create).thenReturn(mockBuilder);
+        when(mockBuilder.addPath(any())).thenReturn(mockBuilder);
+        when(mockBuilder.addParameter(any(), any())).thenReturn(mockBuilder);
+        when(mockBuilder.build()).thenReturn(serviceURL);
+
+        return mockedServiceURLBuilder;
     }
 }
