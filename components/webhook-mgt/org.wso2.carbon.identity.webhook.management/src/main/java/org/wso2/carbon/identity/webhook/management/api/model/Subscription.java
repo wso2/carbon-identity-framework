@@ -47,6 +47,10 @@ public class Subscription {
         return new Builder();
     }
 
+    /**
+     * Builder class for Subscription.
+     * This class is used to build Subscription objects.
+     */
     public static class Builder {
 
         private SubscriptionStatus status;

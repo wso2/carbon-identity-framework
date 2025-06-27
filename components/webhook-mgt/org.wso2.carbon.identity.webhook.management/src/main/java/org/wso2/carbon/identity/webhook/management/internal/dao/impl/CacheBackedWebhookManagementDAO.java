@@ -108,8 +108,8 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getUuid()), tenantId);
-        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getUuid() + " for webhook update.");
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook update.");
         webhookManagementDAO.updateWebhook(webhook, tenantId);
     }
 
@@ -136,24 +136,24 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     @Override
     public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getUuid()), tenantId);
-        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getUuid() + " for webhook activate.");
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook activate.");
         webhookManagementDAO.activateWebhook(webhook, tenantId);
     }
 
     @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getUuid()), tenantId);
-        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getUuid() + " for webhook deactivate.");
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook deactivate.");
         webhookManagementDAO.deactivateWebhook(webhook, tenantId);
     }
 
     @Override
     public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getUuid()), tenantId);
-        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getUuid() + " for webhook retry.");
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook retry.");
         webhookManagementDAO.retryWebhook(webhook, tenantId);
     }
 }

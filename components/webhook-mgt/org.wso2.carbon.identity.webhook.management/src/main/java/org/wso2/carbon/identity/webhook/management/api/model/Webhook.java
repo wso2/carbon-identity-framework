@@ -43,6 +43,7 @@ public class Webhook {
     private final Timestamp createdAt;
     private final Timestamp updatedAt;
     private List<Subscription> eventsSubscribed;
+    private static final String EVENT_PROFILE_VERSION = "v1";
 
     private Webhook(Builder builder) {
 
@@ -52,14 +53,15 @@ public class Webhook {
         this.secret = builder.secret;
         this.eventProfileName = builder.eventProfileName;
         this.eventProfileUri = builder.eventProfileUri;
-        this.eventProfileVersion = builder.eventProfileVersion;
+        //TODO: Remove this hardcoded version once the event profile versioning is implemented.
+        this.eventProfileVersion = EVENT_PROFILE_VERSION;
         this.status = builder.status;
         this.createdAt = builder.createdAt;
         this.updatedAt = builder.updatedAt;
         this.eventsSubscribed = builder.eventsSubscribed;
     }
 
-    public String getUuid() {
+    public String getId() {
 
         return uuid;
     }
@@ -116,7 +118,7 @@ public class Webhook {
         }
         // Fetch from service and cache the result
         this.eventsSubscribed = WebhookManagementServiceImpl.getInstance()
-                .getWebhookEvents(getUuid(), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                .getWebhookEvents(getId(), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         return eventsSubscribed;
     }
 
@@ -160,7 +162,6 @@ public class Webhook {
         private String secret;
         private String eventProfileName;
         private String eventProfileUri;
-        private String eventProfileVersion;
         private WebhookStatus status;
         private Timestamp createdAt;
         private Timestamp updatedAt;

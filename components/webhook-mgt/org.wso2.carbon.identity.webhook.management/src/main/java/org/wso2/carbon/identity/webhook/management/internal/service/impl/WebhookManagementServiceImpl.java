@@ -93,7 +93,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                 .build();
 
         daoFACADE.createWebhook(webhookToCreate, tenantId);
-        return daoFACADE.getWebhook(webhookToCreate.getUuid(), tenantId);
+        return daoFACADE.getWebhook(webhookToCreate.getId(), tenantId);
     }
 
     @Override
@@ -148,12 +148,12 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
         if ((existingWebhook.getStatus() == WebhookStatus.ACTIVE) ||
-                (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVATED)) {
+                (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVE)) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_NOT_ALLOWED_ERROR, webhookId);
         }
         if ((existingWebhook.getStatus() == WebhookStatus.INACTIVE) ||
-                (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_DEACTIVATED)) {
+                (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_INACTIVE)) {
             daoFACADE.deleteWebhook(webhookId, tenantId);
         }
     }
@@ -182,12 +182,12 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVATED) {
+        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVE) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_NOT_ALLOWED_ERROR, webhookId);
         }
         if (existingWebhook.getStatus() == WebhookStatus.INACTIVE ||
-                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_DEACTIVATED) {
+                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_INACTIVE) {
             daoFACADE.activateWebhook(existingWebhook, tenantId);
         }
         return daoFACADE.getWebhook(webhookId, tenantId);
@@ -206,12 +206,12 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_DEACTIVATED) {
+        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_INACTIVE) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_NOT_ALLOWED_ERROR, webhookId);
         }
         if (existingWebhook.getStatus() == WebhookStatus.ACTIVE ||
-                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVATED) {
+                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVE) {
             daoFACADE.deactivateWebhook(existingWebhook, tenantId);
         }
         return daoFACADE.getWebhook(webhookId, tenantId);
@@ -238,8 +238,8 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_INACTIVE, existingWebhook.getName());
         }
-        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVATED ||
-                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_DEACTIVATED) {
+        if (existingWebhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVE ||
+                existingWebhook.getStatus() == WebhookStatus.PARTIALLY_INACTIVE) {
             daoFACADE.retryWebhook(existingWebhook, tenantId);
         }
         return daoFACADE.getWebhook(webhookId, tenantId);

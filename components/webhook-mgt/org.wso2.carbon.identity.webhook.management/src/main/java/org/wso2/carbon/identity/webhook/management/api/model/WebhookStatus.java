@@ -29,9 +29,9 @@ public enum WebhookStatus {
     ACTIVE,
 
     /**
-     * Webhook is still in partially activated state.
+     * Webhook is still in partially active state.
      */
-    PARTIALLY_ACTIVATED,
+    PARTIALLY_ACTIVE,
 
     /**
      * Webhook is inactive and will not receive events.
@@ -39,7 +39,7 @@ public enum WebhookStatus {
     INACTIVE,
 
     /**
-     * Webhook is in partially deactivated state.
+     * Webhook is in partially inactive state.
      */
-    PARTIALLY_DEACTIVATED
+    PARTIALLY_INACTIVE
 }

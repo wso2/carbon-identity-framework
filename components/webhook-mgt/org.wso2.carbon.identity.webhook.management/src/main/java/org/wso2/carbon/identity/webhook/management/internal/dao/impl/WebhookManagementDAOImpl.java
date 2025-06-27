@@ -22,6 +22,7 @@ import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.model.SubscriptionStatus;
@@ -78,14 +79,14 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         try {
             jdbcTemplate.withTransaction(template -> {
                 updateWebhookInDB(webhook, tenantId);
-                int webhookId = getInternalWebhookIdByUuid(webhook.getUuid(), tenantId);
+                int webhookId = getInternalWebhookIdByUuid(webhook.getId(), tenantId);
                 deleteWebhookEventsInDB(webhookId);
                 addWebhookEventsToDB(webhookId, webhook.getEventsSubscribed());
                 return null;
             });
         } catch (TransactionException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
-                    ERROR_CODE_WEBHOOK_UPDATE_ERROR, e, webhook.getUuid());
+                    ERROR_CODE_WEBHOOK_UPDATE_ERROR, e, webhook.getId());
         }
     }
 
@@ -130,7 +131,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
                 // Build the Webhook without the secret
                 return new Webhook.Builder()
-                        .uuid(webhook.getUuid())
+                        .uuid(webhook.getId())
                         .endpoint(webhook.getEndpoint())
                         .name(webhook.getName())
                         .eventProfileName(webhook.getEventProfileName())
@@ -212,21 +213,21 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     @Override
     public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        processWebhookStatusUpdate(webhook.getUuid(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
+        processWebhookStatusUpdate(webhook.getId(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR);
     }
 
     @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        processWebhookStatusUpdate(webhook.getUuid(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
+        processWebhookStatusUpdate(webhook.getId(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR);
     }
 
     @Override
     public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        processWebhookStatusUpdate(webhook.getUuid(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
+        processWebhookStatusUpdate(webhook.getId(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_RETRY_STATUS_UPDATE_ERROR);
     }
 
@@ -254,7 +255,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         return jdbcTemplate.withTransaction(template -> template
                 .executeInsert(WebhookSQLConstants.Query.CREATE_WEBHOOK,
                         statement -> {
-                            statement.setString(WebhookSQLConstants.Column.UUID, webhook.getUuid());
+                            statement.setString(WebhookSQLConstants.Column.UUID, webhook.getId());
                             statement.setString(WebhookSQLConstants.Column.ENDPOINT, webhook.getEndpoint());
                             statement.setString(WebhookSQLConstants.Column.NAME, webhook.getName());
                             statement.setString(WebhookSQLConstants.Column.SECRET_ALIAS, webhook.getSecret());
@@ -285,7 +286,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_URI, webhook.getEventProfileUri());
                         statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_VERSION, WEBHOOK_SCHEMA_VERSION);
                         statement.setString(WebhookSQLConstants.Column.STATUS, String.valueOf(webhook.getStatus()));
-                        statement.setString(WebhookSQLConstants.Column.UUID, webhook.getUuid());
+                        statement.setString(WebhookSQLConstants.Column.UUID, webhook.getId());
                         statement.setString(WebhookSQLConstants.Column.CREATED_AT, String.valueOf(Instant.now()));
                         statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
                     });
@@ -337,8 +338,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     }
 
     private void processWebhookStatusUpdate(String webhookId, int tenantId, List<Subscription> channels,
-                                            WebhookStatus status,
-                                            org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage errorMessage)
+                                            WebhookStatus status, ErrorMessage errorMessage)
             throws WebhookMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
