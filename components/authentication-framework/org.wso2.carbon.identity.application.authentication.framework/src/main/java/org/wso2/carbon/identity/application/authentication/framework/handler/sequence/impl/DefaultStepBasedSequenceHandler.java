@@ -432,6 +432,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (sequenceConfig.getAuthenticatedUser() == null) {
             return;
         }
+
+        // Set impersonated User in Authenticated User.
+        sequenceConfig.getAuthenticatedUser().setImpersonatedUser(impersonatedUser);
+
         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
         List<ClaimMapping> selectedRequestedClaims = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityClaimFilter().getFilteredClaims(context, appConfig);
@@ -445,7 +449,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
         if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-            sequenceConfig.getAuthenticatedUser().setImpersonatedUser(impersonatedUser);
         }
     }
 
