@@ -212,6 +212,7 @@
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
+  "oauth.dcrm.return_null_fields_in_response": true,
   "oauth.dcr.enable_fapi_enforcement": false,
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
@@ -567,6 +568,8 @@
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,
+  "event.default_listener.data_type_validation.priority": "197",
+  "event.default_listener.data_type_validation.enable": false,
   "event.default_listener.identity_mgt.priority": "50",
   "event.default_listener.identity_mgt.enable": false,
   "event.default_listener.scim.priority": "90",
@@ -1834,6 +1837,8 @@
 
   "notification_templates.sms_templates.apply": true,
 
-  "attribute.return_previous_additional_properties.enabled": false
+  "attribute.return_previous_additional_properties.enabled": false,
+
+  "agent_identity.enabled": false
 }
 

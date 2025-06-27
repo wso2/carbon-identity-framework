@@ -327,6 +327,12 @@ public class IdentityEventConstants {
         public static final String USER_REGISTRATION_FAILED = "USER_REGISTRATION_FAILED";
         public static final String USER_REGISTRATION_SUCCESS = "USER_REGISTRATION_SUCCESS";
 
+        // Deprecated. Use POST_USER_PROFILE_UPDATE instead
+        public static final String USER_PROFILE_UPDATE = "USER_PROFILE_UPDATE";
+        public static final String POST_USER_PROFILE_UPDATE = "POST_USER_PROFILE_UPDATE";
+        public static final String TOKEN_ISSUED = "TOKEN_ISSUED";
+        public static final String TOKEN_REVOKED = "TOKEN_REVOKED";
+
     }
 
     /**
@@ -483,6 +489,10 @@ public class IdentityEventConstants {
         public static final String STEP_ID = "STEP_ID";
         public static final String CURRENT_AUTHENTICATOR = "CURRENT_AUTHENTICATOR";
         public static final String IDP = "IDP";
+
+        public static final String USER_CLAIMS_ADDED = "USER_CLAIMS_ADDED";
+        public static final String USER_CLAIMS_MODIFIED = "USER_CLAIMS_MODIFIED";
+        public static final String USER_CLAIMS_DELETED = "USER_CLAIMS_DELETED";
 
         public class Scenario {
 

@@ -142,7 +142,7 @@ public class Constants {
                 "Invalid username.",
                 "The given username: %s must be an email address."),
         ERROR_CODE_FLOW_FAILURE("60006",
-                "%s failed.",
+                "Flow execution error occurred.",
                 "%s"),
         ERROR_CODE_REQUEST_PROCESSING_FAILURE("60007",
                 "Error while processing the request.",

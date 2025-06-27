@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.workflow.mgt.dto.Association;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 
@@ -79,10 +80,10 @@ public class AssociationDAO {
 
     /**
      * @param associationDTO
-     * @throws InternalWorkflowException
+     * @throws InternalWorkflowException, WorkflowClientException
      */
     public void updateAssociation(Association associationDTO)
-            throws InternalWorkflowException {
+            throws InternalWorkflowException, WorkflowClientException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
@@ -106,6 +107,8 @@ public class AssociationDAO {
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
+        } catch (NumberFormatException e) {
+            throw new WorkflowClientException("Invalid association ID: " + associationDTO.getAssociationId(), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -240,9 +243,9 @@ public class AssociationDAO {
     /**
      * @param associationId
      * @return
-     * @throws InternalWorkflowException
+     * @throws InternalWorkflowException, WorkflowClientException
      */
-    public Association getAssociation(String associationId) throws InternalWorkflowException {
+    public Association getAssociation(String associationId) throws InternalWorkflowException, WorkflowClientException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
@@ -269,6 +272,8 @@ public class AssociationDAO {
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
+        } catch (NumberFormatException e) {
+            throw new WorkflowClientException("Invalid association ID: " + associationId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }

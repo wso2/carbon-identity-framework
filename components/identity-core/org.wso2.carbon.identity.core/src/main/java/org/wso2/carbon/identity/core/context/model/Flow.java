@@ -36,6 +36,8 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.USER_REGISTRATION_INVITE_WITH_PASSWORD,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.INVITED_USER_REGISTRATION,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.PROFILE_UPDATE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.BULK_RESOURCE_UPDATE,
@@ -46,10 +48,8 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.LOGOUT,
                 EnumSet.of(InitiatingPersona.APPLICATION, InitiatingPersona.USER));
-        FLOW_DEFINITIONS.put(Name.DELETE_USER,
+        FLOW_DEFINITIONS.put(Name.USER_DELETE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
-        FLOW_DEFINITIONS.put(Name.UPDATE_CREDENTIAL_PASSWORD,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.ACCOUNT_DISABLE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.ACCOUNT_LOCK,
@@ -59,6 +59,11 @@ public class Flow {
         FLOW_DEFINITIONS.put(Name.SESSION_REVOKE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
                         InitiatingPersona.SYSTEM));
+        // TODO Remove the deprecated flows once all usages are migrated.
+        FLOW_DEFINITIONS.put(Name.REGISTER_USER,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.USER_REGISTRATION,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
     }
 
     /**
@@ -69,17 +74,24 @@ public class Flow {
 
         PASSWORD_RESET,
         USER_REGISTRATION_INVITE_WITH_PASSWORD,
+        INVITED_USER_REGISTRATION,
         PROFILE_UPDATE,
         BULK_RESOURCE_UPDATE,
         USER_GROUP_UPDATE,
         GROUP_UPDATE,
         LOGOUT,
+        @Deprecated
         UPDATE_CREDENTIAL_PASSWORD,
+        @Deprecated // Use USER_DELETE instead.
         DELETE_USER,
+        USER_DELETE,
         ACCOUNT_LOCK,
         ACCOUNT_UNLOCK,
         ACCOUNT_DISABLE,
-        SESSION_REVOKE
+        SESSION_REVOKE,
+        @Deprecated // Use @USER_REGISTRATION instead
+        REGISTER_USER,
+        USER_REGISTRATION
     }
 
     /**
