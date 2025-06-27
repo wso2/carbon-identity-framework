@@ -60,14 +60,12 @@ public class FlowMgtService {
 
         GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         flowDAO.updateFlow(flowDTO.getFlowType(), flowConfig, tenantID, DEFAULT_FLOW_NAME);
-        if (isEnableV2AuditLogs()) {
-            AuditLog.AuditLogBuilder auditLogBuilder =
-                    new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                                                 flowConfig.getId(),
-                                                 LoggerUtils.Target.Flow.name(),
-                            String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, flowDTO.getFlowType()));
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
+        AuditLog.AuditLogBuilder auditLogBuilder =
+                new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                                             flowConfig.getId(),
+                                             LoggerUtils.Target.Flow.name(),
+                        String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, flowDTO.getFlowType()));
+        triggerAuditLogEvent(auditLogBuilder);
     }
 
     /**
