@@ -40,16 +40,18 @@ public interface EventSubscriber {
     /**
      * Subscribe a webhook to the external system.
      *
-     * @param webhook Webhook to be subscribed.
+     * @param webhook  Webhook to be subscribed.
+     * @param tenantId Tenant ID for the subscription.
      * @return List of subscriptions created for the specified channels.
      */
-    List<Subscription> subscribe(Webhook webhook);
+    List<Subscription> subscribe(Webhook webhook, int tenantId);
 
     /**
      * Unsubscribe a webhook from the external system.
      *
-     * @param webhook Webhook to be unsubscribed.
+     * @param webhook  Webhook to be unsubscribed.
+     * @param tenantId Tenant ID for the unsubscription.
      * @return List of subscriptions that were successfully unsubscribed.
      */
-    List<Subscription> unsubscribe(Webhook webhook);
+    List<Subscription> unsubscribe(Webhook webhook, int tenantId);
 }

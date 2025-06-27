@@ -90,7 +90,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         Webhook webhookToPersist;
         if (webhook.getStatus() == WebhookStatus.ACTIVE) {
-            List<Subscription> subscriptions = subscriberService.subscribe(webhook, WEBSUBHUB_ADAPTOR);
+            List<Subscription> subscriptions = subscriberService.subscribe(webhook, WEBSUBHUB_ADAPTOR, tenantId);
 
             boolean allError = subscriptions.stream()
                     .allMatch(s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
@@ -104,9 +104,9 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                         .endpoint(webhook.getEndpoint())
                         .name(webhook.getName())
                         .secret(webhook.getSecret())
-                        .tenantId(webhook.getTenantId())
                         .eventProfileName(webhook.getEventProfileName())
                         .eventProfileUri(webhook.getEventProfileUri())
+                        .eventProfileVersion(EVENT_PROFILE_VERSION)
                         .status(WebhookStatus.PARTIALLY_ACTIVATED)
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
@@ -174,7 +174,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         List<Subscription> allResults = subscriberService.subscribe(
                 buildWebhookWith(webhook, toSubscribe, getWebhookDecryptedSecretValue(webhook.getUuid()),
-                        webhook.getStatus()), WEBSUBHUB_ADAPTOR);
+                        webhook.getStatus()), WEBSUBHUB_ADAPTOR, tenantId);
 
         boolean allError = !allResults.isEmpty() && allResults.stream()
                 .allMatch(r -> r.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
@@ -182,12 +182,12 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         if (allError) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ERROR);
-        } else {
-            List<Subscription> updatedSubscriptions = mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
-            webhookManagementDAO.activateWebhook(
-                    buildWebhookWith(webhook, updatedSubscriptions, webhook.getSecret(),
-                            WebhookStatus.PARTIALLY_ACTIVATED), tenantId);
         }
+
+        List<Subscription> updatedSubscriptions = mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
+        webhookManagementDAO.activateWebhook(
+                buildWebhookWith(webhook, updatedSubscriptions, webhook.getSecret(),
+                        WebhookStatus.PARTIALLY_ACTIVATED), tenantId);
     }
 
     @Override
@@ -201,7 +201,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         List<Subscription> allResults =
                 subscriberService.unsubscribe(buildWebhookWith(webhook, toUnsubscribe, webhook.getSecret(),
-                        webhook.getStatus()), WEBSUBHUB_ADAPTOR);
+                        webhook.getStatus()), WEBSUBHUB_ADAPTOR, tenantId);
 
         boolean allError = !allResults.isEmpty() && allResults.stream()
                 .allMatch(r -> r.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR);
@@ -209,12 +209,12 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         if (allError) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR);
-        } else {
-            List<Subscription> updatedUnsubscriptions = mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
-            webhookManagementDAO.deactivateWebhook(
-                    buildWebhookWith(webhook, updatedUnsubscriptions, webhook.getSecret(),
-                            WebhookStatus.PARTIALLY_DEACTIVATED), tenantId);
         }
+
+        List<Subscription> updatedUnsubscriptions = mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
+        webhookManagementDAO.deactivateWebhook(
+                buildWebhookWith(webhook, updatedUnsubscriptions, webhook.getSecret(),
+                        WebhookStatus.PARTIALLY_DEACTIVATED), tenantId);
     }
 
     @Override
@@ -231,7 +231,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
             List<Subscription> allResults = subscriberService.subscribe(
                     buildWebhookWith(webhook, toSubscribe, getWebhookDecryptedSecretValue(webhook.getUuid()),
-                            webhook.getStatus()), WEBSUBHUB_ADAPTOR);
+                            webhook.getStatus()), WEBSUBHUB_ADAPTOR, tenantId);
 
             boolean allError = !allResults.isEmpty() && allResults.stream()
                     .allMatch(r -> r.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
@@ -253,7 +253,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
             List<Subscription> allResults =
                     subscriberService.unsubscribe(buildWebhookWith(webhook, toUnsubscribe, webhook.getSecret(),
-                            webhook.getStatus()), WEBSUBHUB_ADAPTOR);
+                            webhook.getStatus()), WEBSUBHUB_ADAPTOR, tenantId);
 
             boolean allError = !allResults.isEmpty() && allResults.stream()
                     .allMatch(r -> r.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR);
@@ -354,9 +354,9 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 .endpoint(base.getEndpoint())
                 .name(base.getName())
                 .secret(secret)
-                .tenantId(base.getTenantId())
                 .eventProfileName(base.getEventProfileName())
                 .eventProfileUri(base.getEventProfileUri())
+                .eventProfileVersion(EVENT_PROFILE_VERSION)
                 .status(status)
                 .createdAt(base.getCreatedAt())
                 .updatedAt(base.getUpdatedAt())
@@ -377,8 +377,9 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     private Webhook addSecretOrAliasToBuilder(Webhook webhook, String secretAlias) throws WebhookMgtException {
 
         return new Webhook.Builder().uuid(webhook.getUuid()).endpoint(webhook.getEndpoint()).name(webhook.getName())
-                .secret(secretAlias).tenantId(webhook.getTenantId()).eventProfileName(webhook.getEventProfileName())
-                .eventProfileUri(webhook.getEventProfileUri()).status(webhook.getStatus())
+                .secret(secretAlias).eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri()).eventProfileVersion(EVENT_PROFILE_VERSION)
+                .status(webhook.getStatus())
                 .createdAt(webhook.getCreatedAt()).updatedAt(webhook.getUpdatedAt())
                 .eventsSubscribed(webhook.getEventsSubscribed()).build();
     }

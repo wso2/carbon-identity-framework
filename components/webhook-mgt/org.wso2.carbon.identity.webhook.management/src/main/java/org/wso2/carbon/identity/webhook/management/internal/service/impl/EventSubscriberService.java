@@ -38,30 +38,32 @@ public class EventSubscriberService {
      * Subscribe events from external systems.
      * This method delegates to appropriate event subscribers.
      *
-     * @param webhook      Webhook to be subscribed.
-     * @param adaptor      The name of the adaptor to use for subscription.
+     * @param webhook  Webhook to be subscribed.
+     * @param adaptor  The name of the adaptor to use for subscription.
+     * @param tenantId Tenant ID for the subscription.
      * @return List of subscriptions that were successfully subscribed.
      */
-    public List<Subscription> subscribe(Webhook webhook, String adaptor)
+    public List<Subscription> subscribe(Webhook webhook, String adaptor, int tenantId)
             throws WebhookMgtException {
 
         EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
-        return subscriber.subscribe(webhook);
+        return subscriber.subscribe(webhook, tenantId);
     }
 
     /**
      * Unsubscribe events from external systems.
      * This method delegates to appropriate event subscribers.
      *
-     * @param webhook      Webhook to be unsubscribed.
-     * @param adaptor      The name of the adaptor to use for unsubscription.
+     * @param webhook  Webhook to be unsubscribed.
+     * @param adaptor  The name of the adaptor to use for unsubscription.
+     * @param tenantId Tenant ID for the unsubscription.
      * @return List of subscriptions that were successfully unsubscribed.
      */
-    public List<Subscription> unsubscribe(Webhook webhook, String adaptor)
+    public List<Subscription> unsubscribe(Webhook webhook, String adaptor, int tenantId)
             throws WebhookMgtException {
 
         EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
-        return subscriber.unsubscribe(webhook);
+        return subscriber.unsubscribe(webhook, tenantId);
     }
 
     private EventSubscriber retrieveAdaptorManager(String adaptor) throws WebhookMgtException {
