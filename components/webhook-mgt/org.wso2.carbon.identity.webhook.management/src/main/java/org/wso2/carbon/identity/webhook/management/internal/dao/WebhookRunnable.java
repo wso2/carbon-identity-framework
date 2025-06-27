@@ -16,30 +16,18 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.model;
+package org.wso2.carbon.identity.webhook.management.internal.dao;
+
+import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 
 /**
- * Enum for webhook status.
- * This enum defines the possible statuses of a webhook subscription.
+ * Functional interface for running webhook-related operations.
+ * This interface is used to define operations that can be executed
+ * in the context of webhook management, allowing for custom logic
+ * to be implemented and executed.
  */
-public enum WebhookStatus {
-    /**
-     * Webhook is active and will receive events.
-     */
-    ACTIVE,
+@FunctionalInterface
+public interface WebhookRunnable {
 
-    /**
-     * Webhook is still in partially active state.
-     */
-    PARTIALLY_ACTIVE,
-
-    /**
-     * Webhook is inactive and will not receive events.
-     */
-    INACTIVE,
-
-    /**
-     * Webhook is in partially inactive state.
-     */
-    PARTIALLY_INACTIVE
+    void run() throws WebhookMgtException;
 }

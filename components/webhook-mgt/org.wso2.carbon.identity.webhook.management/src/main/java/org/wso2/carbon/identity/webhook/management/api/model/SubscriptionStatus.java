@@ -19,27 +19,33 @@
 package org.wso2.carbon.identity.webhook.management.api.model;
 
 /**
- * Enum for webhook status.
- * This enum defines the possible statuses of a webhook subscription.
+ * Enum for subscriber status.
+ * This enum defines the possible statuses of a subscriber in the pubsub hub.
  */
-public enum WebhookStatus {
-    /**
-     * Webhook is active and will receive events.
-     */
-    ACTIVE,
+public enum SubscriptionStatus {
 
     /**
-     * Webhook is still in partially active state.
+     * Subscription is accepted by the pubsub hub.
      */
-    PARTIALLY_ACTIVE,
-
+    SUBSCRIPTION_ACCEPTED,
     /**
-     * Webhook is inactive and will not receive events.
+     * Subscription is not tried yet.
      */
-    INACTIVE,
-
+    SUBSCRIPTION_PENDING,
     /**
-     * Webhook is in partially inactive state.
+     * Subscriber is not accepted by the pubsub hub due to an error (e.g., invalid endpoint or network issue).
      */
-    PARTIALLY_INACTIVE
+    SUBSCRIPTION_ERROR,
+    /**
+     * Unsubscription is accepted by the pubsub hub.
+     */
+    UNSUBSCRIPTION_ACCEPTED,
+    /**
+     * Unsubscription is not tried yet.
+     */
+    UNSUBSCRIPTION_PENDING,
+    /**
+     * Unsubscription failed due to an error (e.g., invalid state or network issue).
+     */
+    UNSUBSCRIPTION_ERROR,
 }

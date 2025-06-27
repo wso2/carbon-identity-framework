@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.webhook.management.api.service;
 
-import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
 import java.util.List;
 
@@ -39,26 +40,18 @@ public interface EventSubscriber {
     /**
      * Subscribe a webhook to the external system.
      *
-     * @param channels            List of channels to subscribe to.
-     * @param eventProfileVersion The version of the event profile to use.
-     * @param endpoint            The endpoint URL to which the webhook will send notifications.
-     * @param secret              The secret key for authentication.
-     * @param tenantDomain        Tenant domain.
-     * @throws WebhookMgtException If an error occurs during subscription.
+     * @param webhook  Webhook to be subscribed.
+     * @param tenantId Tenant ID for the subscription.
+     * @return List of subscriptions created for the specified channels.
      */
-    void subscribe(List<String> channels, String eventProfileVersion, String endpoint, String secret,
-                   String tenantDomain)
-            throws WebhookMgtException;
+    List<Subscription> subscribe(Webhook webhook, int tenantId);
 
     /**
      * Unsubscribe a webhook from the external system.
      *
-     * @param channels            List of channels to unsubscribe from.
-     * @param eventProfileVersion The version of the event profile to use.
-     * @param endpoint            The endpoint URL from which the webhook will stop sending notifications.
-     * @param tenantDomain        Tenant domain.
-     * @throws WebhookMgtException If an error occurs during unsubscription.
+     * @param webhook  Webhook to be unsubscribed.
+     * @param tenantId Tenant ID for the unsubscription.
+     * @return List of subscriptions that were successfully unsubscribed.
      */
-    void unsubscribe(List<String> channels, String eventProfileVersion, String endpoint, String tenantDomain)
-            throws WebhookMgtException;
+    List<Subscription> unsubscribe(Webhook webhook, int tenantId);
 }

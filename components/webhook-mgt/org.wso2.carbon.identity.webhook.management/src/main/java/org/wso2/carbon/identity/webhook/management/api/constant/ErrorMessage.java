@@ -26,7 +26,7 @@ public enum ErrorMessage {
     // Client errors (6xxxx range)
     // Continuation of client error codes can be found in the Webhook Management API layer as well.
     ERROR_CODE_WEBHOOK_NOT_FOUND("WEBHOOKMGT-60001", "Webhook not found",
-            "The requested webhook could not be found in the system."),
+            "The requested webhook %s could not be found in the system."),
     ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS("WEBHOOKMGT-60003", "Webhook endpoint already exists",
             "A webhook with the given endpoint: %s already exists in the system."),
     ERROR_CODE_INVALID_REQUEST("WEBHOOKMGT-60004", "Invalid request",
@@ -48,6 +48,8 @@ public enum ErrorMessage {
             "The webhook: %s is already active and cannot be activated again."),
     ERROR_CODE_WEBHOOK_ALREADY_INACTIVE("WEBHOOKMGT-60014", "Webhook already inactive",
             "The webhook: %s is already inactive and cannot be deactivated again."),
+    ERROR_CODE_WEBHOOK_RETRY_ERROR("WEBHOOKMGT-60015", "Webhook retry error",
+            "An error occurred while retrying the webhook: %s."),
 
     // Server errors (65xxx range) | Remaining codes are continued in API layer.
     // Continuation of server error codes can be found in the Webhook Management API layer as well.
@@ -96,7 +98,19 @@ public enum ErrorMessage {
     ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DELETE_ERROR("WEBHOOKMGT-65021", "Webhook endpoint secret delete error",
             "An error occurred while deleting the webhook: %s endpoint secret."),
     ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR("WEBHOOKMGT-65022", "Webhook endpoint secret decryption error",
-            "An error occurred while decrypting the webhook: %s endpoint secret.");
+            "An error occurred while decrypting the webhook: %s endpoint secret."),
+    ERROR_CODE_WEBHOOK_DELETE_NOT_ALLOWED_ERROR("WEBHOOKMGT-65023", "Webhook deletion not allowed",
+            "The webhook: %s cannot be deleted in this state."),
+    ERROR_CODE_WEBHOOK_ACTIVATION_NOT_ALLOWED_ERROR("WEBHOOKMGT-65024", "Webhook activation not allowed",
+            "The webhook: %s cannot be activated in this state."),
+    ERROR_CODE_WEBHOOK_DEACTIVATION_NOT_ALLOWED_ERROR("WEBHOOKMGT-65025", "Webhook deactivation not allowed",
+            "The webhook: %s cannot be deactivated in this state."),
+    ERROR_CODE_WEBHOOK_RETRY_STATUS_UPDATE_ERROR("WEBHOOKMGT-65026", "Webhook retry status update error",
+            "An error occurred while updating the retry status of the webhook: %s."),
+    ERROR_UPDATE_OPERATION_NOT_SUPPORTED("65027", "Unable to perform the update operation.",
+            "Update operation is not supported for %s"),
+    ERROR_RETRY_OPERATION_NOT_SUPPORTED("65028", "Unable to perform the retry operation.",
+            "Retry operation is not supported for %s");
 
     private final String code;
     private final String message;

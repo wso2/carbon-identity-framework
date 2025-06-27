@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.webhook.management.internal.service.impl;
 
 import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
@@ -36,51 +38,32 @@ public class EventSubscriberService {
      * Subscribe events from external systems.
      * This method delegates to appropriate event subscribers.
      *
-     * @param webhookId           The ID of the webhook to unsubscribe.
-     * @param adaptor             The name of the adaptor to use for subscription.
-     * @param channels            List of channels to subscribe.
-     * @param eventProfileVersion The version of the event profile to use.
-     * @param endpoint            The endpoint URL to which the webhook will send notifications.
-     * @param secret              The secret key for authentication.
-     * @param tenantDomain        Tenant domain.
-     * @throws WebhookMgtException If an error occurs during subscription.
+     * @param webhook  Webhook to be subscribed.
+     * @param adaptor  The name of the adaptor to use for subscription.
+     * @param tenantId Tenant ID for the subscription.
+     * @return List of subscriptions that were successfully subscribed.
      */
-    public void subscribe(String webhookId, String adaptor, List<String> channels, String eventProfileVersion,
-                          String endpoint, String secret, String tenantDomain)
+    public List<Subscription> subscribe(Webhook webhook, String adaptor, int tenantId)
             throws WebhookMgtException {
 
         EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
-        try {
-            subscriber.subscribe(channels, eventProfileVersion, endpoint, secret, tenantDomain);
-        } catch (WebhookMgtException e) {
-            throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIPTION_ERROR, e, webhookId);
-        }
+        return subscriber.subscribe(webhook, tenantId);
     }
 
     /**
      * Unsubscribe events from external systems.
      * This method delegates to appropriate event subscribers.
      *
-     * @param webhookId           The ID of the webhook to unsubscribe.
-     * @param adaptor             The name of the adaptor to use for unsubscription.
-     * @param channels            List of channels to unsubscribe.
-     * @param eventProfileVersion The version of the event profile to use.
-     * @param endpoint            The endpoint URL to which the webhook will send notifications.
-     * @param tenantDomain        Tenant domain.
-     * @throws WebhookMgtException If an error occurs during subscription.
+     * @param webhook  Webhook to be unsubscribed.
+     * @param adaptor  The name of the adaptor to use for unsubscription.
+     * @param tenantId Tenant ID for the unsubscription.
+     * @return List of subscriptions that were successfully unsubscribed.
      */
-    public void unsubscribe(String webhookId, String adaptor, List<String> channels, String eventProfileVersion,
-                            String endpoint, String tenantDomain)
+    public List<Subscription> unsubscribe(Webhook webhook, String adaptor, int tenantId)
             throws WebhookMgtException {
 
         EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
-        try {
-            subscriber.unsubscribe(channels, eventProfileVersion, endpoint, tenantDomain);
-        } catch (WebhookMgtException e) {
-            throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_UNSUBSCRIPTION_ERROR, e, webhookId);
-        }
+        return subscriber.unsubscribe(webhook, tenantId);
     }
 
     private EventSubscriber retrieveAdaptorManager(String adaptor) throws WebhookMgtException {
