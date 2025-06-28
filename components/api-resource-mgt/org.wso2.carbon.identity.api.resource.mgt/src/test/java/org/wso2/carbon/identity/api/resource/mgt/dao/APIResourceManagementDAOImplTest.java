@@ -28,6 +28,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtClientException;
+import org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.constant.SQLConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
@@ -727,6 +728,89 @@ public class APIResourceManagementDAOImplTest {
                     .prepareStatement(SQLConstants.ADD_SCOPE);
             verify(mockInsertStmt, times(scopes.size())).addBatch();
             verify(mockInsertStmt, times(1)).executeBatch();
+        }
+    }
+
+    @Test(priority = 21)
+    public void testAddBusinessAPIResourceWithDuplicateScope() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+
+            // Mock database utilities to return fresh connections
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenAnswer(invocation -> getConnection());
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.commitTransaction(any(Connection.class)))
+                    .thenAnswer((Answer<Void>) invocation -> {
+                        Connection conn = invocation.getArgument(0);
+                        if (!conn.isClosed()) {
+                            conn.commit();
+                        }
+                        return null;
+                    });
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.rollbackTransaction(any(Connection.class)))
+                    .thenAnswer((Answer<Void>) invocation -> {
+                        Connection conn = invocation.getArgument(0);
+                        if (!conn.isClosed()) {
+                            conn.rollback();
+                        }
+                        return null;
+                    });
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenReturn(false);
+
+            // Create the first business API resource with a scope
+            String sharedScopeName = "duplicate_scope_test";
+
+            List<Scope> firstApiScopes = new ArrayList<>();
+            firstApiScopes.add(TestDAOUtils.createScope(sharedScopeName));
+
+            APIResource.APIResourceBuilder firstApiBuilder = new APIResource.APIResourceBuilder()
+                    .name("BusinessAPI-1")
+                    .identifier("business-api-1-identifier-" + System.currentTimeMillis())
+                    .description("First business API resource")
+                    .type(APIResourceManagementConstants.APIResourceTypes.BUSINESS)
+                    .requiresAuthorization(true)
+                    .scopes(firstApiScopes);
+
+            APIResource firstApiResource = firstApiBuilder.build();
+
+            // Add the first business API resource - this should succeed
+            APIResource createdFirstApi = daoImpl.addAPIResource(firstApiResource, TENANT_ID);
+            Assert.assertNotNull(createdFirstApi);
+            Assert.assertEquals(createdFirstApi.getType(), APIResourceManagementConstants.APIResourceTypes.BUSINESS);
+            Assert.assertNotNull(createdFirstApi.getId());
+            Assert.assertEquals(createdFirstApi.getScopes().size(), 1);
+            Assert.assertEquals(createdFirstApi.getScopes().get(0).getName(), sharedScopeName);
+
+            // Verify the scope exists in the database
+            boolean scopeExists = daoImpl.isScopeExistByName(sharedScopeName, TENANT_ID);
+            Assert.assertTrue(scopeExists, "Scope should exist after first API creation");
+
+            // Create the second business API resource with the same scope name
+            List<Scope> secondApiScopes = new ArrayList<>();
+            secondApiScopes.add(TestDAOUtils.createScope(sharedScopeName)); // Same scope name as first API
+
+            APIResource.APIResourceBuilder secondApiBuilder = new APIResource.APIResourceBuilder()
+                    .name("BusinessAPI-2")
+                    .identifier("business-api-2-identifier-" + System.currentTimeMillis())
+                    .description("Second business API resource")
+                    .type(APIResourceManagementConstants.APIResourceTypes.BUSINESS)
+                    .requiresAuthorization(true)
+                    .scopes(secondApiScopes);
+
+            APIResource secondApiResource = secondApiBuilder.build();
+
+            // Try to add the second business API resource with duplicate scope - this should fail
+            APIResourceMgtClientException exception = Assert.expectThrows(APIResourceMgtClientException.class, () ->
+                    daoImpl.addAPIResource(secondApiResource, TENANT_ID));
+
+            // Verify the exception details
+            Assert.assertEquals(exception.getErrorCode(),
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS.getCode());
+            Assert.assertTrue(exception.getMessage().contains("Unable to add scope"));
+            Assert.assertTrue(exception.getDescription().contains("Scope already exists for the tenant"));
         }
     }
 
