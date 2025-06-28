@@ -25,6 +25,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookValidator;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
@@ -154,12 +155,14 @@ public class WebhookValidatorTest {
 
     @Test
     public void testValidateChannelsSubscribedValid() throws Exception {
-        // Mock metadata service and event profile
+
         WebhookMetadataService metadataService = Mockito.mock(WebhookMetadataService.class);
         Channel channel = new Channel("channel1", "description1", "event1", Collections.emptyList());
         EventProfile profile = new EventProfile(
                 "profile1", "uri1", Collections.singletonList(channel));
         List<EventProfile> profiles = Collections.singletonList(profile);
+
+        Subscription subscription = Subscription.builder().channelUri("event1").build();
 
         try (MockedStatic<WebhookManagementComponentServiceHolder> mockedHolder = Mockito.mockStatic(
                 WebhookManagementComponentServiceHolder.class)) {
@@ -169,7 +172,7 @@ public class WebhookValidatorTest {
             Mockito.when(metadataService.getSupportedEventProfiles()).thenReturn(profiles);
             mockedHolder.when(WebhookManagementComponentServiceHolder::getInstance).thenReturn(holder);
 
-            validator.validateChannelsSubscribed("profile1", Collections.singletonList("event1"));
+            validator.validateChannelsSubscribed("profile1", Collections.singletonList(subscription));
         }
     }
 
@@ -180,6 +183,8 @@ public class WebhookValidatorTest {
         EventProfile profile = new EventProfile("profile1", "uri1", Collections.emptyList());
         List<EventProfile> profiles = Collections.singletonList(profile);
 
+        Subscription subscription = Subscription.builder().channelUri("event1").build();
+
         try (MockedStatic<WebhookManagementComponentServiceHolder> mockedHolder = Mockito.mockStatic(
                 WebhookManagementComponentServiceHolder.class)) {
             WebhookManagementComponentServiceHolder holder =
@@ -188,7 +193,7 @@ public class WebhookValidatorTest {
             Mockito.when(metadataService.getSupportedEventProfiles()).thenReturn(profiles);
             mockedHolder.when(WebhookManagementComponentServiceHolder::getInstance).thenReturn(holder);
 
-            validator.validateChannelsSubscribed("profile2", Collections.singletonList("event1"));
+            validator.validateChannelsSubscribed("profile2", Collections.singletonList(subscription));
         }
     }
 
@@ -200,6 +205,8 @@ public class WebhookValidatorTest {
         EventProfile profile = new EventProfile("profile1", "uri1", Collections.singletonList(channel));
         List<EventProfile> profiles = Collections.singletonList(profile);
 
+        Subscription subscription = Subscription.builder().channelUri("event2").build();
+
         try (MockedStatic<WebhookManagementComponentServiceHolder> mockedHolder = Mockito.mockStatic(
                 WebhookManagementComponentServiceHolder.class)) {
             WebhookManagementComponentServiceHolder holder =
@@ -208,7 +215,7 @@ public class WebhookValidatorTest {
             Mockito.when(metadataService.getSupportedEventProfiles()).thenReturn(profiles);
             mockedHolder.when(WebhookManagementComponentServiceHolder::getInstance).thenReturn(holder);
 
-            validator.validateChannelsSubscribed("profile1", Collections.singletonList("event2"));
+            validator.validateChannelsSubscribed("profile1", Collections.singletonList(subscription));
         }
     }
 }

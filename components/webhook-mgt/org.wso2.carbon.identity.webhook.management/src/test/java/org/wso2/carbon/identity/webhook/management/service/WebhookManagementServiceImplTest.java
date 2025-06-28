@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
+import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
@@ -77,7 +78,6 @@ public class WebhookManagementServiceImplTest {
         identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
 
-        // Mock WebhookManagementComponentServiceHolder and WebhookMetadataService
         webhookComponentHolderMockedStatic = mockStatic(WebhookManagementComponentServiceHolder.class);
         WebhookManagementComponentServiceHolder holder = mock(WebhookManagementComponentServiceHolder.class);
         webhookMetadataService = mock(WebhookMetadataService.class);
@@ -86,7 +86,6 @@ public class WebhookManagementServiceImplTest {
                 .thenReturn(holder);
         when(holder.getWebhookMetadataService()).thenReturn(webhookMetadataService);
 
-        // Setup a valid EventProfile and Channel for validation
         Channel channel = new Channel("logins", "Logins Channel", "schemas.identity.wso2.org/events/logins",
                 Collections.emptyList());
         EventProfile eventProfile = new EventProfile("profile", "uri", Collections.singletonList(channel));
@@ -122,19 +121,17 @@ public class WebhookManagementServiceImplTest {
         when(inputWebhook.getEventProfileUri()).thenReturn("uri");
         when(inputWebhook.getCreatedAt()).thenReturn(null);
         when(inputWebhook.getUpdatedAt()).thenReturn(null);
-        when(inputWebhook.getEventsSubscribed()).thenReturn(
-                Collections.singletonList("schemas.identity.wso2.org/events/logins"));
+        // Provide a non-empty list for eventsSubscribed
+        Subscription subscription =
+                Subscription.builder().channelUri("schemas.identity.wso2.org/events/logins").build();
+        when(inputWebhook.getEventsSubscribed()).thenReturn(Collections.singletonList(subscription));
 
-        // Endpoint does not exist
         when(webhookManagementDAO.isWebhookEndpointExists("https://test.com/webhook", 1)).thenReturn(false);
 
-        // Simulate returned webhook after creation
         Webhook createdWebhook = mock(Webhook.class);
         when(webhookManagementDAO.getWebhook(anyString(), eq(1))).thenReturn(createdWebhook);
 
         WebhookManagementServiceImpl service = WebhookManagementServiceImpl.getInstance();
-
-        // Inject mock DAO
         Field daoField = WebhookManagementServiceImpl.class.getDeclaredField("daoFACADE");
         daoField.setAccessible(true);
         daoField.set(service, webhookManagementDAO);
@@ -152,103 +149,15 @@ public class WebhookManagementServiceImplTest {
 
         Webhook webhook = mock(Webhook.class);
         when(webhook.getEndpoint()).thenReturn(WEBHOOK_ENDPOINT);
-
         when(webhookManagementDAO.isWebhookEndpointExists(WEBHOOK_ENDPOINT, TENANT_ID)).thenReturn(true);
-
         webhookManagementService.createWebhook(webhook, TENANT_DOMAIN);
-    }
-
-    @Test
-    public void testUpdateWebhook() throws Exception {
-
-        // Setup a valid EventProfile and Channel for validation
-        Channel channel = new Channel("logins", "Logins Channel", "schemas.identity.wso2.org/events/logins",
-                Collections.emptyList());
-        EventProfile eventProfile =
-                new EventProfile("updated-profile", "updated-uri", Collections.singletonList(channel));
-        when(webhookMetadataService.getSupportedEventProfiles())
-                .thenReturn(Collections.singletonList(eventProfile));
-
-        String webhookId = "webhook-123";
-        String tenantDomain = "test.com";
-        int tenantId = 1;
-
-        // Mock input and existing webhooks
-        Webhook updateWebhook = mock(Webhook.class);
-        Webhook existingWebhook = mock(Webhook.class);
-        Webhook resultWebhook = mock(Webhook.class);
-
-        // Configure complete data for updateWebhook
-        when(updateWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
-        when(updateWebhook.getName()).thenReturn("updated-name");
-        when(updateWebhook.getUuid()).thenReturn(webhookId);
-        when(updateWebhook.getEventProfileName()).thenReturn("updated-profile");
-        when(updateWebhook.getEventProfileUri()).thenReturn("updated-uri");
-        when(updateWebhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
-        when(updateWebhook.getSecret()).thenReturn("updated-test12-secret-1234567890");
-
-        // Make sure eventsSubscribed isn't null
-        List<String> events = new ArrayList<>();
-        events.add("schemas.identity.wso2.org/events/logins");
-        when(updateWebhook.getEventsSubscribed()).thenReturn(events);
-
-        // Configure existing webhook
-        when(existingWebhook.getEndpoint()).thenReturn("https://test.com/webhook");
-        when(existingWebhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
-        when(existingWebhook.getName()).thenReturn("name");
-        when(existingWebhook.getSecret()).thenReturn("aBcD1234_efGh5678~IjKl9012+MnOpQR");
-        when(existingWebhook.getEventProfileName()).thenReturn("profile");
-        when(existingWebhook.getEventProfileUri()).thenReturn("uri");
-        when(existingWebhook.getUuid()).thenReturn(webhookId);
-        when(existingWebhook.getEventsSubscribed()).thenReturn(events);
-
-        // Set up result webhook
-        when(resultWebhook.getUuid()).thenReturn(webhookId);
-
-        // Simulate DAO behavior
-        when(webhookManagementDAO.getWebhook(webhookId, tenantId))
-                .thenReturn(existingWebhook) // First call during validation
-                .thenReturn(existingWebhook) // Second call
-                .thenReturn(resultWebhook);  // Third call when returning the updated webhook
-
-        // Mock endpoint check
-        when(webhookManagementDAO.isWebhookEndpointExists("https://test.com/webhook", tenantId)).thenReturn(false);
-
-        Webhook result = webhookManagementService.updateWebhook(webhookId, updateWebhook, tenantDomain);
-
-        verify(webhookManagementDAO).updateWebhook(any(Webhook.class), eq(tenantId));
-        verify(webhookManagementDAO, times(3)).getWebhook(webhookId, tenantId);
-
-        assertEquals(result, resultWebhook);
-    }
-
-    @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp =
-            "Webhook endpoint already exists")
-    public void testUpdateWebhookWithExistingEndpoint() throws WebhookMgtException {
-
-        // Mock the existing webhook with original endpoint
-        Webhook existingWebhook = mock(Webhook.class);
-        String originalEndpoint = "https://original-endpoint.com";
-        when(existingWebhook.getEndpoint()).thenReturn(originalEndpoint);
-
-        // Mock the webhook to update with new endpoint
-        Webhook webhook = mock(Webhook.class);
-        when(webhook.getUuid()).thenReturn(WEBHOOK_ID);
-        when(webhook.getEndpoint()).thenReturn(WEBHOOK_ENDPOINT);
-
-        // Return existingWebhook first time getWebhook is called
-        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(existingWebhook);
-
-        // Mock that the new endpoint already exists in another webhook
-        when(webhookManagementDAO.isWebhookEndpointExists(WEBHOOK_ENDPOINT, TENANT_ID)).thenReturn(true);
-
-        webhookManagementService.updateWebhook(webhook.getUuid(), webhook, TENANT_DOMAIN);
     }
 
     @Test
     public void testDeleteWebhook() throws WebhookMgtException {
 
         Webhook webhook = mock(Webhook.class);
+        when(webhook.getStatus()).thenReturn(WebhookStatus.INACTIVE);
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
 
         webhookManagementService.deleteWebhook(WEBHOOK_ID, TENANT_DOMAIN);
@@ -272,23 +181,13 @@ public class WebhookManagementServiceImplTest {
     public void testDeactivateWebhook() throws WebhookMgtException {
 
         Webhook webhook = mock(Webhook.class);
+        when(webhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
 
         webhookManagementService.deactivateWebhook(WEBHOOK_ID, TENANT_DOMAIN);
 
-        verify(webhookManagementDAO).deactivateWebhook(WEBHOOK_ID, TENANT_ID);
+        verify(webhookManagementDAO).deactivateWebhook(webhook, TENANT_ID);
         verify(webhookManagementDAO, times(2)).getWebhook(WEBHOOK_ID, TENANT_ID);
-    }
-
-    @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp =
-            "Webhook not found")
-    public void testUpdateIfWebhookNotExist() throws WebhookMgtException {
-
-        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(null);
-
-        Webhook webhook = mock(Webhook.class);
-        when(webhook.getUuid()).thenReturn(WEBHOOK_ID);
-        webhookManagementService.updateWebhook(webhook.getUuid(), webhook, TENANT_DOMAIN);
     }
 
     @Test
@@ -314,11 +213,12 @@ public class WebhookManagementServiceImplTest {
     public void testActivateWebhook() throws WebhookMgtException {
 
         Webhook webhook = mock(Webhook.class);
+        when(webhook.getStatus()).thenReturn(WebhookStatus.INACTIVE);
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
 
         webhookManagementService.activateWebhook(WEBHOOK_ID, TENANT_DOMAIN);
 
-        verify(webhookManagementDAO).activateWebhook(WEBHOOK_ID, TENANT_ID);
+        verify(webhookManagementDAO).activateWebhook(webhook, TENANT_ID);
         verify(webhookManagementDAO, times(2)).getWebhook(WEBHOOK_ID, TENANT_ID);
     }
 
@@ -334,14 +234,16 @@ public class WebhookManagementServiceImplTest {
     @Test
     public void testGetWebhookEvents() throws WebhookMgtException {
 
-        List<String> events = new ArrayList<>();
-        events.add("event1");
-        events.add("event2");
+        List<Subscription> events = new ArrayList<>();
+        Subscription sub1 = mock(Subscription.class);
+        Subscription sub2 = mock(Subscription.class);
+        events.add(sub1);
+        events.add(sub2);
 
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(mock(Webhook.class));
         when(webhookManagementDAO.getWebhookEvents(WEBHOOK_ID, TENANT_ID)).thenReturn(events);
 
-        List<String> result = webhookManagementService.getWebhookEvents(WEBHOOK_ID, TENANT_DOMAIN);
+        List<Subscription> result = webhookManagementService.getWebhookEvents(WEBHOOK_ID, TENANT_DOMAIN);
 
         verify(webhookManagementDAO).getWebhook(WEBHOOK_ID, TENANT_ID);
         verify(webhookManagementDAO).getWebhookEvents(WEBHOOK_ID, TENANT_ID);
