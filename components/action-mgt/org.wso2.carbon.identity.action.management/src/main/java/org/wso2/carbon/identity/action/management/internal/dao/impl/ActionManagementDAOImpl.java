@@ -349,11 +349,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                 updatingEndpoint.getUri()).build()), tenantId);
             }
             if (updatingEndpoint.getAllowedHeaders() != null) {
-                updateEndpointPropertiesInDB(updatingActionDTO.getId(), ALLOWED_HEADERS_PROPERTY,
+                updateActionPropertyListInDB(updatingActionDTO.getId(), ALLOWED_HEADERS_PROPERTY,
                         updatingEndpoint.getAllowedHeaders(), tenantId);
             }
             if (updatingEndpoint.getAllowedParameters() != null) {
-                updateEndpointPropertiesInDB(updatingActionDTO.getId(), ALLOWED_PARAMETERS_PROPERTY,
+                updateActionPropertyListInDB(updatingActionDTO.getId(), ALLOWED_PARAMETERS_PROPERTY,
                         updatingEndpoint.getAllowedParameters(), tenantId);
             }
             updateEndpointAuthentication(updatingActionDTO.getId(), updatingEndpoint.getAuthentication(),
@@ -721,21 +721,21 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     /**
      * Update the list of values for a given properties of an {@link EndpointConfig}.
      *
-     * @param updatingActionId   UUID of the Action to be updated.
+     * @param actionId   UUID of the Action to be updated.
      * @param updatingPropertyKey Key of the property to be updated.
      * @param updatingValues      List of new values for the property.
      * @param tenantId            Tenant ID.
      * @throws ActionMgtException If an error occurs while updating the property in the database.
      */
-    private void updateEndpointPropertiesInDB(String updatingActionId, String updatingPropertyKey,
-                                              List<String> updatingValues, Integer tenantId) throws ActionMgtException {
+    private void updateActionPropertyListInDB(String actionId, String updatingPropertyKey, List<String> updatingValues,
+                                              Integer tenantId) throws ActionMgtException {
 
         Map<String, ActionProperty> endpointProperties = new HashMap<>();
         try {
-            deleteActionPropertiesInDB(updatingActionId, Collections.singletonList(updatingPropertyKey), tenantId);
+            deleteActionPropertiesInDB(actionId, Collections.singletonList(updatingPropertyKey), tenantId);
             endpointProperties.put(updatingPropertyKey,
                     actionMgtDAOUtil.buildActionPropertyFromList(updatingValues));
-            addActionPropertiesToDB(updatingActionId, endpointProperties, tenantId);
+            addActionPropertiesToDB(actionId, endpointProperties, tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while updating " + updatingPropertyKey + e);
         }

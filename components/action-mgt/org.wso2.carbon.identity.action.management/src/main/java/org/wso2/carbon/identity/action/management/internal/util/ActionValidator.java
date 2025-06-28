@@ -139,7 +139,7 @@ public class ActionValidator {
             return;
         }
 
-        filterOutExcludedHeaders(allowedHeaders);
+        validateAllowedHeaders(allowedHeaders);
         for (String header : allowedHeaders) {
             validateForBlank(ActionMgtConstants.ALLOWED_HEADERS_FIELD, header);
             validateHeader(header);
@@ -159,7 +159,7 @@ public class ActionValidator {
             return;
         }
 
-        filterOutExcludedParameters(allowedParameters);
+        validateAllowedParameters(allowedParameters);
         for (String param : allowedParameters) {
             validateForBlank(ActionMgtConstants.ALLOWED_PARAMETERS_FIELD, param);
             validateParameter(param);
@@ -167,39 +167,35 @@ public class ActionValidator {
     }
 
     /**
-     * Filters out headers that are excluded by the server configuration.
+     * Validate configured headers by filtering out excluded headers that are configured at server level.
      *
      * @param allowedHeadersInAction List of allowed headers configured at action level.
      * @throws ActionMgtClientException If any header is excluded by the server configuration.
      */
-    private void filterOutExcludedHeaders(List<String> allowedHeadersInAction) throws ActionMgtClientException {
+    private void validateAllowedHeaders(List<String> allowedHeadersInAction) throws ActionMgtClientException {
 
         List<String> excludedHeadersServerConfig = ACTION_MGT_CONFIG.getPropertyValues(
                 ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
         boolean hasExcluded = allowedHeadersInAction.stream().anyMatch(excludedHeadersServerConfig::contains);
         if (hasExcluded) {
-            throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ALLOWED_HEADERS_FIELD);
+            throw ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_NOT_ALLOWED_HEADER);
         }
     }
 
     /**
-     * Filters out parameters that are excluded by the server configuration.
+     * Validate configured parameters by filtering out excluded parameters that are configured at server level.
      *
      * @param allowedParametersInAction List of allowed parameters configured at action level.
      * @throws ActionMgtClientException If any parameter is excluded by the server configuration.
      */
-    private void filterOutExcludedParameters(List<String> allowedParametersInAction) throws ActionMgtClientException {
+    private void validateAllowedParameters(List<String> allowedParametersInAction) throws ActionMgtClientException {
 
         List<String> excludedParamsServerConfig = ACTION_MGT_CONFIG.getPropertyValues(
                 ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
         boolean hasExcluded = allowedParametersInAction.stream()
                 .anyMatch(excludedParamsServerConfig::contains);
         if (hasExcluded) {
-            throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ALLOWED_PARAMETERS_FIELD);
+            throw ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_NOT_ALLOWED_PARAMETER);
         }
     }
 
@@ -258,7 +254,7 @@ public class ActionValidator {
         boolean isValidHeader = headerRegexPattern.matcher(header).matches();
         if (!isValidHeader) {
             throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.HEADER_NAME_FIELD);
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.HEADER_NAME_FIELD, header);
         }
     }
 
@@ -275,7 +271,7 @@ public class ActionValidator {
         if (hasGeneralDelimiters) {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ALLOWED_PARAMETERS_FIELD);
+                    ActionMgtConstants.ALLOWED_PARAMETERS_FIELD, param);
         }
     }
 }

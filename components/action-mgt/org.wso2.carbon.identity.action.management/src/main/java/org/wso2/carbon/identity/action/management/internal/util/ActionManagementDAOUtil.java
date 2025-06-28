@@ -44,12 +44,12 @@ public class ActionManagementDAOUtil {
     public List<String> resolveListFromBinaryObject(Map<String, ActionProperty> properties,
                                                     String dbPropertyToRead) throws ActionMgtServerException {
 
-        Object allowedHeaders = properties.remove(dbPropertyToRead).getValue();
-        String allowedHeaderJson = ((BinaryObject) allowedHeaders).getJSONString();
+        Object dbValueBinary = properties.remove(dbPropertyToRead).getValue();
+        String dbValueJSON = ((BinaryObject) dbValueBinary).getJSONString();
 
         ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.readValue(allowedHeaderJson, new TypeReference<List<String>>() { });
+            return mapper.readValue(dbValueJSON, new TypeReference<List<String>>() { });
         } catch (JsonProcessingException e) {
             throw new ActionMgtServerException("Error while reading " + dbPropertyToRead);
         }
