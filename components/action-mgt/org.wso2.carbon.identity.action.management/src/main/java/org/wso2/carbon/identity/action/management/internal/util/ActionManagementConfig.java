@@ -65,8 +65,8 @@ public class ActionManagementConfig {
     public enum ActionTypeConfig {
 
         PRE_ISSUE_ACCESS_TOKEN(
-                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter",
-                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header"
+                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter"
         );
 
         private final String excludedHeadersProperty;
