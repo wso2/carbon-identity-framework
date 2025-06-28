@@ -348,7 +348,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
                 if (CollectionUtils.isNotEmpty(addedScopes)) {
                     // Add Scopes.
-                    addScopes(dbConnection, apiResource.getId(), addedScopes, tenantId);
+                    addScopes(dbConnection, apiResource.getId(), addedScopes, tenantId, apiResource.getType());
                 }
 
                 if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes()) &&
@@ -621,7 +621,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         }
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
-            addScopes(dbConnection, apiId, scopes, tenantId);
+            addScopes(dbConnection, apiId, scopes, tenantId, null);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
@@ -685,13 +685,13 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 deleteScopeByAPIId(dbConnection, apiId, tenantId);
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
                 // Add the new scopes and commit.
-                addScopes(dbConnection, apiId, scopes, tenantId);
+                addScopes(dbConnection, apiId, scopes, tenantId, null);
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
             } catch (APIResourceMgtException e) {
 
                 // Rollback the transaction if any error occurred and add back the previous scopes.
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-                addScopes(dbConnection, apiId, currentScopes, tenantId);
+                addScopes(dbConnection, apiId, currentScopes, tenantId, null);
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
                 throw e;
             }
@@ -1043,47 +1043,6 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_SCOPES, e);
-        }
-    }
-
-    /**
-     * Add scopes to the API resource.
-     *
-     * @param dbConnection Database connection.
-     * @param apiId        API resource id.
-     * @param scopes       List of scopes.
-     * @param tenantId     Tenant id.
-     * @throws APIResourceMgtException If an error occurs while adding scopes.
-     */
-    private void addScopes(Connection dbConnection, String apiId, List<Scope> scopes, Integer tenantId)
-            throws APIResourceMgtException {
-
-        if (CollectionUtils.isEmpty(scopes)) {
-            return;
-        }
-
-        try {
-            PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_SCOPE);
-            for (Scope scope : scopes) {
-
-                if (isScopeExists(dbConnection, scope.getName(), tenantId)) {
-                    throw APIResourceManagementUtil.handleClientException(
-                            APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS,
-                            String.valueOf(tenantId));
-                }
-
-                prepStmt.setString(1, UUID.randomUUID().toString());
-                prepStmt.setString(2, scope.getName());
-                prepStmt.setString(3, scope.getDisplayName());
-                prepStmt.setString(4, scope.getDescription());
-                prepStmt.setString(5, apiId);
-                prepStmt.setObject(6, tenantId == 0 ? null : tenantId);
-                prepStmt.addBatch();
-            }
-            prepStmt.executeBatch();
-        } catch (SQLException e) {
-            throw APIResourceManagementUtil.handleServerException(
-                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_SCOPES, e);
         }
     }
 
