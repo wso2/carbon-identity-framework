@@ -1001,38 +1001,6 @@
 				<ReadOnly />
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/agent/URL</ClaimURI>
-				<DisplayName>Agent URL</DisplayName>
-				<AttributeID>agentURL</AttributeID>
-				<Description>Agent URL</Description>
-				<SupportedByDefault />
-				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
-			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/agent/agentAIModel</ClaimURI>
-				<DisplayName>Agent AI Model</DisplayName>
-				<AttributeID>agentAIModel</AttributeID>
-				<Description>Agent AI Model</Description>
-				<SupportedByDefault />
-				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
-			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/agent/Owner</ClaimURI>
-				<DisplayName>Agent Owner</DisplayName>
-				<AttributeID>agentOwner</AttributeID>
-				<Description>Agent Owner</Description>
-				<SupportedByDefault />
-				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
-			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/agent/Description</ClaimURI>
-				<DisplayName>Agent Description</DisplayName>
-				<AttributeID>agentDescription</AttributeID>
-				<Description>Agent Description</Description>
-				<SupportedByDefault />
-				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
-			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -1961,34 +1929,6 @@
 				<Required/>
 				<SupportedByDefault/>
 				<MappedLocalClaim>http://wso2.org/claims/identity/preferredMFAOption</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>agentUrl</ClaimURI>
-				<DisplayName>Agent URL</DisplayName>
-				<AttributeID>agentUrl</AttributeID>
-				<Description>Agent URL</Description>
-				<MappedLocalClaim>http://wso2.org/claims/agent/URL</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>agentOwner</ClaimURI>
-				<DisplayName>Agent Owner</DisplayName>
-				<AttributeID>agentOwner</AttributeID>
-				<Description>Agent Owner</Description>
-				<MappedLocalClaim>http://wso2.org/claims/agent/Owner</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>agentDescription</ClaimURI>
-				<DisplayName>Agent Description</DisplayName>
-				<AttributeID>agentDescription</AttributeID>
-				<Description>Agent Description</Description>
-				<MappedLocalClaim>http://wso2.org/claims/agent/Description</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>agentAIModel</ClaimURI>
-				<DisplayName>Agent AI Model</DisplayName>
-				<AttributeID>agentAIModel</AttributeID>
-				<Description>Agent AI Model</Description>
-				<MappedLocalClaim>http://wso2.org/claims/agent/agentAIModel</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0"
@@ -2957,44 +2897,6 @@
 				<AttributeID>sharedType</AttributeID>
 				<Description>Shared type of the user</Description>
 				<MappedLocalClaim>http://wso2.org/claims/identity/sharedType</MappedLocalClaim>
-			</Claim>
-		</Dialect>
-		<Dialect dialectURI="urn:scim:wso2:agent:schema">	
-			<Claim>
-				<ClaimURI>urn:scim:wso2:agent:schema:agentUrl</ClaimURI>
-				<DisplayName>Agent URL</DisplayName>
-				<AttributeID>agentUrl</AttributeID>
-				<Description>Agent URL</Description>
-				<DisplayOrder>1</DisplayOrder>
-				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/agent/URL</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>urn:scim:wso2:agent:schema:agentOwner</ClaimURI>
-				<DisplayName>Agent Owner</DisplayName>
-				<AttributeID>agentOwner</AttributeID>
-				<Description>Agent Owner</Description>
-				<DisplayOrder>1</DisplayOrder>
-				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/agent/Owner</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>urn:scim:wso2:agent:schema:agentDescription</ClaimURI>
-				<DisplayName>Agent Description</DisplayName>
-				<AttributeID>agentDescription</AttributeID>
-				<Description>Agent Description</Description>
-				<DisplayOrder>1</DisplayOrder>
-				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/agent/Description</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>urn:scim:wso2:agent:schema:agentAIModel</ClaimURI>
-				<DisplayName>Agent Description</DisplayName>
-				<AttributeID>agentAIModel</AttributeID>
-				<Description>Agent Description</Description>
-				<DisplayOrder>1</DisplayOrder>
-				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/agent/agentAIModel</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 	</Dialects>
