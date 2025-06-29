@@ -1217,4 +1217,61 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         return requestEntities;
     }
-}
+
+    /**
+     * Retrieve a workflow request by its ID.
+     *
+     * @param requestId The ID of the workflow request to retrieve.
+     * @return The workflow request with the specified ID.
+     * @throws WorkflowException If an error occurs while retrieving the workflow request.
+     */
+    @Override
+    public WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException {
+        
+        if (StringUtils.isBlank(requestId)) {
+            throw new WorkflowClientException("Request ID cannot be null or empty.");
+        }
+        
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                try {
+                    workflowListener.doPreGetWorkflowRequest(requestId);
+                } catch (Exception e) {
+                    log.error("Error occurred in pre-processing listener for request ID: " + requestId, e);
+                    throw new InternalWorkflowException("Error in workflow listener pre-processing", e);
+                }
+            }
+        }
+        
+        WorkflowRequest workflowRequest = null;
+        try {
+            workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving workflow request with ID: " + requestId, e);
+            throw new InternalWorkflowException("Failed to retrieve workflow request", e);
+        }
+        
+        if (workflowRequest == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No workflow request found with ID: " + requestId);
+            }
+            throw new WorkflowClientException("Workflow request not found with ID: " + requestId);
+        }
+        
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                try {
+                    workflowListener.doPostGetWorkflowRequest(requestId, workflowRequest);
+                } catch (Exception e) {
+                    log.error("Error occurred in post-processing listener for request ID: " + requestId, e);
+                    throw new InternalWorkflowException("Error in workflow listener post-processing", e);
+                }
+            }
+        }
+        
+        return workflowRequest;
+    }
+    }

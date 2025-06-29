@@ -650,4 +650,21 @@ public interface WorkflowListener {
      * @return
      */
     int getOrderId();
+
+    /**
+    * Trigger before retrieving a workflow request.
+    *
+    * @param requestId ID of the workflow request to retrieve
+    * @throws WorkflowException
+    */
+    void doPreGetWorkflowRequest(String requestId) throws WorkflowException;
+        
+    /**
+    * Trigger after retrieving a workflow request.
+    *
+    * @param requestId ID of the workflow request that was retrieved
+    * @param workflowRequest Workflow request object returned by the original operation
+    * @throws WorkflowException
+    */
+    void doPostGetWorkflowRequest(String requestId, WorkflowRequest workflowRequest) throws WorkflowException;
 }

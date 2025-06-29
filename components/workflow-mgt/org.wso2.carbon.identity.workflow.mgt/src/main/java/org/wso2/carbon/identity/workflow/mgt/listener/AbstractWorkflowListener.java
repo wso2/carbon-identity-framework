@@ -775,4 +775,28 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
         }
         return workflowListener.getOrder();
     }
+
+        /**
+         * Trigger before retrieving a workflow request.
+         *
+         * @param requestId ID of the workflow request to retrieve
+         * @throws WorkflowException
+         */
+        @Override
+        public void doPreGetWorkflowRequest(String requestId) throws WorkflowException {
+
+        }
+
+        /**
+         * Trigger after retrieving a workflow request.
+         *
+         * @param requestId ID of the workflow request that was retrieved
+         * @param workflowRequest Workflow request object returned by the original operation
+         * @throws WorkflowException
+         */
+        @Override
+        public void doPostGetWorkflowRequest(String requestId, WorkflowRequest workflowRequest) throws WorkflowException {
+                
+        }
+
 }

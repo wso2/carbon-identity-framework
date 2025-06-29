@@ -378,4 +378,13 @@ public interface WorkflowManagementService {
 
     List<String> listEntityNames(String wfOperationType, String wfStatus, String entityType, int tenantID, String
             idFilter) throws WorkflowException;
+            
+    /**
+     * Retrieve workflow request from request ID
+     *
+     * @param requestId request id
+     * @return
+     * @throws WorkflowException
+     */
+    WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException;
 }
