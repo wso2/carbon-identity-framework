@@ -1139,7 +1139,7 @@ public class FrameworkServiceComponent {
     @Reference(
             name = "org.discovery.service",
             service = OrganizationDiscoveryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
+            cardinality = ReferenceCardinality.OPTIONAL,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetOrganizationDiscoveryService"
     )
