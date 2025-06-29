@@ -611,40 +611,40 @@ public class WorkflowRequestDAO {
         String query = SQLConstants.GET_FULL_WORKFLOW_REQUEST_QUERY;
 
         try {
-                prepStmt = connection.prepareStatement(query);
-                prepStmt.setString(1, requestId);
-                resultSet = prepStmt.executeQuery();
-                
-                if (resultSet.next()) {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, requestId);
+            resultSet = prepStmt.executeQuery();
+
+            if (resultSet.next()) {
                     org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO = 
                         new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
-                    
-                    requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
-                    requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
-                    requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
-                    requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
-                    requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
-                    requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
-                    
-                    byte[] requestBytes = resultSet.getBytes(SQLConstants.REQUEST_COLUMN);
-                    WorkflowRequest workflowRequest = null;
-                    if (requestBytes != null && requestBytes.length > 0) {
-                        workflowRequest = deserializeWorkflowRequest(requestBytes);
-                    }
-                    if (workflowRequest != null) {
-                        requestDTO.setRequestParams(workflowRequest.getRequestParameterAsString());
-                    }
-                    
-                    return requestDTO;
-                }
-                return null;
-            } catch (SQLException e) {
-                throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
-            } catch (ClassNotFoundException | IOException e) {
-                throw new InternalWorkflowException("Error when deserializing the workflow request. requestId = " + requestId, e);
-            } finally {
-                IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
-            }
-        }
 
+                requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
+                requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
+                requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
+                requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
+                requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
+                requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
+
+                byte[] requestBytes = resultSet.getBytes(SQLConstants.REQUEST_COLUMN);
+                WorkflowRequest workflowRequest = null;
+                if (requestBytes != null && requestBytes.length > 0) {
+                    workflowRequest = deserializeWorkflowRequest(requestBytes);
+                }
+                if (workflowRequest != null) {
+                    requestDTO.setRequestParams(workflowRequest.getRequestParameterAsString());
+                }
+
+                return requestDTO;
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+        } catch (ClassNotFoundException | IOException e) {
+                throw new InternalWorkflowException
+                    ("Error when deserializing the workflow request. requestId = " + requestId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
+        }
+    }  
 }

@@ -382,9 +382,10 @@ public interface WorkflowManagementService {
     /**
      * Retrieve workflow request from request ID
      *
-     * @param requestId request id
+     * @param requestId request id.
      * @return
      * @throws WorkflowException
      */
     WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException;
 }
+

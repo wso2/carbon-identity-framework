@@ -795,8 +795,8 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
          * @throws WorkflowException
          */
         @Override
-        public void doPostGetWorkflowRequest(String requestId, WorkflowRequest workflowRequest) throws WorkflowException {
-                
-        }
+        public void doPostGetWorkflowRequest(String requestId, WorkflowRequest workflowRequest) 
+                throws WorkflowException {
 
+        }
 }
