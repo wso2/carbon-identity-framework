@@ -601,9 +601,10 @@ public class WorkflowRequestDAO {
      * @param requestId
      * @return WorkflowRequest
      * @throws InternalWorkflowException
+     * @throws ClassNotFoundException 
      */
     public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest getWorkflowRequest(String requestId)
-            throws InternalWorkflowException {
+            throws InternalWorkflowException, ClassNotFoundException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
@@ -640,7 +641,7 @@ public class WorkflowRequestDAO {
             return null;
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
-        } catch (ClassNotFoundException | IOException e) {
+        } catch (IOException e) {
                 throw new InternalWorkflowException
                     ("Error when deserializing the workflow request. requestId = " + requestId, e);
         } finally {
