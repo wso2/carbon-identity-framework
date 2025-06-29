@@ -100,6 +100,7 @@ public class TestUtil {
     public static final String TEST_ACTION_ALLOWED_HEADER_3 = "x-test-header-3";
     public static final String TEST_ACTION_ALLOWED_PARAMETER_1 = "testParam_1";
     public static final String TEST_ACTION_ALLOWED_PARAMETER_2 = "testParam_2";
+    public static final String TEST_ACTION_ALLOWED_PARAMETER_3 = "testParam_3";
 
     public static Action buildMockAction(String name, String description, String uri, Authentication authentication) {
 
@@ -191,7 +192,8 @@ public class TestUtil {
 
         return Arrays.asList(
                 TEST_ACTION_ALLOWED_PARAMETER_1,
-                TEST_ACTION_ALLOWED_PARAMETER_2);
+                TEST_ACTION_ALLOWED_PARAMETER_2,
+                TEST_ACTION_ALLOWED_PARAMETER_3);
     }
 
     public static Rule buildMockRule(String ruleId, boolean isActive) {
