@@ -44,6 +44,8 @@ import static org.mockito.Mockito.mockStatic;
 public class ActionValidatorTest {
 
     private static final String ERROR_INVALID_REQUEST = "Invalid request.";
+    private static final String ERROR_NOT_ALLOWED_HEADER = "Provided allowedHeaders are not permitted.";
+    private static final String ERROR_NOT_ALLOWED_PARAMETER = "Provided allowedParameters are not permitted.";
     private ActionValidator actionValidator;
     private ActionManagementConfig actionManagementConfigMock;
     private IdentityConfigParser identityConfigParserMock;
@@ -258,6 +260,44 @@ public class ActionValidatorTest {
     }
 
     @DataProvider
+    public Object[][] validateAllowedHeadersWithExcludedHeadersDataProvider() {
+
+        List<String> allowedHeadersTest1 = new ArrayList<>();
+        allowedHeadersTest1.add("test-header-1");
+        allowedHeadersTest1.add("test-header-2");
+        allowedHeadersTest1.add("test-header-3");
+        allowedHeadersTest1.add("test-header-4");
+
+        List<String> excludedHeadersTest1 = new ArrayList<>();
+        excludedHeadersTest1.add("test-header-2");
+        excludedHeadersTest1.add("test-header-3");
+
+        return new Object[][]{
+                { allowedHeadersTest1,  excludedHeadersTest1 },
+        };
+    }
+
+    @Test(dataProvider = "validateAllowedHeadersWithExcludedHeadersDataProvider")
+    public void testDoValidateAllowedHeadersWithExcludedHeaders(List<String> allowedHeadersInAction,
+                                                                List<String> excludedHeaders) {
+
+        String propertyKey = ActionManagementConfig.ActionTypeConfig
+                .PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty();
+        Map<String, Object> idnConfigMap = new HashMap<>();
+        idnConfigMap.put(propertyKey, excludedHeaders);
+
+        identityConfigParserMockedStatic.when(IdentityConfigParser::getInstance).thenReturn(identityConfigParserMock);
+        identityConfigParserMockedStatic.when(() -> IdentityConfigParser.getInstance().getConfiguration())
+                .thenReturn(idnConfigMap);
+
+        try {
+            actionValidator.doValidateAllowedHeaders(allowedHeadersInAction);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_NOT_ALLOWED_HEADER);
+        }
+    }
+
+    @DataProvider
     public Object[][] validateAllowedParamsDataProvider() {
 
         List<String> allowedParams1 = new ArrayList<>();
@@ -294,6 +334,44 @@ public class ActionValidatorTest {
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
             Assert.assertEquals(e.getDescription(), expectedError);
+        }
+    }
+
+    @DataProvider
+    public Object[][] validateAllowedParametersWithExcludedParamsDataProvider() {
+
+        List<String> allowedParamsTest1 = new ArrayList<>();
+        allowedParamsTest1.add("test-param-1");
+        allowedParamsTest1.add("test-param-2");
+        allowedParamsTest1.add("test-param-3");
+        allowedParamsTest1.add("test-param-4");
+
+        List<String> excludedParamsTest1 = new ArrayList<>();
+        excludedParamsTest1.add("test-param-1");
+        excludedParamsTest1.add("test-param-3");
+
+        return new Object[][]{
+                { allowedParamsTest1,  excludedParamsTest1 },
+        };
+    }
+
+    @Test(dataProvider = "validateAllowedParametersWithExcludedParamsDataProvider")
+    public void testDoValidateAllowedParametersWithExcludedParams(List<String> allowedParametersInAction,
+                                                                List<String> excludedParameters) {
+
+        String propertyKey = ActionManagementConfig.ActionTypeConfig
+                .PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty();
+        Map<String, Object> idnConfigMap = new HashMap<>();
+        idnConfigMap.put(propertyKey, excludedParameters);
+
+        identityConfigParserMockedStatic.when(IdentityConfigParser::getInstance).thenReturn(identityConfigParserMock);
+        identityConfigParserMockedStatic.when(() -> IdentityConfigParser.getInstance().getConfiguration())
+                .thenReturn(idnConfigMap);
+
+        try {
+            actionValidator.doValidateAllowedParams(allowedParametersInAction);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_NOT_ALLOWED_PARAMETER);
         }
     }
 }
