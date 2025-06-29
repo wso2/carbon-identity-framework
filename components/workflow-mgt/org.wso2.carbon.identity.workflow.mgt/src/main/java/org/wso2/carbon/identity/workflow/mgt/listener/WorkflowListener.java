@@ -657,7 +657,9 @@ public interface WorkflowListener {
     * @param requestId ID of the workflow request to retrieve
     * @throws WorkflowException
     */
-    void doPreGetWorkflowRequest(String requestId) throws WorkflowException;
+    default void doPreGetWorkflowRequest(String requestId) throws WorkflowException {
+
+    }
         
     /**
     * Trigger after retrieving a workflow request.
@@ -666,5 +668,7 @@ public interface WorkflowListener {
     * @param workflowRequest Workflow request object returned by the original operation
     * @throws WorkflowException
     */
-    void doPostGetWorkflowRequest(String requestId, WorkflowRequest workflowRequest) throws WorkflowException;
+    default void doPostGetWorkflowRequest(String requestId, WorkflowRequest workflowRequest) throws WorkflowException {
+
+    }
 }
