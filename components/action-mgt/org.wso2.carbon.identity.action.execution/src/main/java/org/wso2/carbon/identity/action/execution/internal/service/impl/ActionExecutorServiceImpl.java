@@ -223,7 +223,9 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
             Request request = actionExecutionRequest.getEvent().getRequest();
             request.setAdditionalHeaders(RequestFilter.getFilteredHeaders(
-                    request.getAdditionalHeaders(), actionType, action));
+                    request.getAdditionalHeaders(),
+                    action.getEndpoint().getAllowedHeaders(),
+                    actionType));
             request.setAdditionalParams(RequestFilter.getFilteredParams(
                     request.getAdditionalParams(),
                     action.getEndpoint().getAllowedParameters(),

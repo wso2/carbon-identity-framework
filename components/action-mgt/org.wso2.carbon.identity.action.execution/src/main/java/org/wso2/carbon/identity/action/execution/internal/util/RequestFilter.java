@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.action.execution.internal.util;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Header;
 import org.wso2.carbon.identity.action.execution.api.model.Param;
-import org.wso2.carbon.identity.action.management.api.model.Action;
 
 import java.util.HashSet;
 import java.util.List;
@@ -57,20 +56,17 @@ public class RequestFilter {
         Set<String> serverExcludedHeaders = ActionExecutorConfig.getInstance()
                 .getExcludedHeadersInActionRequestForActionType(actionType);
 
-        boolean hasServerAllowedHeaders = !serverAllowedHeaders.isEmpty();
-        boolean hasActionAllowedHeaders = !allowedHeadersInAction.isEmpty();
+        Set<String> normalizedServerExcludedHeaders = serverExcludedHeaders.stream()
+                .map(h -> h.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+        Set<String> allAllowedHeadersSet = (allowedHeadersInAction.isEmpty() ? serverAllowedHeaders.stream() :
+                allowedHeadersInAction.stream())
+                .map(header -> header.toLowerCase(Locale.ROOT))
+                .filter(header -> !normalizedServerExcludedHeaders.contains(header))
+                .collect(Collectors.toSet());
 
-        Set<String> allAllowedHeadersSet = new HashSet<>();
-        if (hasActionAllowedHeaders) {
-            allAllowedHeadersSet.addAll(allowedHeadersInAction);
-        } else if (hasServerAllowedHeaders) {
-            allAllowedHeadersSet.addAll(serverAllowedHeaders);
-        }
-
-        // Filter out excluded headers configured at server level.
-        allAllowedHeadersSet.removeAll(serverExcludedHeaders);
         return requestHeaders.stream()
-                .filter(header -> allAllowedHeadersSet.contains(header.getName().toLowerCase(Locale.ROOT)))
+                .filter(h -> allAllowedHeadersSet.contains(h.getName().toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
     }
 
@@ -102,11 +98,11 @@ public class RequestFilter {
         } else if (hasServerAllowedParams) {
             allAllowedParamsSet.addAll(serverAllowedParams);
         }
-
         // Filter out excluded parameters configured at server level.
         allAllowedParamsSet.removeAll(serverExcludedParams);
+
         return requestParameters.stream()
-                .filter(header -> allAllowedParamsSet.contains(header.getName().toLowerCase(Locale.ROOT)))
+                .filter(header -> allAllowedParamsSet.contains(header.getName()))
                 .collect(Collectors.toList());
     }
 }

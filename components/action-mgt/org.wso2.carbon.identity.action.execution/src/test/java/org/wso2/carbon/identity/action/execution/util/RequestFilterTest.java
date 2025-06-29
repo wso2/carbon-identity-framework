@@ -37,7 +37,6 @@ import java.util.Set;
 
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertThrows;
 
 public class RequestFilterTest {
 
@@ -107,7 +106,7 @@ public class RequestFilterTest {
 
         List<String> allowedParamsInAction = new ArrayList<>();
         allowedParamsInAction.add("x-param-1");
-        allowedParamsInAction.add("x-param-2");
+        allowedParamsInAction.add("X-Param-2");
         allowedParamsInAction.add("x-param-3");
 
         List<Param> filteredParams = RequestFilter.getFilteredParams(requestParams, allowedParamsInAction,
@@ -160,7 +159,8 @@ public class RequestFilterTest {
         allowedParamsInServer.add("x-param-3");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN)).thenReturn(allowedParamsInServer);
+        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(allowedParamsInServer);
 
         List<Param> requestParams = new ArrayList<>();
         requestParams.add(new Param("x-param-1", new String[]{"X-param-1-value"}));
