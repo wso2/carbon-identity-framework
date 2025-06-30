@@ -2230,7 +2230,7 @@ public class IdentityUtil {
 
         String userStoreName = IdentityUtil.getProperty(AGENT_IDENTITY_USERSTORE_NAME);
         if (StringUtils.isBlank(userStoreName)) {
-            userStoreName = IdentityUtil.getProperty(DEFAULT_AGENT_IDENTITY_USERSTORE_NAME);
+            userStoreName = DEFAULT_AGENT_IDENTITY_USERSTORE_NAME;
         }
         return userStoreName;
     }
