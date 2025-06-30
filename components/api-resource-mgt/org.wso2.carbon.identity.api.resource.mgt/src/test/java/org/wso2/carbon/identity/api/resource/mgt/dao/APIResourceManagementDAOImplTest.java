@@ -816,7 +816,7 @@ public class APIResourceManagementDAOImplTest {
         }
     }
 
-    @Test(priority = 23)
+    @Test(priority = 22)
     public void testIsScopeExistsByApiId_SQLException() throws Exception {
         
         try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil = 
@@ -845,6 +845,39 @@ public class APIResourceManagementDAOImplTest {
                     "Expected APIResourceMgtServerException but got: " + actualCause.getClass().getName());
                 Assert.assertTrue(actualCause.getMessage().contains("Error while checking existence of scope"), 
                     "Exception message should contain scope existence error");
+            }
+        }
+    }
+
+    @Test(priority = 23)
+    public void testIsScopeExistsByApiId_OrganizationManagementException() throws Exception {
+        
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil = 
+                     mockStatic(OrganizationManagementUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = 
+                     mockStatic(IdentityTenantUtil.class)) {
+            
+            Connection connection = mock(Connection.class);
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenThrow(new OrganizationManagementException("Error while checking organization"));
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenReturn("carbon.super");
+            
+            try {
+                invokeIsScopeExistsByApiID(connection, "testScope", TENANT_ID, "api-123");
+                Assert.fail("Should have thrown exception due to OrganizationManagementException");
+            } catch (Exception e) {
+                Throwable actualCause = e;
+                if (e instanceof InvocationTargetException) {
+                    actualCause = ((InvocationTargetException) e).getCause();
+                }
+                
+                Assert.assertTrue(actualCause instanceof APIResourceMgtServerException, 
+                    "Expected APIResourceMgtServerException but got: " + actualCause.getClass().getName());
+                Assert.assertNotNull(actualCause.getCause(),
+                         "Should have original OrganizationManagementException as cause");
+                Assert.assertTrue(actualCause.getCause() instanceof OrganizationManagementException, 
+                    "Root cause should be OrganizationManagementException");
             }
         }
     }
