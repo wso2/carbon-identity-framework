@@ -216,11 +216,11 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_IDP_NAME;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.LOGIN_HINT;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.ORG_HANDLE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.ORG_ID;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrganizationDiscoveryInputParameters.ORG_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;

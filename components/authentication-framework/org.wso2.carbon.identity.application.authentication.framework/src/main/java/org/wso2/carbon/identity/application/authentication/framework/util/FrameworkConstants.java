@@ -814,22 +814,6 @@ public abstract class FrameworkConstants {
     }
 
     /**
-     * Constants related to Organization Discovery Input parameters.
-     */
-    public static class OrganizationDiscoveryInputParameters {
-
-        public static final String ORG_ID = "orgId";
-        public static final String ORG_HANDLE = "orgHandle";
-        public static final String ORG_NAME = "org";
-        public static final String LOGIN_HINT = "login_hint";
-        public static final String ORG_DISCOVERY_TYPE = "orgDiscoveryType";
-
-        private OrganizationDiscoveryInputParameters() {
-
-        }
-    }
-
-    /**
      * Enum for authenticator param type.
      */
     public enum AuthenticatorParamType {
@@ -861,5 +845,50 @@ public abstract class FrameworkConstants {
 
         INFO,
         ERROR
+    }
+
+    /**
+     * Constants related to Organization Discovery Input parameters.
+     */
+    public static class OrgDiscoveryInputParameters {
+
+        public static final String ORG_ID = "orgId";
+        public static final String ORG_HANDLE = "orgHandle";
+        public static final String ORG_NAME = "org";
+        public static final String LOGIN_HINT = "login_hint";
+        public static final String ORG_DISCOVERY_TYPE = "orgDiscoveryType";
+
+        private OrgDiscoveryInputParameters() {
+
+        }
+    }
+
+    /**
+     * Enum for Organization Discovery Failure Details.
+     */
+    public enum OrgDiscoveryFailureDetails {
+
+        VALID_DISCOVERY_PARAMETERS_NOT_FOUND("60001", "Valid organization discovery parameters are not found."),
+        ORGANIZATION_NOT_FOUND("60002", "Organization is not found for given discovery parameters."),
+        APPLICATION_NOT_SHARED("60003", "Application is not shared with the organization.");
+
+        private final String code;
+        private final String message;
+
+        OrgDiscoveryFailureDetails(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+
+            return this.code;
+        }
+
+        public String getMessage() {
+
+            return this.message;
+        }
     }
 }

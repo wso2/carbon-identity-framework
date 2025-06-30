@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
-import org.wso2.carbon.identity.application.authentication.framework.handler.orgdiscovery.OrganizationDiscoveryService;
+import org.wso2.carbon.identity.application.authentication.framework.handler.orgdiscovery.OrganizationDiscoveryHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
@@ -126,7 +126,7 @@ public class FrameworkServiceDataHolder {
     private RoleManagementService roleManagementServiceV2;
     private SecretResolveManager secretConfigManager;
     private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
-    private OrganizationDiscoveryService organizationDiscoveryService;
+    private OrganizationDiscoveryHandler organizationDiscoveryHandler;
 
     private FrameworkServiceDataHolder() {
 
@@ -139,14 +139,14 @@ public class FrameworkServiceDataHolder {
         return instance;
     }
 
-    public OrganizationDiscoveryService getOrganizationDiscoveryService() {
+    public OrganizationDiscoveryHandler getOrganizationDiscoveryHandler() {
 
-        return organizationDiscoveryService;
+        return organizationDiscoveryHandler;
     }
 
-    public void setOrganizationDiscoveryService(OrganizationDiscoveryService organizationDiscoveryServiceService) {
+    public void setOrganizationDiscoveryHandler(OrganizationDiscoveryHandler organizationDiscoveryHandler) {
 
-        this.organizationDiscoveryService = organizationDiscoveryServiceService;
+        this.organizationDiscoveryHandler = organizationDiscoveryHandler;
     }
 
 

@@ -24,9 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Organ
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryResult;
 
 /**
- * Organization discoverer service interface.
+ * Organization discoverer handler interface.
  */
-public interface OrganizationDiscoveryService {
+public interface OrganizationDiscoveryHandler {
 
     /**
      * Discover organization based on the provided input.
