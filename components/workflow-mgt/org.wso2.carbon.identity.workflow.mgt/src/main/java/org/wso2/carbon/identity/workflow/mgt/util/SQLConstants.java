@@ -82,7 +82,7 @@ public class SQLConstants {
             " WHERE UUID = ?";
 
     public static final String GET_FULL_WORKFLOW_REQUEST_QUERY = "SELECT UUID, REQUEST, STATUS, " +
-            "CREATED_BY , OPERATION_TYPE , CREATED_AT , UPDATED_AT FROM WF_REQUEST WHERE UUID = ?";
+            "CREATED_BY, OPERATION_TYPE, CREATED_AT, UPDATED_AT FROM WF_REQUEST WHERE UUID = ?";
             
     public static final String UPDATE_STATUS_OF_REQUEST = "UPDATE WF_REQUEST SET STATUS = ? , UPDATED_AT = ? WHERE " +
             "UUID = ?";
