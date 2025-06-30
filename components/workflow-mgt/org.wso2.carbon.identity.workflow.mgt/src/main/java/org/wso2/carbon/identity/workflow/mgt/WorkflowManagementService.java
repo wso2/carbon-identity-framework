@@ -386,6 +386,8 @@ public interface WorkflowManagementService {
      * @return
      * @throws WorkflowException
      */
-    WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException;
+    default WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException {
+        throw new NotImplementedException("getWorkflowRequest method is not implemented");
+    }
 }
 
