@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
@@ -592,6 +593,68 @@ public class WorkflowRequestDAO {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
+
+    /**
+     * Get full workflow request details by requestId.
+     *
+     * @param requestId
+     * @return WorkflowRequest
+     * @throws InternalWorkflowException
+     * @throws WorkflowClientException
+     * @throws ClassNotFoundException 
+     */
+    public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest getWorkflowRequest(String requestId)
+            throws InternalWorkflowException, WorkflowClientException, ClassNotFoundException {
+                
+        if (requestId == null || requestId.isEmpty()) {
+            throw new WorkflowClientException("Request ID cannot be null or empty.");
+        }
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+        String query = SQLConstants.GET_FULL_WORKFLOW_REQUEST_QUERY;
+
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, requestId);
+            resultSet = prepStmt.executeQuery();
+
+            if (resultSet.next()) {
+                    org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO = 
+                        new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
+
+                requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
+                requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
+                requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
+                requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
+                requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
+                requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
+
+                byte[] requestBytes = resultSet.getBytes(SQLConstants.REQUEST_COLUMN);
+                WorkflowRequest workflowRequest = null;
+                if (requestBytes != null && requestBytes.length > 0) {
+                    workflowRequest = deserializeWorkflowRequest(requestBytes);
+                }
+                if (workflowRequest != null) {
+                    requestDTO.setRequestParams(workflowRequest.getRequestParameterAsString());
+                }
+
+                return requestDTO;
+            } else {
+                throw new WorkflowClientException("Workflow request not found with ID: " + requestId);
+            }
+        } catch (WorkflowClientException e) {
+            throw e;
+        } catch (SQLException e) {
+            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+        } catch (IOException e) {
+                throw new InternalWorkflowException
+                    ("Error when deserializing the workflow request. requestId = " + requestId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
     }
 }
