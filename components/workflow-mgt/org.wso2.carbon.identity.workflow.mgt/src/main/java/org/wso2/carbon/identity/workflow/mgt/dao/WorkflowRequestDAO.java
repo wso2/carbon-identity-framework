@@ -646,8 +646,6 @@ public class WorkflowRequestDAO {
             } else {
                 throw new WorkflowClientException("Workflow request not found with ID: " + requestId);
             }
-        } catch (WorkflowClientException e) {
-            throw e;
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (IOException e) {
