@@ -269,7 +269,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     action = StringUtils.capitalize(action);
                 }
                 if (s.startsWith(PROMPT_RESPONSE_PREFIX)) {
-                    String dataKey = s.substring(PROMPT_RESPONSE_PREFIX.length());
+                    String dataKey = StringUtils.substringAfter(s, PROMPT_RESPONSE_PREFIX);
                     promptResData.put(dataKey, request.getParameter(s));
                 }
             }
