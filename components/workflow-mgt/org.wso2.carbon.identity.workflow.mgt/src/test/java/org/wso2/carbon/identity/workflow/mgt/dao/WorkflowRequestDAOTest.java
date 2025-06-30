@@ -68,24 +68,23 @@ public class WorkflowRequestDAOTest {
 
     private static final String DB_NAME = "workflow_request_dao_db";
     private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
-    private WorkflowRequestDAO workflowRequestDAO;
+    private WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();
 
     @BeforeClass
     public void setUp() throws Exception {
 
-        workflowRequestDAO = new WorkflowRequestDAO();
         initiateH2Database(getFilePath());
     }
 
     @AfterClass
     public void tearDown() throws Exception {
 
-        workflowRequestDAO = null;
         closeH2Database();
     }
 
     @DataProvider(name = "validRequestData")
     public Object[][] provideValidRequestData() {
+
         return new Object[][] {
                 { TEST_REQUEST_ID_1, CREATED_BY, OPERATION_UPDATE_USER, CREATED_AT_1, UPDATED_AT_1,
                         STATUS_PENDING },
@@ -98,6 +97,7 @@ public class WorkflowRequestDAOTest {
 
     @Test(dataProvider = "validRequestData", priority = 1)
     public void testGetWorkflowRequestWithValidId(
+
             String requestId, String expectedCreatedBy, String expectedOperation,Timestamp expectedCreatedAt, 
             Timestamp expectedUpdatedAt, String expectedStatus) throws Exception {
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
@@ -121,6 +121,7 @@ public class WorkflowRequestDAOTest {
 
     @Test(priority = 2, expectedExceptions = WorkflowClientException.class)
     public void testGetWorkflowRequestWithInvalidId() throws Exception {
+
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
                     .thenReturn(getConnection());
@@ -131,6 +132,7 @@ public class WorkflowRequestDAOTest {
 
     @Test(priority = 3, expectedExceptions = WorkflowClientException.class)
     public void testGetWorkflowRequestWithNullId() throws Exception {
+
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
                     .thenReturn(getConnection());
