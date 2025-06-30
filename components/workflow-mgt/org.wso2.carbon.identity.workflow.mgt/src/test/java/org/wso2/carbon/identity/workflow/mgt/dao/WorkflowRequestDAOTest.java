@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.workflow.mgt.dao;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.apache.tomcat.util.http.parser.TE;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
