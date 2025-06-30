@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -90,6 +91,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
     private static final String PROMPT_DEFAULT_ACTION = "Success";
     private static final String PROMPT_ACTION_PREFIX = "action.";
+    private static final String PROMPT_RESPONSE_PREFIX = "promptResData.";
     private static final String RESPONSE_HANDLED_BY_FRAMEWORK = "hasResponseHandledByFramework";
     public static final String SKIPPED_CALLBACK_NAME = "onSkip";
     public static final String STEP_IDENTIFIER_PARAM = "step";
@@ -255,17 +257,28 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                                  ShowPromptNode promptNode) throws FrameworkException {
 
         boolean isPromptToBeDisplayed = false;
+        Map<String, Object> promptResData = new HashMap<>();
         if (context.isReturning()) {
             String action = PROMPT_DEFAULT_ACTION;
             for (String s : request.getParameterMap().keySet()) {
+                if (StringUtils.isBlank(s)) {
+                    continue;
+                }
                 if (s.startsWith(PROMPT_ACTION_PREFIX)) {
-                    action = s.substring(PROMPT_ACTION_PREFIX.length(), s.length());
+                    action = s.substring(PROMPT_ACTION_PREFIX.length());
                     action = StringUtils.capitalize(action);
-                    break;
+                }
+                if (s.startsWith(PROMPT_RESPONSE_PREFIX)) {
+                    String dataKey = StringUtils.substringAfter(s, PROMPT_RESPONSE_PREFIX);
+                    promptResData.put(dataKey, request.getParameter(s));
                 }
             }
             action = "on" + action;
-            executeFunction(action, promptNode, context);
+            if (MapUtils.isNotEmpty(promptResData)) {
+                executeFunction(action, promptNode, context, promptResData);
+            } else {
+                executeFunction(action, promptNode, context);
+            }
             AuthGraphNode nextNode = promptNode.getDefaultEdge();
             context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
             context.setReturning(false);
