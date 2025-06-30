@@ -1245,8 +1245,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         WorkflowRequest workflowRequest = null;
         try {
             workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
-        } catch (WorkflowClientException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Error occurred while retrieving workflow request with ID: " + requestId, e);
             throw new InternalWorkflowException("Failed to retrieve workflow request", e);
