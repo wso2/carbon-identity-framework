@@ -1227,11 +1227,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      */
     @Override
     public WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException {
-        
-        if (StringUtils.isBlank(requestId)) {
-            throw new WorkflowClientException("Request ID cannot be null or empty.");
-        }
-        
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         
@@ -1245,10 +1241,12 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 }
             }
         }
-        
+
         WorkflowRequest workflowRequest = null;
         try {
             workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
+        } catch (WorkflowClientException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error occurred while retrieving workflow request with ID: " + requestId, e);
             throw new InternalWorkflowException("Failed to retrieve workflow request", e);

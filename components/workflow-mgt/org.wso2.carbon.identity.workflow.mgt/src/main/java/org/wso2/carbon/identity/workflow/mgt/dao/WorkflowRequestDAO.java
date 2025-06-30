@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
@@ -601,10 +602,15 @@ public class WorkflowRequestDAO {
      * @param requestId
      * @return WorkflowRequest
      * @throws InternalWorkflowException
+     * @throws WorkflowClientException
      * @throws ClassNotFoundException 
      */
     public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest getWorkflowRequest(String requestId)
-            throws InternalWorkflowException, ClassNotFoundException {
+            throws InternalWorkflowException, WorkflowClientException, ClassNotFoundException {
+                
+        if (requestId == null || requestId.isEmpty()) {
+            throw new WorkflowClientException("Request ID cannot be null or empty.");
+        }
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
@@ -637,8 +643,11 @@ public class WorkflowRequestDAO {
                 }
 
                 return requestDTO;
+            } else {
+                throw new WorkflowClientException("Workflow request not found with ID: " + requestId);
             }
-            return null;
+        } catch (WorkflowClientException e) {
+            throw e;
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (IOException e) {
@@ -647,5 +656,5 @@ public class WorkflowRequestDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
-    }  
+    }
 }
