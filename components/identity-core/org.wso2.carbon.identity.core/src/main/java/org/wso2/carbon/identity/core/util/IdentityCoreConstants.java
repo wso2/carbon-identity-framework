@@ -123,6 +123,11 @@ public class IdentityCoreConstants {
 
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
 
+    // Agentic AI constants
+    public static final String AGENT_IDENTITY_ENABLE = "AgentIdentity.Enabled";
+    public static final String AGENT_IDENTITY_USERSTORE_NAME = "AgentIdentity.Userstore";
+    public static final String DEFAULT_AGENT_IDENTITY_USERSTORE_NAME = "AGENT";
+
     public static class Filter {
 
         public static final String AND = "and";
