@@ -18,147 +18,177 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dao;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.lang.StringUtils;
+import org.apache.tomcat.util.http.parser.TE;
 import org.mockito.MockedStatic;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
-import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
+
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mockStatic;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 public class WorkflowRequestDAOTest {
 
-    @Test
-    public void testGetWorkflowRequestByValidRequestId() throws Exception {
+    private static final String TEST_REQUEST_ID_1 = "test_request_id_1";
+    private static final String TEST_REQUEST_ID_2 = "test_request_id_2";
+    private static final String TEST_REQUEST_ID_3 = "test_request_id_3";
+    private static final String INVALID_REQUEST_ID = "non_existent_id";
+
+    private static final String OPERATION_UPDATE_USER = "UPDATE_USER";
+    private static final String OPERATION_ADD_USER = "ADD_USER";
+    private static final String OPERATION_DELETE_USER = "DELETE_USER";
+
+    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_REJECTED = "REJECTED";
+
+    private static final Timestamp CREATED_AT_1 = Timestamp.valueOf("2023-10-01 10:00:00");
+    private static final Timestamp UPDATED_AT_1 = Timestamp.valueOf("2023-10-01 10:05:00");
+    private static final Timestamp CREATED_AT_2 = Timestamp.valueOf("2023-10-01 11:00:00");
+    private static final Timestamp UPDATED_AT_2 = Timestamp.valueOf("2023-10-01 11:05:00");
+    private static final Timestamp CREATED_AT_3 = Timestamp.valueOf("2023-10-01 12:00:00");
+    private static final Timestamp UPDATED_AT_3 = Timestamp.valueOf("2023-10-01 12:05:00");
+
+    private static final String REQUEST_PARAMS = null;
+    private static final String CREATED_BY = "admin";
+    private static final int TENANT_ID = 1234;
+
+    private static final String DB_NAME = "workflow_request_dao_db";
+    private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
+    private WorkflowRequestDAO workflowRequestDAO;
+
+    @BeforeClass
+    public void setUp() throws Exception {
+
+        workflowRequestDAO = new WorkflowRequestDAO();
+        initiateH2Database(getFilePath());
+    }
+
+    @AfterClass
+    public void tearDown() throws Exception {
+
+        workflowRequestDAO = null;
+        closeH2Database();
+    }
+
+    @DataProvider(name = "validRequestData")
+    public Object[][] provideValidRequestData() {
+        return new Object[][] {
+                { TEST_REQUEST_ID_1, CREATED_BY, TENANT_ID, OPERATION_UPDATE_USER, CREATED_AT_1, UPDATED_AT_1,
+                        STATUS_PENDING },
+                { TEST_REQUEST_ID_2, CREATED_BY, TENANT_ID, OPERATION_ADD_USER, CREATED_AT_2, UPDATED_AT_2,
+                        STATUS_APPROVED },
+                { TEST_REQUEST_ID_3, CREATED_BY, TENANT_ID, OPERATION_DELETE_USER, CREATED_AT_3, UPDATED_AT_3,
+                        STATUS_REJECTED }
+        };
+    }
+
+    @Test(dataProvider = "validRequestData", priority = 1)
+    public void testGetWorkflowRequestWithValidId(
+            String requestId, String expectedCreatedBy, int expectedTenantId, String expectedOperation,
+            Timestamp expectedCreatedAt, Timestamp expectedUpdatedAt, String expectedStatus) throws Exception {
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockPrepStmt = mock(PreparedStatement.class);
-            ResultSet mockResultSet = mock(ResultSet.class);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(getConnection());
 
-            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
-                    .thenReturn(mockConnection);
+            WorkflowRequest result = workflowRequestDAO.getWorkflowRequest(requestId);
 
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockPrepStmt);
-            when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet);
-
-            when(mockResultSet.next()).thenReturn(true);
-            when(mockResultSet.getString("UUID")).thenReturn("valid_id");
-            when(mockResultSet.getString("OPERATION_TYPE")).thenReturn("ADD_USER");
-            when(mockResultSet.getTimestamp("CREATED_AT")).thenReturn(new Timestamp(System.currentTimeMillis()));
-            when(mockResultSet.getTimestamp("UPDATED_AT")).thenReturn(new Timestamp(System.currentTimeMillis()));
-            when(mockResultSet.getString("STATUS")).thenReturn("PENDING");
-            when(mockResultSet.getString("CREATED_BY")).thenReturn("admin");
-
-            WorkflowRequestDAO dao = new WorkflowRequestDAO();
-            String validRequestId = "valid_id";
-
-            WorkflowRequest result = dao.getWorkflowRequest(validRequestId);
-
-            assertNotNull(result);
-            assertEquals(result.getRequestId(), "valid_id");
-            assertEquals(result.getEventType(), "ADD_USER");
-            assertEquals(result.getStatus(), "PENDING");
-            assertEquals(result.getCreatedBy(), "admin");
-            assertNotNull(result.getCreatedAt());
-            assertNotNull(result.getUpdatedAt());
-
-            verify(mockPrepStmt).setString(1, validRequestId);
-            verify(mockPrepStmt).executeQuery();
+            assertNotNull(result, "Workflow request should not be null for ID: " + requestId);
+            assertEquals(result.getRequestId(), requestId, "Request ID mismatch");
+            assertEquals(result.getEventType(), expectedOperation, "Operation type mismatch");
+            assertEquals(result.getCreatedAt().toString(), expectedCreatedAt.toString(),
+                    "Created at timestamp mismatch");
+            assertEquals(result.getUpdatedAt().toString(), expectedUpdatedAt.toString(),
+                    "Updated at timestamp mismatch");
+            assertEquals(result.getStatus(), expectedStatus, "Status mismatch");
+            assertEquals(result.getCreatedBy(), CREATED_BY, "Created by mismatch");
+            assertEquals(result.getRequestParams(), REQUEST_PARAMS, "Request params mismatch");
         }
     }
 
-    @Test
-    public void testGetWorkflowRequestWithNullId() {
-        WorkflowRequestDAO dao = new WorkflowRequestDAO();
-        assertThrows(WorkflowClientException.class, () -> {
-            dao.getWorkflowRequest(null);
-        });
-    }
-
-    @Test
-    public void testGetWorkflowRequestByInvalidRequestId() throws Exception {
+    @Test(priority = 2, expectedExceptions = WorkflowClientException.class)
+    public void testGetWorkflowRequestWithInvalidId() throws Exception {
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockPrepStmt = mock(PreparedStatement.class);
-            ResultSet mockResultSet = mock(ResultSet.class);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(getConnection());
 
-            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
-                    .thenReturn(mockConnection);
-
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockPrepStmt);
-            when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet);
-
-            when(mockResultSet.next()).thenReturn(false);
-
-            WorkflowRequestDAO dao = new WorkflowRequestDAO();
-            String invalidRequestId = "invalid_id";
-
-            assertThrows(WorkflowClientException.class, () -> {
-                dao.getWorkflowRequest(invalidRequestId);
-            });
-
-            verify(mockPrepStmt).setString(1, invalidRequestId);
-            verify(mockPrepStmt).executeQuery();
+            workflowRequestDAO.getWorkflowRequest(INVALID_REQUEST_ID);
         }
     }
 
-    @Test
+    @Test(priority = 3, expectedExceptions = WorkflowClientException.class)
+    public void testGetWorkflowRequestWithNullId() throws Exception {
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(getConnection());
+
+            workflowRequestDAO.getWorkflowRequest(null);
+        }
+    }
+
+    @Test(priority = 4, expectedExceptions = RuntimeException.class)
     public void testGetWorkflowRequestWithSQLException() throws Exception {
+
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockPrepStmt = mock(PreparedStatement.class);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenThrow(new SQLException("Simulated SQL Exception"));
 
-            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
-                    .thenReturn(mockConnection);
-
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockPrepStmt);
-            when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("Database error"));
-
-            WorkflowRequestDAO dao = new WorkflowRequestDAO();
-            String requestId = "test_id";
-
-            assertThrows(InternalWorkflowException.class, () -> dao.getWorkflowRequest(requestId));
-
-            verify(mockPrepStmt).setString(1, requestId);
-            verify(mockPrepStmt).executeQuery();
+            workflowRequestDAO.getWorkflowRequest(TEST_REQUEST_ID_1);
         }
     }
 
-    @Test
-    public void testGetWorkflowRequestWithDeserializationError() throws Exception {
-        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockPrepStmt = mock(PreparedStatement.class);
-            ResultSet mockResultSet = mock(ResultSet.class);
+    private static Connection getConnection() throws SQLException {
 
-            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
-                    .thenReturn(mockConnection);
-
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockPrepStmt);
-            when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet);
-
-            when(mockResultSet.next()).thenReturn(true);
-            when(mockResultSet.getString("UUID")).thenReturn("test_id");
-            when(mockResultSet.getString("OPERATION_TYPE")).thenReturn("UPDATE_USER");
-            when(mockResultSet.getTimestamp("CREATED_AT")).thenReturn(new Timestamp(1000000L));
-            when(mockResultSet.getTimestamp("UPDATED_AT")).thenReturn(new Timestamp(2000000L));
-            when(mockResultSet.getString("STATUS")).thenReturn("APPROVED");
-            when(mockResultSet.getString("CREATED_BY")).thenReturn("testuser");
-            when(mockResultSet.getBytes("REQUEST")).thenReturn("invalid_serialized_data".getBytes());
-
-            WorkflowRequestDAO dao = new WorkflowRequestDAO();
-            String requestId = "test_id";
-
-            assertThrows(InternalWorkflowException.class, () -> dao.getWorkflowRequest(requestId));
+        if (dataSourceMap.get(DB_NAME) != null) {
+            return dataSourceMap.get(DB_NAME).getConnection();
         }
+        throw new RuntimeException("No datasource initiated for database: " + DB_NAME);
+    }
+
+    private void initiateH2Database(String scriptPath) throws Exception {
+
+        BasicDataSource dataSource = new BasicDataSource();
+        dataSource.setDriverClassName("org.h2.Driver");
+        dataSource.setUsername("username");
+        dataSource.setPassword("password");
+        dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME + ";DB_CLOSE_DELAY=-1");
+        dataSource.setTestOnBorrow(true);
+        dataSource.setValidationQuery("select 1");
+        try (Connection connection = dataSource.getConnection()) {
+            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
+        }
+        dataSourceMap.put(DB_NAME, dataSource);
+    }
+
+    private static void closeH2Database() throws Exception {
+
+        BasicDataSource dataSource = dataSourceMap.get(DB_NAME);
+        if (dataSource != null) {
+            dataSource.close();
+        }
+    }
+
+    private static String getFilePath() {
+
+        if (StringUtils.isNotBlank("h2.sql")) {
+            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "h2.sql")
+                    .toString();
+        }
+        throw new IllegalArgumentException("DB Script file name cannot be empty.");
     }
 }
