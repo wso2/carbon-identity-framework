@@ -180,7 +180,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
                 if (CollectionUtils.isNotEmpty(apiResource.getScopes())) {
                     // Add scopes.
-                    addScopes(dbConnection, generatedAPIId, apiResource.getScopes(), tenantId);
+                    addScopes(dbConnection, generatedAPIId, apiResource.getScopes(), tenantId, apiResource.getType());
                 }
                 if (CollectionUtils.isNotEmpty(apiResource.getProperties())) {
                     // Add properties.
@@ -348,7 +348,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
                 if (CollectionUtils.isNotEmpty(addedScopes)) {
                     // Add Scopes.
-                    addScopes(dbConnection, apiResource.getId(), addedScopes, tenantId);
+                    addScopes(dbConnection, apiResource.getId(), addedScopes, tenantId, apiResource.getType());
                 }
 
                 if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes()) &&
@@ -621,7 +621,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         }
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
-            addScopes(dbConnection, apiId, scopes, tenantId);
+            addScopes(dbConnection, apiId, scopes, tenantId, null);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
@@ -685,13 +685,13 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 deleteScopeByAPIId(dbConnection, apiId, tenantId);
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
                 // Add the new scopes and commit.
-                addScopes(dbConnection, apiId, scopes, tenantId);
+                addScopes(dbConnection, apiId, scopes, tenantId, null);
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
             } catch (APIResourceMgtException e) {
 
                 // Rollback the transaction if any error occurred and add back the previous scopes.
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-                addScopes(dbConnection, apiId, currentScopes, tenantId);
+                addScopes(dbConnection, apiId, currentScopes, tenantId, null);
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
                 throw e;
             }
@@ -1055,8 +1055,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
      * @param tenantId     Tenant id.
      * @throws APIResourceMgtException If an error occurs while adding scopes.
      */
-    private void addScopes(Connection dbConnection, String apiId, List<Scope> scopes, Integer tenantId)
-            throws APIResourceMgtException {
+    private void addScopes(Connection dbConnection, String apiId, List<Scope> scopes, Integer tenantId,
+                           String apiResourceType) throws APIResourceMgtException {
 
         if (CollectionUtils.isEmpty(scopes)) {
             return;
@@ -1066,7 +1066,14 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_SCOPE);
             for (Scope scope : scopes) {
 
-                if (isScopeExists(dbConnection, scope.getName(), tenantId)) {
+                boolean scopeExists;
+                if (isManagementOrOrganizationAPIResourceType(apiResourceType)) {
+                    scopeExists = isScopeExistsByApiId(dbConnection, scope.getName(), tenantId, apiId);
+                } else {
+                    scopeExists = isScopeExists(dbConnection, scope.getName(), tenantId);
+                }
+
+                if (scopeExists) {
                     throw APIResourceManagementUtil.handleClientException(
                             APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS,
                             String.valueOf(tenantId));
@@ -1251,6 +1258,44 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
         if (CollectionUtils.isNotEmpty(authorizationDetailsTypes)) {
             apiResource.setAuthorizationDetailsTypes(authorizationDetailsTypes);
+        }
+    }
+
+    /**
+     * Check whether the API resource is a tenant or organization API resource type.
+     *
+     * @param apiResourceType The API resource type to check.
+     * @return true if the API resource is a management or organization API resource type, false otherwise.
+     * @throws APIResourceMgtException If an error occurs while retrieving the API resource type.
+     */
+    private boolean isManagementOrOrganizationAPIResourceType(String apiResourceType) throws APIResourceMgtException {
+
+        return APIResourceManagementConstants.APIResourceTypes.TENANT.equals(apiResourceType)
+                || APIResourceManagementConstants.APIResourceTypes.ORGANIZATION.equals(apiResourceType);
+    }
+
+    private boolean isScopeExistsByApiId(Connection connection, String name, Integer tenantId, String apiId)
+            throws APIResourceMgtServerException {
+
+        int tenantIdToSearchScopes;
+        try {
+            tenantIdToSearchScopes = OrganizationManagementUtil.isOrganization(tenantId) ?
+                    getRootOrganizationTenantId(tenantId) : tenantId;
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)) {
+            preparedStatement.setString(1, name);
+            preparedStatement.setInt(2, tenantIdToSearchScopes);
+            preparedStatement.setString(3, apiId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return resultSet.next();
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_CHECKING_EXISTENCE_OF_SCOPE, e);
         }
     }
 }
