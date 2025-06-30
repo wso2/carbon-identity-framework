@@ -44,7 +44,7 @@ public class WorkflowErrorConstants {
         ERROR_CODE_USER_WF_ROLE_PENDING_DELETION("WFM-10007",
                 "There is the pending deletion workflow for the role: %s"),
 
-        ERROR_CODE_ROLE_WF_ALREADY_EXISTS("WFM-10008",
+        ERROR_CODE_ROLE_WF_PENDING_ALREADY_EXISTS("WFM-10008",
                 "There is a pending workflow already defined for the role."),
         ERROR_CODE_ROLE_WF_ROLE_ALREADY_EXISTS("WFM-10009",
                 "The role already exist in the system."),

@@ -34,26 +34,6 @@ public class RoleEntity extends Entity {
     }
 
     /**
-     * Get audience of the entity
-     *
-     * @return Audience
-     */
-    public String getAudience() {
-
-        return audience;
-    }
-
-    /**
-     * Set audience for entity
-     *
-     * @param audience value to set as audience
-     */
-    public void setAudience(String audience) {
-
-        this.audience = audience;
-    }
-
-    /**
      * Get audience ID of the entity
      *
      * @return Audience ID
@@ -71,5 +51,25 @@ public class RoleEntity extends Entity {
     public void setAudienceId(String audienceId) {
 
         this.audienceId = audienceId;
+    }
+
+    /**
+     * Get audience of the entity
+     *
+     * @return Audience
+     */
+    public String getAudience() {
+
+        return audience;
+    }
+
+    /**
+     * Set audience for entity
+     *
+     * @param audience value to set as audience
+     */
+    public void setAudience(String audience) {
+
+        this.audience = audience;
     }
 }
