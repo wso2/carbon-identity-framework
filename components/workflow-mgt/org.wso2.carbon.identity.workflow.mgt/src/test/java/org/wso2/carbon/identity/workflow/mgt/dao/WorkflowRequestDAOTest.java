@@ -66,7 +66,6 @@ public class WorkflowRequestDAOTest {
 
     private static final String REQUEST_PARAMS = null;
     private static final String CREATED_BY = "admin";
-    private static final int TENANT_ID = 1234;
 
     private static final String DB_NAME = "workflow_request_dao_db";
     private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
@@ -89,19 +88,19 @@ public class WorkflowRequestDAOTest {
     @DataProvider(name = "validRequestData")
     public Object[][] provideValidRequestData() {
         return new Object[][] {
-                { TEST_REQUEST_ID_1, CREATED_BY, TENANT_ID, OPERATION_UPDATE_USER, CREATED_AT_1, UPDATED_AT_1,
+                { TEST_REQUEST_ID_1, CREATED_BY, OPERATION_UPDATE_USER, CREATED_AT_1, UPDATED_AT_1,
                         STATUS_PENDING },
-                { TEST_REQUEST_ID_2, CREATED_BY, TENANT_ID, OPERATION_ADD_USER, CREATED_AT_2, UPDATED_AT_2,
+                { TEST_REQUEST_ID_2, CREATED_BY, OPERATION_ADD_USER, CREATED_AT_2, UPDATED_AT_2,
                         STATUS_APPROVED },
-                { TEST_REQUEST_ID_3, CREATED_BY, TENANT_ID, OPERATION_DELETE_USER, CREATED_AT_3, UPDATED_AT_3,
+                { TEST_REQUEST_ID_3, CREATED_BY, OPERATION_DELETE_USER, CREATED_AT_3, UPDATED_AT_3,
                         STATUS_REJECTED }
         };
     }
 
     @Test(dataProvider = "validRequestData", priority = 1)
     public void testGetWorkflowRequestWithValidId(
-            String requestId, String expectedCreatedBy, int expectedTenantId, String expectedOperation,
-            Timestamp expectedCreatedAt, Timestamp expectedUpdatedAt, String expectedStatus) throws Exception {
+            String requestId, String expectedCreatedBy, String expectedOperation,Timestamp expectedCreatedAt, 
+            Timestamp expectedUpdatedAt, String expectedStatus) throws Exception {
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
                     .thenReturn(getConnection());
