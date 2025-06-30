@@ -28,6 +28,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtClientException;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.constant.SQLConstants;
@@ -42,6 +43,7 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -811,6 +813,39 @@ public class APIResourceManagementDAOImplTest {
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS.getCode());
             Assert.assertTrue(exception.getMessage().contains("Unable to add scope"));
             Assert.assertTrue(exception.getDescription().contains("Scope already exists for the tenant"));
+        }
+    }
+
+    @Test(priority = 23)
+    public void testIsScopeExistsByApiId_SQLException() throws Exception {
+        
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil = 
+                     mockStatic(OrganizationManagementUtil.class)) {
+            
+            Connection connection = mock(Connection.class);
+            PreparedStatement preparedStatement = mock(PreparedStatement.class);
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenReturn(false);
+            when(connection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID))
+                    .thenReturn(preparedStatement);
+            when(preparedStatement.executeQuery()).thenThrow(new SQLException("Database connection error"));
+            
+            try {
+                invokeIsScopeExistsByApiID(connection, "testScope", TENANT_ID, "api-123");
+                Assert.fail("Should have thrown exception due to SQLException");
+            } catch (Exception e) {
+                // Check if it's InvocationTargetException (from reflection) or direct exception
+                Throwable actualCause = e;
+                if (e instanceof InvocationTargetException) {
+                    actualCause = ((InvocationTargetException) e).getCause();
+                }
+                
+                // Verify it's the expected server exception
+                Assert.assertTrue(actualCause instanceof APIResourceMgtServerException, 
+                    "Expected APIResourceMgtServerException but got: " + actualCause.getClass().getName());
+                Assert.assertTrue(actualCause.getMessage().contains("Error while checking existence of scope"), 
+                    "Exception message should contain scope existence error");
+            }
         }
     }
 
