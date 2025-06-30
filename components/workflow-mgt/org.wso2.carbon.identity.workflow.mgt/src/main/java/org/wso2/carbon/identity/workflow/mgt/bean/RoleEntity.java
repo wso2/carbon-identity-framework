@@ -17,39 +17,20 @@
  */
 
 package org.wso2.carbon.identity.workflow.mgt.bean;
+/**
+ * This class is used to represent entities associated with role workflows.
+ */
+public class RoleEntity extends Entity {
 
-public class RoleEntity extends Entity{
-    private String tenantDomain;
     private String audience;
     private String audienceId;
 
-    public RoleEntity(String entityId, String entityType, int tenantId, String tenantDomain, String audience,
+    public RoleEntity(String entityId, String entityType, int tenantId, String audience,
                       String audienceId) {
 
         super(entityId, entityType, tenantId);
-        this.tenantDomain = tenantDomain;
         this.audience = audience;
         this.audienceId = audienceId;
-    }
-
-    /**
-     * Get tenant domain of the entity
-     *
-     * @return Tenant domain
-     */
-    public String getTenantDomain() {
-
-        return tenantDomain;
-    }
-
-    /**
-     * Set tenant domain for entity
-     *
-     * @param tenantDomain value to set as tenant domain
-     */
-    public void setTenantDomain(String tenantDomain) {
-
-        this.tenantDomain = tenantDomain;
     }
 
     /**

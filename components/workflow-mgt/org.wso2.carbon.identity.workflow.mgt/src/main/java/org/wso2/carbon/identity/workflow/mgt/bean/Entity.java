@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.workflow.mgt.bean;
 
 /**
- * This class is used to represent entities associated with workflows, eg:- User entity, Role entity
+ * This class is used to represent entities associated with workflows.
  */
 public class Entity {
 
@@ -93,5 +93,4 @@ public class Entity {
 
         this.tenantId = tenantId;
     }
-
 }
