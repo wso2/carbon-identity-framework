@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.apache.commons.io.FileUtils;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
 import java.io.File;
@@ -107,6 +108,7 @@ public class ConfigurationManagerTest {
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private MockedStatic<IdentityUtil> identityUtil;
     private MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
+    private MockedStatic<Utils> utilsMockedStatic;
 
 
     @BeforeMethod
@@ -134,6 +136,7 @@ public class ConfigurationManagerTest {
         organizationManager = mock(OrganizationManager.class);
         ConfigurationManagerComponentDataHolder.getInstance().setOrganizationManager(organizationManager);
         organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
+        utilsMockedStatic = mockStatic(Utils.class);
 
         orgResourceResolverService = mock(OrgResourceResolverService.class);
         ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
@@ -152,6 +155,7 @@ public class ConfigurationManagerTest {
         identityTenantUtil.close();
         identityUtil.close();
         organizationManagementUtilMockedStatic.close();
+        utilsMockedStatic.close();
     }
 
     @Test(priority = 1)
@@ -634,11 +638,12 @@ public class ConfigurationManagerTest {
                 resourcesByType.getResources().size() == 0);
     }
 
-    @Test (priority = 34)
+    @Test (priority = 35)
     public void testGetInheritedResourcesByType() throws Exception {
 
         organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
                 .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
         when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
 
         ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
@@ -648,6 +653,25 @@ public class ConfigurationManagerTest {
 
         Resources returnedResources = configurationManager.getResourcesByType(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME);
         verify(orgResourceResolverService, times(1)).getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any());
+        org.testng.Assert.assertFalse(returnedResources.getResources().isEmpty());
+    }
+
+    @Test (priority = 34)
+    public void testGetInheritedResourcesByTypeInheritanceDisabled() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(false);
+        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
+
+        ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(List.of(resource1));
+
+        Resources returnedResources = configurationManager.getResourcesByType(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME);
+        verify(orgResourceResolverService, times(0)).getResourcesFromOrgHierarchy(
                 eq(TEST_ORG_ID), any(), any());
         org.testng.Assert.assertFalse(returnedResources.getResources().isEmpty());
     }

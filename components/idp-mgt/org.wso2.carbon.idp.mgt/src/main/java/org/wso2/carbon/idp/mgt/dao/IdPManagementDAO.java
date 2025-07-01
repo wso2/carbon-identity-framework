@@ -61,6 +61,7 @@ import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
@@ -1221,6 +1222,8 @@ public class IdPManagementDAO {
 
                 Set<Property> properties = new HashSet<Property>();
                 if (OrganizationManagementUtil.isOrganization(tenantId) &&
+                        Utils.isLoginAndRegistrationConfigInheritanceEnabled(
+                                IdentityTenantUtil.getTenantDomain(tenantId)) &&
                         federatedIdp != null &&
                         IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
                                 federatedIdp.getIdentityProviderName()) &&
@@ -3395,15 +3398,16 @@ public class IdPManagementDAO {
                 // Get federated idp groups.
                 federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
 
-                List<IdentityProviderProperty> propertyList;
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
+                        getIdentityPropertiesByIdpId(dbConnection, idpId, tenantId));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
-                    // Resolve resident IdP properties from the organization hierarchy.
-                    propertyList = resolveResidentIdpProperties(tenantDomain, federatedIdp, dbConnection);
+                    // Resolve resident IdP properties from the organization hierarchy if ineritance is enabled.
+                    if (OrganizationManagementUtil.isOrganization(tenantDomain) &&
+                            Utils.isLoginAndRegistrationConfigInheritanceEnabled(tenantDomain)) {
+                        propertyList = resolveResidentIdpProperties(tenantDomain, federatedIdp, dbConnection);
+                    }
                     // Populate non-existing properties with default values.
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
-                } else {
-                    propertyList = filterIdentityProperties(federatedIdp,
-                            getIdentityPropertiesByIdpId(dbConnection, idpId, tenantId));
                 }
 
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
@@ -3419,6 +3423,8 @@ public class IdPManagementDAO {
         } catch (SecretManagementException e) {
             throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider : " +
                     idPName + " in tenant : " + tenantDomain, e);
+        } catch (OrganizationManagementException e) {
+            throw new RuntimeException(e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -3506,10 +3512,14 @@ public class IdPManagementDAO {
     private List<IdentityProviderProperty> mergePropertyLists(List<IdentityProviderProperty> list1,
                                                               List<IdentityProviderProperty> list2) {
 
-        // Filter properties that should not be inherited.
+        /* Filter properties that should not be inherited.
+         * startsWith is used since password expiery rules are in the format of
+         * passwordExpiry.rulex where x is the rule number.
+         */
         list2 = list2.stream()
                 .filter(property -> !IdPManagementConstants.INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES
-                        .contains(property.getName()))
+                        .stream()
+                        .anyMatch(disabledProp -> property.getName().startsWith(disabledProp)))
                 .collect(Collectors.toList());
 
         for (IdentityProviderProperty property : list2) {

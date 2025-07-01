@@ -152,8 +152,7 @@ public class IdPManagementConstants {
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
 
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATORS = List.of(
-            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME,
-            IdentityApplicationConstants.Authenticator.WSTrust.NAME);
+            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
 
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES = List.of(
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
@@ -164,7 +163,8 @@ public class IdPManagementConstants {
             "Organization.SelfService.Enable",
             "Organization.SelfService.AdminEmailVerification",
             "Organization.SelfService.OnboardAdminToOrg",
-            "Organization.SelfService.EnableAutoLogin");
+            "Organization.SelfService.EnableAutoLogin",
+            "passwordExpiry.rule");
 
 
     public static class SQLConstants {
