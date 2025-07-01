@@ -74,7 +74,7 @@ public class FlowExecutionService {
                 // No flowId present hence initiate the flow.
                 context = FlowExecutionEngineUtils.initiateContext(tenantDomain, applicationId, flowType);
             } else {
-                context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowType, flowId);
+                context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId);
             }
 
             if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
@@ -114,7 +114,7 @@ public class FlowExecutionService {
                         userClaims, tenantDomain);
             }
 
-            FlowExecutionEngineUtils.rollbackContext(flowType, flowId);
+            FlowExecutionEngineUtils.rollbackContext(flowId);
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             throw e;
         }
