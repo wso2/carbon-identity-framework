@@ -281,7 +281,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         LOG.debug("Retrieving webhook count for tenant: " + tenantDomain);
         int webhooksCount = daoFACADE.getWebhooksCount(IdentityTenantUtil.getTenantId(tenantDomain));
         int maxWebhooksCount = IdentityUtil.getMaximumWebhooksPerTenant();
-        if (webhooksCount >= IdentityUtil.getMaximumWebhooksPerTenant()) {
+        if (webhooksCount >= maxWebhooksCount) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_MAXIMUM_WEBHOOKS_PER_TENANT_REACHED, String.valueOf(maxWebhooksCount));
         }
