@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
@@ -193,6 +194,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         List<Resource> resourceList;
         try {
             if (OrganizationManagementUtil.isOrganization(tenantId) &&
+                    Utils.isLoginAndRegistrationConfigInheritanceEnabled(
+                            IdentityTenantUtil.getTenantDomain(tenantId)) &&
                     ConfigurationConstants.INHERITED_RESOURCE_TYPES.contains(resourceType.getName())) {
                     resourceList = getInheritedResourcesByType(tenantId, resourceType.getId());
             } else {

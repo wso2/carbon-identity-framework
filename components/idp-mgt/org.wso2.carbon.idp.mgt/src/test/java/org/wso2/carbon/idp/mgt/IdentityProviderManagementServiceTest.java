@@ -60,6 +60,7 @@ import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
@@ -126,6 +127,7 @@ public class IdentityProviderManagementServiceTest {
     private ActionManagementService actionManagementService;
     private OrgResourceResolverService orgResourceResolverService;
     private MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
+    private MockedStatic<Utils> utilsMockedStatic;
 
     private static final String ASSOCIATED_ACTION_ID = "Dummy_Action_ID";
     private static final String CUSTOM_IDP_NAME = "customIdP";
@@ -193,6 +195,7 @@ public class IdentityProviderManagementServiceTest {
         organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
         organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(any()))
                 .thenReturn(false);
+        utilsMockedStatic = mockStatic(Utils.class);
 
         OrganizationManager organizationManager = mock(OrganizationManager.class);
         IdpMgtServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
@@ -210,6 +213,7 @@ public class IdentityProviderManagementServiceTest {
         // Clear Database after every test.
         removeTestIdps();
         organizationManagementUtilMockedStatic.close();
+        utilsMockedStatic.close();
     }
 
     private void registerSystemAuthenticators() {
@@ -1046,7 +1050,8 @@ public class IdentityProviderManagementServiceTest {
         addResidentIdp();
         IdentityProvider idpFromDb = identityProviderManagementService.getResidentIdP();
 
-        verify(orgResourceResolverService, times(2)).getResourcesFromOrgHierarchy(
+        // Verify that the orgResourceResolverService is not called for the root org.
+        verify(orgResourceResolverService, times(0)).getResourcesFromOrgHierarchy(
                 eq(ROOT_ORG_ID), any(), any());
         Assert.assertNotNull(idpFromDb);
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), "LOCAL");
@@ -1057,10 +1062,36 @@ public class IdentityProviderManagementServiceTest {
 
         organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
                 .thenReturn(true);
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(anyString()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any()))
+                .thenReturn(true);
         addResidentIdp();
         IdentityProvider idpFromDb = identityProviderManagementService.getResidentIdP();
 
         verify(orgResourceResolverService, times(3)).getResourcesFromOrgHierarchy(
+                eq(ROOT_ORG_ID), any(), any());
+        Assert.assertNotNull(idpFromDb);
+        Assert.assertEquals(idpFromDb.getIdentityProviderName(), "LOCAL");
+    }
+
+    @Test
+    public void testGetSubOrgResidentIdPInheritanceDisabled() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                .thenReturn(true);
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(anyString()))
+                .thenReturn(false);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any()))
+                .thenReturn(false);
+        addResidentIdp();
+        IdentityProvider idpFromDb = identityProviderManagementService.getResidentIdP();
+
+        verify(orgResourceResolverService, times(0)).getResourcesFromOrgHierarchy(
                 eq(ROOT_ORG_ID), any(), any());
         Assert.assertNotNull(idpFromDb);
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), "LOCAL");
