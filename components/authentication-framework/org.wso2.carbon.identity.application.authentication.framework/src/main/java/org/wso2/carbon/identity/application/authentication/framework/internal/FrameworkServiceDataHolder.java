@@ -139,17 +139,6 @@ public class FrameworkServiceDataHolder {
         return instance;
     }
 
-    public OrganizationDiscoveryHandler getOrganizationDiscoveryHandler() {
-
-        return organizationDiscoveryHandler;
-    }
-
-    public void setOrganizationDiscoveryHandler(OrganizationDiscoveryHandler organizationDiscoveryHandler) {
-
-        this.organizationDiscoveryHandler = organizationDiscoveryHandler;
-    }
-
-
     public RealmService getRealmService() {
 
         return realmService;
@@ -854,5 +843,15 @@ public class FrameworkServiceDataHolder {
     public UserDefinedAuthenticatorService getUserDefinedAuthenticatorService() {
 
         return userDefinedAuthenticatorService;
+    }
+
+    public OrganizationDiscoveryHandler getOrganizationDiscoveryHandler() {
+
+        return organizationDiscoveryHandler;
+    }
+
+    public void setOrganizationDiscoveryHandler(OrganizationDiscoveryHandler organizationDiscoveryHandler) {
+
+        this.organizationDiscoveryHandler = organizationDiscoveryHandler;
     }
 }

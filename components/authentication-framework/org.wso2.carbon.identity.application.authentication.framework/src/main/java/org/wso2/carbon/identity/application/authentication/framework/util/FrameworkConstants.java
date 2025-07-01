@@ -870,7 +870,9 @@ public abstract class FrameworkConstants {
 
         VALID_DISCOVERY_PARAMETERS_NOT_FOUND("60001", "Valid organization discovery parameters are not found."),
         ORGANIZATION_NOT_FOUND("60002", "Organization is not found for given discovery parameters."),
-        APPLICATION_NOT_SHARED("60003", "Application is not shared with the organization.");
+        APPLICATION_NOT_SHARED("60003", "Application is not shared with the organization."),
+        ORGANIZATION_DISCOVERY_TYPE_NOT_ENABLED_OR_SUPPORTED("60004",
+                "Organization discovery type is not enabled or supported for the organization.");
 
         private final String code;
         private final String message;
