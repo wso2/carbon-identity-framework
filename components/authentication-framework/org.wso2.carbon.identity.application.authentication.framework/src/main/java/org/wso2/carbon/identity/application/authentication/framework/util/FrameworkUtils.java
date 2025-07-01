@@ -4826,21 +4826,19 @@ public class FrameworkUtils {
 
     /**
      * This is used to set the flow and initiator in the identity context
-     * for the user or application initiated flows. This method cannot be
-     * utilized for the admin initiated flows.
+     * for the user flows.
      *
      * @param flowName The name of the flow to set in the identity context.
      */
     public static void updateIdentityContextFlow(Flow.Name flowName) {
 
-        if (IdentityContext.getThreadLocalIdentityContext().isApplicationActor()) {
-            IdentityContext.getThreadLocalIdentityContext()
-                    .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
-                            Flow.InitiatingPersona.APPLICATION).build());
-        } else if (IdentityContext.getThreadLocalIdentityContext().isUserActor()) {
-            IdentityContext.getThreadLocalIdentityContext()
-                    .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
-                            Flow.InitiatingPersona.USER).build());
+        if (IdentityContext.getThreadLocalIdentityContext().getFlow() != null) {
+            // If the flow is already set, no need to update it again.
+            return;
         }
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
+                        Flow.InitiatingPersona.USER).build());
     }
 }
