@@ -68,6 +68,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -126,6 +127,11 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.GROUPS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ROLES_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
@@ -1339,6 +1345,25 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void getAppAuthenticatorByNameNonExistingAuthenticator() {
 
         Assert.assertNull(FrameworkUtils.getAppAuthenticatorByName("NonExistAuthenticator"));
+    }
+
+    @Test
+    public void testGetOrganizationDiscoveryInput() {
+
+        Mockito.when(request.getParameter(ORG_ID)).thenReturn("org123");
+        Mockito.when(request.getParameter(ORG_HANDLE)).thenReturn("orgHandle123");
+        Mockito.when(request.getParameter(ORG_NAME)).thenReturn("Organization Name");
+        Mockito.when(request.getParameter(LOGIN_HINT)).thenReturn("loginHint123");
+        Mockito.when(request.getParameter(ORG_DISCOVERY_TYPE)).thenReturn("discoveryType123");
+
+        // Call the method.
+        OrganizationDiscoveryInput input = FrameworkUtils.getOrganizationDiscoveryInput(request);
+
+        assertEquals(input.getOrgId(), "org123");
+        assertEquals(input.getOrgHandle(), "orgHandle123");
+        assertEquals(input.getOrgName(), "Organization Name");
+        assertEquals(input.getLoginHint(), "loginHint123");
+        assertEquals(input.getOrgDiscoveryType(), "discoveryType123");
     }
  
     private void removeAllSystemDefinedAuthenticators() {
