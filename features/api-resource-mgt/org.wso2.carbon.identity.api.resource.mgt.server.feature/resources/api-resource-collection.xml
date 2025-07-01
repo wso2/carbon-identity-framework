@@ -1390,6 +1390,23 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="flows" displayName="Flows" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:flows"/>
+                <Scope name="console:flows_view"/>
+                <Scope name="console:flows_edit"/>
+            </Feature>
+            <Update>
+            </Update>
+            <Delete>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <!--    New Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>
