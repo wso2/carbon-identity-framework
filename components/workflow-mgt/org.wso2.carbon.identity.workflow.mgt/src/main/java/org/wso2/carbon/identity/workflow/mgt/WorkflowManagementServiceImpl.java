@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
-import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
@@ -1227,29 +1226,22 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      */
     @Override
     public WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException {
+        
+        if (requestId == null || requestId.isEmpty()) {
+            throw new WorkflowClientException("Request ID cannot be null or empty.");
+        }
 
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                try {
                     workflowListener.doPreGetWorkflowRequest(requestId);
-                } catch (Exception e) {
-                    log.error("Error occurred in pre-processing listener for request ID: " + requestId, e);
-                    throw new InternalWorkflowException("Error in workflow listener pre-processing", e);
-                }
             }
         }
 
         WorkflowRequest workflowRequest = null;
-        try {
             workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
-        } catch (Exception e) {
-            log.error("Error occurred while retrieving workflow request with ID: " + requestId, e);
-            throw new InternalWorkflowException("Failed to retrieve workflow request", e);
-        }
-        
         if (workflowRequest == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No workflow request found with ID: " + requestId);
@@ -1259,15 +1251,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                try {
                     workflowListener.doPostGetWorkflowRequest(requestId, workflowRequest);
-                } catch (Exception e) {
-                    log.error("Error occurred in post-processing listener for request ID: " + requestId, e);
-                    throw new InternalWorkflowException("Error in workflow listener post-processing", e);
-                }
             }
         }
-        
         return workflowRequest;
     }
 }

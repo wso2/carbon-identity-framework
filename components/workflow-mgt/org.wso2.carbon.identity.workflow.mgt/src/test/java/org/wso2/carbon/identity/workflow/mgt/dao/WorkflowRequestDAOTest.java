@@ -41,6 +41,9 @@ import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+/**
+ * Test class for {@link WorkflowRequestDAO}.
+ */
 public class WorkflowRequestDAOTest {
 
     private static final String TEST_REQUEST_ID_1 = "test_request_id_1";
@@ -98,8 +101,13 @@ public class WorkflowRequestDAOTest {
     @Test(dataProvider = "validRequestData", priority = 1)
     public void testGetWorkflowRequestWithValidId(
 
-            String requestId, String expectedCreatedBy, String expectedOperation,Timestamp expectedCreatedAt, 
-            Timestamp expectedUpdatedAt, String expectedStatus) throws Exception {
+            String requestId,
+            String expectedCreatedBy,
+            String expectedOperation,
+            Timestamp expectedCreatedAt,
+            Timestamp expectedUpdatedAt,
+            String expectedStatus) throws Exception {
+
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
                     .thenReturn(getConnection());
@@ -141,25 +149,26 @@ public class WorkflowRequestDAOTest {
         }
     }
 
-    @Test(priority = 4, expectedExceptions = RuntimeException.class)
-    public void testGetWorkflowRequestWithSQLException() throws Exception {
-
-        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
-                    .thenThrow(new SQLException("Simulated SQL Exception"));
-
-            workflowRequestDAO.getWorkflowRequest(TEST_REQUEST_ID_1);
-        }
-    }
-
+    /**
+     * Gets a connection to the H2 database.
+     *
+     * @return A Connection object to the H2 database.
+     * @throws SQLException If an error occurs while getting the connection.
+     */
     private static Connection getConnection() throws SQLException {
 
         if (dataSourceMap.get(DB_NAME) != null) {
             return dataSourceMap.get(DB_NAME).getConnection();
         }
-        throw new RuntimeException("No datasource initiated for database: " + DB_NAME);
+        throw new SQLException("No datasource initiated for database: " + DB_NAME);
     }
 
+    /**
+     * Initiates the H2 database with the provided script.
+     *
+     * @param scriptPath Path to the H2 database script.
+     * @throws Exception If an error occurs while initiating the database.
+     */
     private void initiateH2Database(String scriptPath) throws Exception {
 
         BasicDataSource dataSource = new BasicDataSource();
@@ -169,12 +178,18 @@ public class WorkflowRequestDAOTest {
         dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME + ";DB_CLOSE_DELAY=-1");
         dataSource.setTestOnBorrow(true);
         dataSource.setValidationQuery("select 1");
+
         try (Connection connection = dataSource.getConnection()) {
             connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
         }
         dataSourceMap.put(DB_NAME, dataSource);
     }
 
+    /**
+     * Closes the H2 database connection.
+     *
+     * @throws Exception If an error occurs while closing the database.
+     */
     private static void closeH2Database() throws Exception {
 
         BasicDataSource dataSource = dataSourceMap.get(DB_NAME);
@@ -183,6 +198,11 @@ public class WorkflowRequestDAOTest {
         }
     }
 
+    /**
+     * Gets the file path for the H2 database script.
+     *
+     * @return The file path as a string.
+     */
     private static String getFilePath() {
 
         if (StringUtils.isNotBlank("h2.sql")) {

@@ -603,11 +603,11 @@ public class WorkflowRequestDAO {
      * @return WorkflowRequest
      * @throws InternalWorkflowException
      * @throws WorkflowClientException
-     * @throws ClassNotFoundException 
+     * @throws ClassNotFoundException
      */
     public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest getWorkflowRequest(String requestId)
-            throws InternalWorkflowException, WorkflowClientException, ClassNotFoundException {
-                
+            throws WorkflowException {
+
         if (requestId == null || requestId.isEmpty()) {
             throw new WorkflowClientException("Request ID cannot be null or empty.");
         }
@@ -623,8 +623,8 @@ public class WorkflowRequestDAO {
             resultSet = prepStmt.executeQuery();
 
             if (resultSet.next()) {
-                    org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO = 
-                        new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
+                org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO = 
+                    new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
 
                 requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
                 requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
@@ -648,9 +648,9 @@ public class WorkflowRequestDAO {
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
-        } catch (IOException e) {
-                throw new InternalWorkflowException
-                    ("Error when deserializing the workflow request. requestId = " + requestId, e);
+        } catch (ClassNotFoundException|IOException e) {
+            throw new InternalWorkflowException(
+                    "Error when deserializing the workflow request. requestId = " + requestId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
