@@ -1356,6 +1356,16 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
+  "console.flows.enabled": true,
+  "console.flows.scopes.feature": ["console:flows"],
+  "console.flows.disabled_features": [
+    "flows.types.list.inviteUserToSetPassword",
+    "flows.types.list.passwordRecovery"
+  ],
+  "console.flows.scopes.create": [],
+  "console.flows.scopes.read": [],
+  "console.flows.scopes.update": [],
+  "console.flows.scopes.delete": [],
   "console.certificates.enabled": true,
   "console.certificates.scopes.feature": ["console:certificates"],
   "console.certificates.scopes.create": ["internal_keystore_update"],

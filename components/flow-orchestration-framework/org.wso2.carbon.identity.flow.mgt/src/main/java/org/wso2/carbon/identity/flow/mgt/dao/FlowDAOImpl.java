@@ -215,11 +215,11 @@ public class FlowDAOImpl implements FlowDAO {
                         preparedStatement.setString(3, flowType);
                     });
 
-            FlowDTO flowDTO = new FlowDTO();
             if (steps.isEmpty()) {
                 LOG.debug("No steps are found in the " + flowType + " flow ");
-                return flowDTO;
+                return null;
             }
+            FlowDTO flowDTO = new FlowDTO();
             String firstStepId = getFirstStepId(tenantId, flowType);
             StepDTO firstStep = steps.stream()
                     .filter(step -> step.getId().equals(firstStepId))
