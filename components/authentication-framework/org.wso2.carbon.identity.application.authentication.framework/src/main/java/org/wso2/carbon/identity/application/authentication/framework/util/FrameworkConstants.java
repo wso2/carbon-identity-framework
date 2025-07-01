@@ -717,6 +717,7 @@ public abstract class FrameworkConstants {
         public static final String CURRENT_AUTHENTICATOR_START_TIME = "currentAuthenticatorStartTime";
         public static final String CURRENT_AUTHENTICATOR_DURATION = "currentAuthenticatorDuration";
         public static final String CURRENT_AUTHENTICATOR_ERROR_CODE = "currentAuthenticatorErrorCode";
+        public static final String CURRENT_AUTHENTICATOR_ERROR_MESSAGE = "currentAuthenticatorErrorMessage";
         public static final String CUSTOM_PARAM_PREFIX = "customParam";
         public static final int CUSTOM_PARAM_LENGTH = 5;
         public static final String CUSTOM_PARAM_1 = CUSTOM_PARAM_PREFIX + "1";
