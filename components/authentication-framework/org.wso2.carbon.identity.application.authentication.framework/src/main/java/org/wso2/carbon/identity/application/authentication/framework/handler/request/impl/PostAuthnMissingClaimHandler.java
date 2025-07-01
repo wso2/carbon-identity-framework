@@ -453,7 +453,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 UserRealm realm = getUserRealm(user.getTenantDomain());
                 AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
 
-                IdentityUtil.threadLocalProperties.get().put("isProgressiveProfileVerification", "true");
+                IdentityUtil.threadLocalProperties.get().put(
+                        FrameworkConstants.IS_PROGRESSIVE_PROFILE_VERIFICATION, "true");
                 userStoreManager.setUserClaimValuesWithID(user.getUserId(), localIdpClaims, null);
                 /* If the `otpVerificationTriggeredClaims` set in the local thread, redirect to OTP verification page
                  and set relevant properties to the authentication context. */
