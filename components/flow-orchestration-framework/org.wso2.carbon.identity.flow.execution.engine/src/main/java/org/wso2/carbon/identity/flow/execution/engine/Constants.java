@@ -137,7 +137,7 @@ public class Constants {
                 "The provided username already exists in the tenant: %s"),
         ERROR_CODE_UNDEFINED_FLOW_ID("60004",
                 "Flow id is not defined.",
-                "The flow id is not defined in the %s request."),
+                "The flow id is not defined in the request."),
         ERROR_CODE_INVALID_USERNAME("60005",
                 "Invalid username.",
                 "The given username: %s must be an email address."),
@@ -156,6 +156,9 @@ public class Constants {
         ERROR_CODE_INVALID_CAPTCHA("60010",
                 "Invalid captcha provided.",
                 "Invalid captcha provided in the %s request of flow id: %s."),
+        ERROR_CODE_FLOW_TYPE_NOT_PROVIDED("60011",
+                "Flow type is not provided.",
+                "Flow type not provided in the request."),
         ;
 
         private static final String ERROR_PREFIX = "FE";

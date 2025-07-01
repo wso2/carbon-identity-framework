@@ -143,7 +143,7 @@ public class FlowEngineUtilsTest {
     public void testContextRetrievalWithEmptyId() {
 
         try {
-            FlowExecutionEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, null);
+            FlowExecutionEngineUtils.retrieveFlowContextFromCache(null);
         } catch (FlowEngineException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_UNDEFINED_FLOW_ID.getCode());
         }
@@ -156,7 +156,7 @@ public class FlowEngineUtilsTest {
                 FlowExecCtxCache.class)) {
             flowContextCacheMockedStatic.when(FlowExecCtxCache::getInstance).thenReturn(flowContextCacheMock);
             lenient().when(flowContextCacheMock.getValueFromCache(any())).thenReturn(null);
-            FlowExecutionEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, "invalidFlowId");
+            FlowExecutionEngineUtils.retrieveFlowContextFromCache("invalidFlowId");
         } catch (FlowEngineException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_INVALID_FLOW_ID.getCode());
         }
@@ -218,7 +218,7 @@ public class FlowEngineUtilsTest {
             flowContextCacheMockedStatic.when(FlowExecCtxCache::getInstance).thenReturn(flowContextCacheMock);
             lenient().when(flowContextCacheMock.getValueFromCache(any())).thenReturn(entry);
             FlowExecutionContext context =
-                    FlowExecutionEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, testContext.getContextIdentifier());
+                    FlowExecutionEngineUtils.retrieveFlowContextFromCache(testContext.getContextIdentifier());
             assertNotNull(context);
             assertEquals(context, testContext);
         } catch (Exception e) {
