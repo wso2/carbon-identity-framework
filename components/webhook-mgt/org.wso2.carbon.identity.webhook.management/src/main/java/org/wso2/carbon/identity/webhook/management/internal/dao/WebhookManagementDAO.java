@@ -121,4 +121,13 @@ public interface WebhookManagementDAO {
      * @throws WebhookMgtException If an error occurs while retrying the webhook.
      */
     public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
+
+    /**
+     * Get the count of webhooks for a tenant.
+     *
+     * @param tenantId Tenant ID.
+     * @return Count of webhooks.
+     * @throws WebhookMgtException If an error occurs while retrieving the webhook count.
+     */
+    public int getWebhooksCount(int tenantId) throws WebhookMgtException;
 }

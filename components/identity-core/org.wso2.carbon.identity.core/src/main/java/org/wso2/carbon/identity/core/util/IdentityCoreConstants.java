@@ -114,6 +114,9 @@ public class IdentityCoreConstants {
     // Actions constants.
     public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "Actions.MaximumActionsPerType";
 
+    // Webhook constants.
+    public static final String MAXIMUM_WEBHOOKS_PER_TENANT_PROPERTY = "Webhooks.MaximumWebhooksPerTenant";
+
     // System application constants
     public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
     public static final String MY_ACCOUNT_APPLICATION_CLIENT_ID = "MY_ACCOUNT";
@@ -122,6 +125,8 @@ public class IdentityCoreConstants {
     public static final String IS_SYSTEM_APPLICATION = "IsSystemApplication";
 
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
+
+    public static final int DEFAULT_MAXIMUM_WEBHOOKS_PER_TENANT = 10;
 
     // Agentic AI constants
     public static final String AGENT_IDENTITY_ENABLE = "AgentIdentity.Enabled";

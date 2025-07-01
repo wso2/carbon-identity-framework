@@ -1274,6 +1274,10 @@
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
     </OutboundProvisioning>
 
+    <Webhooks>
+        <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
+    </Webhooks>
+
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener"
