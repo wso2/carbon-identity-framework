@@ -49,6 +49,7 @@ public final class WebhookSQLConstants {
         public static final String CHANNEL_URI = "CHANNEL_URI";
         public static final String CHANNEL_SUBSCRIPTION_STATUS = "CHANNEL_SUBSCRIPTION_STATUS";
         public static final String WEBHOOK_ID = "WEBHOOK_ID";
+        public static final String WEBHOOK_COUNT = "WEBHOOK_COUNT";
 
         private Column() {
 
@@ -111,6 +112,9 @@ public final class WebhookSQLConstants {
 
         public static final String DELETE_WEBHOOK_EVENTS =
                 "DELETE FROM IDN_WEBHOOK_CHANNELS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
+
+        public static final String COUNT_WEBHOOKS_BY_TENANT =
+                "SELECT COUNT(*) AS WEBHOOK_COUNT FROM IDN_WEBHOOK WHERE TENANT_ID = :TENANT_ID;";
 
         private Query() {
 

@@ -46,6 +46,7 @@ import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMess
 import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_STATUS_UPDATE_ERROR;
 import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR;
 import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_UPDATE_ERROR;
+import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookSQLConstants.Column.WEBHOOK_COUNT;
 
 /**
  * Implementation of WebhookManagementDAO.
@@ -229,6 +230,26 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
 
         processWebhookStatusUpdate(webhook.getId(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_RETRY_STATUS_UPDATE_ERROR);
+    }
+
+    @Override
+    public int getWebhooksCount(int tenantId) throws WebhookMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(template ->
+                    template.fetchSingleRecord(
+                            WebhookSQLConstants.Query.COUNT_WEBHOOKS_BY_TENANT,
+                            (resultSet, rowNumber) -> resultSet.getInt(WEBHOOK_COUNT),
+                            statement -> statement.setInt
+                                    (WebhookSQLConstants.Column.TENANT_ID, tenantId)
+                    )
+            );
+        } catch (TransactionException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_WEBHOOKS_COUNT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
     }
 
     // --- Private helper methods ---

@@ -1604,12 +1604,32 @@ public class IdentityUtil {
             try {
                 maximumActionsPerActionType = Integer.parseInt(maximumActionsPerActionTypePropertyValue);
             } catch (NumberFormatException e) {
-                maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
                 log.warn("Error occurred while parsing the 'maximumActionsPerActionType' property value " +
                         "in identity.xml.", e);
             }
         }
         return maximumActionsPerActionType;
+    }
+
+    /**
+     * Get the Maximum Webhooks per Tenant to be configured.
+     *
+     * @return maximumWebhooksPerTenant which can be configured.
+     */
+    public static int getMaximumWebhooksPerTenant() {
+
+        int maximumWebhooksPerTenant = IdentityCoreConstants.DEFAULT_MAXIMUM_WEBHOOKS_PER_TENANT;
+        String maximumWebhooksPerTenantPropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_WEBHOOKS_PER_TENANT_PROPERTY);
+        if (StringUtils.isNotBlank(maximumWebhooksPerTenantPropertyValue)) {
+            try {
+                maximumWebhooksPerTenant = Integer.parseInt(maximumWebhooksPerTenantPropertyValue);
+            } catch (NumberFormatException e) {
+                log.warn("Error occurred while parsing the 'maximumWebhooksPerTenant' property value in " +
+                        "identity.xml.", e);
+            }
+        }
+        return maximumWebhooksPerTenant;
     }
 
     /**

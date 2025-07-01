@@ -156,4 +156,10 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook retry.");
         webhookManagementDAO.retryWebhook(webhook, tenantId);
     }
+
+    @Override
+    public int getWebhooksCount(int tenantId) throws WebhookMgtException {
+        // Count retrieval bypasses cache
+        return webhookManagementDAO.getWebhooksCount(tenantId);
+    }
 }

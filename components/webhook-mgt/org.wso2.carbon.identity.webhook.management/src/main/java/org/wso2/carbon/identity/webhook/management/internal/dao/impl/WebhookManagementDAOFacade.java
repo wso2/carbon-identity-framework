@@ -269,6 +269,17 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     }
 
     @Override
+    public int getWebhooksCount(int tenantId) throws WebhookMgtException {
+
+        try {
+            return webhookManagementDAO.getWebhooksCount(tenantId);
+        } catch (WebhookMgtException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_WEBHOOKS_COUNT, e);
+        }
+    }
+
+    @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         validateUpdateOperationSupported(WEBSUBHUB_ADAPTOR);
