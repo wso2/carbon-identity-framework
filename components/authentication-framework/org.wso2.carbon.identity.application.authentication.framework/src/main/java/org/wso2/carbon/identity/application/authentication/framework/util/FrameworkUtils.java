@@ -132,6 +132,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -4820,5 +4822,25 @@ public class FrameworkUtils {
                 .orgDiscoveryType(request.getParameter(ORG_DISCOVERY_TYPE))
                 .build();
 
+    }
+
+    /**
+     * This is used to set the flow and initiator in the identity context
+     * for the user or application initiated flows. This method cannot be
+     * utilized for the admin initiated flows.
+     *
+     * @param flowName The name of the flow to set in the identity context.
+     */
+    public static void updateIdentityContextFlow(Flow.Name flowName) {
+
+        if (IdentityContext.getThreadLocalIdentityContext().isApplicationActor()) {
+            IdentityContext.getThreadLocalIdentityContext()
+                    .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
+                            Flow.InitiatingPersona.APPLICATION).build());
+        } else if (IdentityContext.getThreadLocalIdentityContext().isUserActor()) {
+            IdentityContext.getThreadLocalIdentityContext()
+                    .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
+                            Flow.InitiatingPersona.USER).build());
+        }
     }
 }

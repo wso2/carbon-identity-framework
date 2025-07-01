@@ -451,7 +451,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.debug("Script initiated Exception occured.", e);
             }
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
-                    e.getErrorCode());
+                    e.getErrorCode(), e.getMessage());
             if (log.isDebugEnabled()) {
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
@@ -468,7 +468,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             log.error(String.format("Error occurred while evaluating post authentication : %s : %s.",
                     errorWrapper.getStatusMsg(), e.getMessage()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
-                    e.getErrorCode());
+                    e.getErrorCode(), e.getMessage());
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
         } catch (Exception e) {
@@ -1162,7 +1162,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
-                                              AuthenticatedUser user, String errorCode) {
+                                              AuthenticatedUser user, String errorCode, String errorMessage) {
 
         Serializable authenticationStartTime =
                 context.getAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME);
@@ -1171,6 +1171,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     System.currentTimeMillis() - (long) authenticationStartTime);
         }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_ERROR_CODE, errorCode);
+        context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_ERROR_MESSAGE, errorMessage);
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
 
