@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
-import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
@@ -53,7 +52,6 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
 
 /**
@@ -69,8 +67,10 @@ public class FlowExecutionEngineUtils {
      *
      * @param context Flow context.
      */
-    public static void addFlowContextToCache(FlowExecutionContext context) {
+    public static void addFlowContextToCache(FlowExecutionContext context) throws FlowEngineException {
 
+        // Persist an optimized version of the context in the cache and flow context store.
+        optimizeContext(context);
         FlowExecCtxCacheEntry cacheEntry = new FlowExecCtxCacheEntry(context);
         FlowExecCtxCacheKey cacheKey = new FlowExecCtxCacheKey(context.getContextIdentifier());
         FlowExecCtxCache.getInstance().addToCache(cacheKey, cacheEntry);
@@ -79,10 +79,15 @@ public class FlowExecutionEngineUtils {
         }
     }
 
+    private static void optimizeContext(FlowExecutionContext context) {
+
+        context.setGraphConfig(null);
+    }
+
     /**
      * Retrieve flow context from cache.
      *
-     * @param flowType Type of the flow.
+     * @param flowType  Type of the flow.
      * @param contextId Context identifier.
      * @return Flow context.
      * @throws FlowEngineException Flow engined exception.
@@ -97,7 +102,17 @@ public class FlowExecutionEngineUtils {
         if (entry == null) {
             throw handleClientException(ERROR_CODE_INVALID_FLOW_ID, contextId);
         }
-        return entry.getContext();
+        FlowExecutionContext context = entry.getContext();
+        try {
+            if (context != null) {
+                context.setGraphConfig(
+                        FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
+                                .getGraphConfig(flowType, IdentityTenantUtil.getTenantId(context.getTenantDomain())));
+            }
+        } catch (FlowMgtFrameworkException e) {
+            throw handleServerException(ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType, context.getTenantDomain(), e);
+        }
+        return context;
     }
 
     /**
@@ -105,7 +120,7 @@ public class FlowExecutionEngineUtils {
      *
      * @param contextId Context identifier.
      */
-    public static void removeFlowContextFromCache(String contextId) {
+    public static void removeFlowContextFromCache(String contextId) throws FlowEngineException {
 
         if (contextId == null) {
             if (LOG.isDebugEnabled()) {
@@ -146,8 +161,6 @@ public class FlowExecutionEngineUtils {
             context.setApplicationId(applicationId);
             context.setFlowType(flowType);
             return context;
-        } catch (IdentityRuntimeException e) {
-            throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         } catch (FlowMgtFrameworkException e) {
             throw handleServerException(ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType, tenantDomain);
         }
@@ -156,7 +169,7 @@ public class FlowExecutionEngineUtils {
     /**
      * Rollback the flow context.
      *
-     * @param flowType Type of the flow.
+     * @param flowType  Type of the flow.
      * @param contextId Context identifier.
      */
     public static void rollbackContext(String flowType, String contextId) {
@@ -334,8 +347,10 @@ public class FlowExecutionEngineUtils {
     }
 
     public static Map<String, Object> getMapFromJSONString(String json) throws FlowEngineServerException {
+
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            });
         } catch (JsonProcessingException e) {
             throw handleServerException(
                     ErrorMessages.ERROR_CODE_NODE_RESPONSE_PROCESSING_FAILURE, e,
