@@ -340,7 +340,8 @@
     "PRE_DELETE_USER_WITH_ID",
     "POST_DELETE_USER",
     "POST_UNLOCK_ACCOUNT",
-    "POST_LOCK_ACCOUNT"
+    "POST_LOCK_ACCOUNT",
+    "USER_PROFILE_UPDATE"
     ],
   "identity_mgt.events.schemes.SessionEventHook.module_index": "53",
   "identity_mgt.events.schemes.SessionEventHook.properties.enable": false,
