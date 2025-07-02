@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.dao;
 
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
 import java.util.List;

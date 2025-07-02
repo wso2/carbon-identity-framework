@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.model;
+package org.wso2.carbon.identity.subscription.management.api.model;
 
 /**
  * Enum for subscriber status.

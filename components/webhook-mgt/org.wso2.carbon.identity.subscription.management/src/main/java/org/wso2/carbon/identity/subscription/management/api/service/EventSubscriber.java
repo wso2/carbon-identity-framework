@@ -16,10 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.service;
+package org.wso2.carbon.identity.subscription.management.api.service;
 
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.subscription.management.api.model.ChannelSubscriptionRequest;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 
 import java.util.List;
 
@@ -40,18 +40,18 @@ public interface EventSubscriber {
     /**
      * Subscribe a webhook to the external system.
      *
-     * @param webhook  Webhook to be subscribed.
-     * @param tenantId Tenant ID for the subscription.
+     * @param subscriptionRequest Request containing details of the subscription.
+     * @param tenantId            Tenant ID for which the subscription is being made.
      * @return List of subscriptions created for the specified channels.
      */
-    List<Subscription> subscribe(Webhook webhook, int tenantId);
+    List<Subscription> subscribe(ChannelSubscriptionRequest subscriptionRequest, int tenantId);
 
     /**
      * Unsubscribe a webhook from the external system.
      *
-     * @param webhook  Webhook to be unsubscribed.
-     * @param tenantId Tenant ID for the unsubscription.
+     * @param unsubscriptionRequest Request containing details of unsubscription.
+     * @param tenantId              Tenant ID for which the unsubscription is being made.
      * @return List of subscriptions that were successfully unsubscribed.
      */
-    List<Subscription> unsubscribe(Webhook webhook, int tenantId);
+    List<Subscription> unsubscribe(ChannelSubscriptionRequest unsubscriptionRequest, int tenantId);
 }

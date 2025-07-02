@@ -30,10 +30,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
-import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
-import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
@@ -61,8 +60,6 @@ public class WebhookManagementServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(WebhookManagementService.class.getName(),
                     WebhookManagementServiceImpl.getInstance(), null);
-            WebhookManagementComponentServiceHolder.getInstance().setEventSubscriberService(
-                    new EventSubscriberService());
 
             LOG.debug("WebhookManagementService is activated");
         } catch (Throwable e) {
@@ -85,37 +82,6 @@ public class WebhookManagementServiceComponent {
         }
     }
 
-    /**
-     * Add webhook subscriber.
-     *
-     * @param subscriber WebhookSubscriber implementation.
-     */
-    @Reference(
-            name = "event.subscriber",
-            service = EventSubscriber.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unregisterSubscriber"
-    )
-    protected void registerSubscriber(EventSubscriber subscriber) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering event subscriber: " + subscriber.getName());
-        }
-        WebhookManagementComponentServiceHolder.getInstance().addEventSubscriber(subscriber);
-    }
-
-    /**
-     * Remove webhook subscriber.
-     *
-     * @param subscriber WebhookSubscriber implementation.
-     */
-    protected void unregisterSubscriber(EventSubscriber subscriber) {
-
-        LOG.debug("Unregistering event subscriber: " + subscriber.getName());
-        WebhookManagementComponentServiceHolder.getInstance().removeEventSubscriber(subscriber);
-    }
-
     @Reference(
             name = "topic.management.service.component",
             service = TopicManagementService.class,
@@ -133,6 +99,25 @@ public class WebhookManagementServiceComponent {
 
         WebhookManagementComponentServiceHolder.getInstance().setTopicManagementService(null);
         LOG.debug("TopicManagementService unset in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    @Reference(
+            name = "subscription.management.service.component",
+            service = SubscriptionManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSubscriptionManagementService"
+    )
+    private void setSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setSubscriptionManagementService(subscriptionManagementService);
+        LOG.debug("SubscriptionManagementService set in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    private void unsetSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setSubscriptionManagementService(null);
+        LOG.debug("SubscriptionManagementService unset in WebhookManagementComponentServiceHolder bundle.");
     }
 
     @Reference(
