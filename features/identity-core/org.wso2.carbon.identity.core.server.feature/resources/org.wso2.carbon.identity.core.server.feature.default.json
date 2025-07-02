@@ -1896,6 +1896,17 @@
 
   "attribute.return_previous_additional_properties.enabled": false,
 
-  "agent_identity.enabled": false
+  "agent_identity.enabled": false,
+
+  "flow_execution.default_ttl": "15",
+  "flow_execution.flow_type_ttl": {
+    "REGISTRATION": "15",
+    "PASSWORD_RECOVERY": "15",
+    "INVITED_USER_REGISTRATION": "15"
+  },
+  "flow_execution.flow_context_cleanup.enabled": true,
+  "flow_execution.flow_context_cleanup.initial_delay": "2",
+  "flow_execution.flow_context_cleanup.interval": "2",
+  "flow_execution.flow_context_cleanup.max_contexts_to_cleanup": "5000"
 }
 
