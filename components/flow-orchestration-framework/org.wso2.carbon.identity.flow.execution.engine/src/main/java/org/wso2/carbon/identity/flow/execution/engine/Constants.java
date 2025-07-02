@@ -137,11 +137,27 @@ public class Constants {
         ERROR_CODE_FLOW_USER_NOT_FOUND("65023",
                 "Flow user not found.",
                 "Flow user not found in the flow execution context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_STORE_FAILURE("65024",
+                "Error while storing flow context.",
+                "Error occurred while storing the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_UPDATE_FAILURE("65025",
+                "Error while updating flow context.",
+                "Error occurred while updating the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_RETRIEVAL_FAILURE("65026",
+                "Error while retrieving flow context.",
+                "Error occurred while retrieving the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_DELETION_FAILURE("65027",
+                "Error while deleting flow context.",
+                "Error occurred while deleting the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_CLEANUP_FAILURE("65028",
+                "Error while cleaning up expired flow contexts.",
+                "Error occurred while cleaning up expired flow contexts."),
+
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
-                "Invalid flow id.",
-                "The given flow id: %s is invalid."),
+                "Invalid or expired flow id.",
+                "The given flow id: %s is invalid or expired."),
         ERROR_CODE_USERNAME_NOT_PROVIDED("60002",
                 "Username not provided.",
                 "Username is not provided in the %s request of flow id: %s"),
@@ -228,5 +244,59 @@ public class Constants {
         private ExecutorStatus() {
 
         }
+    }
+
+    public static class SQLConstants {
+
+        private SQLConstants() {
+
+        }
+
+        public static final String MYSQL_DATABASE = "MySQL";
+        public static final String MARIA_DATABASE = "MariaDB";
+        public static final String H2_DATABASE = "H2";
+        public static final String DB2_DATABASE = "DB2";
+        public static final String MS_SQL_DATABASE = "MS SQL";
+        public static final String MICROSOFT_DATABASE = "Microsoft";
+        public static final String POSTGRESQL_DATABASE = "PostgreSQL";
+
+        public static final String FLOW_STATE_JSON = "FLOW_STATE_JSON";
+
+        public static final String INSERT_CONTEXT_SQL = "INSERT INTO IDN_FLOW_CONTEXT_STORE " +
+                "(ID, TENANT_ID, FLOW_TYPE, CREATED_AT, EXPIRES_AT, FLOW_STATE_JSON) VALUES (?, ?, ?, ?, ?, ?)";
+        public static final String UPDATE_CONTEXT_SQL =  "UPDATE IDN_FLOW_CONTEXT_STORE SET FLOW_STATE_JSON = ? WHERE" +
+                " ID = ? AND TENANT_ID = ?";
+        public static final String SELECT_CONTEXT_SQL = "SELECT FLOW_STATE_JSON FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?" +
+                " AND TENANT_ID = ? AND EXPIRES_AT > ?";
+        public static final String DELETE_CONTEXT_SQL = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?";
+
+        public static final String DELETE_EXPIRED_SQL = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE EXPIRES_AT < ? LIMIT %d";
+        public static final String DELETE_EXPIRED_SQL_POSTGRESQL = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE ctid IN " +
+                "(SELECT ctid FROM IDN_FLOW_CONTEXT_STORE WHERE EXPIRES_AT < ? LIMIT %d)";
+        public static final String DELETE_EXPIRED_SQL_ORACLE = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE ROWID IN " +
+                "(SELECT ROWID FROM IDN_FLOW_CONTEXT_STORE WHERE EXPIRES_AT < ? AND ROWNUM <= %d)";
+        public static final String DELETE_EXPIRED_SQL_MSSQL = "DELETE TOP (%d) FROM IDN_FLOW_CONTEXT_STORE WHERE " +
+                "EXPIRES_AT < ?";
+        public static final String DELETE_EXPIRED_SQL_DB2 = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE ID IN " +
+                "(SELECT ID FROM IDN_FLOW_CONTEXT_STORE WHERE EXPIRES_AT < ? FETCH FIRST %d ROWS ONLY)";
+
+    }
+
+    public static class FlowExecutionConfigs {
+
+        private FlowExecutionConfigs() {
+
+        }
+
+        public static final String FLOW_EXECUTION_PROPERTY = "FlowExecution";
+        public static final String DEFAULT_TTL_PROPERTY = "FlowExecution.DefaultTTL";
+        public static final String FLOW_TYPE_TTL_CONFIG_KEY_PREFIX = "FlowTypeTTLs";
+        public static final String FLOW_TYPE_TTL_CONFIG_KEY = "FlowTypeTTL";
+        public static final String FLOW_TYPE_ATTRIBUTE = "type";
+        public static final String CLEANUP_ENABLED_PROPERTY = "FlowExecution.FlowContextCleanup.Enabled";
+        public static final String CLEANUP_INITIAL_DELAY_PROPERTY = "FlowExecution.FlowContextCleanup" +
+                ".InitialDelay";
+        public static final String CLEANUP_INTERVAL_PROPERTY = "FlowExecution.FlowContextCleanup.Interval";
+        public static final String CLEANUP_LIMIT_PROPERTY = "FlowExecution.FlowContextCleanup.MaxContextsToCleanup";
     }
 }

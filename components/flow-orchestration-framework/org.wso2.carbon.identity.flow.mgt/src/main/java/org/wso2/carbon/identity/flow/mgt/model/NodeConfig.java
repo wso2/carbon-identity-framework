@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.flow.mgt.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.List;
 /**
  * This class is responsible for holding the node configuration.
  */
+@JsonDeserialize(builder = NodeConfig.Builder.class)
 public class NodeConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -119,13 +123,27 @@ public class NodeConfig implements Serializable {
 
     public static class Builder {
 
-        private final List<NodeEdge> edges = new ArrayList<>();
+        @JsonProperty("id")
         private String id;
+
+        @JsonProperty("type")
         private String type;
+
+        // Matches "firstNode" in JSON, which Jackson derives from the "isFirstNode" getter.
+        @JsonProperty("firstNode")
         private boolean isFirstNode;
-        private String nextNodeId = null;
-        private String previousNodeId = null;
-        private ExecutorDTO executorConfig = null;
+
+        @JsonProperty("nextNodeId")
+        private String nextNodeId;
+
+        @JsonProperty("previousNodeId")
+        private String previousNodeId;
+
+        @JsonProperty("executorConfig")
+        private ExecutorDTO executorConfig;
+
+        @JsonProperty("edges")
+        private List<NodeEdge> edges = new ArrayList<>();
 
         public Builder id(String id) {
 

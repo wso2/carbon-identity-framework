@@ -126,7 +126,7 @@ public class FlowExecutionService {
                         userClaims, tenantDomain);
             }
 
-            FlowExecutionEngineUtils.rollbackContext(flowId);
+            FlowExecutionEngineUtils.rollbackContext(flowType, flowId);
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             throw e;
         }

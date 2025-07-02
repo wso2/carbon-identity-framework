@@ -1915,6 +1915,12 @@
 
   "session_management.filter_by_unique_session_id_for_user": false,
 
-  "flow_execution.user_assertion.expiry_time": "2000"
+  "flow_execution.user_assertion.expiry_time": "2000",
+  "flow_execution.default_ttl": "30",
+  "flow_execution.flow_type_ttl": {
+    "REGISTRATION": "30",
+    "PASSWORD_RECOVERY": "30",
+    "INVITED_USER_REGISTRATION": "30"
+  }
 }
 

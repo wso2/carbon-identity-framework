@@ -4666,6 +4666,12 @@
         <UserAssertion>
             <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
         </UserAssertion>
+        <DefaultTTL>{{flow_execution.default_ttl}}</DefaultTTL>
+        <FlowTypeTTLs>
+            {% for flow_type, ttl in flow_execution.flow_type_ttl.items() %}
+            <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
+            {% endfor %}
+        </FlowTypeTTLs>
     </FlowExecution>
 
 </Server>
