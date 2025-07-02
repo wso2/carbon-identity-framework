@@ -77,7 +77,8 @@ public class FlowExecutionService {
                 context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowType, flowId);
             }
 
-            if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+            if (REGISTRATION_FLOW_TYPE.equalsIgnoreCase(context.getFlowType()) || Flow.Name.USER_REGISTRATION.
+                    toString().equalsIgnoreCase(context.getFlowType())) {
                 FrameworkUtils.updateIdentityContextFlow(Flow.Name.USER_REGISTRATION);
             }
 
@@ -100,8 +101,9 @@ public class FlowExecutionService {
                 }
             }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
-
-                if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+                LOG.info("Flow execution completed for context: " + context.getContextIdentifier());
+                if (REGISTRATION_FLOW_TYPE.equalsIgnoreCase(context.getFlowType()) ||
+                        Flow.Name.USER_REGISTRATION.toString().equalsIgnoreCase(context.getFlowType())) {
                     Map<String, String> userClaims =
                             context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
                     FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, tenantDomain);
@@ -114,7 +116,8 @@ public class FlowExecutionService {
             return step;
         } catch (FlowEngineException e) {
 
-            if (context != null && REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+            if (context != null && (REGISTRATION_FLOW_TYPE.equalsIgnoreCase(context.getFlowType()) ||
+                    Flow.Name.USER_REGISTRATION.toString().equalsIgnoreCase(context.getFlowType()))) {
                 Map<String, String> userClaims =
                         context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
                 FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getDescription(),
