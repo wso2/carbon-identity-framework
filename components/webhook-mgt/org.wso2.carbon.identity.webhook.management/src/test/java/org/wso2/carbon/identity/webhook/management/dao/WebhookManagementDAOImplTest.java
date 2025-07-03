@@ -22,9 +22,9 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
+import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOImpl;
@@ -251,6 +251,32 @@ public class WebhookManagementDAOImplTest {
             assertTrue(retrievedEvents.stream()
                     .anyMatch(e -> e.getChannelUri().equals(event.getChannelUri())));
         }
+    }
+
+    @Test(dependsOnMethods = {"testGetWebhooks"})
+    public void testGetWebhooksCount() throws WebhookMgtException {
+
+        int count = webhookManagementDAOImpl.getWebhooksCount(TENANT_ID);
+        // At this point, at least two webhooks should exist (from previous tests)
+        assertTrue(count >= 2, "Expected at least 2 webhooks, but found: " + count);
+
+        // Add another webhook and check count increases
+        Webhook newWebhook = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint("https://example.com/webhook-count")
+                .name("Count Test Webhook")
+                .secret(WEBHOOK_SECRET)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .build();
+
+        webhookManagementDAOImpl.createWebhook(newWebhook, TENANT_ID);
+
+        int newCount = webhookManagementDAOImpl.getWebhooksCount(TENANT_ID);
+        assertEquals(newCount, count + 1, "Webhook count should increase by 1 after adding a new webhook");
     }
 
     private Webhook createTestWebhook() {

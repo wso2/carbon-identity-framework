@@ -39,5 +39,6 @@
         <module>org.wso2.carbon.identity.webhook.management</module>
         <module>org.wso2.carbon.identity.webhook.metadata</module>
         <module>org.wso2.carbon.identity.topic.management</module>
+        <module>org.wso2.carbon.identity.subscription.management</module>
     </modules>
 </project>

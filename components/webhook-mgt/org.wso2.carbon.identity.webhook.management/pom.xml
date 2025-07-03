@@ -48,6 +48,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.subscription.management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.webhook.metadata</artifactId>
         </dependency>
         <dependency>
@@ -139,6 +143,8 @@
                             org.wso2.carbon.identity.secret.mgt.core.model;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.topic.management.api.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.subscription.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.webhook.metadata.api.*;
                             version="${carbon.identity.package.import.version.range}",
