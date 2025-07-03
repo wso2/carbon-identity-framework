@@ -960,7 +960,7 @@
             <Delete>
             </Delete>
             <Create>
-                {% if console.ui.enable_scim2_roles_v3_api is sameas false %}
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_create"/>
                 {% else %}
                 <Scope name="internal_role_mgt_meta_create"/>
@@ -1262,7 +1262,7 @@
                 <Scope name="console:roles_edit"/>
             </Feature>
             <Update>
-                {% if console.ui.enable_scim2_roles_v3_api is sameas false %}
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_update"/>
                  {% else %}
                  <Scope name="internal_role_mgt_meta_update"/>
@@ -1272,7 +1272,7 @@
                 <Scope name="internal_role_mgt_delete"/>
             </Delete>
             <Create>
-                {% if console.ui.enable_scim2_roles_v3_api is sameas false %}
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_create"/>
                 {% else %}
                 <Scope name="internal_role_mgt_meta_create"/>
@@ -1290,7 +1290,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% if console.ui.enable_scim2_roles_v3_api is sameas true %}
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResourceCollection name="entitlement" displayName="Entitlement" type="tenant">
         <Scopes>
             <Feature>
@@ -1498,7 +1498,7 @@
                 <Scope name="internal_org_guest_mgt_invite_delete"/>
             </Delete>
             <Create>
-                {% if console.ui.enable_scim2_roles_v3_api is sameas false %}
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_create"/>
                 {% else %}
                 <Scope name="internal_org_role_mgt_meta_create"/>
@@ -1639,7 +1639,7 @@
                 <Scope name="console:org:roles_edit"/>
             </Feature>
             <Update>
-                {% if console.ui.enable_scim2_roles_v3_api is sameas false %}
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_update"/>
                 {% else %}
                 <Scope name="internal_org_role_mgt_meta_update"/>
@@ -1649,7 +1649,7 @@
                 <Scope name="internal_org_role_mgt_delete"/>
             </Delete>
             <Create>
-                {% if console.ui.enable_scim2_roles_v3_api is sameas false %}
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_create"/>
                 {% else %}
                 <Scope name="internal_org_role_mgt_meta_create"/>
@@ -1666,7 +1666,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% if console.ui.enable_scim2_roles_v3_api is sameas true %}
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResourceCollection name="org_entitlement" displayName="Entitlement" type="organization">
         <Scopes>
             <Feature>
