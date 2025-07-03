@@ -714,6 +714,7 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATION_DURATION = "authenticationDuration";
         public static final String DATA_MAP = "dataMap";
         public static final String AUTHENTICATION_ERROR_CODE = "authenticationErrorCode";
+        public static final String AUTHENTICATION_ERROR_MESSAGE = "authenticationErrorMessage";
         public static final String CURRENT_AUTHENTICATOR_START_TIME = "currentAuthenticatorStartTime";
         public static final String CURRENT_AUTHENTICATOR_DURATION = "currentAuthenticatorDuration";
         public static final String CURRENT_AUTHENTICATOR_ERROR_CODE = "currentAuthenticatorErrorCode";

@@ -458,6 +458,7 @@
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
+  "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
 
   "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
@@ -1002,6 +1003,11 @@
       "id": "QWNjb3VudExvY2tGYWlsZWRBdHRlbXB0",
       "displayName": "Account Locked By Failed Attempts",
       "description": "This email notifies the user that the account is locked by due to too many failed login attempts"
+    },
+    {
+      "id": "YWNjb3VudExvY2tGYWlsZWRBdHRlbXB0VW50aWxBZG1pblVubG9jaw",
+      "displayName": "Account Locked By Failed Attempts Until Admin Unlocks",
+      "description": "This email notifies the user that the account is locked by due to too many failed login attempts until admin unlocks"
     },
     {
       "id": "QWNjb3VudEVuYWJsZQ",
@@ -1848,6 +1854,8 @@
   "system_applications.system_portals": ["Console", "My Account"],
 
   "notification_templates.sms_templates.apply": true,
+
+  "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
 
   "attribute.return_previous_additional_properties.enabled": false,
 
