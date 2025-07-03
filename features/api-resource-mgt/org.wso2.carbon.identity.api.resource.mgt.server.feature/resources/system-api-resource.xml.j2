@@ -1328,6 +1328,32 @@
                    description="Manage edits of roles in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Entitlement Feature" identifier="console:entitlement"
+                requiresAuthorization="true"
+                description="Resource representation of the Entitlement Management Feature"
+                type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Entitlement Feature" name="console:entitlement"
+                description="Manage Entitlement from the Console"/>
+            <Scope displayName="Entitlement View Feature" name="console:entitlement_view"
+                description="Manage views of Entitlement from the Console"/>
+            <Scope displayName="Entitlement Edit Feature" name="console:entitlement_edit"
+                description="Manage edits of Entitlement from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Entitlement Feature" identifier="console:org:entitlement"
+                requiresAuthorization="true"
+                description="Resource representation of the Entitlement Management Feature"
+                type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Entitlement Feature" name="console:org:entitlement"
+                description="Manage Entitlement from the Console"/>
+            <Scope displayName="Entitlement View Feature" name="console:org:entitlement_view"
+                description="Manage views of Entitlement from the Console"/>
+            <Scope displayName="Entitlement Edit Feature" name="console:org:entitlement_edit"
+                description="Manage edits of Entitlement from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Management Feature" identifier="console:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
