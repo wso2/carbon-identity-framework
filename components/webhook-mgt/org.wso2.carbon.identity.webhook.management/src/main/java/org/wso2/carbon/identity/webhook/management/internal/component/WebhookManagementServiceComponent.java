@@ -89,13 +89,13 @@ public class WebhookManagementServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetTopicManagementService"
     )
-    private void setTopicManagementService(TopicManagementService topicManagementService) {
+    protected void setTopicManagementService(TopicManagementService topicManagementService) {
 
         WebhookManagementComponentServiceHolder.getInstance().setTopicManagementService(topicManagementService);
         LOG.debug("TopicManagementService set in WebhookManagementComponentServiceHolder bundle.");
     }
 
-    private void unsetTopicManagementService(TopicManagementService topicManagementService) {
+    protected void unsetTopicManagementService(TopicManagementService topicManagementService) {
 
         WebhookManagementComponentServiceHolder.getInstance().setTopicManagementService(null);
         LOG.debug("TopicManagementService unset in WebhookManagementComponentServiceHolder bundle.");
@@ -108,13 +108,13 @@ public class WebhookManagementServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetSubscriptionManagementService"
     )
-    private void setSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
+    protected void setSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
 
         WebhookManagementComponentServiceHolder.getInstance().setSubscriptionManagementService(subscriptionManagementService);
         LOG.debug("SubscriptionManagementService set in WebhookManagementComponentServiceHolder bundle.");
     }
 
-    private void unsetSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
+    protected void unsetSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
 
         WebhookManagementComponentServiceHolder.getInstance().setSubscriptionManagementService(null);
         LOG.debug("SubscriptionManagementService unset in WebhookManagementComponentServiceHolder bundle.");
@@ -144,13 +144,13 @@ public class WebhookManagementServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetSecretManager"
     )
-    private void setSecretManager(SecretManager secretManager) {
+    protected void setSecretManager(SecretManager secretManager) {
 
         WebhookManagementComponentServiceHolder.getInstance().setSecretManager(secretManager);
         LOG.debug("SecretManager set in WebhookManagementComponentServiceHolder bundle.");
     }
 
-    private void unsetSecretManager(SecretManager secretManager) {
+    protected void unsetSecretManager(SecretManager secretManager) {
 
         WebhookManagementComponentServiceHolder.getInstance().setSecretManager(null);
         LOG.debug("SecretManager unset in WebhookManagementComponentServiceHolder bundle.");
@@ -163,13 +163,13 @@ public class WebhookManagementServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetSecretResolveManager"
     )
-    private void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+    protected void setSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         WebhookManagementComponentServiceHolder.getInstance().setSecretResolveManager(secretResolveManager);
         LOG.debug("SecretResolveManager set in WebhookManagementComponentServiceHolder bundle.");
     }
 
-    private void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
+    protected void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         WebhookManagementComponentServiceHolder.getInstance().setSecretResolveManager(null);
         LOG.debug("SecretResolveManager unset in WebhookManagementComponentServiceHolder bundle.");
