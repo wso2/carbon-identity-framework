@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.topic.management.internal.component;
+package org.wso2.carbon.identity.event.publisher.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,21 +28,21 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
-import org.wso2.carbon.identity.topic.management.api.service.TopicManager;
-import org.wso2.carbon.identity.topic.management.internal.service.impl.TopicManagementServiceImpl;
+import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
+import org.wso2.carbon.identity.event.publisher.api.service.EventPublisherService;
+import org.wso2.carbon.identity.event.publisher.internal.service.impl.EventPublisherServiceImpl;
 
 /**
  * TopicManagementServiceComponent is responsible for registering the topic management service
  * in the OSGi runtime.
  */
 @Component(
-        name = "topic.management.service.component",
+        name = "event.publisher.service.component",
         immediate = true
 )
-public class TopicManagementServiceComponent {
+public class EventPublisherServiceComponent {
 
-    private static final Log LOG = LogFactory.getLog(TopicManagementServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(EventPublisherServiceComponent.class);
 
     /**
      * Activate the component.
@@ -55,8 +55,8 @@ public class TopicManagementServiceComponent {
         try {
             BundleContext bundleContext = context.getBundleContext();
             // Register the TopicManagementService
-            bundleContext.registerService(TopicManagementService.class.getName(),
-                    TopicManagementServiceImpl.getInstance(), null);
+            bundleContext.registerService(EventPublisherService.class.getName(),
+                    EventPublisherServiceImpl.getInstance(), null);
 
             LOG.debug("TopicManagementService is activated");
         } catch (Throwable e) {
@@ -79,32 +79,24 @@ public class TopicManagementServiceComponent {
         }
     }
 
-    /**
-     * Add topic manager.
-     *
-     * @param manager TopicManager implementation.
-     */
     @Reference(
-            name = "topic.manager",
-            service = TopicManager.class,
+            name = "identity.event.publisher",
+            service = EventPublisher.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unregisterTopicManager"
+            unbind = "removeEventPublisher"
     )
-    protected void registerTopicManager(TopicManager manager) {
+    protected void addEventPublisher(EventPublisher eventPublisher) {
 
-        LOG.debug("Registering topic manager: " + manager.getAssociatedAdaptor());
-        TopicManagementComponentServiceHolder.getInstance().addTopicManager(manager);
+        LOG.debug("Adding the event publisher service : " +
+                eventPublisher.getClass().getName());
+        EventPublisherComponentServiceHolder.getInstance().addEventPublisher(eventPublisher);
     }
 
-    /**
-     * Remove topic manager.
-     *
-     * @param manager TopicManager implementation.
-     */
-    protected void unregisterTopicManager(TopicManager manager) {
+    protected void removeEventPublisher(EventPublisher eventPublisher) {
 
-        LOG.debug("Unregistering topic manager: " + manager.getAssociatedAdaptor());
-        TopicManagementComponentServiceHolder.getInstance().removeTopicManager(manager);
+        LOG.debug("Removing the event publisher service : " +
+                eventPublisher.getClass().getName());
+        EventPublisherComponentServiceHolder.getInstance().removeEventPublisher(eventPublisher);
     }
 }

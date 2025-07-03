@@ -61,21 +61,13 @@ public class TopicManagementServiceImpl implements TopicManagementService {
         return topicManagementServiceImpl;
     }
 
-    /**
-     * Registers a topic in the system.
-     *
-     * @param channelUri          The channel URI associated with the topic.
-     * @param eventProfileVersion The version of the event profile.
-     * @param tenantDomain        Tenant domain.
-     * @throws TopicManagementException If an error occurs during topic registration.
-     */
     @Override
-    public void registerTopic(String channelUri, String eventProfileVersion, String tenantDomain)
-            throws TopicManagementException {
+    public void registerTopic(String channelUri, String eventProfileName, String eventProfileVersion,
+                              String tenantDomain) throws TopicManagementException {
 
         TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
-        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
-        if (isTopicExists(channelUri, eventProfileVersion, tenantDomain)) {
+        String topic = adaptorManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
+        if (isTopicExists(channelUri, eventProfileName, eventProfileVersion, tenantDomain)) {
             throw TopicManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_TOPIC_ALREADY_EXISTS, topic);
         }
@@ -96,20 +88,12 @@ public class TopicManagementServiceImpl implements TopicManagementService {
         LOG.debug("Topic registered successfully: " + topic + " for tenant: " + tenantDomain);
     }
 
-    /**
-     * Deregisters a topic from the system.
-     *
-     * @param channelUri          The channel URI associated with the topic.
-     * @param eventProfileVersion The version of the event profile.
-     * @param tenantDomain        Tenant domain.
-     * @throws TopicManagementException If an error occurs during topic deregistration.
-     */
     @Override
-    public void deregisterTopic(String channelUri, String eventProfileVersion, String tenantDomain)
-            throws TopicManagementException {
+    public void deregisterTopic(String channelUri, String eventProfileName, String eventProfileVersion,
+                                String tenantDomain) throws TopicManagementException {
 
         TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
-        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
+        String topic = adaptorManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
         LOG.debug("Topic deregistration initiated: " + topic + " for tenant domain: " + tenantDomain);
         try {
             adaptorManager.deregisterTopic(topic, tenantDomain);
@@ -132,16 +116,17 @@ public class TopicManagementServiceImpl implements TopicManagementService {
      * Check if a topic exists in the system.
      *
      * @param channelUri          The channel URI associated with the topic.
+     * @param eventProfileName    The name of the event profile.
      * @param eventProfileVersion The version of the event profile.
      * @param tenantDomain        Tenant domain.
      * @throws TopicManagementException If an error occurs while checking if the topic exists.
      */
     @Override
-    public boolean isTopicExists(String channelUri, String eventProfileVersion, String tenantDomain)
-            throws TopicManagementException {
+    public boolean isTopicExists(String channelUri, String eventProfileName, String eventProfileVersion,
+                                 String tenantDomain) throws TopicManagementException {
 
         TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
-        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
+        String topic = adaptorManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
         if (topic == null || topic.trim().isEmpty()) {
             throw TopicManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_INVALID_TOPIC);
@@ -167,7 +152,7 @@ public class TopicManagementServiceImpl implements TopicManagementService {
                 TopicManagementComponentServiceHolder.getInstance().getTopicManagers();
 
         for (TopicManager manager : managers) {
-            if (adaptor.equals(manager.getName())) {
+            if (adaptor.equals(manager.getAssociatedAdaptor())) {
                 return manager;
             }
         }

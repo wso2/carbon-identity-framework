@@ -82,7 +82,8 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         try {
-            ensureTopicsExistOrRegister(webhook.getEventsSubscribed(), webhook.getEventProfileVersion(), tenantDomain);
+            ensureTopicsExistOrRegister(webhook.getEventsSubscribed(), webhook.getEventProfileName(),
+                    webhook.getEventProfileVersion(), tenantDomain);
         } catch (TopicManagementException e) {
             throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR, e);
         }
@@ -406,15 +407,16 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         }
     }
 
-    private void ensureTopicsExistOrRegister(List<Subscription> events, String eventProfileVersion, String tenantDomain)
+    private void ensureTopicsExistOrRegister(List<Subscription> events, String eventProfileName,
+                                             String eventProfileVersion, String tenantDomain)
             throws TopicManagementException {
 
         TopicManagementService topicManagementService =
                 WebhookManagementComponentServiceHolder.getInstance().getTopicManagementService();
         for (Subscription event : events) {
-            if (!topicManagementService.isTopicExists(event.getChannelUri(), eventProfileVersion,
+            if (!topicManagementService.isTopicExists(event.getChannelUri(), eventProfileName, eventProfileVersion,
                     tenantDomain)) {
-                topicManagementService.registerTopic(event.getChannelUri(), eventProfileVersion,
+                topicManagementService.registerTopic(event.getChannelUri(), eventProfileName, eventProfileVersion,
                         tenantDomain);
             }
         }
