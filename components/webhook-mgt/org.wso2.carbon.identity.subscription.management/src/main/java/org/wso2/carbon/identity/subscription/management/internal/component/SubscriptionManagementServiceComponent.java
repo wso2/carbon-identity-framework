@@ -94,7 +94,7 @@ public class SubscriptionManagementServiceComponent {
     protected void registerSubscriber(EventSubscriber subscriber) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering event subscriber: " + subscriber.getName());
+            LOG.debug("Registering event subscriber: " + subscriber.getAssociatedAdaptor());
         }
         SubscriptionManagementComponentServiceHolder.getInstance().addEventSubscriber(subscriber);
     }
@@ -106,7 +106,7 @@ public class SubscriptionManagementServiceComponent {
      */
     protected void unregisterSubscriber(EventSubscriber subscriber) {
 
-        LOG.debug("Unregistering event subscriber: " + subscriber.getName());
+        LOG.debug("Unregistering event subscriber: " + subscriber.getAssociatedAdaptor());
         SubscriptionManagementComponentServiceHolder.getInstance().removeEventSubscriber(subscriber);
     }
 }

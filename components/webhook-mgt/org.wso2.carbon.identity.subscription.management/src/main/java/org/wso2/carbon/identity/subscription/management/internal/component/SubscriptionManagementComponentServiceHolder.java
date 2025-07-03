@@ -63,7 +63,7 @@ public class SubscriptionManagementComponentServiceHolder {
      */
     public void addEventSubscriber(EventSubscriber eventSubscriber) {
 
-        LOG.debug("Adding webhook subscriber: " + eventSubscriber.getName());
+        LOG.debug("Adding webhook subscriber: " + eventSubscriber.getAssociatedAdaptor());
         eventSubscribers.add(eventSubscriber);
     }
 
@@ -74,7 +74,7 @@ public class SubscriptionManagementComponentServiceHolder {
      */
     public void removeEventSubscriber(EventSubscriber eventSubscriber) {
 
-        LOG.debug("Removing event subscriber: " + eventSubscriber.getName());
+        LOG.debug("Removing event subscriber: " + eventSubscriber.getAssociatedAdaptor());
         eventSubscribers.remove(eventSubscriber);
     }
 }

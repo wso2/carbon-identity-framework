@@ -25,9 +25,10 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.subscription.management.api.exception.SubscriptionManagementException;
-import org.wso2.carbon.identity.subscription.management.api.model.ChannelSubscriptionRequest;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionStatus;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookSubscriptionRequest;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookUnsubscriptionRequest;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
@@ -92,9 +93,14 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         Webhook webhookToPersist;
         if (webhook.getStatus() == WebhookStatus.ACTIVE) {
             List<Subscription> subscriptions;
-            ChannelSubscriptionRequest subscriptionRequest = ChannelSubscriptionRequest.subscribe()
-                    .eventsSubscribed(webhook.getEventsSubscribed())
+            List<String> channelUris = webhook.getEventsSubscribed()
+                    .stream()
+                    .map(Subscription::getChannelUri)
+                    .collect(Collectors.toList());
+            WebhookSubscriptionRequest subscriptionRequest = WebhookSubscriptionRequest.builder()
+                    .channelsToSubscribe(channelUris)
                     .eventProfileVersion(webhook.getEventProfileVersion())
+                    .eventProfileName(webhook.getEventProfileName())
                     .endpoint(webhook.getEndpoint())
                     .secret(webhook.getSecret())
                     .build();
@@ -187,9 +193,14 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 .collect(Collectors.toList());
 
         List<Subscription> allResults;
-        ChannelSubscriptionRequest subscriptionRequest = ChannelSubscriptionRequest.subscribe()
-                .eventsSubscribed(toSubscribe)
+        List<String> channelUris = toSubscribe
+                .stream()
+                .map(Subscription::getChannelUri)
+                .collect(Collectors.toList());
+        WebhookSubscriptionRequest subscriptionRequest = WebhookSubscriptionRequest.builder()
+                .channelsToSubscribe(channelUris)
                 .eventProfileVersion(webhook.getEventProfileVersion())
+                .eventProfileName(webhook.getEventProfileName())
                 .endpoint(webhook.getEndpoint())
                 .secret(getWebhookDecryptedSecretValue(webhook.getId()))
                 .build();
@@ -226,9 +237,14 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                 .collect(Collectors.toList());
 
         List<Subscription> allResults;
-        ChannelSubscriptionRequest unsubscriptionRequest = ChannelSubscriptionRequest.unsubscribe()
-                .eventsSubscribed(toUnsubscribe)
+        List<String> channelUris = toUnsubscribe
+                .stream()
+                .map(Subscription::getChannelUri)
+                .collect(Collectors.toList());
+        WebhookUnsubscriptionRequest unsubscriptionRequest = WebhookUnsubscriptionRequest.builder()
+                .channelsToUnsubscribe(channelUris)
                 .eventProfileVersion(webhook.getEventProfileVersion())
+                .eventProfileName(webhook.getEventProfileName())
                 .endpoint(webhook.getEndpoint())
                 .build();
         try {
@@ -267,9 +283,14 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                     .collect(Collectors.toList());
 
             List<Subscription> allResults;
-            ChannelSubscriptionRequest subscriptionRequest = ChannelSubscriptionRequest.subscribe()
-                    .eventsSubscribed(toSubscribe)
+            List<String> channelUris = toSubscribe
+                    .stream()
+                    .map(Subscription::getChannelUri)
+                    .collect(Collectors.toList());
+            WebhookSubscriptionRequest subscriptionRequest = WebhookSubscriptionRequest.builder()
+                    .channelsToSubscribe(channelUris)
                     .eventProfileVersion(webhook.getEventProfileVersion())
+                    .eventProfileName(webhook.getEventProfileName())
                     .endpoint(webhook.getEndpoint())
                     .secret(getWebhookDecryptedSecretValue(webhook.getId()))
                     .build();
@@ -300,9 +321,14 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                     .collect(Collectors.toList());
 
             List<Subscription> allResults;
-            ChannelSubscriptionRequest unsubscriptionRequest = ChannelSubscriptionRequest.unsubscribe()
-                    .eventsSubscribed(toUnsubscribe)
+            List<String> channelUris = toUnsubscribe
+                    .stream()
+                    .map(Subscription::getChannelUri)
+                    .collect(Collectors.toList());
+            WebhookUnsubscriptionRequest unsubscriptionRequest = WebhookUnsubscriptionRequest.builder()
+                    .channelsToUnsubscribe(channelUris)
                     .eventProfileVersion(webhook.getEventProfileVersion())
+                    .eventProfileName(webhook.getEventProfileName())
                     .endpoint(webhook.getEndpoint())
                     .build();
             try {

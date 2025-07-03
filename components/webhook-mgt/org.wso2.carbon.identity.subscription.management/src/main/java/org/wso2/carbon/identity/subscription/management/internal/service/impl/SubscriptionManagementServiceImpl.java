@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.subscription.management.internal.service.impl;
 
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.subscription.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.subscription.management.api.exception.SubscriptionManagementException;
-import org.wso2.carbon.identity.subscription.management.api.model.ChannelSubscriptionRequest;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookSubscriptionRequest;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookUnsubscriptionRequest;
 import org.wso2.carbon.identity.subscription.management.api.service.EventSubscriber;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.subscription.management.internal.component.SubscriptionManagementComponentServiceHolder;
@@ -50,21 +50,21 @@ public class SubscriptionManagementServiceImpl implements SubscriptionManagement
     }
 
     @Override
-    public List<Subscription> subscribe(ChannelSubscriptionRequest subscriptionRequest, String adaptor,
+    public List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String adaptor,
                                         String tenantDomain)
             throws SubscriptionManagementException {
 
         EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
-        return subscriber.subscribe(subscriptionRequest, IdentityTenantUtil.getTenantId(tenantDomain));
+        return subscriber.subscribe(subscriptionRequest, tenantDomain);
     }
 
     @Override
-    public List<Subscription> unsubscribe(ChannelSubscriptionRequest unsubscriptionRequest, String adaptor,
+    public List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String adaptor,
                                           String tenantDomain)
             throws SubscriptionManagementException {
 
         EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
-        return subscriber.unsubscribe(unsubscriptionRequest, IdentityTenantUtil.getTenantId(tenantDomain));
+        return subscriber.unsubscribe(unsubscriptionRequest, tenantDomain);
     }
 
     private EventSubscriber retrieveAdaptorManager(String adaptor) throws SubscriptionManagementException {
@@ -78,7 +78,7 @@ public class SubscriptionManagementServiceImpl implements SubscriptionManagement
         }
 
         for (EventSubscriber subscriber : subscribers) {
-            if (adaptor.equals(subscriber.getName())) {
+            if (adaptor.equals(subscriber.getAssociatedAdaptor())) {
                 return subscriber;
             }
         }

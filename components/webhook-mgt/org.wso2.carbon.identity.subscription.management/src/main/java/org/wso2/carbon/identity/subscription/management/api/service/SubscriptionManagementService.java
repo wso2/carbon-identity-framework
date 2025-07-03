@@ -19,8 +19,9 @@
 package org.wso2.carbon.identity.subscription.management.api.service;
 
 import org.wso2.carbon.identity.subscription.management.api.exception.SubscriptionManagementException;
-import org.wso2.carbon.identity.subscription.management.api.model.ChannelSubscriptionRequest;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookSubscriptionRequest;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookUnsubscriptionRequest;
 
 import java.util.List;
 
@@ -40,7 +41,7 @@ public interface SubscriptionManagementService {
      * @return List of subscriptions that were successfully subscribed.
      * @throws SubscriptionManagementException If an error occurs during subscription.
      */
-    public List<Subscription> subscribe(ChannelSubscriptionRequest subscriptionRequest, String adaptor,
+    public List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String adaptor,
                                         String tenantDomain)
             throws SubscriptionManagementException;
 
@@ -54,7 +55,7 @@ public interface SubscriptionManagementService {
      * @return List of subscriptions that were successfully unsubscribed.
      * @throws SubscriptionManagementException If an error occurs during unsubscription.
      */
-    public List<Subscription> unsubscribe(ChannelSubscriptionRequest unsubscriptionRequest, String adaptor,
+    public List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String adaptor,
                                           String tenantDomain)
             throws SubscriptionManagementException;
 }
