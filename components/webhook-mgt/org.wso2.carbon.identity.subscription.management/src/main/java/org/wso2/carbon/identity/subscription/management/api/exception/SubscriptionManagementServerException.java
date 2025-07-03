@@ -43,7 +43,8 @@ public class SubscriptionManagementServerException extends SubscriptionManagemen
      * @param errorCode   The error code
      * @param cause       The cause
      */
-    public SubscriptionManagementServerException(String errorCode, String message, String description, Throwable cause) {
+    public SubscriptionManagementServerException(String errorCode, String message, String description,
+                                                 Throwable cause) {
 
         super(errorCode, message, description, cause);
     }

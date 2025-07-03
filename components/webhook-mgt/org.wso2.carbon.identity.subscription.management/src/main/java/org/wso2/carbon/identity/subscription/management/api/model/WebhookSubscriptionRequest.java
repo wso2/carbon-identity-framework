@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.subscription.management.api.model;
 
 import java.util.List;
 
+/**
+ * Represents a request to subscribe to webhook events.
+ */
 public class WebhookSubscriptionRequest {
 
     private final List<String> channelsToSubscribe;
@@ -67,6 +70,9 @@ public class WebhookSubscriptionRequest {
         return new Builder();
     }
 
+    /**
+     * Builder class for creating instances of WebhookSubscriptionRequest.
+     */
     public static class Builder {
 
         private List<String> channelsToSubscribe;

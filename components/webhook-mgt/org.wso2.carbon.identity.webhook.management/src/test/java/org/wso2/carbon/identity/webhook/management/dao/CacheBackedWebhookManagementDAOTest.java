@@ -24,11 +24,11 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCache;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheEntry;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheKey;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.CacheBackedWebhookManagementDAO;
@@ -246,5 +246,30 @@ public class CacheBackedWebhookManagementDAOTest {
         List<Subscription> result = cacheBackedWebhookManagementDAO.getWebhookEvents(WEBHOOK_ID, TENANT_ID);
 
         assertEquals(result, Collections.emptyList());
+    }
+
+    @Test
+    public void testRetryWebhook() throws WebhookMgtException {
+
+        Webhook webhook = mock(Webhook.class);
+        when(webhook.getId()).thenReturn(WEBHOOK_ID);
+        WebhookCacheEntry cacheEntry = new WebhookCacheEntry(webhook);
+        webhookCache.addToCache(new WebhookCacheKey(WEBHOOK_ID), cacheEntry, TENANT_ID);
+
+        cacheBackedWebhookManagementDAO.retryWebhook(webhook, TENANT_ID);
+
+        verify(webhookManagementDAO).retryWebhook(webhook, TENANT_ID);
+        assertNull(webhookCache.getValueFromCache(new WebhookCacheKey(WEBHOOK_ID), TENANT_ID));
+    }
+
+    @Test
+    public void testGetWebhooksCount() throws WebhookMgtException {
+
+        when(webhookManagementDAO.getWebhooksCount(TENANT_ID)).thenReturn(5);
+
+        int count = cacheBackedWebhookManagementDAO.getWebhooksCount(TENANT_ID);
+
+        verify(webhookManagementDAO).getWebhooksCount(TENANT_ID);
+        assertEquals(count, 5);
     }
 }

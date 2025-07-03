@@ -110,7 +110,8 @@ public class WebhookManagementServiceComponent {
     )
     protected void setSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
 
-        WebhookManagementComponentServiceHolder.getInstance().setSubscriptionManagementService(subscriptionManagementService);
+        WebhookManagementComponentServiceHolder.getInstance()
+                .setSubscriptionManagementService(subscriptionManagementService);
         LOG.debug("SubscriptionManagementService set in WebhookManagementComponentServiceHolder bundle.");
     }
 

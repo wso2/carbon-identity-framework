@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.subscription.management.api.model;
 
 import java.util.List;
 
+/**
+ * Represents a request to unsubscribe from webhook events.
+ */
 public class WebhookUnsubscriptionRequest {
 
     private final List<String> channelToUnsubscribe;
@@ -60,6 +63,9 @@ public class WebhookUnsubscriptionRequest {
         return new Builder();
     }
 
+    /**
+     * Builder class for WebhookUnsubscriptionRequest.
+     */
     public static class Builder {
 
         private List<String> channelsToUnsubscribe;
