@@ -1227,6 +1227,7 @@
     "users"
   ],
   "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
+  "console.ui.enable_scim2_roles_v3_api": false,
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,
