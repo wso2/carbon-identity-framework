@@ -32,12 +32,12 @@ import org.wso2.carbon.identity.subscription.management.api.model.WebhookUnsubsc
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
-import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookRunnable;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
@@ -48,9 +48,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR;
-import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_RETRY_OPERATION_NOT_SUPPORTED;
-import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED;
+import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_ENCRYPTION_ERROR;
+import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_RETRY_OPERATION_NOT_SUPPORTED;
+import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED;
 
 /**
  * Facade for WebhookManagementDAO to handle webhook management operations.

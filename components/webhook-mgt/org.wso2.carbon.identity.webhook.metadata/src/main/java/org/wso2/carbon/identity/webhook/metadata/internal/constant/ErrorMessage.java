@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.metadata.api.constant;
+package org.wso2.carbon.identity.webhook.metadata.internal.constant;
 
 /**
  * Error messages for webhook metadata.

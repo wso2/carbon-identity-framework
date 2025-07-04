@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.event.publisher.api.service;
 
+import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherException;
 import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
 import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayload;
 
@@ -27,11 +28,26 @@ import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayl
 public interface EventPublisher {
 
     /**
+     * Retrieves the name of the event publisher.
+     *
+     * @return Name of the event publisher.
+     */
+    String getAssociatedAdaptor();
+
+    /**
      * Publish a given event to the intermediate hub.
      *
      * @param payload      Event payload.
      * @param eventContext Event Context.
-     * @throws Exception
+     * @throws EventPublisherException If an error occurs while publishing the event.
      */
-    void publish(SecurityEventTokenPayload payload, EventContext eventContext) throws Exception;
+    void publish(SecurityEventTokenPayload payload, EventContext eventContext) throws EventPublisherException;
+
+    /**
+     * Check whether the event publisher can handle the given event context.
+     *
+     * @param eventContext Event Context.
+     * @throws EventPublisherException If the event publisher cannot handle the event context.
+     */
+    void canHandleEvent(EventContext eventContext) throws EventPublisherException;
 }

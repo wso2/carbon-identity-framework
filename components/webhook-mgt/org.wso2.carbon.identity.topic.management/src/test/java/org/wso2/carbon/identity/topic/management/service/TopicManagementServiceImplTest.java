@@ -44,9 +44,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage.ERROR_CODE_TOPIC_CONSTRUCT_ERROR;
-import static org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage.ERROR_CODE_TOPIC_DEREGISTRATION_ERROR;
-import static org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage.ERROR_CODE_TOPIC_REGISTRATION_ERROR;
+import static org.wso2.carbon.identity.topic.management.internal.constant.ErrorMessage.ERROR_CODE_TOPIC_CONSTRUCT_ERROR;
+import static org.wso2.carbon.identity.topic.management.internal.constant.ErrorMessage.ERROR_CODE_TOPIC_DEREGISTRATION_ERROR;
+import static org.wso2.carbon.identity.topic.management.internal.constant.ErrorMessage.ERROR_CODE_TOPIC_REGISTRATION_ERROR;
 
 @WithCarbonHome
 public class TopicManagementServiceImplTest {

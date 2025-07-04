@@ -25,6 +25,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherException;
 import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
 import org.wso2.carbon.identity.event.publisher.api.model.EventPayload;
 import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayload;
@@ -32,20 +33,22 @@ import org.wso2.carbon.identity.event.publisher.api.model.common.SimpleSubject;
 import org.wso2.carbon.identity.event.publisher.api.model.common.Subject;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
+import org.wso2.carbon.identity.event.publisher.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.internal.service.impl.EventPublisherServiceImpl;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Consolidated test class for EventPublisherService, EventContext, and SecurityEventTokenPayload.
@@ -68,80 +71,115 @@ public class EventPublisherServiceImplTest {
     public void setupClass() {
 
         MockitoAnnotations.openMocks(this);
-        eventPublisherService = Mockito.spy(new EventPublisherServiceImpl()); // Spy on the service
+        eventPublisherService = EventPublisherServiceImpl.getInstance();
     }
 
     @BeforeMethod
     public void setup() {
 
-        Mockito.reset(mockEventPublisher1, mockEventPublisher2); // Reset mocks
+        Mockito.reset(mockEventPublisher1, mockEventPublisher2);
         eventPublishers = Arrays.asList(mockEventPublisher1, mockEventPublisher2);
-        EventPublisherComponentServiceHolder.getInstance().setEventPublishers(eventPublishers); // Set publishers
+        EventPublisherComponentServiceHolder.getInstance().setEventPublishers(eventPublishers);
     }
 
     @AfterMethod
     public void tearDown() {
 
-        EventPublisherComponentServiceHolder.getInstance().setEventPublishers(null); // Clear singleton state
+        EventPublisherComponentServiceHolder.getInstance().setEventPublishers(null);
     }
 
     @Test
     public void testPublishWithException() throws Exception {
 
-        CountDownLatch latch = new CountDownLatch(eventPublishers.size());
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
 
-        doAnswer(invocation -> {
-            latch.countDown();
-            throw new RuntimeException("Test Exception");
-        }).when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
-
-        doAnswer(invocation -> {
-            latch.countDown();
-            return null;
-        }).when(mockEventPublisher2).publish(mockEventPayload, mockEventContext);
+        doThrow(new EventPublisherException("E", "msg", "desc"))
+                .when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
 
         eventPublisherService.publish(mockEventPayload, mockEventContext);
 
-        latch.await(1, TimeUnit.SECONDS);
-
+        // Wait for async execution
+        TimeUnit.MILLISECONDS.sleep(200);
         verify(mockEventPublisher1, times(1)).publish(mockEventPayload, mockEventContext);
-        verify(mockEventPublisher2, times(1)).publish(mockEventPayload, mockEventContext);
+        verify(mockEventPublisher2, never()).publish(any(), any());
     }
 
     @Test
     public void testSuccessfulPublish() throws Exception {
 
-        CountDownLatch latch = new CountDownLatch(eventPublishers.size());
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
 
-        doAnswer(invocation -> {
-            latch.countDown();
-            return null;
-        }).when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
-
-        doAnswer(invocation -> {
-            latch.countDown();
-            return null;
-        }).when(mockEventPublisher2).publish(mockEventPayload, mockEventContext);
+        doNothing().when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
 
         eventPublisherService.publish(mockEventPayload, mockEventContext);
 
-        latch.await(1, TimeUnit.SECONDS);
-
+        TimeUnit.MILLISECONDS.sleep(200);
         verify(mockEventPublisher1, times(1)).publish(mockEventPayload, mockEventContext);
-        verify(mockEventPublisher2, times(1)).publish(mockEventPayload, mockEventContext);
+        verify(mockEventPublisher2, never()).publish(any(), any());
     }
 
     @Test
-    public void testPublishWithNoPublishers() {
+    public void testPublishWithNoMatchingAdaptor() {
 
-        EventPublisherComponentServiceHolder.getInstance().setEventPublishers(Collections.emptyList());
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("foo");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("bar");
 
-        // Call the service method
-        eventPublisherService.publish(mockEventPayload, mockEventContext);
-
-        // Verify no interactions occurred with mock publishers
-        verifyNoInteractions(mockEventPublisher1, mockEventPublisher2);
+        try {
+            eventPublisherService.publish(mockEventPayload, mockEventContext);
+            Assert.fail("Expected EventPublisherException");
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof EventPublisherException);
+            Assert.assertTrue(e.getMessage().contains(ErrorMessage.ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND.getMessage()));
+        }
     }
+
+    @Test
+    public void testCanHandleEventSuccess() throws Exception {
+
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+
+        doNothing().when(mockEventPublisher1).canHandleEvent(mockEventContext);
+
+        eventPublisherService.canHandleEvent(mockEventContext);
+
+        verify(mockEventPublisher1, times(1)).canHandleEvent(mockEventContext);
+        verify(mockEventPublisher2, never()).canHandleEvent(any());
+    }
+
+    @Test
+    public void testCanHandleEventWithException() throws Exception {
+
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+
+        doThrow(new EventPublisherException("E", "msg", "desc"))
+                .when(mockEventPublisher1).canHandleEvent(mockEventContext);
+
+        eventPublisherService.canHandleEvent(mockEventContext);
+
+        verify(mockEventPublisher1, times(1)).canHandleEvent(mockEventContext);
+        verify(mockEventPublisher2, never()).canHandleEvent(any());
+    }
+
+    @Test
+    public void testCanHandleEventWithNoMatchingAdaptor() {
+
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("foo");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("bar");
+
+        try {
+            eventPublisherService.canHandleEvent(mockEventContext);
+            Assert.fail("Expected EventPublisherException");
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof EventPublisherException);
+            Assert.assertTrue(e.getMessage().contains(ErrorMessage.ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND.getMessage()));
+        }
+    }
+
+    // --- The rest of your builder and singleton tests remain unchanged ---
 
     @Test
     public void testEventContextBuilder() {

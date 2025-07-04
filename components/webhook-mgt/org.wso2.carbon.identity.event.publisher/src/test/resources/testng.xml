@@ -33,6 +33,12 @@
     <test name="event-publisher-exception-test">
         <classes>
             <class name="org.wso2.carbon.identity.event.publisher.exception.EventPublisherExceptionTest"/>
+            <class name="org.wso2.carbon.identity.event.publisher.exception.EventPublisherServerExceptionTest"/>
+        </classes>
+    </test>
+    <test name="event-publisher-util-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.event.publisher.util.EventPublisherExceptionHandlerTest"/>
         </classes>
     </test>
 </suite>

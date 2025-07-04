@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.event.publisher.api.service;
 
+import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherException;
 import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
 import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayload;
 
@@ -31,6 +32,14 @@ public interface EventPublisherService {
      *
      * @param eventPayload Security Event Token Payload.
      * @param eventContext Event Context.
+     * @throws EventPublisherException If an error occurs while publishing the event.
      */
-    public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext);
+    void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext) throws EventPublisherException;
+
+    /**
+     * Check whether the event publisher can handle the given event.
+     *
+     * @param eventContext Event Context.
+     */
+    void canHandleEvent(EventContext eventContext) throws EventPublisherException;
 }

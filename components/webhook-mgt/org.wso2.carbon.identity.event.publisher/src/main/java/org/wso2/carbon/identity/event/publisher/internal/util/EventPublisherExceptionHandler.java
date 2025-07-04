@@ -16,74 +16,74 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.metadata.internal.util;
+package org.wso2.carbon.identity.event.publisher.internal.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataClientException;
-import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
-import org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherClientException;
+import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherServerException;
+import org.wso2.carbon.identity.event.publisher.internal.constant.ErrorMessage;
 
 /**
- * Utility class for handling exceptions in the webhook management module.
+ * Utility class for handling exceptions in the event publisher module.
  * This class provides methods to create client and server exceptions with
  * appropriate error codes, messages, and descriptions.
  */
-public class WebhookMetadataExceptionHandler {
+public class EventPublisherExceptionHandler {
 
-    private WebhookMetadataExceptionHandler() {
-
+    private EventPublisherExceptionHandler() {
+        // Private constructor to prevent instantiation
     }
 
     /**
-     * Handle Webhook Metadata client exceptions.
+     * Handle Event Publisher client exceptions.
      *
      * @param error Error message.
      * @param data  Data to be formatted into the error description.
-     * @return WebhookMetadataClientException.
+     * @return EventPublisherClientException.
      */
-    public static WebhookMetadataClientException handleClientException(ErrorMessage error, String... data) {
+    public static EventPublisherClientException handleClientException(ErrorMessage error, String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, (Object[]) data);
         }
 
-        return new WebhookMetadataClientException(error.getMessage(), description, error.getCode());
+        return new EventPublisherClientException(error.getCode(), error.getMessage(), description);
     }
 
     /**
-     * Handle Webhook Metadata server exceptions.
+     * Handle Event Publisher server exceptions with a throwable.
      *
      * @param error Error message.
      * @param e     Throwable.
      * @param data  Data to be formatted into the error description.
-     * @return WebhookMetadataServerException.
+     * @return EventPublisherServerException.
      */
-    public static WebhookMetadataServerException handleServerException(ErrorMessage error, Throwable e,
-                                                                       String... data) {
+    public static EventPublisherServerException handleServerException(ErrorMessage error, Throwable e,
+                                                                      String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, (Object[]) data);
         }
 
-        return new WebhookMetadataServerException(error.getMessage(), description, error.getCode(), e);
+        return new EventPublisherServerException(error.getCode(), error.getMessage(), description, e);
     }
 
     /**
-     * Handle Webhook Metadata server exceptions without a throwable.
+     * Handle Event Publisher server exceptions without a Throwable.
      *
      * @param error Error message.
      * @param data  Data to be formatted into the error description.
-     * @return WebhookMetadataServerException.
+     * @return EventPublisherServerException.
      */
-    public static WebhookMetadataServerException handleServerException(ErrorMessage error, String... data) {
+    public static EventPublisherServerException handleServerException(ErrorMessage error, String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, (Object[]) data);
         }
 
-        return new WebhookMetadataServerException(error.getMessage(), description, error.getCode());
+        return new EventPublisherServerException(error.getCode(), error.getMessage(), description);
     }
 }
