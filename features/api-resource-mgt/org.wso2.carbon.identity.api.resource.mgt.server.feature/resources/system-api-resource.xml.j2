@@ -702,6 +702,7 @@
                     description="Delete roles in the organization (root)"/>
         </Scopes>
     </APIResource>
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResource name="SCIM2 Roles V3 API" identifier="/scim2/v3/Roles" requiresAuthorization="true"
                  description="API representation of the SCIM2 Roles V3 API" type="TENANT">
         <Scopes>
@@ -719,6 +720,7 @@
                     description="Delete roles in the organization (root)"/>
         </Scopes>
     </APIResource>
+    {% endif %}
     <APIResource name="SCIM2 Roles V1/V2 API" identifier="/o/scim2/Roles"
                  requiresAuthorization="true"
                  description="API representation of the SCIM2 Roles V1/V2 API" type="ORGANIZATION">
@@ -733,6 +735,7 @@
                     description="Delete roles in the organization"/>
         </Scopes>
     </APIResource>
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResource name="SCIM2 Roles V3 API" identifier="/o/scim2/v3/Roles" requiresAuthorization="true"
                      description="API representation of the SCIM2 Roles V3 API" type="ORGANIZATION">
         <Scopes>
@@ -750,6 +753,7 @@
                     description="Delete roles in the organization"/>
         </Scopes>
     </APIResource>
+    {% endif %}
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API" type="TENANT">
         <Scopes>
