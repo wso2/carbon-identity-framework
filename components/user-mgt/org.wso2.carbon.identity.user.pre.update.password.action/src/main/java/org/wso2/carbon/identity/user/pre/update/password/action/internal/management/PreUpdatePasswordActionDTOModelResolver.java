@@ -64,6 +64,7 @@ import static org.wso2.carbon.identity.user.pre.update.password.action.internal.
 public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelResolver {
 
     private static final Log LOG = LogFactory.getLog(PreUpdatePasswordActionDTOModelResolver.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     public Action.ActionTypes getSupportedActionType() {
@@ -334,10 +335,9 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
     private ActionProperty createActionProperty(List<String> attributes) throws ActionDTOModelResolverException {
 
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             // Convert the attributes to a JSON string.
-            BinaryObject attributesBinaryObject = BinaryObject.fromJsonString(objectMapper
-                    .writeValueAsString(attributes));
+            BinaryObject attributesBinaryObject =
+                    BinaryObject.fromJsonString(OBJECT_MAPPER.writeValueAsString(attributes));
             return new ActionProperty.BuilderForDAO(attributesBinaryObject).build();
         } catch (JsonProcessingException e) {
             throw new ActionDTOModelResolverException("Failed to convert object values to JSON string.", e);
@@ -347,8 +347,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
     private ActionProperty getAttributes(String value) throws ActionDTOModelResolverException {
 
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return new ActionProperty.BuilderForService(objectMapper.readValue(value,
+            return new ActionProperty.BuilderForService(OBJECT_MAPPER.readValue(value,
                     new TypeReference<List<String>>() { })).build();
         } catch (IOException e) {
             throw new ActionDTOModelResolverException("Error while reading the attribute values from storage.", e);
