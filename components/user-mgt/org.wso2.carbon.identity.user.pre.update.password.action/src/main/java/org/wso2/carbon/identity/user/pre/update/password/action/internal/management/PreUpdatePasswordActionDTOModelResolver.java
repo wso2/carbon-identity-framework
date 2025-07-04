@@ -209,15 +209,18 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
                                          Map<String, ActionProperty> properties, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        if (updatingActionDTO.getPropertyValue(ATTRIBUTES) != null) {
-            // return updating attributes after validation
-            List<String> validatedAttributes = validateAttributes(updatingActionDTO.getPropertyValue(ATTRIBUTES),
-                    tenantDomain);
-            properties.put(ATTRIBUTES, createActionProperty(validatedAttributes));
-        } else if (existingActionDTO.getPropertyValue(ATTRIBUTES) != null) {
-            // return existing attributes
-            List<String> existingAttributes = (List<String>) existingActionDTO.getPropertyValue(ATTRIBUTES);
-            properties.put(ATTRIBUTES, createActionProperty(existingAttributes));
+        Object newAttributes = updatingActionDTO.getPropertyValue(ATTRIBUTES);
+        Object existingAttributes = existingActionDTO.getPropertyValue(ATTRIBUTES);
+
+        List<String> updatingAttributes = new ArrayList<>();
+        if (newAttributes != null) {
+            updatingAttributes = validateAttributes(newAttributes, tenantDomain);
+        } else if (existingAttributes != null) {
+            updatingAttributes = (List<String>) existingAttributes;
+        }
+
+        if (!updatingAttributes.isEmpty()) {
+            properties.put(ATTRIBUTES, createActionProperty(updatingAttributes));
         }
     }
 
