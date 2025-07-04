@@ -93,7 +93,7 @@ public class TopicManagementServiceComponent {
     )
     protected void registerTopicManager(TopicManager manager) {
 
-        LOG.debug("Registering topic manager: " + manager.getName());
+        LOG.debug("Registering topic manager: " + manager.getAssociatedAdaptor());
         TopicManagementComponentServiceHolder.getInstance().addTopicManager(manager);
     }
 
@@ -104,7 +104,7 @@ public class TopicManagementServiceComponent {
      */
     protected void unregisterTopicManager(TopicManager manager) {
 
-        LOG.debug("Unregistering topic manager: " + manager.getName());
+        LOG.debug("Unregistering topic manager: " + manager.getAssociatedAdaptor());
         TopicManagementComponentServiceHolder.getInstance().removeTopicManager(manager);
     }
 }

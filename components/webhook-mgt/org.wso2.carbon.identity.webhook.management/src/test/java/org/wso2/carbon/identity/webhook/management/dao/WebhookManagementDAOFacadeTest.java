@@ -109,7 +109,7 @@ public class WebhookManagementDAOFacadeTest {
         when(mockedHolder.getSecretManager()).thenReturn(secretManager);
         when(mockedHolder.getSecretResolveManager()).thenReturn(secretResolveManager);
 
-        when(topicManagementService.isTopicExists(anyString(), anyString(), anyString())).thenReturn(true);
+        when(topicManagementService.isTopicExists(anyString(), anyString(), anyString(), anyString())).thenReturn(true);
         when(secretManager.getSecretType(anyString())).thenReturn(secretType);
         when(secretType.getId()).thenReturn("WEBHOOK_SECRETS");
         when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);

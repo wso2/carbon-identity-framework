@@ -25,7 +25,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_DIRECTORY_NOT_FOUND;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_DIRECTORY_NOT_FOUND;
 
 /**
  * Utility class for webhook metadata operations.

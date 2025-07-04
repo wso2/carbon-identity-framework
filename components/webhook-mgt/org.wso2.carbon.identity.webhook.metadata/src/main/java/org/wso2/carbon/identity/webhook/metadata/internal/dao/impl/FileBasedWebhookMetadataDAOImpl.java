@@ -44,10 +44,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_FILES_LOAD_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_FILES_LOAD_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
 /**
  * File-based implementation of the WebhookMetadataDAO.
@@ -59,7 +59,7 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
     private static final FileBasedWebhookMetadataDAOImpl INSTANCE = new FileBasedWebhookMetadataDAOImpl();
 
     // Cache of loaded event profiles
-    private Map<String, EventProfile> profileCache = new HashMap<>();
+    private final Map<String, EventProfile> profileCache = new HashMap<>();
     private boolean isInitialized = false;
 
     private FileBasedWebhookMetadataDAOImpl() {

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.constant;
+package org.wso2.carbon.identity.webhook.management.internal.constant;
 
 /**
  * Error messages for webhook management.

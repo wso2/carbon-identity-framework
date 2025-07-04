@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.subscription.management.api.constant;
+package org.wso2.carbon.identity.subscription.management.internal.constant;
 
 /**
  * Error messages for subscription management.

@@ -30,10 +30,10 @@ import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataEx
 
 import java.util.List;
 
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_NOT_FOUND;
-import static org.wso2.carbon.identity.webhook.metadata.api.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_NOT_FOUND;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
 /**
  * Implementation of WebhookMetadataService.
@@ -43,7 +43,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     private static final Log log = LogFactory.getLog(WebhookMetadataServiceImpl.class);
     private static final WebhookMetadataServiceImpl INSTANCE = new WebhookMetadataServiceImpl();
 
-    private FileBasedWebhookMetadataDAOImpl webhookMetadataDAO;
+    private final FileBasedWebhookMetadataDAOImpl webhookMetadataDAO;
 
     private WebhookMetadataServiceImpl() {
 

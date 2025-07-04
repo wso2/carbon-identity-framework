@@ -23,10 +23,10 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
-import org.wso2.carbon.identity.topic.management.internal.constants.TopicSQLConstants.Column;
-import org.wso2.carbon.identity.topic.management.internal.constants.TopicSQLConstants.Query;
+import org.wso2.carbon.identity.topic.management.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.topic.management.internal.constant.TopicSQLConstants.Column;
+import org.wso2.carbon.identity.topic.management.internal.constant.TopicSQLConstants.Query;
 import org.wso2.carbon.identity.topic.management.internal.dao.TopicManagementDAO;
 import org.wso2.carbon.identity.topic.management.internal.util.TopicManagementExceptionHandler;
 

@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.topic.management.internal.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementClientException;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementServerException;
+import org.wso2.carbon.identity.topic.management.internal.constant.ErrorMessage;
 
 /**
  * Utility class for handling exceptions in the topic management module.

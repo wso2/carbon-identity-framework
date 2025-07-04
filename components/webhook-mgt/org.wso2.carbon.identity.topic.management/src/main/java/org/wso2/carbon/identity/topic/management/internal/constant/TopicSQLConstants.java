@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.topic.management.internal.constants;
+package org.wso2.carbon.identity.topic.management.internal.constant;
 
 /**
  * SQL Constants for Topic Management.

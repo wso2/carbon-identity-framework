@@ -29,9 +29,9 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIBED_CHANNEL_VALIDATION_ERROR;
-import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_EMPTY_WEBHOOK_REQUEST_FIELD;
-import static org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage.ERROR_INVALID_WEBHOOK_REQUEST_FIELD;
+import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIBED_CHANNEL_VALIDATION_ERROR;
+import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_EMPTY_WEBHOOK_REQUEST_FIELD;
+import static org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage.ERROR_INVALID_WEBHOOK_REQUEST_FIELD;
 import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants.CHANNELS_SUBSCRIBED_FIELD;
 import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants.ENDPOINT_URI_FIELD;
 import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants.SECRET_FIELD;
