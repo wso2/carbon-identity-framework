@@ -58,7 +58,7 @@
     },
     {
       "name": "Registrations",
-      "description": "Registration success or failed",
+      "description": "Registration success, failed or invite",
       "uri": "https://schemas.identity.wso2.org/events/registration",
       "events": [
         {
