@@ -33,7 +33,7 @@ import org.wso2.carbon.identity.event.publisher.api.service.EventPublisherServic
 import org.wso2.carbon.identity.event.publisher.internal.service.impl.EventPublisherServiceImpl;
 
 /**
- * TopicManagementServiceComponent is responsible for registering the topic management service
+ * EventPublisherServiceComponent is responsible for registering the event publisher service
  * in the OSGi runtime.
  */
 @Component(
@@ -54,13 +54,13 @@ public class EventPublisherServiceComponent {
 
         try {
             BundleContext bundleContext = context.getBundleContext();
-            // Register the TopicManagementService
+            // Register the EventPublisherService
             bundleContext.registerService(EventPublisherService.class.getName(),
                     EventPublisherServiceImpl.getInstance(), null);
 
-            LOG.debug("TopicManagementService is activated");
+            LOG.debug("EventPublisherService is activated");
         } catch (Throwable e) {
-            LOG.error("Error while activating TopicManagementService", e);
+            LOG.error("Error while activating EventPublisherService", e);
         }
     }
 
@@ -73,9 +73,9 @@ public class EventPublisherServiceComponent {
     protected void deactivate(ComponentContext context) {
 
         try {
-            LOG.debug("TopicManagementService is deactivated");
+            LOG.debug("EventPublisherService is deactivated");
         } catch (Throwable e) {
-            LOG.error("Error while deactivating TopicManagementService", e);
+            LOG.error("Error while deactivating EventPublisherService", e);
         }
     }
 

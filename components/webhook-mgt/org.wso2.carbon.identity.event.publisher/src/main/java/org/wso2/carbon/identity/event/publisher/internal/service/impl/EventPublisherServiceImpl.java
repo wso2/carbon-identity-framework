@@ -32,8 +32,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Implementation of the TopicManagementService interface.
- * This class provides implementation for topic management operations.
+ * Implementation of the EventPublisherService interface.
+ * This class provides implementation for event publisher operations.
  */
 public class EventPublisherServiceImpl implements EventPublisherService {
 

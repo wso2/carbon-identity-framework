@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Topic Management Component Service Holder.
- * This class holds references to services required by the topic management component.
+ * Event publisher Component Service Holder.
+ * This class holds references to services required by the event publisher component.
  */
 public class EventPublisherComponentServiceHolder {
 

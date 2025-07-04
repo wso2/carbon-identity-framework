@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.event.publisher.api.exception;
 
 /**
- * Topic management exception.
+ * Event publisher exception.
  */
 public class EventPublisherException extends Exception {
 

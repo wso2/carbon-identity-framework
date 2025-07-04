@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
 import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayload;
 
 /**
- * Service interface for topic management operations.
+ * Service interface for event publisher operations.
  */
 public interface EventPublisherService {
 
