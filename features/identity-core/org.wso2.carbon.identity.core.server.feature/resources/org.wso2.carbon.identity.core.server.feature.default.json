@@ -979,6 +979,16 @@
       "description": "This email is sent when the user has requested a password reset"
     },
     {
+      "id": "UGFzc3dvcmRSZXNldE9UUA",
+      "displayName": "Password Reset Email OTP",
+      "description": "This email sends an Email OTP to a user for password reset"
+    },
+    {
+      "id": "cmVzZW5kUGFzc3dvcmRSZXNldE9UUA",
+      "displayName": "Resend Password Reset Email OTP",
+      "description": "This email resends an Email OTP to a user for password reset"
+    },
+    {
       "id": "QXNrUGFzc3dvcmQ",
       "displayName": "Request New User Password",
       "description": "This email is sent to request a password from the user when the new account is created"
