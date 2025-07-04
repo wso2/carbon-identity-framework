@@ -54,6 +54,10 @@
             <artifactId>org.wso2.carbon.identity.user.action</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.orbit.com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
             <scope>provided</scope>
@@ -61,6 +65,16 @@
         <dependency>
             <groupId>net.minidev</groupId>
             <artifactId>json-smart</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
         <!-- Test dependencies -->
@@ -102,6 +116,8 @@
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
+                            com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
+                            com.fasterxml.jackson.databind.*; version="${com.fasterxml.jackson.annotation.version.range}",
                             com.google.gson;version="${com.google.code.gson.osgi.version.range}",
                             com.nimbusds.jose.*; version="${nimbusds.osgi.version.range}",
 
@@ -124,6 +140,7 @@
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.claim.metadata.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.evaluation.api.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.evaluation.api.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.evaluation.api.provider; version="${carbon.identity.package.import.version.range}",

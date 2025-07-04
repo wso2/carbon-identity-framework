@@ -19,7 +19,10 @@
 package org.wso2.carbon.identity.user.pre.update.password.action.util;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Utility class for the Pre Update Password action component tests.
@@ -62,4 +65,21 @@ public class TestUtil {
                     "CdHVxVXN2QThOV1NJeXpRMTZmeUd2ZStBTmY2dlh2VWl6eXZ3RHJQUnYva2Z2TE5hM1pQbkxNTXhVOThNdmgNClBYeTNQa0" +
                     "I4Kys2VTRZM3ZkazJOaTJXWVlsSWxzOHlxYk00MzI3SUtta0RjMlRpbVM4dTYwQ1Q0N21LVTdhRFkNCmNiVFY1UkRrcmxhW" +
                     "XdtNXlxbFRJZ2x2Q3Y3bz0NCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K";
+
+    public static final List<String> TEST_ATTRIBUTES = Arrays.asList("http://wso2.org/accountDisabled",
+            "http://wso2.org/claims/identity/accountLocked");
+    public static final List<String> UPDATED_TEST_ATTRIBUTES = Collections.singletonList(
+            "http://wso2.org/claims/identity/accountState");
+    public static final List<String> TEST_EMPTY_ATTRIBUTES = Collections.emptyList();
+    public static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
+    public static final String SAMPLE_LOCAL_CLAIM_URI_1 = "http://wso2.org/accountDisabled";
+    public static final String SAMPLE_LOCAL_CLAIM_URI_2 = "http://wso2.org/claims/identity/accountLocked";
+    public static final String SAMPLE_LOCAL_CLAIM_URI_3 = "http://wso2.org/claims/identity/accountState";
+    public static final String SAMPLE_LOCAL_CLAIM_URI_4 = "http://wso2.org/claims/active";
+    public static final String INVALID_TEST_ATTRIBUTES_TYPE = "attribute1";
+    public static final List<String> INVALID_TEST_ATTRIBUTES = Arrays.asList("attribute1", "attribute2");
+    public static final List<Integer> INVALID_TEST_ATTRIBUTES_VALUES = Arrays.asList(10, 20);
+    public static final List<String> ROLES_CLAIM_ATTRIBUTE = Collections.singletonList("http://wso2.org/claims/roles");
+    public static final List<String> DUPLICATED_TEST_ATTRIBUTES = Collections.nCopies(10, SAMPLE_LOCAL_CLAIM_URI_1);
+    public static final List<String> INVALID_TEST_ATTRIBUTES_COUNT = Collections.nCopies(11, SAMPLE_LOCAL_CLAIM_URI_1);
 }
