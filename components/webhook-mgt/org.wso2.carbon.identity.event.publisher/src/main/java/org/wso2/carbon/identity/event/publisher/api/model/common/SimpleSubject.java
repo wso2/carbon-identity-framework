@@ -45,7 +45,7 @@ public class SimpleSubject extends Subject {
 
     private static boolean isInvalidValue(String value) {
 
-        return (StringUtils.isEmpty(value.trim()));
+        return StringUtils.isBlank(value);
     }
 
     private SimpleSubject() {
