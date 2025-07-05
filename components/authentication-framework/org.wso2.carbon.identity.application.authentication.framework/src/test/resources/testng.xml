@@ -31,6 +31,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinatorTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandlerTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandlerTest"/>
