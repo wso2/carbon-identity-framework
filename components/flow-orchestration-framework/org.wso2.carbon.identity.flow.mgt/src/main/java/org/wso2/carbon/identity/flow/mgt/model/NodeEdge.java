@@ -30,6 +30,10 @@ public class NodeEdge implements Serializable {
     String targetNodeId;
     String triggeringActionId;
 
+    public NodeEdge() {
+
+    }
+
     public NodeEdge(String sourceNodeId, String targetNodeId, String triggeringActionId) {
 
         this.sourceNodeId = sourceNodeId;

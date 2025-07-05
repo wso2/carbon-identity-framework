@@ -213,6 +213,7 @@ public class FlowEngineUtilsTest {
 
         FlowExecCtxCacheEntry entry = new FlowExecCtxCacheEntry(testContext);
 
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
         try (MockedStatic<FlowExecCtxCache> flowContextCacheMockedStatic = mockStatic(
                 FlowExecCtxCache.class)) {
             flowContextCacheMockedStatic.when(FlowExecCtxCache::getInstance).thenReturn(flowContextCacheMock);

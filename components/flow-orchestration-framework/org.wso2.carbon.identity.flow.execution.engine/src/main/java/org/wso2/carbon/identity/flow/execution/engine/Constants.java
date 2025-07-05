@@ -124,11 +124,27 @@ public class Constants {
         ERROR_CODE_NODE_RESPONSE_PROCESSING_FAILURE("65020",
                 "Error while processing node response.",
                 "Error occurred while processing the node response."),
+        ERROR_CODE_FLOW_CONTEXT_STORE_FAILURE("65021",
+                "Error while storing flow context.",
+                "Error occurred while storing the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_UPDATE_FAILURE("65022",
+                "Error while updating flow context.",
+                "Error occurred while updating the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_RETRIEVAL_FAILURE("65023",
+                "Error while retrieving flow context.",
+                "Error occurred while retrieving the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_DELETION_FAILURE("65024",
+                "Error while deleting flow context.",
+                "Error occurred while deleting the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_CLEANUP_FAILURE("65025",
+                "Error while cleaning up expired flow contexts.",
+                "Error occurred while cleaning up expired flow contexts."),
+
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
-                "Invalid flow id.",
-                "The given flow id: %s is invalid."),
+                "Invalid or expired flow id.",
+                "The given flow id: %s is invalid or expired."),
         ERROR_CODE_USERNAME_NOT_PROVIDED("60002",
                 "Username not provided.",
                 "Username is not provided in the %s request of flow id: %s"),
@@ -212,5 +228,21 @@ public class Constants {
         private ExecutorStatus() {
 
         }
+    }
+
+    public static class SQLConstants {
+
+        private SQLConstants() {
+
+        }
+
+        public static final String FLOW_STATE_JSON = "FLOW_STATE_JSON";
+
+        public static final String INSERT_CONTEXT_SQL = "INSERT INTO FLOW_CONTEXT_STORE " +
+                "(ID, TENANT_DOMAIN, FLOW_TYPE, CREATED_AT, EXPIRES_AT, FLOW_STATE_JSON) VALUES (?, ?, ?, ?, ?, ?)";
+        public static final String UPDATE_CONTEXT_SQL =  "UPDATE FLOW_CONTEXT_STORE SET FLOW_STATE_JSON = ? WHERE ID = ?";
+        public static final String SELECT_CONTEXT_SQL = "SELECT FLOW_STATE_JSON FROM FLOW_CONTEXT_STORE WHERE ID = ?";
+        public static final String DELETE_CONTEXT_SQL = "DELETE FROM FLOW_CONTEXT_STORE WHERE ID = ?";
+        public static final String DELETE_EXPIRED_SQL = "DELETE FROM FLOW_CONTEXT_STORE WHERE EXPIRES_AT < CURRENT_TIMESTAMP";
     }
 }
