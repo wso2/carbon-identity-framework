@@ -44,6 +44,9 @@ public class IdentityEventConstants {
 
     }
 
+    /**
+     * Identity management related events.
+     */
     public class Event {
 
         private Event(){}
@@ -124,7 +127,7 @@ public class IdentityEventConstants {
         public static final String POST_ADD_NEW_PASSWORD = "POST_ADD_NEW_PASSWORD";
         public static final String PRE_SEND_RECOVERY_NOTIFICATION = "PRE_SEND_RECOVERY_NOTIFICATION";
         public static final String POST_SEND_RECOVERY_NOTIFICATION = "POST_SEND_RECOVERY_NOTIFICATION";
-        public static final String POST_ACCOUNT_SUSPENSION = "POST_ACCOUNT_SUSPENSION";      
+        public static final String POST_ACCOUNT_SUSPENSION = "POST_ACCOUNT_SUSPENSION";
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
         public static final String TRIGGER_SMS_NOTIFICATION = "TRIGGER_SMS_NOTIFICATION";
         public static final String PRE_ACCOUNT_RECOVERY = "PRE_ACCOUNT_RECOVERY";
