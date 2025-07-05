@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
-import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
@@ -1216,5 +1215,45 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
         return requestEntities;
+    }
+
+    /**
+     * Retrieve a workflow request by its ID.
+     *
+     * @param requestId The ID of the workflow request to retrieve.
+     * @return The workflow request with the specified ID.
+     * @throws WorkflowException If an error occurs while retrieving the workflow request.
+     */
+    @Override
+    public WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException {
+        
+        if (requestId == null || requestId.isEmpty()) {
+            throw new WorkflowClientException("Request ID cannot be null or empty.");
+        }
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                    workflowListener.doPreGetWorkflowRequest(requestId);
+            }
+        }
+
+        WorkflowRequest workflowRequest = null;
+            workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
+        if (workflowRequest == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No workflow request found with ID: " + requestId);
+            }
+            throw new WorkflowClientException("Workflow request not found with ID: " + requestId);
+        }
+        
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                    workflowListener.doPostGetWorkflowRequest(requestId, workflowRequest);
+            }
+        }
+        return workflowRequest;
     }
 }
