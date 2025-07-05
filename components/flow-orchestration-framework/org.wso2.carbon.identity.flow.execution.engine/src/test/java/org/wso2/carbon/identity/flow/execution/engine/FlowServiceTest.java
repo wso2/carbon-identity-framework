@@ -252,8 +252,7 @@ public class FlowServiceTest {
                 MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class)
         ) {
             engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
-            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(testFlowContext.getFlowType(),
-                            flowId))
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId))
                     .thenReturn(testFlowContext);
             when(engineMock.execute(testFlowContext)).thenReturn(expectedStep);
 
@@ -282,8 +281,7 @@ public class FlowServiceTest {
                 MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class)
         ) {
             engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
-            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(testFlowContext.getFlowType(),
-                            flowId))
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId))
                     .thenReturn(testFlowContext);
             when(engineMock.execute(testFlowContext)).thenReturn(expectedStep);
 
@@ -305,7 +303,7 @@ public class FlowServiceTest {
         try (MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
                 FlowExecutionEngineUtils.class)
         ) {
-            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, flowId))
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId))
                     .thenThrow(new FlowEngineException("Failed"));
             FlowExecutionService.getInstance().executeFlow(null, null,
                     flowId, "actionId", FLOW_TYPE, inputMap);
