@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -94,12 +95,29 @@ public class TestUtil {
     public static final String CERTIFICATE_ID = String.valueOf(UUID.randomUUID());
     public static final String CERTIFICATE_NAME = "ACTIONS:" + PRE_UPDATE_PASSWORD_ACTION_ID;
 
+    public static final String TEST_ACTION_ALLOWED_HEADER_1 = "x-test-header-1";
+    public static final String TEST_ACTION_ALLOWED_HEADER_2 = "x-test-header-2";
+    public static final String TEST_ACTION_ALLOWED_HEADER_3 = "x-test-header-3";
+    public static final String TEST_ACTION_ALLOWED_PARAMETER_1 = "testParam_1";
+    public static final String TEST_ACTION_ALLOWED_PARAMETER_2 = "testParam_2";
+    public static final String TEST_ACTION_ALLOWED_PARAMETER_3 = "testParam_3";
+
     public static Action buildMockAction(String name, String description, String uri, Authentication authentication) {
 
         return new Action.ActionRequestBuilder()
                 .name(name)
                 .description(description)
                 .endpoint(buildMockEndpointConfig(uri, authentication))
+                .build();
+    }
+
+    public static Action buildMockAction(String name, String description, String uri, Authentication authentication,
+                                         List<String> allowedHeaders, List<String> allowedParameters) {
+
+        return new Action.ActionRequestBuilder()
+                .name(name)
+                .description(description)
+                .endpoint(buildMockEndpointConfig(uri, authentication, allowedHeaders, allowedParameters))
                 .build();
     }
 
@@ -145,6 +163,37 @@ public class TestUtil {
                 .uri(uri)
                 .authentication(authentication)
                 .build();
+    }
+
+    public static EndpointConfig buildMockEndpointConfig(String uri, Authentication authentication,
+                                                         List<String> allowedHeaders, List<String> allowedParameters) {
+
+        if (uri == null && authentication == null) {
+            return null;
+        }
+
+        return new EndpointConfig.EndpointConfigBuilder()
+                .uri(uri)
+                .authentication(authentication)
+                .allowedHeaders(allowedHeaders)
+                .allowedParameters(allowedParameters)
+                .build();
+    }
+
+    public static List<String> buildMockAllowedHeaders() {
+
+        return Arrays.asList(
+                TEST_ACTION_ALLOWED_HEADER_1,
+                TEST_ACTION_ALLOWED_HEADER_2,
+                TEST_ACTION_ALLOWED_HEADER_3);
+    }
+
+    public static List<String> buildMockAllowedParameters() {
+
+        return Arrays.asList(
+                TEST_ACTION_ALLOWED_PARAMETER_1,
+                TEST_ACTION_ALLOWED_PARAMETER_2,
+                TEST_ACTION_ALLOWED_PARAMETER_3);
     }
 
     public static Rule buildMockRule(String ruleId, boolean isActive) {

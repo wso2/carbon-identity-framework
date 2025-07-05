@@ -380,8 +380,10 @@ public class ActionExecutorServiceImplTest {
                         .getActionExecutionResponseProcessor(any()))
                 .thenReturn(actionExecutionResponseProcessor);
 
-        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new ArrayList<Header>());
-        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new ArrayList<Param>());
+        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any(), any()))
+                .thenReturn(new ArrayList<Header>());
+        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any(), any()))
+                .thenReturn(new ArrayList<Param>());
 
         ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
 
@@ -448,8 +450,10 @@ public class ActionExecutorServiceImplTest {
                         .getActionExecutionResponseProcessor(any()))
                 .thenReturn(actionExecutionResponseProcessor);
 
-        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new ArrayList<Header>());
-        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new ArrayList<Param>());
+        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any(), any()))
+                .thenReturn(new ArrayList<Header>());
+        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any(), any()))
+                .thenReturn(new ArrayList<Param>());
 
         ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
@@ -497,8 +501,10 @@ public class ActionExecutorServiceImplTest {
                         .getActionExecutionResponseProcessor(any()))
                 .thenReturn(actionExecutionResponseProcessor);
 
-        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new ArrayList<Header>());
-        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new ArrayList<Param>());
+        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any(), any()))
+                .thenReturn(new ArrayList<Header>());
+        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any(), any()))
+                .thenReturn(new ArrayList<Param>());
 
         ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
