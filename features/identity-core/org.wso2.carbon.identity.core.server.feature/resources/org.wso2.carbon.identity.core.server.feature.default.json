@@ -1157,6 +1157,16 @@
       "id": "SW1wZXJzb25hdGlvbkVtYWlsTm90aWZpY2F0aW9u",
       "displayName": "Impersonation Email Notification",
       "description": "This email is sent to the impersonated user when the impersonation session is started"
+    },
+    {
+      "description": "This email is sent to request a credential from the user if they haven't completed the registration flow",
+      "displayName": "Request New User Credentials",
+      "id": "T3JjaGVzdHJhdGVkQXNrUGFzc3dvcmQ"
+    },
+    {
+      "description": "This email is resent to request a credential from the user if they haven't completed the registration flow.",
+      "displayName": "Resend New User Credentials Email",
+      "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     }
   ],
   "console.extensions.smsTemplates": [
