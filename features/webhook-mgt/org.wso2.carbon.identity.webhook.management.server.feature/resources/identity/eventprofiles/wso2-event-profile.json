@@ -25,6 +25,11 @@
       "uri": "https://schemas.identity.wso2.org/events/user",
       "events": [
         {
+          "eventName": "User created",
+          "eventDescription": "Notify if user is created",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userCreated"
+        },
+        {
           "eventName": "User profile updated",
           "eventDescription": "Notify if user profile is updated",
           "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userProfileUpdated"
@@ -70,11 +75,6 @@
           "eventName": "Registration failed",
           "eventDescription": "Notify if user registration failed",
           "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationFailed"
-        },
-        {
-          "eventName": "Registration invite",
-          "eventDescription": "Notify when a user is invited to register",
-          "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationInvite"
         }
       ]
     },
