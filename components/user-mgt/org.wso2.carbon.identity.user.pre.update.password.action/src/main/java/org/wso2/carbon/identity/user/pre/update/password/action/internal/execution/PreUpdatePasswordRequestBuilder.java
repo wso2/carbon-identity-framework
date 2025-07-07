@@ -325,8 +325,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
                 PreUpdatePasswordActionServiceComponentHolder.getInstance().getClaimManagementService();
 
         try {
-            Optional<LocalClaim>
-                    localClaim = claimMetadataManagementService.getLocalClaim(claimUri,
+            Optional<LocalClaim> localClaim = claimMetadataManagementService.getLocalClaim(claimUri,
                     IdentityContext.getThreadLocalIdentityContext().getTenantDomain());
 
             if (!localClaim.isPresent()) {
