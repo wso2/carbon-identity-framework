@@ -64,8 +64,7 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.USER_REGISTRATION,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
-        FLOW_DEFINITIONS.put(Name.SELF_REGISTRATION_WITH_VERIFICATION,
-                EnumSet.of(InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.SELF_REGISTRATION_WITH_VERIFICATION, EnumSet.of(InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.JIT_PROVISIONING, EnumSet.of(InitiatingPersona.USER));
     }
 
