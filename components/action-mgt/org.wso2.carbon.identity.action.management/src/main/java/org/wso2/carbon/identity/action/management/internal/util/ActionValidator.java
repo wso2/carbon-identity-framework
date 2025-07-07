@@ -139,11 +139,11 @@ public class ActionValidator {
             return;
         }
 
-        validateAllowedHeaders(allowedHeaders);
         for (String header : allowedHeaders) {
             validateForBlank(ActionMgtConstants.ALLOWED_HEADERS_FIELD, header);
             validateHeader(header, ActionMgtConstants.ALLOWED_HEADERS_FIELD);
         }
+        validateAllowedHeaders(allowedHeaders);
     }
 
     /**
@@ -159,11 +159,11 @@ public class ActionValidator {
             return;
         }
 
-        validateAllowedParameters(allowedParameters);
         for (String param : allowedParameters) {
             validateForBlank(ActionMgtConstants.ALLOWED_PARAMETERS_FIELD, param);
             validateParameter(param);
         }
+        validateAllowedParameters(allowedParameters);
     }
 
     /**
