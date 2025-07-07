@@ -1335,6 +1335,19 @@
                    description="Manage edits of users in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Agent Management Feature" identifier="console:agents"
+                     requiresAuthorization="true"
+                     description="Resource representation of the Agent Management Feature"
+                     type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="User Feature" name="console:agents"
+                    description="Manage agents from the Console"/>
+            <Scope displayName="User View Feature" name="console:agents_view"
+                    description="Manage views of agents from the Console"/>
+            <Scope displayName="User Edit Feature" name="console:agents_edit"
+                    description="Manage edits of agents from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"
                  requiresAuthorization="true"
                  description="Resource representation of the Server Management Feature"
