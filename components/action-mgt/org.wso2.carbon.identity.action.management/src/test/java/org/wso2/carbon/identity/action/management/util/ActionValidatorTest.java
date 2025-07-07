@@ -45,8 +45,8 @@ import static org.mockito.Mockito.mockStatic;
 public class ActionValidatorTest {
 
     private static final String ERROR_INVALID_REQUEST = "Invalid request.";
-    private static final String ERROR_NOT_ALLOWED_HEADER = "Provided allowedHeaders are not permitted.";
-    private static final String ERROR_NOT_ALLOWED_PARAMETER = "Provided allowedParameters are not permitted.";
+    private static final String ERROR_NOT_ALLOWED_HEADER = "Provided Headers are not allowed.";
+    private static final String ERROR_NOT_ALLOWED_PARAMETER = "Provided Parameters are not allowed.";
     private ActionValidator actionValidator;
     private ActionManagementConfig actionManagementConfigMock;
     private IdentityConfigParser identityConfigParserMock;
