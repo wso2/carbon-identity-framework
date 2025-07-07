@@ -1217,4 +1217,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         return requestEntities;
     }
+
+    @Override
+    public org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException {
+
+        return workflowRequestDAO.retrieveWorkflow(requestId);
+    }
 }
