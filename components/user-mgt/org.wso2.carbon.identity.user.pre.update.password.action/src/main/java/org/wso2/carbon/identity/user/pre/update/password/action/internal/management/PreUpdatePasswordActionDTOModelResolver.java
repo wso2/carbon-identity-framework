@@ -419,7 +419,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
                 }
             }
             if (LOG.isDebugEnabled() && !duplicatedAttributes.isEmpty()) {
-                LOG.debug("Ignored duplicated attributes in pre profile action configuration : " +
+                LOG.debug("Ignored duplicated attributes in pre update password action configuration : " +
                         String.join(", ", duplicatedAttributes));
             }
             return Collections.unmodifiableList(new ArrayList<>(uniqueAttributes));

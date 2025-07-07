@@ -36,10 +36,12 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorServi
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionExecutor;
+import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TENANT_DOMAIN;
@@ -54,6 +56,7 @@ public class PreUpdatePasswordActionExecutorTest {
     @Mock
     private ActionExecutorService mockActionExecutorService;
     private PreUpdatePasswordActionExecutor executor;
+    private UniqueIDUserStoreManager userStoreManager;
 
     @BeforeClass
     public void setUp() {
@@ -61,6 +64,7 @@ public class PreUpdatePasswordActionExecutorTest {
         MockitoAnnotations.initMocks(this);
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setActionExecutorService(mockActionExecutorService);
         executor = new PreUpdatePasswordActionExecutor();
+        userStoreManager = mock(UniqueIDUserStoreManager.class);
     }
 
     @Test
@@ -75,7 +79,8 @@ public class PreUpdatePasswordActionExecutorTest {
         ActionExecutionStatus<Success> expectedStatus = new SuccessStatus.Builder().build();
         doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(FlowContext.class), anyString());
 
-        ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
+        ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, userStoreManager,
+                TENANT_DOMAIN);
         assertTrue(resultStatus instanceof SuccessStatus);
         assertEquals(resultStatus.getStatus(), expectedStatus.getStatus());
     }
@@ -87,7 +92,8 @@ public class PreUpdatePasswordActionExecutorTest {
                 "Compromised Password"));
         doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(FlowContext.class), anyString());
 
-        ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
+        ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, userStoreManager,
+                TENANT_DOMAIN);
         assertTrue(resultStatus instanceof FailedStatus);
         assertEquals(resultStatus.getStatus(), expectedStatus.getStatus());
         assertEquals(((FailedStatus) resultStatus).getResponse().getFailureReason(),
@@ -103,7 +109,8 @@ public class PreUpdatePasswordActionExecutorTest {
                 "Error while validating password"));
         doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(FlowContext.class), anyString());
 
-        ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
+        ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, userStoreManager,
+                TENANT_DOMAIN);
         assertTrue(resultStatus instanceof ErrorStatus);
         assertEquals(resultStatus.getStatus(), expectedStatus.getStatus());
         assertEquals(((ErrorStatus) resultStatus).getResponse().getErrorMessage(),
