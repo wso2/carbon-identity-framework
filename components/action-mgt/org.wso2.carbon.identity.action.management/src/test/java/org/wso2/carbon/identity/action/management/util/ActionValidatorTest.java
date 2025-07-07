@@ -25,6 +25,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.action.management.internal.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -183,21 +184,21 @@ public class ActionValidatorTest {
     public Object[][] invalidHeaderDataProvider() {
 
         return new String[][]{
-                {"-test-header"},
-                {".test-header"},
-                {"test@header"},
-                {"test_header"}
+                {"-test-header", ActionMgtConstants.ALLOWED_HEADERS_FIELD},
+                {".test-header", ActionMgtConstants.API_KEY_HEADER_FIELD},
+                {"test@header", ActionMgtConstants.API_KEY_HEADER_FIELD},
+                {"test_header", ActionMgtConstants.ALLOWED_HEADERS_FIELD}
         };
     }
 
     @Test(dataProvider = "invalidHeaderDataProvider")
-    public void testIsInvalidHeader(String header) {
+    public void testIsInvalidHeader(String header, String headerFiledName) {
 
         try {
-            actionValidator.validateHeader(header);
+            actionValidator.validateHeader(header, headerFiledName);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
-            Assert.assertEquals(e.getDescription(), "Header name is invalid.");
+            Assert.assertEquals(e.getDescription(), headerFiledName + " is invalid.");
         }
     }
 
@@ -215,7 +216,7 @@ public class ActionValidatorTest {
     @Test(dataProvider = "validHeaderDataProvider")
     public void testIsValidHeader(String header) throws ActionMgtClientException {
 
-        actionValidator.validateHeader(header);
+        actionValidator.validateHeader(header, null);
     }
 
     @DataProvider
@@ -235,7 +236,7 @@ public class ActionValidatorTest {
         return new Object[][]{
                 { allowedHeadersTest1,  null},
                 { allowedHeadersTest2, "Allowed headers is empty." },
-                { allowedHeadersTest3, "Header name is invalid." }
+                { allowedHeadersTest3, ActionMgtConstants.ALLOWED_HEADERS_FIELD + " is invalid." }
         };
     }
 

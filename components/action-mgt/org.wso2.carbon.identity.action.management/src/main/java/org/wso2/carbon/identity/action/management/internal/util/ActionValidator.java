@@ -116,7 +116,7 @@ public class ActionValidator {
             case API_KEY:
                 String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
                 validateForBlank(ActionMgtConstants.API_KEY_HEADER_FIELD, apiKeyHeader);
-                validateHeader(apiKeyHeader);
+                validateHeader(apiKeyHeader, ActionMgtConstants.API_KEY_HEADER_FIELD);
                 validateForBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
                         authentication.getProperty(Authentication.Property.VALUE).getValue());
                 break;
@@ -142,7 +142,7 @@ public class ActionValidator {
         validateAllowedHeaders(allowedHeaders);
         for (String header : allowedHeaders) {
             validateForBlank(ActionMgtConstants.ALLOWED_HEADERS_FIELD, header);
-            validateHeader(header);
+            validateHeader(header, ActionMgtConstants.ALLOWED_HEADERS_FIELD);
         }
     }
 
@@ -249,12 +249,12 @@ public class ActionValidator {
      * @param header Header name.
      * @throws ActionMgtClientException if the header is invalid.
      */
-    public void validateHeader(String header) throws ActionMgtClientException {
+    public void validateHeader(String header, String headerFieldName) throws ActionMgtClientException {
 
         boolean isValidHeader = headerRegexPattern.matcher(header).matches();
         if (!isValidHeader) {
             throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.HEADER_NAME_FIELD, header);
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, headerFieldName, header);
         }
     }
 

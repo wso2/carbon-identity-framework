@@ -56,17 +56,30 @@ public class RequestFilter {
         Set<String> serverExcludedHeaders = ActionExecutorConfig.getInstance()
                 .getExcludedHeadersInActionRequestForActionType(actionType);
 
-        Set<String> normalizedServerExcludedHeaders = serverExcludedHeaders.stream()
-                .map(h -> h.toLowerCase(Locale.ROOT))
-                .collect(Collectors.toSet());
-        Set<String> allAllowedHeadersSet = (allowedHeadersInAction.isEmpty() ? serverAllowedHeaders.stream() :
-                allowedHeadersInAction.stream())
-                .map(header -> header.toLowerCase(Locale.ROOT))
-                .filter(header -> !normalizedServerExcludedHeaders.contains(header))
-                .collect(Collectors.toSet());
+        boolean hasServerAllowedHeaders = !serverAllowedHeaders.isEmpty();
+        boolean hasActionAllowedHeaders = !allowedHeadersInAction.isEmpty();
 
-        return requestHeaders.stream()
-                .filter(h -> allAllowedHeadersSet.contains(h.getName().toLowerCase(Locale.ROOT)))
+        // Filter out allowed headers at action level and server level.
+        Set<String> allowedHeaders = new HashSet<>();
+        if (hasActionAllowedHeaders) {
+            allowedHeaders.addAll(allowedHeadersInAction);
+        } else if (hasServerAllowedHeaders) {
+            allowedHeaders.addAll(serverAllowedHeaders);
+        }
+        // Filter out excluded headers configured at server level.
+        allowedHeaders.removeAll(serverExcludedHeaders);
+
+        // Normalize final headers to lower case
+        // Header Fields should be case-insensitive - RFC 7230
+        Set<String> normalizedAllowedHeaders = allowedHeaders.stream()
+                .map(header -> header.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+        List<Header> normalizeRequestHeaders = requestHeaders.stream()
+                .map(header -> new Header(header.getName().toLowerCase(Locale.ROOT), header.getValue()))
+                .collect(Collectors.toList());
+
+        return normalizeRequestHeaders.stream()
+                .filter(header -> normalizedAllowedHeaders.contains(header.getName()))
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +115,7 @@ public class RequestFilter {
         allAllowedParamsSet.removeAll(serverExcludedParams);
 
         return requestParameters.stream()
-                .filter(header -> allAllowedParamsSet.contains(header.getName()))
+                .filter(param -> allAllowedParamsSet.contains(param.getName()))
                 .collect(Collectors.toList());
     }
 }

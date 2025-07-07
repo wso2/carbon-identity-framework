@@ -60,7 +60,7 @@ public class RequestFilterTest {
     public void testGetFilteredHeadersWhenExcludedHeadersAreConfigured() {
 
         Set<String> excludedHeaders = new HashSet<>();
-        excludedHeaders.add("x-Header-2");
+        excludedHeaders.add("x-header-2");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
         Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
@@ -69,12 +69,12 @@ public class RequestFilterTest {
         List<Header> requestHeaders = new ArrayList<>();
         requestHeaders.add(new Header("Content-Type", new String[]{"application/json"}));
         requestHeaders.add(new Header("X-Header-1", new String[]{"X-header-1-value"}));
-        requestHeaders.add(new Header("X-Header-2", new String[]{"X-header-1-value"}));
+        requestHeaders.add(new Header("x-header-2", new String[]{"X-header-1-value"}));
         requestHeaders.add(new Header("X-Header-3", new String[]{"X-header-3-value"}));
 
         List<String> allowedHeadersInAction = new ArrayList<>();
         allowedHeadersInAction.add("X-Header-1");
-        allowedHeadersInAction.add("X-Header-2");
+        allowedHeadersInAction.add("x-header-2");
         allowedHeadersInAction.add("X-Header-3");
 
         List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders, allowedHeadersInAction,
@@ -93,6 +93,8 @@ public class RequestFilterTest {
     public void testGetFilteredParamsWhenExcludedParamsAreConfigured() {
 
         Set<String> excludedParams = new HashSet<>();
+        excludedParams.add("x-param-1");
+        excludedParams.add("x-param-2");
         excludedParams.add("x-param-3");
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
@@ -111,7 +113,7 @@ public class RequestFilterTest {
 
         List<Param> filteredParams = RequestFilter.getFilteredParams(requestParams, allowedParamsInAction,
                 ActionType.PRE_ISSUE_ACCESS_TOKEN);
-        assertEquals(filteredParams.size(), 2);
+        assertEquals(filteredParams.size(), 1);
         filteredParams.forEach(filteredParam -> {
             if (filteredParam.getName().equals("x-param-1")) {
                 assertEquals(filteredParam.getValue(), new String[]{"X-param-1-value"});
