@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.user.action.api.constant.UserActionError;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionClientException;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionServerException;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
+import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
 import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -79,15 +80,16 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
 
         try {
-            UserActionContext userActionContext = new UserActionContext.Builder()
-                    .userId(userID)
-                    .password(getSecret(credential))
-                    .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
-                    .build();
+            UserActionContext userActionContext = new UserActionContext(
+                    new UserActionRequestDTO.Builder()
+                            .userId(userID)
+                            .password(getSecret(credential))
+                            .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
+                            .build());
 
             ActionExecutionStatus<?> executionStatus =
                     UserActionExecutorFactory.getUserActionExecutor(ActionType.PRE_UPDATE_PASSWORD)
-                            .execute(userActionContext,
+                            .execute(userActionContext, userStoreManager,
                                     IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
 
             if (executionStatus.getStatus() == ActionExecutionStatus.Status.SUCCESS) {

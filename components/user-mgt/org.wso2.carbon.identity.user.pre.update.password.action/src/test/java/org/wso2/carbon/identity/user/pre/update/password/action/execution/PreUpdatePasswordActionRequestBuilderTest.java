@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
+import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
@@ -42,7 +43,10 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.executi
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
+import org.wso2.carbon.user.core.UserStoreManager;
 
+import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -67,17 +71,19 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     private PreUpdatePasswordAction preUpdatePasswordAction;
     private PreUpdatePasswordAction preUpdatePasswordActionWithoutCert;
     private UserActionContext userActionContext;
+    private UserStoreManager userStoreManager;
     private final FlowContext flowContext = FlowContext.create();
     private PreUpdatePasswordRequestBuilder preUpdatePasswordActionRequestBuilder;
 
     @BeforeClass
     public void init() {
 
-        userActionContext = new UserActionContext.Builder()
+        userActionContext = new UserActionContext(new UserActionRequestDTO.Builder()
                 .userId(TEST_ID)
                 .password(TEST_PASSWORD.toCharArray())
                 .userStoreDomain(TEST_USER_STORE_DOMAIN_NAME)
-                .build();
+                .build());
+        userStoreManager = mock(UniqueIDUserStoreManager.class);
 
         preUpdatePasswordAction = new PreUpdatePasswordAction.ResponseBuilder()
                 .id(TEST_ID)
@@ -116,6 +122,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
 
         preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordRequestBuilder();
         flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
+        flowContext.add(PreUpdatePasswordActionConstants.USER_STORE_MANAGER, userStoreManager);
     }
 
     @AfterMethod

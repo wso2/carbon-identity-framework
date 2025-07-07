@@ -33,6 +33,7 @@ public class PreUpdatePasswordActionConstants {
 
     // Event Context constants for pre update password action
     public static final String USER_ACTION_CONTEXT = "userActionContext";
+    public static final String USER_STORE_MANAGER = "userStoreManager";
 
     private PreUpdatePasswordActionConstants() {
 

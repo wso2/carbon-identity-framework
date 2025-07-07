@@ -116,7 +116,7 @@ public class ActionUserOperationEventListenerTest {
 
         ActionExecutionStatus<Success> successStatus =
                 new SuccessStatus.Builder().setResponseContext(Collections.emptyMap()).build();
-        doReturn(successStatus).when(mockExecutor).execute(any(), any());
+        doReturn(successStatus).when(mockExecutor).execute(any(), any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
@@ -130,7 +130,7 @@ public class ActionUserOperationEventListenerTest {
 
         Failure failureResponse = new Failure("FailureReason", "FailureDescription");
         ActionExecutionStatus<Failure> failedStatus = new FailedStatus(failureResponse);
-        doReturn(failedStatus).when(mockExecutor).execute(any(), any());
+        doReturn(failedStatus).when(mockExecutor).execute(any(), any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
@@ -149,7 +149,7 @@ public class ActionUserOperationEventListenerTest {
 
         Failure failureResponse = new Failure("FailureReason", null);
         ActionExecutionStatus<Failure> failedStatus = new FailedStatus(failureResponse);
-        doReturn(failedStatus).when(mockExecutor).execute(any(), any());
+        doReturn(failedStatus).when(mockExecutor).execute(any(), any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
@@ -168,7 +168,7 @@ public class ActionUserOperationEventListenerTest {
 
         Error errorResponse = new Error("ErrorMessage", "ErrorDescription");
         ActionExecutionStatus<Error> errorStatus = new ErrorStatus(errorResponse);
-        doReturn(errorStatus).when(mockExecutor).execute(any(), any());
+        doReturn(errorStatus).when(mockExecutor).execute(any(), any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
@@ -186,7 +186,7 @@ public class ActionUserOperationEventListenerTest {
 
         Error errorResponse = new Error("ErrorMessage", "ErrorDescription");
         ActionExecutionStatus<Error> errorStatus = new ErrorStatus(errorResponse);
-        doReturn(errorStatus).when(mockExecutor).execute(any(), any());
+        doReturn(errorStatus).when(mockExecutor).execute(any(), any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
@@ -205,7 +205,7 @@ public class ActionUserOperationEventListenerTest {
 
         ActionExecutionStatus<?> unknownStatus = mock(ActionExecutionStatus.class);
         doReturn(null).when(unknownStatus).getStatus();
-        doReturn(unknownStatus).when(mockExecutor).execute(any(), any());
+        doReturn(unknownStatus).when(mockExecutor).execute(any(), any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
@@ -216,7 +216,7 @@ public class ActionUserOperationEventListenerTest {
     @Test
     public void testPreUpdatePasswordActionExecutionWithActionExecutionException() throws ActionExecutionException {
 
-        doThrow(new ActionExecutionException("Execution error")).when(mockExecutor).execute(any(), any());
+        doThrow(new ActionExecutionException("Execution error")).when(mockExecutor).execute(any(), any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 

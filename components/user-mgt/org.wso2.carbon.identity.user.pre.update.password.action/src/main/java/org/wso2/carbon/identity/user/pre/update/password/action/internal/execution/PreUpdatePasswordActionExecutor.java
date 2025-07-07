@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
+import org.wso2.carbon.user.core.UserStoreManager;
 
 /**
  * User Pre Update Password Action Executor.
@@ -39,11 +40,12 @@ public class PreUpdatePasswordActionExecutor implements UserActionExecutor {
     }
 
     @Override
-    public ActionExecutionStatus<?> execute(UserActionContext userActionContext, String tenantDomain)
-            throws ActionExecutionException {
+    public ActionExecutionStatus<?> execute(UserActionContext userActionContext, UserStoreManager userStoreManager,
+                                            String tenantDomain) throws ActionExecutionException {
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
+        flowContext.add(PreUpdatePasswordActionConstants.USER_STORE_MANAGER, userStoreManager);
 
         return PreUpdatePasswordActionServiceComponentHolder.getInstance().getActionExecutorService()
                 .execute(getSupportedActionType(), flowContext, tenantDomain);

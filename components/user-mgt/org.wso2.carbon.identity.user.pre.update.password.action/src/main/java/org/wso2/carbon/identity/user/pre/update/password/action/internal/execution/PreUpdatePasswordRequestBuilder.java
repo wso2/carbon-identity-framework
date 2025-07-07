@@ -28,20 +28,30 @@ import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
+import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.UnsupportedSecretTypeException;
 
@@ -49,11 +59,20 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * This class is responsible for building the action execution request for the pre update password action.
  */
 public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBuilder {
+
+    private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
+    private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -68,10 +87,11 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
 
         PreUpdatePasswordAction preUpdatePasswordAction = resolveAction(actionExecutionContext);
         UserActionContext userActionContext = resolveUserActionContext(flowContext);
+        UniqueIDUserStoreManager userStoreManager = resolveUserStoreManager(flowContext);
 
         ActionExecutionRequest.Builder actionRequestBuilder = new ActionExecutionRequest.Builder();
         actionRequestBuilder.actionType(getSupportedActionType());
-        actionRequestBuilder.event(getEvent(userActionContext, preUpdatePasswordAction));
+        actionRequestBuilder.event(getEvent(userActionContext, userStoreManager, preUpdatePasswordAction));
 
         return actionRequestBuilder.build();
     }
@@ -86,6 +106,18 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         return (UserActionContext) userContext;
     }
 
+    private UniqueIDUserStoreManager resolveUserStoreManager(FlowContext flowContext)
+            throws ActionExecutionRequestBuilderException {
+
+        Object userStoreManager = flowContext.getContextData().get(PreUpdatePasswordActionConstants.USER_STORE_MANAGER);
+        if (!(userStoreManager instanceof UniqueIDUserStoreManager)) {
+            throw new ActionExecutionRequestBuilderException(
+                    "User store manager is not an instance of UniqueIDUserStoreManager for tenant: " +
+                            IdentityContext.getThreadLocalIdentityContext().getTenantDomain());
+        }
+        return (UniqueIDUserStoreManager) userStoreManager;
+    }
+
     private PreUpdatePasswordAction resolveAction(ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
@@ -97,15 +129,16 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         return (PreUpdatePasswordAction) action;
     }
 
-    private Event getEvent(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
+    private Event getEvent(UserActionContext userActionContext, UniqueIDUserStoreManager userStoreManager,
+                           PreUpdatePasswordAction preUpdatePasswordAction)
             throws ActionExecutionRequestBuilderException {
 
         return new PreUpdatePasswordEvent.Builder()
                 .initiatorType(getInitiatorType())
                 .action(getAction())
                 .tenant(getTenant())
-                .user(getUser(userActionContext, preUpdatePasswordAction))
-                .userStore(new UserStore(userActionContext.getUserStoreDomain()))
+                .user(getUser(userActionContext, userStoreManager, preUpdatePasswordAction))
+                .userStore(new UserStore(userActionContext.getUserActionRequestDTO().getUserStoreDomain()))
                 .build();
     }
 
@@ -157,12 +190,14 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
                 IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 
-    private User getUser(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
+    private User getUser(UserActionContext userActionContext, UniqueIDUserStoreManager userStoreManager,
+                         PreUpdatePasswordAction preUpdatePasswordAction)
             throws ActionExecutionRequestBuilderException {
 
         PasswordUpdatingUser.Builder userBuilder = new PasswordUpdatingUser.Builder()
-                .id(userActionContext.getUserId());
+                .id(userActionContext.getUserActionRequestDTO().getUserId());
         populateCredential(userBuilder, userActionContext, preUpdatePasswordAction);
+        populateClaims(userBuilder, userActionContext, userStoreManager, preUpdatePasswordAction);
         return userBuilder.build();
     }
 
@@ -194,7 +229,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         if (PasswordSharing.Format.SHA256_HASHED.equals(passwordSharingFormat)) {
             Secret credentialObj;
             try {
-                credentialObj = Secret.getSecret(userActionContext.getPassword());
+                credentialObj = Secret.getSecret(userActionContext.getUserActionRequestDTO().getPassword());
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 byte[] byteValue = digest.digest(credentialObj.getBytes());
                 String passwordHash = Base64.encode(byteValue);
@@ -213,7 +248,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             return new Credential.Builder()
                     .type(Credential.Type.PASSWORD)
                     .format(Credential.Format.PLAIN_TEXT)
-                    .value(userActionContext.getPassword())
+                    .value(userActionContext.getUserActionRequestDTO().getPassword())
                     .build();
         }
 
@@ -223,5 +258,85 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
     private boolean isEncryptionRequired(Certificate certificate) {
 
         return certificate != null && StringUtils.isNotEmpty(certificate.getCertificateContent());
+    }
+
+    private void populateClaims(PasswordUpdatingUser.Builder userBuilder, UserActionContext userActionContext,
+                                UniqueIDUserStoreManager userStoreManager, PreUpdatePasswordAction action)
+            throws ActionExecutionRequestBuilderException {
+
+        List<String> userClaimsToSetInEvent = action.getAttributes();
+        if (userClaimsToSetInEvent == null || userClaimsToSetInEvent.isEmpty()) {
+            return;
+        }
+
+        try {
+            Map<String, String> claimValues = userStoreManager.getUserClaimValuesWithID(
+                    userActionContext.getUserActionRequestDTO().getUserId(),
+                    userClaimsToSetInEvent.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
+
+            String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+            setClaimsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
+            setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
+        } catch (UserStoreException e) {
+            throw new ActionExecutionRequestBuilderException("Failed to retrieve user claims from user store.", e);
+        }
+    }
+
+    private void setClaimsInUserBuilder(PasswordUpdatingUser.Builder userBuilder, Map<String, String> claimValues,
+                                        String multiAttributeSeparator) throws ActionExecutionRequestBuilderException {
+
+        List<UserClaim> userClaimValuesToSetInEvent = new ArrayList<>();
+        for (Map.Entry<String, String> claimEntry : claimValues.entrySet()) {
+            String claimKey = claimEntry.getKey();
+            String claimValue = claimEntry.getValue();
+
+            if (isRoleOrGroupClaim(claimKey) || StringUtils.isBlank(claimValue)) {
+                continue;
+            }
+
+            if (isMultiValuedClaim(claimKey)) {
+                userClaimValuesToSetInEvent.add(
+                        new UserClaim(claimKey, claimValue.split(Pattern.quote(multiAttributeSeparator))));
+            } else {
+                userClaimValuesToSetInEvent.add(new UserClaim(claimKey, claimValue));
+            }
+        }
+
+        userBuilder.claims(userClaimValuesToSetInEvent);
+    }
+
+    private void setGroupsInUserBuilder(PasswordUpdatingUser.Builder userBuilder, Map<String, String> claimValues,
+                                        String multiAttributeSeparator) {
+
+        if (claimValues.get(GROUP_CLAIM_URI) != null) {
+            userBuilder.groups(Arrays.asList(
+                    claimValues.get(GROUP_CLAIM_URI).split(Pattern.quote(multiAttributeSeparator))));
+        }
+    }
+
+    private boolean isRoleOrGroupClaim(String claimKey) {
+
+        return ROLE_CLAIM_URI.equals(claimKey) || GROUP_CLAIM_URI.equals(claimKey);
+    }
+
+    private boolean isMultiValuedClaim(String claimUri) throws ActionExecutionRequestBuilderException {
+
+        ClaimMetadataManagementService claimMetadataManagementService =
+                PreUpdatePasswordActionServiceComponentHolder.getInstance().getClaimManagementService();
+
+        try {
+            Optional<LocalClaim>
+                    localClaim = claimMetadataManagementService.getLocalClaim(claimUri,
+                    IdentityContext.getThreadLocalIdentityContext().getTenantDomain());
+
+            if (!localClaim.isPresent()) {
+                throw new ActionExecutionRequestBuilderException("Claim not found for claim URI: " + claimUri);
+            }
+
+            return Boolean.parseBoolean(localClaim.get().getClaimProperty(ClaimConstants.MULTI_VALUED_PROPERTY));
+        } catch (ClaimMetadataException e) {
+            throw new ActionExecutionRequestBuilderException("Error while retrieving claim metadata for claim URI: " +
+                    claimUri, e);
+        }
     }
 }
