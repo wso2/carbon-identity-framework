@@ -16,10 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.service;
+package org.wso2.carbon.identity.subscription.management.api.service;
 
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookSubscriptionRequest;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookUnsubscriptionRequest;
 
 import java.util.List;
 
@@ -35,23 +36,23 @@ public interface EventSubscriber {
      *
      * @return Name of the subscriber.
      */
-    String getName();
+    String getAssociatedAdaptor();
 
     /**
      * Subscribe a webhook to the external system.
      *
-     * @param webhook  Webhook to be subscribed.
-     * @param tenantId Tenant ID for the subscription.
+     * @param subscriptionRequest Request containing details of the subscription.
+     * @param tenantDomain        Tenant domain for which the subscription is being made.
      * @return List of subscriptions created for the specified channels.
      */
-    List<Subscription> subscribe(Webhook webhook, int tenantId);
+    List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String tenantDomain);
 
     /**
      * Unsubscribe a webhook from the external system.
      *
-     * @param webhook  Webhook to be unsubscribed.
-     * @param tenantId Tenant ID for the unsubscription.
+     * @param unsubscriptionRequest Request containing details of unsubscription.
+     * @param tenantDomain          Tenant domain for which the unsubscription is being made.
      * @return List of subscriptions that were successfully unsubscribed.
      */
-    List<Subscription> unsubscribe(Webhook webhook, int tenantId);
+    List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String tenantDomain);
 }

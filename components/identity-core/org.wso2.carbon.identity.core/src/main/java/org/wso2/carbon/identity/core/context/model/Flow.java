@@ -64,6 +64,8 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.USER_REGISTRATION,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.SELF_REGISTRATION_WITH_VERIFICATION,
+                EnumSet.of(InitiatingPersona.USER));
     }
 
     /**
@@ -91,7 +93,8 @@ public class Flow {
         SESSION_REVOKE,
         @Deprecated // Use @USER_REGISTRATION instead
         REGISTER_USER,
-        USER_REGISTRATION
+        USER_REGISTRATION,
+        SELF_REGISTRATION_WITH_VERIFICATION
     }
 
     /**

@@ -130,7 +130,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
-                    publishAuthenticationStepAttemptFailure(request, context, e.getUser(), e.getErrorCode());
+                    publishAuthenticationStepAttemptFailure(request, context, e.getUser(), e.getErrorCode(),
+                            e.getMessage());
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect to the login page to retry authentication.
                     boolean sendToMultiOptionPage =
@@ -362,14 +363,16 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
      * @param context   Authentication Context
      * @param user      initiated user
      * @param errorCode of the exception
+     * @param errorMessage   of the exception.
      */
     private void publishAuthenticationStepAttemptFailure(HttpServletRequest request, AuthenticationContext context,
-                                                         User user, String errorCode) {
+                                                         User user, String errorCode, String errorMessage) {
 
         if (user == null) {
             user = context.getLastAuthenticatedUser();
         }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_CODE, errorCode);
+        context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_MESSAGE, errorMessage);
         publishAuthenticationStepAttempt(request, context, user, false);
     }
 

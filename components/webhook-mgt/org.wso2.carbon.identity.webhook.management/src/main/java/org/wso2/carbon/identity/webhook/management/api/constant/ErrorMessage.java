@@ -50,6 +50,9 @@ public enum ErrorMessage {
             "The webhook: %s is already inactive and cannot be deactivated again."),
     ERROR_CODE_WEBHOOK_RETRY_ERROR("WEBHOOKMGT-60015", "Webhook retry error",
             "An error occurred while retrying the webhook: %s."),
+    ERROR_MAXIMUM_WEBHOOKS_PER_TENANT_REACHED("WEBHOOKMGT-60016", "Maximum number of webhooks reached.",
+            "The maximum number of webhooks allowed has been reached. Max allowed: %s. Please delete an " +
+                    "existing webhook before adding a new one."),
 
     // Server errors (65xxx range) | Remaining codes are continued in API layer.
     // Continuation of server error codes can be found in the Webhook Management API layer as well.
@@ -110,7 +113,15 @@ public enum ErrorMessage {
     ERROR_UPDATE_OPERATION_NOT_SUPPORTED("65027", "Unable to perform the update operation.",
             "Update operation is not supported for %s"),
     ERROR_RETRY_OPERATION_NOT_SUPPORTED("65028", "Unable to perform the retry operation.",
-            "Retry operation is not supported for %s");
+            "Retry operation is not supported for %s"),
+    ERROR_WHILE_RETRIEVING_WEBHOOKS_COUNT("65029", "Error while retrieving webhook count.",
+            "An error occurred while retrieving the webhook count for tenant: %s."),
+    ERROR_CODE_WEBHOOK_ACTIVATION_ADAPTOR_ERROR("65030", "Webhook activation error",
+            "An error occurred while activating the webhook: %s."),
+    ERROR_CODE_WEBHOOK_DEACTIVATION_ADAPTOR_ERROR("65031", "Webhook deactivation error",
+            "An error occurred while deactivating the webhook: %s."),
+    ERROR_CODE_WEBHOOK_RETRY_ADAPTOR_ERROR("65032", "Webhook retry error",
+            "An error occurred while retrying the webhook: %s.");
 
     private final String code;
     private final String message;
@@ -143,4 +154,4 @@ public enum ErrorMessage {
 
         return code + " : " + message;
     }
-}
+    }

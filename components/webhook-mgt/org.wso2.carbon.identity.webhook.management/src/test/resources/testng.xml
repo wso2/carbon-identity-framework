@@ -22,7 +22,6 @@
     <test name="webhook-management-service-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.management.service.WebhookManagementServiceImplTest"/>
-            <class name="org.wso2.carbon.identity.webhook.management.service.EventSubscriberServiceTest"/>
         </classes>
     </test>
     <test name="webhook-management-dao-test">

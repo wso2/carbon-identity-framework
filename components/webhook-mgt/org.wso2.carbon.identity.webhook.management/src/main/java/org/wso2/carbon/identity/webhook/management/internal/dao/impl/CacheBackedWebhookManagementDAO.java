@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.webhook.management.internal.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCache;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheEntry;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheKey;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 
@@ -155,5 +155,11 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook retry.");
         webhookManagementDAO.retryWebhook(webhook, tenantId);
+    }
+
+    @Override
+    public int getWebhooksCount(int tenantId) throws WebhookMgtException {
+        // Count retrieval bypasses cache
+        return webhookManagementDAO.getWebhooksCount(tenantId);
     }
 }

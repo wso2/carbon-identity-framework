@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -74,6 +75,10 @@ public class FlowExecutionService {
                 context = FlowExecutionEngineUtils.initiateContext(tenantDomain, applicationId, flowType);
             } else {
                 context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowType, flowId);
+            }
+
+            if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+                FrameworkUtils.updateIdentityContextFlow(Flow.Name.USER_REGISTRATION);
             }
 
             if (inputs != null) {

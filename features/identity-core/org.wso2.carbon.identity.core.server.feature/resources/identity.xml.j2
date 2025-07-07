@@ -1772,6 +1772,12 @@
         </AutoLogin>
     </Recovery>
 
+    <AccountLock>
+        <EmailTemplate>
+            <AdminUnlockForFailedAttempts>{{account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts}}</AdminUnlockForFailedAttempts>
+        </EmailTemplate>
+    </AccountLock>
+
     <Notification>
         <DefaultNotificationChannel>{{identity_mgt.notification.default_notification_channel}}</DefaultNotificationChannel>
         <ResolveNotificationChannels>
@@ -1899,6 +1905,7 @@
     <LoginIdentifiers>
         <Enable>{{identity_mgt.login_identifiers.enable}}</Enable>
         <PrimaryLoginIdentifier>{{identity_mgt.login_identifiers.primary_claim}}</PrimaryLoginIdentifier>
+        <enableIdentifierAsDisplayUsername>{{identity_mgt.login_identifiers.enable_identifier_as_display_username}}</enableIdentifierAsDisplayUsername>
     </LoginIdentifiers>
 
     <UserClaimUpdate>
@@ -2187,6 +2194,10 @@
             </Authentication>
         </Types>
     </Actions>
+
+    <Webhooks>
+        <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
+    </Webhooks>
 
     <EventListeners>
         <EventListener id="input_validation"

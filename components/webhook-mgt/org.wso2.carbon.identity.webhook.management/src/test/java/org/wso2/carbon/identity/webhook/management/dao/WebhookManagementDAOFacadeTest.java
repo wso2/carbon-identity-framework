@@ -32,17 +32,16 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
+import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOFacade;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOImpl;
-import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -50,7 +49,6 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -79,7 +77,6 @@ public class WebhookManagementDAOFacadeTest {
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private MockedStatic<WebhookManagementComponentServiceHolder> componentHolderStatic;
     private WebhookManagementDAOFacade daoFacade;
-    private EventSubscriberService eventSubscriberService;
     private TopicManagementService topicManagementService;
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
@@ -103,13 +100,11 @@ public class WebhookManagementDAOFacadeTest {
         componentHolderStatic.when(WebhookManagementComponentServiceHolder::getInstance).thenReturn(mockedHolder);
 
         // Mock dependencies
-        eventSubscriberService = mock(EventSubscriberService.class);
         topicManagementService = mock(TopicManagementService.class);
         secretManager = mock(SecretManager.class);
         secretResolveManager = mock(SecretResolveManager.class);
         secretType = mock(SecretType.class);
 
-        when(mockedHolder.getEventSubscriberService()).thenReturn(eventSubscriberService);
         when(mockedHolder.getTopicManagementService()).thenReturn(topicManagementService);
         when(mockedHolder.getSecretManager()).thenReturn(secretManager);
         when(mockedHolder.getSecretResolveManager()).thenReturn(secretResolveManager);
@@ -328,22 +323,6 @@ public class WebhookManagementDAOFacadeTest {
         Webhook webhookRetrieved = daoFacade.getWebhook(testWebhook.getId(), TENANT_ID);
 
         Assert.assertEquals(webhookRetrieved.getStatus(), WebhookStatus.PARTIALLY_INACTIVE);
-    }
-
-    @Test(priority = 20, expectedExceptions = WebhookMgtException.class)
-    public void testUpdateWebhookWithSubscriptionFailure() throws Exception {
-
-        testWebhook = createTestWebhook();
-        daoFacade.createWebhook(testWebhook, TENANT_ID);
-
-        // Mock the subscribe method to throw an exception when called with any Webhook, adaptor, and tenantId
-        doThrow(new WebhookMgtException("Subscription failed"))
-                .when(eventSubscriberService)
-                .subscribe(org.mockito.ArgumentMatchers.any(Webhook.class),
-                        org.mockito.ArgumentMatchers.anyString(),
-                        org.mockito.ArgumentMatchers.anyInt());
-
-        daoFacade.updateWebhook(testWebhook, TENANT_ID);
     }
 
     private Webhook createTestWebhook() {

@@ -24,19 +24,22 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.subscription.management.api.exception.SubscriptionManagementException;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
+import org.wso2.carbon.identity.subscription.management.api.model.SubscriptionStatus;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookSubscriptionRequest;
+import org.wso2.carbon.identity.subscription.management.api.model.WebhookUnsubscriptionRequest;
+import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.model.SubscriptionStatus;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookRunnable;
-import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretProcessor;
 
@@ -78,16 +81,36 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        EventSubscriberService subscriberService = getSubscriberService();
         try {
             ensureTopicsExistOrRegister(webhook.getEventsSubscribed(), webhook.getEventProfileVersion(), tenantDomain);
         } catch (TopicManagementException e) {
             throw WebhookManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR, e);
         }
 
+        SubscriptionManagementService subscriptionManagementService =
+                WebhookManagementComponentServiceHolder.getInstance().getSubscriptionManagementService();
+
         Webhook webhookToPersist;
         if (webhook.getStatus() == WebhookStatus.ACTIVE) {
-            List<Subscription> subscriptions = subscriberService.subscribe(webhook, WEBSUBHUB_ADAPTOR, tenantId);
+            List<Subscription> subscriptions;
+            List<String> channelUris = webhook.getEventsSubscribed()
+                    .stream()
+                    .map(Subscription::getChannelUri)
+                    .collect(Collectors.toList());
+            WebhookSubscriptionRequest subscriptionRequest = WebhookSubscriptionRequest.builder()
+                    .channelsToSubscribe(channelUris)
+                    .eventProfileVersion(webhook.getEventProfileVersion())
+                    .eventProfileName(webhook.getEventProfileName())
+                    .endpoint(webhook.getEndpoint())
+                    .secret(webhook.getSecret())
+                    .build();
+            try {
+                subscriptions =
+                        subscriptionManagementService.subscribe(subscriptionRequest, WEBSUBHUB_ADAPTOR, tenantDomain);
+            } catch (SubscriptionManagementException e) {
+                throw WebhookManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR, e, webhook.getName());
+            }
 
             boolean allError = subscriptions.stream()
                     .allMatch(s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
@@ -160,7 +183,8 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     @Override
     public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        EventSubscriberService subscriberService = getSubscriberService();
+        SubscriptionManagementService subscriptionManagementService =
+                WebhookManagementComponentServiceHolder.getInstance().getSubscriptionManagementService();
 
         List<Subscription> toSubscribe = webhook.getEventsSubscribed().stream()
                 .filter(s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_PENDING
@@ -168,9 +192,25 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                         || s.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED)
                 .collect(Collectors.toList());
 
-        List<Subscription> allResults = subscriberService.subscribe(
-                buildWebhookWith(webhook, toSubscribe, getWebhookDecryptedSecretValue(webhook.getId()),
-                        webhook.getStatus()), WEBSUBHUB_ADAPTOR, tenantId);
+        List<Subscription> allResults;
+        List<String> channelUris = toSubscribe
+                .stream()
+                .map(Subscription::getChannelUri)
+                .collect(Collectors.toList());
+        WebhookSubscriptionRequest subscriptionRequest = WebhookSubscriptionRequest.builder()
+                .channelsToSubscribe(channelUris)
+                .eventProfileVersion(webhook.getEventProfileVersion())
+                .eventProfileName(webhook.getEventProfileName())
+                .endpoint(webhook.getEndpoint())
+                .secret(getWebhookDecryptedSecretValue(webhook.getId()))
+                .build();
+        try {
+            allResults = subscriptionManagementService.subscribe(subscriptionRequest, WEBSUBHUB_ADAPTOR,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (SubscriptionManagementException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ADAPTOR_ERROR, e, webhook.getId());
+        }
 
         boolean allError = !allResults.isEmpty() && allResults.stream()
                 .allMatch(r -> r.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
@@ -189,15 +229,31 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        EventSubscriberService subscriberService = getSubscriberService();
+        SubscriptionManagementService subscriptionManagementService =
+                WebhookManagementComponentServiceHolder.getInstance().getSubscriptionManagementService();
 
         List<Subscription> toUnsubscribe = webhook.getEventsSubscribed().stream()
                 .filter(s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ACCEPTED)
                 .collect(Collectors.toList());
 
-        List<Subscription> allResults =
-                subscriberService.unsubscribe(buildWebhookWith(webhook, toUnsubscribe, webhook.getSecret(),
-                        webhook.getStatus()), WEBSUBHUB_ADAPTOR, tenantId);
+        List<Subscription> allResults;
+        List<String> channelUris = toUnsubscribe
+                .stream()
+                .map(Subscription::getChannelUri)
+                .collect(Collectors.toList());
+        WebhookUnsubscriptionRequest unsubscriptionRequest = WebhookUnsubscriptionRequest.builder()
+                .channelsToUnsubscribe(channelUris)
+                .eventProfileVersion(webhook.getEventProfileVersion())
+                .eventProfileName(webhook.getEventProfileName())
+                .endpoint(webhook.getEndpoint())
+                .build();
+        try {
+            allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest, WEBSUBHUB_ADAPTOR,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (SubscriptionManagementException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ADAPTOR_ERROR, e, webhook.getId());
+        }
 
         boolean allError = !allResults.isEmpty() && allResults.stream()
                 .allMatch(r -> r.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR);
@@ -217,7 +273,8 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         validateRetryOperationSupported(WEBSUBHUB_ADAPTOR);
-        EventSubscriberService subscriberService = getSubscriberService();
+        SubscriptionManagementService subscriptionManagementService =
+                WebhookManagementComponentServiceHolder.getInstance().getSubscriptionManagementService();
 
         if (webhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVE) {
             List<Subscription> toSubscribe = webhook.getEventsSubscribed().stream()
@@ -225,9 +282,25 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                             || s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ACCEPTED)
                     .collect(Collectors.toList());
 
-            List<Subscription> allResults = subscriberService.subscribe(
-                    buildWebhookWith(webhook, toSubscribe, getWebhookDecryptedSecretValue(webhook.getId()),
-                            webhook.getStatus()), WEBSUBHUB_ADAPTOR, tenantId);
+            List<Subscription> allResults;
+            List<String> channelUris = toSubscribe
+                    .stream()
+                    .map(Subscription::getChannelUri)
+                    .collect(Collectors.toList());
+            WebhookSubscriptionRequest subscriptionRequest = WebhookSubscriptionRequest.builder()
+                    .channelsToSubscribe(channelUris)
+                    .eventProfileVersion(webhook.getEventProfileVersion())
+                    .eventProfileName(webhook.getEventProfileName())
+                    .endpoint(webhook.getEndpoint())
+                    .secret(getWebhookDecryptedSecretValue(webhook.getId()))
+                    .build();
+            try {
+                allResults = subscriptionManagementService.subscribe(subscriptionRequest, WEBSUBHUB_ADAPTOR,
+                        IdentityTenantUtil.getTenantDomain(tenantId));
+            } catch (SubscriptionManagementException e) {
+                throw WebhookManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_ADAPTOR_ERROR, e, webhook.getId());
+            }
 
             boolean allError = !allResults.isEmpty() && allResults.stream()
                     .allMatch(r -> r.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
@@ -247,9 +320,24 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                             || s.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR)
                     .collect(Collectors.toList());
 
-            List<Subscription> allResults =
-                    subscriberService.unsubscribe(buildWebhookWith(webhook, toUnsubscribe, webhook.getSecret(),
-                            webhook.getStatus()), WEBSUBHUB_ADAPTOR, tenantId);
+            List<Subscription> allResults;
+            List<String> channelUris = toUnsubscribe
+                    .stream()
+                    .map(Subscription::getChannelUri)
+                    .collect(Collectors.toList());
+            WebhookUnsubscriptionRequest unsubscriptionRequest = WebhookUnsubscriptionRequest.builder()
+                    .channelsToUnsubscribe(channelUris)
+                    .eventProfileVersion(webhook.getEventProfileVersion())
+                    .eventProfileName(webhook.getEventProfileName())
+                    .endpoint(webhook.getEndpoint())
+                    .build();
+            try {
+                allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest, WEBSUBHUB_ADAPTOR,
+                        IdentityTenantUtil.getTenantDomain(tenantId));
+            } catch (SubscriptionManagementException e) {
+                throw WebhookManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_ADAPTOR_ERROR, e, webhook.getId());
+            }
 
             boolean allError = !allResults.isEmpty() && allResults.stream()
                     .allMatch(r -> r.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR);
@@ -265,6 +353,17 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
                                 WebhookStatus.PARTIALLY_INACTIVE),
                         tenantId);
             }
+        }
+    }
+
+    @Override
+    public int getWebhooksCount(int tenantId) throws WebhookMgtException {
+
+        try {
+            return webhookManagementDAO.getWebhooksCount(tenantId);
+        } catch (WebhookMgtException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_WEBHOOKS_COUNT, e);
         }
     }
 
@@ -305,11 +404,6 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
             throw WebhookManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DELETE_ERROR, e, webhook.getId());
         }
-    }
-
-    private EventSubscriberService getSubscriberService() {
-
-        return WebhookManagementComponentServiceHolder.getInstance().getEventSubscriberService();
     }
 
     private void ensureTopicsExistOrRegister(List<Subscription> events, String eventProfileVersion, String tenantDomain)

@@ -159,6 +159,10 @@ public class FlowExecutionEngine {
             }
             nextNode.setPreviousNodeId(currentNode.getId());
         }
+        if (Constants.NodeTypes.DECISION.equals(currentNode.getType())) {
+            // If the current node is a decision node, reset the next node ID to null.
+            currentNode.setNextNodeId(null);
+        }
         return nextNode;
     }
 

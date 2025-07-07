@@ -21,10 +21,11 @@ package org.wso2.carbon.identity.webhook.management.internal.service.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
@@ -74,6 +75,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS, webhook.getEndpoint());
         }
         doPreAddWebhookValidations(webhook);
+        validateMaxWebhooksCount(tenantDomain);
         String generatedWebhookId = UUID.randomUUID().toString();
 
         WebhookStatus status = webhook.getStatus() != null ? webhook.getStatus() : WebhookStatus.INACTIVE;
@@ -272,5 +274,16 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         WEBHOOK_VALIDATOR.validateWebhookSecret(webhook.getSecret());
         WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventProfileName(),
                 webhook.getEventsSubscribed());
+    }
+
+    private void validateMaxWebhooksCount(String tenantDomain) throws WebhookMgtException {
+
+        LOG.debug("Retrieving webhook count for tenant: " + tenantDomain);
+        int webhooksCount = daoFACADE.getWebhooksCount(IdentityTenantUtil.getTenantId(tenantDomain));
+        int maxWebhooksCount = IdentityUtil.getMaximumWebhooksPerTenant();
+        if (webhooksCount >= maxWebhooksCount) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_MAXIMUM_WEBHOOKS_PER_TENANT_REACHED, String.valueOf(maxWebhooksCount));
+        }
     }
 }

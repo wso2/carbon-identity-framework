@@ -22,14 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
-import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
-import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Webhook Management Component Service Holder.
@@ -40,11 +35,10 @@ public class WebhookManagementComponentServiceHolder {
     private static final Log LOG = LogFactory.getLog(WebhookManagementComponentServiceHolder.class);
     private static final WebhookManagementComponentServiceHolder INSTANCE =
             new WebhookManagementComponentServiceHolder();
-    private List<EventSubscriber> eventSubscribers = new ArrayList<>();
-    private EventSubscriberService eventSubscriberService;
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
     private TopicManagementService topicManagementService;
+    private SubscriptionManagementService subscriptionManagementService;
     private WebhookMetadataService webhookMetadataService;
 
     private WebhookManagementComponentServiceHolder() {
@@ -54,58 +48,6 @@ public class WebhookManagementComponentServiceHolder {
     public static WebhookManagementComponentServiceHolder getInstance() {
 
         return INSTANCE;
-    }
-
-    /**
-     * Get all registered webhook subscribers.
-     *
-     * @return List of WebhookSubscriber instances.
-     */
-    public List<EventSubscriber> getEventSubscribers() {
-
-        return Collections.unmodifiableList(eventSubscribers);
-    }
-
-    /**
-     * Add an event subscriber.
-     *
-     * @param eventSubscriber EventSubscriber instance to add.
-     */
-    public void addEventSubscriber(EventSubscriber eventSubscriber) {
-
-        LOG.debug("Adding webhook subscriber: " + eventSubscriber.getName());
-        eventSubscribers.add(eventSubscriber);
-    }
-
-    /**
-     * Remove an event subscriber.
-     *
-     * @param eventSubscriber EventSubscriber instance to remove.
-     */
-    public void removeEventSubscriber(EventSubscriber eventSubscriber) {
-
-        LOG.debug("Removing event subscriber: " + eventSubscriber.getName());
-        eventSubscribers.remove(eventSubscriber);
-    }
-
-    /**
-     * Get the EventSubscriberService.
-     *
-     * @return EventSubscriberService instance.
-     */
-    public EventSubscriberService getEventSubscriberService() {
-
-        return eventSubscriberService;
-    }
-
-    /**
-     * Set the EventSubscriberService.
-     *
-     * @param eventSubscriberService EventSubscriberService instance.
-     */
-    public void setEventSubscriberService(EventSubscriberService eventSubscriberService) {
-
-        this.eventSubscriberService = eventSubscriberService;
     }
 
     /**
@@ -166,6 +108,26 @@ public class WebhookManagementComponentServiceHolder {
     public void setTopicManagementService(TopicManagementService topicManagementService) {
 
         this.topicManagementService = topicManagementService;
+    }
+
+    /**
+     * Get the SubscriptionManagementService.
+     *
+     * @return SubscriptionManagementService instance.
+     */
+    public SubscriptionManagementService getSubscriptionManagementService() {
+
+        return subscriptionManagementService;
+    }
+
+    /**
+     * Set the SubscriptionManagementService.
+     *
+     * @param subscriptionManagementService SubscriptionManagementService instance.
+     */
+    public void setSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
+
+        this.subscriptionManagementService = subscriptionManagementService;
     }
 
     /**

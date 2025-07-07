@@ -27,9 +27,9 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
-import org.wso2.carbon.identity.webhook.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
@@ -248,5 +248,73 @@ public class WebhookManagementServiceImplTest {
         verify(webhookManagementDAO).getWebhook(WEBHOOK_ID, TENANT_ID);
         verify(webhookManagementDAO).getWebhookEvents(WEBHOOK_ID, TENANT_ID);
         assertEquals(result, events);
+    }
+
+    @Test
+    public void testRetryWebhook_PartiallyActive() throws WebhookMgtException {
+
+        Webhook webhook = mock(Webhook.class);
+        when(webhook.getStatus()).thenReturn(WebhookStatus.PARTIALLY_ACTIVE);
+        Webhook updatedWebhook = mock(Webhook.class);
+
+        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID))
+                .thenReturn(webhook)
+                .thenReturn(updatedWebhook);
+
+        Webhook result = webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
+
+        verify(webhookManagementDAO).retryWebhook(webhook, TENANT_ID);
+        verify(webhookManagementDAO, times(2)).getWebhook(WEBHOOK_ID, TENANT_ID);
+        assertEquals(result, updatedWebhook);
+    }
+
+    @Test
+    public void testRetryWebhook_PartiallyInactive() throws WebhookMgtException {
+
+        Webhook webhook = mock(Webhook.class);
+        when(webhook.getStatus()).thenReturn(WebhookStatus.PARTIALLY_INACTIVE);
+        Webhook updatedWebhook = mock(Webhook.class);
+
+        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID))
+                .thenReturn(webhook)
+                .thenReturn(updatedWebhook);
+
+        Webhook result = webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
+
+        verify(webhookManagementDAO).retryWebhook(webhook, TENANT_ID);
+        verify(webhookManagementDAO, times(2)).getWebhook(WEBHOOK_ID, TENANT_ID);
+        assertEquals(result, updatedWebhook);
+    }
+
+    @Test(expectedExceptions = WebhookMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Webhook already active")
+    public void testRetryWebhook_AlreadyActive() throws WebhookMgtException {
+
+        Webhook webhook = mock(Webhook.class);
+        when(webhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
+        when(webhook.getName()).thenReturn("activeWebhook");
+        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
+
+        webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
+    }
+
+    @Test(expectedExceptions = WebhookMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Webhook already inactive")
+    public void testRetryWebhook_AlreadyInactive() throws WebhookMgtException {
+
+        Webhook webhook = mock(Webhook.class);
+        when(webhook.getStatus()).thenReturn(WebhookStatus.INACTIVE);
+        when(webhook.getName()).thenReturn("inactiveWebhook");
+        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
+
+        webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
+    }
+
+    @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp = "Webhook not found")
+    public void testRetryWebhook_NotFound() throws WebhookMgtException {
+
+        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(null);
+
+        webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
     }
 }
