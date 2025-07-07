@@ -330,12 +330,12 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         IdentityContext.getThreadLocalIdentityContext()
                 .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
         PaginatedUserStoreManager invalidUserStore = mock(PaginatedUserStoreManager.class);
-        FlowContext flowContext = FlowContext.create();
-        flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
-        flowContext.add(PreUpdatePasswordActionConstants.USER_STORE_MANAGER, invalidUserStore);
+        FlowContext tempflowContext = FlowContext.create();
+        tempflowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
+        tempflowContext.add(PreUpdatePasswordActionConstants.USER_STORE_MANAGER, invalidUserStore);
 
         preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
-                flowContext, ActionExecutionRequestContext.create(preUpdatePasswordAction));
+                tempflowContext, ActionExecutionRequestContext.create(preUpdatePasswordAction));
     }
 
     private void assertClaims(List<UserClaim> claims) {

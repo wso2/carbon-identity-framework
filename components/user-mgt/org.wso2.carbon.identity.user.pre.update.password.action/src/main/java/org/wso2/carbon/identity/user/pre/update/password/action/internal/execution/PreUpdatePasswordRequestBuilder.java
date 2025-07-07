@@ -66,13 +66,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.GROUP_CLAIM_URI;
+import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.ROLE_CLAIM_URI;
+
 /**
  * This class is responsible for building the action execution request for the pre update password action.
  */
 public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBuilder {
-
-    private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
-    private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
 
     @Override
     public ActionType getSupportedActionType() {
