@@ -25,6 +25,11 @@ public class PreUpdatePasswordActionConstants {
 
     public static final String PASSWORD_SHARING_FORMAT = "passwordSharingFormat";
     public static final String CERTIFICATE = "certificate";
+    public static final String ATTRIBUTES = "attributes";
+
+    public static final int MAX_ALLOWED_ATTRIBUTES = 10;
+
+    public static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
 
     // Event Context constants for pre update password action
     public static final String USER_ACTION_CONTEXT = "userActionContext";
