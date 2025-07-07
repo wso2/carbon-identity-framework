@@ -523,25 +523,25 @@
 
         <!-- SCIM2 Agents API -->
         <Resource context="(.*)/scim2/Agents/.search" secured="true" http-method="POST">
-            <Scopes>internal_user_mgt_list</Scopes>
+            <Scopes>internal_agent_mgt_list</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Agents(.*)" secured="true" http-method="POST">
-            <Scopes>internal_user_mgt_create</Scopes>
+            <Scopes>internal_agent_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Agents(/?)" secured="true" http-method="GET">
-            <Scopes>internal_user_mgt_list</Scopes>
+            <Scopes>internal_agent_mgt_list</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Agents/(.+)" secured="true" http-method="GET">
-            <Scopes>internal_user_mgt_view</Scopes>
+            <Scopes>internal_agent_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Agents/(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_user_mgt_update</Scopes>
+            <Scopes>internal_agent_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Agents/(.*)" secured="true" http-method="PATCH">
-            <Scopes>internal_user_mgt_update</Scopes>
+            <Scopes>internal_agent_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Agents/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_user_mgt_delete</Scopes>
+            <Scopes>internal_agent_mgt_delete</Scopes>
         </Resource>
 
         <!-- Other SCIM APIs -->
