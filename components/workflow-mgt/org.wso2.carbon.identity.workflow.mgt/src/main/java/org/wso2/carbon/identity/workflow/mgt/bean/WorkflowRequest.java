@@ -100,4 +100,12 @@ public class WorkflowRequest {
 
         this.createdBy = createdBy;
     }
+
+    public void setOperationType(String string) {
+        this.eventType = string;
+    }
+
+    public void setTenantId(int int1) {
+        this.requestId = String.valueOf(int1);
+    }
 }

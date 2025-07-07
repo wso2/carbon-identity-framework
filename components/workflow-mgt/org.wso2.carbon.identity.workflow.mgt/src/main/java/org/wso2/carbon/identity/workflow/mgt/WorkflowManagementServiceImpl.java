@@ -1137,7 +1137,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      */
     @Override
     public WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status) throws WorkflowException {
+            dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_FOR_FILTERING);
         Timestamp beginTime;
@@ -1149,6 +1149,22 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             if (workflowListener.isEnable()) {
                 workflowListener.doPreGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status);
             }
+        }
+
+        if (user == null) {
+            user = "";
+        }
+        if (status == null) {
+            status = "";
+        }
+        if (dateCategory == null) {
+            dateCategory = "";
+        }
+        if (beginDate == null) {
+            beginDate = "01/01/1970"; // earliest possible date
+        }
+        if (endDate == null) {
+            endDate = new SimpleDateFormat(DATE_FORMAT_FOR_FILTERING).format(new Date()); // today
         }
         try {
             Date parsedBeginDate = dateFormat.parse(beginDate);
@@ -1166,18 +1182,12 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             endTime = new Timestamp(parsedEndDate.getTime());
         }
 
-        WorkflowRequest[] resultList;
-        if (StringUtils.isBlank(user)) {
-            resultList = workflowRequestDAO.getRequestsFilteredByTime(beginTime, endTime, dateCategory, tenantId,
-                    status);
-        } else {
-            resultList = workflowRequestDAO.getRequestsOfUserFilteredByTime(user, beginTime, endTime, dateCategory,
-                    tenantId, status);
-        }
+        WorkflowRequest[] resultList=workflowRequestDAO.getFilteredRequests
+                (user, null, beginTime, endTime, dateCategory, tenantId, status, limit, offset);
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status,
-                        resultList);
+                        limit, offset, resultList);
             }
         }
 

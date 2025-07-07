@@ -374,7 +374,7 @@ public interface WorkflowManagementService {
     }
 
     WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status) throws WorkflowException;
+            dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException;
 
     List<String> listEntityNames(String wfOperationType, String wfStatus, String entityType, int tenantID, String
             idFilter) throws WorkflowException;

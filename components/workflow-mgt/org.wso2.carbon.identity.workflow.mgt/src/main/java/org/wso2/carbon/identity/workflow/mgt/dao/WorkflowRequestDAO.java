@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.workflow.mgt.dao;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.workflow.mgt.dao.SQLBuilder.WorkflowRequestSQLBuilder;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
@@ -39,6 +40,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.List;
 
 public class WorkflowRequestDAO {
 
@@ -251,6 +253,7 @@ public class WorkflowRequestDAO {
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_REQUESTS_OF_USER;
         ResultSet resultSet = null;
+
         try {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, userName);
@@ -266,6 +269,7 @@ public class WorkflowRequestDAO {
                 requestArray[i] = requestDTOs.get(i);
             }
             return requestArray;
+            
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
@@ -276,298 +280,96 @@ public class WorkflowRequestDAO {
     }
 
     /**
-     * Get requests of a user created/updated in given time period
+     * Get the type of the database.
      *
-     * @param userName     User to get requests of, empty String to retrieve requests of all users
-     * @param beginTime    lower limit of date range to filter
-     * @param endTime      upper limit of date range to filter
-     * @param timeCategory filter by created time or last updated time ?
-     * @param tenantId     tenant id of currently logged in user
-     * @return
-     * @throws InternalWorkflowException
+     * @param connection Database connection
+     * @return Database type as a string
+     * @throws InternalWorkflowException If an error occurs while retrieving the database type
      */
-    public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[] getRequestsOfUserFilteredByTime(String
-            userName, Timestamp beginTime, Timestamp endTime, String timeCategory, int tenantId, String status) throws
-            InternalWorkflowException {
+    private String getDatabaseType(Connection connection) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement prepStmt = null;
-        String query = "";
-
-        ResultSet resultSet = null;
+        String databaseType = "DEFAULT";
         try {
-
             String driverName = connection.getMetaData().getDriverName();
-            if (driverName.contains("MySQL")
-                    || driverName.contains("MariaDB")
-                    || driverName.contains("H2")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_MYSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_MYSQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_MYSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_MYSQL;
-                    }
-                }
-            } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_DB2SQl;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_DB2SQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_DB2SQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_DB2SQL;
-                    }
-                }
+            if (driverName.contains("MySQL")) {
+                databaseType = "MySQL";
+            } else if (driverName.contains("PostgreSQL")) {
+                databaseType = "PostgreSQL";
+            } else if (driverName.contains("Oracle")) {
+                databaseType = "ORACLE";
+            } else if (driverName.contains("DB2")) {
+                databaseType = "DB2";
             } else if (driverName.contains("Microsoft") || driverName.contains("microsoft") ||
                     driverName.contains("MS SQL")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_MSSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_MSSQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_MSSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_MSSQL;
-                    }
-                }
-            } else if (driverName.contains("PostgreSQL")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_POSTGRESQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_POSTGRESQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.equals("")) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_POSTGRESQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_POSTGRESQL;
-                    }
-                }
+                databaseType = "MSSQL";
             } else if (driverName.contains("Informix")) {
-                // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server".
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_INFORMIX;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_INFORMIX;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_INFORMIX;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_INFORMIX;
-                    }
-                }
-
-            } else {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_ORACLE;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_ORACLE;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_ORACLE;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_CREATED_TIME_AND_STATUS_ORACLE;
-                    }
-                }
+                databaseType = "INFORMIX";
+            } else if (driverName.contains("H2")) {
+                databaseType = "H2";
             }
-            prepStmt = connection.prepareStatement(query);
-            prepStmt.setString(1, userName);
-            prepStmt.setTimestamp(2, beginTime);
-            prepStmt.setTimestamp(3, endTime);
-            prepStmt.setInt(4, tenantId);
-            if (!status.equals(ALL_TASKS_FILTER) && !status.isEmpty()) {
-                prepStmt.setString(5, status);
-            }
-            resultSet = prepStmt.executeQuery();
-            ArrayList<org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest> requestDTOs = new ArrayList<>();
-            while (resultSet.next()) {
-                requestDTOs.add(createWorkflowRequestFromResultSet(resultSet));
-            }
-            org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[] requestArray =
-                    new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[requestDTOs.size()];
-            for (int i = 0; i < requestDTOs.size(); i++) {
-                requestArray[i] = requestDTOs.get(i);
-            }
-            return requestArray;
         } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
-        } catch (ClassNotFoundException | IOException e) {
-            throw new InternalWorkflowException("Error when deserializing a workflow request.", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
+            throw new InternalWorkflowException("Error when getting database name.", e);
         }
+        return databaseType;
     }
 
     /**
-     * Get requests created/updated in given time period
+     * Get filtered requests based on user, operation type, time range, tenant ID, status, limit and offset.
      *
-     * @param beginTime    lower limit of date range to filter
-     * @param endTime      upper limit of date range to filter
-     * @param timeCategory filter by created time or last updated time ?
-     * @param tenant       tenant id of currently logged in user
-     * @return
-     * @throws InternalWorkflowException
+     * @param userName      User name to filter requests
+     * @param operationType Operation type to filter requests
+     * @param beginTime     Start time for filtering
+     * @param endTime       End time for filtering
+     * @param timeCategory  Time category for filtering
+     * @param tenantId      Tenant ID of the user
+     * @param status        Status of the request
+     * @param limit         Limit for pagination
+     * @param offset        Offset for pagination
+     * @return Array of WorkflowRequest objects matching the filters
+     * @throws InternalWorkflowException If an error occurs while retrieving the requests
      */
-    public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[]
-    getRequestsFilteredByTime(Timestamp beginTime, Timestamp endTime, String timeCategory, int tenant, String status)
-            throws InternalWorkflowException {
-
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement prepStmt = null;
-        String query = "";
-
-        ResultSet resultSet = null;
+    public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[] getFilteredRequests(String
+            userName, String operationType, Timestamp beginTime, Timestamp endTime, String timeCategory, int tenantId,
+            String status, int limit, int offset) throws InternalWorkflowException {
 
         try {
-            String driverName = connection.getMetaData().getDriverName();
-            if (driverName.contains("MySQL")
-                    || driverName.contains("MariaDB")
-                    || driverName.contains("H2")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_MYSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_MYSQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_MYSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_MYSQL;
-                    }
-                }
-            } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_DB2SQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_DB2SQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_DB2SQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_DB2SQL;
-                    }
-                }
-            } else if (driverName.contains("Microsoft") || driverName.contains("microsoft") ||
-                    driverName.contains("MS SQL")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_MSSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_MSSQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_MSSQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_MSSQL;
-                    }
-                }
-            } else if (driverName.contains("PostgreSQL")) {
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_POSTGRESQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_POSTGRESQL;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_POSTGRESQL;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_POSTGRESQL;
-                    }
-                }
-            } else if (driverName.contains("Informix")) {
-                // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
-                if (UPDATED_AT_FILTER.equals(timeCategory)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_INFORMIX;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_INFORMIX;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_INFORMIX;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_INFORMIX;
-                    }
-                }
+            Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+            String databaseType = getDatabaseType(connection);
+            WorkflowRequestSQLBuilder workflowRequestSQLBuilder = new WorkflowRequestSQLBuilder(databaseType);
+            workflowRequestSQLBuilder = workflowRequestSQLBuilder.getAllRequestsWithSpecificFilters
+                    (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
 
-            } else {
-                if (timeCategory.equals(UPDATED_AT_FILTER)) {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_ORACLE;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_AND_STATUS_ORACLE;
-                    }
-                } else {
-                    if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_ORACLE;
-                    } else {
-                        query = SQLConstants.GET_REQUESTS_FILTER_FROM_CREATED_TIME_AND_STATUS_ORACLE;
-                    }
-                }
-            }
-            prepStmt = connection.prepareStatement(query);
-            prepStmt.setTimestamp(1, beginTime);
-            prepStmt.setTimestamp(2, endTime);
-            prepStmt.setInt(3, tenant);
-            if (!status.equals(ALL_TASKS_FILTER) && !status.isEmpty()) {
-                prepStmt.setString(4, status);
-            }
-            resultSet = prepStmt.executeQuery();
-            ArrayList<org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest> requestDTOs = new ArrayList<>();
-            while (resultSet.next()) {
-                requestDTOs.add(createWorkflowRequestFromResultSet(resultSet));
-            }
-            org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[] requestArray =
-                    new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[requestDTOs.size()];
-            for (int i = 0; i < requestDTOs.size(); i++) {
-                requestArray[i] = requestDTOs.get(i);
-            }
-            return requestArray;
-        } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
-        } catch (ClassNotFoundException | IOException e) {
-            throw new InternalWorkflowException("Error when deserializing a workflow request.", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
+            List<org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest> results =
+                    workflowRequestSQLBuilder.execute();
+
+            return results.toArray(new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[0]);
+        } catch (Exception e) {
+            throw new InternalWorkflowException("Error when getting filtered workflow requests.", e);
         }
     }
-
+    
+    /**
+     * Create a WorkflowRequest object from the ResultSet.
+     *
+     * @param resultSet ResultSet containing workflow request data
+     * @return WorkflowRequest object
+     * @throws SQLException If an error occurs while accessing the ResultSet
+     * @throws IOException  If an error occurs while deserializing the request
+     * @throws ClassNotFoundException If the class of the serialized object cannot be found
+     */
     private org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest createWorkflowRequestFromResultSet
             (ResultSet resultSet) throws SQLException, IOException, ClassNotFoundException {
 
         org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO =
                 new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
-        requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
-        requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
-        requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
-        requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
-        requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
-        requestDTO.setRequestParams((deserializeWorkflowRequest(resultSet.getBytes(SQLConstants.REQUEST_COLUMN)))
-                .getRequestParameterAsString());
-        requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
+            requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
+            requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
+            requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
+            requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
+            requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
+            requestDTO.setRequestParams((deserializeWorkflowRequest(resultSet.getBytes(SQLConstants.REQUEST_COLUMN)))
+                    .getRequestParameterAsString());
+            requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
         return requestDTO;
     }
 

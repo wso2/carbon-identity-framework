@@ -612,7 +612,7 @@ public interface WorkflowListener {
      * @throws WorkflowException
      */
     void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status, WorkflowRequest[] result) throws WorkflowException;
+            dateCategory, int tenantId, String status,int limit, int offset, WorkflowRequest[] result) throws WorkflowException;
 
     /**
      * @param wfOperationType
