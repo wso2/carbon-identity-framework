@@ -41,5 +41,5 @@ public interface EventPublisherService {
      *
      * @param eventContext Event Context.
      */
-    void canHandleEvent(EventContext eventContext) throws EventPublisherException;
+    boolean canHandleEvent(EventContext eventContext) throws EventPublisherException;
 }

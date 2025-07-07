@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.event.publisher.api.model.SecurityEventTokenPayl
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisherService;
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
-import org.wso2.carbon.identity.event.publisher.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.internal.util.EventPublisherExceptionHandler;
 
 import java.util.List;
@@ -77,17 +77,18 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     }
 
     @Override
-    public void canHandleEvent(EventContext eventContext) throws EventPublisherException {
+    public boolean canHandleEvent(EventContext eventContext) throws EventPublisherException {
 
         EventPublisher adaptorManager = retrieveAdaptorManager(ADAPTOR);
 
         log.debug("Invoking canHandle method of event publisher: " + adaptorManager.getClass().getName());
         try {
-            adaptorManager.canHandleEvent(eventContext);
+            return adaptorManager.canHandleEvent(eventContext);
         } catch (EventPublisherException e) {
             log.error("Error while checking if the event can be handled by publisher: " +
                     adaptorManager.getClass().getName(), e);
         }
+        return false;
     }
 
     private EventPublisher retrieveAdaptorManager(String adaptor) throws EventPublisherException {

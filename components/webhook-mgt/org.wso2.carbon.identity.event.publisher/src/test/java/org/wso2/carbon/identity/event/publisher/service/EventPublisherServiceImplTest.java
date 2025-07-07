@@ -33,7 +33,7 @@ import org.wso2.carbon.identity.event.publisher.api.model.common.SimpleSubject;
 import org.wso2.carbon.identity.event.publisher.api.model.common.Subject;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
-import org.wso2.carbon.identity.event.publisher.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.internal.service.impl.EventPublisherServiceImpl;
 
 import java.util.Arrays;

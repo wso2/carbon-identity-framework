@@ -132,18 +132,13 @@ public class TopicManagementServiceImpl implements TopicManagementService {
                     ErrorMessage.ERROR_CODE_INVALID_TOPIC);
         }
 
-        try {
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            boolean exists = topicManagementDAO.isTopicExists(topic, tenantId);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        boolean exists = topicManagementDAO.isTopicExists(topic, tenantId);
 
-            LOG.debug("Checked existence of topic: " + topic + " for tenant domain: " + tenantDomain +
-                    ". Exists: " + exists);
+        LOG.debug("Checked existence of topic: " + topic + " for tenant domain: " + tenantDomain +
+                ". Exists: " + exists);
 
-            return exists;
-        } catch (Exception e) {
-            throw TopicManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_TOPIC_EXISTS_CHECK_ERROR, e, topic);
-        }
+        return exists;
     }
 
     private TopicManager retrieveAdaptorManager(String adaptor) throws TopicManagementServerException {

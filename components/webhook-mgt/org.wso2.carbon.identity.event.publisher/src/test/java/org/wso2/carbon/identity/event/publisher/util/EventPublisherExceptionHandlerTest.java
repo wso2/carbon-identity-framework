@@ -22,7 +22,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherClientException;
 import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherServerException;
-import org.wso2.carbon.identity.event.publisher.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.internal.util.EventPublisherExceptionHandler;
 
 public class EventPublisherExceptionHandlerTest {

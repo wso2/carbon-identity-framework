@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.event.publisher.internal.constant;
+package org.wso2.carbon.identity.event.publisher.api.constant;
 
 /**
  * Error messages for event publisher.
@@ -26,8 +26,19 @@ public enum ErrorMessage {
     // Client errors (6xxxx range)
 
     // Server errors (65xxx range)
-    ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND("65001", "Event publisher not found.",
-            "No event publisher is found for the given event publisher name: %s.");
+    ERROR_CODE_EVENT_PUBLISHER_NOT_FOUND("EVENTPUBLISHER-65001", "Event publisher not found.",
+            "No event publisher is found for the given event publisher name: %s."),
+    ERROR_CODE_CONSTRUCTING_HUB_TOPIC("EVENTPUBLISHER-65002", "Error constructing hub topic.",
+            "Error constructing hub topic for the event publisher: %s. " +
+                    "Please check the event publisher configuration."),
+    ERROR_CODE_TOPIC_EXISTS_CHECK("EVENTPUBLISHER-65003", "Error checking topic existence.",
+            "Error checking topic existence for the event publisher: %s."),
+    CONFIG_FILE_NOT_FOUND("EVENTPUBLISHER-65004", "Configuration file not found.",
+            "%s configuration file doesn't exist."),
+    CONFIG_FILE_RETRIEVAL_ERROR("EVENTPUBLISHER-65005", "Error while retrieving the configuration file.",
+            "Error while retrieving the configuration file: %s."),
+    CONFIG_FILE_PERMISSION_DENIED("EVENTPUBLISHER-65006", "Permission denied while accessing the configuration file.",
+            "Permission denied while accessing the configuration file: %s.");
 
     private final String code;
     private final String message;

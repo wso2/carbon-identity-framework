@@ -24,10 +24,10 @@ package org.wso2.carbon.identity.webhook.metadata.internal.constant;
 public enum ErrorMessage {
 
     // Client errors (61xxx range)
-    ERROR_CODE_PROFILE_NOT_FOUND("WEBHOOKMETA-61001", "Profile not found",
-            "The requested event profile %s could not be found."),
+    // Continuation of client error codes can be found in the Webhook Metadata API layer as well.
 
     // Server errors (66xxx range)
+    // Continuation of server error codes can be found in the Webhook Metadata API layer as well.
     ERROR_CODE_PROFILES_RETRIEVE_ERROR("WEBHOOKMETA-66001", "Error occurred while retrieving profiles",
             "An internal server error occurred while retrieving event profiles."),
     ERROR_CODE_PROFILE_RETRIEVE_ERROR("WEBHOOKMETA-66002", "Error occurred while retrieving profile",

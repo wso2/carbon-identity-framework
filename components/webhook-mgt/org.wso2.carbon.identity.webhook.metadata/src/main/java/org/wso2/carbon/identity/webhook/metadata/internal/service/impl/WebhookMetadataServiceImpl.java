@@ -32,7 +32,6 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_NOT_FOUND;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
 /**
@@ -83,12 +82,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     public EventProfile getEventProfile(String profileName) throws WebhookMetadataException {
 
         try {
-            EventProfile profile = webhookMetadataDAO.getEventProfile(profileName);
-            if (profile == null) {
-                throw WebhookMetadataExceptionHandler.handleClientException(
-                        ERROR_CODE_PROFILE_NOT_FOUND, profileName);
-            }
-            return profile;
+            return webhookMetadataDAO.getEventProfile(profileName);
         } catch (WebhookMetadataException e) {
             throw e;
         } catch (Exception e) {
