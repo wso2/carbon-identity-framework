@@ -801,8 +801,8 @@
         <Resource context="(.*)/o/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_user_association_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/federated-associations/bulk" secured="true" http-method="POST">
-            <Scopes>internal_org_user_fed_association_bulk</Scopes>
+        <Resource context="(.*)/o/api/users/v1/federated-associations/bulk" secured="true" http-method="POST">
+            <Scopes>internal_org_fed_user_association_bulk</Scopes>
         </Resource>
 
         <!-- Association Management API -->
@@ -822,7 +822,7 @@
             <Scopes>internal_user_association_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/federated-associations/bulk" secured="true" http-method="POST">
-            <Scopes>internal_user_fed_association_bulk</Scopes>
+            <Scopes>internal_fed_user_association_bulk</Scopes>
         </Resource>
 
         <!-- [Organization] User Offline Onboard Management API -->
