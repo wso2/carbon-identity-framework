@@ -325,6 +325,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     setJitProvisionedSource(tenantDomain, idp, userClaims);
                 }
                 userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
+
+                FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, tenantDomain, userStoreDomain);
+
             } catch (UserStoreException e) {
 
                 FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getMessage(), userClaims,
