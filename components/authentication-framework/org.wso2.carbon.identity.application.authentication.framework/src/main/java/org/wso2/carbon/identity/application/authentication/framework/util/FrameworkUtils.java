@@ -1558,8 +1558,8 @@ public class FrameworkUtils {
         publishEventOnUserRegistration(claims, tenantDomain, event);
     }
 
-    public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String tenantDomain,
-                                                             String userStoreDomain) {
+    public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String userStoreDomain,
+                                                             String tenantDomain) {
 
         HashMap<String, Object> properties = new HashMap<>();
         properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, userStoreDomain);
