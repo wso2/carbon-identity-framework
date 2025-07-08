@@ -25,6 +25,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherException;
 import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
 import org.wso2.carbon.identity.event.publisher.api.model.EventPayload;
@@ -33,7 +34,6 @@ import org.wso2.carbon.identity.event.publisher.api.model.common.SimpleSubject;
 import org.wso2.carbon.identity.event.publisher.api.model.common.Subject;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
-import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.internal.service.impl.EventPublisherServiceImpl;
 
 import java.util.Arrays;
@@ -141,10 +141,11 @@ public class EventPublisherServiceImplTest {
         when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
         when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
 
-        doNothing().when(mockEventPublisher1).canHandleEvent(mockEventContext);
+        when(mockEventPublisher1.canHandleEvent(mockEventContext)).thenReturn(true);
 
-        eventPublisherService.canHandleEvent(mockEventContext);
+        boolean result = eventPublisherService.canHandleEvent(mockEventContext);
 
+        Assert.assertTrue(result, "Expected canHandleEvent to return true");
         verify(mockEventPublisher1, times(1)).canHandleEvent(mockEventContext);
         verify(mockEventPublisher2, never()).canHandleEvent(any());
     }

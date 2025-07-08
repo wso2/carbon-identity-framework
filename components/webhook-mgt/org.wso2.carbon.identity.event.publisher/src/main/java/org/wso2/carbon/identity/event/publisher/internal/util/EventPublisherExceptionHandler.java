@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.event.publisher.internal.util;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherClientException;
 import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherServerException;
-import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 
 /**
  * Utility class for handling exceptions in the event publisher module.
