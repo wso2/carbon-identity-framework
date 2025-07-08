@@ -35,6 +35,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Workflow Service Data Holder class.
+ */
 public class WorkflowServiceDataHolder {
 
     private static final Log log = LogFactory.getLog(WorkflowServiceDataHolder.class);

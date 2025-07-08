@@ -26,14 +26,17 @@ import javax.xml.bind.annotation.XmlType;
 /**
  * <p>Java class for InputData complex type.
  *
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>The following schema fragment specifies the expected content contained within
+ * this class.
  *
  * <pre>
  * &lt;complexType name="InputData"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;choice&gt;
- *         &lt;element name="MapType" type="{http://metadata.bean.mgt.workflow.identity.carbon.wso2.org}MapType" minOccurs="0"/&gt;
+ *         &lt;element name="MapType"
+ *           type="{http://metadata.bean.mgt.workflow.identity.carbon.wso2.org}MapType"
+ *           minOccurs="0"/&gt;
  *       &lt;/choice&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;

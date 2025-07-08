@@ -48,6 +48,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+/**
+ * Workflow management util class.
+ */
 public class WorkflowManagementUtil {
 
     private static final Log log = LogFactory.getLog(WorkflowManagementUtil.class);
