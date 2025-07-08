@@ -1663,6 +1663,7 @@
   "console.list_all_attribute_dialects": true,
   "console.enable_identity_claims": true,
   "console.organizations.enabled": true,
+  "console.organizations.disabled_features": ["organizations.orgHandle"],
   "console.organizations.scopes.feature": ["console:organizations"],
   "console.organizations.scopes.create": ["internal_organization_create"],
   "console.organizations.scopes.read": ["internal_organization_view"],
