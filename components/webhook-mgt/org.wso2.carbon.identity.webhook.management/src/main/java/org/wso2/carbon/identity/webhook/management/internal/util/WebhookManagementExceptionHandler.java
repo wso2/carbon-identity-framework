@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.webhook.management.internal.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.wso2.carbon.identity.webhook.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtServerException;
+import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 
 /**
  * Utility class for handling exceptions in the webhook management module.
