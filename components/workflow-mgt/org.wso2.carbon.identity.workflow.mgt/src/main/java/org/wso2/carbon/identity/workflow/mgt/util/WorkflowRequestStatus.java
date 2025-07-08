@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.workflow.mgt.util;
 
+/**
+ * Workflow request status enum.
+ */
 public enum WorkflowRequestStatus {
     /**
      * No matching executor for the event.

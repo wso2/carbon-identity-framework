@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.workflow.mgt.bean.metadata.type;
 
+/**
+ * Input types for workflow metadata.
+ */
 public enum InputType {
 
     SELECT("Select"),

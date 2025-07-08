@@ -39,6 +39,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+/**
+ * Workflow Request DAO class.
+ */
 public class WorkflowRequestDAO {
 
     public static final String UPDATED_AT_FILTER = "updatedAt";
@@ -316,7 +319,7 @@ public class WorkflowRequestDAO {
             } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
                     if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
-                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_DB2SQl;
+                        query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_DB2SQL;
                     } else {
                         query = SQLConstants.GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_DB2SQL;
                     }

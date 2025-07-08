@@ -37,7 +37,8 @@ import javax.xml.bind.annotation.XmlRegistry;
 public class ObjectFactory {
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.wso2.carbon.identity.workflow.mgt.bean.metadata
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package:
+     * org.wso2.carbon.identity.workflow.mgt.bean.metadata
      */
     public ObjectFactory() {
 

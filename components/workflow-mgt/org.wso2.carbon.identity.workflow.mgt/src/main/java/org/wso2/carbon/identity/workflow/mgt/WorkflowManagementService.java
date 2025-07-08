@@ -33,6 +33,9 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Workflow management service interface.
+ */
 public interface WorkflowManagementService {
 
     /**
