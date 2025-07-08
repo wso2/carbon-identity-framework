@@ -89,7 +89,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
             ActionExecutionStatus<?> executionStatus =
                     UserActionExecutorFactory.getUserActionExecutor(ActionType.PRE_UPDATE_PASSWORD)
-                            .execute(userActionContext, userStoreManager,
+                            .execute(userActionContext,
                                     IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
 
             if (executionStatus.getStatus() == ActionExecutionStatus.Status.SUCCESS) {

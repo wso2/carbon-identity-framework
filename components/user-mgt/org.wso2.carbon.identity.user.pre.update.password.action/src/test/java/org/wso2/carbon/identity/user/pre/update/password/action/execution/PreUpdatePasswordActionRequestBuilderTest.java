@@ -41,6 +41,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.common.testng.realm.UserStoreModel;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
@@ -54,9 +56,11 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.C
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
 import org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil;
-import org.wso2.carbon.user.core.PaginatedUserStoreManager;
-import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
+import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.util.Arrays;
 import java.util.List;
@@ -97,12 +101,14 @@ import static org.wso2.carbon.identity.user.pre.update.password.action.util.Test
  * Represents an unencrypted credential.
  */
 @WithCarbonHome
+@WithRealmService(injectToSingletons = {PreUpdatePasswordActionServiceComponentHolder.class},
+        initUserStoreManager = true)
 public class PreUpdatePasswordActionRequestBuilderTest {
 
     private PreUpdatePasswordAction preUpdatePasswordAction;
     private PreUpdatePasswordAction preUpdatePasswordActionWithoutCert;
     private UserActionContext userActionContext;
-    private UniqueIDUserStoreManager userStoreManager;
+    private UserStoreModel userStoreModel;
     private final FlowContext flowContext = FlowContext.create();
     private PreUpdatePasswordRequestBuilder preUpdatePasswordActionRequestBuilder;
     private ClaimMetadataManagementService claimMetadataManagementService;
@@ -130,7 +136,6 @@ public class PreUpdatePasswordActionRequestBuilderTest {
                 .password(TEST_PASSWORD.toCharArray())
                 .userStoreDomain(TEST_USER_STORE_DOMAIN_NAME)
                 .build());
-        userStoreManager = mock(UniqueIDUserStoreManager.class);
 
         preUpdatePasswordAction = new PreUpdatePasswordAction.ResponseBuilder()
                 .id(TEST_ID)
@@ -176,11 +181,11 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     @BeforeMethod
     public void setUp() throws Exception {
 
-        when(userStoreManager.getUserClaimValuesWithID(any(), any(), any())).thenReturn(TestUtil.CLAIM_VALUES_MAP);
+        userStoreModel = createUserStoreModel();
+        userStoreModel.bindToRealm();
 
         preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordRequestBuilder();
         flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
-        flowContext.add(PreUpdatePasswordActionConstants.USER_STORE_MANAGER, userStoreManager);
 
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(TENANT_ID);
@@ -191,6 +196,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     @AfterMethod
     public void tearDown() {
 
+        userStoreModel.unBindFromRealm();
         IdentityContext.destroyCurrentContext();
         PrivilegedCarbonContext.endTenantFlow();
     }
@@ -294,20 +300,6 @@ public class PreUpdatePasswordActionRequestBuilderTest {
 
     @Test(dependsOnMethods = { "testRequestBuilder", "testRequestBuilderWithUnEncryptedCredential" },
             expectedExceptions = ActionExecutionRequestBuilderException.class,
-            expectedExceptionsMessageRegExp = "Failed to retrieve user claims from user store.")
-    public void testRequestBuilderWithErrorFromUserStoreManager() throws Exception {
-
-        IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
-        when(userStoreManager.getUserClaimValuesWithID(any(), any(), any()))
-                .thenThrow(new UserStoreException("Error while retrieving user claims from user store manager."));
-
-        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
-                    flowContext, ActionExecutionRequestContext.create(preUpdatePasswordAction));
-    }
-
-    @Test(dependsOnMethods = { "testRequestBuilder", "testRequestBuilderWithUnEncryptedCredential" },
-            expectedExceptions = ActionExecutionRequestBuilderException.class,
             expectedExceptionsMessageRegExp = "Error while retrieving claim metadata for claim URI: .*")
     public void testRequestBuilderWithErrorFromClaimMetaDataService() throws Exception {
 
@@ -320,22 +312,77 @@ public class PreUpdatePasswordActionRequestBuilderTest {
                 ActionExecutionRequestContext.create(preUpdatePasswordAction));
     }
 
-    @Test(dependsOnMethods = { "testRequestBuilder", "testRequestBuilderWithUnEncryptedCredential" },
+    @Test(dependsOnMethods = { "testRequestBuilder", "testRequestBuilderWithUnEncryptedCredential",
+            "testRequestBuilderWithErrorFromClaimMetaDataService"},
+            expectedExceptions = ActionExecutionRequestBuilderException.class,
+            expectedExceptionsMessageRegExp = "User realm is not available for tenant: .*")
+    public void testRequestBuilderFailureWhenUserRealmLoadingFails() throws Exception {
+
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+
+        when(tenantManager.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(null);
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+
+        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
+                ActionExecutionRequestContext.create(preUpdatePasswordAction));
+    }
+
+    @Test(dependsOnMethods = { "testRequestBuilder", "testRequestBuilderWithUnEncryptedCredential",
+            "testRequestBuilderWithErrorFromClaimMetaDataService" },
             expectedExceptions = ActionExecutionRequestBuilderException.class,
             expectedExceptionsMessageRegExp =
                     "User store manager is not an instance of UniqueIDUserStoreManager for tenant: " + TENANT_DOMAIN)
     public void testRequestBuilderFailureWhenUserStoreNotInstanceOfUniqueIDUserStoreManager()
             throws Exception {
 
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+        UserRealm userRealm = mock(UserRealm.class);
+
+        when(tenantManager.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(userRealm);
+        when(userRealm.getUserStoreManager()).thenReturn(mock(UserStoreManager.class));
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
+
         IdentityContext.getThreadLocalIdentityContext()
                 .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
-        PaginatedUserStoreManager invalidUserStore = mock(PaginatedUserStoreManager.class);
-        FlowContext tempflowContext = FlowContext.create();
-        tempflowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
-        tempflowContext.add(PreUpdatePasswordActionConstants.USER_STORE_MANAGER, invalidUserStore);
 
-        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
-                tempflowContext, ActionExecutionRequestContext.create(preUpdatePasswordAction));
+        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
+                ActionExecutionRequestContext.create(preUpdatePasswordAction));
+    }
+
+    @Test(dependsOnMethods = { "testRequestBuilder", "testRequestBuilderWithUnEncryptedCredential",
+            "testRequestBuilderWithErrorFromClaimMetaDataService" },
+            expectedExceptions = ActionExecutionRequestBuilderException.class,
+            expectedExceptionsMessageRegExp = "Error while loading user store manager for tenant: .*")
+    public void testRequestBuilderFailureWhenUserStoreManagerLoadingFails()
+            throws Exception {
+
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+        UserRealm userRealm = mock(UserRealm.class);
+
+        when(tenantManager.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(userRealm);
+        when(userRealm.getUserStoreManager()).thenThrow(new UserStoreException("Error loading user store manager"));
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+
+        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
+                ActionExecutionRequestContext.create(preUpdatePasswordAction));
     }
 
     private void assertClaims(List<UserClaim> claims) {
@@ -378,6 +425,24 @@ public class PreUpdatePasswordActionRequestBuilderTest {
                 .name(flowName)
                 .initiatingPersona(initiatingPersona)
                 .build();
+    }
+
+    private static UserStoreModel createUserStoreModel() {
+
+        UserStoreModel userStoreModel = new UserStoreModel();
+        userStoreModel.newUserBuilder()
+                .withUserId(TEST_ID)
+                .withClaim(CLAIM1.getClaimURI(), CLAIM1.getValueInUserStore())
+                .withClaim(CLAIM2.getClaimURI(), CLAIM2.getValueInUserStore())
+                .withClaim(CLAIM3.getClaimURI(), CLAIM3.getValueInUserStore())
+                .withClaim(CLAIM4.getClaimURI(), CLAIM4.getValueInUserStore())
+                .withClaim(CLAIM5.getClaimURI(), CLAIM5.getValueInUserStore())
+                .withClaim(CLAIM6.getClaimURI(), CLAIM6.getValueInUserStore())
+                .withClaim(CLAIM7.getClaimURI(), CLAIM7.getValueInUserStore())
+                .withClaim(GROUPS.getClaimURI(), GROUPS.getValueInUserStore())
+                .withClaim(ROLES.getClaimURI(), ROLES.getValueInUserStore())
+                .build();
+        return userStoreModel;
     }
 
     private static LocalClaim getMockedLocalClaim(TestUtil.Claims claim) {

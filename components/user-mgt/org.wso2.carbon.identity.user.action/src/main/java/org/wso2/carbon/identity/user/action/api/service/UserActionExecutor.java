@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionEx
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
-import org.wso2.carbon.user.core.UserStoreManager;
 
 /**
  * Interface for User Action Executor.
@@ -43,22 +42,7 @@ public interface UserActionExecutor {
      * @param userActionContext User action context.
      * @param tenantDomain      Tenant domain.
      * @return Action execution status.
-     * @deprecated Use {@link #execute(UserActionContext, UserStoreManager, String)} instead.
      */
-    @Deprecated
-    default ActionExecutionStatus<?> execute(UserActionContext userActionContext, String tenantDomain) throws
-            ActionExecutionException {
-        return execute(userActionContext, null, tenantDomain);
-    }
-
-    /**
-     * Executes the user action.
-     *
-     * @param userActionContext User action context.
-     * @param userStoreManager  User store manager.
-     * @param tenantDomain      Tenant domain.
-     * @return Action execution status.
-     */
-    ActionExecutionStatus<?> execute(UserActionContext userActionContext, UserStoreManager userStoreManager,
-                                     String tenantDomain) throws ActionExecutionException;
+    ActionExecutionStatus<?> execute(UserActionContext userActionContext, String tenantDomain)
+            throws ActionExecutionException;
 }

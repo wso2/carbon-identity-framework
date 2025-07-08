@@ -49,9 +49,12 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.constan
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.UnsupportedSecretTypeException;
 
@@ -87,11 +90,10 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
 
         PreUpdatePasswordAction preUpdatePasswordAction = resolveAction(actionExecutionContext);
         UserActionContext userActionContext = resolveUserActionContext(flowContext);
-        UniqueIDUserStoreManager userStoreManager = resolveUserStoreManager(flowContext);
 
         ActionExecutionRequest.Builder actionRequestBuilder = new ActionExecutionRequest.Builder();
         actionRequestBuilder.actionType(getSupportedActionType());
-        actionRequestBuilder.event(getEvent(userActionContext, userStoreManager, preUpdatePasswordAction));
+        actionRequestBuilder.event(getEvent(userActionContext, preUpdatePasswordAction));
 
         return actionRequestBuilder.build();
     }
@@ -106,18 +108,6 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         return (UserActionContext) userContext;
     }
 
-    private UniqueIDUserStoreManager resolveUserStoreManager(FlowContext flowContext)
-            throws ActionExecutionRequestBuilderException {
-
-        Object userStoreManager = flowContext.getContextData().get(PreUpdatePasswordActionConstants.USER_STORE_MANAGER);
-        if (!(userStoreManager instanceof UniqueIDUserStoreManager)) {
-            throw new ActionExecutionRequestBuilderException(
-                    "User store manager is not an instance of UniqueIDUserStoreManager for tenant: " +
-                            IdentityContext.getThreadLocalIdentityContext().getTenantDomain());
-        }
-        return (UniqueIDUserStoreManager) userStoreManager;
-    }
-
     private PreUpdatePasswordAction resolveAction(ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
@@ -129,15 +119,14 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         return (PreUpdatePasswordAction) action;
     }
 
-    private Event getEvent(UserActionContext userActionContext, UniqueIDUserStoreManager userStoreManager,
-                           PreUpdatePasswordAction preUpdatePasswordAction)
+    private Event getEvent(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
             throws ActionExecutionRequestBuilderException {
 
         return new PreUpdatePasswordEvent.Builder()
                 .initiatorType(getInitiatorType())
                 .action(getAction())
                 .tenant(getTenant())
-                .user(getUser(userActionContext, userStoreManager, preUpdatePasswordAction))
+                .user(getUser(userActionContext, preUpdatePasswordAction))
                 .userStore(new UserStore(userActionContext.getUserActionRequestDTO().getUserStoreDomain()))
                 .build();
     }
@@ -190,14 +179,16 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
                 IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 
-    private User getUser(UserActionContext userActionContext, UniqueIDUserStoreManager userStoreManager,
-                         PreUpdatePasswordAction preUpdatePasswordAction)
+    private User getUser(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
             throws ActionExecutionRequestBuilderException {
 
         PasswordUpdatingUser.Builder userBuilder = new PasswordUpdatingUser.Builder()
                 .id(userActionContext.getUserActionRequestDTO().getUserId());
         populateCredential(userBuilder, userActionContext, preUpdatePasswordAction);
-        populateClaims(userBuilder, userActionContext, userStoreManager, preUpdatePasswordAction);
+
+        if (preUpdatePasswordAction.getAttributes() != null && !preUpdatePasswordAction.getAttributes().isEmpty()) {
+            populateClaims(userBuilder, userActionContext, preUpdatePasswordAction);
+        }
         return userBuilder.build();
     }
 
@@ -261,8 +252,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
     }
 
     private void populateClaims(PasswordUpdatingUser.Builder userBuilder, UserActionContext userActionContext,
-                                UniqueIDUserStoreManager userStoreManager, PreUpdatePasswordAction action)
-            throws ActionExecutionRequestBuilderException {
+                                PreUpdatePasswordAction action) throws ActionExecutionRequestBuilderException {
 
         List<String> userClaimsToSetInEvent = action.getAttributes();
         if (userClaimsToSetInEvent == null || userClaimsToSetInEvent.isEmpty()) {
@@ -270,7 +260,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         }
 
         try {
-            Map<String, String> claimValues = userStoreManager.getUserClaimValuesWithID(
+            Map<String, String> claimValues = getUserStoreManager().getUserClaimValuesWithID(
                     userActionContext.getUserActionRequestDTO().getUserId(),
                     userClaimsToSetInEvent.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
 
@@ -336,6 +326,38 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         } catch (ClaimMetadataException e) {
             throw new ActionExecutionRequestBuilderException("Error while retrieving claim metadata for claim URI: " +
                     claimUri, e);
+        }
+    }
+
+    private UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionRequestBuilderException {
+
+        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
+        RealmService realmService = PreUpdatePasswordActionServiceComponentHolder.getInstance().getRealmService();
+
+        if (realmService == null) {
+            throw new ActionExecutionRequestBuilderException("Realm service is unavailable.");
+        }
+
+        try {
+            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
+
+            if (userRealm == null) {
+                throw new ActionExecutionRequestBuilderException(
+                        "User realm is not available for tenant: " + tenantDomain);
+            }
+
+            UserStoreManager userStoreManager = userRealm.getUserStoreManager();
+            if (!(userStoreManager instanceof UniqueIDUserStoreManager)) {
+                throw new ActionExecutionRequestBuilderException(
+                        "User store manager is not an instance of UniqueIDUserStoreManager for tenant: " +
+                                tenantDomain);
+            }
+
+            return (UniqueIDUserStoreManager) userStoreManager;
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw new ActionExecutionRequestBuilderException(
+                    "Error while loading user store manager for tenant: " + tenantDomain, e);
         }
     }
 }

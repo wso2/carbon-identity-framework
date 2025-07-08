@@ -102,6 +102,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
@@ -142,7 +147,7 @@
 
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.user.core; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.identity.core.context; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.context.model; version="${carbon.identity.package.import.version.range}",
