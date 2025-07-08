@@ -75,6 +75,14 @@ public class EndpointConfig {
         public EndpointConfigBuilder() {
         }
 
+        public EndpointConfigBuilder(EndpointConfig endpointConfig) {
+
+            this.uri = endpointConfig.getUri();
+            this.authentication = endpointConfig.getAuthentication();
+            this.allowedHeaders = endpointConfig.getAllowedHeaders();
+            this.allowedParameters = endpointConfig.getAllowedParameters();
+        }
+
         public EndpointConfigBuilder uri(String uri) {
 
             this.uri = uri;

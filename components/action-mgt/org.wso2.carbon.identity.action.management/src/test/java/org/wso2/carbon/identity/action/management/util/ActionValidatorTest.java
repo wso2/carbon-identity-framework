@@ -184,21 +184,21 @@ public class ActionValidatorTest {
     public Object[][] invalidHeaderDataProvider() {
 
         return new String[][]{
-                {"-test-header", ActionMgtConstants.ALLOWED_HEADERS_FIELD},
-                {".test-header", ActionMgtConstants.API_KEY_HEADER_FIELD},
-                {"test@header", ActionMgtConstants.API_KEY_HEADER_FIELD},
-                {"test_header", ActionMgtConstants.ALLOWED_HEADERS_FIELD}
+                {"-test-header"},
+                {".test-header"},
+                {"test@header"},
+                {"test_header"}
         };
     }
 
     @Test(dataProvider = "invalidHeaderDataProvider")
-    public void testIsInvalidHeader(String header, String headerFiledName) {
+    public void testIsInvalidHeader(String header) {
 
         try {
-            actionValidator.validateHeader(header, headerFiledName);
+            actionValidator.validateHeader(header);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
-            Assert.assertEquals(e.getDescription(), headerFiledName + " is invalid.");
+            Assert.assertEquals(e.getDescription(), header + " is invalid.");
         }
     }
 
@@ -216,7 +216,7 @@ public class ActionValidatorTest {
     @Test(dataProvider = "validHeaderDataProvider")
     public void testIsValidHeader(String header) throws ActionMgtClientException {
 
-        actionValidator.validateHeader(header, null);
+        actionValidator.validateHeader(header);
     }
 
     @DataProvider

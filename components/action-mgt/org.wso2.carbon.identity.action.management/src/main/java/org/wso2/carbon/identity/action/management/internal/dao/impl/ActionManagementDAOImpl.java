@@ -329,6 +329,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
     /**
      * Update Action Endpoint Configurations.
+     * If the endpoint configuration is updated, the existing configuration is deleted and replaced with the new one.
      *
      * @param updatingActionDTO Updating ActionDTO object with endpoint information.
      * @param existingActionDTO Existing ActionDTO object with endpoint information.
@@ -338,28 +339,49 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private void updateEndpoint(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
             throws ActionMgtException {
 
-        EndpointConfig updatingEndpoint = updatingActionDTO.getEndpoint();
-        if (updatingEndpoint == null) {
+        if (updatingActionDTO.getEndpoint() == null) {
             return;
         }
+
         try {
-            if (updatingEndpoint.getUri() != null) {
-                updateActionPropertiesInDB(updatingActionDTO.getId(),
-                        Collections.singletonMap(URI_PROPERTY, new ActionProperty.BuilderForDAO(
-                                updatingEndpoint.getUri()).build()), tenantId);
-            }
-            if (updatingEndpoint.getAllowedHeaders() != null) {
-                updateActionPropertyListInDB(updatingActionDTO.getId(), ALLOWED_HEADERS_PROPERTY,
-                        updatingEndpoint.getAllowedHeaders(), tenantId);
-            }
-            if (updatingEndpoint.getAllowedParameters() != null) {
-                updateActionPropertyListInDB(updatingActionDTO.getId(), ALLOWED_PARAMETERS_PROPERTY,
-                        updatingEndpoint.getAllowedParameters(), tenantId);
-            }
-            updateEndpointAuthentication(updatingActionDTO.getId(), updatingEndpoint.getAuthentication(),
-                    existingActionDTO.getEndpoint().getAuthentication(), tenantId);
-        } catch (ActionMgtException | TransactionException e) {
+            // Deletes existing endpoint config.
+            deleteEndpoint(existingActionDTO.getId(), existingActionDTO.getEndpoint(), tenantId);
+            // Adds updated action config.
+            ActionDTO actionDTO = buildActionDTOWithEndpoint(updatingActionDTO, existingActionDTO);
+            addEndpoint(actionDTO, tenantId);
+        } catch (ActionMgtException e) {
             throw new ActionMgtServerException("Error while updating Action Endpoint information in the system.", e);
+        }
+    }
+
+    /**
+     * Deletes the existing endpoint configuration for a given action.
+     *
+     * @param actionId        UUID of the Action whose endpoint is being deleted.
+     * @param deletingEndpoint The endpoint configuration to be deleted.
+     * @param tenantId        Tenant ID.
+     * @throws ActionMgtServerException If an error occurs while deleting the endpoint configuration.
+     */
+    private void deleteEndpoint(String actionId, EndpointConfig deletingEndpoint, Integer tenantId)
+            throws ActionMgtServerException {
+
+        List<String> deletingProperties = new ArrayList<>();
+        deletingProperties.add(URI_PROPERTY);
+        deletingProperties.add(ALLOWED_HEADERS_PROPERTY);
+        deletingProperties.add(ALLOWED_PARAMETERS_PROPERTY);
+
+        // Deletes endpoint authentication
+        List<String> deletingAuthProperties = deletingEndpoint.getAuthentication().getProperties().stream()
+                .map(AuthProperty::getName)
+                .collect(Collectors.toList());
+
+        deletingProperties.addAll(deletingAuthProperties);
+        deletingProperties.add(AUTHN_TYPE_PROPERTY);
+
+        try {
+            deleteActionPropertiesInDB(actionId, deletingProperties, tenantId);
+        } catch (TransactionException e) {
+            throw new ActionMgtServerException("Error while deleting Action Endpoint information in the system.", e);
         }
     }
 
@@ -403,6 +425,40 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 .allowedHeaders(allowedHeaders)
                 .allowedParameters(allowedParameters)
                 .build();
+    }
+
+    /**
+     * Builds an updated Action DTO by merging the updated endpoint configuration with the existing action.
+     *
+     * @param updatingActionDTO Updating Action DTO.
+     * @param existingActionDTO Existing Action DTO.
+     * @return Resolved Action DTO with the updated endpoint config.
+     */
+    private ActionDTO buildActionDTOWithEndpoint(ActionDTO updatingActionDTO, ActionDTO existingActionDTO) {
+
+        ActionDTOBuilder builder = new ActionDTOBuilder(existingActionDTO);
+        EndpointConfig.EndpointConfigBuilder endpointBuilder =
+                new EndpointConfig.EndpointConfigBuilder(existingActionDTO.getEndpoint());
+
+        EndpointConfig updatingEndpoint = updatingActionDTO.getEndpoint();
+        if (updatingEndpoint.getUri() != null) {
+            endpointBuilder.uri(updatingEndpoint.getUri());
+        }
+        if (updatingEndpoint.getAllowedHeaders() != null) {
+            endpointBuilder.allowedHeaders(updatingEndpoint.getAllowedHeaders());
+        }
+        if (updatingEndpoint.getAllowedParameters() != null) {
+            endpointBuilder.allowedParameters(updatingEndpoint.getAllowedParameters());
+        }
+
+        // If endpoint authentication is updated.
+        Authentication updatingAuthentication = updatingEndpoint.getAuthentication();
+        if (updatingAuthentication != null) {
+            endpointBuilder = endpointBuilder.authentication(updatingAuthentication);
+        }
+
+        builder = builder.endpoint(endpointBuilder.build());
+        return builder.build();
     }
 
     /**
