@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility class for the Pre Update Password action component tests.
@@ -82,4 +83,44 @@ public class TestUtil {
     public static final List<String> ROLES_CLAIM_ATTRIBUTE = Collections.singletonList("http://wso2.org/claims/roles");
     public static final List<String> DUPLICATED_TEST_ATTRIBUTES = Collections.nCopies(10, SAMPLE_LOCAL_CLAIM_URI_1);
     public static final List<String> INVALID_TEST_ATTRIBUTES_COUNT = Collections.nCopies(11, SAMPLE_LOCAL_CLAIM_URI_1);
+    public static final Map<String, String> CLAIM_VALUES_MAP = Arrays.stream(Claims.values())
+            .collect(java.util.stream.Collectors.toMap(Claims::getClaimURI, Claims::getValueInUserStore));
+
+    public enum Claims {
+        CLAIM1("http://wso2.org/claims/claim1", false,  "value10"),
+        CLAIM2("http://wso2.org/claims/claim2", true, "value21"),
+        CLAIM3("http://wso2.org/claims/claim3", false, "value30"),
+        CLAIM4("http://wso2.org/claims/claim4", true, "value40"),
+        CLAIM5("http://wso2.org/claims/claim5", false, "value51,value52,value53"),
+        CLAIM6("http://wso2.org/claims/claim6", false, "value61"),
+        CLAIM7("http://wso2.org/claims/claim7", true, "value71,value72"),
+        GROUPS("http://wso2.org/claims/groups", true, "group2,group3"),
+        ROLES("http://wso2.org/claims/roles", true, "role1");
+
+        private final String claimURI;
+        private final boolean isMultiValued;
+        private final String valueInUserStore;
+
+        Claims(String claimURI, boolean isMultiValued, String valueInUserStore) {
+
+            this.claimURI = claimURI;
+            this.isMultiValued = isMultiValued;
+            this.valueInUserStore = valueInUserStore;
+        }
+
+        public String getClaimURI() {
+
+            return claimURI;
+        }
+
+        public boolean isMultiValued() {
+
+            return isMultiValued;
+        }
+
+        public String getValueInUserStore() {
+
+            return valueInUserStore;
+        }
+    }
 }

@@ -1558,6 +1558,17 @@ public class FrameworkUtils {
         publishEventOnUserRegistration(claims, tenantDomain, event);
     }
 
+    public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String userStoreDomain,
+                                                             String tenantDomain) {
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, userStoreDomain);
+
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
+
     /**
      * @param key
      * @deprecated to use {{@link #removeSessionContextFromCache(String, String)}} to support maintaining cache in

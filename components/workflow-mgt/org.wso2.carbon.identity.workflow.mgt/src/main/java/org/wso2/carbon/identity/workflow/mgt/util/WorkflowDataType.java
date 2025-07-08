@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.workflow.mgt.util;
 
+/**
+ * Workflow data types.
+ */
 public class WorkflowDataType {
 
     public static final String STRING_TYPE = "STRING";

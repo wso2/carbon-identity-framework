@@ -100,13 +100,6 @@ public class FlowExecutionService {
                 }
             }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
-
-                if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
-                    Map<String, String> userClaims =
-                            context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
-                    FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, tenantDomain);
-                }
-
                 FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);

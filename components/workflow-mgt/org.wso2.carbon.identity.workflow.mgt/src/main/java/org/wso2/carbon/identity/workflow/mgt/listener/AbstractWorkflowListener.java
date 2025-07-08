@@ -35,6 +35,9 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
 import java.util.List;
 
+/**
+ * Abstract Workflow listener class.
+ */
 public abstract class AbstractWorkflowListener implements WorkflowListener {
 
     /**

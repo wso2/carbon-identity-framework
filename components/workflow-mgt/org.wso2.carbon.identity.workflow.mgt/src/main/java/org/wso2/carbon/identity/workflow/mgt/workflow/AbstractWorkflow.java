@@ -30,12 +30,13 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 
-import javax.xml.bind.JAXBException;
-
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 /**
- * AbstractWorkflow can be used to implement different workflow implementation based on different template implementation
+ * AbstractWorkflow can be used to implement different workflow implementation based on different template
+ * implementation.
  * <p>
  * TemplateInitializer and WorkFlowExecutor should be provided to execute
  */

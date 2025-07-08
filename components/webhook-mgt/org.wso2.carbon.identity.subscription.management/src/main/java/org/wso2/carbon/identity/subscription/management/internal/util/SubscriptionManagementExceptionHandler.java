@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.subscription.management.internal.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.wso2.carbon.identity.subscription.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.subscription.management.api.exception.SubscriptionManagementClientException;
 import org.wso2.carbon.identity.subscription.management.api.exception.SubscriptionManagementServerException;
+import org.wso2.carbon.identity.subscription.management.internal.constant.ErrorMessage;
 
 /**
  * Utility class for handling exceptions in the subscription management module.
