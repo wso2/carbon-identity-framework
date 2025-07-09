@@ -30,6 +30,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ACTION;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_CERTIFICATE;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_CERTIFICATE_ID;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_CERTIFICATE_NAME;
@@ -58,7 +59,8 @@ public class PreUpdatePasswordActionBuilderTest {
                         .certificate(new Certificate.Builder()
                                 .certificateContent(TEST_CERTIFICATE)
                                 .build())
-                        .build());
+                        .build())
+                .attributes(TEST_ATTRIBUTES);
 
         PreUpdatePasswordAction preUpdatePasswordAction = requestBuilder.build();
         
@@ -76,6 +78,7 @@ public class PreUpdatePasswordActionBuilderTest {
         assertEquals(preUpdatePasswordAction.getPasswordSharing().getFormat(), PasswordSharing.Format.SHA256_HASHED);
         assertEquals(preUpdatePasswordAction.getPasswordSharing().getCertificate().getCertificateContent(),
                 TEST_CERTIFICATE);
+        assertEquals(preUpdatePasswordAction.getAttributes(), TEST_ATTRIBUTES);
     }
 
     @Test
@@ -97,7 +100,8 @@ public class PreUpdatePasswordActionBuilderTest {
                                 .name(TEST_CERTIFICATE_NAME)
                                 .certificateContent(TEST_CERTIFICATE)
                                 .build())
-                        .build());
+                        .build())
+                .attributes(TEST_ATTRIBUTES);
 
         PreUpdatePasswordAction preUpdatePasswordAction = responseBuilder.build();
 
@@ -117,5 +121,6 @@ public class PreUpdatePasswordActionBuilderTest {
         assertEquals(preUpdatePasswordAction.getPasswordSharing().getCertificate().getName(), TEST_CERTIFICATE_NAME);
         assertEquals(preUpdatePasswordAction.getPasswordSharing().getCertificate().getCertificateContent(),
                 TEST_CERTIFICATE);
+        assertEquals(preUpdatePasswordAction.getAttributes(), TEST_ATTRIBUTES);
     }
 }

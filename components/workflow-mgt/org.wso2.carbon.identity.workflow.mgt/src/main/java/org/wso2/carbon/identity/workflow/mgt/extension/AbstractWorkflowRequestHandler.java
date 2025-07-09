@@ -40,6 +40,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Abstract class for workflow request handler.
+ */
 public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestHandler {
 
     private static final Log log = LogFactory.getLog(AbstractWorkflowRequestHandler.class);

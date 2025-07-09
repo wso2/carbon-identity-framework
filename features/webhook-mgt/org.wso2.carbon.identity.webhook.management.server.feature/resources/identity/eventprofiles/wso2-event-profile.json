@@ -20,10 +20,15 @@
       ]
     },
     {
-      "name": "User management operations",
-      "description": "User profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
+      "name": "User account management",
+      "description": "User created, profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
       "uri": "https://schemas.identity.wso2.org/events/user",
       "events": [
+        {
+          "eventName": "User created",
+          "eventDescription": "Notify if user is created",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userCreated"
+        },
         {
           "eventName": "User profile updated",
           "eventDescription": "Notify if user profile is updated",

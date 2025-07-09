@@ -23,6 +23,9 @@ import org.wso2.carbon.identity.workflow.mgt.bean.RequestParameter;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * WorkflowRequest class is a DTO that represents a workflow request.
+ */
 public class WorkflowRequest implements Serializable, Cloneable {
 
     public static final String CREDENTIAL = "Credential";
