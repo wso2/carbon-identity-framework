@@ -1320,7 +1320,7 @@
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.disabled_features": [],
+  "console.ai.disabled_features": ["ai.flows.types.list.registration"],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
   "console.ai.scopes.read": [],
