@@ -91,8 +91,8 @@ public class EventPublisherServiceImplTest {
     @Test
     public void testPublishWithException() throws Exception {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdaptor");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdaptor");
 
         doThrow(new EventPublisherException("E", "msg", "desc"))
                 .when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
@@ -108,8 +108,8 @@ public class EventPublisherServiceImplTest {
     @Test
     public void testSuccessfulPublish() throws Exception {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdaptor");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdaptor");
 
         doNothing().when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
 
@@ -138,8 +138,8 @@ public class EventPublisherServiceImplTest {
     @Test
     public void testCanHandleEventSuccess() throws Exception {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdaptor");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdaptor");
 
         when(mockEventPublisher1.canHandleEvent(mockEventContext)).thenReturn(true);
 
@@ -153,8 +153,8 @@ public class EventPublisherServiceImplTest {
     @Test
     public void testCanHandleEventWithException() throws Exception {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdaptor");
+        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdaptor");
 
         doThrow(new EventPublisherException("E", "msg", "desc"))
                 .when(mockEventPublisher1).canHandleEvent(mockEventContext);

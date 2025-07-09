@@ -1635,17 +1635,17 @@ public class IdentityUtil {
     /**
      * Get the Webhook Adaptor Type.
      *
-     * @return webhooksAdapterType which is configured.
+     * @return webhooksAdaptorType which is configured.
      */
-    public static String getWebhooksAdapterType() {
+    public static String getWebhooksAdaptorType() {
 
-        String webhooksAdapterType = IdentityCoreConstants.DEFAULT_WEBHOOKS_ADAPTER_TYPE;
-        String currentWebhooksAdapterType =
-                IdentityUtil.getProperty(IdentityCoreConstants.WEBHOOKS_ADAPTER_TYPE);
-        if (StringUtils.isNotBlank(currentWebhooksAdapterType)) {
-            webhooksAdapterType = currentWebhooksAdapterType;
+        String webhooksAdaptorType = IdentityCoreConstants.DEFAULT_WEBHOOKS_ADAPTOR_TYPE;
+        String currentWebhooksAdaptorType =
+                IdentityUtil.getProperty(IdentityCoreConstants.WEBHOOKS_ADAPTOR_TYPE);
+        if (StringUtils.isNotBlank(currentWebhooksAdaptorType)) {
+            webhooksAdaptorType = currentWebhooksAdaptorType;
         }
-        return webhooksAdapterType;
+        return webhooksAdaptorType;
     }
 
     /**

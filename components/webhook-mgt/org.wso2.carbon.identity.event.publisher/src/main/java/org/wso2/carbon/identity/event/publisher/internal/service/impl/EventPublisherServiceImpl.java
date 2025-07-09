@@ -45,7 +45,7 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     private static final int THREAD_POOL_SIZE = 10;
     private static final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     //TODO: Get the topic manager name from a configuration
-    private static final String ADAPTOR = "webSubHubAdapter";
+    private static final String ADAPTOR = "webSubHubAdaptor";
 
     /**
      * Private constructor to prevent instantiation.

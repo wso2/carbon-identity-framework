@@ -117,7 +117,7 @@ public class IdentityCoreConstants {
 
     // Webhook constants.
     public static final String MAXIMUM_WEBHOOKS_PER_TENANT_PROPERTY = "Webhooks.MaximumWebhooksPerTenant";
-    public static final String WEBHOOKS_ADAPTER_TYPE = "Webhooks.AdapterType";
+    public static final String WEBHOOKS_ADAPTOR_TYPE = "Webhooks.AdaptorType";
 
     // System application constants
     public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
@@ -129,7 +129,7 @@ public class IdentityCoreConstants {
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
 
     public static final int DEFAULT_MAXIMUM_WEBHOOKS_PER_TENANT = 10;
-    public static final String DEFAULT_WEBHOOKS_ADAPTER_TYPE = "Publisher";
+    public static final String DEFAULT_WEBHOOKS_ADAPTOR_TYPE = "Publisher";
 
     // Agentic AI constants
     public static final String AGENT_IDENTITY_ENABLE = "AgentIdentity.Enabled";

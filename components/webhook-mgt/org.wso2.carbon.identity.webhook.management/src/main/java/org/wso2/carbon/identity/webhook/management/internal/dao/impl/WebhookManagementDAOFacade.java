@@ -25,13 +25,13 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementExcept
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
-import org.wso2.carbon.identity.webhook.management.api.model.WebhookAdapterType;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookAdaptorType;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookRunnable;
-import org.wso2.carbon.identity.webhook.management.internal.dao.impl.adapter.handler.PublisherAdapterHandler;
-import org.wso2.carbon.identity.webhook.management.internal.dao.impl.adapter.handler.PublisherSubscriberAdapterHandler;
+import org.wso2.carbon.identity.webhook.management.internal.dao.impl.adaptor.handler.PublisherAdaptorHandler;
+import org.wso2.carbon.identity.webhook.management.internal.dao.impl.adaptor.handler.PublisherSubscriberAdaptorHandler;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretProcessor;
 
@@ -52,16 +52,16 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     public WebhookManagementDAOFacade(WebhookManagementDAO webhookManagementDAO) {
 
         this.webhookSecretProcessor = new WebhookSecretProcessor();
-        this.publisherSubscriberHandler = new PublisherSubscriberAdapterHandler(webhookManagementDAO, this);
-        this.publisherHandler = new PublisherAdapterHandler(webhookManagementDAO, this);
+        this.publisherSubscriberHandler = new PublisherSubscriberAdaptorHandler(webhookManagementDAO, this);
+        this.publisherHandler = new PublisherAdaptorHandler(webhookManagementDAO, this);
     }
 
     private WebhookManagementDAO getHandler() throws WebhookMgtException {
 
-        WebhookAdapterType type = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapterType();
-        if (WebhookAdapterType.PublisherSubscriber.equals(type)) {
+        WebhookAdaptorType type = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType();
+        if (WebhookAdaptorType.PublisherSubscriber.equals(type)) {
             return publisherSubscriberHandler;
-        } else if (WebhookAdapterType.Publisher.equals(type)) {
+        } else if (WebhookAdaptorType.Publisher.equals(type)) {
             return publisherHandler;
         } else {
             throw WebhookManagementExceptionHandler.handleClientException(

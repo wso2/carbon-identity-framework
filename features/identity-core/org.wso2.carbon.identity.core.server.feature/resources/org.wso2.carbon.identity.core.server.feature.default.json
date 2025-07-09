@@ -1882,7 +1882,7 @@
   "actions.types.pre_update_profile.enable": true,
 
   "webhooks.maximum_webhooks_per_tenant": "10",
-  "webhooks.adapter_type": "Publisher",
+  "webhooks.adaptor_type": "Publisher",
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.internal.dao.impl.adapter.handler;
+package org.wso2.carbon.identity.webhook.management.internal.dao.impl.adaptor.handler;
 
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -41,12 +41,12 @@ import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManageme
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PublisherSubscriberAdapterHandler implements WebhookManagementDAO {
+public class PublisherSubscriberAdaptorHandler implements WebhookManagementDAO {
 
     private final WebhookManagementDAO dao;
     private final WebhookManagementDAOFacade facade;
 
-    public PublisherSubscriberAdapterHandler(WebhookManagementDAO dao, WebhookManagementDAOFacade facade) {
+    public PublisherSubscriberAdaptorHandler(WebhookManagementDAO dao, WebhookManagementDAOFacade facade) {
 
         this.dao = dao;
         this.facade = facade;
@@ -82,7 +82,7 @@ public class PublisherSubscriberAdapterHandler implements WebhookManagementDAO {
                     .build();
             try {
                 subscriptions = subscriptionManagementService.subscribe(subscriptionRequest,
-                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapterType()),
+                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
                         tenantDomain);
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
@@ -193,7 +193,7 @@ public class PublisherSubscriberAdapterHandler implements WebhookManagementDAO {
                     .build();
             try {
                 allResults = subscriptionManagementService.subscribe(subscriptionRequest,
-                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapterType()),
+                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
                         IdentityTenantUtil.getTenantDomain(tenantId));
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
@@ -250,7 +250,7 @@ public class PublisherSubscriberAdapterHandler implements WebhookManagementDAO {
                     .build();
             try {
                 allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest,
-                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapterType()),
+                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
                         IdentityTenantUtil.getTenantDomain(tenantId));
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
@@ -307,7 +307,7 @@ public class PublisherSubscriberAdapterHandler implements WebhookManagementDAO {
                 try {
                     allResults = subscriptionManagementService.subscribe(subscriptionRequest,
                             String.valueOf(
-                                    WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapterType()),
+                                    WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
                             IdentityTenantUtil.getTenantDomain(tenantId));
                 } catch (SubscriptionManagementException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(
@@ -345,7 +345,7 @@ public class PublisherSubscriberAdapterHandler implements WebhookManagementDAO {
                 try {
                     allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest,
                             String.valueOf(
-                                    WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapterType()),
+                                    WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
                             IdentityTenantUtil.getTenantDomain(tenantId));
                 } catch (SubscriptionManagementException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(

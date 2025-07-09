@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
-import org.wso2.carbon.identity.webhook.management.api.model.WebhookAdapterType;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookAdaptorType;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 /**
@@ -41,7 +41,7 @@ public class WebhookManagementComponentServiceHolder {
     private TopicManagementService topicManagementService;
     private SubscriptionManagementService subscriptionManagementService;
     private WebhookMetadataService webhookMetadataService;
-    private WebhookAdapterType webhookAdapterType;
+    private WebhookAdaptorType webhookAdaptorType;
 
     private WebhookManagementComponentServiceHolder() {
 
@@ -153,23 +153,23 @@ public class WebhookManagementComponentServiceHolder {
     }
 
     /**
-     * Get the webhook adapter type.
+     * Get the webhook adaptor type.
      *
-     * @return WebhookAdapterType instance.
+     * @return WebhookAdaptorType instance.
      */
-    public WebhookAdapterType getWebhookAdapterType() {
+    public WebhookAdaptorType getWebhookAdaptorType() {
 
-        return webhookAdapterType;
+        return webhookAdaptorType;
     }
 
     /**
-     * Set the webhook adapter type.
+     * Set the webhook adaptor type.
      *
-     * @param webhookAdapterType WebhookAdapterType instance.
+     * @param webhookAdaptorType WebhookAdaptorType instance.
      */
-    public void setWebhookAdapterType(WebhookAdapterType webhookAdapterType) {
+    public void setWebhookAdaptorType(WebhookAdaptorType webhookAdaptorType) {
 
-        this.webhookAdapterType = webhookAdapterType;
-        LOG.debug("Webhook adapter type set to " + webhookAdapterType);
+        this.webhookAdaptorType = webhookAdaptorType;
+        LOG.debug("Webhook adaptor type set to " + webhookAdaptorType);
     }
 }

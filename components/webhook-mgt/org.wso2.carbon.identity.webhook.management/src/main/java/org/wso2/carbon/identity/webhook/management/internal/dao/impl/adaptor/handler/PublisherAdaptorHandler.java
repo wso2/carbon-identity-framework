@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.internal.dao.impl.adapter.handler;
+package org.wso2.carbon.identity.webhook.management.internal.dao.impl.adaptor.handler;
 
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -30,12 +30,12 @@ import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManageme
 
 import java.util.List;
 
-public class PublisherAdapterHandler implements WebhookManagementDAO {
+public class PublisherAdaptorHandler implements WebhookManagementDAO {
 
     private final WebhookManagementDAO dao;
     private final WebhookManagementDAOFacade facade;
 
-    public PublisherAdapterHandler(WebhookManagementDAO dao, WebhookManagementDAOFacade facade) {
+    public PublisherAdaptorHandler(WebhookManagementDAO dao, WebhookManagementDAOFacade facade) {
 
         this.dao = dao;
         this.facade = facade;
