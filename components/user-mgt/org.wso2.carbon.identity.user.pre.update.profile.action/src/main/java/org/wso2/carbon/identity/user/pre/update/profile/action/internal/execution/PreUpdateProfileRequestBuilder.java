@@ -180,16 +180,16 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         return userBuilder.build();
     }
 
-    private Map<String, String> getClaimValues(String userId, List<String> userClaimsToSetInEvent,
+    private Map<String, String> getClaimValues(String userId, List<String> requestedClaims,
                                                UniqueIDUserStoreManager userStoreManager)
             throws ActionExecutionRequestBuilderException {
 
         try {
             Map<String, String> claimValues = userStoreManager.getUserClaimValuesWithID(userId,
-                    userClaimsToSetInEvent.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
+                    requestedClaims.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
 
             // Filter out the extra claims that are not requested.
-            return userClaimsToSetInEvent.stream()
+            return requestedClaims.stream()
                     .filter(claimValues::containsKey)
                     .collect(Collectors.toMap(Function.identity(), claimValues::get));
         } catch (org.wso2.carbon.user.core.UserStoreException e) {

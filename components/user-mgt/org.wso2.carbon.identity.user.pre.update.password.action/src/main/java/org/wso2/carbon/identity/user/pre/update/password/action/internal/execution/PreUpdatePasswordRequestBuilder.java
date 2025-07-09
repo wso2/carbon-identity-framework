@@ -269,15 +269,15 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
     }
 
-    private Map<String, String> getClaimValues(String userId, List<String> userClaimsToSetInEvent)
+    private Map<String, String> getClaimValues(String userId, List<String> requestedClaims)
             throws ActionExecutionRequestBuilderException {
 
         try {
             Map<String, String> claimValues = getUserStoreManager().getUserClaimValuesWithID(userId,
-                    userClaimsToSetInEvent.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
+                    requestedClaims.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
 
             // Filter out the extra claims that are not requested.
-            return userClaimsToSetInEvent.stream()
+            return requestedClaims.stream()
                     .filter(claimValues::containsKey)
                     .collect(Collectors.toMap(Function.identity(), claimValues::get));
         } catch (UserStoreException e) {
