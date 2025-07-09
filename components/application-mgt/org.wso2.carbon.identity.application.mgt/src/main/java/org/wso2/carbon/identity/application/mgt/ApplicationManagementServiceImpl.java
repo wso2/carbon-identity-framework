@@ -2912,7 +2912,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String getSharedAppId(String mainAppId, String ownerOrgId, String sharedOrgId)
             throws IdentityApplicationManagementServerException {
 
-        return  ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Getting the shared app id for main app id: %s of owner org: %s and shared org: %s",
+                    mainAppId, ownerOrgId, sharedOrgId));
+        }
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
                 .getSharedAppId(mainAppId, ownerOrgId, sharedOrgId);
     }
 

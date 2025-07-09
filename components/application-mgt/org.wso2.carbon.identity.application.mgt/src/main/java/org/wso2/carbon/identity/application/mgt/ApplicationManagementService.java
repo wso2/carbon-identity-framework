@@ -566,13 +566,13 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     }
 
     /**
-     * Get shared application ID in given shared organization for given main application.s
+     * Get shared application id in given shared organization for given main application.
      *
-     * @param mainAppId   ID of the main application.
-     * @param ownerOrgId  ID of the organization which owns the main application.
-     * @param sharedOrgId ID of the organization which shares the main application.
-     * @return ID of the shared application.
-     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the shared app ID.
+     * @param mainAppId   Main application id.
+     * @param ownerOrgId  Owner organization id of the main application.
+     * @param sharedOrgId Shared organization id where the application is shared.
+     * @return Shared application id in the given shared organization.
+     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the shared app id.
      */
     public String getSharedAppId(String mainAppId, String ownerOrgId, String sharedOrgId)
             throws IdentityApplicationManagementServerException {

@@ -6172,12 +6172,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     return resultSet.getString(DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID);
                 }
             }
-            return null;
         } catch (SQLException e) {
             throw new IdentityApplicationManagementServerException(
                     String.format("Error while getting shared application id for the main application with id: %s " +
                             "in organization: %s for shared organization: %s", mainAppId, ownerOrgId, sharedOrgId), e);
         }
+        return null;
     }
 
     @Override
