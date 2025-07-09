@@ -41,7 +41,7 @@ public interface SubscriptionManagementService {
      * @return List of subscriptions that were successfully subscribed.
      * @throws SubscriptionManagementException If an error occurs during subscription.
      */
-    public List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String adaptor,
+    List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String adaptor,
                                         String tenantDomain)
             throws SubscriptionManagementException;
 
@@ -55,7 +55,7 @@ public interface SubscriptionManagementService {
      * @return List of subscriptions that were successfully unsubscribed.
      * @throws SubscriptionManagementException If an error occurs during unsubscription.
      */
-    public List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String adaptor,
+    List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String adaptor,
                                           String tenantDomain)
             throws SubscriptionManagementException;
 }
