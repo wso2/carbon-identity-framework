@@ -32,6 +32,9 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
 
+/**
+ * WorkflowAuditLogger is a listener that logs audit information for workflow management operations.
+ */
 public class WorkflowAuditLogger extends AbstractWorkflowListener {
 
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;

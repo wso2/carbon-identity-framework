@@ -50,6 +50,7 @@ import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
@@ -82,15 +83,14 @@ public class FlowExecutionEngineUtils {
     /**
      * Retrieve flow context from cache.
      *
-     * @param flowType Type of the flow.
      * @param contextId Context identifier.
      * @return Flow context.
      * @throws FlowEngineException Flow engined exception.
      */
-    public static FlowExecutionContext retrieveFlowContextFromCache(String flowType, String contextId) throws FlowEngineException {
+    public static FlowExecutionContext retrieveFlowContextFromCache(String contextId) throws FlowEngineException {
 
         if (contextId == null) {
-            throw handleClientException(ERROR_CODE_UNDEFINED_FLOW_ID, flowType);
+            throw handleClientException(ERROR_CODE_UNDEFINED_FLOW_ID);
         }
         FlowExecCtxCacheEntry entry =
                 FlowExecCtxCache.getInstance().getValueFromCache(new FlowExecCtxCacheKey(contextId));
@@ -131,6 +131,9 @@ public class FlowExecutionEngineUtils {
             throws FlowEngineException {
 
         try {
+            if (StringUtils.isBlank(flowType)) {
+                throw handleClientException(ERROR_CODE_FLOW_TYPE_NOT_PROVIDED);
+            }
             FlowExecutionContext context = new FlowExecutionContext();
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             GraphConfig graphConfig =
@@ -156,17 +159,16 @@ public class FlowExecutionEngineUtils {
     /**
      * Rollback the flow context.
      *
-     * @param flowType Type of the flow.
      * @param contextId Context identifier.
      */
-    public static void rollbackContext(String flowType, String contextId) {
+    public static void rollbackContext(String contextId) {
 
         if (StringUtils.isBlank(contextId)) {
             LOG.debug("Context id is null or empty. Hence skipping rollback of the flow context.");
             return;
         }
         try {
-            FlowExecutionContext context = retrieveFlowContextFromCache(flowType, contextId);
+            FlowExecutionContext context = retrieveFlowContextFromCache(contextId);
             if (context != null) {
                 context.getCompletedNodes().forEach((config) -> {
                     if (Constants.NodeTypes.TASK_EXECUTION.equals(config.getType())) {

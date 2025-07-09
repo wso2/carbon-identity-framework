@@ -383,6 +383,21 @@ public interface ApplicationDAO {
     }
 
     /**
+     * Method that returns the shared application id in the given shared organization for the given main application.
+     *
+     * @param mainAppId   Main application id.
+     * @param ownerOrgId  Owner organization id of the main application.
+     * @param sharedOrgId Shared organization id for which the shared application id is requested.
+     * @return Shared application id in the given shared organization for the given main application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining shared application id.
+     */
+    default String getSharedAppId(String mainAppId, String ownerOrgId, String sharedOrgId)
+            throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
      * Method that returns the id the owner organization of the main application of the given shared app.
      *
      * @param sharedAppId Shared application id.

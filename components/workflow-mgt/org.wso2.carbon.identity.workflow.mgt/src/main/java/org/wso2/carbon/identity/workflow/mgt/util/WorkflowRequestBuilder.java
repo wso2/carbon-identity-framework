@@ -36,6 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Workflow request builder class.
+ */
 public class WorkflowRequestBuilder {
 
     private static final String WF_NS = "http://schema.bpel.mgt.workflow.carbon.wso2.org/";
@@ -147,7 +150,7 @@ public class WorkflowRequestBuilder {
      * @throws WorkflowRuntimeException
      */
     public static OMElement buildXMLRequest(WorkflowRequest workFlowRequest, Map<String, Object> initParams) throws
-                                                                                                             WorkflowRuntimeException {
+            WorkflowRuntimeException {
 
         WorkflowRequestBuilder requestBuilder = new WorkflowRequestBuilder(workFlowRequest.getUuid(),
                                                                            workFlowRequest.getEventType());
@@ -359,8 +362,8 @@ public class WorkflowRequestBuilder {
         // to check the condition. For now I have commented following two lines to decouple BPELstuff from this xml
         // builder. In future we need to framework own format for this.
 
-        String ht = "";// (String)this.initParams.get(WFConstant.TemplateConstants.HT_SUBJECT);
-        String htDesc = "";// (String)this.initParams.get(WFConstant.TemplateConstants.HT_DESCRIPTION);
+        String ht = ""; // (String)this.initParams.get(WFConstant.TemplateConstants.HT_SUBJECT);
+        String htDesc = ""; // (String)this.initParams.get(WFConstant.TemplateConstants.HT_DESCRIPTION);
 
         final Map<String, Map<String, List<String>>> approvalStepMap = getApprovalStepMap();
 
