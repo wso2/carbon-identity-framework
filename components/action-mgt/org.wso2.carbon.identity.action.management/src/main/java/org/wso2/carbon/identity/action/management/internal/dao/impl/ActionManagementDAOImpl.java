@@ -347,7 +347,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             // Deletes existing endpoint config.
             deleteEndpoint(existingActionDTO.getId(), existingActionDTO.getEndpoint(), tenantId);
             // Adds updated action config.
-            ActionDTO actionDTO = buildActionDTOWithEndpoint(updatingActionDTO, existingActionDTO);
+            ActionDTO actionDTO = actionMgtDAOUtil.buildActionDTOWithEndpoint(updatingActionDTO, existingActionDTO);
             addEndpoint(actionDTO, tenantId);
         } catch (ActionMgtException e) {
             throw new ActionMgtServerException("Error while updating Action Endpoint information in the system.", e);
@@ -415,9 +415,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 throw new ActionMgtServerException("Authentication type is not defined for the Action Endpoint.");
         }
         List<String> allowedHeaders = actionMgtDAOUtil
-                .resolveListFromBinaryObject(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
+                .readDBListProperty(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
         List<String> allowedParameters = actionMgtDAOUtil
-                .resolveListFromBinaryObject(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
+                .readDBListProperty(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
 
         return new EndpointConfig.EndpointConfigBuilder()
                 .uri(propertiesFromDB.remove(URI_PROPERTY).getValue().toString())
@@ -425,40 +425,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 .allowedHeaders(allowedHeaders)
                 .allowedParameters(allowedParameters)
                 .build();
-    }
-
-    /**
-     * Builds an updated Action DTO by merging the updated endpoint configuration with the existing action.
-     *
-     * @param updatingActionDTO Updating Action DTO.
-     * @param existingActionDTO Existing Action DTO.
-     * @return Resolved Action DTO with the updated endpoint config.
-     */
-    private ActionDTO buildActionDTOWithEndpoint(ActionDTO updatingActionDTO, ActionDTO existingActionDTO) {
-
-        ActionDTOBuilder builder = new ActionDTOBuilder(existingActionDTO);
-        EndpointConfig.EndpointConfigBuilder endpointBuilder =
-                new EndpointConfig.EndpointConfigBuilder(existingActionDTO.getEndpoint());
-
-        EndpointConfig updatingEndpoint = updatingActionDTO.getEndpoint();
-        if (updatingEndpoint.getUri() != null) {
-            endpointBuilder.uri(updatingEndpoint.getUri());
-        }
-        if (updatingEndpoint.getAllowedHeaders() != null) {
-            endpointBuilder.allowedHeaders(updatingEndpoint.getAllowedHeaders());
-        }
-        if (updatingEndpoint.getAllowedParameters() != null) {
-            endpointBuilder.allowedParameters(updatingEndpoint.getAllowedParameters());
-        }
-
-        // If endpoint authentication is updated.
-        Authentication updatingAuthentication = updatingEndpoint.getAuthentication();
-        if (updatingAuthentication != null) {
-            endpointBuilder = endpointBuilder.authentication(updatingAuthentication);
-        }
-
-        builder = builder.endpoint(endpointBuilder.build());
-        return builder.build();
     }
 
     /**
