@@ -22,8 +22,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
+import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
 import java.util.List;
 import java.util.Map;
@@ -34,17 +37,22 @@ import java.util.Map;
 public class ActionManagementDAOUtil {
 
     /**
-     * Read a list of allowed headers and parameters from the database based on the given property name.
+     * Reads a database property from the given map of properties and converts it into a list of strings.
      *
-     * @param properties            A map of action properties retrieved from the database.
-     * @param dbPropertyToRead     The name of the property to read from the database.
-     * @return A list of allowed properties as strings.
-     * @throws ActionMgtServerException If an error occurs while reading the property from the database.
+     * @param properties       Map of properties where the database property is stored.
+     * @param dbPropertyToRead The key of the database property to read.
+     * @return A list of strings representing the database property value.
+     * @throws ActionMgtServerException If the property does not exist or cannot be processed.
      */
-    public List<String> resolveListFromBinaryObject(Map<String, ActionProperty> properties,
-                                                    String dbPropertyToRead) throws ActionMgtServerException {
+    public List<String> readDBListProperty(Map<String, ActionProperty> properties,
+                                           String dbPropertyToRead) throws ActionMgtServerException {
 
-        Object dbValueBinary = properties.remove(dbPropertyToRead).getValue();
+        ActionProperty dbActionProperty = properties.remove(dbPropertyToRead);
+        if (dbActionProperty == null) {
+            throw new ActionMgtServerException(dbPropertyToRead + " does not exist in the DB.");
+        }
+
+        Object dbValueBinary = dbActionProperty.getValue();
         String dbValueJSON = ((BinaryObject) dbValueBinary).getJSONString();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -72,5 +80,39 @@ public class ActionManagementDAOUtil {
         } catch (JsonProcessingException e) {
             throw new ActionMgtServerException("Failed to convert the list to JSON string.", e);
         }
+    }
+
+    /**
+     * Builds an updated Action DTO by merging the updated endpoint configuration with the existing action.
+     *
+     * @param updatingActionDTO Updating Action DTO.
+     * @param existingActionDTO Existing Action DTO.
+     * @return Resolved Action DTO with the updated endpoint config.
+     */
+    public ActionDTO buildActionDTOWithEndpoint(ActionDTO updatingActionDTO, ActionDTO existingActionDTO) {
+
+        ActionDTOBuilder builder = new ActionDTOBuilder(existingActionDTO);
+        EndpointConfig.EndpointConfigBuilder endpointBuilder =
+                new EndpointConfig.EndpointConfigBuilder(existingActionDTO.getEndpoint());
+
+        EndpointConfig updatingEndpoint = updatingActionDTO.getEndpoint();
+        if (updatingEndpoint.getUri() != null) {
+            endpointBuilder.uri(updatingEndpoint.getUri());
+        }
+        if (updatingEndpoint.getAllowedHeaders() != null) {
+            endpointBuilder.allowedHeaders(updatingEndpoint.getAllowedHeaders());
+        }
+        if (updatingEndpoint.getAllowedParameters() != null) {
+            endpointBuilder.allowedParameters(updatingEndpoint.getAllowedParameters());
+        }
+
+        // If endpoint authentication is updated.
+        Authentication updatingAuthentication = updatingEndpoint.getAuthentication();
+        if (updatingAuthentication != null) {
+            endpointBuilder = endpointBuilder.authentication(updatingAuthentication);
+        }
+
+        builder = builder.endpoint(endpointBuilder.build());
+        return builder.build();
     }
 }

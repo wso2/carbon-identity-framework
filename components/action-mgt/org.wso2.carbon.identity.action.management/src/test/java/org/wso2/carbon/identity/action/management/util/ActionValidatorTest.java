@@ -25,7 +25,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
-import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.action.management.internal.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -236,7 +235,7 @@ public class ActionValidatorTest {
         return new Object[][]{
                 { allowedHeadersTest1,  null},
                 { allowedHeadersTest2, "Allowed headers is empty." },
-                { allowedHeadersTest3, ActionMgtConstants.ALLOWED_HEADERS_FIELD + " is invalid." }
+                { allowedHeadersTest3, allowedHeadersTest3.get(0) + " is invalid." }
         };
     }
 
