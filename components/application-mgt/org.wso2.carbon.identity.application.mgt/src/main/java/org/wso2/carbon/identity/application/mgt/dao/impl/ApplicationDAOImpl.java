@@ -6158,6 +6158,29 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
+    public String getSharedAppId(String mainAppId, String ownerOrgId, String sharedOrgId)
+            throws IdentityApplicationManagementServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(connection,
+                     ApplicationMgtDBQueries.GET_SHARED_APP_ID_BY_MAIN_APP_ID)) {
+            namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID, mainAppId);
+            namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID, ownerOrgId);
+            namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SHARED_ORG_ID, sharedOrgId);
+            try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getString(DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID);
+                }
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while getting shared application id for the main application with id: %s " +
+                            "in organization: %s for shared organization: %s", mainAppId, ownerOrgId, sharedOrgId), e);
+        }
+    }
+
+    @Override
     public String getOwnerOrgId(String sharedAppId) throws IdentityApplicationManagementServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
