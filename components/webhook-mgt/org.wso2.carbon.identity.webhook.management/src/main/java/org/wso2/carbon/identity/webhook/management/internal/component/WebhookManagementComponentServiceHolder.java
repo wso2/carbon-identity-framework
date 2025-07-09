@@ -41,6 +41,7 @@ public class WebhookManagementComponentServiceHolder {
     private TopicManagementService topicManagementService;
     private SubscriptionManagementService subscriptionManagementService;
     private WebhookMetadataService webhookMetadataService;
+    private String webhookAdaptor;
     private WebhookAdaptorType webhookAdaptorType;
 
     private WebhookManagementComponentServiceHolder() {
@@ -153,6 +154,27 @@ public class WebhookManagementComponentServiceHolder {
     }
 
     /**
+     * Get the webhook adaptor.
+     *
+     * @return WebhookAdaptor instance.
+     */
+    public String getWebhookAdaptor() {
+
+        return webhookAdaptor;
+    }
+
+    /**
+     * Set the webhook adaptor.
+     *
+     * @param webhookAdaptor WebhookAdaptor instance.
+     */
+    public void setWebhookAdaptor(String webhookAdaptor) {
+
+        this.webhookAdaptor = webhookAdaptor;
+        LOG.debug("Webhook adaptor set to " + webhookAdaptor);
+    }
+
+    /**
      * Get the webhook adaptor type.
      *
      * @return WebhookAdaptorType instance.
@@ -170,6 +192,6 @@ public class WebhookManagementComponentServiceHolder {
     public void setWebhookAdaptorType(WebhookAdaptorType webhookAdaptorType) {
 
         this.webhookAdaptorType = webhookAdaptorType;
-        LOG.debug("Webhook adaptor type set to " + webhookAdaptorType);
+        LOG.debug("Webhook adaptor set to type " + webhookAdaptorType);
     }
 }

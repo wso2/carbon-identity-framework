@@ -47,7 +47,7 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
         if (handler == null) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_OPERATION_NOT_SUPPORTED, String.valueOf(
-                            WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()));
+                            WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptor()));
         }
         return handler;
     }

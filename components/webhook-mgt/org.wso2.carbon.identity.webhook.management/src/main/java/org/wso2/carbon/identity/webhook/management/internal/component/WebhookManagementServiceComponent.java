@@ -38,6 +38,10 @@ import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagement
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
+import java.util.Map;
+
+import static org.wso2.carbon.identity.webhook.management.internal.constant.WebhookMgtConstants.TYPE_KEY;
+
 /**
  * WebhookManagementServiceComponent is responsible for registering the webhook management service
  * in the OSGi runtime.
@@ -63,7 +67,13 @@ public class WebhookManagementServiceComponent {
             bundleContext.registerService(WebhookManagementService.class.getName(),
                     WebhookManagementServiceImpl.getInstance(), null);
             WebhookManagementComponentServiceHolder.getInstance()
-                    .setWebhookAdaptorType(WebhookAdaptorType.valueOf(IdentityUtil.getWebhooksAdaptorType()));
+                    .setWebhookAdaptor(IdentityUtil.getWebhooksAdaptor());
+            String adaptor = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptor();
+            Map<String, String> adaptorProps =
+                    WebhookManagementComponentServiceHolder.getInstance().getWebhookMetadataService()
+                            .getWebhookAdaptorProperties(adaptor);
+            WebhookManagementComponentServiceHolder.getInstance()
+                    .setWebhookAdaptorType(WebhookAdaptorType.valueOf(adaptorProps.get(TYPE_KEY)));
             LOG.debug("WebhookManagementService is activated");
         } catch (Throwable e) {
             LOG.error("Error while activating WebhookManagementService", e);
