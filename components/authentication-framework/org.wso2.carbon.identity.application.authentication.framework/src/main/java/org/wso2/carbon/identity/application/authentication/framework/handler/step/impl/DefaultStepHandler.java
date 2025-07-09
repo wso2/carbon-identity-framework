@@ -745,7 +745,13 @@ public class DefaultStepHandler implements StepHandler {
 
         try {
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
-            AuthenticatorFlowStatus status = authenticator.process(request, response, context);
+            AuthenticatorFlowStatus status;
+            if (authenticator.isAuthenticationRequired(request, response, context)) {
+                status = authenticator.process(request, response, context);
+            } else {
+                // If the authenticator does not require authentication based on the assertion, we can skip the process.
+                status = AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+            }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
              we need to send the auth initiation data in order to support performing API based authentication.*/

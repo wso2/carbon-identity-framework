@@ -38,6 +38,8 @@ public class Constants {
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
     public static final String WEBAUTHN_DATA = "webAuthnData";
+    public static final String AUTHENTICATION_ASSERTION_LIFETIME = "authenticationAssertionLifetime";
+
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
 
@@ -128,6 +130,9 @@ public class Constants {
                 "Error while executing flow execution listener.",
                 "Error occurred while executing the flow execution listener: %s for the %s " +
                         "request of flow id: %s."),
+        ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE("65022",
+                "Error while generating authentication assertion.",
+                "Error occurred while generating the authentication assertion for the flow id: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",

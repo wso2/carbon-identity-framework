@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
@@ -29,8 +30,11 @@ import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngi
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REGISTRATION_FLOW_TYPE;
@@ -101,6 +105,11 @@ public class FlowExecutionService {
             }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
                 FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
+                if (step.getData() == null) {
+                    step.setData(new DataDTO.Builder().additionalData(new HashMap<>()).build());
+                }
+                step.getData().addAdditionalData(FrameworkConstants.USER_ASSERTION,
+                        AuthenticationAssertionUtils.getSignedUserAssertion(context));
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);
             }
