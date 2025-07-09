@@ -16,22 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.internal.constant;
+package org.wso2.carbon.identity.webhook.metadata.internal.constant;
 
 /**
- * Constants for Webhook Management.
+ * Constants for Webhook Metadata Service.
  */
-public class WebhookMgtConstants {
+public class WebhookMetadataConstants {
 
-    public static final String WEBHOOK_NAME_FIELD = "Webhook name";
-    public static final String ENDPOINT_URI_FIELD = "Endpoint URI";
-    public static final String EVENT_PROFILE_NAME_FIELD = "Event Profile Name";
-    public static final String EVENT_PROFILE_URI_FIELD = "Event Profile URI";
-    public static final String CHANNELS_SUBSCRIBED_FIELD = "Channels Subscribed";
-    public static final String SECRET_FIELD = "Secret";
-    public static final String STATUS_FIELD = "Status";
+    public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
+    public static final String ADAPTER_PREFIX = "adapter.";
+    public static final String ENABLED_KEY = "enabled";
+    public static final String ENABLED_VALUE_TRUE = "true";
 
-    private WebhookMgtConstants() {
+    private WebhookMetadataConstants() {
 
     }
 }

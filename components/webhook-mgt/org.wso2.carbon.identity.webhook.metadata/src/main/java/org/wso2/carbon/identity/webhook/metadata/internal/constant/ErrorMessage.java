@@ -37,7 +37,13 @@ public enum ErrorMessage {
     ERROR_CODE_PROFILE_FILES_LOAD_ERROR("WEBHOOKMETA-66004", "Error occurred while loading profile files",
             "An internal server error occurred while loading event profile files from the directory."),
     ERROR_CODE_DIRECTORY_NOT_FOUND("WEBHOOKMETA-66005", "Directory not found",
-            "The specified directory %s does not exist or is not accessible.");
+            "The specified directory %s does not exist or is not accessible."),
+    ERROR_CODE_CONFIG_FILE_NOT_FOUND("WEBHOOKMETA-66006", "Configuration file not found",
+            "The configuration file %s does not exist or is not accessible."),
+    ERROR_CODE_CONFIG_FILE_READ_ERROR("WEBHOOKMETA-66007", "Error reading configuration file",
+            "An error occurred while reading the configuration file %s. Please check the file format and permissions."),
+    ERROR_CODE_NO_ENABLED_ADAPTOR("WEBHOOKMETA-66008", "No enabled adaptor found",
+            "No enabled adaptor found for the name %s. Please ensure the adaptor is configured and enabled.");
 
     private final String code;
     private final String message;

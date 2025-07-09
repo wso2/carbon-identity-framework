@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.internal.dao.impl.adaptor.handler;
+package org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler;
 
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -35,21 +35,23 @@ import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
-import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOFacade;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PublisherSubscriberAdaptorHandler implements WebhookManagementDAO {
+/**
+ * Handler for managing webhooks specifically for the Publisher-Subscriber Adaptor type.
+ * This class extends the AdaptorTypeHandler to provide implementations for
+ * webhook management operations such as creating, retrieving, updating, and deleting webhooks.
+ */
+public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
 
     private final WebhookManagementDAO dao;
-    private final WebhookManagementDAOFacade facade;
 
-    public PublisherSubscriberAdaptorHandler(WebhookManagementDAO dao, WebhookManagementDAOFacade facade) {
+    public PublisherSubscriberAdaptorTypeHandler(WebhookManagementDAO dao) {
 
         this.dao = dao;
-        this.facade = facade;
     }
 
     @Override
@@ -111,10 +113,9 @@ public class PublisherSubscriberAdaptorHandler implements WebhookManagementDAO {
         } else {
             webhookToPersist = webhook;
         }
-        facade.runTransaction(jdbcTemplate,
-                () -> dao.createWebhook(facade.encryptAddingWebhookSecrets(webhookToPersist), tenantId),
-                ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR,
-                "creating webhook: " + webhook.getId() + " in tenant ID: " + tenantId);
+        runTransaction(jdbcTemplate,
+                () -> dao.createWebhook(encryptAddingWebhookSecrets(webhookToPersist), tenantId),
+                ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR);
     }
 
     @Override
@@ -147,11 +148,10 @@ public class PublisherSubscriberAdaptorHandler implements WebhookManagementDAO {
         if (existingWebhook.getStatus() == WebhookStatus.INACTIVE ||
                 existingWebhook.getStatus() == WebhookStatus.PARTIALLY_INACTIVE) {
             NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-            facade.runTransaction(jdbcTemplate, () -> {
-                        dao.deleteWebhook(webhookId, tenantId);
-                        facade.deleteWebhookSecrets(existingWebhook);
-                    }, ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR,
-                    "deleting webhook: " + webhookId + " in tenant ID: " + tenantId);
+            runTransaction(jdbcTemplate, () -> {
+                dao.deleteWebhook(webhookId, tenantId);
+                deleteWebhookSecrets(existingWebhook);
+            }, ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR);
         }
     }
 
@@ -189,7 +189,7 @@ public class PublisherSubscriberAdaptorHandler implements WebhookManagementDAO {
                     .eventProfileVersion(webhook.getEventProfileVersion())
                     .eventProfileName(webhook.getEventProfileName())
                     .endpoint(webhook.getEndpoint())
-                    .secret(facade.getWebhookDecryptedSecretValue(webhook.getId()))
+                    .secret(getWebhookDecryptedSecretValue(webhook.getId()))
                     .build();
             try {
                 allResults = subscriptionManagementService.subscribe(subscriptionRequest,
@@ -302,7 +302,7 @@ public class PublisherSubscriberAdaptorHandler implements WebhookManagementDAO {
                         .eventProfileVersion(webhook.getEventProfileVersion())
                         .eventProfileName(webhook.getEventProfileName())
                         .endpoint(webhook.getEndpoint())
-                        .secret(facade.getWebhookDecryptedSecretValue(webhook.getId()))
+                        .secret(getWebhookDecryptedSecretValue(webhook.getId()))
                         .build();
                 try {
                     allResults = subscriptionManagementService.subscribe(subscriptionRequest,

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.internal.dao.impl.adaptor.handler;
+package org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler;
 
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -25,30 +25,31 @@ import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtExcep
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
-import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOFacade;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
 import java.util.List;
 
-public class PublisherAdaptorHandler implements WebhookManagementDAO {
+/**
+ * Handler for managing webhooks specifically for the Publisher Adaptor type.
+ * This class extends the AdaptorTypeHandler to provide implementations for
+ * webhook management operations such as creating, retrieving, updating, and deleting webhooks.
+ */
+public class PublisherAdaptorTypeHandler extends AdaptorTypeHandler {
 
     private final WebhookManagementDAO dao;
-    private final WebhookManagementDAOFacade facade;
 
-    public PublisherAdaptorHandler(WebhookManagementDAO dao, WebhookManagementDAOFacade facade) {
+    public PublisherAdaptorTypeHandler(WebhookManagementDAO dao) {
 
         this.dao = dao;
-        this.facade = facade;
     }
 
     @Override
     public void createWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        facade.runTransaction(jdbcTemplate,
-                () -> dao.createWebhook(facade.encryptAddingWebhookSecrets(webhook), tenantId),
-                ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR,
-                "creating webhook: " + webhook.getId() + " in tenant ID: " + tenantId);
+        runTransaction(jdbcTemplate,
+                () -> dao.createWebhook(encryptAddingWebhookSecrets(webhook), tenantId),
+                ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR);
     }
 
     @Override
@@ -74,11 +75,10 @@ public class PublisherAdaptorHandler implements WebhookManagementDAO {
 
         Webhook existingWebhook = dao.getWebhook(webhookId, tenantId);
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        facade.runTransaction(jdbcTemplate, () -> {
-                    dao.deleteWebhook(webhookId, tenantId);
-                    facade.deleteWebhookSecrets(existingWebhook);
-                }, ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR,
-                "deleting webhook: " + webhookId + " in tenant ID: " + tenantId);
+        runTransaction(jdbcTemplate, () -> {
+            dao.deleteWebhook(webhookId, tenantId);
+            deleteWebhookSecrets(existingWebhook);
+        }, ErrorMessage.ERROR_CODE_WEBHOOK_DELETE_ERROR);
     }
 
     @Override

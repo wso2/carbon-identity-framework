@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service interface for webhook metadata operations.
@@ -54,4 +55,13 @@ public interface WebhookMetadataService {
      * @throws WebhookMetadataException If an error occurs while retrieving events
      */
     List<Event> getEventsByProfileURI(String profileUri) throws WebhookMetadataException;
+
+    /**
+     * Get the properties of the enabled adaptor with the given name.
+     *
+     * @param adaptor Name of the adaptor.
+     * @return Map of property key-value pairs for the enabled adaptor.
+     * @throws WebhookMetadataException If an error occurs or no enabled adaptor is found.
+     */
+    Map<String, String> getWebhookAdaptorProperties(String adaptor) throws WebhookMetadataException;
 }

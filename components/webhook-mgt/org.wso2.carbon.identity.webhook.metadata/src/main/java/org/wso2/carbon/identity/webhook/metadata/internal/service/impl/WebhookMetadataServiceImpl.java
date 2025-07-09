@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebh
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
@@ -104,5 +105,11 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
             throw WebhookMetadataExceptionHandler.handleServerException(
                     ERROR_CODE_EVENTS_RETRIEVE_ERROR, e, profileUri);
         }
+    }
+
+    @Override
+    public Map<String, String> getWebhookAdaptorProperties(String adaptor) throws WebhookMetadataException {
+
+        return webhookMetadataDAO.getEnabledAdaptorProperties(adaptor);
     }
 }
