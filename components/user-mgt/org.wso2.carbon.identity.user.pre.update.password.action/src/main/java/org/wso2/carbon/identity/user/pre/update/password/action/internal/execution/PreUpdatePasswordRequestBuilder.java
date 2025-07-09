@@ -67,7 +67,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.GROUP_CLAIM_URI;
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.ROLE_CLAIM_URI;
@@ -259,14 +261,25 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             return;
         }
 
+        Map<String, String> claimValues = getClaimValues(userActionContext.getUserActionRequestDTO().getUserId(),
+                userClaimsToSetInEvent);
+        String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+
+        setClaimsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
+        setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
+    }
+
+    private Map<String, String> getClaimValues(String userId, List<String> userClaimsToSetInEvent)
+            throws ActionExecutionRequestBuilderException {
+
         try {
-            Map<String, String> claimValues = getUserStoreManager().getUserClaimValuesWithID(
-                    userActionContext.getUserActionRequestDTO().getUserId(),
+            Map<String, String> claimValues = getUserStoreManager().getUserClaimValuesWithID(userId,
                     userClaimsToSetInEvent.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
 
-            String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
-            setClaimsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
-            setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
+            // Filter out the extra claims that are not requested.
+            return userClaimsToSetInEvent.stream()
+                    .filter(claimValues::containsKey)
+                    .collect(Collectors.toMap(Function.identity(), claimValues::get));
         } catch (UserStoreException e) {
             throw new ActionExecutionRequestBuilderException("Failed to retrieve user claims from user store.", e);
         }

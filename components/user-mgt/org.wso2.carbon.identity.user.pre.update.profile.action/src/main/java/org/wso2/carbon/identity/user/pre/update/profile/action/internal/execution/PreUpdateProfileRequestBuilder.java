@@ -55,7 +55,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Pre Update Profile Action Request Builder.
@@ -168,18 +170,31 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
             return userBuilder.build();
         }
 
-        try {
-            Map<String, String> claimValues = userStoreManager.getUserClaimValuesWithID(
-                    userActionRequestDTO.getUserId(), userClaimsToSetInEvent.toArray(new String[0]),
-                    UserCoreConstants.DEFAULT_PROFILE);
+        Map<String, String> claimValues = getClaimValues(userActionRequestDTO.getUserId(), userClaimsToSetInEvent,
+                userStoreManager);
+        String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
-            String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
-            setClaimsInUserBuilder(userBuilder, claimValues, userActionRequestDTO.getClaims(), multiAttributeSeparator);
-            setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
+        setClaimsInUserBuilder(userBuilder, claimValues, userActionRequestDTO.getClaims(), multiAttributeSeparator);
+        setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
+
+        return userBuilder.build();
+    }
+
+    private Map<String, String> getClaimValues(String userId, List<String> userClaimsToSetInEvent,
+                                               UniqueIDUserStoreManager userStoreManager)
+            throws ActionExecutionRequestBuilderException {
+
+        try {
+            Map<String, String> claimValues = userStoreManager.getUserClaimValuesWithID(userId,
+                    userClaimsToSetInEvent.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
+
+            // Filter out the extra claims that are not requested.
+            return userClaimsToSetInEvent.stream()
+                    .filter(claimValues::containsKey)
+                    .collect(Collectors.toMap(Function.identity(), claimValues::get));
         } catch (org.wso2.carbon.user.core.UserStoreException e) {
             throw new ActionExecutionRequestBuilderException("Failed to retrieve user claims from user store.", e);
         }
-        return userBuilder.build();
     }
 
     private void setClaimsInUserBuilder(User.Builder userBuilder, Map<String, String> claimValues,
