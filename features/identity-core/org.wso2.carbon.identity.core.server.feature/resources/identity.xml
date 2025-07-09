@@ -1279,6 +1279,7 @@
 
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
+        <AdapterType>Publisher</AdapterType>
     </Webhooks>
 
     <EventListeners>

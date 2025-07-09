@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookAdapterType;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 /**
@@ -40,6 +41,7 @@ public class WebhookManagementComponentServiceHolder {
     private TopicManagementService topicManagementService;
     private SubscriptionManagementService subscriptionManagementService;
     private WebhookMetadataService webhookMetadataService;
+    private WebhookAdapterType webhookAdapterType;
 
     private WebhookManagementComponentServiceHolder() {
 
@@ -148,5 +150,26 @@ public class WebhookManagementComponentServiceHolder {
     public void setWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
 
         this.webhookMetadataService = webhookMetadataService;
+    }
+
+    /**
+     * Get the webhook adapter type.
+     *
+     * @return WebhookAdapterType instance.
+     */
+    public WebhookAdapterType getWebhookAdapterType() {
+
+        return webhookAdapterType;
+    }
+
+    /**
+     * Set the webhook adapter type.
+     *
+     * @param webhookAdapterType WebhookAdapterType instance.
+     */
+    public void setWebhookAdapterType(WebhookAdapterType webhookAdapterType) {
+
+        this.webhookAdapterType = webhookAdapterType;
+        LOG.debug("Webhook adapter type set to " + webhookAdapterType);
     }
 }

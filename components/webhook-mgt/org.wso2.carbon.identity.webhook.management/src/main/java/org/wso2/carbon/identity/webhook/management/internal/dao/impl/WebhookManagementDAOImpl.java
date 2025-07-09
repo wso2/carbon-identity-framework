@@ -219,10 +219,24 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     }
 
     @Override
+    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+
+        updateWebhookStatus(webhookId, tenantId, WebhookStatus.ACTIVE
+        );
+    }
+
+    @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         processWebhookStatusUpdate(webhook.getId(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR);
+    }
+
+    @Override
+    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+
+        updateWebhookStatus(webhookId, tenantId, WebhookStatus.INACTIVE
+        );
     }
 
     @Override
@@ -383,6 +397,28 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         } catch (TransactionException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
                     errorMessage, e, webhookId);
+        }
+    }
+
+    private void updateWebhookStatus(String webhookId, int tenantId, WebhookStatus status)
+            throws WebhookMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(
+                        WebhookSQLConstants.Query.UPDATE_WEBHOOK_STATUS,
+                        statement -> {
+                            statement.setString(WebhookSQLConstants.Column.STATUS, status.name());
+                            statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
+                            statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
+                        }
+                );
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR, e, webhookId);
         }
     }
 }

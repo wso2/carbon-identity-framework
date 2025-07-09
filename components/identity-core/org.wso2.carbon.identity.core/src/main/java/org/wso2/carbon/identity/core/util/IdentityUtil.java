@@ -127,6 +127,7 @@ public class IdentityUtil {
             ThreadLocal<Map<String, Object>>() {
                 @Override
                 protected Map<String, Object> initialValue() {
+
                     return new HashMap<>();
                 }
             };
@@ -134,7 +135,7 @@ public class IdentityUtil {
     private static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
     private static final String SHA1_ALGORITHM = "SHA1";
     private static final String SHA256_ALGORITHM = "SHA256";
-    private final static char[] ppidDisplayCharMap = new char[]{'Q', 'L', '2', '3', '4', '5',
+    private final static char[] ppidDisplayCharMap = new char[] {'Q', 'L', '2', '3', '4', '5',
             '6', '7', '8', '9', 'A', 'B', 'C',
             'D', 'E', 'F', 'G', 'H', 'J', 'K',
             'M', 'N', 'P', 'R', 'S', 'T', 'U',
@@ -166,7 +167,8 @@ public class IdentityUtil {
     private static final String HTTPS = "https";
     private static Boolean groupsVsRolesSeparationImprovementsEnabled;
     private static Boolean showLegacyRoleClaimOnGroupRoleSeparationEnabled;
-    private static String JAVAX_TRANSFORMER_PROP_VAL = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
+    private static String JAVAX_TRANSFORMER_PROP_VAL =
+            "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 
     // System Property for trust managers.
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
@@ -177,6 +179,7 @@ public class IdentityUtil {
      * @return
      */
     public static IdentityErrorMsgContext getIdentityErrorMsg() {
+
         if (IdentityError.get() == null) {
             return null;
         }
@@ -187,6 +190,7 @@ public class IdentityUtil {
      * @param error
      */
     public static void setIdentityErrorMsg(IdentityErrorMsgContext error) {
+
         IdentityError.set(error);
     }
 
@@ -194,6 +198,7 @@ public class IdentityUtil {
      *
      */
     public static void clearIdentityErrorMsg() {
+
         IdentityError.remove();
     }
 
@@ -258,8 +263,10 @@ public class IdentityUtil {
     }
 
     public static IdentityEventListenerConfig readEventListenerProperty(String type, String name) {
+
         IdentityEventListenerConfigKey identityEventListenerConfigKey = new IdentityEventListenerConfigKey(type, name);
-        IdentityEventListenerConfig identityEventListenerConfig = eventListenerConfiguration.get(identityEventListenerConfigKey);
+        IdentityEventListenerConfig identityEventListenerConfig =
+                eventListenerConfiguration.get(identityEventListenerConfigKey);
         return identityEventListenerConfig;
     }
 
@@ -272,6 +279,7 @@ public class IdentityUtil {
      * how the names are set in a clustered environment i.e. without the CachingConstants.LOCAL_CACHE_PREFIX.
      */
     public static IdentityCacheConfig getIdentityCacheConfig(String cacheManagerName, String cacheName) {
+
         IdentityCacheConfigKey configKey = new IdentityCacheConfigKey(cacheManagerName, cacheName);
         IdentityCacheConfig identityCacheConfig = identityCacheConfigurationHolder.get(configKey);
         if (identityCacheConfig == null && cacheName.startsWith(CachingConstants.LOCAL_CACHE_PREFIX)) {
@@ -283,11 +291,13 @@ public class IdentityUtil {
     }
 
     public static IdentityCookieConfig getIdentityCookieConfig(String cookieName) {
+
         return identityCookiesConfigurationHolder.get(cookieName);
     }
 
 
     public static Map<String, IdentityCookieConfig> getIdentityCookiesConfigurationHolder() {
+
         return identityCookiesConfigurationHolder;
     }
 
@@ -366,6 +376,7 @@ public class IdentityUtil {
     }
 
     public static void populateProperties() {
+
         configuration = IdentityConfigParser.getInstance().getConfiguration();
         eventListenerConfiguration = IdentityConfigParser.getInstance().getEventListenerConfiguration();
         identityCacheConfigurationHolder = IdentityConfigParser.getInstance().getIdentityCacheConfigurationHolder();
@@ -379,6 +390,7 @@ public class IdentityUtil {
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {
+
         if (log.isDebugEnabled()) {
             log.debug("Generating display value of PPID : " + value);
         }
@@ -415,10 +427,12 @@ public class IdentityUtil {
      * @return The serialized node as a java.lang.String instance.
      */
     public static String nodeToString(Node node) {
+
         return DOM2Writer.nodeToString(node);
     }
 
     public static String getHMAC(String secretKey, String baseString) throws SignatureException {
+
         try {
             String algorithm;
             if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256))) {
@@ -468,6 +482,7 @@ public class IdentityUtil {
      * @throws IdentityException Exception due to Invalid Algorithm or Invalid Key
      */
     public static String getRandomNumber() throws IdentityException {
+
         try {
             String secretKey = UUIDGenerator.generateUUID();
             String baseString = UUIDGenerator.generateUUID();
@@ -511,6 +526,7 @@ public class IdentityUtil {
     }
 
     public static String getIdentityConfigDirPath() {
+
         return CarbonUtils.getCarbonConfigDirPath() + File.separator + "identity";
     }
 
@@ -699,6 +715,7 @@ public class IdentityUtil {
      * @return String
      */
     public static String getServicePath() {
+
         return IdentityCoreServiceComponent.getConfigurationContextService().getServerConfigContext().getServicePath();
     }
 
@@ -813,9 +830,11 @@ public class IdentityUtil {
         try {
             UserRealm tenantUserRealm = IdentityTenantUtil.getRealmService().getTenantUserRealm(tenantId);
             if (tenantUserRealm != null) {
-                org.wso2.carbon.user.core.UserStoreManager userStoreManager = (org.wso2.carbon.user.core.UserStoreManager) tenantUserRealm
-                        .getUserStoreManager();
-                org.wso2.carbon.user.core.UserStoreManager userAvailableUserStoreManager = userStoreManager.getSecondaryUserStoreManager(userStoreDomain);
+                org.wso2.carbon.user.core.UserStoreManager userStoreManager =
+                        (org.wso2.carbon.user.core.UserStoreManager) tenantUserRealm
+                                .getUserStoreManager();
+                org.wso2.carbon.user.core.UserStoreManager userAvailableUserStoreManager =
+                        userStoreManager.getSecondaryUserStoreManager(userStoreDomain);
                 return isUserStoreCaseSensitive(userAvailableUserStoreManager);
             }
         } catch (UserStoreException e) {
@@ -875,6 +894,7 @@ public class IdentityUtil {
     }
 
     public static boolean isNotBlank(String input) {
+
         if (StringUtils.isNotBlank(input) && !"null".equals(input.trim())) {
             return true;
         } else {
@@ -883,6 +903,7 @@ public class IdentityUtil {
     }
 
     public static boolean isBlank(String input) {
+
         if (StringUtils.isBlank(input) || "null".equals(input.trim())) {
             return true;
         } else {
@@ -971,7 +992,8 @@ public class IdentityUtil {
         if (domainName != null && name != null && !name.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
             if (!UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME.equalsIgnoreCase(domainName)) {
                 if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domainName) ||
-                        WORKFLOW_DOMAIN.equalsIgnoreCase(domainName) || APPLICATION_DOMAIN.equalsIgnoreCase(domainName)) {
+                        WORKFLOW_DOMAIN.equalsIgnoreCase(domainName) ||
+                        APPLICATION_DOMAIN.equalsIgnoreCase(domainName)) {
                     name = domainName.substring(0, 1).toUpperCase() + domainName.substring(1).toLowerCase() +
                             UserCoreConstants.DOMAIN_SEPARATOR + name;
                 } else {
@@ -983,6 +1005,7 @@ public class IdentityUtil {
     }
 
     public static String getPrimaryDomainName() {
+
         RealmConfiguration realmConfiguration = IdentityTenantUtil.getRealmService().getBootstrapRealmConfiguration();
         if (realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME) != null) {
             return realmConfiguration.getUserStoreProperty(
@@ -993,7 +1016,9 @@ public class IdentityUtil {
     }
 
     public static boolean isValidFileName(String fileName) {
-        String fileNameRegEx = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.FILE_NAME_REGEX);
+
+        String fileNameRegEx =
+                ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.FILE_NAME_REGEX);
 
         if (isBlank(fileNameRegEx)) {
             fileNameRegEx = DEFAULT_FILE_NAME_REGEX;
@@ -1202,7 +1227,7 @@ public class IdentityUtil {
         StringBuilder queryString = new StringBuilder(baseUrl);
 
         if (parameterMap != null && parameterMap.size() > 0) {
-            if(queryString.indexOf("?") < 0) {
+            if (queryString.indexOf("?") < 0) {
                 queryString.append("?");
             } else {
                 queryString.append("&");
@@ -1231,6 +1256,7 @@ public class IdentityUtil {
     }
 
     public static String buildQueryComponent(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
+
         if (MapUtils.isEmpty(parameterMap)) {
             return StringUtils.EMPTY;
         }
@@ -1266,6 +1292,7 @@ public class IdentityUtil {
      * @return IP address of the initial client
      */
     public static String getClientIpAddress(HttpServletRequest request) {
+
         for (String header : IdentityConstants.HEADERS_WITH_IP) {
             String ip = request.getHeader(header);
             if (ip != null && ip.length() != 0 && !IdentityConstants.UNKNOWN.equalsIgnoreCase(ip)) {
@@ -1282,6 +1309,7 @@ public class IdentityUtil {
      * @return First IP
      */
     public static String getFirstIP(String commaSeparatedIPs) {
+
         if (StringUtils.isNotEmpty(commaSeparatedIPs) && commaSeparatedIPs.contains(",")) {
             return commaSeparatedIPs.split(",")[0];
         }
@@ -1327,6 +1355,7 @@ public class IdentityUtil {
      * @return true if the operation is supported by userstore. False if it doesnt
      */
     public static boolean isSupportedByUserStore(UserStoreManager userStoreManager, String operation) {
+
         boolean isOperationSupported = true;
         if (userStoreManager != null) {
             String isOperationSupportedProperty = userStoreManager.getRealmConfiguration().getUserStoreProperty
@@ -1383,15 +1412,15 @@ public class IdentityUtil {
         return Boolean.parseBoolean(disableEmailUsernameValidationProperty);
     }
 
-     /**
-     *
+    /**
      * Converts and returns a {@link Certificate} object for given PEM content.
      *
      * @param certificateContent
      * @return
      * @throws CertificateException
      */
-    public static Certificate convertPEMEncodedContentToCertificate(String certificateContent) throws CertificateException {
+    public static Certificate convertPEMEncodedContentToCertificate(String certificateContent)
+            throws CertificateException {
 
         certificateContent = getCertificateString(certificateContent);
         byte[] bytes = org.apache.axiom.om.util.Base64.decode(certificateContent);
@@ -1424,7 +1453,6 @@ public class IdentityUtil {
     }
 
     /**
-     *
      * Returns the PEM encoded certificate out of the given certificate object.
      *
      * @param certificate
@@ -1443,7 +1471,7 @@ public class IdentityUtil {
 
     /**
      * Checks whether the PEM content is valid.
-     *
+     * <p>
      * For now only checks whether the certificate is not malformed.
      *
      * @param certificateContent PEM content to be validated.
@@ -1633,6 +1661,22 @@ public class IdentityUtil {
     }
 
     /**
+     * Get the Webhook Adaptor Type.
+     *
+     * @return webhooksAdapterType which is configured.
+     */
+    public static String getWebhooksAdapterType() {
+
+        String webhooksAdapterType = IdentityCoreConstants.DEFAULT_WEBHOOKS_ADAPTER_TYPE;
+        String currentWebhooksAdapterType =
+                IdentityUtil.getProperty(IdentityCoreConstants.WEBHOOKS_ADAPTER_TYPE);
+        if (StringUtils.isNotBlank(currentWebhooksAdapterType)) {
+            webhooksAdapterType = currentWebhooksAdapterType;
+        }
+        return webhooksAdapterType;
+    }
+
+    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.
@@ -1680,7 +1724,7 @@ public class IdentityUtil {
             }
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Configured 'MaximumUsersListPerRole' value %s " +
-                                "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
+                        "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
             }
         } catch (NumberFormatException e) {
             log.debug("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
@@ -1726,17 +1770,19 @@ public class IdentityUtil {
         try {
             UserRealm userRealm = AdminServicesUtil.getUserRealm();
             if (userRealm == null) {
-                log.warn("Unable to find the user realm, thus ShowRoleClaimOnGroupRoleSeparationEnabled is set as FALSE.");
+                log.warn(
+                        "Unable to find the user realm, thus ShowRoleClaimOnGroupRoleSeparationEnabled is set as FALSE.");
                 return Boolean.FALSE;
             }
             if (showLegacyRoleClaimOnGroupRoleSeparationEnabled == null) {
                 showLegacyRoleClaimOnGroupRoleSeparationEnabled =
                         UserCoreUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled(
-                        userRealm.getRealmConfiguration());
+                                userRealm.getRealmConfiguration());
             }
             return showLegacyRoleClaimOnGroupRoleSeparationEnabled;
         } catch (UserStoreException | CarbonException e) {
-            log.warn("Property value parsing error: ShowRoleClaimOnGroupRoleSeparationEnabled, thus considered as FALSE");
+            log.warn(
+                    "Property value parsing error: ShowRoleClaimOnGroupRoleSeparationEnabled, thus considered as FALSE");
             return Boolean.FALSE;
         }
     }
@@ -1920,8 +1966,10 @@ public class IdentityUtil {
 
         try {
             if (StringUtils.isEmpty(userStoreDomain)) {
-                userStoreDomain = IdentityCoreServiceDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId).
-                        getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                userStoreDomain =
+                        IdentityCoreServiceDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId).
+                                getRealmConfiguration()
+                                .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
                 if (StringUtils.isEmpty(userStoreDomain)) {
                     userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
                 }
@@ -2015,7 +2063,7 @@ public class IdentityUtil {
         }
         if (value instanceof List) {
             List rawProps = (List) value;
-            for (Object rawProp: rawProps ) {
+            for (Object rawProp : rawProps) {
                 if (rawProp instanceof String) {
                     propertyList.add((String) rawProp);
                 } else {
@@ -2084,14 +2132,14 @@ public class IdentityUtil {
 
     /**
      * Validates the provided signature for the given data using the public key of a specified tenant.
-     *
+     * <p>
      * The method retrieves the public key for the tenant from the certificate stored in the tenant's keystore.
      * If a context is provided, the method attempts to retrieve the certificate within that context.
      *
-     * @param data        The data to validate the signature against.
-     * @param signature   The signature to be validated.
+     * @param data         The data to validate the signature against.
+     * @param signature    The signature to be validated.
      * @param tenantDomain The domain name of the tenant whose public key should be used for validation.
-     * @param context     The optional context for retrieving the tenant's certificate (can be null or blank).
+     * @param context      The optional context for retrieving the tenant's certificate (can be null or blank).
      * @return True if the signature is valid; false otherwise.
      * @throws SignatureException If an error occurs while validating the signature or accessing tenant data.
      */
@@ -2154,7 +2202,7 @@ public class IdentityUtil {
 
     /**
      * Signs the given data using the private key of the specified tenant.
-     *
+     * <p>
      * For super tenant domains, the default private key is used. For other tenants, the method retrieves the private
      * key from the tenant's keystore. If a context is provided, it will attempt to retrieve the private key associated
      * with that context.
@@ -2231,6 +2279,7 @@ public class IdentityUtil {
 
     /**
      * Check whether the agent identity is enabled.
+     *
      * @return
      */
     public static boolean isAgentIdentityEnabled() {
@@ -2244,6 +2293,7 @@ public class IdentityUtil {
     /**
      * Get the agent identity userstore name.
      * If the property is not set, it will return the default agent identity userstore name.
+     *
      * @return Agent identity userstore name.
      */
     public static String getAgentIdentityUserstoreName() {

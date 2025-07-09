@@ -28,10 +28,12 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookAdapterType;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
@@ -60,7 +62,8 @@ public class WebhookManagementServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(WebhookManagementService.class.getName(),
                     WebhookManagementServiceImpl.getInstance(), null);
-
+            WebhookManagementComponentServiceHolder.getInstance()
+                    .setWebhookAdapterType(WebhookAdapterType.valueOf(IdentityUtil.getWebhooksAdapterType()));
             LOG.debug("WebhookManagementService is activated");
         } catch (Throwable e) {
             LOG.error("Error while activating WebhookManagementService", e);
