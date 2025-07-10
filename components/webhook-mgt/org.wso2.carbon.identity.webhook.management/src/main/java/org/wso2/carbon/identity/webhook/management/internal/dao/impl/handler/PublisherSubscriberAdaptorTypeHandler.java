@@ -48,10 +48,13 @@ import java.util.stream.Collectors;
 public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
 
     private final WebhookManagementDAO dao;
+    private final String webhookAdaptorName;
 
     public PublisherSubscriberAdaptorTypeHandler(WebhookManagementDAO dao) {
 
         this.dao = dao;
+        this.webhookAdaptorName = String.valueOf(WebhookManagementComponentServiceHolder.getInstance()
+                .getWebhookAdaptor().getName());
     }
 
     @Override
@@ -83,9 +86,8 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                     .secret(webhook.getSecret())
                     .build();
             try {
-                subscriptions = subscriptionManagementService.subscribe(subscriptionRequest,
-                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
-                        tenantDomain);
+                subscriptions =
+                        subscriptionManagementService.subscribe(subscriptionRequest, webhookAdaptorName, tenantDomain);
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
                         ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR, e, webhook.getName());
@@ -192,8 +194,7 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                     .secret(getWebhookDecryptedSecretValue(webhook.getId()))
                     .build();
             try {
-                allResults = subscriptionManagementService.subscribe(subscriptionRequest,
-                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
+                allResults = subscriptionManagementService.subscribe(subscriptionRequest, webhookAdaptorName,
                         IdentityTenantUtil.getTenantDomain(tenantId));
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
@@ -249,8 +250,7 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                     .endpoint(webhook.getEndpoint())
                     .build();
             try {
-                allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest,
-                        String.valueOf(WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
+                allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest, webhookAdaptorName,
                         IdentityTenantUtil.getTenantDomain(tenantId));
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
@@ -305,9 +305,7 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                         .secret(getWebhookDecryptedSecretValue(webhook.getId()))
                         .build();
                 try {
-                    allResults = subscriptionManagementService.subscribe(subscriptionRequest,
-                            String.valueOf(
-                                    WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
+                    allResults = subscriptionManagementService.subscribe(subscriptionRequest, webhookAdaptorName,
                             IdentityTenantUtil.getTenantDomain(tenantId));
                 } catch (SubscriptionManagementException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(
@@ -343,9 +341,7 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                         .endpoint(webhook.getEndpoint())
                         .build();
                 try {
-                    allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest,
-                            String.valueOf(
-                                    WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType()),
+                    allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest, webhookAdaptorName,
                             IdentityTenantUtil.getTenantDomain(tenantId));
                 } catch (SubscriptionManagementException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(

@@ -128,7 +128,7 @@ public class WebhookManagementServiceComponent {
     }
 
     @Reference(
-            name = "identity.webhook.metadata.component",
+            name = "identity.webhook.event.metadata.component",
             service = WebhookMetadataService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
@@ -147,7 +147,7 @@ public class WebhookManagementServiceComponent {
     }
 
     @Reference(
-            name = "identity.webhook.metadata.component",
+            name = "identity.webhook.adaptor.metadata.component",
             service = EventAdaptorMetadataService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
