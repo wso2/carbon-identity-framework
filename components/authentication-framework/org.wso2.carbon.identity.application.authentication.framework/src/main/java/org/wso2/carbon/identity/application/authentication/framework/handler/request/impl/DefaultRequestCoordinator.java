@@ -1175,7 +1175,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             Throwable rootCause = ExceptionUtils.getRootCause(identityException);
             if (rootCause != null) {
                 errorMessage = rootCause.getMessage();
-                errorCode = errorContext.getErrorCode();
+                // Not modifying the error code as it is already used in the analytics feature.
             }
         }
 
@@ -1186,6 +1186,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     System.currentTimeMillis() - (long) authenticationStartTime);
         }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_ERROR_CODE, errorCode);
+        /*
+         * AUTHENTICATION_ERROR_MESSAGE -This error message is utilized only by the webhook feature,
+         * not by the analytics.
+         */
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_ERROR_MESSAGE, errorMessage);
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
