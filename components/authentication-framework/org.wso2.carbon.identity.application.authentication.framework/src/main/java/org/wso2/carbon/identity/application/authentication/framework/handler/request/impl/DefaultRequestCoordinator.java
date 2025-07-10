@@ -22,6 +22,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,8 +61,10 @@ import org.wso2.carbon.identity.application.authentication.framework.util.LoginC
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Tenant;
@@ -450,8 +453,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (log.isDebugEnabled()) {
                 log.debug("Script initiated Exception occured.", e);
             }
-            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
-                    e.getErrorCode(), e.getMessage());
+
+            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(), e);
+
             if (log.isDebugEnabled()) {
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
@@ -467,8 +471,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             log.error(String.format("Error occurred while evaluating post authentication : %s : %s.",
                     errorWrapper.getStatusMsg(), e.getMessage()));
-            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
-                    e.getErrorCode(), e.getMessage());
+            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(), e);
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
         } catch (Exception e) {
@@ -1162,7 +1165,19 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
-                                              AuthenticatedUser user, String errorCode, String errorMessage) {
+                                              AuthenticatedUser user, IdentityException identityException) {
+
+        String errorMessage = identityException.getMessage();
+        String errorCode = identityException.getErrorCode();
+
+        IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
+        if (errorContext != null) {
+            Throwable rootCause = ExceptionUtils.getRootCause(identityException);
+            if (rootCause != null) {
+                errorMessage = rootCause.getMessage();
+                // Not modifying the error code as it is already used in the analytics feature.
+            }
+        }
 
         Serializable authenticationStartTime =
                 context.getAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME);
@@ -1171,6 +1186,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     System.currentTimeMillis() - (long) authenticationStartTime);
         }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_ERROR_CODE, errorCode);
+        /*
+         * AUTHENTICATION_ERROR_MESSAGE -This error message is utilized only by the webhook feature,
+         * not by the analytics.
+         */
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_ERROR_MESSAGE, errorMessage);
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
