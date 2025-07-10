@@ -48,6 +48,10 @@ import static org.wso2.carbon.identity.webhook.metadata.internal.constant.Webhoo
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ENABLED_VALUE_TRUE;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.TYPE_KEY;
 
+/**
+ * File-based implementation of the EventAdopterMetadataDAO.
+ * This DAO reads event adaptor metadata from a configuration file.
+ */
 public class FileBasedEventAdopterMetadataDAOImpl implements EventAdopterMetadataDAO {
 
     private static final Log log = LogFactory.getLog(FileBasedEventAdopterMetadataDAOImpl.class);

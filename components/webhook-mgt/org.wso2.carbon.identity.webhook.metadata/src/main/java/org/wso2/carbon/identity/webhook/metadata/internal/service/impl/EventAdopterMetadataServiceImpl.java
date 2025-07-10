@@ -37,6 +37,10 @@ import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorM
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_ENABLED_ADAPTOR_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_NO_ENABLED_ADAPTOR;
 
+/**
+ * Implementation of the EventAdaptorMetadataService that manages event adopters metadata.
+ * This service provides methods to retrieve available adaptors and the currently active adaptor.
+ */
 public class EventAdopterMetadataServiceImpl implements EventAdaptorMetadataService {
 
     private static final Log log = LogFactory.getLog(EventAdopterMetadataServiceImpl.class);

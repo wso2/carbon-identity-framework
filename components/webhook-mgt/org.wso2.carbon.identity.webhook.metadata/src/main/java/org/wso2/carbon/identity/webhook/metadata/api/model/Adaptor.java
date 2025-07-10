@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Represents a webhook adaptor with its properties.
+ */
 public class Adaptor {
 
     private final String name;
@@ -81,6 +84,9 @@ public class Adaptor {
         return Objects.hash(name, type, enabled, properties);
     }
 
+    /**
+     * Builder for creating instances of {@link Adaptor}.
+     */
     public static class Builder {
 
         private String name;
