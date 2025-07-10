@@ -34,6 +34,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -56,6 +58,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SMS_OTP_PASSWO
 public class IdPManagementUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUtil.class);
+    private static final CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
 
     private static String tenantContext;
     private static String tenantParameter;
@@ -185,6 +188,22 @@ public class IdPManagementUtil {
         }
     }
 
+    /**
+     * Utility method to clear the cache for a specific identity provider
+     *
+     * @param idpName      Name of the Identity Provider.
+     * @param tenantId     Tenant ID of the Identity Provider.
+     * @param tenantDomain Tenant Domain of the Identity Provider.
+     */
+    public static void clearIdPCache(String idpName, int tenantId, String tenantDomain) {
+
+        try {
+            dao.clearIdpCache(idpName, tenantId, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            log.error("Error while clearing the cache for the Identity Provider: " + idpName + " in tenant: "
+                    + tenantDomain, e);
+        }
+    }
 
     /**
      * Set tenantContext and tenantParameter specific to the tenant domain.
