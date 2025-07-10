@@ -1279,7 +1279,6 @@
 
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
-        <Adaptor>HTTPPublisher</Adaptor>
     </Webhooks>
 
     <EventListeners>

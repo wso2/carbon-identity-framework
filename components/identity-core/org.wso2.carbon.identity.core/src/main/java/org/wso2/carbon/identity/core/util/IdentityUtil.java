@@ -1633,22 +1633,6 @@ public class IdentityUtil {
     }
 
     /**
-     * Get the Webhook Adaptor.
-     *
-     * @return webhooksAdaptor which is configured.
-     */
-    public static String getWebhooksAdaptor() {
-
-        String webhooksAdaptor = IdentityCoreConstants.DEFAULT_WEBHOOKS_ADAPTOR;
-        String currentWebhooksAdaptorType =
-                IdentityUtil.getProperty(IdentityCoreConstants.WEBHOOKS_ADAPTOR);
-        if (StringUtils.isNotBlank(currentWebhooksAdaptorType)) {
-            webhooksAdaptor = currentWebhooksAdaptorType;
-        }
-        return webhooksAdaptor;
-    }
-
-    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.

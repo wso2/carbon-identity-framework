@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler;
 
-import org.wso2.carbon.identity.webhook.management.api.model.WebhookAdaptorType;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
+import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookAdaptorType;
 
 /**
  * Factory class to get the appropriate AdaptorTypeHandler based on the WebhookAdaptorType.
@@ -29,7 +29,7 @@ public class WebhookAdaptorTypeHandlerFactory {
 
     public static AdaptorTypeHandler getHandler(WebhookManagementDAO dao) {
 
-        WebhookAdaptorType type = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptorType();
+        WebhookAdaptorType type = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptor().getType();
         if (WebhookAdaptorType.PublisherSubscriber.equals(type)) {
             return new PublisherSubscriberAdaptorTypeHandler(dao);
         } else if (WebhookAdaptorType.Publisher.equals(type)) {

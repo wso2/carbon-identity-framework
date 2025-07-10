@@ -24,7 +24,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
@@ -35,31 +34,20 @@ import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataEx
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_CONFIG_FILE_NOT_FOUND;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_CONFIG_FILE_READ_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_NO_ENABLED_ADAPTOR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_FILES_LOAD_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ADAPTER_PREFIX;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.CONFIG_FILE_NAME;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ENABLED_KEY;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ENABLED_VALUE_TRUE;
 
 /**
  * File-based implementation of the WebhookMetadataDAO.
@@ -191,40 +179,6 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
                 matchingEvents.addAll(getEventsFromProfile(profile, profileUri))
         );
         return matchingEvents;
-    }
-
-    @Override
-    public Map<String, String> getEnabledAdaptorProperties(String adaptor) throws WebhookMetadataException {
-
-        Properties properties = new Properties();
-        Path configPath = Paths.get(IdentityUtil.getIdentityConfigDirPath(), CONFIG_FILE_NAME);
-
-        if (!Files.exists(configPath)) {
-            throw WebhookMetadataExceptionHandler.handleServerException(ERROR_CODE_CONFIG_FILE_NOT_FOUND,
-                    CONFIG_FILE_NAME);
-        }
-
-        try (InputStream in = Files.newInputStream(configPath)) {
-            properties.load(in);
-        } catch (IOException e) {
-            throw WebhookMetadataExceptionHandler.handleServerException(
-                    ERROR_CODE_CONFIG_FILE_READ_ERROR, e, CONFIG_FILE_NAME);
-        }
-
-        String prefix = ADAPTER_PREFIX + adaptor + ".";
-        Map<String, String> adaptorProps = new LinkedHashMap<>();
-        for (String key : properties.stringPropertyNames()) {
-            if (key.toLowerCase().startsWith(prefix.toLowerCase())) {
-                adaptorProps.put(key.substring(prefix.length()), properties.getProperty(key));
-            }
-        }
-
-        if (!ENABLED_VALUE_TRUE.equalsIgnoreCase(adaptorProps.get(ENABLED_KEY))) {
-            throw WebhookMetadataExceptionHandler.handleServerException(
-                    ERROR_CODE_NO_ENABLED_ADAPTOR, adaptor);
-        }
-
-        return adaptorProps;
     }
 
     private List<Event> getEventsFromProfile(EventProfile profile, String profileUri) {

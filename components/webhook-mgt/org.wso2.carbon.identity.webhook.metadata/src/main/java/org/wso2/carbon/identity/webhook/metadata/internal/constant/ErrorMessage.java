@@ -43,7 +43,11 @@ public enum ErrorMessage {
     ERROR_CODE_CONFIG_FILE_READ_ERROR("WEBHOOKMETA-66007", "Error reading configuration file",
             "An error occurred while reading the configuration file %s. Please check the file format and permissions."),
     ERROR_CODE_NO_ENABLED_ADAPTOR("WEBHOOKMETA-66008", "No enabled adaptor found",
-            "No enabled adaptor found for the name %s. Please ensure the adaptor is configured and enabled.");
+            "No enabled adaptor found in the system."),
+    ERROR_CODE_ADAPTORS_RETRIEVE_ERROR("WEBHOOKMETA-66009", "Error occurred while retrieving adaptors",
+            "An internal server error occurred while retrieving the event adaptors."),
+    ERROR_CODE_ENABLED_ADAPTOR_RETRIEVE_ERROR("WEBHOOKMETA-66010", "Error occurred while retrieving enabled adaptor",
+            "An internal server error occurred while retrieving enabled event adaptor.");
 
     private final String code;
     private final String message;

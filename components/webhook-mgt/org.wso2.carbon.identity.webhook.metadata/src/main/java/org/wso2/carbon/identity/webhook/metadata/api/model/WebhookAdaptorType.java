@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.management.api.model;
+package org.wso2.carbon.identity.webhook.metadata.api.model;
 
 /**
  * Enum for webhook adaptor types.

@@ -28,7 +28,9 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdaptorMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
+import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.EventAdopterMetadataServiceImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.WebhookMetadataServiceImpl;
 
 /**
@@ -51,6 +53,12 @@ public class WebhookMetadataServiceComponent {
 
             context.getBundleContext().registerService(WebhookMetadataService.class.getName(),
                     webhookMetadataService, null);
+
+            EventAdopterMetadataServiceImpl eventAdopterMetadataService = EventAdopterMetadataServiceImpl.getInstance();
+            eventAdopterMetadataService.init();
+
+            context.getBundleContext().registerService(EventAdaptorMetadataService.class.getName(),
+                    eventAdopterMetadataService, null);
 
             log.info("Webhook Metadata component activated successfully");
         } catch (Throwable e) {
