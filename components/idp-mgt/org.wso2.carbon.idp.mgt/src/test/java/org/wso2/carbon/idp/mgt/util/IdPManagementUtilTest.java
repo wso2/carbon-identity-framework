@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -251,25 +252,28 @@ public class IdPManagementUtilTest {
     @Test
     public void testClearIdPCache() throws Exception {
 
-        // Since the dao is a private final field, using reflection to change the access modifier and
-        // replace it with a mock object. Since this is a simple test, this won't introduce any complexities.
-        Field daoField = IdPManagementUtil.class.getDeclaredField("dao");
-        daoField.setAccessible(true);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN))
+                    .thenReturn(TENANT_ID);
 
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(daoField, daoField.getModifiers() & ~Modifier.FINAL);
+            // Since the dao is a private final field, using reflection to change the access modifier and
+            // replace it with a mock object. Since this is a simple test, this won't introduce any complexities.
+            Field daoField = IdPManagementUtil.class.getDeclaredField("CACHE_BACKED_IDP_MGT_DAO");
+            daoField.setAccessible(true);
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(daoField, daoField.getModifiers() & ~Modifier.FINAL);
+            daoField.set(null, mockDao);
 
-        daoField.set(null, mockDao);
+            IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
+            verify(mockDao, times(1)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
 
-        IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
-        verify(mockDao, times(1)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
-
-        doThrow(new IdentityProviderManagementException("Test exception")).when(mockDao)
-                .clearIdpCache(anyString(), anyInt(), anyString());
-        // Checking if the exception is handled gracefully.
-        IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
-        verify(mockDao, times(2)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+            doThrow(new IdentityProviderManagementException("Test exception")).when(mockDao)
+                    .clearIdpCache(anyString(), anyInt(), anyString());
+            // Checking if the exception is handled gracefully.
+            IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
+            verify(mockDao, times(2)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+        }
     }
 
     @Test
@@ -449,7 +453,6 @@ public class IdPManagementUtilTest {
                 {adminPasswordResetConfig12, adminPasswordResetIdentityPropsEmailOtpEnabled, false}
         };
     }
-
 
     @DataProvider(name = "passwordRecoveryConfigsWithIdpMgtProps")
     public Object[][] setPasswordRecoveryConfigsWithIpdMgtProps() {
