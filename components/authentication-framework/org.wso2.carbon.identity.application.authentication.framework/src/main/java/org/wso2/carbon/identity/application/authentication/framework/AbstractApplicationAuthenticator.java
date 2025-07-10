@@ -378,7 +378,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             Throwable rootCause = ExceptionUtils.getRootCause(identityException);
             if (rootCause != null) {
                 errorMessage = rootCause.getMessage();
-                errorCode = errorContext.getErrorCode();
+                // Not modifying the error code as it is already used in the analytics feature.
             }
         }
 
@@ -386,6 +386,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             user = context.getLastAuthenticatedUser();
         }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_CODE, errorCode);
+        /*
+         * CURRENT_AUTHENTICATOR_ERROR_MESSAGE -This error message is utilized only by the webhook feature,
+         * not by the analytics.
+         */
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_MESSAGE, errorMessage);
         publishAuthenticationStepAttempt(request, context, user, false);
     }
