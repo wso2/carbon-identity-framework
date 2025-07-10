@@ -93,9 +93,7 @@ public class SubscriptionManagementServiceComponent {
     )
     protected void registerSubscriber(EventSubscriber subscriber) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering event subscriber: " + subscriber.getAssociatedAdaptor());
-        }
+        LOG.debug("Registering event subscriber: " + subscriber.getAssociatedAdaptor());
         SubscriptionManagementComponentServiceHolder.getInstance().addEventSubscriber(subscriber);
     }
 

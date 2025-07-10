@@ -43,12 +43,13 @@ public class TopicManagementServiceImpl implements TopicManagementService {
     private static final Log LOG = LogFactory.getLog(TopicManagementServiceImpl.class);
     private static final TopicManagementServiceImpl topicManagementServiceImpl = new TopicManagementServiceImpl();
     private final TopicManagementDAO topicManagementDAO;
-    //TODO: Get the topic manager name from a configuration
-    private static final String ADAPTOR = "webSubHubAdaptor";
+    private final String webhookAdaptor;
 
     private TopicManagementServiceImpl() {
 
         topicManagementDAO = new CacheBackedTopicManagementDAO(new TopicManagementDAOImpl());
+        webhookAdaptor = TopicManagementComponentServiceHolder.getInstance()
+                .getWebhookAdaptor().getName();
     }
 
     /**
@@ -65,7 +66,7 @@ public class TopicManagementServiceImpl implements TopicManagementService {
     public void registerTopic(String channelUri, String eventProfileName, String eventProfileVersion,
                               String tenantDomain) throws TopicManagementException {
 
-        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
+        TopicManager adaptorManager = retrieveAdaptorManager(webhookAdaptor);
         String topic = adaptorManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
         if (isTopicExists(channelUri, eventProfileName, eventProfileVersion, tenantDomain)) {
             throw TopicManagementExceptionHandler.handleClientException(
@@ -92,7 +93,7 @@ public class TopicManagementServiceImpl implements TopicManagementService {
     public void deregisterTopic(String channelUri, String eventProfileName, String eventProfileVersion,
                                 String tenantDomain) throws TopicManagementException {
 
-        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
+        TopicManager adaptorManager = retrieveAdaptorManager(webhookAdaptor);
         String topic = adaptorManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
         LOG.debug("Topic deregistration initiated: " + topic + " for tenant domain: " + tenantDomain);
         try {
@@ -125,7 +126,7 @@ public class TopicManagementServiceImpl implements TopicManagementService {
     public boolean isTopicExists(String channelUri, String eventProfileName, String eventProfileVersion,
                                  String tenantDomain) throws TopicManagementException {
 
-        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
+        TopicManager adaptorManager = retrieveAdaptorManager(webhookAdaptor);
         String topic = adaptorManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
         if (topic == null || topic.trim().isEmpty()) {
             throw TopicManagementExceptionHandler.handleClientException(

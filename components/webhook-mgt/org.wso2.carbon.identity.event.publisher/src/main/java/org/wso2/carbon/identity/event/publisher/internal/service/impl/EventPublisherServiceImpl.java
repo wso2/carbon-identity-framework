@@ -44,8 +44,13 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     private static final EventPublisherServiceImpl eventPublisherServiceImpl = new EventPublisherServiceImpl();
     private static final int THREAD_POOL_SIZE = 10;
     private static final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-    //TODO: Get the topic manager name from a configuration
-    private static final String ADAPTOR = "webSubHubAdaptor";
+    private final String webhookAdaptor;
+
+    private EventPublisherServiceImpl() {
+
+        webhookAdaptor = EventPublisherComponentServiceHolder.getInstance()
+                .getWebhookAdaptor().getName();
+    }
 
     /**
      * Private constructor to prevent instantiation.
@@ -60,7 +65,7 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
             throws EventPublisherException {
 
-        EventPublisher adaptorManager = retrieveAdaptorManager(ADAPTOR);
+        EventPublisher adaptorManager = retrieveAdaptorManager(webhookAdaptor);
 
         log.debug("Invoking registered event publisher: " + adaptorManager.getClass().getName());
         CompletableFuture.runAsync(() -> {
@@ -79,7 +84,7 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     @Override
     public boolean canHandleEvent(EventContext eventContext) throws EventPublisherException {
 
-        EventPublisher adaptorManager = retrieveAdaptorManager(ADAPTOR);
+        EventPublisher adaptorManager = retrieveAdaptorManager(webhookAdaptor);
 
         log.debug("Invoking canHandle method of event publisher: " + adaptorManager.getClass().getName());
         try {

@@ -60,7 +60,7 @@ public class WebhookMetadataServiceComponent {
             context.getBundleContext().registerService(EventAdaptorMetadataService.class.getName(),
                     eventAdopterMetadataService, null);
 
-            log.info("Webhook Metadata component activated successfully");
+            log.debug("Webhook Metadata component activated successfully");
         } catch (Throwable e) {
             log.error("Error activating Webhook Metadata component", e);
         }
@@ -69,9 +69,7 @@ public class WebhookMetadataServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Webhook Metadata component deactivated");
-        }
+        log.debug("Webhook Metadata component deactivated");
     }
 
     @Reference(

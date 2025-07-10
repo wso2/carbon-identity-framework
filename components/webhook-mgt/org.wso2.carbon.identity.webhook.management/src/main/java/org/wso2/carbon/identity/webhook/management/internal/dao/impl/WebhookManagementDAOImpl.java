@@ -221,8 +221,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     @Override
     public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
-        updateWebhookStatus(webhookId, tenantId, WebhookStatus.ACTIVE
-        );
+        updateWebhookStatus(webhookId, tenantId, WebhookStatus.ACTIVE);
     }
 
     @Override
@@ -235,8 +234,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     @Override
     public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
-        updateWebhookStatus(webhookId, tenantId, WebhookStatus.INACTIVE
-        );
+        updateWebhookStatus(webhookId, tenantId, WebhookStatus.INACTIVE);
     }
 
     @Override
