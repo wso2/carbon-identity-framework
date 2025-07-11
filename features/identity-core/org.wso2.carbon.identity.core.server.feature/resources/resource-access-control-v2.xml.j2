@@ -305,7 +305,7 @@
         </Resource>
 
         <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
-        <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/.well-known/webfinger(.*)" secured="false" http-method="all"/>
 
         <!-- OAuth DCR API in Tenant Perspective -->
         <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
