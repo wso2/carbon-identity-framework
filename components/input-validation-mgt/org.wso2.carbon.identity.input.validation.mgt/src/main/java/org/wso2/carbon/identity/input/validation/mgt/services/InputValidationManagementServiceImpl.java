@@ -62,6 +62,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_ADDING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_DELETING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.FIELD_VALIDATION_CONFIG_HANDLER_MAP;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
@@ -272,6 +273,31 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         }
 
         return buildValidationConfigFromResource(updatedResource);
+    }
+
+    /**
+     * Method to delete input validation configurations for provided fields.
+     *
+     * @param fields        List of fields that configurations need to be deleted.
+     * @param tenantDomain  Tenant domain name.
+     * @throws InputValidationMgtServerException If an error occurred when deleting configurations.
+     */
+    @Override
+    public void revertInputValidationConfiguration(List<String> fields, String tenantDomain)
+            throws InputValidationMgtServerException {
+
+        for (String field : fields) {
+            String resourceName = INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + field;
+            Resource resource = getResource(resourceName, tenantDomain);
+            if (resource != null) {
+                try {
+                    getConfigurationManager().deleteResource(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME, resourceName);
+                } catch (ConfigurationManagementException e) {
+                    throw new InputValidationMgtServerException(ERROR_WHILE_DELETING_CONFIGURATIONS.getCode(),
+                            String.format(ERROR_WHILE_DELETING_CONFIGURATIONS.getMessage(), tenantDomain), e);
+                }
+            }
+        }
     }
 
     /**
