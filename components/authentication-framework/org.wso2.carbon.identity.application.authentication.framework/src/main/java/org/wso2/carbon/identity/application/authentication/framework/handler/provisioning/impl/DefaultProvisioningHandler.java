@@ -326,7 +326,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
                 userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
 
-                FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, tenantDomain, userStoreDomain);
+                FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, userStoreDomain, tenantDomain);
 
             } catch (UserStoreException e) {
 

@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -41,9 +42,12 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
@@ -130,8 +134,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
-                    publishAuthenticationStepAttemptFailure(request, context, e.getUser(), e.getErrorCode(),
-                            e.getMessage());
+                    publishAuthenticationStepAttemptFailure(request, context, e.getUser(), e);
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect to the login page to retry authentication.
                     boolean sendToMultiOptionPage =
@@ -359,19 +362,34 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     /**
      * Helper delegator to publish the events for Authentication Step Attempt Failure.
      *
-     * @param request   Incoming Http request to framework for authentication
-     * @param context   Authentication Context
-     * @param user      initiated user
-     * @param errorCode of the exception
-     * @param errorMessage   of the exception.
+     * @param request           Incoming Http request to framework for authentication
+     * @param context           Authentication Context
+     * @param user              initiated user
+     * @param identityException
      */
     private void publishAuthenticationStepAttemptFailure(HttpServletRequest request, AuthenticationContext context,
-                                                         User user, String errorCode, String errorMessage) {
+                                                         User user, IdentityException identityException) {
+
+        String errorMessage = identityException.getMessage();
+        String errorCode = identityException.getErrorCode();
+
+        IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
+        if (errorContext != null) {
+            Throwable rootCause = ExceptionUtils.getRootCause(identityException);
+            if (rootCause != null) {
+                errorMessage = rootCause.getMessage();
+                // Not modifying the error code as it is already used in the analytics feature.
+            }
+        }
 
         if (user == null) {
             user = context.getLastAuthenticatedUser();
         }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_CODE, errorCode);
+        /*
+         * CURRENT_AUTHENTICATOR_ERROR_MESSAGE -This error message is utilized only by the webhook feature,
+         * not by the analytics.
+         */
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_MESSAGE, errorMessage);
         publishAuthenticationStepAttempt(request, context, user, false);
     }

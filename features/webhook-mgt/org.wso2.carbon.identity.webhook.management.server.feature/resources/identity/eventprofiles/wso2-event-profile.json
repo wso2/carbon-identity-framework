@@ -20,8 +20,8 @@
       ]
     },
     {
-      "name": "User management operations",
-      "description": "User profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
+      "name": "User account management",
+      "description": "User created, profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
       "uri": "https://schemas.identity.wso2.org/events/user",
       "events": [
         {
@@ -63,7 +63,7 @@
     },
     {
       "name": "Registrations",
-      "description": "Registration success, failed or invite",
+      "description": "Registration success or failed",
       "uri": "https://schemas.identity.wso2.org/events/registration",
       "events": [
         {
