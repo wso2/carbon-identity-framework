@@ -1902,6 +1902,8 @@
 
   "attribute.return_previous_additional_properties.enabled": false,
 
-  "agent_identity.enabled": false
+  "agent_identity.enabled": false,
+
+  "flow_execution.user_assertion.expiry_time": "2000"
 }
 
