@@ -4652,4 +4652,19 @@
         <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
     </AsyncOperationStatus>
 
+    <FlowExecution>
+        <DefaultTTL>{{flow_execution.default_ttl}}</DefaultTTL>
+        <FlowTypeTTLs>
+            {% for flow_type, ttl in flow_execution.flow_type_ttl.items() %}
+            <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
+            {% endfor %}
+        </FlowTypeTTLs>
+        <FlowContextCleanup>
+            <Enabled>{{flow_execution.flow_context_cleanup.enabled}}</Enabled>
+            <InitialDelay>{{flow_execution.flow_context_cleanup.initial_delay}}</InitialDelay>
+            <Interval>{{flow_execution.flow_context_cleanup.interval}}</Interval>
+            <MaxContextsToCleanup>{{flow_execution.flow_context_cleanup.max_contexts_to_cleanup}}</MaxContextsToCleanup>
+        </FlowContextCleanup>
+    </FlowExecution>
+
 </Server>

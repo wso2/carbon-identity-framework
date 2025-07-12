@@ -161,6 +161,8 @@ public class FlowExecutionEngine {
         }
         if (Constants.NodeTypes.DECISION.equals(currentNode.getType())) {
             // If the current node is a decision node, reset the next node ID to null.
+            LOG.debug("Current node " + currentNode.getId() + " is a decision node. " +
+                    "Resetting the next node ID to null.");
             currentNode.setNextNodeId(null);
         }
         return nextNode;

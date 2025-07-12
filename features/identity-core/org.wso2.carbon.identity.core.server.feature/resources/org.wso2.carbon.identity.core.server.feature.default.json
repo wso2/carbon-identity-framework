@@ -1902,6 +1902,14 @@
 
   "attribute.return_previous_additional_properties.enabled": false,
 
-  "agent_identity.enabled": false
+  "agent_identity.enabled": false,
+
+  "flow_execution.default_ttl": "30",
+  "flow_execution.flow_type_ttl": {
+    "REGISTRATION": "30",
+    "PASSWORD_RECOVERY": "30",
+    "INVITED_USER_REGISTRATION": "30"
+  },
+  "flow_execution.flow_context_cleanup.enabled": false
 }
 
