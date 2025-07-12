@@ -250,9 +250,11 @@ public class Constants {
         public static final String FLOW_STATE_JSON = "FLOW_STATE_JSON";
 
         public static final String INSERT_CONTEXT_SQL = "INSERT INTO IDN_FLOW_CONTEXT_STORE " +
-                "(ID, TENANT_DOMAIN, FLOW_TYPE, CREATED_AT, EXPIRES_AT, FLOW_STATE_JSON) VALUES (?, ?, ?, ?, ?, ?)";
-        public static final String UPDATE_CONTEXT_SQL =  "UPDATE IDN_FLOW_CONTEXT_STORE SET FLOW_STATE_JSON = ? WHERE ID = ?";
-        public static final String SELECT_CONTEXT_SQL = "SELECT FLOW_STATE_JSON FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?";
+                "(ID, TENANT_ID, FLOW_TYPE, CREATED_AT, EXPIRES_AT, FLOW_STATE_JSON) VALUES (?, ?, ?, ?, ?, ?)";
+        public static final String UPDATE_CONTEXT_SQL =  "UPDATE IDN_FLOW_CONTEXT_STORE SET FLOW_STATE_JSON = ? WHERE" +
+                " ID = ? AND TENANT_ID = ?";
+        public static final String SELECT_CONTEXT_SQL = "SELECT FLOW_STATE_JSON FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?" +
+                " AND TENANT_ID = ? AND EXPIRES_AT > ?";
         public static final String DELETE_CONTEXT_SQL = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?";
 
         public static final String DELETE_EXPIRED_SQL = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE EXPIRES_AT < ? LIMIT %d";
@@ -274,7 +276,7 @@ public class Constants {
         }
 
         public static final String FLOW_EXECUTION_PROPERTY = "FlowExecution";
-        public static final String DEFAULT_TTL_PROPERTY = "FlowExecution.DefaultTTLSeconds";
+        public static final String DEFAULT_TTL_PROPERTY = "FlowExecution.DefaultTTL";
         public static final String FLOW_TYPE_TTL_CONFIG_KEY_PREFIX = "FlowTypeTTLs";
         public static final String FLOW_TYPE_TTL_CONFIG_KEY = "FlowTypeTTL";
         public static final String FLOW_TYPE_ATTRIBUTE = "type";

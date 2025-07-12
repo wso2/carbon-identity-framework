@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.flow.execution.engine.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
@@ -77,7 +78,7 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
      */
     public FlowExecCtxCacheEntry getValueFromCache(FlowExecCtxCacheKey key) throws FlowEngineException {
 
-        String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
+        String tenantName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         FlowExecCtxCacheEntry entry = super.getValueFromCache(key, tenantName);
         if (entry == null) {
             LOG.debug("FlowExecutionContext not found in cache for key: " + key + ". Retrieving from store.");
@@ -88,7 +89,6 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
                 LOG.debug("FlowExecutionContext found in store and added to cache for key: " + key.getContextId());
             } else {
                 LOG.debug("No valid FlowExecutionContext found for the session data key: " + key.getContextId());
-
             }
         }
         return entry;

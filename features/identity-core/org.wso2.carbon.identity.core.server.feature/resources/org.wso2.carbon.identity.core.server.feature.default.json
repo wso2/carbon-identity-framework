@@ -1898,15 +1898,12 @@
 
   "agent_identity.enabled": false,
 
-  "flow_execution.default_ttl": "15",
+  "flow_execution.default_ttl": "30",
   "flow_execution.flow_type_ttl": {
-    "REGISTRATION": "15",
-    "PASSWORD_RECOVERY": "15",
-    "INVITED_USER_REGISTRATION": "15"
+    "REGISTRATION": "30",
+    "PASSWORD_RECOVERY": "30",
+    "INVITED_USER_REGISTRATION": "30"
   },
-  "flow_execution.flow_context_cleanup.enabled": true,
-  "flow_execution.flow_context_cleanup.initial_delay": "2",
-  "flow_execution.flow_context_cleanup.interval": "2",
-  "flow_execution.flow_context_cleanup.max_contexts_to_cleanup": "5000"
+  "flow_execution.flow_context_cleanup.enabled": false
 }
 

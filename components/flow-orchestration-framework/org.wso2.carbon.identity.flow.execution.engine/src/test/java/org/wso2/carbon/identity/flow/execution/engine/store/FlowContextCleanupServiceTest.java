@@ -162,27 +162,6 @@ public class FlowContextCleanupServiceTest {
     }
 
     @Test
-    public void testActivateCleanUpWhenEnabledPropertyIsNull() throws Exception {
-
-        cleanupService = createCleanupServiceWithMockScheduler();
-        identityUtilMock.when(() -> IdentityUtil.getProperty(FlowExecutionConfigs.CLEANUP_ENABLED_PROPERTY))
-                .thenReturn(null);
-
-        cleanupService.activateCleanUp();
-        verify(mockScheduler).scheduleWithFixedDelay(any(Runnable.class), eq(30L), eq(60L), eq(TimeUnit.MINUTES));
-    }
-
-    @Test
-    public void testActivateCleanUpWhenEnabledPropertyIsEmpty() throws Exception {
-
-        cleanupService = createCleanupServiceWithMockScheduler();
-        identityUtilMock.when(() -> IdentityUtil.getProperty(FlowExecutionConfigs.CLEANUP_ENABLED_PROPERTY))
-                .thenReturn("");
-        cleanupService.activateCleanUp();
-        verify(mockScheduler).scheduleWithFixedDelay(any(Runnable.class), eq(30L), eq(60L), eq(TimeUnit.MINUTES));
-    }
-
-    @Test
     public void testParseConfigPropertyWithValidValue() throws Exception {
 
         identityUtilMock.when(() -> IdentityUtil.getProperty("test.property")).thenReturn("100");

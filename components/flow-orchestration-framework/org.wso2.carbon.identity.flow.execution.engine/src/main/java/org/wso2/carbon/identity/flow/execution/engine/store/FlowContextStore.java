@@ -103,7 +103,8 @@ public class FlowContextStore {
                 return Long.parseLong(value);
             } catch (NumberFormatException e) {
                 LOG.warn("Invalid TTL value for " + FlowExecutionConfigs.DEFAULT_TTL_PROPERTY +
-                        ": " + value + ". Falling back to default: " + DEFAULT_TTL_FALLBACK_MINUTES + " minutes.");
+                        ": " + value + ". Falling back to hard-coded default: " + DEFAULT_TTL_FALLBACK_MINUTES + " " +
+                        "minutes.");
             }
         } else if (LOG.isDebugEnabled()) {
             LOG.debug("No config found for " + FlowExecutionConfigs.DEFAULT_TTL_PROPERTY +

@@ -57,9 +57,8 @@ public class FlowContextCleanupService {
      */
     public void activateCleanUp() {
 
-        String enabledStr = IdentityUtil.getProperty(FlowExecutionConfigs.CLEANUP_ENABLED_PROPERTY);
-        if (!Boolean.parseBoolean(StringUtils.defaultIfBlank(enabledStr, "true"))) {
-            LOG.warn("Flow context cleanup service is disabled via config.");
+        String enabledConfigValue = IdentityUtil.getProperty(FlowExecutionConfigs.CLEANUP_ENABLED_PROPERTY);
+        if (!Boolean.parseBoolean(StringUtils.defaultIfBlank(enabledConfigValue, "false"))) {
             return;
         }
 

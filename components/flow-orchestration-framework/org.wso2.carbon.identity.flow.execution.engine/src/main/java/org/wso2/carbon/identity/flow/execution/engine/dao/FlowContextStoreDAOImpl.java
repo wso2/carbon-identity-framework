@@ -20,8 +20,10 @@ package org.wso2.carbon.identity.flow.execution.engine.dao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
@@ -68,6 +70,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
                     preparedStatement -> {
                         preparedStatement.setString(1, serializedContext);
                         preparedStatement.setString(2, context.getContextIdentifier());
+                        preparedStatement.setInt(3, IdentityTenantUtil.getTenantId(context.getTenantDomain()));
                     });
 
             if (affectedRows == 0) {
@@ -75,7 +78,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
                         INSERT_CONTEXT_SQL,
                         preparedStatement -> {
                             preparedStatement.setString(1, context.getContextIdentifier());
-                            preparedStatement.setString(2, context.getTenantDomain());
+                            preparedStatement.setInt(2, IdentityTenantUtil.getTenantId(context.getTenantDomain()));
                             preparedStatement.setString(3, context.getFlowType());
                             preparedStatement.setTimestamp(4, now);
                             preparedStatement.setTimestamp(5, expiresAt);
@@ -100,7 +103,12 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
                                 String json = resultSet.getString(FLOW_STATE_JSON);
                                 return OBJECT_MAPPER.readValue(json, FlowExecutionContext.class);
                             })),
-                    preparedStatement -> preparedStatement.setString(1, contextId)
+                    preparedStatement -> {
+                        preparedStatement.setString(1, contextId);
+                        preparedStatement.setInt(2, PrivilegedCarbonContext
+                                .getThreadLocalCarbonContext().getTenantId());
+                        preparedStatement.setTimestamp(3, Timestamp.from(Instant.now()));
+                    }
             );
         } catch (DataAccessException e) {
             throw FlowExecutionEngineUtils.handleServerException(
