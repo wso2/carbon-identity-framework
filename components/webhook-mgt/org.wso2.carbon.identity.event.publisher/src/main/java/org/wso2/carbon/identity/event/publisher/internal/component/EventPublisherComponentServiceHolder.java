@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.event.publisher.internal.component;
 
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adaptor;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdaptorMetadataService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,8 @@ public class EventPublisherComponentServiceHolder {
     private static final EventPublisherComponentServiceHolder INSTANCE =
             new EventPublisherComponentServiceHolder();
     private List<EventPublisher> eventPublishers = new ArrayList<>();
+    private EventAdaptorMetadataService eventAdaptorMetadataService;
+    private Adaptor webhookAdaptor;
 
     private EventPublisherComponentServiceHolder() {
 
@@ -80,5 +84,45 @@ public class EventPublisherComponentServiceHolder {
     public void setEventPublishers(List<EventPublisher> eventPublishers) {
 
         this.eventPublishers = eventPublishers;
+    }
+
+    /**
+     * Get the event adaptor metadata service.
+     *
+     * @return EventAdaptorMetadataService instance.
+     */
+    public EventAdaptorMetadataService getEventAdaptorMetadataService() {
+
+        return eventAdaptorMetadataService;
+    }
+
+    /**
+     * Set the event adaptor metadata service.
+     *
+     * @param eventAdaptorMetadataService EventAdaptorMetadataService instance.
+     */
+    public void setEventAdaptorMetadataService(EventAdaptorMetadataService eventAdaptorMetadataService) {
+
+        this.eventAdaptorMetadataService = eventAdaptorMetadataService;
+    }
+
+    /**
+     * Get the webhook adaptor.
+     *
+     * @return WebhookAdaptor instance.
+     */
+    public Adaptor getWebhookAdaptor() {
+
+        return webhookAdaptor;
+    }
+
+    /**
+     * Set the webhook adaptor.
+     *
+     * @param webhookAdaptor WebhookAdaptor instance.
+     */
+    public void setWebhookAdaptor(Adaptor webhookAdaptor) {
+
+        this.webhookAdaptor = webhookAdaptor;
     }
 }

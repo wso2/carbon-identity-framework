@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.subscription.management.api.service.Subscription
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.api.service.WebhookManagementService;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adaptor;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdaptorMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 /**
@@ -61,6 +63,10 @@ public class WebhookManagementServiceComponent {
             bundleContext.registerService(WebhookManagementService.class.getName(),
                     WebhookManagementServiceImpl.getInstance(), null);
 
+            Adaptor adaptor = WebhookManagementComponentServiceHolder.getInstance().getEventAdaptorMetadataService()
+                    .getCurrentActiveAdaptor();
+            WebhookManagementComponentServiceHolder.getInstance()
+                    .setWebhookAdaptor(adaptor);
             LOG.debug("WebhookManagementService is activated");
         } catch (Throwable e) {
             LOG.error("Error while activating WebhookManagementService", e);
@@ -122,7 +128,7 @@ public class WebhookManagementServiceComponent {
     }
 
     @Reference(
-            name = "identity.webhook.metadata.component",
+            name = "identity.webhook.event.metadata.component",
             service = WebhookMetadataService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
@@ -131,11 +137,33 @@ public class WebhookManagementServiceComponent {
     protected void setWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
 
         WebhookManagementComponentServiceHolder.getInstance().setWebhookMetadataService(webhookMetadataService);
+        LOG.debug("WebhookMetadataService set in WebhookManagementComponentServiceHolder bundle.");
     }
 
     protected void unsetWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
 
         WebhookManagementComponentServiceHolder.getInstance().setWebhookMetadataService(null);
+        LOG.debug("WebhookMetadataService unset in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    @Reference(
+            name = "identity.webhook.adaptor.metadata.component",
+            service = EventAdaptorMetadataService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetEventAdaptorMetadataService"
+    )
+    protected void setEventAdaptorMetadataService(EventAdaptorMetadataService eventAdaptorMetadataService) {
+
+        WebhookManagementComponentServiceHolder.getInstance()
+                .setEventAdaptorMetadataService(eventAdaptorMetadataService);
+        LOG.debug("EventAdaptorMetadataService set in WebhookManagementComponentServiceHolder bundle.");
+    }
+
+    protected void unsetEventAdaptorMetadataService(EventAdaptorMetadataService eventAdaptorMetadataService) {
+
+        WebhookManagementComponentServiceHolder.getInstance().setEventAdaptorMetadataService(null);
+        LOG.debug("EventAdaptorMetadataService unset in WebhookManagementComponentServiceHolder bundle.");
     }
 
     @Reference(

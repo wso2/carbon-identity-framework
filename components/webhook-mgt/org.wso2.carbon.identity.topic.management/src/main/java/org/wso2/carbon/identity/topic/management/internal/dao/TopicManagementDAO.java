@@ -35,7 +35,7 @@ public interface TopicManagementDAO {
      * @param tenantId            Tenant ID.
      * @throws TopicManagementException If an error occurs while adding the topic to the database.
      */
-    public void addTopic(String topic, String channelUri, String eventProfileVersion, int tenantId)
+    void addTopic(String topic, String channelUri, String eventProfileVersion, int tenantId)
             throws TopicManagementException;
 
     /**
@@ -45,7 +45,7 @@ public interface TopicManagementDAO {
      * @param tenantId Tenant ID.
      * @throws TopicManagementException If an error occurs while deleting the topic from the database.
      */
-    public void deleteTopic(String topic, int tenantId) throws TopicManagementException;
+    void deleteTopic(String topic, int tenantId) throws TopicManagementException;
 
     /**
      * Check if a topic exists.
@@ -55,5 +55,5 @@ public interface TopicManagementDAO {
      * @return True if the topic exists, false otherwise.
      * @throws TopicManagementException If an error occurs while checking if the topic exists.
      */
-    public boolean isTopicExists(String topic, int tenantId) throws TopicManagementException;
+    boolean isTopicExists(String topic, int tenantId) throws TopicManagementException;
 }

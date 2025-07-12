@@ -24,6 +24,8 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adaptor;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdaptorMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 /**
@@ -40,6 +42,8 @@ public class WebhookManagementComponentServiceHolder {
     private TopicManagementService topicManagementService;
     private SubscriptionManagementService subscriptionManagementService;
     private WebhookMetadataService webhookMetadataService;
+    private EventAdaptorMetadataService eventAdaptorMetadataService;
+    private Adaptor webhookAdaptor;
 
     private WebhookManagementComponentServiceHolder() {
 
@@ -148,5 +152,46 @@ public class WebhookManagementComponentServiceHolder {
     public void setWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
 
         this.webhookMetadataService = webhookMetadataService;
+    }
+
+    /**
+     * Get the event adaptor metadata service.
+     *
+     * @return EventAdaptorMetadataService instance.
+     */
+    public EventAdaptorMetadataService getEventAdaptorMetadataService() {
+
+        return eventAdaptorMetadataService;
+    }
+
+    /**
+     * Set the event adaptor metadata service.
+     *
+     * @param eventAdaptorMetadataService EventAdaptorMetadataService instance.
+     */
+    public void setEventAdaptorMetadataService(EventAdaptorMetadataService eventAdaptorMetadataService) {
+
+        this.eventAdaptorMetadataService = eventAdaptorMetadataService;
+    }
+
+    /**
+     * Get the webhook adaptor.
+     *
+     * @return WebhookAdaptor instance.
+     */
+    public Adaptor getWebhookAdaptor() {
+
+        return webhookAdaptor;
+    }
+
+    /**
+     * Set the webhook adaptor.
+     *
+     * @param webhookAdaptor WebhookAdaptor instance.
+     */
+    public void setWebhookAdaptor(Adaptor webhookAdaptor) {
+
+        this.webhookAdaptor = webhookAdaptor;
+        LOG.debug("Webhook adaptor set to type " + webhookAdaptor.getType());
     }
 }

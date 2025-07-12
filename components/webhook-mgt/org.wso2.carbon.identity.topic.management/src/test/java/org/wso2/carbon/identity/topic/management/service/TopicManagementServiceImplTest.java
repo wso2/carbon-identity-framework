@@ -63,7 +63,7 @@ public class TopicManagementServiceImplTest {
     private static final String EVENT_PROFILE_VERSION = "v1";
     private static final String EVENT_PROFILE_NAME = "exampleEventProfile";
     private static final String TOPIC = "https://example.com/events/carbon.super";
-    private static final String WEBSUBHUBADAPTOR = "webSubHubAdapter";
+    private static final String WEBSUBHUBADAPTOR = "webSubHubAdaptor";
 
     @BeforeClass
     public void setUpClass() throws Exception {

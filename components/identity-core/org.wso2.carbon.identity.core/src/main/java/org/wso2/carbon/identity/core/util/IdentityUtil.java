@@ -1383,7 +1383,7 @@ public class IdentityUtil {
         return Boolean.parseBoolean(disableEmailUsernameValidationProperty);
     }
 
-     /**
+    /**
      *
      * Converts and returns a {@link Certificate} object for given PEM content.
      *
@@ -1680,7 +1680,7 @@ public class IdentityUtil {
             }
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Configured 'MaximumUsersListPerRole' value %s " +
-                                "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
+                        "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
             }
         } catch (NumberFormatException e) {
             log.debug("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
@@ -1732,7 +1732,7 @@ public class IdentityUtil {
             if (showLegacyRoleClaimOnGroupRoleSeparationEnabled == null) {
                 showLegacyRoleClaimOnGroupRoleSeparationEnabled =
                         UserCoreUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled(
-                        userRealm.getRealmConfiguration());
+                                userRealm.getRealmConfiguration());
             }
             return showLegacyRoleClaimOnGroupRoleSeparationEnabled;
         } catch (UserStoreException | CarbonException e) {
