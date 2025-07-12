@@ -38,7 +38,8 @@ public class Constants {
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
     public static final String WEBAUTHN_DATA = "webAuthnData";
-    public static final String AUTHENTICATION_ASSERTION_LIFETIME = "authenticationAssertionLifetime";
+
+    public static final String USER_ASSERTION_EXPIRY_PROPERTY = "FlowExecution.UserAssertion.ExpiryTime";
 
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";

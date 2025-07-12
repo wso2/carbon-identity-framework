@@ -23,8 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.AuthenticationExecutor;
@@ -39,8 +39,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.AUTHENTICATION_ASSERTION_LIFETIME;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.USER_ASSERTION_EXPIRY_PROPERTY;
 
 /**
  * Utility class for generating authentication assertions.
@@ -108,7 +108,7 @@ public class AuthenticationAssertionUtils {
 
         long configuredLifetime = DEFAULT_ASSERTION_LIFETIME_MS;
         try {
-            configuredLifetime = Long.parseLong(IdentityUtil.getProperty(AUTHENTICATION_ASSERTION_LIFETIME));
+            configuredLifetime = Long.parseLong(IdentityUtil.getProperty(USER_ASSERTION_EXPIRY_PROPERTY));
             if (configuredLifetime <= 0) {
                 configuredLifetime = DEFAULT_ASSERTION_LIFETIME_MS;
             }
