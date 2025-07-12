@@ -1001,6 +1001,30 @@
 				<ReadOnly />
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/organization.id</ClaimURI>
+				<DisplayName>Organization Id</DisplayName>
+				<AttributeID>organizationId</AttributeID>
+				<Description>Claim to represent user belonging organization id</Description>
+				<ReadOnly />
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/organization.name</ClaimURI>
+				<DisplayName>Organization Name</DisplayName>
+				<AttributeID>organizationName</AttributeID>
+				<Description>Claim to represent user belonging organization name</Description>
+				<ReadOnly />
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/organization.handle</ClaimURI>
+				<DisplayName>Organization Handle</DisplayName>
+				<AttributeID>organizationHandle</AttributeID>
+				<Description>Claim to represent user belonging organization handle</Description>
+				<ReadOnly />
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
+			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -2897,6 +2921,27 @@
 				<AttributeID>sharedType</AttributeID>
 				<Description>Shared type of the user</Description>
 				<MappedLocalClaim>http://wso2.org/claims/identity/sharedType</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:scim:wso2:schema:organization.id</ClaimURI>
+				<DisplayName>Organization Id</DisplayName>
+				<AttributeID>organizationId</AttributeID>
+				<Description>User's organization id</Description>
+				<MappedLocalClaim>http://wso2.org/claims/identity/organization.id</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:scim:wso2:schema:organization.name</ClaimURI>
+				<DisplayName>Organization Name</DisplayName>
+				<AttributeID>organizationName</AttributeID>
+				<Description>User's organization name</Description>
+				<MappedLocalClaim>http://wso2.org/claims/identity/organization.name</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:scim:wso2:schema:organization.handle</ClaimURI>
+				<DisplayName>Organization Handle</DisplayName>
+				<AttributeID>organizationHandle</AttributeID>
+				<Description>User's organization handle</Description>
+				<MappedLocalClaim>http://wso2.org/claims/identity/organization.handle</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 	</Dialects>
