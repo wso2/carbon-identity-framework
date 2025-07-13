@@ -134,6 +134,9 @@ public class Constants {
         ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE("65022",
                 "Error while generating authentication assertion.",
                 "Error occurred while generating the authentication assertion for the flow id: %s."),
+        ERROR_CODE_FLOW_USER_NOT_FOUND("65022",
+                "Flow user not found.",
+                "Flow user not found in the flow execution context for the flow id: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",

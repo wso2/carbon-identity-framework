@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.util.FlowEngineUtilsTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.util.FlowEngineTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNodeTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtilsTest"/>
         </classes>
     </test>
 </suite>

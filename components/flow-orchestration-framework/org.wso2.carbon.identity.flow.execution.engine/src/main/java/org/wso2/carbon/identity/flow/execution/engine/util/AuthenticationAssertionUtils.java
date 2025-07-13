@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.graph.AuthenticationExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.util.Date;
 import java.util.List;
@@ -40,6 +39,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_USER_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USER_ASSERTION_EXPIRY_PROPERTY;
 
 /**
@@ -67,15 +67,19 @@ public class AuthenticationAssertionUtils {
         try {
             JWTClaimsSet claims = buildUserAssertionClaimSet(context);
             return UserAssertionUtils.generateSignedUserAssertion(claims, context.getTenantDomain());
-        } catch (FrameworkException | IdentityProviderManagementException e) {
+        } catch (FrameworkException e) {
             throw FlowExecutionEngineUtils.handleServerException(
                     ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE, e, context.getContextIdentifier());
         }
     }
 
     private static JWTClaimsSet buildUserAssertionClaimSet(FlowExecutionContext context)
-            throws IdentityProviderManagementException {
+            throws FlowEngineServerException {
 
+        if (context.getFlowUser() == null) {
+            throw FlowExecutionEngineUtils.handleServerException(ERROR_CODE_FLOW_USER_NOT_FOUND,
+                    context.getContextIdentifier());
+        }
         long now = System.currentTimeMillis();
         Date issueTime = new Date(now);
         Date expirationTime = calculateUserAssertionExpiryTime(now);
