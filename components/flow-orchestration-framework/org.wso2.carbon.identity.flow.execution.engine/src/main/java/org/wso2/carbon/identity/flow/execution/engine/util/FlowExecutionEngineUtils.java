@@ -70,10 +70,13 @@ public class FlowExecutionEngineUtils {
      *
      * @param context Flow context.
      */
-    public static void addFlowContextToCache(FlowExecutionContext context) {
+    public static void addFlowContextToCache(FlowExecutionContext context) throws FlowEngineException {
 
+        // Persist an optimized version of the context in the cache and flow context store.
+        optimizeContext(context);
         FlowExecCtxCacheEntry cacheEntry = new FlowExecCtxCacheEntry(context);
         FlowExecCtxCacheKey cacheKey = new FlowExecCtxCacheKey(context.getContextIdentifier());
+        FlowExecCtxCache.getInstance().clearCacheEntry(cacheKey);
         FlowExecCtxCache.getInstance().addToCache(cacheKey, cacheEntry);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow context added to cache for context id: " + context.getContextIdentifier());
@@ -87,7 +90,8 @@ public class FlowExecutionEngineUtils {
      * @return Flow context.
      * @throws FlowEngineException Flow engined exception.
      */
-    public static FlowExecutionContext retrieveFlowContextFromCache(String contextId) throws FlowEngineException {
+    public static FlowExecutionContext retrieveFlowContextFromCache(String contextId)
+            throws FlowEngineException {
 
         if (contextId == null) {
             throw handleClientException(ERROR_CODE_UNDEFINED_FLOW_ID);
@@ -97,7 +101,7 @@ public class FlowExecutionEngineUtils {
         if (entry == null) {
             throw handleClientException(ERROR_CODE_INVALID_FLOW_ID, contextId);
         }
-        return entry.getContext();
+        return populateOptimizedContext(entry);
     }
 
     /**
@@ -105,7 +109,7 @@ public class FlowExecutionEngineUtils {
      *
      * @param contextId Context identifier.
      */
-    public static void removeFlowContextFromCache(String contextId) {
+    public static void removeFlowContextFromCache(String contextId) throws FlowEngineException {
 
         if (contextId == null) {
             if (LOG.isDebugEnabled()) {
@@ -117,6 +121,28 @@ public class FlowExecutionEngineUtils {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow context removed from cache for context id: " + contextId + ".");
         }
+    }
+
+    private static void optimizeContext(FlowExecutionContext context) {
+
+        context.setGraphConfig(null);
+    }
+
+    private static FlowExecutionContext populateOptimizedContext(FlowExecCtxCacheEntry entry)
+            throws FlowEngineServerException {
+
+        FlowExecutionContext context = entry.getContext();
+        if (context != null) {
+            String flowType = context.getFlowType();
+            try {
+                context.setGraphConfig(
+                        FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
+                                .getGraphConfig(flowType, IdentityTenantUtil.getTenantId(context.getTenantDomain())));
+            } catch (FlowMgtFrameworkException e) {
+                throw handleServerException(ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType, context.getTenantDomain(), e);
+            }
+        }
+        return context;
     }
 
     /**
@@ -161,7 +187,7 @@ public class FlowExecutionEngineUtils {
      *
      * @param contextId Context identifier.
      */
-    public static void rollbackContext(String contextId) {
+    public static void rollbackContext(String flowType, String contextId) {
 
         if (StringUtils.isBlank(contextId)) {
             LOG.debug("Context id is null or empty. Hence skipping rollback of the flow context.");
@@ -336,8 +362,10 @@ public class FlowExecutionEngineUtils {
     }
 
     public static Map<String, Object> getMapFromJSONString(String json) throws FlowEngineServerException {
+
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            });
         } catch (JsonProcessingException e) {
             throw handleServerException(
                     ErrorMessages.ERROR_CODE_NODE_RESPONSE_PROCESSING_FAILURE, e,
