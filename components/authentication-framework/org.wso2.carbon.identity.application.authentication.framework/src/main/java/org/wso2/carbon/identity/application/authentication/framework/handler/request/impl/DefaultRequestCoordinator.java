@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.slf4j.MDC;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
@@ -752,9 +753,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             String loginTenantDomain = context.getLoginTenantDomain();
             try {
                 if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
-                        !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + loginTenantDomain + "/")
-                        && FrameworkUtils.isURLRelative(callerPath)) {
-                    callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+                        FrameworkUtils.isURLRelative(callerPath)) {
+                    String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+                    if (organizationId != null && !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX
+                            + organizationId + "/")) {
+                        callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+                    }
                 }
             } catch (URISyntaxException e) {
                 throw new FrameworkException(e.getMessage(), e);
