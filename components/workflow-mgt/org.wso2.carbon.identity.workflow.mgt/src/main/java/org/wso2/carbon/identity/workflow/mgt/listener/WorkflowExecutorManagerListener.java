@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
 import java.util.Map;
 
+/**
+ * Listener interface for workflow executor manager.
+ */
 public interface WorkflowExecutorManagerListener {
 
     /**

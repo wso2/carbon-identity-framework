@@ -76,6 +76,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
@@ -107,6 +108,8 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -117,6 +120,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -128,6 +132,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -211,6 +217,12 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_IDP_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
@@ -218,6 +230,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_NAME;
@@ -1479,7 +1492,7 @@ public class FrameworkUtils {
      */
     public static void publishEventOnUserRegistrationFailure(String errorCode, String errorMessage,
                                                              Map<String, String> claims, String tenantDomain,
-                                                             String idp) {
+                                                             String userStoreDomain, String idp) {
 
         String stepId = String.valueOf(
                 IdentityUtil.threadLocalProperties.get().get(IdentityEventConstants.EventProperty.STEP_ID));
@@ -1487,6 +1500,8 @@ public class FrameworkUtils {
                 .get(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR));
 
         HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, userStoreDomain);
+
         properties.put(IdentityEventConstants.EventProperty.IDP, idp);
         properties.put(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR, authenticator);
         properties.put(IdentityEventConstants.EventProperty.STEP_ID, stepId);
@@ -1538,6 +1553,17 @@ public class FrameworkUtils {
     public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String tenantDomain) {
 
         HashMap<String, Object> properties = new HashMap<>();
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
+
+    public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String userStoreDomain,
+                                                             String tenantDomain) {
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, userStoreDomain);
+
         Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
 
         publishEventOnUserRegistration(claims, tenantDomain, event);
@@ -4633,6 +4659,148 @@ public class FrameworkUtils {
         return tenantDomain;
     }
 
+    /**
+     * Get impersonated user object based on the provided user id, tenant domain, and organization details.
+     *
+     * @param userId            User id of the user.
+     * @param tenantDomain      Tenant domain of the user.
+     * @param userAccessingOrg  Accessing organization of the user (nullable).
+     * @param userResidentOrg   Resident organization of the user (nullable).
+     * @param applicationConfig Application configuration.
+     *
+     * @return An impersonated user object.
+     * @throws FrameworkException Throws if an error occurred while getting the impersonated user.
+     */
+    public static ImpersonatedUser getImpersonatedUser(String userId, String tenantDomain,
+                                                        String userAccessingOrg, String userResidentOrg,
+                                                        ApplicationConfig applicationConfig)
+            throws FrameworkException {
+
+        try {
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            int tenantId;
+            if (StringUtils.isNotBlank(userResidentOrg)) {
+                tenantId = realmService.getTenantManager().getTenantId(userResidentOrg);
+            } else {
+                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            }
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager)
+                    realmService.getTenantUserRealm(tenantId).getUserStoreManager();
+            if (StringUtils.isNotEmpty(userId) && userStoreManager.isExistingUserWithID(userId)) {
+                User user = getUser(userStoreManager.getUser(userId, null));
+                ImpersonatedUser impersonatedUser = getImpersonatedUser(userId, user.getUserName(), tenantDomain,
+                        userAccessingOrg, userResidentOrg, user.getUserStoreDomain(), userId);
+                impersonatedUser.setAuthenticatedSubjectIdentifier(
+                        getSubjectIdentifier(impersonatedUser, applicationConfig));
+
+                return impersonatedUser;
+            } else {
+                throw new FrameworkException(INVALID_REQUEST.getCode(),
+                        "Invalid User Id provided for the request. Unable to find the user for given " +
+                                "user id : " + userId + " tenant id : " + tenantId);
+            }
+        } catch (UserStoreException e) {
+            throw new FrameworkException(INVALID_REQUEST.getCode(),
+                    "Use mapped local subject is mandatory but a local user couldn't be found");
+        }
+    }
+
+    private static User getUser(org.wso2.carbon.user.core.common.User coreUser) {
+
+        User user = new User();
+        user.setUserName(coreUser.getUsername());
+        user.setUserStoreDomain(coreUser.getUserStoreDomain());
+        user.setTenantDomain(coreUser.getTenantDomain());
+        return user;
+    }
+
+    private static ImpersonatedUser getImpersonatedUser(String userId, String userName,
+                                                        String tenantDomain, String userAccessingOrg,
+                                                        String userResidentOrg, String userStoreDomain,
+                                                        String subjectIdentifier) {
+
+        ImpersonatedUser impersonatedUser = new ImpersonatedUser();
+        impersonatedUser.setAuthenticatedSubjectIdentifier(subjectIdentifier);
+        impersonatedUser.setUserName(userName);
+        impersonatedUser.setUserStoreDomain(userStoreDomain);
+        impersonatedUser.setTenantDomain(tenantDomain);
+        impersonatedUser.setUserId(userId);
+        if (userResidentOrg != null) {
+            impersonatedUser.setFederatedUser(true);
+            impersonatedUser.setFederatedIdPName(ORGANIZATION_LOGIN_IDP_NAME);
+            impersonatedUser.setUserResidentOrganization(userResidentOrg);
+            impersonatedUser.setAccessingOrganization(userAccessingOrg);
+        }
+        return impersonatedUser;
+    }
+
+    private static String getSubjectIdentifier(ImpersonatedUser impersonatedUser,
+                                               ApplicationConfig applicationConfig)
+            throws FrameworkException {
+
+        try {
+            String subjectIdentifier = impersonatedUser.getUserId();
+            String userStoreDomain = impersonatedUser.getUserStoreDomain();
+            String userResidentOrg = impersonatedUser.getTenantDomain();
+            String tenantDomain = impersonatedUser.getTenantDomain();
+            if (impersonatedUser.isFederatedUser()
+                    && ORGANIZATION_LOGIN_IDP_NAME.equals(impersonatedUser.getFederatedIdPName())) {
+                userResidentOrg = impersonatedUser.getUserResidentOrganization();
+            }
+            String userName = impersonatedUser.getUserName();
+
+            String subjectClaimUri = applicationConfig.getSubjectClaimUri();
+            boolean useUserStoreDomainInLocalSubjectIdentifier = applicationConfig
+                    .isUseUserstoreDomainInLocalSubjectIdentifier();
+            // For sub org users the user store domain is not added in the local subject identifier.
+            if (impersonatedUser.isFederatedUser()
+                    && ORGANIZATION_LOGIN_IDP_NAME.equals(impersonatedUser.getFederatedIdPName())) {
+                useUserStoreDomainInLocalSubjectIdentifier = false;
+            }
+            boolean useTenantDomainInLocalSubjectIdentifier = applicationConfig
+                    .isUseTenantDomainInLocalSubjectIdentifier();
+
+            if (subjectClaimUri != null) {
+                RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+                String subjectClaimValue = getClaimValue(IdentityUtil.addDomainToName(userName, userStoreDomain),
+                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(userResidentOrg))
+                                .getUserStoreManager(), subjectClaimUri);
+
+                if (subjectClaimValue != null) {
+                    subjectIdentifier = subjectClaimValue;
+                }
+            }
+
+            if (useUserStoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
+                subjectIdentifier = IdentityUtil.addDomainToName(subjectIdentifier, userStoreDomain);
+            }
+            if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain) &&
+                    StringUtils.countMatches(subjectIdentifier,
+                            UserCoreConstants.TENANT_DOMAIN_COMBINER) < 2) {
+                subjectIdentifier = UserCoreUtil.addTenantDomainToEntry(subjectIdentifier,
+                        tenantDomain);
+            }
+
+            return subjectIdentifier;
+        } catch (UserStoreException | UserIdNotFoundException e) {
+            throw new FrameworkException("Error while obtaining subject identifier.", e);
+        }
+    }
+
+    private static String getClaimValue(String domainQualifiedUserName,
+                                        org.wso2.carbon.user.api.UserStoreManager userStoreManager,
+                                        String claimURI) throws FrameworkException {
+
+        try {
+            Map<String, String> claimValues = userStoreManager.getUserClaimValues(domainQualifiedUserName,
+                    new String[]{claimURI},
+                    UserCoreConstants.DEFAULT_PROFILE);
+            return claimValues.get(claimURI);
+        } catch (UserStoreException e) {
+            throw new FrameworkException("Error occurred while retrieving claim: " + claimURI, e);
+        }
+    }
+
     public static void addRegistrationEventContext(AuthenticationContext context) {
 
         if (context != null) {
@@ -4647,5 +4815,41 @@ public class FrameworkUtils {
 
         IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.STEP_ID);
         IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR);
+    }
+
+    /**
+     * Build OrganizationDiscoveryInput from request.
+     *
+     * @param request Http Servlet Request.
+     * @return OrganizationDiscoveryInput object.
+     */
+    public static OrganizationDiscoveryInput getOrganizationDiscoveryInput(HttpServletRequest request) {
+
+        return new OrganizationDiscoveryInput.Builder()
+                .orgId(request.getParameter(ORG_ID))
+                .orgHandle(request.getParameter(ORG_HANDLE))
+                .orgName(request.getParameter(ORG_NAME))
+                .loginHint(request.getParameter(LOGIN_HINT))
+                .orgDiscoveryType(request.getParameter(ORG_DISCOVERY_TYPE))
+                .build();
+
+    }
+
+    /**
+     * This is used to set the flow and initiator in the identity context
+     * for the user flows.
+     *
+     * @param flowName The name of the flow to set in the identity context.
+     */
+    public static void updateIdentityContextFlow(Flow.Name flowName) {
+
+        if (IdentityContext.getThreadLocalIdentityContext().getFlow() != null) {
+            // If the flow is already set, no need to update it again.
+            return;
+        }
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
+                        Flow.InitiatingPersona.USER).build());
     }
 }

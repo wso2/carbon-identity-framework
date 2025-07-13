@@ -33,6 +33,9 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Workflow management service interface.
+ */
 public interface WorkflowManagementService {
 
     /**
@@ -378,4 +381,10 @@ public interface WorkflowManagementService {
 
     List<String> listEntityNames(String wfOperationType, String wfStatus, String entityType, int tenantID, String
             idFilter) throws WorkflowException;
+
+    default org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest getWorkflowRequest(String requestId)
+            throws WorkflowException {
+
+        throw new NotImplementedException("Get workflow by request ID functionality is not implemented.");
+    }
 }

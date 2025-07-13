@@ -43,6 +43,6 @@ public interface UserActionExecutor {
      * @param tenantDomain      Tenant domain.
      * @return Action execution status.
      */
-    ActionExecutionStatus<?> execute(UserActionContext userActionContext, String tenantDomain) throws
-            ActionExecutionException;
+    ActionExecutionStatus<?> execute(UserActionContext userActionContext, String tenantDomain)
+            throws ActionExecutionException;
 }

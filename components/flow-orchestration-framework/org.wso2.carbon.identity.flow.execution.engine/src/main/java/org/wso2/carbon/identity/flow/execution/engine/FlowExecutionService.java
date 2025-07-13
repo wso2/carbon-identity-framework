@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -73,7 +74,11 @@ public class FlowExecutionService {
                 // No flowId present hence initiate the flow.
                 context = FlowExecutionEngineUtils.initiateContext(tenantDomain, applicationId, flowType);
             } else {
-                context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowType, flowId);
+                context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId);
+            }
+
+            if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+                FrameworkUtils.updateIdentityContextFlow(Flow.Name.USER_REGISTRATION);
             }
 
             if (inputs != null) {
@@ -95,13 +100,6 @@ public class FlowExecutionService {
                 }
             }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
-
-                if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
-                    Map<String, String> userClaims =
-                            context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
-                    FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, tenantDomain);
-                }
-
                 FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);
@@ -116,7 +114,7 @@ public class FlowExecutionService {
                         userClaims, tenantDomain);
             }
 
-            FlowExecutionEngineUtils.rollbackContext(flowType, flowId);
+            FlowExecutionEngineUtils.rollbackContext(flowId);
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             throw e;
         }

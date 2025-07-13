@@ -1158,10 +1158,13 @@
         </AskPassword>
     </TenantRegistrationVerification>
 
-    <!--<LoginIdentifiers>
-        <Enable>false</Enable>
-        <PrimaryLoginIdentifier>http://wso2.org/claims/userType</PrimaryLoginIdentifier>
-    </LoginIdentifiers>-->
+    <LoginIdentifiers>
+        <!-- <Enable>false</Enable>
+        <PrimaryLoginIdentifier>http://wso2.org/claims/userType</PrimaryLoginIdentifier>-->
+        <!--This config will be used to set the username value as login identifier value which will be used in next
+        steps for displaying purposes.-->
+        <enableIdentifierAsDisplayUsername>false</enableIdentifierAsDisplayUsername>
+    </LoginIdentifiers>
 
     <UserClaimUpdate>
         <Claim uri = "http://wso2.org/claims/emailaddress">
@@ -1274,11 +1277,19 @@
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
     </OutboundProvisioning>
 
+    <Webhooks>
+        <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
+    </Webhooks>
+
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener"
                        orderId="3"
                        enable="true"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.input.validation.mgt.listener.DataTypeValidationListener"
+                       orderId="197"
+                       enable="false"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.IdentityMgtEventListener"
                        orderId="50" enable="false"/>
@@ -2815,4 +2826,9 @@
             <EnableSMSUsernameRecoveryIfConnectorEnabled>false</EnableSMSUsernameRecoveryIfConnectorEnabled>
         </OnInitialUse>
     </OnDemandConfig>
+
+    <AgentIdentity>
+        <Enabled>true</Enabled>
+    </AgentIdentity>
+
 </Server>

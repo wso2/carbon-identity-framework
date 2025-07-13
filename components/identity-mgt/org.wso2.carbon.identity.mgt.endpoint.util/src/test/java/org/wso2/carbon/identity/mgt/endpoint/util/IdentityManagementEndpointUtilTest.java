@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,6 +32,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
@@ -48,6 +50,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
@@ -57,6 +60,7 @@ import static org.testng.Assert.assertNotNull;
  * This class tests the methods of IdentityManagementEndpointUtil class.
  */
 @Listeners(MockitoTestNGListener.class)
+@WithCarbonHome
 public class IdentityManagementEndpointUtilTest {
 
     @Mock
@@ -78,8 +82,11 @@ public class IdentityManagementEndpointUtilTest {
     private ServiceURLBuilder serviceURLBuilder;
 
     private String mockJsonResponse = "{}";
+    private static final String SAMPLE_TENANT_DOMAIN = "test.com";
+    private static final String SAMPLE_ORG_ID = "7ee1be09-4095-40e6-b3e8-92e5eb7bf423";
     private static final String SAMPLE_URL = "https://wso2.org:9443";
     private static final String SAMPLE_TENANTED_URL = "https://wso2.org:9443/t/test.com";
+    private static final String SAMPLE_ORGANIZATION_URL = "https://wso2.org:9443/o/";
 
     @DataProvider(name = "getEndpointUrlTestData")
     public Object[][] getEndpointUrlTestData() {
@@ -207,19 +214,19 @@ public class IdentityManagementEndpointUtilTest {
                 // expected value
                 { true,
                   "https://foo.com",
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://foo.com/t/test.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   "https://foo.com",
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://foo.com/t/test.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   null,
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
                 },
@@ -250,8 +257,8 @@ public class IdentityManagementEndpointUtilTest {
 
         try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
-            prepareGetBasePathTest(isTenantQualifiedUrlsEnabled, contextUrl, context, identityTenantUtil,
-                    serviceURLBuilder);
+            prepareGetBasePathTest(contextUrl, context, identityTenantUtil, serviceURLBuilder,
+                    isTenantQualifiedUrlsEnabled, false);
             assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context), expected);
         }
     }
@@ -268,42 +275,42 @@ public class IdentityManagementEndpointUtilTest {
                 // expected value
                 { true,
                   "https://foo.com",
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   true,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://foo.com/t/test.com/api/identity/recovery/v0.9"
                 },
                 { true,
                   "https://foo.com",
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   false,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   "https://foo.com",
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   true,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://foo.com/t/test.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   "https://foo.com",
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   false,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   null,
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   true,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   null,
-                  "test.com",
+                  SAMPLE_TENANT_DOMAIN,
                   false,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://wso2.org:9443/api/identity/recovery/v0.9"
@@ -359,24 +366,45 @@ public class IdentityManagementEndpointUtilTest {
 
         try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
-            prepareGetBasePathTest(isTenantQualifiedUrlsEnabled, contextUrl, context, identityTenantUtil,
-                    serviceURLBuilder);
+            prepareGetBasePathTest(contextUrl, context, identityTenantUtil,
+                    serviceURLBuilder, isTenantQualifiedUrlsEnabled, false);
             assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context, isEndpointTenantAware),
                     expected);
         }
     }
 
-    private void prepareGetBasePathTest(boolean isTenantQualifiedUrlsEnabled, String contextUrl, String context,
-                                        MockedStatic<IdentityTenantUtil> identityTenantUtil,
-                                        MockedStatic<ServiceURLBuilder> serviceURLBuilder) throws Exception {
+    @Test
+    public void testGetBasePathForOrganizations() throws Exception {
 
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class))
+        {
+            mockCarbonContext(privilegedCarbonContext);
+            prepareGetBasePathTest(null,
+                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                    identityTenantUtil, serviceURLBuilder, true, true);
+            assertEquals(IdentityManagementEndpointUtil.getBasePath(SAMPLE_TENANT_DOMAIN,
+                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH),
+                    "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9");
+        }
+    }
+
+    private void prepareGetBasePathTest(String contextUrl, String context,
+                                        MockedStatic<IdentityTenantUtil> identityTenantUtil,
+                                        MockedStatic<ServiceURLBuilder> serviceURLBuilder,
+                                        boolean isTenantQualifiedUrlsEnabled,
+                                        boolean isOrganizationQualifiedUrlsEnabled) throws Exception {
 
         prepareServiceURLBuilder(serviceURLBuilder);
         identityTenantUtil.when(
                 IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualifiedUrlsEnabled);
         identityTenantUtil.when(
                 IdentityTenantUtil::shouldUseTenantQualifiedURLs).thenReturn(isTenantQualifiedUrlsEnabled);
-        if (isTenantQualifiedUrlsEnabled) {
+        if (isOrganizationQualifiedUrlsEnabled) {
+            lenient().when(serviceURL.getAbsoluteInternalURL())
+                    .thenReturn(SAMPLE_ORGANIZATION_URL + SAMPLE_ORG_ID + context);
+        } else if (isTenantQualifiedUrlsEnabled) {
             lenient().when(serviceURL.getAbsoluteInternalURL()).thenReturn(SAMPLE_TENANTED_URL + context);
         } else {
             lenient().when(serviceURL.getAbsoluteInternalURL()).thenReturn(SAMPLE_URL);
@@ -392,6 +420,7 @@ public class IdentityManagementEndpointUtilTest {
         lenient().when(this.serviceURLBuilder.addFragmentParameter(any(), any())).thenReturn(this.serviceURLBuilder);
         lenient().when(this.serviceURLBuilder.addParameter(any(), any())).thenReturn(this.serviceURLBuilder);
         lenient().when(this.serviceURLBuilder.build()).thenReturn(serviceURL);
+        lenient().when(this.serviceURLBuilder.setTenant(any())).thenReturn(this.serviceURLBuilder);
     }
 
     @Test
@@ -419,4 +448,11 @@ public class IdentityManagementEndpointUtilTest {
         }
     }
 
+    private void mockCarbonContext(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext) {
+
+        PrivilegedCarbonContext mockPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        privilegedCarbonContext.when(
+                PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(mockPrivilegedCarbonContext);
+        when(mockPrivilegedCarbonContext.getOrganizationId()).thenReturn(SAMPLE_ORG_ID);
+    }
 }

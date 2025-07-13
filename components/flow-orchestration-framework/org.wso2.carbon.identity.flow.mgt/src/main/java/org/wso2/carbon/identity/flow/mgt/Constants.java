@@ -54,6 +54,8 @@ public class Constants {
                         "%s"),
         ERROR_CODE_GET_FIRST_STEP_ID("65007", "Error while retrieving the first step id.",
                 "Unexpected server error while retrieving the first step id for tenant, %s"),
+        ERROR_CODE_CLEAR_CACHE_FAILED("65008", "Error while clearing the cache.",
+                "Unexpected server error while clearing the cache for tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -142,6 +144,7 @@ public class Constants {
         public static final String VIEW = "VIEW";
         public static final String REDIRECTION = "REDIRECTION";
         public static final String INTERNAL_PROMPT = "INTERNAL_PROMPT";
+        public static final String EXECUTION = "EXECUTION";
         public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
 

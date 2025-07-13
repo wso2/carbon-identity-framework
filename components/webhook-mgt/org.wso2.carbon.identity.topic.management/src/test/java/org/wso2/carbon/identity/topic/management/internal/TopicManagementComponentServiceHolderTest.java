@@ -48,7 +48,7 @@ public class TopicManagementComponentServiceHolderTest {
 
         // Create a fresh mock for each test
         topicManager = Mockito.mock(TopicManager.class);
-        Mockito.when(topicManager.getName()).thenReturn("TestTopicManager");
+        Mockito.when(topicManager.getAssociatedAdaptor()).thenReturn("TestTopicManager");
     }
 
     @Test

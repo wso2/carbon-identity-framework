@@ -25,6 +25,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCache;
@@ -53,6 +54,7 @@ import static org.wso2.carbon.identity.provisioning.ProvisioningOperation.PUT;
 /**
  * Test class for ProvisioningThread test cases.
  */
+@WithCarbonHome
 public class ProvisioningThreadTest {
 
     private ProvisioningEntity provisioningEntity;

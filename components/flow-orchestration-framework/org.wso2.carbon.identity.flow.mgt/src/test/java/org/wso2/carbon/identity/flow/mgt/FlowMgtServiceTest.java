@@ -26,9 +26,11 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
@@ -36,15 +38,19 @@ import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
-import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverServiceImpl;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.util.OrgResourceHierarchyTraverseUtil;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
@@ -74,70 +80,97 @@ import static org.wso2.carbon.identity.flow.mgt.TestHelperMethods.getFilePath;
 /**
  * Test class for FlowMgtService.
  */
+@WithCarbonHome
 public class FlowMgtServiceTest {
 
     private static final String DB_NAME = "flow_mgt_dao_db";
     private static final String DB_SCRIPT = "identity.sql";
     private static final String FLOW_JSON = "flow.json";
     private static final int TEST_TENANT_ID = -1234;
+    private static final String TEST_TENANT_DOMAIN = "testTenant";
+    private static final String TEST_ORG_ID = "testOrgId";
     private static BasicDataSource dataSource = null;
     private FlowMgtService service;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic;
+    private MockedStatic<FlowMgtServiceDataHolder> dataHolderMockedStatic;
+    private MockedStatic<OrgResourceHierarchyTraverseUtil> traverseUtilMockedStatic;
+    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtilMockedStatic;
 
     @BeforeClass
     public void setUp() throws Exception {
 
         service = FlowMgtService.getInstance();
         dataSource = TestHelperMethods.initiateH2Database(getFilePath(DB_SCRIPT), DB_NAME);
+        identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantDomain(TEST_TENANT_ID))
+                .thenReturn(TEST_TENANT_DOMAIN);
+        identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                .thenReturn(TEST_TENANT_ID);
+        OrganizationManager mockOrganizationManager = mock(OrganizationManager.class);
+        OrgResourceResolverService mockOrgResourceResolverService = new OrgResourceResolverServiceImpl();
+        FlowMgtServiceDataHolder mockFlowMgtServiceDataHolder = mock(FlowMgtServiceDataHolder.class);
+        when(mockOrganizationManager.resolveOrganizationId(TEST_TENANT_DOMAIN)).thenReturn(TEST_ORG_ID);
+        when(mockOrganizationManager.resolveTenantDomain(TEST_ORG_ID)).thenReturn(TEST_TENANT_DOMAIN);
+        when(mockOrganizationManager.getAncestorOrganizationIds(TEST_ORG_ID))
+                .thenReturn(Collections.singletonList(TEST_ORG_ID));
+        when(mockFlowMgtServiceDataHolder.getOrganizationManager()).thenReturn(mockOrganizationManager);
+        when(mockFlowMgtServiceDataHolder.getOrgResourceResolverService()).thenReturn(mockOrgResourceResolverService);
+        dataHolderMockedStatic = mockStatic(FlowMgtServiceDataHolder.class);
+        dataHolderMockedStatic.when(FlowMgtServiceDataHolder::getInstance).thenReturn(mockFlowMgtServiceDataHolder);
+        traverseUtilMockedStatic = mockStatic(OrgResourceHierarchyTraverseUtil.class);
+        traverseUtilMockedStatic.when(OrgResourceHierarchyTraverseUtil::getOrganizationManager)
+                .thenReturn(mockOrganizationManager);
+        identityDatabaseUtilMockedStatic = mockStatic(IdentityDatabaseUtil.class);
+        identityDatabaseUtilMockedStatic.when(IdentityDatabaseUtil::getDataSource)
+                .thenReturn(dataSource);
     }
 
     @AfterClass
     public void tearDown() throws Exception {
 
         closeH2Database(dataSource);
+        if (identityTenantUtilMockedStatic != null) {
+            identityTenantUtilMockedStatic.close();
+        }
+        if (dataHolderMockedStatic != null) {
+            dataHolderMockedStatic.close();
+        }
+        if (traverseUtilMockedStatic != null) {
+            traverseUtilMockedStatic.close();
+        }
+        if (identityDatabaseUtilMockedStatic != null) {
+            identityDatabaseUtilMockedStatic.close();
+        }
     }
 
     @Test
     public void testUpdateFlow() throws Exception {
 
-        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
-             MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class);
-             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
-            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
-            loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
-            flowMgtUtils.when(FlowMgtUtils::getInitiatorId)
-                    .thenReturn(LoggerUtils.Initiator.System.name());
-
-            service.updateFlow(createSampleGraphConfig(), TEST_TENANT_ID);        }
+        service.updateFlow(createSampleGraphConfig(), TEST_TENANT_ID);
     }
 
     @Test(dependsOnMethods = {"testUpdateFlow"})
     public void testGetFlow() throws Exception {
 
-        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
-            FlowDTO flowDTO = service.getFlow("SELF_REGISTRATION", TEST_TENANT_ID);
-            assertNotNull(flowDTO);
-            assertEquals(flowDTO.getSteps().size(), 4);
-        }
+        FlowDTO flowDTO = service.getFlow("SELF_REGISTRATION", TEST_TENANT_ID);
+        assertNotNull(flowDTO);
+        assertEquals(flowDTO.getSteps().size(), 4);
     }
 
     @Test(dependsOnMethods = {"testUpdateFlow"})
     public void testGetRegistrationGraph() throws Exception {
 
-        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
-            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
-            GraphConfig regGraph = service.getGraphConfig("SELF_REGISTRATION", TEST_TENANT_ID);
-            assertNotNull(regGraph);
-            assertEquals(regGraph.getNodeConfigs().size(), 5);
-            assertEquals(regGraph.getFirstNodeId(), "step_1");
-            assertEquals(regGraph.getNodeConfigs().get("step_1").getType(), DECISION);
-        }
+        GraphConfig regGraph = service.getGraphConfig("SELF_REGISTRATION", TEST_TENANT_ID);
+        assertNotNull(regGraph);
+        assertEquals(regGraph.getNodeConfigs().size(), 5);
+        assertEquals(regGraph.getFirstNodeId(), "step_1");
+        assertEquals(regGraph.getNodeConfigs().get("step_1").getType(), DECISION);
     }
 
     @DataProvider(name = "invalidStepData")
     public Object[][] invalidStepData() {
 
-        return new Object[][] {
+        return new Object[][]{
                 {"missingData",
                         new StepDTO.Builder().id("STEP_1").type(VIEW).build(),
                         ERROR_CODE_STEP_DATA_NOT_FOUND.getCode()},
@@ -175,7 +208,7 @@ public class FlowMgtServiceTest {
 
                 {"redirectionStepWithUndefinedExecutor",
                         createRedirectionStep("STEP_1",
-                                              new ActionDTO.Builder().type(EXECUTOR).nextId("step_x").build()),
+                                new ActionDTO.Builder().type(EXECUTOR).nextId("step_x").build()),
                         ERROR_CODE_EXECUTOR_INFO_NOT_FOUND.getCode()},
 
                 {"redirectionStepWithInvalidNext",
@@ -213,7 +246,7 @@ public class FlowMgtServiceTest {
         ActionDTO action2 = createExecutorAction("step_2");
 
         StepDTO step = createViewStep("step_with_multiple_executors",
-                                      Arrays.asList(createButton(action1), createButton(action2)));
+                Arrays.asList(createButton(action1), createButton(action2)));
 
         try {
             FlowDTO flowDTO = new FlowDTO();
@@ -277,8 +310,6 @@ public class FlowMgtServiceTest {
             assertEquals(e.getErrorCode(), ERROR_CODE_INVALID_FIRST_NODE.getCode());
         }
     }
-
-    // Helper methods.
 
     private StepDTO createViewStep(String id, List<ComponentDTO> components) {
 

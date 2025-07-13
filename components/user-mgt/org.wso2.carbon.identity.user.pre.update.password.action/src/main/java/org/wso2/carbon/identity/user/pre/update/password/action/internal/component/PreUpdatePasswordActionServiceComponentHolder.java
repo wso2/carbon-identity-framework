@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.user.pre.update.password.action.internal.compon
 
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * Service component Holder for the Pre Update Password Action Service.
@@ -28,6 +30,8 @@ public class PreUpdatePasswordActionServiceComponentHolder {
 
     private CertificateManagementService certificateManagementService;
     private ActionExecutorService actionExecutorService;
+    private RealmService realmService;
+    private ClaimMetadataManagementService claimManagementService;
 
     public static final PreUpdatePasswordActionServiceComponentHolder INSTANCE =
             new PreUpdatePasswordActionServiceComponentHolder();
@@ -84,5 +88,45 @@ public class PreUpdatePasswordActionServiceComponentHolder {
     public void setActionExecutorService(ActionExecutorService actionExecutorService) {
 
         this.actionExecutorService = actionExecutorService;
+    }
+
+    /**
+     * Get the RealmService.
+     *
+     * @return RealmService instance.
+     */
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    /**
+     * Set the RealmService.
+     *
+     * @param realmService RealmService instance.
+     */
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
+    }
+
+    /**
+     * Get the ClaimMetadataManagementService.
+     *
+     * @return ClaimMetadataManagementService instance.
+     */
+    public ClaimMetadataManagementService getClaimManagementService() {
+
+        return claimManagementService;
+    }
+
+    /**
+     * Set the ClaimMetadataManagementService.
+     *
+     * @param claimManagementService ClaimMetadataManagementService instance.
+     */
+    public void setClaimManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        this.claimManagementService = claimManagementService;
     }
 }

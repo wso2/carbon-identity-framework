@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -452,6 +452,7 @@ public abstract class FrameworkConstants {
         public static final String CORRELATION_ID = "crId";
         public static final String IS_IDF_INITIATED_FROM_AUTHENTICATOR = "isIdfInitiatedFromAuthenticator";
         public static final String SESSION_ID = "sessionId";
+        public static final String REQUESTED_SUBJECT = "requested_subject";
 
         private RequestParams() {
         }
@@ -713,9 +714,11 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATION_DURATION = "authenticationDuration";
         public static final String DATA_MAP = "dataMap";
         public static final String AUTHENTICATION_ERROR_CODE = "authenticationErrorCode";
+        public static final String AUTHENTICATION_ERROR_MESSAGE = "authenticationErrorMessage";
         public static final String CURRENT_AUTHENTICATOR_START_TIME = "currentAuthenticatorStartTime";
         public static final String CURRENT_AUTHENTICATOR_DURATION = "currentAuthenticatorDuration";
         public static final String CURRENT_AUTHENTICATOR_ERROR_CODE = "currentAuthenticatorErrorCode";
+        public static final String CURRENT_AUTHENTICATOR_ERROR_MESSAGE = "currentAuthenticatorErrorMessage";
         public static final String CUSTOM_PARAM_PREFIX = "customParam";
         public static final int CUSTOM_PARAM_LENGTH = 5;
         public static final String CUSTOM_PARAM_1 = CUSTOM_PARAM_PREFIX + "1";
@@ -844,5 +847,52 @@ public abstract class FrameworkConstants {
 
         INFO,
         ERROR
+    }
+
+    /**
+     * Constants related to Organization Discovery Input parameters.
+     */
+    public static class OrgDiscoveryInputParameters {
+
+        public static final String ORG_ID = "orgId";
+        public static final String ORG_HANDLE = "orgHandle";
+        public static final String ORG_NAME = "org";
+        public static final String LOGIN_HINT = "login_hint";
+        public static final String ORG_DISCOVERY_TYPE = "orgDiscoveryType";
+
+        private OrgDiscoveryInputParameters() {
+
+        }
+    }
+
+    /**
+     * Enum for Organization Discovery Failure Details.
+     */
+    public enum OrgDiscoveryFailureDetails {
+
+        VALID_DISCOVERY_PARAMETERS_NOT_FOUND("60001", "Valid organization discovery parameters are not found."),
+        ORGANIZATION_NOT_FOUND("60002", "Organization is not found for given discovery parameters."),
+        APPLICATION_NOT_SHARED("60003", "Application is not shared with the organization."),
+        ORGANIZATION_DISCOVERY_TYPE_NOT_ENABLED_OR_SUPPORTED("60004",
+                "Organization discovery type is not enabled or supported for the organization.");
+
+        private final String code;
+        private final String message;
+
+        OrgDiscoveryFailureDetails(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+
+            return this.code;
+        }
+
+        public String getMessage() {
+
+            return this.message;
+        }
     }
 }

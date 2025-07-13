@@ -2909,6 +2909,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
+    public String getSharedAppId(String mainAppId, String ownerOrgId, String sharedOrgId)
+            throws IdentityApplicationManagementServerException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Getting the shared app id for main app id: %s of owner org: %s and shared org: %s",
+                    mainAppId, ownerOrgId, sharedOrgId));
+        }
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                .getSharedAppId(mainAppId, ownerOrgId, sharedOrgId);
+    }
+
+    @Override
     public Map<String, String> getAncestorAppIds(String sharedAppId, String orgId)
             throws IdentityApplicationManagementException {
 

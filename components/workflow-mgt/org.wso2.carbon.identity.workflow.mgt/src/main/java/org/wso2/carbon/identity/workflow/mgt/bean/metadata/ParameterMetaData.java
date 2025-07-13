@@ -35,17 +35,28 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
  *         &lt;element name="DisplayName" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
- *         &lt;element name="DefaultValue" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
- *         &lt;element name="RegExForValidate" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
- *         &lt;element name="InputData" type="{http://metadata.bean.mgt.workflow.identity.carbon.wso2.org}InputData" minOccurs="0"/&gt;
+ *         &lt;element name="DefaultValue" type="{http://www.w3.org/2001/XMLSchema}string"
+ *           minOccurs="0"/&gt;
+ *         &lt;element name="RegExForValidate" type="{http://www.w3.org/2001/XMLSchema}string"
+ *           minOccurs="0"/&gt;
+ *         &lt;element name="InputData"
+ *           type="{http://metadata.bean.mgt.workflow.identity.carbon.wso2.org}InputData"
+ *           minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
- *       &lt;attribute name="Name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
- *       &lt;attribute name="DataType" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
- *       &lt;attribute name="InputType" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
- *       &lt;attribute name="CustomInputType" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
- *       &lt;attribute name="isRequired" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" /&gt;
- *       &lt;attribute name="Validate" type="{http://www.w3.org/2001/XMLSchema}boolean" default="true" /&gt;
- *       &lt;attribute name="isInputDataRequired" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" /&gt;
+ *       &lt;attribute name="Name" use="required"
+ *         type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="DataType"
+ *         type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="InputType"
+ *         type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="CustomInputType"
+ *         type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="isRequired"
+ *         type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" /&gt;
+ *       &lt;attribute name="Validate"
+ *         type="{http://www.w3.org/2001/XMLSchema}boolean" default="true" /&gt;
+ *       &lt;attribute name="isInputDataRequired"
+ *         type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;

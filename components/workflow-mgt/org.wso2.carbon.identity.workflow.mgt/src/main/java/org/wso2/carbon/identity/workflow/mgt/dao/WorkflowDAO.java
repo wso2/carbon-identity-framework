@@ -245,14 +245,16 @@ public class WorkflowDAO {
      * @return List<Workflow>
      * @throws InternalWorkflowException
      */
-    public List<Workflow> listPaginatedWorkflows(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException {
+    public List<Workflow> listPaginatedWorkflows(int tenantId, String filter, int offset, int limit)
+            throws InternalWorkflowException {
 
         String sqlQuery;
         List<Workflow> workflowList = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             sqlQuery = getSqlQuery();
-            try (PreparedStatement prepStmt = generatePrepStmt(connection, sqlQuery, tenantId, filterResolvedForSQL, offset, limit);) {
+            try (PreparedStatement prepStmt = generatePrepStmt(connection, sqlQuery, tenantId, filterResolvedForSQL,
+                    offset, limit);) {
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
                     while (resultSet.next()) {
                         String id = resultSet.getString(SQLConstants.ID_COLUMN);
@@ -328,7 +330,7 @@ public class WorkflowDAO {
      * @return Return workflows count
      * @throws InternalWorkflowException
      */
-    public int getWorkflowsCount(int tenantId, String filter) throws InternalWorkflowException{
+    public int getWorkflowsCount(int tenantId, String filter) throws InternalWorkflowException {
 
         int count = 0;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -465,7 +467,8 @@ public class WorkflowDAO {
                 }
 
                 if (StringUtils.isNotBlank(paramName)) {
-                    Parameter parameter = new Parameter(workflowId, SQLConstants.PARAM_NAME_MAPPING.getOrDefault(paramName, paramName),
+                    Parameter parameter = new Parameter(
+                            workflowId, SQLConstants.PARAM_NAME_MAPPING.getOrDefault(paramName, paramName),
                             paramValue,
                             paramQName,
                             paramHolder);
@@ -488,7 +491,7 @@ public class WorkflowDAO {
      */
     private String getSqlQuery() throws InternalWorkflowException, DataAccessException {
 
-        String sqlQuery ;
+        String sqlQuery;
         if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
             sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
         } else if (JdbcUtils.isOracleDB()) {

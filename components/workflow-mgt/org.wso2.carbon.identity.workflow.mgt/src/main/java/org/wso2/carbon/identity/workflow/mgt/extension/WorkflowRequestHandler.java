@@ -23,6 +23,9 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
 import java.util.Map;
 
+/**
+ * Workflow request handler interface.
+ */
 public interface WorkflowRequestHandler {
 
     /**

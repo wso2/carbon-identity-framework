@@ -39,6 +39,7 @@ public class ClaimConstants {
     public static final String DISPLAY_ORDER_PROPERTY = "DisplayOrder";
     public static final String SUPPORTED_BY_DEFAULT_PROPERTY = "SupportedByDefault";
     public static final String CANONICAL_VALUES_PROPERTY = "canonicalValues";
+    public static final String INPUT_FORMAT_PROPERTY = "inputFormat";
     public static final String REGULAR_EXPRESSION_PROPERTY = "RegEx";
     public static final String READ_ONLY_PROPERTY = "ReadOnly";
     public static final String CLAIM_URI_PROPERTY = "ClaimURI";
@@ -60,6 +61,7 @@ public class ClaimConstants {
     public static final String FLOW_INITIATOR = "FlowInitiator";
     public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT =
             "ExternalClaimAdditionNotAllowedForDialect";
+    public static final String DATA_TYPE_PROPERTY = "dataType";
     public static final String MULTI_VALUED_PROPERTY = "multiValued";
     public static final String SUB_ATTRIBUTES_PROPERTY = "subAttributes";
     public static final String SUB_ATTRIBUTE_PREFIX = "subAttribute.";
@@ -148,6 +150,18 @@ public class ClaimConstants {
         public String getMessage() {
             return message;
         }
+    }
+
+    /**
+     * Enum for data types of claims.
+     */
+    public enum ClaimDataType {
+        STRING,
+        INTEGER,
+        DECIMAL,
+        BOOLEAN,
+        DATE_TIME,
+        COMPLEX
     }
 
     /**
