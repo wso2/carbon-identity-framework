@@ -755,7 +755,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
                         FrameworkUtils.isURLRelative(callerPath)) {
                     String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                    if (organizationId != null && !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX
+                    if (organizationId == null || !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX
                             + organizationId + "/")) {
                         callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
                     }
