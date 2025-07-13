@@ -114,6 +114,10 @@ import java.util.Date;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
@@ -6118,8 +6122,41 @@ public class IdPManagementDAO {
         // Replace the property default values with the values saved in the database.
         propertiesFromConnectors.putAll(propertyMapFromDb);
         resolveOtpConnectorProperties(propertiesFromConnectors);
+        setDefaultSessionConfigs(propertiesFromConnectors);
 
         return new ArrayList<>(propertiesFromConnectors.values());
+    }
+
+    private void setDefaultSessionConfigs(Map<String, IdentityProviderProperty> propertiesFromConnectors) {
+
+        if (propertiesFromConnectors.get(REMEMBER_ME_TIME_OUT) == null) {
+            String configuredRemberMeTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
+            if (StringUtils.isBlank(configuredRemberMeTimeout) || !StringUtils.isNumeric(configuredRemberMeTimeout)
+                    || Integer.parseInt(configuredRemberMeTimeout) <= 0) {
+                configuredRemberMeTimeout = REMEMBER_ME_TIME_OUT_DEFAULT;
+            }
+
+            IdentityProviderProperty rememberMeTimeOut = new IdentityProviderProperty();
+            rememberMeTimeOut.setName(REMEMBER_ME_TIME_OUT);
+            rememberMeTimeOut.setValue(configuredRemberMeTimeout);
+            propertiesFromConnectors.put(REMEMBER_ME_TIME_OUT, rememberMeTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(SESSION_IDLE_TIME_OUT) == null) {
+            String configuredSessionIdleTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT);
+            if (StringUtils.isBlank(configuredSessionIdleTimeout) ||
+                    !StringUtils.isNumeric(configuredSessionIdleTimeout) ||
+                    Integer.parseInt(configuredSessionIdleTimeout) <= 0) {
+                configuredSessionIdleTimeout = SESSION_IDLE_TIME_OUT_DEFAULT;
+            }
+
+            IdentityProviderProperty sessionIdleTimeOut = new IdentityProviderProperty();
+            sessionIdleTimeOut.setName(SESSION_IDLE_TIME_OUT);
+            sessionIdleTimeOut.setValue(configuredSessionIdleTimeout);
+            propertiesFromConnectors.put(SESSION_IDLE_TIME_OUT, sessionIdleTimeOut);
+        }
     }
 
     private List<IdentityProviderProperty> filterConnectorProperties(IdentityProviderProperty[] propertiesFromRequest,
@@ -6128,6 +6165,12 @@ public class IdPManagementDAO {
 
         Map<String, IdentityProviderProperty> propertiesFromConnectors = getConnectorProperties(tenantDomain);
 
+        /*
+         * Session configuration properties are not stored by default.
+         * If the values from the request match the default values, they should be removed.
+         * Default session configs are set in the connector properties to ensure correct handling in the logic below.
+         */
+        setDefaultSessionConfigs(propertiesFromConnectors);
         Map<String, IdentityProviderProperty> propertyMapFromRequest = Arrays.stream(propertiesFromRequest)
                 .collect(Collectors.toMap(IdentityProviderProperty::getName, property -> property));
 

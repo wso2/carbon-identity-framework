@@ -250,63 +250,67 @@ public class IdentityProviderManager implements IdpManager {
                 propertyList.add(samlMetadataSigningEnabledProperty);
                 propertyList.add(samlAuthnRequestSigningProperty);
             }
+
+            Property[] properties = new Property[propertyList.size()];
+            properties = propertyList.toArray(properties);
+            saml2SSOResidentAuthenticatorConfig.setProperties(properties);
+
+            Property oidcProperty = new Property();
+            oidcProperty.setName(OPENID_IDP_ENTITY_ID);
+            oidcProperty.setValue(getOIDCResidentIdPEntityId());
+
+            FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
+            oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
+            oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+            oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
+
+            Property passiveStsProperty = new Property();
+            passiveStsProperty.setName(
+                    IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
+            passiveStsProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
+
+            FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
+            passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
+            passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+            passiveStsAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
+
+            FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
+                    passiveStsAuthenticationConfig, oidcAuthenticationConfig};
+            identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
+                    .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
+
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
+
+                IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
+                String rememberMeTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
+                if (StringUtils.isBlank(rememberMeTimeout) || !StringUtils.isNumeric(rememberMeTimeout) ||
+                        Integer.parseInt(rememberMeTimeout) <= 0) {
+                    log.warn("RememberMeTimeout in identity.xml should be a numeric value");
+                    rememberMeTimeout = IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+                }
+                rememberMeTimeoutProperty.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
+                rememberMeTimeoutProperty.setValue(rememberMeTimeout);
+
+                IdentityProviderProperty sessionIdletimeOutProperty = new IdentityProviderProperty();
+                String idleTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT);
+                if (StringUtils.isBlank(idleTimeout) || !StringUtils.isNumeric(idleTimeout) ||
+                        Integer.parseInt(idleTimeout) <= 0) {
+                    log.warn("SessionIdleTimeout in identity.xml should be a numeric value");
+                    idleTimeout = IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
+                }
+                sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+                sessionIdletimeOutProperty.setValue(idleTimeout);
+
+                idpProperties[0] = rememberMeTimeoutProperty;
+                idpProperties[1] = sessionIdletimeOutProperty;
+                identityProvider.setIdpProperties(idpProperties);
+            }
         } catch (OrganizationManagementException e) {
             throw new IdentityProviderManagementServerException("Error while checking if tenant " + tenantDomain +
                     " is an organization.", e);
         }
-
-        Property[] properties = new Property[propertyList.size()];
-        properties = propertyList.toArray(properties);
-        saml2SSOResidentAuthenticatorConfig.setProperties(properties);
-
-        Property oidcProperty = new Property();
-        oidcProperty.setName(OPENID_IDP_ENTITY_ID);
-        oidcProperty.setValue(getOIDCResidentIdPEntityId());
-
-        FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
-        oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
-        oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
-        oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
-
-        Property passiveStsProperty = new Property();
-        passiveStsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-        passiveStsProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
-
-        FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
-        passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
-        passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        passiveStsAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
-
-        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
-                passiveStsAuthenticationConfig, oidcAuthenticationConfig};
-        identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
-                .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
-
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
-
-        IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
-        String rememberMeTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
-        if (StringUtils.isBlank(rememberMeTimeout) || !StringUtils.isNumeric(rememberMeTimeout) ||
-                Integer.parseInt(rememberMeTimeout) <= 0) {
-            log.warn("RememberMeTimeout in identity.xml should be a numeric value");
-            rememberMeTimeout = IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
-        }
-        rememberMeTimeoutProperty.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
-        rememberMeTimeoutProperty.setValue(rememberMeTimeout);
-
-        IdentityProviderProperty sessionIdletimeOutProperty = new IdentityProviderProperty();
-        String idleTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT);
-        if (StringUtils.isBlank(idleTimeout) || !StringUtils.isNumeric(idleTimeout) ||
-                Integer.parseInt(idleTimeout) <= 0) {
-            log.warn("SessionIdleTimeout in identity.xml should be a numeric value");
-            idleTimeout = IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
-        }
-        sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
-        sessionIdletimeOutProperty.setValue(idleTimeout);
-
-        idpProperties[0] = rememberMeTimeoutProperty;
-        idpProperties[1] = sessionIdletimeOutProperty;
-        identityProvider.setIdpProperties(idpProperties);
 
         dao.addIdP(identityProvider, IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
 
