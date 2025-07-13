@@ -225,11 +225,13 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             UserProfileMgtDAO.getInstance().deleteAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
 
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                    LoggerUtils.getInitiatorType(getInitiatorId()),
-                    user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
-                    LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION);
-            triggerAuditLogEvent(auditLogBuilder);
+            if (UserProfileUtil.isEnableV2AuditLogs()) {
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                        LoggerUtils.getInitiatorType(getInitiatorId()),
+                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                        LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION);
+                triggerAuditLogEvent(auditLogBuilder);
+            }
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association with idpId: " + idpName + ", and " +
