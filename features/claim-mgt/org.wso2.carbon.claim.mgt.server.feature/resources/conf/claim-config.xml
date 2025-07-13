@@ -1005,7 +1005,7 @@
 				<ClaimURI>http://wso2.org/claims/identity/organization.id</ClaimURI>
 				<DisplayName>Organization Id</DisplayName>
 				<AttributeID>organizationId</AttributeID>
-				<Description>Claim to represent user belonging organization id</Description>
+				<Description>Claim to represent the organization id that the user belongs to</Description>
 				<ReadOnly />
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
@@ -1013,7 +1013,7 @@
 				<ClaimURI>http://wso2.org/claims/identity/organization.name</ClaimURI>
 				<DisplayName>Organization Name</DisplayName>
 				<AttributeID>organizationName</AttributeID>
-				<Description>Claim to represent user belonging organization name</Description>
+				<Description>Claim to represent the organization name that the user belongs to</Description>
 				<ReadOnly />
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
@@ -1021,7 +1021,7 @@
 				<ClaimURI>http://wso2.org/claims/identity/organization.handle</ClaimURI>
 				<DisplayName>Organization Handle</DisplayName>
 				<AttributeID>organizationHandle</AttributeID>
-				<Description>Claim to represent user belonging organization handle</Description>
+				<Description>Claim to represent the organization handle that the user belongs to</Description>
 				<ReadOnly />
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
