@@ -142,6 +142,11 @@ public class CORSConfigurationUtils {
      */
     public static boolean hasDuplicates(List<String> origins) {
 
+        // Treat null as empty list, no duplicates in empty or null list
+        if (origins == null || origins.isEmpty()) {
+            return false;
+        }
+
         Set<String> originsHashSet = new HashSet<>(origins);
         return origins.size() != originsHashSet.size();
     }
