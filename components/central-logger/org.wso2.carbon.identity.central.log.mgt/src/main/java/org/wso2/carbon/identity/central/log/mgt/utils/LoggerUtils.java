@@ -70,8 +70,6 @@ public class LoggerUtils {
     private static final String TENANT_DOMAIN = "tenantDomain";
     public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
 
-    // Related to V1 audit logs.
-    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static final Gson GSON = new Gson();
 
     /**
@@ -114,7 +112,7 @@ public class LoggerUtils {
                         new Event(PUBLISH_AUDIT_LOG, Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog));
                 eventMgtService.handleEvent(auditEvent);
             } else {
-                AUDIT_LOG.info(
+                CarbonConstants.AUDIT_LOG.info(
                         String.format(CarbonConstants.AUDIT_MESSAGE, auditLog.getInitiatorId(), auditLog.getAction(),
                                 auditLog.getTargetId(), GSON.toJson(auditLog.getData()), SUCCESS));
             }
