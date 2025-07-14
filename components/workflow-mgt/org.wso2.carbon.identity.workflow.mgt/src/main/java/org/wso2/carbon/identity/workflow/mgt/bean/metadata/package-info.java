@@ -16,5 +16,6 @@
  * under the License.
  */
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://metadata.bean.mgt.workflow.identity.carbon.wso2.org", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@javax.xml.bind.annotation.XmlSchema(namespace = "http://metadata.bean.mgt.workflow.identity.carbon.wso2.org",
+        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package org.wso2.carbon.identity.workflow.mgt.bean.metadata;

@@ -109,6 +109,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -131,6 +132,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -215,6 +218,11 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_IDP_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
@@ -1545,6 +1553,17 @@ public class FrameworkUtils {
     public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String tenantDomain) {
 
         HashMap<String, Object> properties = new HashMap<>();
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
+
+    public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String userStoreDomain,
+                                                             String tenantDomain) {
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, userStoreDomain);
+
         Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
 
         publishEventOnUserRegistration(claims, tenantDomain, event);
@@ -4796,5 +4815,41 @@ public class FrameworkUtils {
 
         IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.STEP_ID);
         IdentityUtil.threadLocalProperties.get().remove(IdentityEventConstants.EventProperty.CURRENT_AUTHENTICATOR);
+    }
+
+    /**
+     * Build OrganizationDiscoveryInput from request.
+     *
+     * @param request Http Servlet Request.
+     * @return OrganizationDiscoveryInput object.
+     */
+    public static OrganizationDiscoveryInput getOrganizationDiscoveryInput(HttpServletRequest request) {
+
+        return new OrganizationDiscoveryInput.Builder()
+                .orgId(request.getParameter(ORG_ID))
+                .orgHandle(request.getParameter(ORG_HANDLE))
+                .orgName(request.getParameter(ORG_NAME))
+                .loginHint(request.getParameter(LOGIN_HINT))
+                .orgDiscoveryType(request.getParameter(ORG_DISCOVERY_TYPE))
+                .build();
+
+    }
+
+    /**
+     * This is used to set the flow and initiator in the identity context
+     * for the user flows.
+     *
+     * @param flowName The name of the flow to set in the identity context.
+     */
+    public static void updateIdentityContextFlow(Flow.Name flowName) {
+
+        if (IdentityContext.getThreadLocalIdentityContext().getFlow() != null) {
+            // If the flow is already set, no need to update it again.
+            return;
+        }
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
+                        Flow.InitiatingPersona.USER).build());
     }
 }

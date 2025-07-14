@@ -458,6 +458,7 @@
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
+  "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
 
   "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
@@ -938,6 +939,12 @@
   "console.i18n_resource_path": "",
   "console.login_callback_path": "",
   "console.logout_callback_path": "",
+  "console.remote_logging.enabled": true,
+  "console.remote_logging.scopes.feature": [],
+  "console.remote_logging.scopes.create": [],
+  "console.remote_logging.scopes.read": [],
+  "console.remote_logging.scopes.update": [],
+  "console.remote_logging.scopes.delete": [],
   "console.route_paths.home": "/getting-started",
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
@@ -979,6 +986,16 @@
       "description": "This email is sent when the user has requested a password reset"
     },
     {
+      "id": "UGFzc3dvcmRSZXNldE9UUA",
+      "displayName": "Password Reset Email OTP",
+      "description": "This email sends an Email OTP to a user for password reset"
+    },
+    {
+      "id": "cmVzZW5kUGFzc3dvcmRSZXNldE9UUA",
+      "displayName": "Resend Password Reset Email OTP",
+      "description": "This email resends an Email OTP to a user for password reset"
+    },
+    {
       "id": "QXNrUGFzc3dvcmQ",
       "displayName": "Request New User Password",
       "description": "This email is sent to request a password from the user when the new account is created"
@@ -1002,6 +1019,11 @@
       "id": "QWNjb3VudExvY2tGYWlsZWRBdHRlbXB0",
       "displayName": "Account Locked By Failed Attempts",
       "description": "This email notifies the user that the account is locked by due to too many failed login attempts"
+    },
+    {
+      "id": "YWNjb3VudExvY2tGYWlsZWRBdHRlbXB0VW50aWxBZG1pblVubG9jaw",
+      "displayName": "Account Locked By Failed Attempts Until Admin Unlocks",
+      "description": "This email notifies the user that the account is locked by due to too many failed login attempts until admin unlocks"
     },
     {
       "id": "QWNjb3VudEVuYWJsZQ",
@@ -1141,6 +1163,16 @@
       "id": "SW1wZXJzb25hdGlvbkVtYWlsTm90aWZpY2F0aW9u",
       "displayName": "Impersonation Email Notification",
       "description": "This email is sent to the impersonated user when the impersonation session is started"
+    },
+    {
+      "description": "This email is sent to request credentials from the user when a new account is created and the registration flow is incomplete",
+      "displayName": "Request New User Credentials",
+      "id": "T3JjaGVzdHJhdGVkQXNrUGFzc3dvcmQ"
+    },
+    {
+      "description": "This email is resent to request credentials from the user when a new account is created and the registration flow is incomplete",
+      "displayName": "Resend New User Credentials Email",
+      "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1204,6 +1236,7 @@
     "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [],
+  "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
@@ -1264,6 +1297,21 @@
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
   "console.webhooks.enabled": false,
   "console.webhooks.disabled_features": [],
+  "console.agents.enabled": true,
+  "console.agents.disabled_features": [],
+  "console.agents.scopes.feature": ["console:users"],
+  "console.agents.scopes.create": ["internal_user_mgt_create"],
+  "console.agents.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_login",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.agents.scopes.update": ["internal_user_mgt_update"],
+  "console.agents.scopes.delete": ["internal_user_mgt_delete"],
   "console.webhooks.scopes.feature": ["console:webhooks"],
   "console.webhooks.scopes.create": ["internal_webhook_mgt_create"],
   "console.webhooks.scopes.read": [
@@ -1278,7 +1326,7 @@
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.disabled_features": [],
+  "console.ai.disabled_features": ["ai.flows.types.list.registration"],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
   "console.ai.scopes.read": [],
@@ -1354,6 +1402,16 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
+  "console.flows.enabled": true,
+  "console.flows.scopes.feature": ["console:flows"],
+  "console.flows.disabled_features": [
+    "flows.types.list.inviteUserToSetPassword",
+    "flows.types.list.passwordRecovery"
+  ],
+  "console.flows.scopes.create": [],
+  "console.flows.scopes.read": [],
+  "console.flows.scopes.update": [],
+  "console.flows.scopes.delete": [],
   "console.certificates.enabled": true,
   "console.certificates.scopes.feature": ["console:certificates"],
   "console.certificates.scopes.create": ["internal_keystore_update"],
@@ -1805,6 +1863,7 @@
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
+  "organization_management.organization_versioning.new_organization_version": "v0.0.0",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
@@ -1829,6 +1888,8 @@
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
 
+  "webhooks.maximum_webhooks_per_tenant": "10",
+
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
   "oauth.enable_user_session_impersonation": true,
@@ -1836,6 +1897,8 @@
   "system_applications.system_portals": ["Console", "My Account"],
 
   "notification_templates.sms_templates.apply": true,
+
+  "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
 
   "attribute.return_previous_additional_properties.enabled": false,
 

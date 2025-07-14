@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.api.service;
 
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
@@ -86,7 +87,7 @@ public interface WebhookManagementService {
      * @return List of webhook events.
      * @throws WebhookMgtException If an error occurs while retrieving webhook events.
      */
-    public List<String> getWebhookEvents(String webhookId, String tenantDomain) throws WebhookMgtException;
+    public List<Subscription> getWebhookEvents(String webhookId, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Enable a webhook subscription.
@@ -107,4 +108,14 @@ public interface WebhookManagementService {
      * @throws WebhookMgtException If an error occurs while disabling the webhook.
      */
     public Webhook deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+
+    /**
+     * Retry a webhook subscription or unsubscription that has failed.
+     *
+     * @param webhookId    Webhook subscription ID.
+     * @param tenantDomain Tenant domain.
+     * @return Retried webhook subscription.
+     * @throws WebhookMgtException If an error occurs while retrying the webhook.
+     */
+    public Webhook retryWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
 }

@@ -42,6 +42,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Workflow Request DAO class.
+ */
 public class WorkflowRequestDAO {
 
     public static final String UPDATED_AT_FILTER = "updatedAt";

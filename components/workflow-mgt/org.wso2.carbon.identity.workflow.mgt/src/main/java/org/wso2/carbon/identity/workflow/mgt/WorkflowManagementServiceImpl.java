@@ -50,10 +50,6 @@ import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -62,6 +58,10 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 /**
  * WorkflowService class provides all the common functionality for the basic workflows.
@@ -1235,7 +1235,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      * @throws WorkflowException If an error occurs while retrieving the workflow request.
      */
     @Override
-    public WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException {
+    public org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest getWorkflowRequest(String requestId) throws WorkflowException {
         
         if (requestId == null || requestId.isEmpty()) {
             throw new WorkflowClientException("Request ID cannot be null or empty.");

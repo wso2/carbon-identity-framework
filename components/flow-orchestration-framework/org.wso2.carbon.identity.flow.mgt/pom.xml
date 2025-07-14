@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.8.254</version>
+        <version>7.8.301-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -81,6 +81,10 @@
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -148,11 +152,26 @@
                             org.wso2.carbon.database.utils.jdbc.exceptions;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.core.util;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
-                            javax.servlet.http; version="${imp.pkg.version.javax.servlet}"
+                            javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
+                            org.wso2.carbon.identity.organization.management.service;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.util;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service;
+                            version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception;
+                            version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy;
+                            version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.application.resource.hierarchy.traverse.service;
+                            version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.mgt.internal,
@@ -160,6 +179,7 @@
                             !org.wso2.carbon.identity.flow.mgt.utils,
                             org.wso2.carbon.identity.flow.mgt,
                             org.wso2.carbon.identity.flow.mgt.model,
+                            org.wso2.carbon.identity.flow.mgt.cache,
                             org.wso2.carbon.identity.flow.mgt.exception;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>

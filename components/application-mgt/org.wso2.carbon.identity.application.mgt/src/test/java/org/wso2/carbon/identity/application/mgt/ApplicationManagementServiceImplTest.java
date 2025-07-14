@@ -1859,6 +1859,16 @@ public class ApplicationManagementServiceImplTest {
         });
     }
 
+    @Test(groups = "b2b-shared-apps", priority = 18, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetSharedAppId() throws Exception {
+
+        String l1SharedAppId = applicationManagementService.getSharedAppId(rootAppId, ROOT_ORG_ID, L1_ORG_ID);
+        Assert.assertEquals(l1SharedAppId, l1AppId, "Incorrect shared app ID for level 1 organization.");
+
+        String l2SharedAppId = applicationManagementService.getSharedAppId(rootAppId, ROOT_ORG_ID, L2_ORG_ID);
+        Assert.assertEquals(l2SharedAppId, l2AppId, "Incorrect shared app ID for level 2 organization.");
+    }
+
     @DataProvider(name = "testGetGroupsDataProvider")
     public Object[][] testGetGroupsDataProvider() {
 

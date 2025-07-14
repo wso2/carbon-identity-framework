@@ -54,6 +54,8 @@ public class Constants {
                         "%s"),
         ERROR_CODE_GET_FIRST_STEP_ID("65007", "Error while retrieving the first step id.",
                 "Unexpected server error while retrieving the first step id for tenant, %s"),
+        ERROR_CODE_CLEAR_CACHE_FAILED("65008", "Error while clearing the cache.",
+                "Unexpected server error while clearing the cache for tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
