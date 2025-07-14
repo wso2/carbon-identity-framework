@@ -31,8 +31,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManager;
 import org.wso2.carbon.identity.topic.management.internal.service.impl.TopicManagementServiceImpl;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Adaptor;
-import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdaptorMetadataService;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 
 /**
  * TopicManagementServiceComponent is responsible for registering the topic management service
@@ -56,18 +56,19 @@ public class TopicManagementServiceComponent {
 
         try {
             BundleContext bundleContext = context.getBundleContext();
+
+            Adapter adapter = TopicManagementComponentServiceHolder.getInstance().getEventAdapterMetadataService()
+                    .getCurrentActiveAdapter();
+            TopicManagementComponentServiceHolder.getInstance()
+                    .setWebhookAdapter(adapter);
+
             // Register the TopicManagementService
             bundleContext.registerService(TopicManagementService.class.getName(),
                     TopicManagementServiceImpl.getInstance(), null);
 
-            Adaptor adaptor = TopicManagementComponentServiceHolder.getInstance().getEventAdaptorMetadataService()
-                    .getCurrentActiveAdaptor();
-            TopicManagementComponentServiceHolder.getInstance()
-                    .setWebhookAdaptor(adaptor);
-
             LOG.debug("TopicManagementService is activated");
         } catch (Throwable e) {
-            LOG.error("Error while activating TopicManagementService", e);
+            LOG.debug("Error while activating TopicManagementService", e);
         }
     }
 
@@ -100,7 +101,7 @@ public class TopicManagementServiceComponent {
     )
     protected void registerTopicManager(TopicManager manager) {
 
-        LOG.debug("Registering topic manager: " + manager.getAssociatedAdaptor());
+        LOG.debug("Registering topic manager: " + manager.getAssociatedAdapter());
         TopicManagementComponentServiceHolder.getInstance().addTopicManager(manager);
     }
 
@@ -111,27 +112,27 @@ public class TopicManagementServiceComponent {
      */
     protected void unregisterTopicManager(TopicManager manager) {
 
-        LOG.debug("Unregistering topic manager: " + manager.getAssociatedAdaptor());
+        LOG.debug("Unregistering topic manager: " + manager.getAssociatedAdapter());
         TopicManagementComponentServiceHolder.getInstance().removeTopicManager(manager);
     }
 
     @Reference(
-            name = "identity.webhook.adaptor.metadata.component",
-            service = EventAdaptorMetadataService.class,
+            name = "identity.webhook.adapter.metadata.component",
+            service = EventAdapterMetadataService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetEventAdaptorMetadataService"
+            unbind = "unsetEventAdapterMetadataService"
     )
-    protected void setEventAdaptorMetadataService(EventAdaptorMetadataService eventAdaptorMetadataService) {
+    protected void setEventAdapterMetadataService(EventAdapterMetadataService eventAdapterMetadataService) {
 
         TopicManagementComponentServiceHolder.getInstance()
-                .setEventAdaptorMetadataService(eventAdaptorMetadataService);
-        LOG.debug("EventAdaptorMetadataService set in TopicManagementComponentServiceHolder bundle.");
+                .setEventAdapterMetadataService(eventAdapterMetadataService);
+        LOG.debug("EventAdapterMetadataService set in TopicManagementComponentServiceHolder bundle.");
     }
 
-    protected void unsetEventAdaptorMetadataService(EventAdaptorMetadataService eventAdaptorMetadataService) {
+    protected void unsetEventAdapterMetadataService(EventAdapterMetadataService eventAdapterMetadataService) {
 
-        TopicManagementComponentServiceHolder.getInstance().setEventAdaptorMetadataService(null);
-        LOG.debug("EventAdaptorMetadataService unset in TopicManagementComponentServiceHolder bundle.");
+        TopicManagementComponentServiceHolder.getInstance().setEventAdapterMetadataService(null);
+        LOG.debug("EventAdapterMetadataService unset in TopicManagementComponentServiceHolder bundle.");
     }
 }

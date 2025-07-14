@@ -31,7 +31,7 @@ public interface TopicManager {
      *
      * @return Name of the topic manager.
      */
-    String getAssociatedAdaptor();
+    String getAssociatedAdapter();
 
     /**
      * Constructs a topic from the channel URI.

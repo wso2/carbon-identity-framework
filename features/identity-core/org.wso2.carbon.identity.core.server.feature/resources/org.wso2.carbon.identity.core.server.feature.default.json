@@ -1888,6 +1888,15 @@
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
 
+  "outbound_adapters.httppublisher.enabled": true,
+  "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
+  "outbound_adapters.httppublisher.httpReadTimeout": "5000",
+  "outbound_adapters.httppublisher.httpConnectionRequestTimeout": "5000",
+  "outbound_adapters.httppublisher.connectionHandshakeTimeout": "5000",
+  "outbound_adapters.httppublisher.defaultMaxConnections": "20",
+  "outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute": "20",
+  "outbound_adapters.httppublisher.type": "Publisher",
+
   "webhooks.maximum_webhooks_per_tenant": "10",
 
   "oauth.authorize_all_scopes": false,

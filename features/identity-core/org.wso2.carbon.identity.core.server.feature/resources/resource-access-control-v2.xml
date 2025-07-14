@@ -154,7 +154,7 @@
     </Resource>
 
     <!-- Webhook Metadata API -->
-    <Resource context="(.*)/api/server/v1/webhooks/metadata/(.*)" secured="true" http-method="GET">
+    <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="GET">
         <Scopes>internal_webhook_meta_view</Scopes>
     </Resource>
 

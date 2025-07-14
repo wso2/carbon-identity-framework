@@ -36,12 +36,12 @@ public interface SubscriptionManagementService {
      * This method delegates to appropriate event subscribers.
      *
      * @param subscriptionRequest Request containing details of the subscription.
-     * @param adaptor             Name of the adaptor to be used for subscription.
+     * @param adapter             Name of the adapter to be used for subscription.
      * @param tenantDomain        Tenant domain for which the subscription is being made.
      * @return List of subscriptions that were successfully subscribed.
      * @throws SubscriptionManagementException If an error occurs during subscription.
      */
-    List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String adaptor,
+    List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String adapter,
                                         String tenantDomain)
             throws SubscriptionManagementException;
 
@@ -50,12 +50,12 @@ public interface SubscriptionManagementService {
      * This method delegates to appropriate event subscribers.
      *
      * @param unsubscriptionRequest Request containing details of the unsubscription.
-     * @param adaptor               Name of the adaptor to be used for unsubscription.
+     * @param adapter               Name of the adapter to be used for unsubscription.
      * @param tenantDomain          Tenant domain for which the unsubscription is being made.
      * @return List of subscriptions that were successfully unsubscribed.
      * @throws SubscriptionManagementException If an error occurs during unsubscription.
      */
-    List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String adaptor,
+    List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String adapter,
                                           String tenantDomain)
             throws SubscriptionManagementException;
 }

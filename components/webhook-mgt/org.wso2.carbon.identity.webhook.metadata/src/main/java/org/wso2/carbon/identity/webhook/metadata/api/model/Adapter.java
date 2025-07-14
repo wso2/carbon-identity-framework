@@ -24,16 +24,16 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Represents a webhook adaptor with its properties.
+ * Represents a webhook adapter with its properties.
  */
-public class Adaptor {
+public class Adapter {
 
     private final String name;
-    private final WebhookAdaptorType type;
+    private final AdapterType type;
     private final boolean enabled;
     private final Map<String, String> properties;
 
-    private Adaptor(Builder builder) {
+    private Adapter(Builder builder) {
 
         this.name = builder.name;
         this.type = builder.type;
@@ -47,7 +47,7 @@ public class Adaptor {
         return name;
     }
 
-    public WebhookAdaptorType getType() {
+    public AdapterType getType() {
 
         return type;
     }
@@ -68,14 +68,14 @@ public class Adaptor {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Adaptor)) {
+        if (!(o instanceof Adapter)) {
             return false;
         }
-        Adaptor adaptor = (Adaptor) o;
-        return enabled == adaptor.enabled &&
-                Objects.equals(name, adaptor.name) &&
-                Objects.equals(type, adaptor.type) &&
-                Objects.equals(properties, adaptor.properties);
+        Adapter adapter = (Adapter) o;
+        return enabled == adapter.enabled &&
+                Objects.equals(name, adapter.name) &&
+                Objects.equals(type, adapter.type) &&
+                Objects.equals(properties, adapter.properties);
     }
 
     @Override
@@ -85,12 +85,12 @@ public class Adaptor {
     }
 
     /**
-     * Builder for creating instances of {@link Adaptor}.
+     * Builder for creating instances of {@link Adapter}.
      */
     public static class Builder {
 
         private String name;
-        private WebhookAdaptorType type;
+        private AdapterType type;
         private boolean enabled;
         private Map<String, String> properties = new HashMap<>();
 
@@ -100,7 +100,7 @@ public class Adaptor {
             return this;
         }
 
-        public Builder type(WebhookAdaptorType type) {
+        public Builder type(AdapterType type) {
 
             this.type = type;
             return this;
@@ -124,9 +124,9 @@ public class Adaptor {
             return this;
         }
 
-        public Adaptor build() {
+        public Adapter build() {
 
-            return new Adaptor(this);
+            return new Adapter(this);
         }
     }
 }

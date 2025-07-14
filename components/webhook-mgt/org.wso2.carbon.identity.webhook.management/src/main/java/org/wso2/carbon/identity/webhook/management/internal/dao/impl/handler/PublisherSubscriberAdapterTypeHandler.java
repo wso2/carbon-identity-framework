@@ -41,20 +41,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Handler for managing webhooks specifically for the Publisher-Subscriber Adaptor type.
- * This class extends the AdaptorTypeHandler to provide implementations for
+ * Handler for managing webhooks specifically for the Publisher-Subscriber Adapter type.
+ * This class extends the AdapterTypeHandler to provide implementations for
  * webhook management operations such as creating, retrieving, updating, and deleting webhooks.
  */
-public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
+public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
 
     private final WebhookManagementDAO dao;
-    private final String webhookAdaptorName;
+    private final String webhookAdapterName;
 
-    public PublisherSubscriberAdaptorTypeHandler(WebhookManagementDAO dao) {
+    public PublisherSubscriberAdapterTypeHandler(WebhookManagementDAO dao) {
 
         this.dao = dao;
-        this.webhookAdaptorName = String.valueOf(WebhookManagementComponentServiceHolder.getInstance()
-                .getWebhookAdaptor().getName());
+        this.webhookAdapterName = String.valueOf(WebhookManagementComponentServiceHolder.getInstance()
+                .getWebhookAdapter().getName());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                     .build();
             try {
                 subscriptions =
-                        subscriptionManagementService.subscribe(subscriptionRequest, webhookAdaptorName, tenantDomain);
+                        subscriptionManagementService.subscribe(subscriptionRequest, webhookAdapterName, tenantDomain);
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
                         ErrorMessage.ERROR_CODE_WEBHOOK_ADD_ERROR, e, webhook.getName());
@@ -176,7 +176,8 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                     WebhookManagementComponentServiceHolder.getInstance().getSubscriptionManagementService();
 
             List<Subscription> toSubscribe = webhook.getEventsSubscribed().stream()
-                    .filter(s -> s.getStatus() == SubscriptionStatus.SUBSCRIPTION_PENDING
+                    .filter(s -> s.getStatus() == null
+                            || s.getStatus() == SubscriptionStatus.SUBSCRIPTION_PENDING
                             || s.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR
                             || s.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ACCEPTED)
                     .collect(Collectors.toList());
@@ -194,11 +195,11 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                     .secret(getWebhookDecryptedSecretValue(webhook.getId()))
                     .build();
             try {
-                allResults = subscriptionManagementService.subscribe(subscriptionRequest, webhookAdaptorName,
+                allResults = subscriptionManagementService.subscribe(subscriptionRequest, webhookAdapterName,
                         IdentityTenantUtil.getTenantDomain(tenantId));
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ADAPTOR_ERROR, e, webhook.getId());
+                        ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ADAPTER_ERROR, e, webhook.getId());
             }
             boolean allError = !allResults.isEmpty() && allResults.stream()
                     .allMatch(r -> r.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
@@ -250,11 +251,11 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                     .endpoint(webhook.getEndpoint())
                     .build();
             try {
-                allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest, webhookAdaptorName,
+                allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest, webhookAdapterName,
                         IdentityTenantUtil.getTenantDomain(tenantId));
             } catch (SubscriptionManagementException e) {
                 throw WebhookManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ADAPTOR_ERROR, e, webhook.getId());
+                        ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ADAPTER_ERROR, e, webhook.getId());
             }
             boolean allError = !allResults.isEmpty() && allResults.stream()
                     .allMatch(r -> r.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR);
@@ -305,11 +306,11 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                         .secret(getWebhookDecryptedSecretValue(webhook.getId()))
                         .build();
                 try {
-                    allResults = subscriptionManagementService.subscribe(subscriptionRequest, webhookAdaptorName,
+                    allResults = subscriptionManagementService.subscribe(subscriptionRequest, webhookAdapterName,
                             IdentityTenantUtil.getTenantDomain(tenantId));
                 } catch (SubscriptionManagementException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_ADAPTOR_ERROR, e, webhook.getId());
+                            ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_ADAPTER_ERROR, e, webhook.getId());
                 }
                 boolean allError = !allResults.isEmpty() && allResults.stream()
                         .allMatch(r -> r.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
@@ -341,11 +342,11 @@ public class PublisherSubscriberAdaptorTypeHandler extends AdaptorTypeHandler {
                         .endpoint(webhook.getEndpoint())
                         .build();
                 try {
-                    allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest, webhookAdaptorName,
+                    allResults = subscriptionManagementService.unsubscribe(unsubscriptionRequest, webhookAdapterName,
                             IdentityTenantUtil.getTenantDomain(tenantId));
                 } catch (SubscriptionManagementException e) {
                     throw WebhookManagementExceptionHandler.handleServerException(
-                            ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_ADAPTOR_ERROR, e, webhook.getId());
+                            ErrorMessage.ERROR_CODE_WEBHOOK_RETRY_ADAPTER_ERROR, e, webhook.getId());
                 }
                 boolean allError = !allResults.isEmpty() && allResults.stream()
                         .allMatch(r -> r.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR);

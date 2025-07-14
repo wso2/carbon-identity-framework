@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 import static org.testng.Assert.assertEquals;
@@ -46,6 +49,10 @@ public class WebhookManagementComponentServiceHolderTest {
         holder.setTopicManagementService(null);
         holder.setSubscriptionManagementService(null);
         holder.setWebhookMetadataService(null);
+        holder.setEventAdapterMetadataService(null);
+        Adapter adapter = Mockito.mock(Adapter.class);
+        Mockito.when(adapter.getType()).thenReturn(AdapterType.Publisher);
+        holder.setWebhookAdapter(adapter);
     }
 
     @Test
@@ -91,5 +98,22 @@ public class WebhookManagementComponentServiceHolderTest {
         WebhookMetadataService webhookMetadataService = Mockito.mock(WebhookMetadataService.class);
         holder.setWebhookMetadataService(webhookMetadataService);
         assertEquals(holder.getWebhookMetadataService(), webhookMetadataService);
+    }
+
+    @Test
+    public void testEventAdapterMetadataService() {
+
+        assertNull(holder.getEventAdapterMetadataService());
+        EventAdapterMetadataService eventAdapterMetadataService = Mockito.mock(EventAdapterMetadataService.class);
+        holder.setEventAdapterMetadataService(eventAdapterMetadataService);
+        assertEquals(holder.getEventAdapterMetadataService(), eventAdapterMetadataService);
+    }
+
+    @Test
+    public void testWebhookAdapter() {
+
+        Adapter webhookAdapter = Mockito.mock(Adapter.class);
+        holder.setWebhookAdapter(webhookAdapter);
+        assertEquals(holder.getWebhookAdapter(), webhookAdapter);
     }
 }

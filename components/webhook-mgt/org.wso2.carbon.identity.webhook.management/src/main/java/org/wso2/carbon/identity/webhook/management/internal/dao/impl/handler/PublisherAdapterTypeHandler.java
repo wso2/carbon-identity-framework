@@ -30,15 +30,15 @@ import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManageme
 import java.util.List;
 
 /**
- * Handler for managing webhooks specifically for the Publisher Adaptor type.
- * This class extends the AdaptorTypeHandler to provide implementations for
+ * Handler for managing webhooks specifically for the Publisher Adapter type.
+ * This class extends the AdapterTypeHandler to provide implementations for
  * webhook management operations such as creating, retrieving, updating, and deleting webhooks.
  */
-public class PublisherAdaptorTypeHandler extends AdaptorTypeHandler {
+public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
 
     private final WebhookManagementDAO dao;
 
-    public PublisherAdaptorTypeHandler(WebhookManagementDAO dao) {
+    public PublisherAdapterTypeHandler(WebhookManagementDAO dao) {
 
         this.dao = dao;
     }

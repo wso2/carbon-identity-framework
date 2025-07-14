@@ -24,8 +24,8 @@ import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
-import org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler.AdaptorTypeHandler;
-import org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler.WebhookAdaptorTypeHandlerFactory;
+import org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler.AdapterTypeHandler;
+import org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler.WebhookAdapterTypeHandlerFactory;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 
 import java.util.List;
@@ -35,19 +35,19 @@ import java.util.List;
  */
 public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
-    private final AdaptorTypeHandler handler;
+    private final AdapterTypeHandler handler;
 
     public WebhookManagementDAOFacade(WebhookManagementDAO webhookManagementDAO) {
 
-        this.handler = WebhookAdaptorTypeHandlerFactory.getHandler(webhookManagementDAO);
+        this.handler = WebhookAdapterTypeHandlerFactory.getHandler(webhookManagementDAO);
     }
 
-    private AdaptorTypeHandler getHandler() throws WebhookMgtClientException {
+    private AdapterTypeHandler getHandler() throws WebhookMgtClientException {
 
         if (handler == null) {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_OPERATION_NOT_SUPPORTED, String.valueOf(
-                            WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptor()));
+                            WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapter()));
         }
         return handler;
     }

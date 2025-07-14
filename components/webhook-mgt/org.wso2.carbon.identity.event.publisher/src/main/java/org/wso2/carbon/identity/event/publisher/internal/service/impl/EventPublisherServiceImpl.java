@@ -44,12 +44,12 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     private static final EventPublisherServiceImpl eventPublisherServiceImpl = new EventPublisherServiceImpl();
     private static final int THREAD_POOL_SIZE = 10;
     private static final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-    private final String webhookAdaptor;
+    private final String webhookAdapter;
 
     private EventPublisherServiceImpl() {
 
-        webhookAdaptor = EventPublisherComponentServiceHolder.getInstance()
-                .getWebhookAdaptor().getName();
+        webhookAdapter = EventPublisherComponentServiceHolder.getInstance()
+                .getWebhookAdapter().getName();
     }
 
     /**
@@ -65,15 +65,15 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
             throws EventPublisherException {
 
-        EventPublisher adaptorManager = retrieveAdaptorManager(webhookAdaptor);
+        EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
 
-        log.debug("Invoking registered event publisher: " + adaptorManager.getClass().getName());
+        log.debug("Invoking registered event publisher: " + adapterManager.getClass().getName());
         CompletableFuture.runAsync(() -> {
             try {
-                adaptorManager.publish(eventPayload, eventContext);
+                adapterManager.publish(eventPayload, eventContext);
             } catch (EventPublisherException e) {
                 log.error("Error while publishing event with publisher: " +
-                        adaptorManager.getClass().getName(), e);
+                        adapterManager.getClass().getName(), e);
             }
         }, executorService).exceptionally(ex -> {
             log.error("Error occurred in async event publishing: " + ex.getMessage(), ex);
@@ -84,25 +84,25 @@ public class EventPublisherServiceImpl implements EventPublisherService {
     @Override
     public boolean canHandleEvent(EventContext eventContext) throws EventPublisherException {
 
-        EventPublisher adaptorManager = retrieveAdaptorManager(webhookAdaptor);
+        EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
 
-        log.debug("Invoking canHandle method of event publisher: " + adaptorManager.getClass().getName());
+        log.debug("Invoking canHandle method of event publisher: " + adapterManager.getClass().getName());
         try {
-            return adaptorManager.canHandleEvent(eventContext);
+            return adapterManager.canHandleEvent(eventContext);
         } catch (EventPublisherException e) {
             log.error("Error while checking if the event can be handled by publisher: " +
-                    adaptorManager.getClass().getName(), e);
+                    adapterManager.getClass().getName(), e);
         }
         return false;
     }
 
-    private EventPublisher retrieveAdaptorManager(String adaptor) throws EventPublisherException {
+    private EventPublisher retrieveAdapterManager(String adapter) throws EventPublisherException {
 
         List<EventPublisher> managers =
                 EventPublisherComponentServiceHolder.getInstance().getEventPublishers();
 
         for (EventPublisher manager : managers) {
-            if (adaptor.equals(manager.getAssociatedAdaptor())) {
+            if (adapter.equals(manager.getAssociatedAdapter())) {
                 return manager;
             }
         }

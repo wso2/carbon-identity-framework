@@ -24,7 +24,7 @@ package org.wso2.carbon.identity.webhook.metadata.internal.constant;
 public class WebhookMetadataConstants {
 
     public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
-    public static final String ADAPTOR_PREFIX = "adaptor.";
+    public static final String ADAPTER_PREFIX = "adapter.";
     public static final String ENABLED_KEY = "enabled";
     public static final String ENABLED_VALUE_TRUE = "true";
     public static final String TYPE_KEY = "type";

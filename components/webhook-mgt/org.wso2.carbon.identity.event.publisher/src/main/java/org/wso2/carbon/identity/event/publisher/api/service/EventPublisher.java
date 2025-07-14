@@ -32,7 +32,7 @@ public interface EventPublisher {
      *
      * @return Name of the event publisher.
      */
-    String getAssociatedAdaptor();
+    String getAssociatedAdapter();
 
     /**
      * Publish a given event to the intermediate hub.

@@ -93,7 +93,7 @@ public class SubscriptionManagementServiceComponent {
     )
     protected void registerSubscriber(EventSubscriber subscriber) {
 
-        LOG.debug("Registering event subscriber: " + subscriber.getAssociatedAdaptor());
+        LOG.debug("Registering event subscriber: " + subscriber.getAssociatedAdapter());
         SubscriptionManagementComponentServiceHolder.getInstance().addEventSubscriber(subscriber);
     }
 
@@ -104,7 +104,7 @@ public class SubscriptionManagementServiceComponent {
      */
     protected void unregisterSubscriber(EventSubscriber subscriber) {
 
-        LOG.debug("Unregistering event subscriber: " + subscriber.getAssociatedAdaptor());
+        LOG.debug("Unregistering event subscriber: " + subscriber.getAssociatedAdapter());
         SubscriptionManagementComponentServiceHolder.getInstance().removeEventSubscriber(subscriber);
     }
 }

@@ -35,7 +35,7 @@ import static org.wso2.carbon.identity.webhook.management.internal.constant.Erro
  * Abstract class for handling webhook management operations with secret processing.
  * This class provides methods to encrypt, decrypt, and delete webhook secrets.
  */
-public abstract class AdaptorTypeHandler implements WebhookManagementDAO {
+public abstract class AdapterTypeHandler implements WebhookManagementDAO {
 
     protected final WebhookSecretProcessor webhookSecretProcessor = new WebhookSecretProcessor();
 

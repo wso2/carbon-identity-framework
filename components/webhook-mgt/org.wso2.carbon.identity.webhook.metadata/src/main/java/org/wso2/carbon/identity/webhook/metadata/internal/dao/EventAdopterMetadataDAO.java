@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.webhook.metadata.internal.dao;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Adaptor;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 
 import java.util.List;
 
@@ -28,5 +28,5 @@ import java.util.List;
  */
 public interface EventAdopterMetadataDAO {
 
-    List<Adaptor> getAdopters() throws WebhookMetadataException;
+    List<Adapter> getAdopters() throws WebhookMetadataException;
 }

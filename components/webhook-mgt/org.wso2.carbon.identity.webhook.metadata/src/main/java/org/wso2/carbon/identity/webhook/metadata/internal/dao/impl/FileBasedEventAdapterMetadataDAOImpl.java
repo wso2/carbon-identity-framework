@@ -23,8 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Adaptor;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookAdaptorType;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.EventAdopterMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 
@@ -40,9 +40,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_ADAPTORS_RETRIEVE_ERROR;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_ADAPTERS_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_CONFIG_FILE_READ_ERROR;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ADAPTOR_PREFIX;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ADAPTER_PREFIX;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.CONFIG_FILE_NAME;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ENABLED_KEY;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ENABLED_VALUE_TRUE;
@@ -50,28 +50,29 @@ import static org.wso2.carbon.identity.webhook.metadata.internal.constant.Webhoo
 
 /**
  * File-based implementation of the EventAdopterMetadataDAO.
- * This DAO reads event adaptor metadata from a configuration file.
+ * This DAO reads event adapter metadata from a configuration file.
  */
-public class FileBasedEventAdopterMetadataDAOImpl implements EventAdopterMetadataDAO {
+public class FileBasedEventAdapterMetadataDAOImpl implements EventAdopterMetadataDAO {
 
-    private static final Log log = LogFactory.getLog(FileBasedEventAdopterMetadataDAOImpl.class);
-    private static final FileBasedEventAdopterMetadataDAOImpl INSTANCE = new FileBasedEventAdopterMetadataDAOImpl();
+    private static final Log log = LogFactory.getLog(FileBasedEventAdapterMetadataDAOImpl.class);
+    private static final FileBasedEventAdapterMetadataDAOImpl INSTANCE = new FileBasedEventAdapterMetadataDAOImpl();
+    private static Path configPath;
 
-    // Cache of loaded adaptors
-    private final Map<String, Adaptor> adopterCache = new HashMap<>();
+    // Cache of loaded adapters
+    private final Map<String, Adapter> adopterCache = new HashMap<>();
     private boolean isInitialized = false;
 
-    private FileBasedEventAdopterMetadataDAOImpl() {
+    private FileBasedEventAdapterMetadataDAOImpl() {
         // Private constructor for singleton
     }
 
-    public static FileBasedEventAdopterMetadataDAOImpl getInstance() {
+    public static FileBasedEventAdapterMetadataDAOImpl getInstance() {
 
         return INSTANCE;
     }
 
     /**
-     * Initialize the DAO by loading all adaptors from the config file.
+     * Initialize the DAO by loading all adapters from the config file.
      */
     public synchronized void init() throws WebhookMetadataServerException {
 
@@ -88,11 +89,13 @@ public class FileBasedEventAdopterMetadataDAOImpl implements EventAdopterMetadat
     }
 
     /**
-     * Load all adaptors from the config file into the cache.
+     * Load all adapters from the config file into the cache.
      */
     private void loadAdopters() throws WebhookMetadataException {
 
-        Path configPath = Paths.get(IdentityUtil.getIdentityConfigDirPath(), CONFIG_FILE_NAME);
+        if (configPath == null) {
+            configPath = Paths.get(IdentityUtil.getIdentityConfigDirPath(), CONFIG_FILE_NAME);
+        }
         Properties properties = new Properties();
         try (InputStream in = Files.newInputStream(configPath)) {
             properties.load(in);
@@ -103,7 +106,7 @@ public class FileBasedEventAdopterMetadataDAOImpl implements EventAdopterMetadat
 
         Map<String, Map<String, String>> grouped = new HashMap<>();
         for (String key : properties.stringPropertyNames()) {
-            if (key.startsWith(ADAPTOR_PREFIX)) {
+            if (key.startsWith(ADAPTER_PREFIX)) {
                 String[] parts = key.split("\\.");
                 if (parts.length >= 3) {
                     String name = parts[1];
@@ -119,30 +122,30 @@ public class FileBasedEventAdopterMetadataDAOImpl implements EventAdopterMetadat
             Map<String, String> props = entry.getValue();
             String type = props.getOrDefault(TYPE_KEY, "");
             boolean enabled = ENABLED_VALUE_TRUE.equalsIgnoreCase(props.getOrDefault(ENABLED_KEY, "false"));
-            Adaptor adopter = new Adaptor.Builder()
+            Adapter adopter = new Adapter.Builder()
                     .name(name)
-                    .type(WebhookAdaptorType.valueOf(type))
+                    .type(AdapterType.valueOf(type))
                     .enabled(enabled)
                     .properties(props)
                     .build();
             adopterCache.put(name, adopter);
         }
 
-        List<Adaptor> enabledAdopters = adopterCache.values().stream()
-                .filter(Adaptor::isEnabled)
+        List<Adapter> enabledAdopters = adopterCache.values().stream()
+                .filter(Adapter::isEnabled)
                 .collect(Collectors.toList());
         if (enabledAdopters.size() > 1) {
             log.warn("Multiple enabled adopters found: " +
-                    enabledAdopters.stream().map(Adaptor::getName).collect(Collectors.joining(", ")) +
+                    enabledAdopters.stream().map(Adapter::getName).collect(Collectors.joining(", ")) +
                     ". Only the first will be used as active.");
         }
     }
 
     @Override
-    public List<Adaptor> getAdopters() throws WebhookMetadataException {
+    public List<Adapter> getAdopters() throws WebhookMetadataException {
 
         if (!isInitialized) {
-            throw WebhookMetadataExceptionHandler.handleServerException(ERROR_CODE_ADAPTORS_RETRIEVE_ERROR);
+            throw WebhookMetadataExceptionHandler.handleServerException(ERROR_CODE_ADAPTERS_RETRIEVE_ERROR);
         }
         return Collections.unmodifiableList(new ArrayList<>(adopterCache.values()));
     }

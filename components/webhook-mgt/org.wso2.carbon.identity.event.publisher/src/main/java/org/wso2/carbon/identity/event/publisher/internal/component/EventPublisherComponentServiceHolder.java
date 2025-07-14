@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.event.publisher.internal.component;
 
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Adaptor;
-import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdaptorMetadataService;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +34,8 @@ public class EventPublisherComponentServiceHolder {
     private static final EventPublisherComponentServiceHolder INSTANCE =
             new EventPublisherComponentServiceHolder();
     private List<EventPublisher> eventPublishers = new ArrayList<>();
-    private EventAdaptorMetadataService eventAdaptorMetadataService;
-    private Adaptor webhookAdaptor;
+    private EventAdapterMetadataService eventAdapterMetadataService;
+    private Adapter webhookAdapter;
 
     private EventPublisherComponentServiceHolder() {
 
@@ -87,42 +87,42 @@ public class EventPublisherComponentServiceHolder {
     }
 
     /**
-     * Get the event adaptor metadata service.
+     * Get the event adapter metadata service.
      *
-     * @return EventAdaptorMetadataService instance.
+     * @return EventAdapterMetadataService instance.
      */
-    public EventAdaptorMetadataService getEventAdaptorMetadataService() {
+    public EventAdapterMetadataService getEventAdapterMetadataService() {
 
-        return eventAdaptorMetadataService;
+        return eventAdapterMetadataService;
     }
 
     /**
-     * Set the event adaptor metadata service.
+     * Set the event adapter metadata service.
      *
-     * @param eventAdaptorMetadataService EventAdaptorMetadataService instance.
+     * @param eventAdapterMetadataService EventAdapterMetadataService instance.
      */
-    public void setEventAdaptorMetadataService(EventAdaptorMetadataService eventAdaptorMetadataService) {
+    public void setEventAdapterMetadataService(EventAdapterMetadataService eventAdapterMetadataService) {
 
-        this.eventAdaptorMetadataService = eventAdaptorMetadataService;
+        this.eventAdapterMetadataService = eventAdapterMetadataService;
     }
 
     /**
-     * Get the webhook adaptor.
+     * Get the webhook adapter.
      *
-     * @return WebhookAdaptor instance.
+     * @return WebhookAdapter instance.
      */
-    public Adaptor getWebhookAdaptor() {
+    public Adapter getWebhookAdapter() {
 
-        return webhookAdaptor;
+        return webhookAdapter;
     }
 
     /**
-     * Set the webhook adaptor.
+     * Set the webhook adapter.
      *
-     * @param webhookAdaptor WebhookAdaptor instance.
+     * @param webhookAdapter WebhookAdapter instance.
      */
-    public void setWebhookAdaptor(Adaptor webhookAdaptor) {
+    public void setWebhookAdapter(Adapter webhookAdapter) {
 
-        this.webhookAdaptor = webhookAdaptor;
+        this.webhookAdapter = webhookAdapter;
     }
 }

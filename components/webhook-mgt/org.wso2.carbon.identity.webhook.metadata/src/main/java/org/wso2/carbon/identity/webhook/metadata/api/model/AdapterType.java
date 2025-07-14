@@ -19,18 +19,18 @@
 package org.wso2.carbon.identity.webhook.metadata.api.model;
 
 /**
- * Enum for webhook adaptor types.
- * This enum defines the possible types of webhook adaptors.
+ * Enum for webhook adapter types.
+ * This enum defines the possible types of webhook adapters.
  */
-public enum WebhookAdaptorType {
+public enum AdapterType {
 
     /**
-     * Adaptor is used to publish events to a endpoint.
+     * Adapter is used to publish events to a endpoint.
      */
     Publisher,
 
     /**
-     * Adaptor is used to subscribe to a topic and receive events.
+     * Adapter is used to subscribe to a topic and receive events.
      * PubSub Hub will send events to the subscriber
      */
     PublisherSubscriber

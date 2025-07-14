@@ -116,11 +116,11 @@ public enum ErrorMessage {
             "Operation is not supported for %s"),
     ERROR_WHILE_RETRIEVING_WEBHOOKS_COUNT("65029", "Error while retrieving webhook count.",
             "An error occurred while retrieving the webhook count for tenant: %s."),
-    ERROR_CODE_WEBHOOK_ACTIVATION_ADAPTOR_ERROR("65030", "Webhook activation error",
+    ERROR_CODE_WEBHOOK_ACTIVATION_ADAPTER_ERROR("65030", "Webhook activation error",
             "An error occurred while activating the webhook: %s."),
-    ERROR_CODE_WEBHOOK_DEACTIVATION_ADAPTOR_ERROR("65031", "Webhook deactivation error",
+    ERROR_CODE_WEBHOOK_DEACTIVATION_ADAPTER_ERROR("65031", "Webhook deactivation error",
             "An error occurred while deactivating the webhook: %s."),
-    ERROR_CODE_WEBHOOK_RETRY_ADAPTOR_ERROR("65032", "Webhook retry error",
+    ERROR_CODE_WEBHOOK_RETRY_ADAPTER_ERROR("65032", "Webhook retry error",
             "An error occurred while retrying the webhook: %s.");
 
     private final String code;

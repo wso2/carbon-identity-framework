@@ -20,20 +20,20 @@ package org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler;
 
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookAdaptorType;
+import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
 
 /**
- * Factory class to get the appropriate AdaptorTypeHandler based on the WebhookAdaptorType.
+ * Factory class to get the appropriate AdapterTypeHandler based on the WebhookAdapterType.
  */
-public class WebhookAdaptorTypeHandlerFactory {
+public class WebhookAdapterTypeHandlerFactory {
 
-    public static AdaptorTypeHandler getHandler(WebhookManagementDAO dao) {
+    public static AdapterTypeHandler getHandler(WebhookManagementDAO dao) {
 
-        WebhookAdaptorType type = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdaptor().getType();
-        if (WebhookAdaptorType.PublisherSubscriber.equals(type)) {
-            return new PublisherSubscriberAdaptorTypeHandler(dao);
-        } else if (WebhookAdaptorType.Publisher.equals(type)) {
-            return new PublisherAdaptorTypeHandler(dao);
+        AdapterType type = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapter().getType();
+        if (AdapterType.PublisherSubscriber.equals(type)) {
+            return new PublisherSubscriberAdapterTypeHandler(dao);
+        } else if (AdapterType.Publisher.equals(type)) {
+            return new PublisherAdapterTypeHandler(dao);
         } else {
             return null;
         }
