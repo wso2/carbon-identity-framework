@@ -16,6 +16,7 @@
 # under the License.
 #
 
+{% if outbound_adapters.websubhub.enabled is sameas true %}
 adapter.websubhub.enabled={{outbound_adapters.websubhub.enabled}}
 adapter.websubhub.baseUrl={{outbound_adapters.websubhub.base_url}}
 adapter.websubhub.httpConnectionTimeout={{outbound_adapters.websubhub.httpConnectionTimeout}}
@@ -31,7 +32,9 @@ adapter.websubhub.topicDeletionDisabled={{outbound_adapters.websubhub.topicDelet
 adapter.websubhub.sslCertificateAlias={{outbound_adapters.websubhub.ssl_certificate_alias}}
 adapter.websubhub.mtlsEnabled={{outbound_adapters.websubhub.mtlsEnabled}}
 adapter.websubhub.type={{outbound_adapters.websubhub.type}}
+{% endif %}
 
+{% if outbound_adapters.httppublisher.enabled is sameas true %}
 adapter.httppublisher.enabled={{outbound_adapters.httppublisher.enabled}}
 adapter.httppublisher.httpConnectionTimeout={{outbound_adapters.httppublisher.httpConnectionTimeout}}
 adapter.httppublisher.httpReadTimeout={{outbound_adapters.httppublisher.httpReadTimeout}}
@@ -40,3 +43,4 @@ adapter.httppublisher.connectionHandshakeTimeout={{outbound_adapters.httppublish
 adapter.httppublisher.defaultMaxConnections={{outbound_adapters.httppublisher.defaultMaxConnections}}
 adapter.httppublisher.defaultMaxConnectionsPerRoute={{outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute}}
 adapter.httppublisher.type={{outbound_adapters.httppublisher.type}}
+{% endif %}
