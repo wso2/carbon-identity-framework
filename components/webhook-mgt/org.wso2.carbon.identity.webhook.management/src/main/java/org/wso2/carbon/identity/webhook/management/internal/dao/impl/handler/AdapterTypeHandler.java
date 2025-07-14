@@ -37,7 +37,7 @@ import static org.wso2.carbon.identity.webhook.management.internal.constant.Erro
  */
 public abstract class AdapterTypeHandler implements WebhookManagementDAO {
 
-    protected final WebhookSecretProcessor webhookSecretProcessor = new WebhookSecretProcessor();
+    private final WebhookSecretProcessor webhookSecretProcessor = new WebhookSecretProcessor();
 
     /**
      * Encrypts the webhook secret and adds it to the webhook object.
