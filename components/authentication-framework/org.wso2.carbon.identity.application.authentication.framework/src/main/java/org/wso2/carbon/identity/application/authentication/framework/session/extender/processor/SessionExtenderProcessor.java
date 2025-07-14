@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.session.ext
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequest;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
@@ -199,6 +200,9 @@ public class SessionExtenderProcessor extends IdentityProcessor {
 
     private void addAuditLogs(String sessionKey, String tenantDomain, String traceId) {
 
+        if (LoggerUtils.isEnableV2AuditLogs()) {
+            return;
+        }
         JSONObject auditData = new JSONObject();
         auditData.put(SESSION_CONTEXT_ID, sessionKey);
         auditData.put(TENANT_DOMAIN, tenantDomain);

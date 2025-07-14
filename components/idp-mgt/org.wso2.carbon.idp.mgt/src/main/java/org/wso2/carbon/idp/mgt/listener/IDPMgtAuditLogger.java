@@ -49,7 +49,10 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean isEnable() {
 
-        return super.isEnable();
+        if (super.isEnable()) {
+            return !LoggerUtils.isEnableV2AuditLogs();
+        }
+        return false;
     }
 
     @Override
@@ -62,6 +65,9 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     public boolean doPostAddIdP(IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
 
+        if (!isEnable()) {
+            return true;
+        }
         String resourceId = "Undefined";
         if (identityProvider != null && StringUtils.isNotBlank(identityProvider.getResourceId())) {
             resourceId = identityProvider.getResourceId();
@@ -76,6 +82,9 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
 
+        if (!isEnable()) {
+            return true;
+        }
         String resourceId = "Undefined";
 
         if (identityProvider != null && StringUtils.isNotEmpty(identityProvider.getResourceId())) {
@@ -98,6 +107,9 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
+        if (!isEnable()) {
+            return true;
+        }
         audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete-IDP", idPName, null, SUCCESS));
         return true;
     }
@@ -114,6 +126,9 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
             tenantDomain) throws IdentityProviderManagementException {
 
+        if (!isEnable()) {
+            return true;
+        }
         if (StringUtils.isBlank(resourceId)) {
             resourceId = "Undefined";
         }
@@ -131,6 +146,9 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
+        if (!isEnable()) {
+            return true;
+        }
         audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete-All-IDPs", tenantDomain, null, SUCCESS));
         return true;
     }
