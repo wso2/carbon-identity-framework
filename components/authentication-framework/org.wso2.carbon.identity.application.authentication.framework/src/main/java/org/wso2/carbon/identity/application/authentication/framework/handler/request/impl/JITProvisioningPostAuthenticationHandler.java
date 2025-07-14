@@ -409,6 +409,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     }
                     String username = associatedLocalUser;
                     if (StringUtils.isEmpty(username)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("User : " + sequenceConfig.getAuthenticatedUser().getLoggableUserId()
+                                    + " coming from " + externalIdPConfig.getIdPName()
+                                    + " do not have a local account.");
+                        }
                         username = getUsernameFederatedUser(stepConfig, sequenceConfig, externalIdPConfigName,
                                 context, localClaimValues, externalIdPConfig);
                     }
@@ -435,6 +440,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         if (isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
             username = localClaimValues.get(userIdClaimUriInLocalDialect);
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Unable to find the username from the user ID claim URI in local dialect: "
+                        + userIdClaimUriInLocalDialect);
+            }
             if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
                 username = getFederatedUsername(stepConfig.getAuthenticatedUser().getUserName(),
                         externalIdPConfigName, context);
@@ -455,11 +464,18 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     private String getFederatedUsername(String username, String idpName, AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
+        if (username == null && log.isDebugEnabled()) {
+            log.debug("Authenticated user's username is null in step config.");
+        }
         String federatedUsername = null;
         try {
             int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
             int idpId = UserSessionStore.getInstance().getIdPId(idpName, tenantId);
             federatedUsername = UserSessionStore.getInstance().getFederatedUserId(username, tenantId, idpId);
+            if (federatedUsername == null && log.isDebugEnabled()) {
+                log.debug("Federated username is null for the user: " + LoggerUtils.getMaskedContent(username) +
+                        " in the IDP: " + idpName);
+            }
         } catch (UserSessionException e) {
             handleExceptions(
                     String.format(ErrorMessages.ERROR_WHILE_GETTING_FEDERATED_USERNAME.getMessage(), username, idpName),
@@ -1108,6 +1124,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         String userIdClaimUri = idPConfig.getUserIdClaimUri();
 
         if (StringUtils.isBlank(userIdClaimUri)) {
+            if (log.isDebugEnabled()) {
+                log.debug("User ID claim URI is not configured for the external identity provider: " +
+                        idPConfig.getName() + ".");
+            }
             return null;
         }
 
@@ -1124,7 +1144,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 }
             }
         }
-
+        if (log.isDebugEnabled()) {
+            log.debug("User ID claim URI: " + userIdClaimUri +
+                    " is not mapped to a local claim in the external identity provider: " + idPConfig.getName() + ".");
+        }
         return null;
     }
 
