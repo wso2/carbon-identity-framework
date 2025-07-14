@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
@@ -93,5 +94,21 @@ public class FlowMgtServiceComponent {
     protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
 
         FlowMgtServiceDataHolder.getInstance().setOrgResourceResolverService(null);
+    }
+
+    @Reference(
+            name = "configuration.manager",
+            service = ConfigurationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationManager")
+    protected void setConfigurationManager(ConfigurationManager configurationManager) {
+
+        FlowMgtServiceDataHolder.getInstance().setConfigurationManager(configurationManager);
+    }
+
+    protected void unsetConfigurationManager(ConfigurationManager configurationManager) {
+
+        FlowMgtServiceDataHolder.getInstance().setConfigurationManager(null);
     }
 }
