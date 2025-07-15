@@ -67,7 +67,7 @@ public class TopicManagementComponentServiceHolder {
      */
     public void addTopicManager(TopicManager topicManager) {
 
-        LOG.info("Adding topic manager: " + topicManager.getAssociatedAdapter());
+        LOG.debug("Adding topic manager: " + topicManager.getAssociatedAdapter());
         topicManagers.add(topicManager);
     }
 
@@ -78,7 +78,7 @@ public class TopicManagementComponentServiceHolder {
      */
     public void removeTopicManager(TopicManager topicManager) {
 
-        LOG.info("Removing topic manager: " + topicManager.getAssociatedAdapter());
+        LOG.debug("Removing topic manager: " + topicManager.getAssociatedAdapter());
         topicManagers.remove(topicManager);
     }
 
