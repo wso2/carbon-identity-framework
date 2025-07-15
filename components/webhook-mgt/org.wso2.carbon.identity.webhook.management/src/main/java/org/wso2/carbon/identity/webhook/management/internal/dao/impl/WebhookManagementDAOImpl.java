@@ -97,8 +97,6 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
-                int internalWebhookId = getInternalWebhookIdByUuid(webhookId, tenantId);
-                deleteWebhookEventsInDB(internalWebhookId);
                 template.executeUpdate(WebhookSQLConstants.Query.DELETE_WEBHOOK,
                         statement -> {
                             statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
