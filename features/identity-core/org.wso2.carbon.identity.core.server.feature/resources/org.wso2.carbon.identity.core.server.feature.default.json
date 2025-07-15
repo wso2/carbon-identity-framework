@@ -1216,6 +1216,8 @@
   "console.ui.is_cookie_consent_banner_enabled": false,
   "console.ui.is_editing_system_roles_allowed": true,
   "console.ui.cookie_policy_url": "/authenticationendpoint/cookie_policy.do",
+  "console.ui.privacy_policy_url": "/authenticationendpoint/privacy_policy.do",
+  "console.ui.terms_of_service_url": "https://wso2.com/terms-of-use",
   "console.ui.app_title": "WSO2 Identity Server Console",
   "console.ui.app_name": "Console",
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
