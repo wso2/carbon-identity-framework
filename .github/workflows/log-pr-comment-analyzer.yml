@@ -44,3 +44,6 @@ jobs:
     uses: wso2/wso2-organization-templates/.github/workflows/log-pr-comment-analyzer.yml@main
     with:
       prUrl: ${{ needs.find-pr-details.outputs.url }}
+    secrets:
+      clientId: ${{ secrets.AI_LOG_AGENT_CLIENT_ID }}
+      clientSecret: ${{ secrets.AI_LOG_AGENT_CLIENT_SECRET }}
