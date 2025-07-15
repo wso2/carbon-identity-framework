@@ -50,7 +50,6 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.trigger
 import static org.wso2.carbon.identity.flow.mgt.Constants.DEFAULT_FLOW_NAME;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.getInitiatorId;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
-import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.isEnableV2AuditLogs;
 
 /**
  * This class is responsible for managing the flow.
@@ -81,14 +80,12 @@ public class FlowMgtService {
         clearFlowResolveCache(tenantID);
         GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         FLOW_DAO.updateFlow(flowDTO.getFlowType(), flowConfig, tenantID, DEFAULT_FLOW_NAME);
-        if (isEnableV2AuditLogs()) {
-            AuditLog.AuditLogBuilder auditLogBuilder =
-                    new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                            flowConfig.getId(),
-                            LoggerUtils.Target.Flow.name(),
-                            String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, flowDTO.getFlowType()));
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
+        AuditLog.AuditLogBuilder auditLogBuilder =
+                new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                        flowConfig.getId(),
+                        LoggerUtils.Target.Flow.name(),
+                        String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, flowDTO.getFlowType()));
+        triggerAuditLogEvent(auditLogBuilder, true);
     }
 
     /**
@@ -160,15 +157,13 @@ public class FlowMgtService {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
         FlowConfigDTO updatedFlowConfigDTO = FlowMgtConfigUtils.addFlowConfig(flowConfigDTO, tenantDomain);
-        if (isEnableV2AuditLogs()) {
-            AuditLog.AuditLogBuilder auditLogBuilder =
-                    new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                            flowConfigDTO.getFlowType(),
-                            LoggerUtils.Target.Flow.name(),
-                            String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW_CONFIG,
-                                    flowConfigDTO.getFlowType()));
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
+        AuditLog.AuditLogBuilder auditLogBuilder =
+                new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                        flowConfigDTO.getFlowType(),
+                        LoggerUtils.Target.Flow.name(),
+                        String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW_CONFIG,
+                                flowConfigDTO.getFlowType()));
+        triggerAuditLogEvent(auditLogBuilder, true);
         return updatedFlowConfigDTO;
     }
 

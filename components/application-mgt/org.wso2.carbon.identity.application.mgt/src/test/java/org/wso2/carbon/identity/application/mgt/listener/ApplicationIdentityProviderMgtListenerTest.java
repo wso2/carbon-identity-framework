@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -44,6 +46,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -74,6 +77,7 @@ import java.nio.file.Paths;
 import javax.xml.stream.XMLStreamException;
 
 import static java.lang.Boolean.FALSE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -120,13 +124,18 @@ public class ApplicationIdentityProviderMgtListenerTest {
         ServiceProvider serviceProvider1 = getTestServiceProvider("test-sp-1.xml");
         OutboundProvisioningConfig outboundProvisioningConfig = serviceProvider1.getOutboundProvisioningConfig();
         outboundProvisioningConfig.setProvisioningIdentityProviders(new IdentityProvider[]{ identityProvider1 });
-        appResourceId1 =
-                applicationManagementService.createApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username);
 
-        IdentityProvider idp2 = getTestIdentityProvider("test-idp-2.xml");
-        identityProvider2 = identityProviderManager.addIdPWithResourceId(idp2, SUPER_TENANT_DOMAIN_NAME);
-        ServiceProvider serviceProvider2 = getTestServiceProvider("test-sp-2.xml");
-        applicationManagementService.createApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME, username);
+        try (MockedStatic<LoggerUtils> loggerUtilsMockedStatic = Mockito.mockStatic(LoggerUtils.class)) {
+            loggerUtilsMockedStatic.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+
+            appResourceId1 = applicationManagementService
+                    .createApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username);
+
+            IdentityProvider idp2 = getTestIdentityProvider("test-idp-2.xml");
+            identityProvider2 = identityProviderManager.addIdPWithResourceId(idp2, SUPER_TENANT_DOMAIN_NAME);
+            ServiceProvider serviceProvider2 = getTestServiceProvider("test-sp-2.xml");
+            applicationManagementService.createApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME, username);
+        }
     }
 
     @AfterMethod

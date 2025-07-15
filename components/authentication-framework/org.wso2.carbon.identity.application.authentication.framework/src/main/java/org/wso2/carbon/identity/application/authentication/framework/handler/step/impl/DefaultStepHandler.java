@@ -887,18 +887,20 @@ public class DefaultStepHandler implements StepHandler {
             authHistory.setSuccess(true);
             context.addAuthenticationStepHistory(authHistory);
 
-            String initiator = null;
-            if (stepConfig.getAuthenticatedUser() != null) {
-                initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
-                if (LoggerUtils.isLogMaskingEnable) {
-                    initiator = LoggerUtils.getMaskedContent(initiator);
+            if (!LoggerUtils.isEnableV2AuditLogs()) {
+                String initiator = null;
+                if (stepConfig.getAuthenticatedUser() != null) {
+                    initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
+                    if (LoggerUtils.isLogMaskingEnable) {
+                        initiator = LoggerUtils.getMaskedContent(initiator);
+                    }
                 }
-            }
-            String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
-                    ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
+                String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
+                        ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
 
-            audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
-                    data, SUCCESS));
+                audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                        data, SUCCESS));
+            }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,

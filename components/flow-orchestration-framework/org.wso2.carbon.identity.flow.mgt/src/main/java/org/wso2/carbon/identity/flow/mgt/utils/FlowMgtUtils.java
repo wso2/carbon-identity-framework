@@ -42,8 +42,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.ENABLE_V2_AUDIT_LOGS;
-
 /**
  * Utility class for flow management operations.
  * This class provides methods to handle exceptions, manage audit logs, and clear cache entries.
@@ -120,16 +118,6 @@ public class FlowMgtUtils {
             description = String.format(description, data);
         }
         return new FlowMgtClientException(error.getCode(), error.getMessage(), description);
-    }
-
-    /**
-     * Check whether the v2 audit logs are enabled.
-     *
-     * @return true if v2 audit logs are enabled.
-     */
-    public static boolean isEnableV2AuditLogs() {
-
-        return Boolean.parseBoolean(System.getProperty(ENABLE_V2_AUDIT_LOGS));
     }
 
     /**
