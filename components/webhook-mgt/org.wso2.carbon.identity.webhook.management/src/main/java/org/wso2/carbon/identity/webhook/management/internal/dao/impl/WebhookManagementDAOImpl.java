@@ -97,6 +97,8 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
+                int internalWebhookId = getInternalWebhookIdByUuid(webhookId, tenantId);
+                deleteWebhookEventsInDB(internalWebhookId);
                 template.executeUpdate(WebhookSQLConstants.Query.DELETE_WEBHOOK,
                         statement -> {
                             statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
@@ -223,22 +225,10 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
     }
 
     @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
-
-        updateWebhookStatus(webhookId, tenantId, WebhookStatus.ACTIVE);
-    }
-
-    @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         processWebhookStatusUpdate(webhook.getId(), tenantId, webhook.getEventsSubscribed(), webhook.getStatus(),
                 ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR);
-    }
-
-    @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
-
-        updateWebhookStatus(webhookId, tenantId, WebhookStatus.INACTIVE);
     }
 
     @Override
@@ -364,6 +354,29 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         });
     }
 
+    private void updateWebhookEventStatusInDB(int webhookId, List<Subscription> channels) throws TransactionException {
+
+        if (channels == null || channels.isEmpty()) {
+            return;
+        }
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.withTransaction(template -> {
+            for (Subscription event : channels) {
+                if (event.getStatus() == null) {
+                    continue;
+                }
+                template.executeUpdate(WebhookSQLConstants.Query.UPDATE_WEBHOOK_EVENT_STATUS,
+                        statement -> {
+                            statement.setString(WebhookSQLConstants.Column.CHANNEL_SUBSCRIPTION_STATUS,
+                                    event.getStatus().name());
+                            statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
+                            statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, event.getChannelUri());
+                        });
+            }
+            return null;
+        });
+    }
+
     private void deleteWebhookEventsInDB(int webhookId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -391,36 +404,13 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 );
 
                 int internalWebhookId = getInternalWebhookIdByUuid(webhookId, tenantId);
-                deleteWebhookEventsInDB(internalWebhookId);
-                addWebhookEventsToDB(internalWebhookId, channels);
+                updateWebhookEventStatusInDB(internalWebhookId, channels);
 
                 return null;
             });
         } catch (TransactionException e) {
             throw WebhookManagementExceptionHandler.handleServerException(
                     errorMessage, e, webhookId);
-        }
-    }
-
-    private void updateWebhookStatus(String webhookId, int tenantId, WebhookStatus status)
-            throws WebhookMgtException {
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        try {
-            jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(
-                        WebhookSQLConstants.Query.UPDATE_WEBHOOK_STATUS,
-                        statement -> {
-                            statement.setString(WebhookSQLConstants.Column.STATUS, status.name());
-                            statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
-                            statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
-                        }
-                );
-                return null;
-            });
-        } catch (TransactionException e) {
-            throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_STATUS_UPDATE_ERROR, e, webhookId);
         }
     }
 }

@@ -164,17 +164,17 @@ public class PublisherAdapterTypeHandlerTest {
     @Test
     public void testActivateWebhook() throws WebhookMgtException {
 
-        doNothing().when(mockDao).activateWebhook(anyString(), anyInt());
+        doNothing().when(mockDao).activateWebhook(any(), anyInt());
         handler.activateWebhook(testWebhook, 1);
-        verify(mockDao, times(1)).activateWebhook(testWebhook.getId(), 1);
+        verify(mockDao, times(1)).activateWebhook(testWebhook, 1);
     }
 
     @Test
     public void testDeactivateWebhook() throws WebhookMgtException {
 
-        doNothing().when(mockDao).deactivateWebhook(anyString(), anyInt());
+        doNothing().when(mockDao).deactivateWebhook(any(), anyInt());
         handler.deactivateWebhook(testWebhook, 1);
-        verify(mockDao, times(1)).deactivateWebhook(testWebhook.getId(), 1);
+        verify(mockDao, times(1)).deactivateWebhook(testWebhook, 1);
     }
 
     @Test

@@ -216,14 +216,6 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
     }
 
     @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
-
-        throw WebhookManagementExceptionHandler.handleClientException(
-                ErrorMessage.ERROR_OPERATION_NOT_SUPPORTED,
-                "activateWebhook by id not supported for PublisherSubscriber");
-    }
-
-    @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         if (webhook.getStatus() == WebhookStatus.PARTIALLY_INACTIVE) {
@@ -269,14 +261,6 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     buildWebhookWith(webhook, updatedUnsubscriptions, webhook.getSecret(),
                             WebhookStatus.PARTIALLY_INACTIVE), tenantId);
         }
-    }
-
-    @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
-
-        throw WebhookManagementExceptionHandler.handleClientException(
-                ErrorMessage.ERROR_OPERATION_NOT_SUPPORTED,
-                "deactivateWebhook by id not supported for PublisherSubscriber");
     }
 
     @Override

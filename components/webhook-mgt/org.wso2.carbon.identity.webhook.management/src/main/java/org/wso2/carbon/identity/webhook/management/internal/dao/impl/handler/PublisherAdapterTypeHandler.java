@@ -90,25 +90,13 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     @Override
     public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        activateWebhook(webhook.getId(), tenantId);
-    }
-
-    @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
-
-        dao.activateWebhook(webhookId, tenantId);
+        dao.activateWebhook(webhook, tenantId);
     }
 
     @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        deactivateWebhook(webhook.getId(), tenantId);
-    }
-
-    @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
-
-        dao.deactivateWebhook(webhookId, tenantId);
+        dao.deactivateWebhook(webhook, tenantId);
     }
 
     @Override

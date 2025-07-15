@@ -105,15 +105,6 @@ public interface WebhookManagementDAO {
     void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
 
     /**
-     * Enable a webhook subscription in the database.
-     *
-     * @param webhookId Webhook ID to be activated.
-     * @param tenantId  Tenant ID.
-     * @throws WebhookMgtException If an error occurs while retrying the webhook.
-     */
-    void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
-
-    /**
      * Disable a webhook subscription in the database.
      *
      * @param webhook  Webhook subscription to be deactivated.
@@ -121,15 +112,6 @@ public interface WebhookManagementDAO {
      * @throws WebhookMgtException If an error occurs while retrying the webhook.
      */
     void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
-
-    /**
-     * Disable a webhook subscription in the database.
-     *
-     * @param webhookId Webhook ID to be deactivated.
-     * @param tenantId  Tenant ID.
-     * @throws WebhookMgtException If an error occurs while retrying the webhook.
-     */
-    void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
 
     /**
      * Retry a webhook subscription or unsubscription that has failed.

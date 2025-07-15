@@ -95,21 +95,9 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
     }
 
     @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
-
-        getHandler().activateWebhook(webhookId, tenantId);
-    }
-
-    @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         getHandler().deactivateWebhook(webhook, tenantId);
-    }
-
-    @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
-
-        getHandler().deactivateWebhook(webhookId, tenantId);
     }
 
     @Override

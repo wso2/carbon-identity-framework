@@ -205,12 +205,6 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
         verify(dao).activateWebhook(any(Webhook.class), eq(1));
     }
 
-    @Test(expectedExceptions = WebhookMgtException.class)
-    public void testActivateWebhookById() throws WebhookMgtException {
-
-        handler.activateWebhook("id", 1);
-    }
-
     @Test
     public void testDeactivateWebhookByObject() throws WebhookMgtException, SubscriptionManagementException {
 
@@ -224,12 +218,6 @@ public class PublisherSubscriberAdapterTypeHandlerTest {
                 .thenReturn(Collections.emptyList());
         handler.deactivateWebhook(webhook, 1);
         verify(dao).deactivateWebhook(any(Webhook.class), eq(1));
-    }
-
-    @Test(expectedExceptions = WebhookMgtException.class)
-    public void testDeactivateWebhookById() throws WebhookMgtException {
-
-        handler.deactivateWebhook("id", 1);
     }
 
     @Test
