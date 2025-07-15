@@ -27,6 +27,10 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
  */
 public class WebhookAdapterTypeHandlerFactory {
 
+    private WebhookAdapterTypeHandlerFactory() {
+        // Prevent instantiation
+    }
+
     public static AdapterTypeHandler getHandler(WebhookManagementDAO dao) {
 
         AdapterType type = WebhookManagementComponentServiceHolder.getInstance().getWebhookAdapter().getType();
