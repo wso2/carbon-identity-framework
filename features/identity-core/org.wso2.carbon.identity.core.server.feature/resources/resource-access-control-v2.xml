@@ -1410,7 +1410,7 @@
     <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">
         <Scopes>internal_flow_view</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="PUT">
+    <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="PUT, PATCH">
         <Scopes>internal_flow_update</Scopes>
     </Resource>
 
