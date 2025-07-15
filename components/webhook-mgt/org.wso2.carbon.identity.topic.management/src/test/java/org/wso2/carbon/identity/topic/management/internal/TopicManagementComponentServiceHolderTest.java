@@ -23,12 +23,17 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManager;
 import org.wso2.carbon.identity.topic.management.internal.component.TopicManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
 
 public class TopicManagementComponentServiceHolderTest {
 
@@ -46,20 +51,15 @@ public class TopicManagementComponentServiceHolderTest {
             holder.removeTopicManager(manager);
         }
 
-        // Create a fresh mock for each test
         topicManager = Mockito.mock(TopicManager.class);
-        Mockito.when(topicManager.getAssociatedAdaptor()).thenReturn("TestTopicManager");
+        Mockito.when(topicManager.getAssociatedAdapter()).thenReturn("TestTopicManager");
     }
 
     @Test
     public void testAddTopicManager() {
-        // Make sure list is empty first
+
         assertEquals(holder.getTopicManagers().size(), 0);
-
-        // Add the manager
         holder.addTopicManager(topicManager);
-
-        // Verify it was added
         List<TopicManager> managers = holder.getTopicManagers();
         assertEquals(managers.size(), 1);
         assertEquals(topicManager, managers.get(0));
@@ -81,5 +81,29 @@ public class TopicManagementComponentServiceHolderTest {
         List<TopicManager> managers = holder.getTopicManagers();
         assertEquals(managers.size(), 1);
         assertEquals(managers.get(0), topicManager);
+    }
+
+    @Test
+    public void testSetAndGetWebhookAdapter() {
+
+        Adapter adapter = Mockito.mock(Adapter.class);
+        Mockito.when(adapter.getType()).thenReturn(AdapterType.Publisher);
+        holder.setWebhookAdapter(adapter);
+        assertSame(holder.getWebhookAdapter(), adapter);
+    }
+
+    @Test
+    public void testSetAndGetEventAdapterMetadataService() {
+
+        EventAdapterMetadataService service = Mockito.mock(EventAdapterMetadataService.class);
+        holder.setEventAdapterMetadataService(service);
+        assertSame(holder.getEventAdapterMetadataService(), service);
+    }
+
+    @Test
+    public void testDefaultWebhookAdapterAndEventAdapterMetadataServiceAreNull() {
+
+        assertNull(holder.getWebhookAdapter());
+        assertNull(holder.getEventAdapterMetadataService());
     }
 }

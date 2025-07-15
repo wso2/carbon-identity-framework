@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.topic.management.internal.component;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManager;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +38,8 @@ public class TopicManagementComponentServiceHolder {
     private static final TopicManagementComponentServiceHolder INSTANCE =
             new TopicManagementComponentServiceHolder();
     private final List<TopicManager> topicManagers = new ArrayList<>();
+    private EventAdapterMetadataService eventAdapterMetadataService;
+    private Adapter webhookAdapter;
 
     private TopicManagementComponentServiceHolder() {
 
@@ -63,7 +67,7 @@ public class TopicManagementComponentServiceHolder {
      */
     public void addTopicManager(TopicManager topicManager) {
 
-        LOG.info("Adding topic manager: " + topicManager.getAssociatedAdaptor());
+        LOG.info("Adding topic manager: " + topicManager.getAssociatedAdapter());
         topicManagers.add(topicManager);
     }
 
@@ -74,7 +78,48 @@ public class TopicManagementComponentServiceHolder {
      */
     public void removeTopicManager(TopicManager topicManager) {
 
-        LOG.info("Removing topic manager: " + topicManager.getAssociatedAdaptor());
+        LOG.info("Removing topic manager: " + topicManager.getAssociatedAdapter());
         topicManagers.remove(topicManager);
+    }
+
+    /**
+     * Get the event adapter metadata service.
+     *
+     * @return EventAdapterMetadataService instance.
+     */
+    public EventAdapterMetadataService getEventAdapterMetadataService() {
+
+        return eventAdapterMetadataService;
+    }
+
+    /**
+     * Set the event adapter metadata service.
+     *
+     * @param eventAdapterMetadataService EventAdapterMetadataService instance.
+     */
+    public void setEventAdapterMetadataService(EventAdapterMetadataService eventAdapterMetadataService) {
+
+        this.eventAdapterMetadataService = eventAdapterMetadataService;
+    }
+
+    /**
+     * Get the webhook adapter.
+     *
+     * @return WebhookAdapter instance.
+     */
+    public Adapter getWebhookAdapter() {
+
+        return webhookAdapter;
+    }
+
+    /**
+     * Set the webhook adapter.
+     *
+     * @param webhookAdapter WebhookAdapter instance.
+     */
+    public void setWebhookAdapter(Adapter webhookAdapter) {
+
+        this.webhookAdapter = webhookAdapter;
+        LOG.debug("Webhook adapter set to type " + webhookAdapter.getType());
     }
 }

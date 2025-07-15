@@ -36,7 +36,7 @@ public interface EventSubscriber {
      *
      * @return Name of the subscriber.
      */
-    String getAssociatedAdaptor();
+    String getAssociatedAdapter();
 
     /**
      * Subscribe a webhook to the external system.

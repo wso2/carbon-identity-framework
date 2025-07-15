@@ -112,8 +112,10 @@
                                 <resource>
                                     <directory>resources</directory>
                                     <includes>
-                                        <include>**/*.json</include>
                                         <include>p2.inf</include>
+                                        <include>**/identity-outbound-adapter.properties</include>
+                                        <include>**/identity-outbound-adapter.properties.j2</include>
+                                        <include>**/*.json</include>
                                     </includes>
                                 </resource>
                             </resources>

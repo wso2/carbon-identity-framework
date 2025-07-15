@@ -28,7 +28,9 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
+import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.EventAdapterMetadataServiceImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.WebhookMetadataServiceImpl;
 
 /**
@@ -52,7 +54,13 @@ public class WebhookMetadataServiceComponent {
             context.getBundleContext().registerService(WebhookMetadataService.class.getName(),
                     webhookMetadataService, null);
 
-            log.info("Webhook Metadata component activated successfully");
+            EventAdapterMetadataServiceImpl eventAdopterMetadataService = EventAdapterMetadataServiceImpl.getInstance();
+            eventAdopterMetadataService.init();
+
+            context.getBundleContext().registerService(EventAdapterMetadataService.class.getName(),
+                    eventAdopterMetadataService, null);
+
+            log.debug("Webhook Metadata component activated successfully");
         } catch (Throwable e) {
             log.error("Error activating Webhook Metadata component", e);
         }
@@ -61,9 +69,7 @@ public class WebhookMetadataServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Webhook Metadata component deactivated");
-        }
+        log.debug("Webhook Metadata component deactivated");
     }
 
     @Reference(

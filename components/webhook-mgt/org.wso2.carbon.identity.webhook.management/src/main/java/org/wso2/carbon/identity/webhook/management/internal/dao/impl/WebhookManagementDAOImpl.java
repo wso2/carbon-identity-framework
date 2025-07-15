@@ -159,12 +159,16 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
             return jdbcTemplate.withTransaction(template ->
                     template.executeQuery(
                             WebhookSQLConstants.Query.LIST_WEBHOOK_EVENTS_BY_UUID,
-                            (resultSet, rowNumber) -> Subscription.builder()
-                                    .channelUri(resultSet.getString(WebhookSQLConstants.Column.CHANNEL_URI))
-                                    .status(SubscriptionStatus.valueOf(
-                                            resultSet.getString(
-                                                    WebhookSQLConstants.Column.CHANNEL_SUBSCRIPTION_STATUS)))
-                                    .build(),
+                            (resultSet, rowNumber) -> {
+                                String statusStr =
+                                        resultSet.getString(WebhookSQLConstants.Column.CHANNEL_SUBSCRIPTION_STATUS);
+                                SubscriptionStatus status =
+                                        statusStr != null ? SubscriptionStatus.valueOf(statusStr) : null;
+                                return Subscription.builder()
+                                        .channelUri(resultSet.getString(WebhookSQLConstants.Column.CHANNEL_URI))
+                                        .status(status)
+                                        .build();
+                            },
                             statement -> {
                                 statement.setString(WebhookSQLConstants.Column.UUID, webhookId);
                                 statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
@@ -339,11 +343,34 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                         statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
                         for (Subscription event : events) {
                             statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, event.getChannelUri());
-                            statement.setString(WebhookSQLConstants.Column.CHANNEL_SUBSCRIPTION_STATUS,
-                                    event.getStatus().name());
+                            String status = event.getStatus() != null ? event.getStatus().name() : null;
+                            statement.setString(WebhookSQLConstants.Column.CHANNEL_SUBSCRIPTION_STATUS, status);
                             statement.addBatch();
                         }
                     }, null);
+            return null;
+        });
+    }
+
+    private void updateWebhookEventStatusInDB(int webhookId, List<Subscription> channels) throws TransactionException {
+
+        if (channels == null || channels.isEmpty()) {
+            return;
+        }
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.withTransaction(template -> {
+            for (Subscription event : channels) {
+                if (event.getStatus() == null) {
+                    continue;
+                }
+                template.executeUpdate(WebhookSQLConstants.Query.UPDATE_WEBHOOK_EVENT_STATUS,
+                        statement -> {
+                            statement.setString(WebhookSQLConstants.Column.CHANNEL_SUBSCRIPTION_STATUS,
+                                    event.getStatus().name());
+                            statement.setInt(WebhookSQLConstants.Column.WEBHOOK_ID, webhookId);
+                            statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, event.getChannelUri());
+                        });
+            }
             return null;
         });
     }
@@ -375,8 +402,7 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
                 );
 
                 int internalWebhookId = getInternalWebhookIdByUuid(webhookId, tenantId);
-                deleteWebhookEventsInDB(internalWebhookId);
-                addWebhookEventsToDB(internalWebhookId, channels);
+                updateWebhookEventStatusInDB(internalWebhookId, channels);
 
                 return null;
             });
