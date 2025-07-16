@@ -977,7 +977,7 @@ public class IdPManagementDAOTest {
             List<String> propertiesToDelete = new ArrayList<>();
             propertiesToDelete.add(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
 
-            idPManagementDAO.deleteIdpProperties(TENANT_DOMAIN, Integer.parseInt(addedIdp.getId()), propertiesToDelete);
+            idPManagementDAO.deleteIdpProperties(Integer.parseInt(addedIdp.getId()), propertiesToDelete, TENANT_DOMAIN);
         }
 
         assertDeletedIdpProperties();

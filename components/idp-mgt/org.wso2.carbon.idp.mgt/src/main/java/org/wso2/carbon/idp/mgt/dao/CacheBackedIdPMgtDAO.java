@@ -59,10 +59,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CacheBackedIdPMgtDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedIdPMgtDAO.class);
+    private static final ExecutorService CACHE_CLEARING_EXECUTOR = Executors.newFixedThreadPool(3);
 
     private IdPManagementFacade idPManagementFacade = null;
 
@@ -621,11 +625,12 @@ public class CacheBackedIdPMgtDAO {
     /**
      * Delete the properties of the given Identity Provider.
      *
-     * @param tenantDomain       Tenant domain of the Identity Provider.
      * @param identityProvider   Identity provider whose properties need to be deleted.
      * @param propertyNames      List of property names to be deleted.
+     * @param tenantDomain       Tenant domain of the Identity Provider.
+     * @throws IdentityProviderManagementException When an error occurs while deleting the properties.
      */
-    public void deleteIdpProperties(String tenantDomain, IdentityProvider identityProvider, List<String> propertyNames)
+    public void deleteIdpProperties(IdentityProvider identityProvider, List<String> propertyNames, String tenantDomain)
             throws IdentityProviderManagementException {
 
         if (log.isDebugEnabled()) {
@@ -635,8 +640,8 @@ public class CacheBackedIdPMgtDAO {
 
         clearIdpCache(identityProvider.getIdentityProviderName(), identityProvider.getResourceId(),
                 IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
-        idPManagementFacade.deleteIdpProperties(
-                tenantDomain, Integer.parseInt(identityProvider.getId()), propertyNames);
+        idPManagementFacade.deleteIdpProperties(Integer.parseInt(identityProvider.getId()),
+                propertyNames, tenantDomain);
     }
 
     /**
@@ -837,31 +842,38 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
-     * Clear IDP cache entries of all child organizations of the given organization.
+     * Clear IDP cache entries of all child organizations of the given organization asynchronously.
      *
      * @param idPName      Identity Provider name.
      * @param tenantDomain Tenant domain of the identity provider.
-     * @throws IdentityProviderManagementException IdentityProviderManagementException
      */
-    private void clearDescendantIdpCache(String idPName, String tenantDomain) throws
-            IdentityProviderManagementException {
+    private void clearDescendantIdpCache(String idPName, String tenantDomain) {
 
-        try {
-            OrganizationManager organizationManager =
-                    IdpMgtServiceComponentHolder.getInstance().getOrganizationManager();
-            String orgId = organizationManager.resolveOrganizationId(tenantDomain);
-            List<String> childOrgIds = organizationManager.getChildOrganizationsIds(orgId, true);
+        // Run the entire cache clearing operation asynchronously in a single background thread.
+        CompletableFuture.runAsync(() -> {
+            try {
+                OrganizationManager organizationManager =
+                        IdpMgtServiceComponentHolder.getInstance().getOrganizationManager();
+                String orgId = organizationManager.resolveOrganizationId(tenantDomain);
+                List<String> childOrgIds = organizationManager.getChildOrganizationsIds(orgId, true);
+                if (childOrgIds.isEmpty()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No child organizations found for tenant domain: " + tenantDomain);
+                    }
+                    return;
+                }
 
-            for (String childOrgId : childOrgIds) {
-                int tenantId = IdentityTenantUtil.getTenantId(childOrgId);
-                Optional<IdentityProvider> identityProvider = this.getCachedIdpByName(idPName, childOrgId);
-                identityProvider.ifPresent(
-                        provider -> clearIdPCacheEntries(provider, idPName, null, childOrgId, tenantId));
+                for (String childOrgId : childOrgIds) {
+                    int tenantId = IdentityTenantUtil.getTenantId(childOrgId);
+                    Optional<IdentityProvider> identityProvider = this.getCachedIdpByName(idPName, childOrgId);
+                    identityProvider.ifPresent(
+                            provider -> clearIdPCacheEntries(provider, idPName, null, childOrgId, tenantId));
+                }
+            } catch (OrganizationManagementException e) {
+                log.error("Error while asynchronously clearing IDP cache for child organizations of " +
+                        "tenant: " + tenantDomain, e);
             }
-        } catch (OrganizationManagementException e) {
-            throw new IdentityProviderManagementServerException("Error while resolving child organization ids of " +
-                    tenantDomain, e);
-        }
+        }, CACHE_CLEARING_EXECUTOR);
     }
 
     /**

@@ -1324,10 +1324,10 @@ public class IdPManagementDAO {
     /**
      * Get federated authenticator properties for the given authenticator id.
      *
-     * @param dbConnection   database connection
-     * @param authenticatorId authenticator id
-     * @return Set of properties
-     * @throws SQLException
+     * @param dbConnection   database connection.
+     * @param authenticatorId authenticator id.
+     * @return Set of properties.
+     * @throws SQLException if an error occurs while executing the SQL query.
      */
     private Set<Property> getFededatedAuthenticatorProperties(Connection dbConnection, int authenticatorId)
             throws SQLException {
@@ -3428,7 +3428,8 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider : " +
                     idPName + " in tenant : " + tenantDomain, e);
         } catch (OrganizationManagementException e) {
-            throw new RuntimeException(e);
+            throw new IdentityProviderManagementException("Error while checking if the tenant: " + tenantDomain +
+                    " is an organization.", e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -4571,22 +4572,7 @@ public class IdPManagementDAO {
                         // Get existing properties from database.
                         List<IdentityProviderProperty> existingpropertyList = getIdentityPropertiesByIdpId(dbConnection,
                                 idpId, tenantId);
-
-                        existingpropertyList.removeIf(identityProviderProperty -> (
-                                identityProviderProperty.getName()
-                                        .equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)
-                                        || identityProviderProperty.getName()
-                                        .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED) ||
-                                        identityProviderProperty
-                                                .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED) ||
-                                        IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
-                                                .equals(identityProviderProperty.getName()) ||
-                                        IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
-                                                .equals(identityProviderProperty.getName()) ||
-                                        IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
-                                                .equals(identityProviderProperty.getName()) ||
-                                        IdPManagementConstants.LOOKUP_ATTRIBUTES
-                                                .equals(identityProviderProperty.getName())));
+                        existingpropertyList.removeIf(this::isExcludedJITProvisioningProperty);
 
                         // Add the values from the DB to idpProperties if not already present.
                         for (IdentityProviderProperty property : existingpropertyList) {
@@ -4957,6 +4943,17 @@ public class IdPManagementDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
         }
+    }
+
+    private boolean isExcludedJITProvisioningProperty(IdentityProviderProperty idpProperty) {
+
+        return IdPManagementConstants.MODIFY_USERNAME_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.PROMPT_CONSENT_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SYNC_ATTRIBUTE_METHOD.equals(idpProperty.getName()) ||
+                IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.LOOKUP_ATTRIBUTES.equals(idpProperty.getName());
     }
 
     /**
@@ -6426,12 +6423,12 @@ public class IdPManagementDAO {
     /**
      * Deletes the specified properties of an identity provider.
      *
-     * @param tenantDomain  Tenant domain of the identity provider.
      * @param idpId         ID of the identity provider.
      * @param propertyNames List of property names to be deleted.
+     * @param tenantDomain  Tenant domain of the identity provider.
      * @throws IdentityProviderManagementException If an error occurred while deleting properties.
      */
-    public void deleteIdpProperties(String tenantDomain, int idpId, List<String> propertyNames)
+    public void deleteIdpProperties(int idpId, List<String> propertyNames, String tenantDomain)
             throws IdentityProviderManagementException {
 
         String query = IdPManagementConstants.SQLQueries.DELETE_IDP_METADATA_BY_PROPERTY_NAME;
@@ -6448,7 +6445,7 @@ public class IdPManagementDAO {
 
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            throw new IdentityProviderManagementException("Error occured while deleting properties of IDP:" + idpId +
+            throw new IdentityProviderManagementException("Error occurred while deleting properties of IDP:" + idpId +
                     " in tenant:" + tenantDomain, e);
         }
     }

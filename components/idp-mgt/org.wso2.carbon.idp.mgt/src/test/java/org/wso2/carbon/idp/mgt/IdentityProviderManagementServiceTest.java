@@ -1324,7 +1324,7 @@ public class IdentityProviderManagementServiceTest {
         addResidentIdp();
         List<String> propertiesToDelete = new ArrayList<>();
         propertiesToDelete.add(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
-        IdentityProviderManager.getInstance().deleteResidentIdpProperties(ROOT_TENANT_DOMAIN, propertiesToDelete);
+        IdentityProviderManager.getInstance().deleteResidentIdpProperties(propertiesToDelete, ROOT_TENANT_DOMAIN);
         Assert.assertNotNull(identityProviderManagementService.getResidentIdP());
     }
 
