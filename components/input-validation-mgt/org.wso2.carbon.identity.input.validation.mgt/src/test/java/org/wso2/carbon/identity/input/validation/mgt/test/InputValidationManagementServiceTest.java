@@ -168,9 +168,9 @@ public class InputValidationManagementServiceTest {
                 .thenReturn(null);
 
         service.revertInputValidationConfiguration(fieldsToRevert, tenantName);
-        // existingField's resource should be deleted (called once more, total 2 times)
+        // ExistingField's resource should be deleted (called once more, total 2 times).
         verify(configurationManager, times(2)).deleteResource(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME, resourceName);
-         // nonExistingField's resource should not be deleted (still 0 times for this specific resource)
+         // NonExistingField's resource should not be deleted (still 0 times for this specific resource).
         verify(configurationManager, never()).deleteResource(
                 INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME, nonExistingResourceName);
     }

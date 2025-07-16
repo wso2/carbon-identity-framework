@@ -452,12 +452,13 @@ public class IdentityProviderManager implements IdpManager {
 
     /**
      * Delete properties of the resident IDP in the given tenant.
-     * @param tenantDomain Tenant domain whose resident IdP propperties should be deleted.
+     *
      * @param propertyNames List of property names to be deleted.
-     * @throws IdentityProviderManagementException
+     * @param tenantDomain Tenant domain whose resident IdP properties should be deleted.
+     * @throws IdentityProviderManagementException Error when deleting properties of the resident Identity Provider
      */
     @Override
-    public void deleteResidentIdpProperties(String tenantDomain, List<String> propertyNames)
+    public void deleteResidentIdpProperties(List<String> propertyNames, String tenantDomain)
             throws IdentityProviderManagementException {
 
         IdentityProvider residentIdp = dao.getIdPByName(null, IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
@@ -470,7 +471,7 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
-        dao.deleteIdpProperties(tenantDomain, residentIdp, propertyNames);
+        dao.deleteIdpProperties(residentIdp, propertyNames, tenantDomain);
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostDeleteResidentIdpProperties(tenantDomain, propertyNames)) {
                 return;

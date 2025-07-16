@@ -233,6 +233,14 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>org/wso2/carbon/idp/mgt/internal/*.class</exclude>
+                        <exclude>org/wso2/carbon/idp/mgt/model/*.class</exclude>
+                        <exclude>org/wso2/carbon/idp/mgt/IdpManager.class</exclude>
+                        <exclude>org/wso2/carbon/idp/mgt/IdpManagerService.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
