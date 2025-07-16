@@ -124,7 +124,7 @@ public class WorkflowManagementServiceImplTest {
 
         when(mockDAO.getWorkflowRequest(requestId)).thenReturn(expectedRequest);
 
-        WorkflowRequest result = service.getWorkflowRequest(requestId);
+        WorkflowRequest result = service.getWorkflowRequestBean(requestId);
 
         assertNotNull(result, "Returned workflow request should not be null");
         assertEquals(result.getRequestId(), requestId, "Request ID should match");

@@ -121,7 +121,6 @@ public interface WorkflowManagementService {
         throw new NotImplementedException("This functionality is not implemented.");
     }
 
-
     /**
      * List parameters of a workflow
      *
@@ -376,8 +375,48 @@ public interface WorkflowManagementService {
 
     }
 
-    WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException;
+    /**
+     * Get workflow requests based on the filter criteria.
+     *
+     * @param user         User name
+     * @param beginDate    Start date for filtering
+     * @param endDate      End date for filtering
+     * @param dateCategory Category of the date to filter by (e.g., created,
+     *                     updated)
+     * @param tenantId     Tenant ID
+     * @param status       Status of the request (e.g., pending, approved)
+     * @return Array of WorkflowRequest objects matching the criteria
+     * @throws WorkflowException If an error occurs while retrieving the requests.
+     * @deprecated Use
+     *             {@link #getRequestsFromFilter(String, String, String, String, int, String, int, int)}
+     *             instead.
+     */
+    @Deprecated
+    default WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
+            int tenantId, String status) throws WorkflowException {
+
+        throw new NotImplementedException("Get requests from filter functionality is not implemented.");
+    }
+
+    /**
+     * Get workflow requests based on the filter criteria.
+     *
+     * @param user         User name
+     * @param beginDate    Start date for filtering
+     * @param endDate      End date for filtering
+     * @param dateCategory Category of the date to filter by (e.g., created,
+     *                     updated)
+     * @param tenantId     Tenant ID
+     * @param status       Status of the request (e.g., pending, approved)
+     * @param limit        Limit for pagination
+     * @param offset       Offset for pagination
+     * @return Array of WorkflowRequest objects matching the criteria
+     * @throws WorkflowException If an error occurs while retrieving the requests.
+     */
+    default WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
+            int tenantId, String status, int limit, int offset) throws WorkflowException {
+        throw new NotImplementedException("Get requests from filter functionality is not implemented.");
+    }
 
     List<String> listEntityNames(String wfOperationType, String wfStatus, String entityType, int tenantID, String
             idFilter) throws WorkflowException;
@@ -386,10 +425,24 @@ public interface WorkflowManagementService {
      * Retrieve workflow request from request ID
      *
      * @param requestId request id.
-     * @return
+     * @return WorkflowRequest
      * @throws WorkflowException
      */
     default org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest getWorkflowRequest(String requestId)
+            throws WorkflowException {
+
+        throw new NotImplementedException("Get workflow by request ID functionality is not implemented.");
+    }
+
+    /**
+     * Get workflow request bean from request ID.
+     *
+     * @param requestId Request ID
+     * @return WorkflowRequest bean
+     * @throws WorkflowException If an error occurs while retrieving the workflow
+     *                           request.
+     */
+    default WorkflowRequest getWorkflowRequestBean(String requestId)
             throws WorkflowException {
 
         throw new NotImplementedException("Get workflow by request ID functionality is not implemented.");

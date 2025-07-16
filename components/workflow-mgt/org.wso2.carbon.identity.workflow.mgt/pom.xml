@@ -159,7 +159,8 @@
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.database.utils.*; version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
-                        </Import-Package>
+                            org.wso2.carbon.user.core.model.*; version="${carbon.kernel.package.import.version.range}"
+                        </Import-Package> 
                         <Export-Package>
                             !org.wso2.carbon.identity.workflow.mgt.internal,
                             org.wso2.carbon.identity.workflow.mgt.*; version="${carbon.identity.package.export.version}"
