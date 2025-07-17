@@ -590,6 +590,43 @@ public interface WorkflowListener {
     void doPostGetWorkflowsOfRequest(String requestId, WorkflowRequestAssociation[] results) throws WorkflowException;
 
     /**
+     * Trigger before retrieving requests from filter.
+     * 
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @throws WorkflowException
+     * @deprecated Use {@link #doPreGetRequestsFromFilter(String, String, String, String, int, String, int, int)}
+     * instead.
+     */
+    @Deprecated
+    void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
+            dateCategory, int tenantId, String status) throws WorkflowException;
+
+    /**
+     * Trigger after retrieving requests from filter.
+     * 
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @param result
+     * @throws WorkflowException
+     * @deprecated Use {@link #doPostGetRequestsFromFilter(String, String, String, String, int, String, int, int,
+     *  WorkflowRequest[])} instead.
+     */
+    @Deprecated
+    void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
+            dateCategory, int tenantId, String status, WorkflowRequest[] result) throws WorkflowException;
+
+    /**
+     * Trigger before retrieving requests from filter.
+     * 
      * @param user
      * @param beginDate
      * @param endDate
@@ -599,9 +636,11 @@ public interface WorkflowListener {
      * @throws WorkflowException
      */
     void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status) throws WorkflowException;
+            dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException;
 
     /**
+     * Trigger after retrieving requests from filter.
+     * 
      * @param user
      * @param beginDate
      * @param endDate
@@ -612,7 +651,8 @@ public interface WorkflowListener {
      * @throws WorkflowException
      */
     void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status,int limit, int offset, WorkflowRequest[] result) throws WorkflowException;
+            dateCategory, int tenantId, String status,int limit, int offset, WorkflowRequest[] result) 
+                throws WorkflowException;
 
     /**
      * @param wfOperationType

@@ -33,6 +33,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * SQL Builder for Workflow Request operations.
+ * This class builds SQL queries for various operations related to workflow requests.
+ */
 public class WorkflowRequestSQLBuilder extends SqlBuilder {
 
     private static final String BASE_SELECT = "SELECT UUID, OPERATION_TYPE, CREATED_AT, UPDATED_AT, STATUS, REQUEST, CREATED_BY FROM WF_REQUEST";
@@ -45,7 +49,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
     private Integer offset;
     private final String databaseType;
     private String customOrderBy;
-    private boolean hasTenantFilter = false;
 
     public WorkflowRequestSQLBuilder(String databaseType) {
 
@@ -86,7 +89,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
     public WorkflowRequestSQLBuilder filterByTenantId(int tenantId) {
 
         super.where("TENANT_ID = ?", tenantId);
-        this.hasTenantFilter = true;
         return this;
     }
 

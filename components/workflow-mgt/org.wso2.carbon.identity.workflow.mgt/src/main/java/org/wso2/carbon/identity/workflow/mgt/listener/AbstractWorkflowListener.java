@@ -710,6 +710,37 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      */
     @Override
     public void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
+            tenantId, String status, WorkflowRequest[] result) throws WorkflowException {
+
+    }
+
+    /**
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @throws WorkflowException
+     */
+    @Override
+    public void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
+            tenantId, String status , int limit, int offset) throws WorkflowException {
+
+    }
+
+    /**
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @param result
+     * @throws WorkflowException
+     */
+    @Override
+    public void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
             tenantId, String status, int limit, int offset, WorkflowRequest[] result) throws WorkflowException {
 
     }

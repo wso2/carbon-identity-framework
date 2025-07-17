@@ -69,6 +69,7 @@ import javax.xml.xpath.XPathFactory;
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
     private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm:ss.SSS");
+    private static final int MAX_LIMIT = 1000;
     
     private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
 
@@ -1140,7 +1141,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
             int tenantId, String status) throws WorkflowException {
 
-        return getRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status, 1000, 0);
+        return getRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status, MAX_LIMIT, 0);
     }
 
     /**
@@ -1169,7 +1170,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                workflowListener.doPreGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status);
+                workflowListener.doPreGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status,
+                        limit, offset);
             }
         }
         try {

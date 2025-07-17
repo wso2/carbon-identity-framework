@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.workflow.mgt.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.dao.SQLBuilder.WorkflowRequestSQLBuilder;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
@@ -354,6 +355,8 @@ public class WorkflowRequestDAO {
                     workflowRequestSQLBuilder.execute();
 
             return results.toArray(new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[0]);
+        } catch (IdentityRuntimeException e) {
+            throw new InternalWorkflowException("Error getting database connection while getting filtered workflow requests.", e);
         } catch (Exception e) {
             throw new InternalWorkflowException("Error when getting filtered workflow requests.", e);
         }
