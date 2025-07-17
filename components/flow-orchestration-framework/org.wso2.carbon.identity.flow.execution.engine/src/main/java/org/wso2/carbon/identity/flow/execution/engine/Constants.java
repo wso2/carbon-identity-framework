@@ -38,6 +38,9 @@ public class Constants {
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
     public static final String WEBAUTHN_DATA = "webAuthnData";
+
+    public static final String USER_ASSERTION_EXPIRY_PROPERTY = "FlowExecution.UserAssertion.ExpiryTime";
+
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
 
@@ -128,6 +131,12 @@ public class Constants {
                 "Error while executing flow execution listener.",
                 "Error occurred while executing the flow execution listener: %s for the %s " +
                         "request of flow id: %s."),
+        ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE("65022",
+                "Error while generating authentication assertion.",
+                "Error occurred while generating the authentication assertion for the flow id: %s."),
+        ERROR_CODE_FLOW_USER_NOT_FOUND("65022",
+                "Flow user not found.",
+                "Flow user not found in the flow execution context for the flow id: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
