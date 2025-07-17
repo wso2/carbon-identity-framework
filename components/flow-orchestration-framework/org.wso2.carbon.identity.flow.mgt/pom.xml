@@ -141,7 +141,6 @@
                         <Private-Package>
                             org.wso2.carbon.identity.flow.mgt.internal,
                             org.wso2.carbon.identity.flow.mgt.dao,
-                            org.wso2.carbon.identity.flow.mgt.utils
                         </Private-Package>
                         <Import-Package>
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
@@ -183,7 +182,7 @@
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.mgt.internal,
                             !org.wso2.carbon.identity.flow.mgt.dao,
-                            !org.wso2.carbon.identity.flow.mgt.utils,
+                            org.wso2.carbon.identity.flow.mgt.utils,
                             org.wso2.carbon.identity.flow.mgt,
                             org.wso2.carbon.identity.flow.mgt.model,
                             org.wso2.carbon.identity.flow.mgt.cache,
