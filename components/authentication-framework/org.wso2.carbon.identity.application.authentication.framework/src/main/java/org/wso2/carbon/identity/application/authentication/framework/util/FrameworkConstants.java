@@ -271,6 +271,9 @@ public abstract class FrameworkConstants {
 
     public static final String FILER_BY_SESSION_ID_FOR_USER = "FilterByUniqueSessionIdForUser";
 
+    public static final String AMR = "amr";
+    public static final String USER_ASSERTION = "userAssertion";
+
     private FrameworkConstants() {
 
     }
