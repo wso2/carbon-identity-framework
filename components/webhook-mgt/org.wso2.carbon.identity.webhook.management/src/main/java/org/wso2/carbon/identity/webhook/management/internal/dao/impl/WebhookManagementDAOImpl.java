@@ -256,6 +256,34 @@ public class WebhookManagementDAOImpl implements WebhookManagementDAO {
         }
     }
 
+    @Override
+    public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion,
+                                           String channelUri, int tenantId)
+            throws WebhookMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(template ->
+                    template.executeQuery(
+                            WebhookSQLConstants.Query.GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL,
+                            (resultSet, rowNumber) -> mapResultSetToWebhook(resultSet),
+                            statement -> {
+                                statement.setString(WebhookSQLConstants.Column.CHANNEL_URI, channelUri);
+                                statement.setInt(WebhookSQLConstants.Column.TENANT_ID, tenantId);
+                                statement.setString(WebhookSQLConstants.Column.STATUS, WebhookStatus.ACTIVE.name());
+                                statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_NAME, eventProfileName);
+                                statement.setString(WebhookSQLConstants.Column.EVENT_PROFILE_VERSION,
+                                        eventProfileVersion);
+                            }
+                    )
+            );
+        } catch (TransactionException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_ERROR, e, channelUri,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
+    }
+
     // --- Private helper methods ---
 
     private Webhook mapResultSetToWebhook(ResultSet resultSet) throws SQLException {

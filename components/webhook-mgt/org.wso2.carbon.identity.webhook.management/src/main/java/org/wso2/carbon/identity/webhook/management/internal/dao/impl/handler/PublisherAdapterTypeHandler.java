@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
+import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
 
 import java.util.List;
 
@@ -103,7 +104,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         throw WebhookManagementExceptionHandler.handleClientException(
-                ErrorMessage.ERROR_OPERATION_NOT_SUPPORTED, webhook.getId());
+                ErrorMessage.ERROR_OPERATION_NOT_SUPPORTED, String.valueOf(AdapterType.Publisher));
     }
 
     @Override
@@ -116,5 +117,12 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         dao.updateWebhook(webhook, tenantId);
+    }
+
+    @Override
+    public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                           int tenantId) throws WebhookMgtException {
+
+        return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
 }
