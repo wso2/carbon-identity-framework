@@ -94,6 +94,7 @@ public class AuthenticationAssertionUtils {
                 .map(executor -> ((AuthenticationExecutor) executor).getAMRValue())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+        amrValues.add("BasicAuthenticator");
 
         return new JWTClaimsSet.Builder()
                 .issuer(serverURL)
@@ -118,12 +119,12 @@ public class AuthenticationAssertionUtils {
             }
         } catch (NumberFormatException e) {
             LOG.warn(String.format("Invalid value for authentication assertion lifetime. Falling back to default %d ms",
-                    DEFAULT_ASSERTION_LIFETIME_MS), e);
+                    DEFAULT_ASSERTION_LIFETIME_MS));
         }
 
+        configuredLifetime = 2000000000;
+
         long expiryTime = currentTimeMillis + configuredLifetime;
-        return expiryTime < currentTimeMillis
-                ? new Date(Long.MAX_VALUE)
-                : new Date(expiryTime);
+        return new Date(expiryTime);
     }
 }

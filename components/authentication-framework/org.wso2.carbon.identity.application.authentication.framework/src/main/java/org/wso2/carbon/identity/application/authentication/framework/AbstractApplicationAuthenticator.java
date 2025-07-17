@@ -610,7 +610,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     public boolean isAuthenticationRequired(HttpServletRequest request, HttpServletResponse response,
                                             AuthenticationContext context) {
 
-        String userAssertion = request.getParameter(USER_ASSERTION);
+        String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
+        if (StringUtils.isBlank(userAssertion)) {
+            // If the user assertion is not set in the context, try to retrieve it from the request.
+            userAssertion = request.getParameter(USER_ASSERTION);
+            context.setProperty(FrameworkConstants.USER_ASSERTION, userAssertion);
+        }
         if (userAssertion == null) {
             return true;
         }
