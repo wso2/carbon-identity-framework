@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.dao.AssociationDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.RequestEntityRelationshipDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.WorkflowDAO;
@@ -1141,7 +1142,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
             int tenantId, String status) throws WorkflowException {
 
-        return getRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status, MAX_LIMIT, 0);
+        WorkflowRequestFilterResponse response = getRequestsFromFilter(user, beginDate, endDate, dateCategory,
+            tenantId, status, MAX_LIMIT, 0);
+        return response.getRequests();
     }
 
     /**
@@ -1160,7 +1163,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      * @throws WorkflowException
      */
     @Override
-    public WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
+    public WorkflowRequestFilterResponse getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
             int tenantId, String status, int limit, int offset) throws WorkflowException {
 
         Timestamp beginTime;
@@ -1185,8 +1188,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         } catch (DateTimeParseException e) {
             throw new WorkflowException("Invalid date format", e);
         }
-        WorkflowRequest[] resultList = workflowRequestDAO.getFilteredRequests(user, null, beginTime, endTime,
-                dateCategory, tenantId, status, limit, offset);
+        WorkflowRequestFilterResponse resultList = workflowRequestDAO.getFilteredRequests(user, null, beginTime,
+                endTime, dateCategory, tenantId, status, limit, offset);
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status,

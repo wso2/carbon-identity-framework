@@ -39,7 +39,6 @@ import java.util.List;
  */
 public class WorkflowRequestSQLBuilder extends SqlBuilder {
 
-    private static final String BASE_SELECT = "SELECT UUID, OPERATION_TYPE, CREATED_AT, UPDATED_AT, STATUS, REQUEST, CREATED_BY FROM WF_REQUEST";
     private static final String DEFAULT_ORDER_BY = " ORDER BY CREATED_AT DESC";
     private static final String ALL_FILTER = "ALL";
     private static final List<String> VALID_ORDER_COLUMNS = Arrays.asList(
@@ -49,10 +48,10 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
     private Integer offset;
     private final String databaseType;
     private String customOrderBy;
+    private boolean skipOrderingAndPagination = false;
 
-    public WorkflowRequestSQLBuilder(String databaseType) {
-
-        super(new StringBuilder(BASE_SELECT));
+    public WorkflowRequestSQLBuilder(String databaseType , String baseQuery) {
+        super(new StringBuilder(baseQuery));
         if (databaseType == null || databaseType.trim().isEmpty()) {
             throw new IllegalArgumentException("Database type cannot be null or empty");
         }
@@ -157,17 +156,18 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
 
     @Override
     public String getQuery() {
-
         String query = super.getQuery();
 
-        if (customOrderBy != null) {
-            query += customOrderBy;
-        } else if (!query.contains("ORDER BY")) {
-            query += DEFAULT_ORDER_BY;
-        }
+        if (!skipOrderingAndPagination) {
+            if (customOrderBy != null) {
+                query += customOrderBy;
+            } else if (!query.contains("ORDER BY")) {
+                query += DEFAULT_ORDER_BY;
+            }
 
-        if (limit != null) {
-            query = applyDatabaseSpecificPagination(query);
+            if (limit != null) {
+                query = applyDatabaseSpecificPagination(query);
+            }
         }
 
         return query;
@@ -262,6 +262,49 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         }
     }
 
+    public int executeCount() throws InternalWorkflowException {
+        skipOrderingAndPagination = true;
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        int count = 0;
+
+        try {
+            connection = IdentityDatabaseUtil.getDBConnection();
+            customOrderBy = "";
+            String finalQuery = getQuery();
+            stmt = connection.prepareStatement(finalQuery);
+
+            List<Object> orderedParams = super.getOrderedParameters();
+            int paramIndex = 1;
+
+            for (Object param : orderedParams) {
+                if (param instanceof String) {
+                    stmt.setString(paramIndex, (String) param);
+                } else if (param instanceof Integer) {
+                    stmt.setInt(paramIndex, (Integer) param);
+                } else if (param instanceof Long) {
+                    stmt.setLong(paramIndex, (Long) param);
+                } else if (param instanceof java.sql.Timestamp) {
+                    stmt.setTimestamp(paramIndex, (java.sql.Timestamp) param);
+                }
+                paramIndex++;
+            }
+
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+            return count;
+        } catch (SQLException e) {
+            throw new InternalWorkflowException("Error while executing workflow request query: " + e.getMessage(), e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, stmt);
+        }
+    }
+
+
     private void setPaginationParameters(PreparedStatement stmt, int startIndex) throws SQLException {
 
         if (limit == null) {
@@ -291,13 +334,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
                 break;
             case "DB2":
             case "DB2SQL":
-                if (offset != null) {
-                    stmt.setInt(paramIndex++, offset);
-                    stmt.setInt(paramIndex, limit);
-                } else {
-                    stmt.setInt(paramIndex, limit);
-                }
-                break;
             case "MSSQL":
                 if (offset != null) {
                     stmt.setInt(paramIndex++, offset);
@@ -359,6 +395,7 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
             Timestamp EndDate,
             int limit,
             int offset) {
+
         if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
             throw new IllegalArgumentException("Tenant ID must be " + MultitenantConstants.SUPER_TENANT_ID);
         }

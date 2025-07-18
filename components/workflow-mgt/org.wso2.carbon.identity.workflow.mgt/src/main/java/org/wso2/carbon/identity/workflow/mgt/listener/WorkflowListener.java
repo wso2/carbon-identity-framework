@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.dto.Association;
 import org.wso2.carbon.identity.workflow.mgt.dto.Template;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
@@ -651,7 +652,7 @@ public interface WorkflowListener {
      * @throws WorkflowException
      */
     void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status,int limit, int offset, WorkflowRequest[] result) 
+            dateCategory, int tenantId, String status,int limit, int offset, WorkflowRequestFilterResponse result) 
                 throws WorkflowException;
 
     /**

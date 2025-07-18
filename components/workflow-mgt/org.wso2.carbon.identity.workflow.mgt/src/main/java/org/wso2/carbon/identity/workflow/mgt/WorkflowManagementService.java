@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.dto.Association;
 import org.wso2.carbon.identity.workflow.mgt.dto.Template;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
@@ -413,8 +414,9 @@ public interface WorkflowManagementService {
      * @return Array of WorkflowRequest objects matching the criteria
      * @throws WorkflowException If an error occurs while retrieving the requests.
      */
-    default WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
-            int tenantId, String status, int limit, int offset) throws WorkflowException {
+    default WorkflowRequestFilterResponse getRequestsFromFilter(String user, String beginDate, String endDate,
+            String dateCategory, int tenantId, String status, int limit, int offset) throws WorkflowException {
+                
         throw new NotImplementedException("Get requests from filter functionality is not implemented.");
     }
 

@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.dao.SQLBuilder.WorkflowRequestSQLBuilder;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
@@ -50,6 +51,8 @@ public class WorkflowRequestDAO {
 
     public static final String UPDATED_AT_FILTER = "updatedAt";
     public static final String ALL_TASKS_FILTER = "allTasks";
+    private static final String BASE_SELECT = SQLConstants.GET_WORKFLOW_REQUESTS_BASE_QUERY;
+    private static final String BASE_COUNT = SQLConstants.COUNT_WORKFLOW_REQUESTS_BASE_QUERY;
     private static final Log log = LogFactory.getLog(WorkflowRequestDAO.class);
 
     /**
@@ -340,23 +343,33 @@ public class WorkflowRequestDAO {
      * @return Array of WorkflowRequest objects matching the filters
      * @throws InternalWorkflowException If an error occurs while retrieving the requests
      */
-    public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[] getFilteredRequests(String
+    public WorkflowRequestFilterResponse getFilteredRequests(String
             userName, String operationType, Timestamp beginTime, Timestamp endTime, String timeCategory, int tenantId,
             String status, int limit, int offset) throws InternalWorkflowException {
 
         try {
             Connection connection = IdentityDatabaseUtil.getDBConnection(false);
             String databaseType = getDatabaseType(connection);
-            WorkflowRequestSQLBuilder workflowRequestSQLBuilder = new WorkflowRequestSQLBuilder(databaseType);
-            workflowRequestSQLBuilder = workflowRequestSQLBuilder.getAllRequestsWithSpecificFilters
+            WorkflowRequestSQLBuilder workflowRequestSQLBuilderSelect = 
+                    new WorkflowRequestSQLBuilder(databaseType,BASE_SELECT);
+            workflowRequestSQLBuilderSelect = workflowRequestSQLBuilderSelect.getAllRequestsWithSpecificFilters
                     (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
-
             List<org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest> results =
-                    workflowRequestSQLBuilder.execute();
+                    workflowRequestSQLBuilderSelect.execute();
 
-            return results.toArray(new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[0]);
+            WorkflowRequestSQLBuilder workflowRequestSQLBuilderCount = 
+                    new WorkflowRequestSQLBuilder(databaseType, BASE_COUNT);
+            workflowRequestSQLBuilderCount = workflowRequestSQLBuilderCount.getAllRequestsWithSpecificFilters
+                    (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
+            int totalCount = workflowRequestSQLBuilderCount.executeCount();
+
+            WorkflowRequestFilterResponse response = new WorkflowRequestFilterResponse(
+                results.toArray(new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[0]), totalCount);
+            return response;
+
         } catch (IdentityRuntimeException e) {
-            throw new InternalWorkflowException("Error getting database connection while getting filtered workflow requests.", e);
+            throw new InternalWorkflowException
+                    ("Error getting database connection while getting filtered workflow requests.", e);
         } catch (Exception e) {
             throw new InternalWorkflowException("Error when getting filtered workflow requests.", e);
         }
