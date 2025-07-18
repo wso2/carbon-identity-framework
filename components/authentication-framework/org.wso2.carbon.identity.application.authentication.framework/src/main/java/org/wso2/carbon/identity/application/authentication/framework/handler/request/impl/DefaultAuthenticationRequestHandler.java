@@ -1058,7 +1058,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String path = null;
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             if (FrameworkUtils.isOrganizationQualifiedRequest()) {
-                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+                String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
             } else {
                 if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getLoginTenantDomain())) {
