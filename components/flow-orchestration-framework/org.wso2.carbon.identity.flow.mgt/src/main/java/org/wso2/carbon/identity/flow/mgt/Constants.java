@@ -27,6 +27,8 @@ public class Constants {
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
     public static final String END_NODE_ID = "END";
 
+    public static final String IDP_NAME = "idpName";
+
     private Constants() {
 
     }

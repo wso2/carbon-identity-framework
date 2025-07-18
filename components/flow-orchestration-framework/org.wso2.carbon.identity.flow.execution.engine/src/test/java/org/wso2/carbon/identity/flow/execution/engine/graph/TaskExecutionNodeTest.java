@@ -77,6 +77,7 @@ public class TaskExecutionNodeTest {
 
     private static final String TENANT_DOMAIN = "test.com";
     private static final String TEST_EXECUTOR = "TestExecutor";
+    public static final String IDP_NAME = "idpName";
     private TaskExecutionNode taskExecutionNode;
     private FlowExecutionContext context;
     private NodeConfig nodeConfig;
@@ -250,7 +251,7 @@ public class TaskExecutionNodeTest {
     public void testIdpConfigBeingNull() throws Exception {
 
         ExecutorDTO executorDTO = nodeConfig.getExecutorConfig();
-        executorDTO.setIdpName("invalidIDP");
+        executorDTO.addMetadata(IDP_NAME, "invalidIDP");
 
         IdentityProviderManager idpManager = mock(IdentityProviderManager.class);
 
@@ -262,6 +263,9 @@ public class TaskExecutionNodeTest {
                     FlowExecutionEngineDataHolder.class)) {
                 FlowExecutionEngineDataHolder dataHolder = mock(FlowExecutionEngineDataHolder.class);
                 engineMock.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolder);
+                Map<String, Executor> executorMap = new HashMap<>();
+                executorMap.put(TEST_EXECUTOR, executor);
+                when(dataHolder.getExecutors()).thenReturn(executorMap);
                 taskExecutionNode.execute(context, nodeConfig);
             }
         } catch (FlowEngineException e) {
@@ -319,7 +323,7 @@ public class TaskExecutionNodeTest {
     public void testIdpConfigRetrieveFailure() throws Exception {
 
         ExecutorDTO executorDTO = nodeConfig.getExecutorConfig();
-        executorDTO.setIdpName("validIdp");
+        executorDTO.addMetadata(TaskExecutionNodeTest.IDP_NAME, "validIdp");
 
         IdentityProviderManager idpManager = mock(IdentityProviderManager.class);
 
@@ -332,6 +336,9 @@ public class TaskExecutionNodeTest {
                     FlowExecutionEngineDataHolder.class)) {
                 FlowExecutionEngineDataHolder dataHolder = mock(FlowExecutionEngineDataHolder.class);
                 engineMock.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolder);
+                Map<String, Executor> executorMap = new HashMap<>();
+                executorMap.put(TEST_EXECUTOR, executor);
+                when(dataHolder.getExecutors()).thenReturn(executorMap);
                 taskExecutionNode.execute(context, nodeConfig);
             }
         } catch (FlowEngineException e) {
@@ -343,7 +350,7 @@ public class TaskExecutionNodeTest {
     public void testIdpConfigRetrieval() throws Exception {
 
         ExecutorDTO executorDTO = nodeConfig.getExecutorConfig();
-        executorDTO.setIdpName("validIdp");
+        executorDTO.addMetadata(TaskExecutionNodeTest.IDP_NAME, "validIdp");
 
         ExecutorResponse executorResponse = new ExecutorResponse();
         executorResponse.setResult(STATUS_COMPLETE);

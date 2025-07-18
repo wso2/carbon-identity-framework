@@ -27,7 +27,6 @@ public class FlowConfigDTO {
     private Boolean isEnabled;
     private Boolean isAutoLoginEnabled;
 
-
     public String getFlowType() {
 
         return flowType;

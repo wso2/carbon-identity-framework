@@ -48,7 +48,9 @@ import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -350,10 +352,12 @@ public class FlowMgtServiceTest {
 
     private ActionDTO createExecutorAction(String nextId) {
 
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put(Constants.IDP_NAME, "testIdp");
         return new ActionDTO.Builder()
                 .type(EXECUTOR)
                 .nextId(nextId)
-                .executor(new ExecutorDTO("testExecutor", "testIDP"))
+                .executor(new ExecutorDTO("testExecutor", metadata))
                 .build();
     }
 
