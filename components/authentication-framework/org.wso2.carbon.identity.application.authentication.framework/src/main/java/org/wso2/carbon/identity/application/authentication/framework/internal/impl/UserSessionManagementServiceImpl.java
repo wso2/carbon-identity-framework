@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.util.SessionEventPublishingUtil;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
@@ -43,6 +44,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -178,6 +180,28 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve " +
                     "username for the userId: " + userId, e);
         }
+    }
+
+    private String resolveUserIdFromUser(User user) {
+
+        String username = user.getUserName();
+        String userStoreDomain = user.getUserStoreDomain();
+        String tenantDomain = user.getTenantDomain();
+
+        if (StringUtils.isBlank(username) || StringUtils.isBlank(userStoreDomain) ||
+                StringUtils.isBlank(tenantDomain)) {
+            return null;
+        }
+
+        try {
+            return resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
+        } catch (UserSessionException e) {
+            log.warn(String.format("Failed to resolve userId for user: %s in userstore domain: %s and tenant: %s.",
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username),
+                    userStoreDomain, tenantDomain), e);
+        }
+
+        return null;
     }
 
     private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
@@ -319,6 +343,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         }
         terminateSessionsOfUser(sessionIdList);
+        // Publish session termination event after session cleanup from session store,
+        // but before the session metadata is removed.
+        // Session publishing event may use session related metadata.
+        SessionEventPublishingUtil.publishSessionTerminationEvent(userId, sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
         }
@@ -411,9 +439,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
+
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
+            // Publish session termination event after session cleanup from session store,
+            // but before the session metadata is removed.
+            // Session publishing event may use session related metadata.
+            SessionEventPublishingUtil.publishSessionTerminationEvent(userId, sessionId);
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
             return true;
         } else {
@@ -502,6 +535,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             sessionManagementService.removeSession(sessionId);
+
+            // Publish session termination event after session cleanup from session store,
+            // but before the session metadata is removed.
+            // Session publishing event may use session related metadata.
+            SessionEventPublishingUtil.publishSessionTerminationEvent(resolveUserIdFromUser(user), sessionId);
+
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);

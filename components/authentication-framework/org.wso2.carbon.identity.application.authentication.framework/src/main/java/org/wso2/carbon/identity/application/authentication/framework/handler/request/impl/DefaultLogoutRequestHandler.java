@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.util.SessionEventPublishingUtil;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -393,6 +394,9 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
                     sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
                             .SESSION_TERMINATE);
+            // Publishing the session termination V2 event for improved event handling.
+            SessionEventPublishingUtil.publishSessionTerminationEvent(
+                    context.getSessionIdentifier(), authenticatedUser, request, context, sessionContext);
         }
 
         try {
