@@ -97,7 +97,7 @@ public class UserAssertionUtils {
             validateUserAssertion(claimsSet);
             return Optional.of(claimsSet);
         } catch (ParseException e) {
-            throw new FrameworkException("Error while verifying the user assertion.");
+            throw new FrameworkException("Error while verifying the user assertion.", e);
         }
     }
 
