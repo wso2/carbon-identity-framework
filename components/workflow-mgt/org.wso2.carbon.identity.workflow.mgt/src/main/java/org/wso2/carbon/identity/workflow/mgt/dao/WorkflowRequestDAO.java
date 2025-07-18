@@ -20,9 +20,13 @@ package org.wso2.carbon.identity.workflow.mgt.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
+import org.wso2.carbon.identity.workflow.mgt.dao.SQLBuilder.WorkflowRequestSQLBuilder;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
@@ -38,6 +42,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Workflow Request DAO class.
@@ -46,6 +51,8 @@ public class WorkflowRequestDAO {
 
     public static final String UPDATED_AT_FILTER = "updatedAt";
     public static final String ALL_TASKS_FILTER = "allTasks";
+    private static final String BASE_SELECT = SQLConstants.GET_WORKFLOW_REQUESTS_BASE_QUERY;
+    private static final String BASE_COUNT = SQLConstants.COUNT_WORKFLOW_REQUESTS_BASE_QUERY;
     private static final Log log = LogFactory.getLog(WorkflowRequestDAO.class);
 
     /**
@@ -253,6 +260,7 @@ public class WorkflowRequestDAO {
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_REQUESTS_OF_USER;
         ResultSet resultSet = null;
+
         try {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, userName);
@@ -268,6 +276,7 @@ public class WorkflowRequestDAO {
                 requestArray[i] = requestDTOs.get(i);
             }
             return requestArray;
+            
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
@@ -278,6 +287,145 @@ public class WorkflowRequestDAO {
     }
 
     /**
+     * Get the type of the database.
+     *
+     * @param connection Database connection
+     * @return Database type as a string
+     * @throws InternalWorkflowException If an error occurs while retrieving the database type
+     */
+    private String getDatabaseType(Connection connection) throws InternalWorkflowException {
+
+        String databaseType = "DEFAULT";
+
+        try {
+            String driverName = connection.getMetaData().getDriverName();
+            if (driverName == null) {
+                return databaseType;
+            }
+
+            String driver = driverName.toLowerCase();
+
+            if (driver.contains("mysql") || driver.contains("mariadb") || driver.contains("h2")) {
+                databaseType = "MYSQL";
+            } else if (driver.contains("postgresql")) {
+                databaseType = "POSTGRESQL";
+            } else if (driver.contains("oracle")) {
+                databaseType = "ORACLE";
+            } else if (driver.contains("db2")) {
+                databaseType = "DB2";
+            } else if (driver.contains("microsoft") || driver.contains("ms sql") || driver.contains("sql server")) {
+                databaseType = "MSSQL";
+            } else if (driver.contains("informix")) {
+                databaseType = "INFORMIX";
+            } else {
+                databaseType = "DEFAULT";
+            }
+
+        } catch (SQLException e) {
+            throw new InternalWorkflowException("Error when getting database name.", e);
+        }
+
+        return databaseType;
+    }
+
+    /**
+     * Get filtered requests based on user, operation type, time range, tenant ID, status, limit and offset.
+     *
+     * @param userName      User name to filter requests
+     * @param operationType Operation type to filter requests
+     * @param beginTime     Start time for filtering
+     * @param endTime       End time for filtering
+     * @param timeCategory  Time category for filtering
+     * @param tenantId      Tenant ID of the user
+     * @param status        Status of the request
+     * @param limit         Limit for pagination
+     * @param offset        Offset for pagination
+     * @return Array of WorkflowRequest objects matching the filters
+     * @throws InternalWorkflowException If an error occurs while retrieving the requests
+     */
+    public WorkflowRequestFilterResponse getFilteredRequests(String
+            userName, String operationType, Timestamp beginTime, Timestamp endTime, String timeCategory, int tenantId,
+            String status, int limit, int offset) throws InternalWorkflowException {
+
+        try {
+            Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+            String databaseType = getDatabaseType(connection);
+            WorkflowRequestSQLBuilder workflowRequestSQLBuilderSelect = 
+                    new WorkflowRequestSQLBuilder(databaseType,BASE_SELECT);
+            workflowRequestSQLBuilderSelect = workflowRequestSQLBuilderSelect.getAllRequestsWithSpecificFilters
+                    (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
+            List<org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest> results =
+                    workflowRequestSQLBuilderSelect.execute();
+
+            WorkflowRequestSQLBuilder workflowRequestSQLBuilderCount = 
+                    new WorkflowRequestSQLBuilder(databaseType, BASE_COUNT);
+            workflowRequestSQLBuilderCount = workflowRequestSQLBuilderCount.getAllRequestsWithSpecificFilters
+                    (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
+            int totalCount = workflowRequestSQLBuilderCount.executeCount();
+
+            WorkflowRequestFilterResponse response = new WorkflowRequestFilterResponse(
+                results.toArray(new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[0]), totalCount);
+            return response;
+
+        } catch (IdentityRuntimeException e) {
+            throw new InternalWorkflowException
+                    ("Error getting database connection while getting filtered workflow requests.", e);
+        } catch (Exception e) {
+            throw new InternalWorkflowException("Error when getting filtered workflow requests.", e);
+        }
+    }
+    
+    /**
+     * Create a WorkflowRequest object from the ResultSet.
+     *
+     * @param resultSet ResultSet containing workflow request data
+     * @return WorkflowRequest object
+     * @throws SQLException If an error occurs while accessing the ResultSet
+     * @throws IOException  If an error occurs while deserializing the request
+     * @throws ClassNotFoundException If the class of the serialized object cannot be found
+     */
+    private org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest createWorkflowRequestFromResultSet
+            (ResultSet resultSet) throws SQLException, IOException, ClassNotFoundException {
+
+        org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO =
+                new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
+            requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
+            requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
+            requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
+            requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
+            requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
+            requestDTO.setRequestParams((deserializeWorkflowRequest(resultSet.getBytes(SQLConstants.REQUEST_COLUMN)))
+                    .getRequestParameterAsString());
+            requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
+        return requestDTO;
+    }
+
+    /**
+     * update last updated time of a request
+     *
+     * @param requestId
+     * @throws InternalWorkflowException
+     */
+    public void updateLastUpdatedTimeOfRequest(String requestId) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.UPDATE_UPDATED_AT_OF_REQUEST;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            prepStmt.setString(2, requestId);
+            prepStmt.execute();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
+    
+     /**
      * Get requests of a user created/updated in given time period
      *
      * @param userName     User to get requests of, empty String to retrieve requests of all users
@@ -557,44 +705,63 @@ public class WorkflowRequestDAO {
         }
     }
 
-    private org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest createWorkflowRequestFromResultSet
-            (ResultSet resultSet) throws SQLException, IOException, ClassNotFoundException {
-
-        org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO =
-                new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
-        requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
-        requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
-        requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
-        requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
-        requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
-        requestDTO.setRequestParams((deserializeWorkflowRequest(resultSet.getBytes(SQLConstants.REQUEST_COLUMN)))
-                .getRequestParameterAsString());
-        requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
-        return requestDTO;
-    }
-
     /**
-     * update last updated time of a request
+     * Get full workflow request details by requestId.
      *
      * @param requestId
+     * @return WorkflowRequest
      * @throws InternalWorkflowException
+     * @throws WorkflowClientException
+     * @throws ClassNotFoundException
      */
-    public void updateLastUpdatedTimeOfRequest(String requestId) throws InternalWorkflowException {
+    public org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest getWorkflowRequest(String requestId)
+            throws WorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        if (requestId == null || requestId.isEmpty()) {
+            throw new WorkflowClientException("Request ID cannot be null or empty.");
+        }
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
-        String query = SQLConstants.UPDATE_UPDATED_AT_OF_REQUEST;
+        ResultSet resultSet = null;
+        String query = SQLConstants.GET_FULL_WORKFLOW_REQUEST_QUERY;
+
         try {
             prepStmt = connection.prepareStatement(query);
-            prepStmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-            prepStmt.setString(2, requestId);
-            prepStmt.execute();
-            IdentityDatabaseUtil.commitTransaction(connection);
+            prepStmt.setString(1, requestId);
+            resultSet = prepStmt.executeQuery();
+
+            if (resultSet.next()) {
+                org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO = 
+                    new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
+
+                requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
+                requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
+                requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
+                requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
+                requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
+                requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
+
+                byte[] requestBytes = resultSet.getBytes(SQLConstants.REQUEST_COLUMN);
+                WorkflowRequest workflowRequest = null;
+                if (requestBytes != null && requestBytes.length > 0) {
+                    workflowRequest = deserializeWorkflowRequest(requestBytes);
+                }
+                if (workflowRequest != null) {
+                    requestDTO.setRequestParams(workflowRequest.getRequestParameterAsString());
+                }
+
+                return requestDTO;
+            } else {
+                throw new WorkflowClientException("Workflow request not found with ID: " + requestId);
+            }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+        } catch (ClassNotFoundException|IOException e) {
+            throw new InternalWorkflowException(
+                    "Error when deserializing the workflow request. requestId = " + requestId, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
     }
 }

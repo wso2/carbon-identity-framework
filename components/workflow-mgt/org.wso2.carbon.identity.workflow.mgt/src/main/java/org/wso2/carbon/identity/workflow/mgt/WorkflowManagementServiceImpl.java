@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.dao.AssociationDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.RequestEntityRelationshipDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.WorkflowDAO;
@@ -51,10 +52,10 @@ import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,9 @@ import javax.xml.xpath.XPathFactory;
  */
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
-    public static final String DATE_FORMAT_FOR_FILTERING = "MM/dd/yyyy";
+    private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm:ss.SSS");
+    private static final int MAX_LIMIT = 1000;
+    
     private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
 
     WorkflowDAO workflowDAO = new WorkflowDAO();
@@ -1136,10 +1139,33 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      * @throws WorkflowException
      */
     @Override
-    public WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status) throws WorkflowException {
+    public WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
+            int tenantId, String status) throws WorkflowException {
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_FOR_FILTERING);
+        WorkflowRequestFilterResponse response = getRequestsFromFilter(user, beginDate, endDate, dateCategory,
+            tenantId, status, MAX_LIMIT, 0);
+        return response.getRequests();
+    }
+
+    /**
+     * get requests list according to createdUser, createdTime, and lastUpdatedTime
+     *
+     * @param user         User to get requests of, empty String to retrieve
+     *                     requests of all users
+     * @param beginDate    lower limit of date range to filter
+     * @param endDate      upper limit of date range to filter
+     * @param dateCategory filter by created time or last updated time ?
+     * @param tenantId     tenant id of currently logged in user
+     * @param status       status of the request
+     * @param limit        limit of the number of requests to return
+     * @param offset       offset for pagination
+     * @return
+     * @throws WorkflowException
+     */
+    @Override
+    public WorkflowRequestFilterResponse getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
+            int tenantId, String status, int limit, int offset) throws WorkflowException {
+
         Timestamp beginTime;
         Timestamp endTime;
 
@@ -1147,37 +1173,27 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                workflowListener.doPreGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status);
+                workflowListener.doPreGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status,
+                        limit, offset);
             }
         }
         try {
-            Date parsedBeginDate = dateFormat.parse(beginDate);
-            beginTime = new Timestamp(parsedBeginDate.getTime());
-        } catch (ParseException e) {
-            long millis = 0;
-            Date parsedBeginDate = new Date(millis);
-            beginTime = new Timestamp(parsedBeginDate.getTime());
-        }
-        try {
-            Date parsedEndDate = dateFormat.parse(endDate);
-            endTime = new Timestamp(parsedEndDate.getTime());
-        } catch (ParseException e) {
-            Date parsedEndDate = new Date();
-            endTime = new Timestamp(parsedEndDate.getTime());
-        }
+            beginDate = beginDate.replace(" ", ":");
+            endDate = endDate.replace(" ", ":");
+            LocalDateTime parsedBeginDate = LocalDateTime.parse(beginDate, DATE_TIME_FORMATTER);
+            LocalDateTime parsedEndDate = LocalDateTime.parse(endDate, DATE_TIME_FORMATTER);
 
-        WorkflowRequest[] resultList;
-        if (StringUtils.isBlank(user)) {
-            resultList = workflowRequestDAO.getRequestsFilteredByTime(beginTime, endTime, dateCategory, tenantId,
-                    status);
-        } else {
-            resultList = workflowRequestDAO.getRequestsOfUserFilteredByTime(user, beginTime, endTime, dateCategory,
-                    tenantId, status);
+            beginTime = Timestamp.valueOf(parsedBeginDate);
+            endTime = Timestamp.valueOf(parsedEndDate);
+        } catch (DateTimeParseException e) {
+            throw new WorkflowException("Invalid date format", e);
         }
+        WorkflowRequestFilterResponse resultList = workflowRequestDAO.getFilteredRequests(user, null, beginTime,
+                endTime, dateCategory, tenantId, status, limit, offset);
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status,
-                        resultList);
+                        limit, offset, resultList);
             }
         }
 
@@ -1197,10 +1213,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      */
     @Override
     public List<String> listEntityNames(String wfOperationType, String wfStatus, String entityType, int tenantID,
-                                        String idFilter) throws WorkflowException {
+            String idFilter) throws WorkflowException {
 
-        List<WorkflowListener> workflowListenerList =
-                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        List<WorkflowListener> workflowListenerList = WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPreListEntityNames(wfOperationType, wfStatus, entityType, tenantID, idFilter);
@@ -1215,6 +1230,46 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
         return requestEntities;
+    }
+
+    /**
+     * Retrieve a workflow request by its ID.
+     *
+     * @param requestId The ID of the workflow request to retrieve.
+     * @return The workflow request with the specified ID.
+     * @throws WorkflowException If an error occurs while retrieving the workflow
+     *                           request.
+     */
+    @Override
+    public WorkflowRequest getWorkflowRequestBean(String requestId) throws WorkflowException {
+
+        if (requestId == null || requestId.isEmpty()) {
+            throw new WorkflowClientException("Request ID cannot be null or empty.");
+        }
+
+        List<WorkflowListener> workflowListenerList = WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreGetWorkflowRequest(requestId);
+            }
+        }
+
+        WorkflowRequest workflowRequest = null;
+        workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
+        if (workflowRequest == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No workflow request found with ID: " + requestId);
+            }
+            throw new WorkflowClientException("Workflow request not found with ID: " + requestId);
+        }
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostGetWorkflowRequest(requestId, workflowRequest);
+            }
+        }
+        return workflowRequest;
     }
 
     @Override

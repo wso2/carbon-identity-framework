@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.dto.Association;
 import org.wso2.carbon.identity.workflow.mgt.dto.Template;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
@@ -711,6 +712,37 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     @Override
     public void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
             tenantId, String status, WorkflowRequest[] result) throws WorkflowException {
+
+    }
+
+    /**
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @throws WorkflowException
+     */
+    @Override
+    public void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
+            tenantId, String status , int limit, int offset) throws WorkflowException {
+
+    }
+
+    /**
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @param result
+     * @throws WorkflowException
+     */
+    @Override
+    public void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
+            tenantId, String status, int limit, int offset, WorkflowRequestFilterResponse result) throws WorkflowException {
 
     }
 

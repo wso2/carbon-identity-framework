@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.dto.Association;
 import org.wso2.carbon.identity.workflow.mgt.dto.Template;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
@@ -590,6 +591,43 @@ public interface WorkflowListener {
     void doPostGetWorkflowsOfRequest(String requestId, WorkflowRequestAssociation[] results) throws WorkflowException;
 
     /**
+     * Trigger before retrieving requests from filter.
+     * 
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @throws WorkflowException
+     * @deprecated Use {@link #doPreGetRequestsFromFilter(String, String, String, String, int, String, int, int)}
+     * instead.
+     */
+    @Deprecated
+    void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
+            dateCategory, int tenantId, String status) throws WorkflowException;
+
+    /**
+     * Trigger after retrieving requests from filter.
+     * 
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @param result
+     * @throws WorkflowException
+     * @deprecated Use {@link #doPostGetRequestsFromFilter(String, String, String, String, int, String, int, int,
+     *  WorkflowRequest[])} instead.
+     */
+    @Deprecated
+    void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
+            dateCategory, int tenantId, String status, WorkflowRequest[] result) throws WorkflowException;
+
+    /**
+     * Trigger before retrieving requests from filter.
+     * 
      * @param user
      * @param beginDate
      * @param endDate
@@ -599,9 +637,11 @@ public interface WorkflowListener {
      * @throws WorkflowException
      */
     void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status) throws WorkflowException;
+            dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException;
 
     /**
+     * Trigger after retrieving requests from filter.
+     * 
      * @param user
      * @param beginDate
      * @param endDate
@@ -612,7 +652,8 @@ public interface WorkflowListener {
      * @throws WorkflowException
      */
     void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status, WorkflowRequest[] result) throws WorkflowException;
+            dateCategory, int tenantId, String status,int limit, int offset, WorkflowRequestFilterResponse result) 
+                throws WorkflowException;
 
     /**
      * @param wfOperationType
@@ -650,4 +691,25 @@ public interface WorkflowListener {
      * @return
      */
     int getOrderId();
+
+    /**
+    * Trigger before retrieving a workflow request.
+    *
+    * @param requestId ID of the workflow request to retrieve
+    * @throws WorkflowException
+    */
+    default void doPreGetWorkflowRequest(String requestId) throws WorkflowException {
+
+    }
+        
+    /**
+    * Trigger after retrieving a workflow request.
+    *
+    * @param requestId ID of the workflow request that was retrieved
+    * @param workflowRequest Workflow request object returned by the original operation
+    * @throws WorkflowException
+    */
+    default void doPostGetWorkflowRequest(String requestId, WorkflowRequest workflowRequest) throws WorkflowException {
+
+    }
 }
