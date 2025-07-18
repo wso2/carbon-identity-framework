@@ -995,7 +995,8 @@ public class FrameworkUtils {
 
         String path;
         if (isOrganizationQualifiedRequest()) {
-            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
+            String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
         } else {
             if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
