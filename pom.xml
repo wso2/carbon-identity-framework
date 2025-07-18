@@ -2027,7 +2027,7 @@
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
 
         <org.bouncycastle.imp.pkg.version.range>[0.0.0,2.0.0)</org.bouncycastle.imp.pkg.version.range>
-        <org.wso2.carbon.identity.organization.management.core.version>1.1.29
+        <org.wso2.carbon.identity.organization.management.core.version>1.1.40
         </org.wso2.carbon.identity.organization.management.core.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>

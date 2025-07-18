@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -45,11 +45,13 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
@@ -84,6 +86,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
@@ -114,6 +117,7 @@ public class IdPManagementDAOTest {
 
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
     MockedStatic<CryptoUtil> cryptoUtil;
+    MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
     private SecretManagerImpl secretManager;
     private CryptoUtil mockCryptoUtil;
 
@@ -169,10 +173,12 @@ public class IdPManagementDAOTest {
 
         cryptoUtil = mockStatic(CryptoUtil.class);
         mockCryptoUtil = mock(CryptoUtil.class);
+        organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
         cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
         when(mockCryptoUtil.encryptAndBase64Encode(any())).thenReturn("ENCRYPTED_VALUE2");
         when(mockCryptoUtil.base64DecodeAndDecrypt(anyString())).thenReturn("ENCRYPTED_VALUE2".getBytes());
-
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN))
+                .thenReturn(false);
         endpointConfig = ActionMgtTestUtil.createEndpointConfig("http://localhost", "admin", "admin");
         endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig("http://localhost1", "admin1", "admin1");
         userDefinedIdP = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, endpointConfig);
@@ -184,6 +190,7 @@ public class IdPManagementDAOTest {
     public void tearDownClass() {
 
         cryptoUtil.close();
+        organizationManagementUtilMockedStatic.close();
     }
 
     @BeforeMethod
@@ -952,6 +959,44 @@ public class IdPManagementDAOTest {
 
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
             assertIdPResult(idpResult, idpName, isExist);
+        }
+    }
+
+    @Test
+    public void testDeleteIdpProperties() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            IdentityProvider addedIdp = idPManagementDAO.getIdPByName(
+                    connection, "testIdP1", SAMPLE_TENANT_ID, TENANT_DOMAIN);
+            List<String> propertiesToDelete = new ArrayList<>();
+            propertiesToDelete.add(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+
+            idPManagementDAO.deleteIdpProperties(Integer.parseInt(addedIdp.getId()), propertiesToDelete, TENANT_DOMAIN);
+        }
+
+        assertDeletedIdpProperties();
+    }
+
+    private void assertDeletedIdpProperties() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+            IdentityProvider updatedIdp = idPManagementDAO.getIdPByName(
+                    connection, "testIdP1", SAMPLE_TENANT_ID, TENANT_DOMAIN);
+            assertEquals(updatedIdp.getIdpProperties().length, 3);
+            assertFalse(Arrays.stream(updatedIdp.getIdpProperties()).anyMatch( prop ->
+                            IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY.equals(prop.getName())),
+                    "Property deletion failed for: " + IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
         }
     }
 

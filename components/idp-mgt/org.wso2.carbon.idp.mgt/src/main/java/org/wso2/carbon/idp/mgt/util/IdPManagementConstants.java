@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+
+import java.util.List;
+
 /**
  * This class is used to keep the identity provider management related constants.
  */
@@ -26,6 +30,7 @@ public class IdPManagementConstants {
     public static final String SHARED_IDP_PREFIX = "SHARED_";
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
     public static final String IDP_GROUP_LIST_PLACEHOLDER = "_IDP_GROUP_LIST_";
+    public static final String IDP_METADATA_PROPERTY_LIST_PLACEHOLDER = "_IDP_METADATA_PROPERTY_LIST_";
     public static final String MULTI_VALUED_PROPERTY_CHARACTER = ".";
     public static final String IS_TRUE_VALUE = "1";
     public static final String IS_FALSE_VALUE = "0";
@@ -145,6 +150,22 @@ public class IdPManagementConstants {
     public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     public static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
+
+    public static final List<String> INHERITED_FEDERATED_AUTHENTICATORS = List.of(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+
+    public static final List<String> INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES = List.of(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
+
+    public static final List<String> INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES = List.of(
+            "Organization.SelfService.Enable",
+            "Organization.SelfService.AdminEmailVerification",
+            "Organization.SelfService.OnboardAdminToOrg",
+            "Organization.SelfService.EnableAutoLogin",
+            "passwordExpiry.rule");
+
 
     public static class SQLConstants {
 
@@ -525,6 +546,8 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_METADATA_H2 = "INSERT INTO IDP_METADATA (IDP_ID, NAME, `VALUE`, DISPLAY_NAME, " +
                 "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
         public static final String DELETE_IDP_METADATA = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?";
+        public static final String DELETE_IDP_METADATA_BY_PROPERTY_NAME = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?" +
+                " AND NAME IN (" + IDP_METADATA_PROPERTY_LIST_PLACEHOLDER + ")";
 
         public static final String GET_CONNECTED_APPS_MYSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
