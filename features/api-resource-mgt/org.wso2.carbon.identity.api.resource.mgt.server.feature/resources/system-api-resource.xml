@@ -12,7 +12,6 @@
   ~ Unless required by applicable law or agreed to in writing,
   ~ software distributed under the License is distributed on an
   ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  ~ KIND, either express or implied.  See the License for the
   ~ specific language governing permissions and limitations
   ~ under the License.
   -->
@@ -177,7 +176,7 @@
     </APIResource>
     <APIResource name="Server Configuration Management API" identifier="/o/api/server/v1/configs"
                  requiresAuthorization="true" description="API representation of the Server Config Management API"
-                 type="CONSOLE_ORG_LEVEL">
+                 type="ORGANIZATION">
         <Scopes>
             <Scope displayName="View Config" name="internal_org_config_view" 
                     description="View server configurations of the organization"/>
@@ -244,10 +243,12 @@
     <APIResource name="Identity Governance Management API"
                  identifier="/o/api/server/v1/identity-governance" requiresAuthorization="true"
                  description="API representation of the Identity Governance Management API"
-                 type="CONSOLE_ORG_LEVEL">
+                 type="ORGANIZATION">
         <Scopes>
-            <Scope displayName="View Identity Governance" name="internal_org_governance_view" 
-                    description="View governance connectors in the organization"/>
+            <Scope displayName="View Identity Governance" name="internal_org_governance_view"
+                   description="View governance connectors in the organization"/>
+            <Scope displayName="Update Identity Governance" name="internal_org_governance_update"
+                   description="Update governance connectors in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Idle Account Identification Management API"
@@ -330,6 +331,13 @@
         <Scopes>
             <Scope displayName="Update Validation Rule" name="internal_validation_rule_mgt_update" 
                     description="Manage field input validation for the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Validation Rules API" identifier="/o/api/server/v1/validation-rules"
+                 requiresAuthorization="true" description="API representation of the Validation Rules API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Update Validation Rule" name="internal_org_validation_rule_mgt_update"
+                   description="Manage field input validation for the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Keystore Management API" identifier="/api/server/v1/keystores/certs"
@@ -1205,6 +1213,19 @@
                    description="Manage views of login and regisgtration from the Console"/>
             <Scope displayName="Login And Registration Edit Feature" name="console:loginAndRegistration_edit"
                    description="Manage edits of login and regisgtration from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Login And Registration Management Feature" identifier="console:org:loginAndRegistration"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Login And Registration Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Login And Registration Feature" name="console:org:loginAndRegistration"
+                   description="Manage login and registration from the Console"/>
+            <Scope displayName="Login And Registration View Feature" name="console:org:loginAndRegistration_view"
+                   description="Manage views of login and registration from the Console"/>
+            <Scope displayName="Login And Registration Edit Feature" name="console:org:loginAndRegistration_edit"
+                   description="Manage edits of login and registration from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management Feature" identifier="console:organizations"

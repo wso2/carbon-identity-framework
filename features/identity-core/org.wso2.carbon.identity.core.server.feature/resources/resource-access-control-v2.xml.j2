@@ -248,10 +248,19 @@
 
         <!-- [Organization] Validation Rules API -->
         <Resource context="(.*)/o/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/o/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_org_validation_rule_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/validation-rules(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_validation_rule_mgt_update</Scopes>
+        </Resource>
 
         <!-- Validation Rules API -->
         <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_validation_rule_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="POST">
             <Scopes>internal_validation_rule_mgt_update</Scopes>
         </Resource>
 
@@ -961,12 +970,21 @@
         <Resource context="(.*)/o/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_governance_view</Scopes>
         </Resource>
+        <Resource context="(.*)/o/api/server/v1/identity-governance/(.*)" secured="true" http-method="PATCH">
+            <Scopes>internal_org_governance_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/identity-governance/(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_governance_update</Scopes>
+        </Resource>
 
         <!-- Identity Governance Management API -->
         <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Scopes>internal_governance_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/identity-governance/(.*)" secured="true" http-method="PATCH">
+            <Scopes>internal_governance_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-governance/(.*)" secured="true" http-method="POST">
             <Scopes>internal_governance_update</Scopes>
         </Resource>
 
@@ -1180,6 +1198,12 @@
         <!-- [Organization] Configuration Management API -->
         <Resource context="(.*)/o/api/server/v1/configs/authenticators(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_config_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="PATCH">
+            <Scopes>internal_org_config_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_config_delete</Scopes>
         </Resource>
 
         <!-- Configuration Management API -->
