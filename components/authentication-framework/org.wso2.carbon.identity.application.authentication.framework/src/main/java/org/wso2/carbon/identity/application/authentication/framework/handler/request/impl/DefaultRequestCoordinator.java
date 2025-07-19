@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.slf4j.MDC;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
@@ -752,9 +753,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             String loginTenantDomain = context.getLoginTenantDomain();
             try {
                 if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
-                        !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + loginTenantDomain + "/")
-                        && FrameworkUtils.isURLRelative(callerPath)) {
-                    callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+                        FrameworkUtils.isURLRelative(callerPath)) {
+                    String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+                    if (organizationId == null || !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX
+                            + organizationId + "/")) {
+                        callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+                    }
                 }
             } catch (URISyntaxException e) {
                 throw new FrameworkException(e.getMessage(), e);

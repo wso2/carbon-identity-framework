@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.event.publisher.api.model.common.Subject;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.internal.component.EventPublisherComponentServiceHolder;
 import org.wso2.carbon.identity.event.publisher.internal.service.impl.EventPublisherServiceImpl;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,6 +72,16 @@ public class EventPublisherServiceImplTest {
     public void setupClass() {
 
         MockitoAnnotations.openMocks(this);
+
+        // Get the real singleton instance
+        EventPublisherComponentServiceHolder serviceHolder =
+                EventPublisherComponentServiceHolder.getInstance();
+
+        // Mock Adapter and set it on the singleton
+        Adapter webhookAdapterMock = Mockito.mock(Adapter.class);
+        Mockito.when(webhookAdapterMock.getName()).thenReturn("webSubHubAdapter");
+        serviceHolder.setWebhookAdapter(webhookAdapterMock);
+
         eventPublisherService = EventPublisherServiceImpl.getInstance();
     }
 
@@ -91,8 +102,8 @@ public class EventPublisherServiceImplTest {
     @Test
     public void testPublishWithException() throws Exception {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+        when(mockEventPublisher1.getAssociatedAdapter()).thenReturn("webSubHubAdapter");
+        when(mockEventPublisher2.getAssociatedAdapter()).thenReturn("otherAdapter");
 
         doThrow(new EventPublisherException("E", "msg", "desc"))
                 .when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
@@ -108,8 +119,8 @@ public class EventPublisherServiceImplTest {
     @Test
     public void testSuccessfulPublish() throws Exception {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+        when(mockEventPublisher1.getAssociatedAdapter()).thenReturn("webSubHubAdapter");
+        when(mockEventPublisher2.getAssociatedAdapter()).thenReturn("otherAdapter");
 
         doNothing().when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
 
@@ -121,10 +132,10 @@ public class EventPublisherServiceImplTest {
     }
 
     @Test
-    public void testPublishWithNoMatchingAdaptor() {
+    public void testPublishWithNoMatchingAdapter() {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("foo");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("bar");
+        when(mockEventPublisher1.getAssociatedAdapter()).thenReturn("foo");
+        when(mockEventPublisher2.getAssociatedAdapter()).thenReturn("bar");
 
         try {
             eventPublisherService.publish(mockEventPayload, mockEventContext);
@@ -138,8 +149,8 @@ public class EventPublisherServiceImplTest {
     @Test
     public void testCanHandleEventSuccess() throws Exception {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+        when(mockEventPublisher1.getAssociatedAdapter()).thenReturn("webSubHubAdapter");
+        when(mockEventPublisher2.getAssociatedAdapter()).thenReturn("otherAdapter");
 
         when(mockEventPublisher1.canHandleEvent(mockEventContext)).thenReturn(true);
 
@@ -153,8 +164,8 @@ public class EventPublisherServiceImplTest {
     @Test
     public void testCanHandleEventWithException() throws Exception {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("webSubHubAdapter");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("otherAdapter");
+        when(mockEventPublisher1.getAssociatedAdapter()).thenReturn("webSubHubAdapter");
+        when(mockEventPublisher2.getAssociatedAdapter()).thenReturn("otherAdapter");
 
         doThrow(new EventPublisherException("E", "msg", "desc"))
                 .when(mockEventPublisher1).canHandleEvent(mockEventContext);
@@ -166,10 +177,10 @@ public class EventPublisherServiceImplTest {
     }
 
     @Test
-    public void testCanHandleEventWithNoMatchingAdaptor() {
+    public void testCanHandleEventWithNoMatchingAdapter() {
 
-        when(mockEventPublisher1.getAssociatedAdaptor()).thenReturn("foo");
-        when(mockEventPublisher2.getAssociatedAdaptor()).thenReturn("bar");
+        when(mockEventPublisher1.getAssociatedAdapter()).thenReturn("foo");
+        when(mockEventPublisher2.getAssociatedAdapter()).thenReturn("bar");
 
         try {
             eventPublisherService.canHandleEvent(mockEventContext);

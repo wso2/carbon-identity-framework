@@ -26,6 +26,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -38,6 +39,7 @@ import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverServiceImpl;
@@ -46,8 +48,11 @@ import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -146,7 +151,14 @@ public class FlowMgtServiceTest {
     @Test
     public void testUpdateFlow() throws Exception {
 
-        service.updateFlow(createSampleGraphConfig(), TEST_TENANT_ID);
+        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+
+            loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+            flowMgtUtils.when(FlowMgtUtils::getInitiatorId).thenReturn(LoggerUtils.Initiator.System.name());
+
+            service.updateFlow(createSampleGraphConfig(), TEST_TENANT_ID);
+        }
     }
 
     @Test(dependsOnMethods = {"testUpdateFlow"})
@@ -340,10 +352,12 @@ public class FlowMgtServiceTest {
 
     private ActionDTO createExecutorAction(String nextId) {
 
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put(Constants.IDP_NAME, "testIdp");
         return new ActionDTO.Builder()
                 .type(EXECUTOR)
                 .nextId(nextId)
-                .executor(new ExecutorDTO("testExecutor", "testIDP"))
+                .executor(new ExecutorDTO("testExecutor", metadata))
                 .build();
     }
 

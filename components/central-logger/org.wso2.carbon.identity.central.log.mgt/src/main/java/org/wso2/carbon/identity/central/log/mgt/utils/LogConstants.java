@@ -168,6 +168,7 @@ public class LogConstants {
     public static class FlowManagement {
 
         public static final String UPDATE_FLOW = "update-flow-";
+        public static final String UPDATE_FLOW_CONFIG = "update-flow-config-";
 
         private FlowManagement() {
 

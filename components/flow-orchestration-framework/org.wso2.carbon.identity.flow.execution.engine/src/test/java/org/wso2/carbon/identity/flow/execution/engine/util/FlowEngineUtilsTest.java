@@ -41,9 +41,12 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineExcept
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -166,7 +169,7 @@ public class FlowEngineUtilsTest {
     public Object[][] initiateContextScenarios() {
 
         return new Object[][]{
-                // applicationId, callbackUrl
+
                 {"test-app-id-1"},
                 {null},
         };
@@ -230,7 +233,6 @@ public class FlowEngineUtilsTest {
     public Object[][] redirectionUrlScenarios() {
 
         return new Object[][]{
-                // appAccessUrl, appFound, expectedUrl
                 {TEST_APP_URL, true, TEST_APP_URL}, // App URL found, use app URL.
                 {null, true, DEFAULT_MY_ACCOUNT_URL}, // No app URL, use myaccount URL.
                 {null, false, DEFAULT_MY_ACCOUNT_URL}, // App not found, use myaccount URL.
@@ -254,7 +256,6 @@ public class FlowEngineUtilsTest {
             dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
 
-            // Create applicationBasicInfo based on whether app should be found.
             if (appFound) {
                 ApplicationBasicInfo appInfo = new ApplicationBasicInfo();
                 appInfo.setApplicationResourceId("test-app-id");
@@ -295,6 +296,66 @@ public class FlowEngineUtilsTest {
             } catch (FlowEngineServerException e) {
                 assertEquals(e.getErrorCode(), "FE-65016");
             }
+        }
+    }
+
+    @Test
+    public void testAssertionGenerationIntegration() throws Exception {
+
+        String testUsername = "testuser";
+        String testUserId = "user123";
+        String testContextId = "context123";
+        String expectedAssertion = "signed.jwt.token";
+
+        FlowExecutionContext mockContext = new FlowExecutionContext();
+        mockContext.setTenantDomain(TENANT_DOMAIN);
+        mockContext.setContextIdentifier(testContextId);
+
+        FlowUser flowUser = new FlowUser();
+        flowUser.setUsername(testUsername);
+        flowUser.setUserId(testUserId);
+        mockContext.setFlowUser(flowUser);
+
+
+        NodeConfig authNode = new NodeConfig.Builder()
+                .id("auth-node-1")
+                .type("AUTHENTICATION")
+                .executorConfig(new ExecutorDTO("password-authenticator"))
+                .build();
+        mockContext.getCompletedNodes().add(authNode);
+
+        try (MockedStatic<AuthenticationAssertionUtils> assertionUtilsMock =
+                     mockStatic(AuthenticationAssertionUtils.class)) {
+
+            assertionUtilsMock.when(() -> AuthenticationAssertionUtils.getSignedUserAssertion(any()))
+                    .thenReturn(expectedAssertion);
+            String generatedAssertion = AuthenticationAssertionUtils.getSignedUserAssertion(mockContext);
+            assertNotNull(generatedAssertion, "Generated assertion should not be null");
+            assertEquals(generatedAssertion, expectedAssertion, "Generated assertion should match expected value");
+            assertionUtilsMock.verify(() -> AuthenticationAssertionUtils.getSignedUserAssertion(mockContext));
+        }
+    }
+
+    @Test
+    public void testAssertionGenerationWithEmptyCompletedNodes() throws Exception {
+
+        FlowExecutionContext mockContext = new FlowExecutionContext();
+        mockContext.setTenantDomain(TENANT_DOMAIN);
+        mockContext.setContextIdentifier("empty-context");
+
+        FlowUser flowUser = new FlowUser();
+        flowUser.setUsername("testuser");
+        flowUser.setUserId("user123");
+        mockContext.setFlowUser(flowUser);
+        String expectedAssertion = "minimal.jwt.token";
+
+        try (MockedStatic<AuthenticationAssertionUtils> assertionUtilsMock =
+                     mockStatic(AuthenticationAssertionUtils.class)) {
+            assertionUtilsMock.when(() -> AuthenticationAssertionUtils.getSignedUserAssertion(any()))
+                    .thenReturn(expectedAssertion);
+            String generatedAssertion = AuthenticationAssertionUtils.getSignedUserAssertion(mockContext);
+            assertNotNull(generatedAssertion, "Assertion should be generated even with empty nodes");
+            assertEquals(generatedAssertion, expectedAssertion);
         }
     }
 

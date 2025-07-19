@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -73,6 +74,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CALLER_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
@@ -87,6 +89,13 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
+    private static final String OAUTH = "oauth";
+    private static final String TRUE = "true";
+    private static final String CUSTOM_TENANT_DOMAIN = "xyz.com";
+    private static final String SUPER_TENANT_PATH = "/t/carbon.super/";
+    private static final String ORGANIZATION_ID = "179fa754-dcff-48f3-bd1c-a8ea84c8bbf4";
+    private static final String ORG_CALLER_PATH = "/o/179fa754-dcff-48f3-bd1c-a8ea84c8bbf4/";
+    private static final String ABSOLUTE_CALLER_PATH = "https://wso2.is.com";
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -111,11 +120,11 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
                 {true, null, null, SUPER_TENANT_DOMAIN_NAME},
                 {false, null, null, SUPER_TENANT_DOMAIN_NAME},
 
-                {true, "foo.com", "xyz.com", "foo.com"},
-                {false, "foo.com", "xyz.com", "xyz.com"},
+                {true, "foo.com", CUSTOM_TENANT_DOMAIN, "foo.com"},
+                {false, "foo.com", CUSTOM_TENANT_DOMAIN, CUSTOM_TENANT_DOMAIN},
 
-                {true, null, "xyz.com", "xyz.com"},
-                {false, null, "xyz.com", "xyz.com"},
+                {true, null, CUSTOM_TENANT_DOMAIN, CUSTOM_TENANT_DOMAIN},
+                {false, null, CUSTOM_TENANT_DOMAIN, CUSTOM_TENANT_DOMAIN},
         };
     }
 
@@ -136,8 +145,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
 
             HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getParameter(TYPE)).thenReturn("oauth");
-            when(request.getParameter(LOGOUT)).thenReturn("true");
+            when(request.getParameter(TYPE)).thenReturn(OAUTH);
+            when(request.getParameter(LOGOUT)).thenReturn(TRUE);
             when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomainInRequestParam);
 
             HttpServletResponse response = mock(HttpServletResponse.class);
@@ -148,14 +157,49 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
+    @DataProvider(name = "callerPathProvider")
+    public Object[][] provideCommonAuthCallerPath() {
+
+        return new Object[][]{
+                {SUPER_TENANT_DOMAIN_NAME, SUPER_TENANT_PATH, SUPER_TENANT_PATH},
+                {ORGANIZATION_ID, ORG_CALLER_PATH, ORG_CALLER_PATH},
+                {CUSTOM_TENANT_DOMAIN, ORG_CALLER_PATH, ORG_CALLER_PATH},
+                {SUPER_TENANT_DOMAIN_NAME, "/" + OAUTH, SUPER_TENANT_PATH + OAUTH},
+                {SUPER_TENANT_DOMAIN_NAME, ABSOLUTE_CALLER_PATH, ABSOLUTE_CALLER_PATH},
+        };
+    }
+
+    @Test(dataProvider = "callerPathProvider")
+    public void testCallerPathInAuthenticationContext(String tenantDomain, String callerPath, String expectedCallerPath)
+            throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantDomain);
+            identityTenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+            CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(mock(IdentityEventService.class));
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setOrganizationId(ORGANIZATION_ID);
+
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getParameter(TYPE)).thenReturn(OAUTH);
+            when(request.getParameter(LOGOUT)).thenReturn(TRUE);
+            when(request.getParameter(CALLER_PATH)).thenReturn(callerPath);
+
+            AuthenticationContext context = requestCoordinator.initializeFlow(request, response);
+            assertEquals(context.getCallerPath(), expectedCallerPath);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setOrganizationId(null);
+        }
+    }
+
     @DataProvider(name = "contextDataProvider")
     public Object[][] contextData() {
 
         return new Object[][]{
-                {"dummy_key", null, "xyz.com", SUPER_TENANT_DOMAIN_NAME},
+                {"dummy_key", null, CUSTOM_TENANT_DOMAIN, SUPER_TENANT_DOMAIN_NAME},
                 {"dummy_key", "samlsso", null, SUPER_TENANT_DOMAIN_NAME},
-                {null, "oAuth", "xyz.com", "foo.com"},
-                {"dummy_key", "openid", "xyz.com", null},
+                {null, "oAuth", CUSTOM_TENANT_DOMAIN, "foo.com"},
+                {"dummy_key", "openid", CUSTOM_TENANT_DOMAIN, null},
         };
     }
 
@@ -304,7 +348,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
             String relyingParty = "console";
             String tenantDomain = "carbon.super";
-            String restartLoginFlow = "true";
+            String restartLoginFlow = TRUE;
 
             HttpServletRequest requestMock = spy(HttpServletRequest.class);
             HttpServletResponse responseMock = spy(HttpServletResponse.class);
@@ -371,7 +415,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
             String relyingParty = "console";
             String tenantDomain = "carbon.super";
-            String restartLoginFlow = "true";
+            String restartLoginFlow = TRUE;
 
             AuthGraphNode showPromptNode = mock(ShowPromptNode.class);
             AuthGraphNode authGraphNode = mock(AuthGraphNode.class);
@@ -391,7 +435,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomain);
             when(request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW)).thenReturn(restartLoginFlow);
             when(request.getParameter(AUTHENTICATOR)).thenReturn("BasicAuthenticator");
-            when(request.getParameter("promptResp")).thenReturn("true");
+            when(request.getParameter("promptResp")).thenReturn(TRUE);
             when(request.getParameter("promptId")).thenReturn("97d506f3-fd3c-4...");
 
             // Creating a new AuthenticationContext

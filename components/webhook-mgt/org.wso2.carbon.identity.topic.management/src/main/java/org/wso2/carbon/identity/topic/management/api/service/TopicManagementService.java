@@ -34,7 +34,7 @@ public interface TopicManagementService {
      * @param tenantDomain        Tenant domain.
      * @throws TopicManagementException If an error occurs during topic registration.
      */
-    public void registerTopic(String channelUri, String eventProfileName, String eventProfileVersion,
+    void registerTopic(String channelUri, String eventProfileName, String eventProfileVersion,
                               String tenantDomain) throws TopicManagementException;
 
     /**
@@ -46,7 +46,7 @@ public interface TopicManagementService {
      * @param tenantDomain        Tenant domain.
      * @throws TopicManagementException If an error occurs during topic deregistration.
      */
-    public void deregisterTopic(String channelUri, String eventProfileName, String eventProfileVersion,
+    void deregisterTopic(String channelUri, String eventProfileName, String eventProfileVersion,
                                 String tenantDomain) throws TopicManagementException;
 
     /**
@@ -59,6 +59,6 @@ public interface TopicManagementService {
      * @return True if the topic exists, false otherwise.
      * @throws TopicManagementException If an error occurs while checking if the topic exists.
      */
-    public boolean isTopicExists(String channelUri, String eventProfileName, String eventProfileVersion,
+    boolean isTopicExists(String channelUri, String eventProfileName, String eventProfileVersion,
                                  String tenantDomain) throws TopicManagementException;
 }

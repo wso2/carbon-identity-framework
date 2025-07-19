@@ -4632,6 +4632,9 @@
         </BrandingAI>
     </AIServices>
 
+    <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
+    <FilterByUniqueSessionIdForUser>{{session_management.filter_by_unique_session_id_for_user}}</FilterByUniqueSessionIdForUser>
+
     <AgentIdentity>
         <Enabled>{{agent_identity.enabled}}</Enabled>
         <Userstore>{{agent_identity.userstore}}</Userstore>
@@ -4651,5 +4654,11 @@
     <AsyncOperationStatus>
         <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
     </AsyncOperationStatus>
+
+    <FlowExecution>
+        <UserAssertion>
+            <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
+        </UserAssertion>
+    </FlowExecution>
 
 </Server>

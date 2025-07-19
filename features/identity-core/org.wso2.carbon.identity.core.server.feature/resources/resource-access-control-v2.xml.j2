@@ -176,7 +176,7 @@
         </Resource>
 
         <!-- Webhook Metadata API -->
-        <Resource context="(.*)/api/server/v1/webhooks/metadata/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="GET">
             <Scopes>internal_webhook_meta_view</Scopes>
         </Resource>
 
@@ -1479,7 +1479,7 @@
          <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">
              <Scopes>internal_flow_view</Scopes>
          </Resource>
-         <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="PUT">
+         <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="PUT, PATCH">
              <Scopes>internal_flow_update</Scopes>
          </Resource>
 

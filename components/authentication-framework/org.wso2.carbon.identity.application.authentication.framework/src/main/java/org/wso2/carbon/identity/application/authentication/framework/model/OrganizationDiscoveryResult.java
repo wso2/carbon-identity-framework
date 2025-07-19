@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
-import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
+import org.wso2.carbon.identity.organization.management.service.model.Organization;
 
 /**
  * This class represents the result of an organization discovery operation.
@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.organization.management.service.model.BasicOrgan
 public class OrganizationDiscoveryResult {
 
     private boolean successful;
-    private BasicOrganization discoveredOrganization;
+    private Organization discoveredOrganization;
     private String sharedApplicationId;
     private FailureDetails failureDetails;
 
@@ -37,8 +37,7 @@ public class OrganizationDiscoveryResult {
      * @param sharedApplicationId The shared application id.
      * @return A successful OrganizationDiscoveryResult instance.
      */
-    public static OrganizationDiscoveryResult success(BasicOrganization organization,
-                                                      String sharedApplicationId) {
+    public static OrganizationDiscoveryResult success(Organization organization, String sharedApplicationId) {
 
         OrganizationDiscoveryResult result = new OrganizationDiscoveryResult();
         result.setSuccessful(true);
@@ -72,12 +71,12 @@ public class OrganizationDiscoveryResult {
         this.successful = successful;
     }
 
-    public BasicOrganization getDiscoveredOrganization() {
+    public Organization getDiscoveredOrganization() {
 
         return discoveredOrganization;
     }
 
-    public void setDiscoveredOrganization(BasicOrganization discoveredOrganization) {
+    public void setDiscoveredOrganization(Organization discoveredOrganization) {
 
         this.discoveredOrganization = discoveredOrganization;
     }

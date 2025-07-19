@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Appli
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -253,10 +254,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
                 String fedAssociatedUserId = authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.USER_ID);
                 if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
-                    userSessions = getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
-                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
-                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME));
-                    userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(userId), null, null));
+                    userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
+                    addAssociatedFedUserIdSessions(userSessions, fedAssociatedUserId, authSessionUserMap);
                 } else {
                     userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
                 }
@@ -906,5 +905,29 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
 
         return idpManagementService;
+    }
+
+    private void addAssociatedFedUserIdSessions(List<UserSession> userSessions, String fedAssociatedUserId,
+                                                Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap)
+            throws SessionManagementServerException {
+
+        /* If the `FilterByUniqueSessionIdForUser` property is set to true, the `getSessionsByUserId` method will return
+         entries with unique session IDs. If set to false, it will return duplicate entries with corresponding idpId and
+         idpName for associated federated user. */
+        if (!Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))) {
+            userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
+                    authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
+                    authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME)));
+            return;
+        }
+
+        List<UserSession> associatedFedUserIdSessions =
+                getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId), null, null);
+        for (UserSession associatedFedUserIdSession : associatedFedUserIdSessions) {
+            if (userSessions.stream().noneMatch(userSession ->
+                    StringUtils.equals(userSession.getSessionId(), associatedFedUserIdSession.getSessionId()))) {
+                userSessions.add(associatedFedUserIdSession);
+            }
+        }
     }
 }
