@@ -279,6 +279,9 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
     private void storeSecretProperty(String logType, String secretProperty, String secretValue)
             throws SecretManagementException {
 
+        if (StringUtils.isEmpty(secretValue)) {
+            return;
+        }
         String secretName = buildSecretName(logType, secretProperty);
         if (secretManager.isSecretExist(IDN_SECRET_TYPE_REMOTE_LOGGING_SECRETS, secretName)) {
             updateExistingSecretProperty(secretName, secretValue);
