@@ -280,6 +280,10 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
             throws SecretManagementException {
 
         if (StringUtils.isEmpty(secretValue)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Skip storing secret property: %s since the secret value is empty.",
+                        secretProperty));
+            }
             return;
         }
         String secretName = buildSecretName(logType, secretProperty);
