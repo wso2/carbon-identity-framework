@@ -208,16 +208,20 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        if (existingWebhook.getStatus() == WebhookStatus.ACTIVE) {
-            throw WebhookManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_ACTIVE, existingWebhook.getName());
-        }
-        if (existingWebhook.getStatus() == WebhookStatus.INACTIVE) {
-            throw WebhookManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_INACTIVE, existingWebhook.getName());
-        }
         daoFACADE.retryWebhook(existingWebhook, tenantId);
         return daoFACADE.getWebhook(webhookId, tenantId);
+    }
+
+    @Override
+    public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                           String tenantDomain) throws WebhookMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving active webhooks for channel URI: %s in tenant: %s",
+                    channelUri, tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return daoFACADE.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
 
     private boolean isWebhookExists(String webhookId, int tenantId) throws WebhookMgtException {

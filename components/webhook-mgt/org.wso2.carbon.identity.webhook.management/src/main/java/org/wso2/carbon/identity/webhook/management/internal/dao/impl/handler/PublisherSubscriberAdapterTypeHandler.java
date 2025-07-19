@@ -266,6 +266,15 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
     @Override
     public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
+
+        if (webhook.getStatus() == WebhookStatus.ACTIVE) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_ACTIVE, webhook.getName());
+        }
+        if (webhook.getStatus() == WebhookStatus.INACTIVE) {
+            throw WebhookManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ALREADY_INACTIVE, webhook.getName());
+        }
         if (webhook.getStatus() == WebhookStatus.PARTIALLY_ACTIVE ||
                 webhook.getStatus() == WebhookStatus.PARTIALLY_INACTIVE) {
             SubscriptionManagementService subscriptionManagementService =
@@ -361,6 +370,13 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
         throw WebhookManagementExceptionHandler.handleClientException(
                 ErrorMessage.ERROR_UPDATE_OPERATION_NOT_SUPPORTED,
                 "updateWebhook not supported for PublisherSubscriber");
+    }
+
+    @Override
+    public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                           int tenantId) throws WebhookMgtException {
+
+        return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
 
     // --- Helper methods below ---

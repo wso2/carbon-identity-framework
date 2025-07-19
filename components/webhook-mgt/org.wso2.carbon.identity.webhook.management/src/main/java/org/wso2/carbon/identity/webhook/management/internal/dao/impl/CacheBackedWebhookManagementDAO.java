@@ -162,4 +162,11 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
         // Count retrieval bypasses cache
         return webhookManagementDAO.getWebhooksCount(tenantId);
     }
+
+    @Override
+    public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                           int tenantId) throws WebhookMgtException {
+        // Active webhooks retrieval bypasses cache
+        return webhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+    }
 }
