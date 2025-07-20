@@ -122,7 +122,8 @@ public enum ErrorMessage {
             "An error occurred while deactivating the webhook: %s."),
     ERROR_CODE_WEBHOOK_RETRY_ADAPTER_ERROR("65032", "Webhook retry error",
             "An error occurred while retrying the webhook: %s."),
-    ERROR_CODE_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_ERROR("65033", "Error occurred while retrieving active webhooks by channel",
+    ERROR_CODE_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_ERROR("65033",
+            "Error occurred while retrieving active webhooks by channel",
             "An error occurred while retrieving active webhooks for channel: %s and tenant: %s.");
 
     private final String code;
