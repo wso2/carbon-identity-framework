@@ -144,10 +144,10 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        Webhook existingWebhook = dao.getWebhook(webhook.getId(), tenantId);
         String secret = webhook.getSecret();
         if (StringUtils.isEmpty(secret)) {
-            secret = existingWebhook.getSecret() != null ? existingWebhook.getSecret() : null;
+            Webhook existingWebhook = dao.getWebhook(webhook.getId(), tenantId);
+            secret = existingWebhook.getSecret();
         }
         Webhook updatedWebhook = new Webhook.Builder()
                 .uuid(webhook.getId())
