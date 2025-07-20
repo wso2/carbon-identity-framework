@@ -95,12 +95,6 @@ public final class WebhookSQLConstants {
         public static final String CHECK_WEBHOOK_ENDPOINT_EXISTS =
                 "SELECT 1 FROM IDN_WEBHOOK WHERE ENDPOINT = :ENDPOINT; AND TENANT_ID = :TENANT_ID;";
 
-        public static final String ACTIVATE_WEBHOOK =
-                "UPDATE IDN_WEBHOOK SET STATUS = 'ACTIVE' WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
-
-        public static final String DEACTIVATE_WEBHOOK =
-                "UPDATE IDN_WEBHOOK SET STATUS = 'INACTIVE' WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
-
         public static final String ADD_WEBHOOK_EVENT =
                 "INSERT INTO IDN_WEBHOOK_CHANNELS (WEBHOOK_ID, CHANNEL_URI, CHANNEL_SUBSCRIPTION_STATUS) VALUES " +
                         "(:WEBHOOK_ID;, :CHANNEL_URI;, :CHANNEL_SUBSCRIPTION_STATUS;)";
@@ -119,6 +113,15 @@ public final class WebhookSQLConstants {
 
         public static final String COUNT_WEBHOOKS_BY_TENANT =
                 "SELECT COUNT(*) AS WEBHOOK_COUNT FROM IDN_WEBHOOK WHERE TENANT_ID = :TENANT_ID;";
+
+        public static final String GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL =
+                "SELECT WEBHOOK.* FROM IDN_WEBHOOK WEBHOOK " +
+                        "INNER JOIN IDN_WEBHOOK_CHANNELS CHANNEL ON WEBHOOK.ID = CHANNEL.WEBHOOK_ID " +
+                        "WHERE CHANNEL.CHANNEL_URI = :CHANNEL_URI; " +
+                        "AND WEBHOOK.TENANT_ID = :TENANT_ID; " +
+                        "AND WEBHOOK.STATUS = :STATUS; " +
+                        "AND WEBHOOK.EVENT_PROFILE_NAME = :EVENT_PROFILE_NAME; " +
+                        "AND WEBHOOK.EVENT_PROFILE_VERSION = :EVENT_PROFILE_VERSION;";
 
         private Query() {
 

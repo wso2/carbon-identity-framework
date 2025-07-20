@@ -293,35 +293,36 @@ public class WebhookManagementServiceImplTest {
         assertEquals(result, updatedWebhook);
     }
 
-    @Test(expectedExceptions = WebhookMgtClientException.class,
-            expectedExceptionsMessageRegExp = "Webhook already active")
-    public void testRetryWebhook_AlreadyActive() throws WebhookMgtException {
-
-        Webhook webhook = mock(Webhook.class);
-        when(webhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
-        when(webhook.getName()).thenReturn("activeWebhook");
-        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
-
-        webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
-    }
-
-    @Test(expectedExceptions = WebhookMgtClientException.class,
-            expectedExceptionsMessageRegExp = "Webhook already inactive")
-    public void testRetryWebhook_AlreadyInactive() throws WebhookMgtException {
-
-        Webhook webhook = mock(Webhook.class);
-        when(webhook.getStatus()).thenReturn(WebhookStatus.INACTIVE);
-        when(webhook.getName()).thenReturn("inactiveWebhook");
-        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
-
-        webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
-    }
-
     @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp = "Webhook not found")
     public void testRetryWebhook_NotFound() throws WebhookMgtException {
 
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(null);
 
         webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
+    }
+
+    @Test
+    public void testGetActiveWebhooks() throws WebhookMgtException {
+
+        String eventProfileName = "profile";
+        String eventProfileVersion = "v1";
+        String channelUri = "schemas.identity.wso2.org/events/logins";
+
+        List<Webhook> activeWebhooks = new ArrayList<>();
+        Webhook webhook1 = mock(Webhook.class);
+        Webhook webhook2 = mock(Webhook.class);
+        activeWebhooks.add(webhook1);
+        activeWebhooks.add(webhook2);
+
+        when(webhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, TENANT_ID))
+                .thenReturn(activeWebhooks);
+
+        List<Webhook> result = webhookManagementService.getActiveWebhooks(
+                eventProfileName, eventProfileVersion, channelUri, TENANT_DOMAIN);
+
+        verify(webhookManagementDAO).getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, TENANT_ID);
+        assertEquals(result.size(), 2);
+        assertEquals(result.get(0), webhook1);
+        assertEquals(result.get(1), webhook2);
     }
 }
