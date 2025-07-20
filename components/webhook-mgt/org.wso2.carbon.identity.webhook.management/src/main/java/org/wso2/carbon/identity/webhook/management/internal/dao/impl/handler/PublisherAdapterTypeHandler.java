@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
@@ -91,13 +92,39 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     @Override
     public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        dao.activateWebhook(webhook, tenantId);
+        Webhook activatedWebhook = new Webhook.Builder()
+                .uuid(webhook.getId())
+                .endpoint(webhook.getEndpoint())
+                .name(webhook.getName())
+                .secret(webhook.getSecret())
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
+                .eventProfileVersion(webhook.getEventProfileVersion())
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(webhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
+        dao.activateWebhook(activatedWebhook, tenantId);
     }
 
     @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        dao.deactivateWebhook(webhook, tenantId);
+        Webhook deactivatedWebhook = new Webhook.Builder()
+                .uuid(webhook.getId())
+                .endpoint(webhook.getEndpoint())
+                .name(webhook.getName())
+                .secret(webhook.getSecret())
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
+                .eventProfileVersion(webhook.getEventProfileVersion())
+                .status(WebhookStatus.INACTIVE)
+                .createdAt(webhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
+        dao.deactivateWebhook(deactivatedWebhook, tenantId);
     }
 
     @Override

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.dao;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -166,7 +167,12 @@ public class PublisherAdapterTypeHandlerTest {
 
         doNothing().when(mockDao).activateWebhook(any(), anyInt());
         handler.activateWebhook(testWebhook, 1);
-        verify(mockDao, times(1)).activateWebhook(testWebhook, 1);
+
+        ArgumentCaptor<Webhook> captor = ArgumentCaptor.forClass(Webhook.class);
+        verify(mockDao, times(1)).activateWebhook(captor.capture(), eq(1));
+        Webhook activatedWebhook = captor.getValue();
+        Assert.assertEquals(activatedWebhook.getId(), testWebhook.getId());
+        Assert.assertEquals(activatedWebhook.getStatus(), WebhookStatus.ACTIVE);
     }
 
     @Test
@@ -174,7 +180,12 @@ public class PublisherAdapterTypeHandlerTest {
 
         doNothing().when(mockDao).deactivateWebhook(any(), anyInt());
         handler.deactivateWebhook(testWebhook, 1);
-        verify(mockDao, times(1)).deactivateWebhook(testWebhook, 1);
+
+        ArgumentCaptor<Webhook> captor = ArgumentCaptor.forClass(Webhook.class);
+        verify(mockDao, times(1)).deactivateWebhook(captor.capture(), eq(1));
+        Webhook deactivatedWebhook = captor.getValue();
+        Assert.assertEquals(deactivatedWebhook.getId(), testWebhook.getId());
+        Assert.assertEquals(deactivatedWebhook.getStatus(), WebhookStatus.INACTIVE);
     }
 
     @Test
