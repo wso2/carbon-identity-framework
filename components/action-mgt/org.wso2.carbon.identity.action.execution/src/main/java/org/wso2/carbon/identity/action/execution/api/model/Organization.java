@@ -42,7 +42,7 @@ public class Organization {
         this.orgHandle = orgHandle;
     }
 
-    public Organization(Builder builder) {
+    private Organization(Builder builder) {
 
         this.id = builder.id;
         this.name = builder.name;

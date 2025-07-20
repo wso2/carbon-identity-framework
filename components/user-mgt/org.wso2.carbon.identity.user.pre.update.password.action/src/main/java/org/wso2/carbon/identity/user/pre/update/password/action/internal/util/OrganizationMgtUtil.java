@@ -67,7 +67,7 @@ public class OrganizationMgtUtil {
                     .depth(getOrganizationDepthInHierarchy(organizationId))
                     .build();
         } catch (OrganizationManagementException e) {
-            throw new ActionExecutionRequestBuilderException("Error while retrieving organization information." , e);
+            throw new ActionExecutionRequestBuilderException("Error while retrieving organization information.", e);
         }
     }
 
