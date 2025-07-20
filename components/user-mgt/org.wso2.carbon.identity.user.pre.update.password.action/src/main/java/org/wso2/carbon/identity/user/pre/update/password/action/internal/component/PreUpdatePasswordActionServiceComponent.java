@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionExecutor;
@@ -169,5 +170,24 @@ public class PreUpdatePasswordActionServiceComponent {
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setClaimManagementService(null);
         LOG.debug("ClaimMetadataManagementService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "organization.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("Organization management service set in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("Organization management service unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
     }
 }

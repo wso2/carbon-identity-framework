@@ -31,6 +31,8 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionReques
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
+import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
@@ -55,6 +57,7 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.executi
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.util.OrganizationMgtUtil;
 import org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -90,7 +93,13 @@ import static org.wso2.carbon.identity.user.pre.update.password.action.util.Test
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_CERTIFICATE_NAME;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_DESCRIPTION;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ID;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ORG_DEPTH;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ORG_HANDLE;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ORG_ID;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ORG_NAME;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_PASSWORD;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_PRIMARY_ORG_ID;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_PRIMARY_ORG_NAME;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_SAMPLE_CERTIFICATE;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_URL;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_USERNAME;
@@ -109,16 +118,19 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     private PreUpdatePasswordAction preUpdatePasswordActionWithoutCert;
     private UserActionContext userActionContext;
     private UserStoreModel userStoreModel;
+    private Organization organization;
     private final FlowContext flowContext = FlowContext.create();
     private PreUpdatePasswordRequestBuilder preUpdatePasswordActionRequestBuilder;
     private ClaimMetadataManagementService claimMetadataManagementService;
     private MockedStatic<FrameworkUtils> frameworkUtils;
+    private MockedStatic<OrganizationMgtUtil> organizationMgtUtil;
 
     @BeforeClass
     public void init() throws Exception {
 
         frameworkUtils = mockStatic(FrameworkUtils.class);
         frameworkUtils.when(FrameworkUtils::getMultiAttributeSeparator).thenReturn(",");
+        organizationMgtUtil = mockStatic(OrganizationMgtUtil.class);
 
         claimMetadataManagementService = mock(ClaimMetadataManagementService.class);
 
@@ -170,12 +182,20 @@ public class PreUpdatePasswordActionRequestBuilderTest {
                         .format(PasswordSharing.Format.PLAIN_TEXT)
                         .build())
                 .build();
+
+        organization = new Organization.Builder()
+                .id(TEST_ORG_ID)
+                .name(TEST_ORG_NAME)
+                .orgHandle(TEST_ORG_HANDLE)
+                .depth(TEST_ORG_DEPTH)
+                .build();
     }
 
     @AfterClass
     public void cleanUp() {
 
         frameworkUtils.close();
+        organizationMgtUtil.close();
     }
 
     @BeforeMethod
@@ -211,27 +231,51 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     public Object[][] flowData() {
 
         return new Object[][]{
-                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER),
+                {false, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER),
                         PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.USER},
-                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION),
+                {false, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION),
                         PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.APPLICATION},
-                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
+                {false, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
-                {buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER),
+                {false, buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER),
                         PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.USER},
-                {buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN),
+                {false, buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
-                {buildMockedFlow(Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD, Flow.InitiatingPersona.ADMIN),
+                {false, buildMockedFlow(Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
-                {buildMockedFlow(Flow.Name.INVITED_USER_REGISTRATION, Flow.InitiatingPersona.ADMIN),
+                {false, buildMockedFlow(Flow.Name.INVITED_USER_REGISTRATION, Flow.InitiatingPersona.ADMIN),
+                        PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
+                {true, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER),
+                        PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.USER},
+                {true, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION),
+                        PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.APPLICATION},
+                {true, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
+                        PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
+                {true, buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER),
+                        PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.USER},
+                {true, buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN),
+                        PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
+                {true, buildMockedFlow(Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD, Flow.InitiatingPersona.ADMIN),
+                        PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
+                {true, buildMockedFlow(Flow.Name.INVITED_USER_REGISTRATION, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN}
         };
     }
 
     @Test(dataProvider = "flowData")
-    public void testRequestBuilder(Flow mockedFlow, PreUpdatePasswordEvent.Action expectedAction,
+    public void testRequestBuilder(boolean isOrganizationFlow, Flow mockedFlow,
+                                   PreUpdatePasswordEvent.Action expectedAction,
                                    PreUpdatePasswordEvent.FlowInitiatorType expectedInitiatorType)
             throws ActionExecutionRequestBuilderException {
+
+        if (isOrganizationFlow) {
+            organizationMgtUtil.when(OrganizationMgtUtil::isOrganization).thenReturn(true);
+            organizationMgtUtil.when(OrganizationMgtUtil::getOrganization).thenReturn(organization);
+            organizationMgtUtil.when(() -> OrganizationMgtUtil.resolveTenant(TEST_ORG_ID))
+                    .thenReturn(new Tenant(String.valueOf(TEST_PRIMARY_ORG_ID), TEST_PRIMARY_ORG_NAME));
+        } else {
+            organizationMgtUtil.when(OrganizationMgtUtil::isOrganization).thenReturn(false);
+        }
 
         IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
         ActionExecutionRequest actionExecutionRequest =
@@ -262,14 +306,30 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertEquals(passwordUpdatingUser.getGroups(),
                 Arrays.asList(GROUPS.getValueInUserStore().split(Pattern.quote(","))));
         assertEquals(passwordUpdatingUser.getRoles().size(), 0);
+
+        if (isOrganizationFlow) {
+            assertEquals(preUpdatePasswordEvent.getOrganization(), organization);
+            assertEquals(preUpdatePasswordEvent.getUser().getOrganization(), organization);
+            assertEquals(preUpdatePasswordEvent.getTenant().getId(), String.valueOf(TEST_PRIMARY_ORG_ID));
+            assertEquals(preUpdatePasswordEvent.getTenant().getName(), TEST_PRIMARY_ORG_NAME);
+        }
     }
 
     @Test(dataProvider = "flowData")
-    public void testRequestBuilderWithUnEncryptedCredential(Flow mockedFlow,
+    public void testRequestBuilderWithUnEncryptedCredential(boolean isOrganizationFlow, Flow mockedFlow,
                                                             PreUpdatePasswordEvent.Action expectedAction,
                                                             PreUpdatePasswordEvent.FlowInitiatorType
                                                                         expectedInitiatorType)
             throws ActionExecutionRequestBuilderException {
+
+        if (isOrganizationFlow) {
+            organizationMgtUtil.when(OrganizationMgtUtil::isOrganization).thenReturn(true);
+            organizationMgtUtil.when(OrganizationMgtUtil::getOrganization).thenReturn(organization);
+            organizationMgtUtil.when(() -> OrganizationMgtUtil.resolveTenant(TEST_ORG_ID))
+                    .thenReturn(new Tenant(String.valueOf(TEST_PRIMARY_ORG_ID), TEST_PRIMARY_ORG_NAME));
+        } else {
+            organizationMgtUtil.when(OrganizationMgtUtil::isOrganization).thenReturn(false);
+        }
 
         IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
         ActionExecutionRequest actionExecutionRequest =
@@ -296,6 +356,13 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertEquals(passwordUpdatingUser.getClaims().size(), 0);
         assertEquals(passwordUpdatingUser.getGroups().size(), 0);
         assertEquals(passwordUpdatingUser.getRoles().size(), 0);
+
+        if (isOrganizationFlow) {
+            assertEquals(preUpdatePasswordEvent.getOrganization(), organization);
+            assertEquals(preUpdatePasswordEvent.getUser().getOrganization(), organization);
+            assertEquals(preUpdatePasswordEvent.getTenant().getId(), String.valueOf(TEST_PRIMARY_ORG_ID));
+            assertEquals(preUpdatePasswordEvent.getTenant().getName(), TEST_PRIMARY_ORG_NAME);
+        }
     }
 
     @Test(dependsOnMethods = { "testRequestBuilder", "testRequestBuilderWithUnEncryptedCredential" },

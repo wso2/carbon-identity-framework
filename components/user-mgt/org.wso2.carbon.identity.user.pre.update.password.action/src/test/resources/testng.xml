@@ -28,6 +28,7 @@
                         <class name="org.wso2.carbon.identity.user.pre.update.password.action.management.PreUpdatePasswordActionDTOModelResolverTest"></class>
                         <class name="org.wso2.carbon.identity.user.pre.update.password.action.rule.PreUpdatePasswordActionRuleEvaluationDataProviderTest"></class>
                         <class name="org.wso2.carbon.identity.user.pre.update.password.action.model.PreUpdatePasswordActionBuilderTest"></class>
+                        <class name="org.wso2.carbon.identity.user.pre.update.password.action.util.OrganizationMgtUtilTest"></class>
                 </classes>
         </test>
 </suite>

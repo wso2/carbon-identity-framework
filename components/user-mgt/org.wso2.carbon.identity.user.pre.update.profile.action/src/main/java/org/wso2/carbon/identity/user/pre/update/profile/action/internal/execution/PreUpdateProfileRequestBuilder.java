@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionReques
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
@@ -43,6 +44,7 @@ import org.wso2.carbon.identity.user.pre.update.profile.action.internal.componen
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileEvent;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileRequest;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.UpdatingUserClaim;
+import org.wso2.carbon.identity.user.pre.update.profile.action.internal.util.OrganizationMgtUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -91,15 +93,22 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
     private Event getEvent(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction)
             throws ActionExecutionRequestBuilderException {
 
+        Organization organization = null;
+        boolean isOrganizationFlow = OrganizationMgtUtil.isOrganization();
+        if (isOrganizationFlow) {
+            organization = OrganizationMgtUtil.getOrganization();
+        }
+
         PreUpdateProfileEvent.Builder eventBuilder = new PreUpdateProfileEvent.Builder();
         eventBuilder.initiatorType(getInitiatorType());
         eventBuilder.action(PreUpdateProfileEvent.Action.UPDATE);
         eventBuilder.request(getPreUpdateProfileRequest(userActionContext));
-        eventBuilder.tenant(getTenant());
+        eventBuilder.tenant(getTenant(organization != null ? organization.getId() : null));
 
         UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
-        eventBuilder.user(getUser(userActionContext, preUpdateProfileAction, userStoreManager));
+        eventBuilder.user(getUser(userActionContext, preUpdateProfileAction, userStoreManager, organization));
         eventBuilder.userStore(getUserStore(userActionContext, userStoreManager));
+        eventBuilder.organization(organization);
 
         return eventBuilder.build();
     }
@@ -153,19 +162,25 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         return preUpdateProfileRequestBuilder.build();
     }
 
-    private Tenant getTenant() {
+    private static Tenant getTenant(String organizationId) throws ActionExecutionRequestBuilderException {
 
-        return new Tenant(String.valueOf(IdentityContext.getThreadLocalIdentityContext().getTenantId()),
-                IdentityContext.getThreadLocalIdentityContext().getTenantDomain());
+        if (organizationId != null) {
+            return OrganizationMgtUtil.resolveTenant(organizationId);
+        }
+
+        return new Tenant(String.valueOf(IdentityContext.getThreadLocalCarbonContext().getTenantId()),
+                IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 
     private User getUser(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction,
-                         UniqueIDUserStoreManager userStoreManager) throws ActionExecutionRequestBuilderException {
+                         UniqueIDUserStoreManager userStoreManager, Organization organization)
+            throws ActionExecutionRequestBuilderException {
 
         UserActionRequestDTO userActionRequestDTO = userActionContext.getUserActionRequestDTO();
         List<String> userClaimsToSetInEvent = preUpdateProfileAction.getAttributes();
 
-        User.Builder userBuilder = new User.Builder(userActionRequestDTO.getUserId());
+        User.Builder userBuilder = new User.Builder(userActionRequestDTO.getUserId())
+                .organization(organization);
         if (userClaimsToSetInEvent == null || userClaimsToSetInEvent.isEmpty()) {
             return userBuilder.build();
         }

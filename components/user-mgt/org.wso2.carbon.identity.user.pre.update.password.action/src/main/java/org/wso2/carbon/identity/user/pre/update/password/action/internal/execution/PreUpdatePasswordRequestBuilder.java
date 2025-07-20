@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionReques
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.constan
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.util.OrganizationMgtUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
@@ -124,12 +126,19 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
     private Event getEvent(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
             throws ActionExecutionRequestBuilderException {
 
+        Organization organization = null;
+        boolean isOrganizationFlow = OrganizationMgtUtil.isOrganization();
+        if (isOrganizationFlow) {
+            organization = OrganizationMgtUtil.getOrganization();
+        }
+
         return new PreUpdatePasswordEvent.Builder()
                 .initiatorType(getInitiatorType())
                 .action(getAction())
-                .tenant(getTenant())
-                .user(getUser(userActionContext, preUpdatePasswordAction))
+                .tenant(getTenant(organization != null ? organization.getId() : null))
+                .user(getUser(userActionContext, preUpdatePasswordAction, organization))
                 .userStore(new UserStore(userActionContext.getUserActionRequestDTO().getUserStoreDomain()))
+                .organization(organization)
                 .build();
     }
 
@@ -175,17 +184,22 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         throw new ActionExecutionRequestBuilderException("Invalid action flow.");
     }
 
-    private static Tenant getTenant() {
+    private static Tenant getTenant(String organizationId) throws ActionExecutionRequestBuilderException {
+
+        if (organizationId != null) {
+            return OrganizationMgtUtil.resolveTenant(organizationId);
+        }
 
         return new Tenant(String.valueOf(IdentityContext.getThreadLocalCarbonContext().getTenantId()),
                 IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 
-    private User getUser(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
-            throws ActionExecutionRequestBuilderException {
+    private User getUser(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction,
+                         Organization organization) throws ActionExecutionRequestBuilderException {
 
         PasswordUpdatingUser.Builder userBuilder = new PasswordUpdatingUser.Builder()
-                .id(userActionContext.getUserActionRequestDTO().getUserId());
+                .id(userActionContext.getUserActionRequestDTO().getUserId())
+                .organization(organization);
         populateCredential(userBuilder, userActionContext, preUpdatePasswordAction);
 
         if (preUpdatePasswordAction.getAttributes() != null && !preUpdatePasswordAction.getAttributes().isEmpty()) {
