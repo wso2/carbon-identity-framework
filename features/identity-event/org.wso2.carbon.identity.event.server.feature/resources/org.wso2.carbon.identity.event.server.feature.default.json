@@ -366,6 +366,6 @@
   "identity_mgt.events.schemes.tokenEventPublisher.module_index": "55",
   "identity_mgt.events.schemes.tokenEventPublisher.properties.enable": false,
   "identity_mgt.events.schemes.tokenEventPublisher.subscriptions": [
-    "POST_ISSUE_ACCESS_TOKEN"
+    "POST_ISSUE_ACCESS_TOKEN_V2"
   ]
 }
