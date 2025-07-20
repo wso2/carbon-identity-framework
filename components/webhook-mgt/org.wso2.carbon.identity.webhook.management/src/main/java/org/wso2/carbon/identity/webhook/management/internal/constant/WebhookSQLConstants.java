@@ -115,13 +115,13 @@ public final class WebhookSQLConstants {
                 "SELECT COUNT(*) AS WEBHOOK_COUNT FROM IDN_WEBHOOK WHERE TENANT_ID = :TENANT_ID;";
 
         public static final String GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL =
-                "SELECT W.* FROM IDN_WEBHOOK W " +
-                        "INNER JOIN IDN_WEBHOOK_CHANNELS C ON W.ID = C.WEBHOOK_ID " +
-                        "WHERE C.CHANNEL_URI = :CHANNEL_URI; " +
-                        "AND W.TENANT_ID = :TENANT_ID; " +
-                        "AND W.STATUS = :STATUS; " +
-                        "AND W.EVENT_PROFILE_NAME = :EVENT_PROFILE_NAME; " +
-                        "AND W.EVENT_PROFILE_VERSION = :EVENT_PROFILE_VERSION;";
+                "SELECT WEBHOOK.* FROM IDN_WEBHOOK WEBHOOK " +
+                        "INNER JOIN IDN_WEBHOOK_CHANNELS CHANNEL ON WEBHOOK.ID = CHANNEL.WEBHOOK_ID " +
+                        "WHERE CHANNEL.CHANNEL_URI = :CHANNEL_URI; " +
+                        "AND WEBHOOK.TENANT_ID = :TENANT_ID; " +
+                        "AND WEBHOOK.STATUS = :STATUS; " +
+                        "AND WEBHOOK.EVENT_PROFILE_NAME = :EVENT_PROFILE_NAME; " +
+                        "AND WEBHOOK.EVENT_PROFILE_VERSION = :EVENT_PROFILE_VERSION;";
 
         private Query() {
 
