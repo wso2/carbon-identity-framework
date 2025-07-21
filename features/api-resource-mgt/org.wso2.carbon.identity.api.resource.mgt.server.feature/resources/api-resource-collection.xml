@@ -1112,13 +1112,13 @@
             </Feature>
             <Update>
                 <Scope name="internal_org_governance_update"/>
+                <Scope name="internal_org_validation_rule_mgt_update"/>
+                <Scope name="internal_org_config_update"/>
             </Update>
             <Delete/>
             <Create/>
             <Read>
                 <Scope name="internal_org_governance_view"/>
-                <Scope name="internal_org_validation_rule_mgt_update"/>
-                <Scope name="internal_org_config_update"/>
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_group_mgt_view"/>
             </Read>
