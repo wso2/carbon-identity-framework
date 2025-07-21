@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.workflow.mgt;
 
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -26,6 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.dao.WorkflowRequestDAO;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 
@@ -67,18 +70,22 @@ public class WorkflowManagementServiceImplTest {
 
     private static final String CREATED_BY = "admin";
 
+    @Mock
     private WorkflowRequestDAO mockDAO;
+
+    @Mock
+    private WorkflowListener mockListener;
+
     private MockedStatic<WorkflowServiceDataHolder> mockedDataHolder;
     private WorkflowManagementServiceImpl service;
+
+    private AutoCloseable mocks;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
-        mockDAO = mock(WorkflowRequestDAO.class);
+        mocks = MockitoAnnotations.openMocks(this);
 
-        mockedDataHolder = mockStatic(WorkflowServiceDataHolder.class);
-
-        WorkflowListener mockListener = mock(WorkflowListener.class);
         when(mockListener.isEnable()).thenReturn(true);
 
         List<WorkflowListener> listeners = new ArrayList<>();
@@ -86,6 +93,8 @@ public class WorkflowManagementServiceImplTest {
 
         WorkflowServiceDataHolder mockHolder = mock(WorkflowServiceDataHolder.class);
         when(mockHolder.getWorkflowListenerList()).thenReturn(listeners);
+
+        mockedDataHolder = mockStatic(WorkflowServiceDataHolder.class);
         mockedDataHolder.when(WorkflowServiceDataHolder::getInstance).thenReturn(mockHolder);
 
         service = new WorkflowManagementServiceImpl();
@@ -96,27 +105,26 @@ public class WorkflowManagementServiceImplTest {
     }
 
     @AfterMethod
-    public void tearDown() {
+    public void tearDown() throws Exception {
 
         mockedDataHolder.close();
+        mocks.close();
     }
 
     @DataProvider(name = "validRequestData")
     public Object[][] provideValidRequestData() {
 
-        return new Object[][] {
-                { TEST_REQUEST_ID_1, CREATED_BY, OPERATION_UPDATE_USER, CREATED_AT_1, UPDATED_AT_1,
-                        STATUS_PENDING },
-                { TEST_REQUEST_ID_2, CREATED_BY, OPERATION_ADD_USER, CREATED_AT_2, UPDATED_AT_2,
-                        STATUS_APPROVED },
-                { TEST_REQUEST_ID_3, CREATED_BY, OPERATION_DELETE_USER, CREATED_AT_3, UPDATED_AT_3,
-                        STATUS_REJECTED }
+        return new Object[][]{
+                {TEST_REQUEST_ID_1, CREATED_BY, OPERATION_UPDATE_USER, CREATED_AT_1, UPDATED_AT_1, STATUS_PENDING},
+                {TEST_REQUEST_ID_2, CREATED_BY, OPERATION_ADD_USER, CREATED_AT_2, UPDATED_AT_2, STATUS_APPROVED},
+                {TEST_REQUEST_ID_3, CREATED_BY, OPERATION_DELETE_USER, CREATED_AT_3, UPDATED_AT_3, STATUS_REJECTED}
         };
     }
 
     @Test(dataProvider = "validRequestData")
     public void testGetWorkflowRequestByValidRequestId(String requestId, String createdBy, String operation,
-            String createdAt, String updatedAt, String status) throws Exception {
+                                                       String createdAt, String updatedAt, String status)
+            throws WorkflowException {
 
         WorkflowRequest expectedRequest = new WorkflowRequest();
         expectedRequest.setRequestId(requestId);

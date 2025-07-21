@@ -100,7 +100,6 @@ public class WorkflowRequestDAOTest {
 
     @Test(dataProvider = "validRequestData", priority = 1)
     public void testGetWorkflowRequestWithValidId(
-
             String requestId,
             String expectedCreatedBy,
             String expectedOperation,
@@ -127,7 +126,7 @@ public class WorkflowRequestDAOTest {
         }
     }
 
-    @Test(priority = 2, expectedExceptions = WorkflowClientException.class)
+    @Test(expectedExceptions = WorkflowClientException.class)
     public void testGetWorkflowRequestWithInvalidId() throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
@@ -138,7 +137,7 @@ public class WorkflowRequestDAOTest {
         }
     }
 
-    @Test(priority = 3, expectedExceptions = WorkflowClientException.class)
+    @Test(expectedExceptions = WorkflowClientException.class)
     public void testGetWorkflowRequestWithNullId() throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
