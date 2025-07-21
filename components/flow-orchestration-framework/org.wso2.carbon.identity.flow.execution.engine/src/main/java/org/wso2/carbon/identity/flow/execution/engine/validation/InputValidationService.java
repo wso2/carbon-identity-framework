@@ -228,8 +228,7 @@ public class InputValidationService {
         // If the dataDTO has required params, add them to the current step inputs and required inputs.
         if ((dataDTO.getComponents() == null || dataDTO.getComponents().isEmpty()) &&
                 dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) {
-            context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
-            context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+            handleRequiredInputs(dataDTO, context);
         }
 
         // If there are no action components, set the required params as the step inputs with the default action.
@@ -237,16 +236,27 @@ public class InputValidationService {
         // resumes.
         if ((dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) &&
                 context.getCurrentStepInputs().isEmpty()) {
-            context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
-            context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+            handleRequiredInputs(dataDTO, context);
         }
+    }
+
+    /**
+     * Handle required inputs by adding them to the current step inputs and required inputs in the context.
+     *
+     * @param dataDTO Data transfer object containing components and required parameters.
+     * @param context Flow context.
+     */
+    private static void handleRequiredInputs(DataDTO dataDTO, FlowExecutionContext context) {
+
+        context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+        context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
     }
 
 
     /**
      * Handle OTP field lengths. If the nodeResponse contains the OTP length, set the length for the OTP fields.
      *
-     * @param dataDTO  DataDTO.
+     * @param dataDTO      DataDTO.
      * @param nodeResponse NodeResponse.
      */
     private void processFieldLengths(DataDTO dataDTO, NodeResponse nodeResponse) {
