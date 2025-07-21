@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
@@ -143,7 +144,26 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        dao.updateWebhook(webhook, tenantId);
+        //Webhook update support as a put request with/without secret for now
+        String secret = webhook.getSecret();
+        if (StringUtils.isEmpty(secret)) {
+            Webhook existingWebhook = dao.getWebhook(webhook.getId(), tenantId);
+            secret = existingWebhook.getSecret();
+        }
+        Webhook updatedWebhook = new Webhook.Builder()
+                .uuid(webhook.getId())
+                .endpoint(webhook.getEndpoint())
+                .name(webhook.getName())
+                .secret(secret)
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
+                .eventProfileVersion(webhook.getEventProfileVersion())
+                .status(webhook.getStatus())
+                .createdAt(webhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
+        dao.updateWebhook(updatedWebhook, tenantId);
     }
 
     @Override
