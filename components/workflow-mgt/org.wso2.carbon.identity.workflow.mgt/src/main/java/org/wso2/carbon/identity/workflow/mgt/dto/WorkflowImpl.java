@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.metadata.ParametersMetaData;
 
 /**
  * WorkflowImpl class is a DTO that is represent basic Workflow Implementation
- * based on a Template and the Workflow Implementation specific MetaData
+ * based on a Template and the Workflow Implementation specific MetaData.
  */
 public class WorkflowImpl {
 

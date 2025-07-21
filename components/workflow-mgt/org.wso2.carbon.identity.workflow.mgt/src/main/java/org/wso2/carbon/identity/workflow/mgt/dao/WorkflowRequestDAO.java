@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
-import org.wso2.carbon.identity.workflow.mgt.dao.SQLBuilder.WorkflowRequestSQLBuilder;
+import org.wso2.carbon.identity.workflow.mgt.dao.sqlbuilder.WorkflowRequestSQLBuilder;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
@@ -56,10 +56,10 @@ public class WorkflowRequestDAO {
     private static final Log log = LogFactory.getLog(WorkflowRequestDAO.class);
 
     /**
-     * Persists WorkflowRequest to be used when workflow is completed
+     * Persists WorkflowRequest to be used when workflow is completed.
      *
-     * @param workflow    The workflow object to be persisted
-     * @param currentUser Currently logged-in user
+     * @param workflow    The workflow object to be persisted.
+     * @param currentUser Currently logged-in user.
      * @param tenantId    Tenant ID of the currently Logged user.
      * @throws WorkflowException
      */
@@ -92,9 +92,9 @@ public class WorkflowRequestDAO {
     }
 
     /**
-     * Serialize the workflow request to be persisted as blob
+     * Serialize the workflow request to be persisted as blob.
      *
-     * @param workFlowRequest The workflow request to be persisted
+     * @param workFlowRequest The workflow request to be persisted.
      * @return
      * @throws IOException
      */
@@ -108,9 +108,9 @@ public class WorkflowRequestDAO {
     }
 
     /**
-     * Retrieve workflow request specified by the given uuid
+     * Retrieve workflow request specified by the given uuid.
      *
-     * @param uuid The uuid of the request to be retrieved
+     * @param uuid The uuid of the request to be retrieved.
      * @return
      * @throws WorkflowException
      */
@@ -199,9 +199,9 @@ public class WorkflowRequestDAO {
     }
 
     /**
-     * Deserialize the persisted Workflow request
+     * Deserialize the persisted Workflow request.
      *
-     * @param serializedData Serialized request
+     * @param serializedData Serialized request.
      * @return
      * @throws IOException
      * @throws ClassNotFoundException
@@ -219,7 +219,7 @@ public class WorkflowRequestDAO {
     }
 
     /**
-     * Update state of a existing workflow request
+     * Update state of a existing workflow request.
      *
      * @param requestId
      * @param newState
@@ -289,9 +289,9 @@ public class WorkflowRequestDAO {
     /**
      * Get the type of the database.
      *
-     * @param connection Database connection
-     * @return Database type as a string
-     * @throws InternalWorkflowException If an error occurs while retrieving the database type
+     * @param connection Database connection.
+     * @return Database type as a string.
+     * @throws InternalWorkflowException If an error occurs while retrieving the database type.
      */
     private String getDatabaseType(Connection connection) throws InternalWorkflowException {
 
@@ -331,17 +331,17 @@ public class WorkflowRequestDAO {
     /**
      * Get filtered requests based on user, operation type, time range, tenant ID, status, limit and offset.
      *
-     * @param userName      User name to filter requests
-     * @param operationType Operation type to filter requests
-     * @param beginTime     Start time for filtering
-     * @param endTime       End time for filtering
-     * @param timeCategory  Time category for filtering
-     * @param tenantId      Tenant ID of the user
-     * @param status        Status of the request
-     * @param limit         Limit for pagination
-     * @param offset        Offset for pagination
-     * @return Array of WorkflowRequest objects matching the filters
-     * @throws InternalWorkflowException If an error occurs while retrieving the requests
+     * @param userName      User name to filter requests.
+     * @param operationType Operation type to filter requests.
+     * @param beginTime     Start time for filtering.
+     * @param endTime       End time for filtering.
+     * @param timeCategory  Time category for filtering.
+     * @param tenantId      Tenant ID of the user.
+     * @param status        Status of the request.
+     * @param limit         Limit for pagination.
+     * @param offset        Offset for pagination.
+     * @return Array of WorkflowRequest objects matching the filters.
+     * @throws InternalWorkflowException If an error occurs while retrieving the requests.
      */
     public WorkflowRequestFilterResponse getFilteredRequests(String
             userName, String operationType, Timestamp beginTime, Timestamp endTime, String timeCategory, int tenantId,
@@ -351,7 +351,7 @@ public class WorkflowRequestDAO {
             Connection connection = IdentityDatabaseUtil.getDBConnection(false);
             String databaseType = getDatabaseType(connection);
             WorkflowRequestSQLBuilder workflowRequestSQLBuilderSelect = 
-                    new WorkflowRequestSQLBuilder(databaseType,BASE_SELECT);
+                    new WorkflowRequestSQLBuilder(databaseType, BASE_SELECT);
             workflowRequestSQLBuilderSelect = workflowRequestSQLBuilderSelect.getAllRequestsWithSpecificFilters
                     (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
             List<org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest> results =
@@ -378,11 +378,11 @@ public class WorkflowRequestDAO {
     /**
      * Create a WorkflowRequest object from the ResultSet.
      *
-     * @param resultSet ResultSet containing workflow request data
-     * @return WorkflowRequest object
-     * @throws SQLException If an error occurs while accessing the ResultSet
-     * @throws IOException  If an error occurs while deserializing the request
-     * @throws ClassNotFoundException If the class of the serialized object cannot be found
+     * @param resultSet ResultSet containing workflow request data.
+     * @return WorkflowRequest object.
+     * @throws SQLException If an error occurs while accessing the ResultSet.
+     * @throws IOException  If an error occurs while deserializing the request.
+     * @throws ClassNotFoundException If the class of the serialized object cannot be found.
      */
     private org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest createWorkflowRequestFromResultSet
             (ResultSet resultSet) throws SQLException, IOException, ClassNotFoundException {
@@ -401,7 +401,7 @@ public class WorkflowRequestDAO {
     }
 
     /**
-     * update last updated time of a request
+     * update last updated time of a request.
      *
      * @param requestId
      * @throws InternalWorkflowException
@@ -426,13 +426,13 @@ public class WorkflowRequestDAO {
     }
     
      /**
-     * Get requests of a user created/updated in given time period
+     * Get requests of a user created/updated in given time period.
      *
-     * @param userName     User to get requests of, empty String to retrieve requests of all users
-     * @param beginTime    lower limit of date range to filter
-     * @param endTime      upper limit of date range to filter
-     * @param timeCategory filter by created time or last updated time ?
-     * @param tenantId     tenant id of currently logged in user
+     * @param userName     User to get requests of, empty String to retrieve requests of all users.
+     * @param beginTime    lower limit of date range to filter.
+     * @param endTime      upper limit of date range to filter.
+     * @param timeCategory filter by created time or last updated time?
+     * @param tenantId     tenant id of currently logged in user.
      * @return
      * @throws InternalWorkflowException
      */
@@ -567,12 +567,12 @@ public class WorkflowRequestDAO {
     }
 
     /**
-     * Get requests created/updated in given time period
+     * Get requests created/updated in given time period.
      *
-     * @param beginTime    lower limit of date range to filter
-     * @param endTime      upper limit of date range to filter
-     * @param timeCategory filter by created time or last updated time ?
-     * @param tenant       tenant id of currently logged in user
+     * @param beginTime    lower limit of date range to filter.
+     * @param endTime      upper limit of date range to filter.
+     * @param timeCategory filter by created time or last updated time?
+     * @param tenant       tenant id of currently logged in user.
      * @return
      * @throws InternalWorkflowException
      */
@@ -648,7 +648,7 @@ public class WorkflowRequestDAO {
                     }
                 }
             } else if (driverName.contains("Informix")) {
-                // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
+                // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server".
                 if (UPDATED_AT_FILTER.equals(timeCategory)) {
                     if (status.equals(ALL_TASKS_FILTER) || status.isEmpty()) {
                         query = SQLConstants.GET_REQUESTS_FILTER_FROM_UPDATED_TIME_INFORMIX;
@@ -709,7 +709,7 @@ public class WorkflowRequestDAO {
      * Get full workflow request details by requestId.
      *
      * @param requestId
-     * @return WorkflowRequest
+     * @return WorkflowRequest.
      * @throws InternalWorkflowException
      * @throws WorkflowClientException
      * @throws ClassNotFoundException
@@ -757,7 +757,7 @@ public class WorkflowRequestDAO {
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
-        } catch (ClassNotFoundException|IOException e) {
+        } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException(
                     "Error when deserializing the workflow request. requestId = " + requestId, e);
         } finally {

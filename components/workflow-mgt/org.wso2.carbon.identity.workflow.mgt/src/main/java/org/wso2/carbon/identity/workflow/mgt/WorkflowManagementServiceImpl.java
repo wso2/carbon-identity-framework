@@ -69,7 +69,7 @@ import javax.xml.xpath.XPathFactory;
  */
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
-    private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm:ss.SSS");
+    private final DateTimeFormatter  dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm:ss.SSS");
     private static final int MAX_LIMIT = 1000;
     
     private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
@@ -489,9 +489,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * List workflows
+     * List workflows.
      *
-     * @param tenantId Tenant ID
+     * @param tenantId Tenant ID.
      * @return List<Workflow>
      * @throws WorkflowException
      * @deprecated Use {@link #listPaginatedWorkflows(int, int, int, String)} instead.
@@ -519,9 +519,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     /**
      * Get workflows count.
      *
-     * @param tenantId Tenant ID
-     * @param filter   filter
-     * @return Return workflows count
+     * @param tenantId Tenant ID.
+     * @param filter   filter.
+     * @return Return workflows count.
      * @throws WorkflowException
      */
     @Override
@@ -703,7 +703,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * List All Associations
+     * List All Associations.
      *
      * @param tenantId Tenant ID
      * @return List<Association>
@@ -742,7 +742,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * Get a workflow association by id
+     * Get a workflow association by id.
      *
      * @param associationId Association ID
      * @return Association
@@ -1035,7 +1035,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * Get list of workflows of a request
+     * Get list of workflows of a request.
      *
      * @param requestId
      * @return
@@ -1128,13 +1128,13 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * get requests list according to createdUser, createdTime, and lastUpdatedTime
+     * get requests list according to createdUser, createdTime, and lastUpdatedTime.
      *
-     * @param user         User to get requests of, empty String to retrieve requests of all users
-     * @param beginDate    lower limit of date range to filter
-     * @param endDate      upper limit of date range to filter
+     * @param user         User to get requests of, empty String to retrieve requests of all users.
+     * @param beginDate    lower limit of date range to filter.
+     * @param endDate      upper limit of date range to filter.
      * @param dateCategory filter by created time or last updated time ?
-     * @param tenantId     tenant id of currently logged in user
+     * @param tenantId     tenant id of currently logged in user.
      * @return
      * @throws WorkflowException
      */
@@ -1148,22 +1148,23 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * get requests list according to createdUser, createdTime, and lastUpdatedTime
+     * get requests list according to createdUser, createdTime, and lastUpdatedTime.
      *
      * @param user         User to get requests of, empty String to retrieve
-     *                     requests of all users
-     * @param beginDate    lower limit of date range to filter
-     * @param endDate      upper limit of date range to filter
+     *                     requests of all users.
+     * @param beginDate    lower limit of date range to filter.
+     * @param endDate      upper limit of date range to filter.
      * @param dateCategory filter by created time or last updated time ?
-     * @param tenantId     tenant id of currently logged in user
-     * @param status       status of the request
-     * @param limit        limit of the number of requests to return
-     * @param offset       offset for pagination
+     * @param tenantId     tenant id of currently logged in user.
+     * @param status       status of the request.
+     * @param limit        limit of the number of requests to return.
+     * @param offset       offset for pagination.
      * @return
      * @throws WorkflowException
      */
     @Override
-    public WorkflowRequestFilterResponse getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
+    public WorkflowRequestFilterResponse getRequestsFromFilter
+            (String user, String beginDate, String endDate, String dateCategory,
             int tenantId, String status, int limit, int offset) throws WorkflowException {
 
         Timestamp beginTime;
@@ -1180,8 +1181,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         try {
             beginDate = beginDate.replace(" ", ":");
             endDate = endDate.replace(" ", ":");
-            LocalDateTime parsedBeginDate = LocalDateTime.parse(beginDate, DATE_TIME_FORMATTER);
-            LocalDateTime parsedEndDate = LocalDateTime.parse(endDate, DATE_TIME_FORMATTER);
+            LocalDateTime parsedBeginDate = LocalDateTime.parse(beginDate, dateTimeFormatter);
+            LocalDateTime parsedEndDate = LocalDateTime.parse(endDate, dateTimeFormatter);
 
             beginTime = Timestamp.valueOf(parsedBeginDate);
             endTime = Timestamp.valueOf(parsedEndDate);

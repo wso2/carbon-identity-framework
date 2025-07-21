@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Holds the SQL queries and constants
+ * Holds the SQL queries and constants.
  */
 public class SQLConstants {
 

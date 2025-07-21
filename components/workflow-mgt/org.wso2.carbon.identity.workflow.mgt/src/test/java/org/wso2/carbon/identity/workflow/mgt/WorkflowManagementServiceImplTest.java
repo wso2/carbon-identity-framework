@@ -29,16 +29,16 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Unit tests for {@link WorkflowManagementServiceImpl}.
@@ -144,12 +144,12 @@ public class WorkflowManagementServiceImplTest {
 
         when(mockDAO.getWorkflowRequest(INVALID_REQUEST_ID))
                 .thenThrow(new WorkflowClientException("Invalid request ID"));
-        service.getWorkflowRequest(INVALID_REQUEST_ID);
+        service.getWorkflowRequestBean(INVALID_REQUEST_ID);
     }
 
     @Test(expectedExceptions = WorkflowClientException.class)
     public void testGetWorkflowRequestWithNullId() throws Exception {
 
-        service.getWorkflowRequest(null);
+        service.getWorkflowRequestBean(null);
     }
 }

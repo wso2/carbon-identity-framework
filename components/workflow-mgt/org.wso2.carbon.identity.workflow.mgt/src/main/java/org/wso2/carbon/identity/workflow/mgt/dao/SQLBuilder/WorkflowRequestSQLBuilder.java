@@ -16,12 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.workflow.mgt.dao.SQLBuilder;
+package org.wso2.carbon.identity.workflow.mgt.dao.sqlbuilder;
 
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.user.core.model.SqlBuilder;
 
 import java.sql.Connection;
@@ -385,14 +385,13 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
     }
 
     public WorkflowRequestSQLBuilder getAllRequestsWithSpecificFilters(
-
             int tenantId,
             String createdBy,
             String operationType,
             String status,
             String category,
-            Timestamp StartDate,
-            Timestamp EndDate,
+            Timestamp startDate,
+            Timestamp endDate,
             int limit,
             int offset) {
 
@@ -402,12 +401,12 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         WorkflowRequestSQLBuilder builder = this.filterByTenantId(tenantId);
 
         if ("CREATED".equalsIgnoreCase(category)) {
-            if (StartDate != null || EndDate != null) {
-                builder = builder.filterByCreatedDateRange(StartDate.toString(), EndDate.toString());
+            if (startDate != null || endDate != null) {
+                builder = builder.filterByCreatedDateRange(startDate.toString(), endDate.toString());
             }
         } else if ("UPDATED".equalsIgnoreCase(category)) {
-            if (StartDate != null || EndDate != null) {
-                builder = builder.filterByUpdatedDateRange(StartDate.toString(), EndDate.toString());
+            if (startDate != null || endDate != null) {
+                builder = builder.filterByUpdatedDateRange(startDate.toString(), endDate.toString());
             }
         } else {
         }
