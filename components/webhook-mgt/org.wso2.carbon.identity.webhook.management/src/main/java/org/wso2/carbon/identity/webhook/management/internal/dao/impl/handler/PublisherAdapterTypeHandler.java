@@ -144,6 +144,7 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
+        //Webhook update support as a put request with/without secret for now
         String secret = webhook.getSecret();
         if (StringUtils.isEmpty(secret)) {
             Webhook existingWebhook = dao.getWebhook(webhook.getId(), tenantId);
