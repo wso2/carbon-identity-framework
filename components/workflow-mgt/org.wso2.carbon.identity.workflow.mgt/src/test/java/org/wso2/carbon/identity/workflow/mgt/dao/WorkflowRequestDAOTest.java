@@ -98,7 +98,7 @@ public class WorkflowRequestDAOTest {
         };
     }
 
-    @Test(dataProvider = "validRequestData", priority = 1)
+    @Test(dataProvider = "validRequestData")
     public void testGetWorkflowRequestWithValidId(
             String requestId,
             String expectedCreatedBy,
