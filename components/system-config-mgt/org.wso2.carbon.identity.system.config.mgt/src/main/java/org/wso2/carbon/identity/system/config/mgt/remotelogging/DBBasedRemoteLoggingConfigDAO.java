@@ -281,9 +281,9 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
 
         if (StringUtils.isEmpty(secretValue)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Skip storing secret property: %s since the secret value is empty.",
-                        secretProperty));
+                LOG.debug("Secret value for '" + secretProperty + "' is empty. Deleting the secret property.");
             }
+            deleteSecretProperty(logType, secretProperty);
             return;
         }
         String secretName = buildSecretName(logType, secretProperty);
