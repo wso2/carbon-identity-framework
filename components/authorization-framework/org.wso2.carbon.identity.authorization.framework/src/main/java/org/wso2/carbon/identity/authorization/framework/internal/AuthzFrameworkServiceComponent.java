@@ -54,7 +54,8 @@ public class AuthzFrameworkServiceComponent {
         }
         if (!StringUtils.isBlank(accessEvaluationService.getEngine())) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Setting Access Evaluation service :" + accessEvaluationService.getClass().getName());
+                LOG.debug("Setting Access Evaluation service: " + accessEvaluationService.getClass().getName() + 
+                        " for engine: " + accessEvaluationService.getEngine());
             }
             AuthzFrameworkComponentServiceHolder.getInstance().addAccessEvaluationService(accessEvaluationService);
         } else {
@@ -72,12 +73,14 @@ public class AuthzFrameworkServiceComponent {
         if (AuthzFrameworkComponentServiceHolder.getInstance().getAllAccessEvaluationServices()
                 .containsKey(accessEvaluationService.getEngine())) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("unbinding Access Evaluation service :" + accessEvaluationService.getClass().getName());
+                LOG.debug("Unbinding Access Evaluation service: " + accessEvaluationService.getClass().getName() + 
+                        " for engine: " + accessEvaluationService.getEngine());
             }
             AuthzFrameworkComponentServiceHolder.getInstance().removeAccessEvaluationService(accessEvaluationService);
         } else {
             LOG.warn("No registered service found for the Access Evaluation service: " + accessEvaluationService
-                    .getClass().getName());
+                    .getClass().getName() + " with engine: " + 
+                    (accessEvaluationService.getEngine() != null ? accessEvaluationService.getEngine() : "null"));
         }
     }
 

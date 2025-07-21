@@ -38,6 +38,9 @@ public class AuthzFrameworkComponentServiceHolder {
     private AuthzFrameworkComponentServiceHolder() {
 
         this.accessEvaluationServices = new HashMap<>();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("AuthzFrameworkComponentServiceHolder initialized successfully.");
+        }
     }
 
     public static AuthzFrameworkComponentServiceHolder getInstance() {
@@ -52,12 +55,17 @@ public class AuthzFrameworkComponentServiceHolder {
             if (!StringUtils.isBlank(accessEvaluationService.getEngine())) {
                 engineName = accessEvaluationService.getEngine();
                 this.accessEvaluationServices.put(engineName, accessEvaluationService);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Access evaluation service added successfully for engine: " + engineName);
+                }
             } else {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Authorization engine name is not defined in the service. Hence, the service is not " +
                             "added.");
                 }
             }
+        } else {
+            LOG.warn("Null access evaluation service received, hence not adding service.");
         }
     }
 
@@ -68,7 +76,15 @@ public class AuthzFrameworkComponentServiceHolder {
 
     public AccessEvaluationService getAccessEvaluationService(String engineName) {
 
-        return this.accessEvaluationServices.get(engineName);
+        if (StringUtils.isBlank(engineName)) {
+            LOG.warn("Engine name is null or empty. Cannot retrieve access evaluation service.");
+            return null;
+        }
+        AccessEvaluationService service = this.accessEvaluationServices.get(engineName);
+        if (service == null && LOG.isDebugEnabled()) {
+            LOG.debug("No access evaluation service found for engine: " + engineName);
+        }
+        return service;
     }
 
     public void removeAccessEvaluationService(AccessEvaluationService accessEvaluationService) {
@@ -77,7 +93,14 @@ public class AuthzFrameworkComponentServiceHolder {
             String engineName = accessEvaluationService.getEngine();
             if (engineName != null) {
                 this.accessEvaluationServices.remove(engineName);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Access evaluation service removed for engine: " + engineName);
+                }
+            } else {
+                LOG.warn("Engine name is null, cannot remove access evaluation service.");
             }
+        } else {
+            LOG.warn("Null access evaluation service received, hence cannot remove service.");
         }
     }
 }
