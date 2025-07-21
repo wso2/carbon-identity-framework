@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
-import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
@@ -74,8 +74,8 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_ALREADY_EXISTS, webhook.getEndpoint());
         }
-        doPreAddWebhookValidations(webhook);
         validateMaxWebhooksCount(tenantDomain);
+        doPreAddWebhookValidations(webhook);
         String generatedWebhookId = UUID.randomUUID().toString();
 
         WebhookStatus status = webhook.getStatus() != null ? webhook.getStatus() : WebhookStatus.INACTIVE;
@@ -135,6 +135,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
+        doPreUpdateWebhookValidations(webhook);
         daoFACADE.updateWebhook(webhook, tenantId);
         return daoFACADE.getWebhook(webhookId, tenantId);
     }
@@ -233,28 +234,33 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         return daoFACADE.getWebhook(webhookId, tenantId) != null;
     }
 
-    /**
-     * Perform pre validations on webhook model when creating an webhook.
-     *
-     * @param webhook Webhook creation model.
-     * @throws WebhookMgtClientException if webhook model is invalid.
-     */
-    private void doPreAddWebhookValidations(Webhook webhook) throws WebhookMgtException {
+    // Common validation for required fields except secret
+    private void validateCommonWebhookFields(Webhook webhook) throws WebhookMgtException {
 
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.WEBHOOK_NAME_FIELD, webhook.getName());
         WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.ENDPOINT_URI_FIELD, webhook.getEndpoint());
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_NAME_FIELD,
-                webhook.getEventProfileName());
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_URI_FIELD,
-                webhook.getEventProfileUri());
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.STATUS_FIELD,
-                String.valueOf(webhook.getStatus()));
-        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.SECRET_FIELD, webhook.getSecret());
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_NAME_FIELD, webhook.getEventProfileName());
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.EVENT_PROFILE_URI_FIELD, webhook.getEventProfileUri());
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.STATUS_FIELD, String.valueOf(webhook.getStatus()));
         WEBHOOK_VALIDATOR.validateWebhookName(webhook.getName());
         WEBHOOK_VALIDATOR.validateEndpointUri(webhook.getEndpoint());
+        WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventProfileName(), webhook.getEventsSubscribed());
+    }
+
+    private void doPreAddWebhookValidations(Webhook webhook) throws WebhookMgtException {
+
+        validateCommonWebhookFields(webhook);
+        WEBHOOK_VALIDATOR.validateForBlank(WebhookMgtConstants.SECRET_FIELD, webhook.getSecret());
         WEBHOOK_VALIDATOR.validateWebhookSecret(webhook.getSecret());
-        WEBHOOK_VALIDATOR.validateChannelsSubscribed(webhook.getEventProfileName(),
-                webhook.getEventsSubscribed());
+    }
+
+    private void doPreUpdateWebhookValidations(Webhook webhook) throws WebhookMgtException {
+
+        validateCommonWebhookFields(webhook);
+        // Secret is optional for update
+        if (StringUtils.isNotBlank(webhook.getSecret())) {
+            WEBHOOK_VALIDATOR.validateWebhookSecret(webhook.getSecret());
+        }
     }
 
     private void validateMaxWebhooksCount(String tenantDomain) throws WebhookMgtException {
