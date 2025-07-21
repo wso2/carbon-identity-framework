@@ -83,6 +83,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.Authenticati
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
@@ -206,7 +207,6 @@ import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSEN
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
@@ -6158,6 +6158,29 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
+    public String getSharedAppId(String mainAppId, String ownerOrgId, String sharedOrgId)
+            throws IdentityApplicationManagementServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(connection,
+                     ApplicationMgtDBQueries.GET_SHARED_APP_ID_BY_MAIN_APP_ID)) {
+            namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID, mainAppId);
+            namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID, ownerOrgId);
+            namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SHARED_ORG_ID, sharedOrgId);
+            try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getString(DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID);
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while getting shared application id for the main application with id: %s " +
+                            "in organization: %s for shared organization: %s", mainAppId, ownerOrgId, sharedOrgId), e);
+        }
+        return null;
+    }
+
+    @Override
     public String getOwnerOrgId(String sharedAppId) throws IdentityApplicationManagementServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
@@ -6705,7 +6728,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      */
     private void audit(String action, String data, String result) {
 
-        if (isLegacyAuditLogsDisabled()) {
+        if (LoggerUtils.isEnableV2AuditLogs()) {
             return;
         }
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();

@@ -939,6 +939,12 @@
   "console.i18n_resource_path": "",
   "console.login_callback_path": "",
   "console.logout_callback_path": "",
+  "console.remote_logging.enabled": true,
+  "console.remote_logging.scopes.feature": [],
+  "console.remote_logging.scopes.create": [],
+  "console.remote_logging.scopes.read": [],
+  "console.remote_logging.scopes.update": [],
+  "console.remote_logging.scopes.delete": [],
   "console.route_paths.home": "/getting-started",
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
@@ -1210,6 +1216,8 @@
   "console.ui.is_cookie_consent_banner_enabled": false,
   "console.ui.is_editing_system_roles_allowed": true,
   "console.ui.cookie_policy_url": "/authenticationendpoint/cookie_policy.do",
+  "console.ui.privacy_policy_url": "/authenticationendpoint/privacy_policy.do",
+  "console.ui.terms_of_service_url": "https://wso2.com/terms-of-use",
   "console.ui.app_title": "WSO2 Identity Server Console",
   "console.ui.app_name": "Console",
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
@@ -1320,7 +1328,7 @@
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.disabled_features": [],
+  "console.ai.disabled_features": ["ai.flows.types.list.registration"],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
   "console.ai.scopes.read": [],
@@ -1398,10 +1406,7 @@
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
   "console.flows.enabled": true,
   "console.flows.scopes.feature": ["console:flows"],
-  "console.flows.disabled_features": [
-    "flows.types.list.inviteUserToSetPassword",
-    "flows.types.list.passwordRecovery"
-  ],
+  "console.flows.disabled_features": [],
   "console.flows.scopes.create": [],
   "console.flows.scopes.read": [],
   "console.flows.scopes.update": [],
@@ -1857,6 +1862,8 @@
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
+  "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+  "organization_discovery.default_param": "orgName",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
@@ -1881,6 +1888,15 @@
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
 
+  "outbound_adapters.httppublisher.enabled": true,
+  "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
+  "outbound_adapters.httppublisher.httpReadTimeout": "5000",
+  "outbound_adapters.httppublisher.httpConnectionRequestTimeout": "5000",
+  "outbound_adapters.httppublisher.connectionHandshakeTimeout": "5000",
+  "outbound_adapters.httppublisher.defaultMaxConnections": "20",
+  "outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute": "20",
+  "outbound_adapters.httppublisher.type": "Publisher",
+
   "webhooks.maximum_webhooks_per_tenant": "10",
 
   "oauth.authorize_all_scopes": false,
@@ -1895,6 +1911,10 @@
 
   "attribute.return_previous_additional_properties.enabled": false,
 
-  "agent_identity.enabled": false
+  "agent_identity.enabled": false,
+
+  "session_management.filter_by_unique_session_id_for_user": false,
+
+  "flow_execution.user_assertion.expiry_time": "2000"
 }
 

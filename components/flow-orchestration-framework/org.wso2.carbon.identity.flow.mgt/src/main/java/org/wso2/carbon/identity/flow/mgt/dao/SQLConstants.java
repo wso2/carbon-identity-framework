@@ -30,7 +30,9 @@ public class SQLConstants {
     public static final String INSERT_FLOW_NODE_INFO =
             "INSERT INTO IDN_FLOW_NODE (NODE_ID, FLOW_ID, NODE_TYPE, IS_FIRST_NODE) VALUES (?, ?, ?, ?)";
     public static final String INSERT_NODE_EXECUTOR_INFO =
-            "INSERT INTO IDN_FLOW_NODE_EXECUTOR (FLOW_NODE_ID, EXECUTOR_NAME, IDP_NAME) VALUES (?, ?, ?)";
+            "INSERT INTO IDN_FLOW_NODE_EXECUTOR (FLOW_NODE_ID, EXECUTOR_NAME) VALUES (?, ?)";
+    public static final String INSERT_NODE_EXECUTOR_META =
+            "INSERT INTO IDN_FLOW_NODE_EXECUTOR_META (EXECUTOR_ID, METADATA_NAME, METADATA_VALUE) VALUES (?, ?, ?)";
     public static final String INSERT_NODE_EDGES =
             "INSERT INTO IDN_FLOW_NODE_MAPPING (FLOW_NODE_ID, NEXT_NODE_ID, TRIGGERING_ELEMENT) VALUES (?, ?, ?)";
     public static final String INSERT_FLOW_PAGE_INFO =
@@ -43,11 +45,11 @@ public class SQLConstants {
                     ".COORDINATE_Y, M.HEIGHT, M.WIDTH " +
                     "FROM IDN_FLOW F JOIN IDN_FLOW_PAGE P ON F.ID = P.FLOW_ID " +
                     "LEFT JOIN IDN_FLOW_PAGE_META M ON P.ID = M.PAGE_ID " +
-                    "WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = ? AND F.TYPE = ?;";
+                    "WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = ? AND F.TYPE = ?";
 
     public static final String GET_NODES_WITH_MAPPINGS_QUERY =
             "SELECT f.ID AS FLOW_ID, n.NODE_ID, n.NODE_TYPE, n.IS_FIRST_NODE, " +
-                    "ne.EXECUTOR_NAME, ne.IDP_NAME, " +
+                    "ne.EXECUTOR_NAME, ne.ID as EXECUTOR_ID, ne.IDP_NAME, " +
                     "nextNode.NODE_ID AS NEXT_NODE_ACTUAL_ID, nm.TRIGGERING_ELEMENT " +
                     "FROM IDN_FLOW f " +
                     "JOIN IDN_FLOW_NODE n ON f.ID = n.FLOW_ID " +
@@ -55,15 +57,18 @@ public class SQLConstants {
                     "LEFT JOIN IDN_FLOW_NODE_MAPPING nm ON n.ID = nm.FLOW_NODE_ID " +
                     "LEFT JOIN IDN_FLOW_NODE nextNode ON nm.NEXT_NODE_ID = nextNode.ID " +
                     "WHERE f.TENANT_ID = ? AND f.IS_DEFAULT = ? AND f.TYPE = ? " +
-                    "ORDER BY n.NODE_ID;";
+                    "ORDER BY n.NODE_ID";
 
     public static final String GET_VIEW_PAGES_IN_FLOW =
             "SELECT n.NODE_ID, p.STEP_ID, p.PAGE_CONTENT FROM IDN_FLOW_PAGE p " +
-                    "JOIN IDN_FLOW_NODE n ON p.FLOW_NODE_ID = n.ID WHERE p.FLOW_ID = ? AND p.TYPE = ?;";
+                    "JOIN IDN_FLOW_NODE n ON p.FLOW_NODE_ID = n.ID WHERE p.FLOW_ID = ? AND p.TYPE = ?";
 
     public static final String GET_FIRST_STEP_ID = "SELECT fp.STEP_ID FROM IDN_FLOW_PAGE fp JOIN IDN_FLOW_NODE fn" +
             " ON fp.FLOW_NODE_ID = fn.ID JOIN IDN_FLOW f ON fn.FLOW_ID = f.ID WHERE fn.IS_FIRST_NODE = ? AND" +
-            " f.TENANT_ID = ? AND f.TYPE = ?;";
+            " f.TENANT_ID = ? AND f.TYPE = ?";
+
+    public static final String GET_NODE_EXECUTOR_META =
+            "SELECT METADATA_NAME, METADATA_VALUE FROM IDN_FLOW_NODE_EXECUTOR_META WHERE EXECUTOR_ID = ?";
 
     private SQLConstants() {
 
@@ -87,6 +92,9 @@ public class SQLConstants {
         public static final String DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT = "TRIGGERING_ELEMENT";
         public static final String DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME = "EXECUTOR_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_IDP_NAME = "IDP_NAME";
+        public static final String DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID = "EXECUTOR_ID";
+        public static final String DB_SCHEMA_COLUMN_NAME_METADATA_NAME = "METADATA_NAME";
+        public static final String DB_SCHEMA_COLUMN_NAME_METADATA_VALUE = "METADATA_VALUE";
 
         public static final String DB_SCHEMA_ALIAS_FLOW_ID = "FLOW_ID";
         public static final String DB_SCHEMA_ALIAS_NEXT_NODE_ID = "NEXT_NODE_ACTUAL_ID";

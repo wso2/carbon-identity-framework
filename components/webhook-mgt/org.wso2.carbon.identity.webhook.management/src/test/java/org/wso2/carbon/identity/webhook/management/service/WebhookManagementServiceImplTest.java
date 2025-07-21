@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.webhook.management.internal.component.WebhookMan
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
@@ -65,21 +66,22 @@ public class WebhookManagementServiceImplTest {
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic;
     private MockedStatic<WebhookManagementComponentServiceHolder> webhookComponentHolderMockedStatic;
     private WebhookMetadataService webhookMetadataService;
+    private WebhookManagementComponentServiceHolder holder;
 
     public static final String WEBHOOK_ID = "webhookId";
     public static final String TENANT_DOMAIN = "test.com";
     public static final int TENANT_ID = 1;
     public static final String WEBHOOK_ENDPOINT = "https://example.com/webhook";
+    private static final String WEBSUBHUBADAPTER = "webSubHubAdapter";
 
     @BeforeClass
     public void setUpClass() throws WebhookMetadataException {
 
-        webhookManagementService = WebhookManagementServiceImpl.getInstance();
         identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
 
         webhookComponentHolderMockedStatic = mockStatic(WebhookManagementComponentServiceHolder.class);
-        WebhookManagementComponentServiceHolder holder = mock(WebhookManagementComponentServiceHolder.class);
+        holder = mock(WebhookManagementComponentServiceHolder.class); // Use class field
         webhookMetadataService = mock(WebhookMetadataService.class);
 
         webhookComponentHolderMockedStatic.when(WebhookManagementComponentServiceHolder::getInstance)
@@ -103,7 +105,12 @@ public class WebhookManagementServiceImplTest {
     @BeforeMethod
     public void setUp() throws Exception {
 
+        Adapter webhookAdapterMock = mock(Adapter.class);
+        when(holder.getWebhookAdapter()).thenReturn(webhookAdapterMock);
+        when(webhookAdapterMock.getName()).thenReturn(WEBSUBHUBADAPTER);
+
         webhookManagementDAO = mock(WebhookManagementDAO.class);
+        webhookManagementService = WebhookManagementServiceImpl.getInstance();
         Field daoField = WebhookManagementServiceImpl.class.getDeclaredField("daoFACADE");
         daoField.setAccessible(true);
         daoField.set(webhookManagementService, webhookManagementDAO);
@@ -121,7 +128,7 @@ public class WebhookManagementServiceImplTest {
         when(inputWebhook.getEventProfileUri()).thenReturn("uri");
         when(inputWebhook.getCreatedAt()).thenReturn(null);
         when(inputWebhook.getUpdatedAt()).thenReturn(null);
-        // Provide a non-empty list for eventsSubscribed
+
         Subscription subscription =
                 Subscription.builder().channelUri("schemas.identity.wso2.org/events/logins").build();
         when(inputWebhook.getEventsSubscribed()).thenReturn(Collections.singletonList(subscription));
@@ -286,35 +293,36 @@ public class WebhookManagementServiceImplTest {
         assertEquals(result, updatedWebhook);
     }
 
-    @Test(expectedExceptions = WebhookMgtClientException.class,
-            expectedExceptionsMessageRegExp = "Webhook already active")
-    public void testRetryWebhook_AlreadyActive() throws WebhookMgtException {
-
-        Webhook webhook = mock(Webhook.class);
-        when(webhook.getStatus()).thenReturn(WebhookStatus.ACTIVE);
-        when(webhook.getName()).thenReturn("activeWebhook");
-        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
-
-        webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
-    }
-
-    @Test(expectedExceptions = WebhookMgtClientException.class,
-            expectedExceptionsMessageRegExp = "Webhook already inactive")
-    public void testRetryWebhook_AlreadyInactive() throws WebhookMgtException {
-
-        Webhook webhook = mock(Webhook.class);
-        when(webhook.getStatus()).thenReturn(WebhookStatus.INACTIVE);
-        when(webhook.getName()).thenReturn("inactiveWebhook");
-        when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(webhook);
-
-        webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
-    }
-
     @Test(expectedExceptions = WebhookMgtClientException.class, expectedExceptionsMessageRegExp = "Webhook not found")
     public void testRetryWebhook_NotFound() throws WebhookMgtException {
 
         when(webhookManagementDAO.getWebhook(WEBHOOK_ID, TENANT_ID)).thenReturn(null);
 
         webhookManagementService.retryWebhook(WEBHOOK_ID, TENANT_DOMAIN);
+    }
+
+    @Test
+    public void testGetActiveWebhooks() throws WebhookMgtException {
+
+        String eventProfileName = "profile";
+        String eventProfileVersion = "v1";
+        String channelUri = "schemas.identity.wso2.org/events/logins";
+
+        List<Webhook> activeWebhooks = new ArrayList<>();
+        Webhook webhook1 = mock(Webhook.class);
+        Webhook webhook2 = mock(Webhook.class);
+        activeWebhooks.add(webhook1);
+        activeWebhooks.add(webhook2);
+
+        when(webhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, TENANT_ID))
+                .thenReturn(activeWebhooks);
+
+        List<Webhook> result = webhookManagementService.getActiveWebhooks(
+                eventProfileName, eventProfileVersion, channelUri, TENANT_DOMAIN);
+
+        verify(webhookManagementDAO).getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, TENANT_ID);
+        assertEquals(result.size(), 2);
+        assertEquals(result.get(0), webhook1);
+        assertEquals(result.get(1), webhook2);
     }
 }

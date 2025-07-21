@@ -27,6 +27,8 @@ public class Constants {
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
     public static final String END_NODE_ID = "END";
 
+    public static final String IDP_NAME = "idpName";
+
     private Constants() {
 
     }
@@ -56,6 +58,12 @@ public class Constants {
                 "Unexpected server error while retrieving the first step id for tenant, %s"),
         ERROR_CODE_CLEAR_CACHE_FAILED("65008", "Error while clearing the cache.",
                 "Unexpected server error while clearing the cache for tenant, %s"),
+        ERROR_CODE_ADDING_FLOW_CONFIG("65009", "Error while adding the flow config.",
+                "Unexpected server error while adding the flow config for tenant, %s"),
+        ERROR_CODE_GETTING_FLOW_CONFIG("65010", "Error while retrieving the flow config.",
+                "Unexpected server error while retrieving the flow config for tenant, %s"),
+        ERROR_CODE_UPDATING_FLOW_CONFIG("65011", "Error while updating the flow config.",
+                "Unexpected server error while updating the flow config for tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -119,6 +127,25 @@ public class Constants {
         public String toString() {
 
             return code + ":" + message;
+        }
+    }
+
+    public enum FlowTypes {
+
+        REGISTRATION("REGISTRATION"),
+        PASSWORD_RECOVERY("PASSWORD_RECOVERY"),
+        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION");
+
+        private final String type;
+
+        FlowTypes(String type) {
+
+            this.type = type;
+        }
+
+        public String getType() {
+
+            return type;
         }
     }
 
@@ -186,6 +213,22 @@ public class Constants {
         public static final String USER_ONBOARDING = "UserOnboardingExecutor";
 
         private ExecutorTypes() {
+
+        }
+    }
+
+    /**
+     * Constants for the flow configurations.
+     */
+    public static class FlowConfigConstants {
+
+        public static final String RESOURCE_TYPE = "flow-mgt-config";
+        public static final String RESOURCE_NAME_PREFIX = "flow-mgt-config-";
+        public static final String FLOW_TYPE = "flowType";
+        public static final String IS_ENABLED = "isEnabled";
+        public static final String IS_AUTO_LOGIN_ENABLED = "isAutoLoginEnabled";
+
+        private FlowConfigConstants() {
 
         }
     }

@@ -29,21 +29,30 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -70,7 +79,9 @@ public class IdPManagementUtilTest {
     private static final String PASSWORD_RECOVERY_EMAIL_OTP_ENABLE =
             "Recovery.Notification.Password.OTP.SendOTPInEmail";
     private static final String PASSWORD_RECOVERY_SMS_OTP_ENABLE = "Recovery.Notification.Password.smsOtp.Enable";
-
+    private static final String IDP_NAME = "testIdP";
+    private static final int TENANT_ID = 1;
+    private static final String TENANT_DOMAIN = "test.com";
 
     @Mock
     private IdentityProviderManager mockedIdentityProviderManager;
@@ -82,6 +93,8 @@ public class IdPManagementUtilTest {
     private TenantManager mockedTenantManager;
     @Mock
     private RealmService mockedRealmService;
+    @Mock
+    private CacheBackedIdPMgtDAO mockDao;
 
     @DataProvider
     public Object[][] getTenantIdOfDomainData() {
@@ -234,6 +247,33 @@ public class IdPManagementUtilTest {
         IdPManagementUtil.setTenantSpecifiers(tenantDomain);
         assertEquals(IdPManagementUtil.getTenantContext(), tenantContext);
         assertEquals(IdPManagementUtil.getTenantParameter(), tenantParameter);
+    }
+
+    @Test
+    public void testClearIdPCache() throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN))
+                    .thenReturn(TENANT_ID);
+
+            // Since the dao is a private final field, using reflection to change the access modifier and
+            // replace it with a mock object. Since this is a simple test, this won't introduce any complexities.
+            Field daoField = IdPManagementUtil.class.getDeclaredField("CACHE_BACKED_IDP_MGT_DAO");
+            daoField.setAccessible(true);
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(daoField, daoField.getModifiers() & ~Modifier.FINAL);
+            daoField.set(null, mockDao);
+
+            IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
+            verify(mockDao, times(1)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+
+            doThrow(new IdentityProviderManagementException("Test exception")).when(mockDao)
+                    .clearIdpCache(anyString(), anyInt(), anyString());
+            // Checking if the exception is handled gracefully.
+            IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
+            verify(mockDao, times(2)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+        }
     }
 
     @Test
@@ -413,7 +453,6 @@ public class IdPManagementUtilTest {
                 {adminPasswordResetConfig12, adminPasswordResetIdentityPropsEmailOtpEnabled, false}
         };
     }
-
 
     @DataProvider(name = "passwordRecoveryConfigsWithIdpMgtProps")
     public Object[][] setPasswordRecoveryConfigsWithIpdMgtProps() {

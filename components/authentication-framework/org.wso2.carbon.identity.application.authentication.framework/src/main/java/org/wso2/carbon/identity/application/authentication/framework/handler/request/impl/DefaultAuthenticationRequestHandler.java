@@ -1232,6 +1232,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void addAuditLogs(String sessionAction, AuthenticatedUser authenticatedUser, String sessionKey,
                               String traceId, Long lastAccessedTimestamp, boolean isRememberMe) {
 
+        if (LoggerUtils.isEnableV2AuditLogs()) {
+            return;
+        }
         String userTenantDomain = authenticatedUser.getTenantDomain();
         boolean isFederated = authenticatedUser.isFederatedUser();
         String username = authenticatedUser.getUserName();

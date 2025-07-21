@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>webhook-mgt</artifactId>
-        <version>7.8.285-SNAPSHOT</version>
+        <version>7.8.322-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -45,6 +45,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.webhook.metadata</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -110,6 +114,8 @@
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
+                            org.wso2.carbon.identity.webhook.metadata.api.*;
+                            version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                         </Import-Package>
                     </instructions>

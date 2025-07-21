@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.flow.mgt.model;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * DTO class for Executor.
@@ -27,7 +29,7 @@ public class ExecutorDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private String name;
-    private String idpName;
+    private Map<String, String> metadata;
 
     public ExecutorDTO() {
 
@@ -36,7 +38,7 @@ public class ExecutorDTO implements Serializable {
     private ExecutorDTO(Builder builder) {
 
         this.name = builder.name;
-        this.idpName = builder.idpName;
+        this.metadata = builder.metadata;
     }
 
     public ExecutorDTO(String name) {
@@ -44,10 +46,10 @@ public class ExecutorDTO implements Serializable {
         this.name = name;
     }
 
-    public ExecutorDTO(String name, String idpName) {
+    public ExecutorDTO(String name, Map<String, String> metadata) {
 
         this.name = name;
-        this.idpName = idpName;
+        this.metadata = metadata;
     }
 
     public String getName() {
@@ -60,14 +62,30 @@ public class ExecutorDTO implements Serializable {
         this.name = name;
     }
 
-    public String getIdpName() {
+    public Map<String, String> getMetadata() {
 
-        return idpName;
+        return metadata;
+    }
+
+    public void addMetadata(String key, String value) {
+
+        if (this.metadata == null) {
+            this.metadata = new HashMap<>();
+        }
+        this.metadata.put(key, value);
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+
+        this.metadata = metadata;
     }
 
     public void setIdpName(String idpName) {
 
-        this.idpName = idpName;
+        if (metadata == null) {
+            metadata = new HashMap<>();
+        }
+        metadata.put("idpName", idpName);
     }
 
     /**
@@ -76,7 +94,7 @@ public class ExecutorDTO implements Serializable {
     public static class Builder {
 
         private String name;
-        private String idpName;
+        private Map<String, String> metadata;
 
         public Builder name(String name) {
 
@@ -84,9 +102,9 @@ public class ExecutorDTO implements Serializable {
             return this;
         }
 
-        public Builder idpName(String idpName) {
+        public Builder metadata(Map<String, String> metadata) {
 
-            this.idpName = idpName;
+            this.metadata = metadata;
             return this;
         }
 

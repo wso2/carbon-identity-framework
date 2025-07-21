@@ -911,17 +911,15 @@ public class RoleDAOImpl implements RoleDAO {
                 }
             } else {
                 conflictingRoles.add(roleDTO);
-                if (LoggerUtils.isEnableV2AuditLogs()) {
-                    String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-                    AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                            IdentityUtil.getInitiatorId(username, tenantDomain),  LoggerUtils.Target.User.name(),
-                            roleDTO.getName(), LoggerUtils.Target.Role.name(),
-                            LogConstants.UserManagement.UPDATE_ROLE_NAME_ACTION)
-                            .data(buildAuditData(roleSharedOrganization, roleDTO.getName(), newRoleName,
-                                    "Role conflict"));
-                    LoggerUtils.triggerAuditLogEvent(auditLogBuilder, true);
-                }
+                String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+                String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                        IdentityUtil.getInitiatorId(username, tenantDomain),  LoggerUtils.Target.User.name(),
+                        roleDTO.getName(), LoggerUtils.Target.Role.name(),
+                        LogConstants.UserManagement.UPDATE_ROLE_NAME_ACTION)
+                        .data(buildAuditData(roleSharedOrganization, roleDTO.getName(), newRoleName,
+                                "Role conflict"));
+                LoggerUtils.triggerAuditLogEvent(auditLogBuilder);
                 LOG.warn(String.format("Organization %s has a non shared role with name %s, ", roleSharedOrganization,
                         newRoleName));
             }
