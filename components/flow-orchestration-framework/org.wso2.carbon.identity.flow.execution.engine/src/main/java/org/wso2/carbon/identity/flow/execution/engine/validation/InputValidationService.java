@@ -231,6 +231,15 @@ public class InputValidationService {
             context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
             context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
         }
+
+        // If there are no action components, set the required params as the step inputs with the default action.
+        // This is to handle cases where the flow temporarily ends with static view and expects inputs when the flow
+        // resumes.
+        if ((dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) &&
+                context.getCurrentStepInputs().isEmpty()) {
+            context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+            context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+        }
     }
 
 
