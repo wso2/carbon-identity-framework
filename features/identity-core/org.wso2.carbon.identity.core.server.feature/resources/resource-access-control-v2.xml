@@ -844,6 +844,9 @@
     </Resource>
 
     <!-- Shared Application Management API -->
+    <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="PATCH">
+        <Scopes>internal_shared_application_create</Scopes>
+    </Resource>
     <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="GET">
         <Scopes>internal_shared_application_view</Scopes>
     </Resource>
