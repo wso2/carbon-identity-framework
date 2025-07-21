@@ -135,7 +135,6 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             throw WebhookManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
-        validateMaxWebhooksCount(tenantDomain);
         doPreUpdateWebhookValidations(webhook);
         daoFACADE.updateWebhook(webhook, tenantId);
         return daoFACADE.getWebhook(webhookId, tenantId);
