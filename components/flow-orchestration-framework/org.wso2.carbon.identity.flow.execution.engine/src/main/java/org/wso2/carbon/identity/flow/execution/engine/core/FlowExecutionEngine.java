@@ -194,12 +194,22 @@ public class FlowExecutionEngine {
                                                    FlowExecutionContext context, NodeResponse nodeResponse) {
 
         DataDTO dataDTO = graph.getNodePageMappings().get(currentNode.getId()).getData();
-        handleError(dataDTO, nodeResponse);
+
+        DataDTO finalDataDTO = null;
+        if (dataDTO != null) {
+            finalDataDTO = new DataDTO.Builder()
+                    .components(dataDTO.getComponents())
+                    .requiredParams(nodeResponse.getRequiredData())
+                    .additionalData(dataDTO.getAdditionalData())
+                    .build();
+            handleError(finalDataDTO, nodeResponse);
+        }
+
         return new FlowExecutionStep.Builder()
                 .flowId(context.getContextIdentifier())
                 .flowStatus(STATUS_INCOMPLETE)
                 .stepType(VIEW)
-                .data(dataDTO)
+                .data(finalDataDTO)
                 .build();
     }
 
