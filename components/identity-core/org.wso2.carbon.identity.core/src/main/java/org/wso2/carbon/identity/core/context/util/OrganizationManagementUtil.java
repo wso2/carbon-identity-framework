@@ -50,6 +50,10 @@ public class OrganizationManagementUtil {
     private static final Pattern PATTERN_ORG_CONTEXT_IN_TENANT_PERSPECTIVE =
             Pattern.compile("^/t/[^/]+/o/[a-f0-9\\-]+?");
 
+    private OrganizationManagementUtil() {
+        // Private constructor to prevent instantiation.
+    }
+
     /**
      * Initializes the organization information in the IdentityContext based on the request URI.
      *
