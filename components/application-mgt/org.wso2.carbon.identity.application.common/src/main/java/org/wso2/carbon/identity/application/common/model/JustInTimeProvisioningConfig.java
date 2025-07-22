@@ -28,6 +28,7 @@ import java.util.Iterator;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -38,6 +39,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class JustInTimeProvisioningConfig extends InboundProvisioningConfig implements Serializable {
 
     private static final long serialVersionUID = 6754801699494009980L;
+    private static final String FILE_ELEMENT_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING_CONFIG_WRAPPER =
+            "AccountLookupAttributeMappingConfigs";
+
+    private static final String FILE_ELEMENT_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING_CONFIG =
+            "AccountLookupAttributeMappingConfig";
 
     @XmlElement(name = "IsPasswordProvisioningEnabled")
     private boolean passwordProvisioningEnabled = false;
@@ -49,6 +55,10 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     private boolean promptConsent = false;
     @XmlElement(name = "EnableAssociateLocalUser")
     private boolean associateLocalUserEnabled = false;
+    @XmlElementWrapper(name = FILE_ELEMENT_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING_CONFIG_WRAPPER)
+    @XmlElement(name = FILE_ELEMENT_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING_CONFIG)
+    AccountLookupAttributeMappingConfig[]
+            accountLookupAttributeMappingConfigs = new AccountLookupAttributeMappingConfig[0];
     @XmlElement(name = "AttributeSyncMethod")
     private String attributeSyncMethod;
 
@@ -144,6 +154,27 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     public boolean isAssociateLocalUserEnabled() {
 
         return associateLocalUserEnabled;
+    }
+
+    /**
+     * To get the account lookup attribute mappings.
+     *
+     * @return account lookup attribute mappings.
+     */
+    public AccountLookupAttributeMappingConfig[] getAccountLookupAttributeMappings() {
+
+        return accountLookupAttributeMappingConfigs;
+    }
+
+    /**
+     * To set the account lookup attribute mappings.
+     *
+     * @param accountLookupAttributeMappingConfigs to specify the account lookup attribute mappings.
+     */
+    public void setAccountLookupAttributeMappings(
+            AccountLookupAttributeMappingConfig[] accountLookupAttributeMappingConfigs) {
+
+        this.accountLookupAttributeMappingConfigs = accountLookupAttributeMappingConfigs;
     }
 
     /**

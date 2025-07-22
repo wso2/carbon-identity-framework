@@ -28,6 +28,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.application.common.model.AccountLookupAttributeMappingConfig;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -103,6 +104,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -111,7 +113,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Date;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -3571,7 +3572,8 @@ public class IdPManagementDAO {
      */
     private List<IdentityProviderProperty> filterIdentityProperties(IdentityProvider federatedIdp,
                                                                     List<IdentityProviderProperty>
-                                                                            identityProviderProperties) {
+                                                                            identityProviderProperties)
+            throws IdentityProviderManagementException {
 
         JustInTimeProvisioningConfig justInTimeProvisioningConfig = federatedIdp.getJustInTimeProvisioningConfig();
         FederatedAssociationConfig federatedAssociationConfig = new FederatedAssociationConfig();
@@ -3596,6 +3598,8 @@ public class IdPManagementDAO {
                     justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
                 }
             });
+            populateAccountLookupAttributes(justInTimeProvisioningConfig, identityProviderProperties.toArray(
+                    new IdentityProviderProperty[0]));
         }
 
         identityProviderProperties.forEach(identityProviderProperty -> {
@@ -3626,6 +3630,10 @@ public class IdPManagementDAO {
                         .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED) ||
                         IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.LOCAL_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.FEDERATED_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING
+                                .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
@@ -3633,6 +3641,73 @@ public class IdPManagementDAO {
                         IdPManagementConstants.LOOKUP_ATTRIBUTES
                                 .equals(identityProviderProperty.getName())));
         return identityProviderProperties;
+    }
+
+    private void populateAccountLookupAttributes(JustInTimeProvisioningConfig justInTimeProvisioningConfig,
+                                                 IdentityProviderProperty[] identityProviderProperties)
+            throws IdentityProviderManagementException {
+
+        IdentityProviderProperty localLookupAttributesProperty = IdentityApplicationManagementUtil
+                .getProperty(identityProviderProperties,
+                        IdPManagementConstants.LOCAL_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING);
+        IdentityProviderProperty federatedLookupAttributesProperty = IdentityApplicationManagementUtil
+                .getProperty(identityProviderProperties,
+                        IdPManagementConstants.FEDERATED_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING);
+        if (localLookupAttributesProperty == null && federatedLookupAttributesProperty == null) {
+            return;
+        }
+        if (localLookupAttributesProperty == null || federatedLookupAttributesProperty == null) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving account lookup attributes." +
+                    " Both local and federated lookup attributes must be configured for account linking.");
+        }
+        if (StringUtils.isBlank(localLookupAttributesProperty.getValue()) &&
+                StringUtils.isBlank(federatedLookupAttributesProperty.getValue())) {
+            return;
+        }
+        String[] localLookupAttributes = localLookupAttributesProperty.getValue().trim().split(",");
+        String[] federatedLookupAttributes = federatedLookupAttributesProperty.getValue().trim().split(",");
+
+        if (localLookupAttributes.length == 0 || federatedLookupAttributes.length == 0 ||
+                localLookupAttributes.length != federatedLookupAttributes.length) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving account lookup attributes." +
+                    " Local and federated lookup attributes are not matching.");
+        }
+        AccountLookupAttributeMappingConfig[] accountLookupAttributeMappingConfigs =
+                new AccountLookupAttributeMappingConfig[localLookupAttributes.length];
+        for (int i = 0; i < localLookupAttributes.length; i++) {
+            AccountLookupAttributeMappingConfig
+                    accountLookupAttributeMappingConfig = new AccountLookupAttributeMappingConfig();
+            accountLookupAttributeMappingConfig.setLocalAttribute(localLookupAttributes[i].trim());
+            accountLookupAttributeMappingConfig.setFederatedAttribute(federatedLookupAttributes[i].trim());
+            accountLookupAttributeMappingConfigs[i] = accountLookupAttributeMappingConfig;
+        }
+        justInTimeProvisioningConfig.setAccountLookupAttributeMappings(accountLookupAttributeMappingConfigs);
+    }
+
+    private void fillAccountLookUpAttributesIdpProperties(JustInTimeProvisioningConfig justInTimeProvisioningConfig,
+                                                          IdentityProviderProperty localLookupAttributesProperty,
+                                                          IdentityProviderProperty federatedLookupAttributesProperty) {
+
+        if (justInTimeProvisioningConfig == null) {
+            return;
+        }
+        if (justInTimeProvisioningConfig.getAccountLookupAttributeMappings() == null ||
+                justInTimeProvisioningConfig.getAccountLookupAttributeMappings().length == 0) {
+            return;
+        }
+        List<String> localAttributes = new ArrayList<>();
+        List<String> federatedAttributes = new ArrayList<>();
+        for (AccountLookupAttributeMappingConfig mapping : justInTimeProvisioningConfig.getAccountLookupAttributeMappings()) {
+            if (StringUtils.isNotBlank(mapping.getLocalAttribute())) {
+                localAttributes.add(mapping.getLocalAttribute());
+            }
+            if (StringUtils.isNotBlank(mapping.getFederatedAttribute())) {
+                federatedAttributes.add(mapping.getFederatedAttribute());
+            }
+        }
+
+        localLookupAttributesProperty.setValue(String.join(",", localAttributes));
+        federatedLookupAttributesProperty.setValue(String.join(",", federatedAttributes));
     }
 
     /**
@@ -4323,7 +4398,8 @@ public class IdPManagementDAO {
     private List<IdentityProviderProperty> getCombinedProperties(JustInTimeProvisioningConfig
                                                                          justInTimeProvisioningConfig,
                                                                  FederatedAssociationConfig federatedAssociationConfig,
-                                                                 IdentityProviderProperty[] idpProperties) {
+                                                                 IdentityProviderProperty[] idpProperties)
+            throws IdentityProviderManagementException {
 
         List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
         if (ArrayUtils.isNotEmpty(idpProperties)) {
@@ -4345,6 +4421,12 @@ public class IdPManagementDAO {
         associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
         associateLocalUser.setValue("false");
 
+        IdentityProviderProperty federatedLookupAttributes = new IdentityProviderProperty();
+        federatedLookupAttributes.setName(IdPManagementConstants.FEDERATED_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING);
+
+        IdentityProviderProperty localLookupAttributes = new IdentityProviderProperty();
+        localLookupAttributes.setName(IdPManagementConstants.LOCAL_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING);
+
         IdentityProviderProperty federatedAssociationProperty = new IdentityProviderProperty();
         federatedAssociationProperty.setName(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED);
         federatedAssociationProperty.setValue(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED_DEFAULT_VALUE);
@@ -4364,6 +4446,8 @@ public class IdPManagementDAO {
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
             associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
+            fillAccountLookUpAttributesIdpProperties(justInTimeProvisioningConfig, localLookupAttributes,
+                    federatedLookupAttributes);
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
 
@@ -4378,6 +4462,8 @@ public class IdPManagementDAO {
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
         identityProviderProperties.add(associateLocalUser);
+        identityProviderProperties.add(federatedLookupAttributes);
+        identityProviderProperties.add(localLookupAttributes);
         identityProviderProperties.add(attributeSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
         if (lookupAttribute != null) {

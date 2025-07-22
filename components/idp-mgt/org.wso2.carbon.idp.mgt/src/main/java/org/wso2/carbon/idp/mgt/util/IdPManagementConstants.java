@@ -99,6 +99,10 @@ public class IdPManagementConstants {
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
     public static final String ASSOCIATE_LOCAL_USER_ENABLED = "ASSOCIATE_LOCAL_USER_ENABLED";
+    public static final String FEDERATED_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING =
+            "FEDERATED_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING";
+    public static final String LOCAL_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING =
+            "LOCAL_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING";
     public static final String SYNC_ATTRIBUTE_METHOD = "SYNC_ATTRIBUTE_METHOD";
     public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
