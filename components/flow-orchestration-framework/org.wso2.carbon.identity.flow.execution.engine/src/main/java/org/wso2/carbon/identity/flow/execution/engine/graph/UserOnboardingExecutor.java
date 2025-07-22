@@ -134,10 +134,17 @@ public class UserOnboardingExecutor implements Executor {
             }
         });
         user.setUsername(resolveUsername(user));
-        Boolean isUsernamePatternValidationSkipped = Boolean.parseBoolean((String) context.getProperty(
-                USERNAME_PATTERN_VALIDATION_SKIPPED));
-        UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(isUsernamePatternValidationSkipped);
+        setUsernamePatternValidation(context);
         return user;
+    }
+
+    private static void setUsernamePatternValidation(FlowExecutionContext context) {
+
+        Boolean isUsernamePatternValidationSkipped = (Boolean) context.getProperty(USERNAME_PATTERN_VALIDATION_SKIPPED);
+        if (isUsernamePatternValidationSkipped == null) {
+            isUsernamePatternValidationSkipped = false;
+        }
+        UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(isUsernamePatternValidationSkipped);
     }
 
     private UserStoreManager getUserStoreManager(String tenantDomain, String userdomain, String flowId, String flowType)
