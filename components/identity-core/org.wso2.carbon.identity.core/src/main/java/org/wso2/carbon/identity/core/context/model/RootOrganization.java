@@ -19,35 +19,50 @@
 package org.wso2.carbon.identity.core.context.model;
 
 /**
- * Represents the root organization in the context of an identity flow.
+ * Represents the tenant information in the context of an identity flow.
  * When the flow is an organization flow, this class holds the details of the root organization.
  */
 public class RootOrganization {
 
     private final int id;
-    private final String name;
-    private final String organizationId;
+    private final String domain;
+    private final String associatedOrganizationUUID;
 
     private RootOrganization(Builder builder) {
 
         this.id = builder.id;
-        this.name = builder.name;
-        this.organizationId = builder.organizationId;
+        this.domain = builder.domain;
+        this.associatedOrganizationUUID = builder.associatedOrganizationUUID;
     }
 
+    /**
+     * Returns the integer ID of the tenant.
+     *
+     * @return ID of the tenant.
+     */
     public int getId() {
 
         return id;
     }
 
-    public String getName() {
+    /**
+     * Returns the tenant domain of the tenant.
+     *
+     * @return tenant domain of the tenant.
+     */
+    public String getDomain() {
 
-        return name;
+        return domain;
     }
 
-    public String getOrganizationId() {
+    /**
+     * Returns the UUID of the organization associated with the tenant.
+     *
+     * @return UUID of the associated organization.
+     */
+    public String getAssociatedOrganizationUUID() {
 
-        return organizationId;
+        return associatedOrganizationUUID;
     }
 
     /**
@@ -56,21 +71,21 @@ public class RootOrganization {
     public static class Builder {
 
         private int id;
-        private String name;
-        private String organizationId;
+        private String domain;
+        private String associatedOrganizationUUID;
 
         public Builder id(int id) {
             this.id = id;
             return this;
         }
 
-        public Builder name(String name) {
-            this.name = name;
+        public Builder domain(String domain) {
+            this.domain = domain;
             return this;
         }
 
-        public Builder organizationId(String organizationId) {
-            this.organizationId = organizationId;
+        public Builder associatedOrganizationUUID(String associatedOrganizationUUID) {
+            this.associatedOrganizationUUID = associatedOrganizationUUID;
             return this;
         }
 
