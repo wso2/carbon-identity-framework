@@ -24,45 +24,44 @@ package org.wso2.carbon.identity.core.context.model;
  */
 public class RootOrganization {
 
-    private final int id;
-    private final String domain;
-    private final String associatedOrganizationUUID;
+    private final int associatedTenantId;
+    private final String associatedTenantDomain;
+    private final String organizationId;
 
     private RootOrganization(Builder builder) {
 
-        this.id = builder.id;
-        this.domain = builder.domain;
-        this.associatedOrganizationUUID = builder.associatedOrganizationUUID;
+        this.associatedTenantId = builder.associatedTenantId;
+        this.associatedTenantDomain = builder.associatedTenantDomain;
+        this.organizationId = builder.organizationId;
     }
 
     /**
-     * Returns the integer ID of the tenant.
-     *
+     * Returns the integer ID of the tenant associated with the root organization.
      * @return ID of the tenant.
      */
-    public int getId() {
+    public int getAssociatedTenantId() {
 
-        return id;
+        return associatedTenantId;
     }
 
     /**
-     * Returns the tenant domain of the tenant.
+     * Returns the tenant domain of the tenant associated with the root organization.
      *
      * @return tenant domain of the tenant.
      */
-    public String getDomain() {
+    public String getAssociatedTenantDomain() {
 
-        return domain;
+        return associatedTenantDomain;
     }
 
     /**
-     * Returns the UUID of the organization associated with the tenant.
+     * Returns the id of the organization associated with the root organization.
      *
-     * @return UUID of the associated organization.
+     * @return Id of the root organization.
      */
-    public String getAssociatedOrganizationUUID() {
+    public String getOrganizationId() {
 
-        return associatedOrganizationUUID;
+        return organizationId;
     }
 
     /**
@@ -70,26 +69,30 @@ public class RootOrganization {
      */
     public static class Builder {
 
-        private int id;
-        private String domain;
-        private String associatedOrganizationUUID;
+        private int associatedTenantId;
+        private String associatedTenantDomain;
+        private String organizationId;
 
-        public Builder id(int id) {
-            this.id = id;
+        public Builder associatedTenantId(int associatedTenantId) {
+
+            this.associatedTenantId = associatedTenantId;
             return this;
         }
 
-        public Builder domain(String domain) {
-            this.domain = domain;
+        public Builder associatedTenantDomain(String associatedTenantDomain) {
+
+            this.associatedTenantDomain = associatedTenantDomain;
             return this;
         }
 
-        public Builder associatedOrganizationUUID(String associatedOrganizationUUID) {
-            this.associatedOrganizationUUID = associatedOrganizationUUID;
+        public Builder organizationId(String organizationId) {
+
+            this.organizationId = organizationId;
             return this;
         }
 
         public RootOrganization build() {
+
             return new RootOrganization(this);
         }
     }
