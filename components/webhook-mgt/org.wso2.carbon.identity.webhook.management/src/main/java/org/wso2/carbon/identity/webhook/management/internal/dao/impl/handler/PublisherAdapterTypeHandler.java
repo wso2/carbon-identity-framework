@@ -18,14 +18,17 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.dao.impl.handler;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
+import org.wso2.carbon.identity.webhook.management.api.model.WebhookStatus;
 import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
+import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
 
 import java.util.List;
 
@@ -90,20 +93,46 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     @Override
     public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        dao.activateWebhook(webhook, tenantId);
+        Webhook activatedWebhook = new Webhook.Builder()
+                .uuid(webhook.getId())
+                .endpoint(webhook.getEndpoint())
+                .name(webhook.getName())
+                .secret(webhook.getSecret())
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
+                .eventProfileVersion(webhook.getEventProfileVersion())
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(webhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
+        dao.activateWebhook(activatedWebhook, tenantId);
     }
 
     @Override
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        dao.deactivateWebhook(webhook, tenantId);
+        Webhook deactivatedWebhook = new Webhook.Builder()
+                .uuid(webhook.getId())
+                .endpoint(webhook.getEndpoint())
+                .name(webhook.getName())
+                .secret(webhook.getSecret())
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
+                .eventProfileVersion(webhook.getEventProfileVersion())
+                .status(WebhookStatus.INACTIVE)
+                .createdAt(webhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
+        dao.deactivateWebhook(deactivatedWebhook, tenantId);
     }
 
     @Override
     public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         throw WebhookManagementExceptionHandler.handleClientException(
-                ErrorMessage.ERROR_OPERATION_NOT_SUPPORTED, webhook.getId());
+                ErrorMessage.ERROR_OPERATION_NOT_SUPPORTED, String.valueOf(AdapterType.Publisher));
     }
 
     @Override
@@ -115,6 +144,32 @@ public class PublisherAdapterTypeHandler extends AdapterTypeHandler {
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        dao.updateWebhook(webhook, tenantId);
+        //Webhook update support as a put request with/without secret for now
+        String secret = webhook.getSecret();
+        if (StringUtils.isEmpty(secret)) {
+            Webhook existingWebhook = dao.getWebhook(webhook.getId(), tenantId);
+            secret = existingWebhook.getSecret();
+        }
+        Webhook updatedWebhook = new Webhook.Builder()
+                .uuid(webhook.getId())
+                .endpoint(webhook.getEndpoint())
+                .name(webhook.getName())
+                .secret(secret)
+                .eventProfileName(webhook.getEventProfileName())
+                .eventProfileUri(webhook.getEventProfileUri())
+                .eventProfileVersion(webhook.getEventProfileVersion())
+                .status(webhook.getStatus())
+                .createdAt(webhook.getCreatedAt())
+                .updatedAt(webhook.getUpdatedAt())
+                .eventsSubscribed(webhook.getEventsSubscribed())
+                .build();
+        dao.updateWebhook(updatedWebhook, tenantId);
+    }
+
+    @Override
+    public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                           int tenantId) throws WebhookMgtException {
+
+        return dao.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
 }

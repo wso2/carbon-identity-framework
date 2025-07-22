@@ -117,4 +117,11 @@ public class WebhookManagementDAOFacade implements WebhookManagementDAO {
 
         getHandler().updateWebhook(webhook, tenantId);
     }
+
+    @Override
+    public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                           int tenantId) throws WebhookMgtException {
+
+        return getHandler().getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+    }
 }

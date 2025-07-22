@@ -67,6 +67,18 @@ public interface IdpManager {
             IdentityProviderManagementException;
 
     /**
+     * Delete properties of the resident Identity Provider for a given tenant.
+     *
+     * @param propertyNames List of property names to be deleted.
+     * @param tenantDomain  Tenant domain whose resident IdP properties are requested.
+     * @throws IdentityProviderManagementException Error when deleting properties of the resident Identity Provider.
+     */
+    default void deleteResidentIdpProperties(List<String> propertyNames, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+    }
+
+    /**
      * Retrieves registered Identity providers for a given tenant
      *
      * @param tenantDomain Tenant domain whose IdP names are requested

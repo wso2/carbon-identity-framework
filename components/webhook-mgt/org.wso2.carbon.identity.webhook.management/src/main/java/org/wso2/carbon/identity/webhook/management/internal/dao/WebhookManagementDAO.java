@@ -130,4 +130,17 @@ public interface WebhookManagementDAO {
      * @throws WebhookMgtException If an error occurs while retrieving the webhook count.
      */
     int getWebhooksCount(int tenantId) throws WebhookMgtException;
+
+    /**
+     * Get active webhooks for a specific channel URI and tenant ID.
+     *
+     * @param eventProfileName    Event profile name to filter webhooks.
+     * @param eventProfileVersion Event profile version to filter webhooks.
+     * @param channelUri          Channel URI to filter webhooks.
+     * @param tenantId            Tenant ID.
+     * @return List of active webhooks for the specified channel URI and tenant ID.
+     * @throws WebhookMgtException If an error occurs while retrieving the active webhooks.
+     */
+    List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                    int tenantId) throws WebhookMgtException;
 }

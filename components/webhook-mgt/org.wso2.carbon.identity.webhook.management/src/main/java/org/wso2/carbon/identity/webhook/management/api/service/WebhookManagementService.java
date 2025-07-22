@@ -118,4 +118,17 @@ public interface WebhookManagementService {
      * @throws WebhookMgtException If an error occurs while retrying the webhook.
      */
     Webhook retryWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+
+    /**
+     * Get active webhooks for a specific channel URI and tenant ID.
+     *
+     * @param eventProfileName    Name of the event profile.
+     * @param eventProfileVersion Version of the event profile.
+     * @param channelUri          Channel URI to filter webhooks.
+     * @param tenantDomain        Tenant domain.
+     * @return List of active webhooks for the specified channel URI and tenant ID.
+     * @throws WebhookMgtException If an error occurs while retrieving the active webhooks.
+     */
+    List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                    String tenantDomain) throws WebhookMgtException;
 }
