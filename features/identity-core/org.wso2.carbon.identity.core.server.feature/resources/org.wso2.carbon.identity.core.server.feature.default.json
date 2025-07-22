@@ -1297,7 +1297,7 @@
   ],
   "console.actions.scopes.update": ["internal_action_mgt_update"],
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
-  "console.webhooks.enabled": false,
+  "console.webhooks.enabled": true,
   "console.webhooks.disabled_features": [],
   "console.agents.enabled": true,
   "console.agents.disabled_features": [],
