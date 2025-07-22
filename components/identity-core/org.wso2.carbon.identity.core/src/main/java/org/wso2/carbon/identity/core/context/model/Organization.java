@@ -37,21 +37,41 @@ public class Organization {
         this.depth = builder.depth;
     }
 
+    /**
+     * Returns the UUID of the organization.
+     *
+     * @return ID of the organization.
+     */
     public String getId() {
 
         return id;
     }
 
+    /**
+     * Returns the name of the organization.
+     *
+     * @return Name of the organization.
+     */
     public String getName() {
 
         return name;
     }
 
+    /**
+     * Returns the organization handle of the organization.
+     *
+     * @return Organization handle of the organization.
+     */
     public String getOrganizationHandle() {
 
         return organizationHandle;
     }
 
+    /**
+     * Returns the depth of the organization in the organization hierarchy.
+     *
+     * @return Depth of the organization.
+     */
     public int getDepth() {
 
         return depth;
