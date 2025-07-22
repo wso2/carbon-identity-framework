@@ -152,6 +152,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             com.nimbusds.jose.*; version="${nimbusds.osgi.version.range}",
                             com.nimbusds.jwt; version="${nimbusds.osgi.version.range}",
+                            org.wso2.carbon.identity.user.profile.mgt.*;
+                            version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.execution.internal,
