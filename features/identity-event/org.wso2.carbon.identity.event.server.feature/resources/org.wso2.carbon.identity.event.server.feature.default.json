@@ -272,7 +272,8 @@
   "identity_mgt.events.schemes.SharedRoleMgtHandler.subscriptions": [
     "POST_ADD_ROLE_V2_EVENT",
     "POST_SHARE_APPLICATION",
-    "PRE_SHARE_APPLICATION"
+    "PRE_SHARE_APPLICATION",
+    "POST_UPDATE_ROLES_OF_SHARED_APPLICATION"
   ],
   "identity_mgt.events.schemes.UserInvitationEventHandler.module_index": "41",
   "identity_mgt.events.schemes.UserInvitationEventHandler.subscriptions": [
