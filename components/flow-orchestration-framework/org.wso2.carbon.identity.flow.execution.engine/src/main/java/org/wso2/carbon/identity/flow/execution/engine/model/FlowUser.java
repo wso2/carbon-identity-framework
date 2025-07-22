@@ -34,6 +34,7 @@ public class FlowUser implements Serializable {
     private final Map<String, char[]> userCredentials = new HashMap<>();
     private String username;
     private String userId;
+    private String userstoreDomain;
 
     public String getUsername() {
 
@@ -87,5 +88,15 @@ public class FlowUser implements Serializable {
     public void setUserId(String userId) {
 
         this.userId = userId;
+    }
+
+    public String getUserstoreDomain() {
+
+        return userstoreDomain;
+    }
+
+    public void setUserstoreDomain(String userDomain) {
+
+        this.userstoreDomain = userDomain;
     }
 }
