@@ -56,6 +56,7 @@ public class FlowExecutionContext implements Serializable {
     private String applicationId;
     private String flowType;
     private ExternalIdPConfig externalIdPConfig;
+    private boolean generateAuthenticationAssertion = false;
 
     public NodeConfig getCurrentNode() {
 
@@ -251,5 +252,15 @@ public class FlowExecutionContext implements Serializable {
     public void setPortalUrl(String portalUrl) {
 
         this.portalUrl = portalUrl;
+    }
+
+    public boolean isGenerateAuthenticationAssertion() {
+
+        return generateAuthenticationAssertion;
+    }
+
+    public void setGenerateAuthenticationAssertion(boolean generateAuthenticationAssertion) {
+
+        this.generateAuthenticationAssertion = generateAuthenticationAssertion;
     }
 }

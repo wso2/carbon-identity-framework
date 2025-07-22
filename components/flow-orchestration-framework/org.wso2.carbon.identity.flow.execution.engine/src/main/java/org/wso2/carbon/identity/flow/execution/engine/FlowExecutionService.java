@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -108,8 +109,10 @@ public class FlowExecutionService {
                 if (step.getData() == null) {
                     step.setData(new DataDTO.Builder().additionalData(new HashMap<>()).build());
                 }
-                step.getData().addAdditionalData(FrameworkConstants.USER_ASSERTION,
-                        AuthenticationAssertionUtils.getSignedUserAssertion(context));
+                if (context.isGenerateAuthenticationAssertion()) {
+                    step.getData().addAdditionalData(FrameworkConstants.USER_ASSERTION,
+                            AuthenticationAssertionUtils.getSignedUserAssertion(context));
+                }
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);
             }
