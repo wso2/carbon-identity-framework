@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEventImpl;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
@@ -391,5 +392,24 @@ public class IdentityCoreServiceComponent {
         
         log.debug("Unset organization management service.");
         IdentityCoreServiceDataHolder.getInstance().setOrganizationUserResidentResolverService(null);
+    }
+
+    @Reference(
+            name = "organization.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        IdentityCoreServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        log.debug("OrganizationManager set in IdentityCoreServiceDataHolder bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        IdentityCoreServiceDataHolder.getInstance().setOrganizationManager(null);
+        log.debug("OrganizationManager unset in IdentityCoreServiceDataHolder bundle.");
     }
 }
