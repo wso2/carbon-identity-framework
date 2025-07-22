@@ -182,13 +182,13 @@ public class OrganizationManagementUtil {
     private static String getOrganizationTenantDomain(String organizationId) throws OrganizationManagementException {
 
         return IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
-                .resolveTenantDomain(getRootOrganizationId(organizationId));
+                .resolveTenantDomain(organizationId);
     }
 
     private static String extractResourceFromURI(String requestURI, String resourceIdentifier) {
 
-        int startIndex = requestURI.indexOf(resourceIdentifier) + 3;
-        if (startIndex < 3 || startIndex >= requestURI.length()) {
+        int startIndex = requestURI.indexOf(resourceIdentifier) + resourceIdentifier.length();
+        if (startIndex < resourceIdentifier.length() || startIndex >= requestURI.length()) {
             return null;
         }
 
