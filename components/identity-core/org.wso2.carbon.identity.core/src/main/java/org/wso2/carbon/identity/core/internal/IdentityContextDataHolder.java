@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.core.internal;
 
 import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.Organization;
+import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import java.util.ArrayDeque;
@@ -33,6 +35,8 @@ public class IdentityContextDataHolder {
     private Flow flow;
     private Actor actor;
     private String accessTokenIssuedOrganization;
+    private RootOrganization rootOrganization;
+    private Organization organization;
 
     // Stack (FILO) to manage nested flows in the current thread context.
     private Deque<Flow> flowSequence = new ArrayDeque<>();
@@ -115,6 +119,28 @@ public class IdentityContextDataHolder {
 
         CarbonUtils.checkSecurity();
         this.accessTokenIssuedOrganization = accessTokenIssuedOrganization;
+    }
+
+    public RootOrganization getRootOrganization() {
+
+        return rootOrganization;
+    }
+
+    public void setRootOrganization(RootOrganization rootOrganization) {
+
+        CarbonUtils.checkSecurity();
+        this.rootOrganization = rootOrganization;
+    }
+
+    public Organization getOrganization() {
+
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+
+        CarbonUtils.checkSecurity();
+        this.organization = organization;
     }
 
     /**
