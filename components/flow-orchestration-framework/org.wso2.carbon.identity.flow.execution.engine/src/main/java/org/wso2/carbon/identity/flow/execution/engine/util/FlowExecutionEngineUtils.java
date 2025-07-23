@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngi
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 
 import java.util.Map;
@@ -148,6 +149,13 @@ public class FlowExecutionEngineUtils {
             context.setContextIdentifier(UUID.randomUUID().toString());
             context.setApplicationId(applicationId);
             context.setFlowType(flowType);
+
+            FlowConfigDTO flowConfigDTO = FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
+                    .getFlowConfig(flowType, IdentityTenantUtil.getTenantId(tenantDomain));
+            if (flowConfigDTO != null) {
+                context.setGenerateAuthenticationAssertion(flowConfigDTO.getIsAutoLoginEnabled());
+            }
+
             return context;
         } catch (IdentityRuntimeException e) {
             throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);

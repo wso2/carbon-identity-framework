@@ -22,8 +22,10 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.ApplicationActor;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.Organization;
+import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.core.context.model.UserActor;
-import org.wso2.carbon.identity.core.internal.IdentityContextDataHolder;
+import org.wso2.carbon.identity.core.internal.context.IdentityContextDataHolder;
 import org.wso2.carbon.utils.CarbonUtils;
 
 /**
@@ -151,6 +153,32 @@ public class IdentityContext extends CarbonContext {
     public String getAccessTokenIssuedOrganization() {
 
         return identityContextDataHolder.getAccessTokenIssuedOrganization();
+    }
+
+    public void setRootOrganization(RootOrganization rootOrganization) {
+
+        if (identityContextDataHolder.getRootOrganization() != null) {
+            throw new IllegalStateException("Root organization is already set in the IdentityContext.");
+        }
+        identityContextDataHolder.setRootOrganization(rootOrganization);
+    }
+
+    public RootOrganization getRootOrganization() {
+
+        return identityContextDataHolder.getRootOrganization();
+    }
+
+    public void setOrganization(Organization organization) {
+
+        if (identityContextDataHolder.getOrganization() != null) {
+            throw new IllegalStateException("Organization is already set in the IdentityContext.");
+        }
+        identityContextDataHolder.setOrganization(organization);
+    }
+
+    public Organization getOrganization() {
+
+        return identityContextDataHolder.getOrganization();
     }
 
     public static void destroyCurrentContext() {

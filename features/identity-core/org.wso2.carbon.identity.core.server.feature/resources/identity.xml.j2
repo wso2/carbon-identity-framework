@@ -4656,6 +4656,13 @@
     </AsyncOperationStatus>
 
     <FlowExecution>
+        {% if flow_execution.excluded_userstores is defined %}
+        <ExcludedUserstores>
+            {% for userstore in flow_execution.excluded_userstores %}
+            <Userstore>{{userstore}}</Userstore>
+            {% endfor %}
+        </ExcludedUserstores>
+        {% endif %}
         <UserAssertion>
             <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
         </UserAssertion>
