@@ -16,22 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.metadata.internal.constant;
+package org.wso2.carbon.identity.webhook.metadata.internal.dao;
+
+import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+
+import java.util.List;
 
 /**
- * Constants for Webhook Metadata Service.
+ * Data Access Object interface for managing event adopters metadata.
  */
-public class WebhookMetadataConstants {
+public interface EventAdapterMetadataDAO {
 
-    public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
-    public static final String ADAPTER_PREFIX = "adapter.";
-    public static final String ENABLED_KEY = "enabled";
-    public static final String ENABLED_VALUE_TRUE = "true";
-    public static final String TYPE_KEY = "type";
-
-    public static final String ORGANIZATION_POLICY_FIELD = "organization policy";
-
-    private WebhookMetadataConstants() {
-
-    }
+    List<Adapter> getAdopters() throws WebhookMetadataException;
 }

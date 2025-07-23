@@ -16,17 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.metadata.internal.dao;
-
-import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
-
-import java.util.List;
+package org.wso2.carbon.identity.webhook.metadata.api.model;
 
 /**
- * Data Access Object interface for managing event adopters metadata.
+ * Enum representing the organization policy for webhook adapters.
+ * This enum defines the policies that determine how adapters interact with organizations.
  */
-public interface EventAdopterMetadataDAO {
+public enum OrganizationPolicy {
 
-    List<Adapter> getAdopters() throws WebhookMetadataException;
+    /**
+     * All existing and future organizations events will be handled by the adapter.
+     */
+    ALL_EXISTING_AND_FUTURE_ORGS,
+
+    /**
+     * Only the events of the organization that is currently being processed will be handled by the adapter.
+     */
+    THIS_ORG_ONLY;
 }

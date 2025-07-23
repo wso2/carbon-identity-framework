@@ -20,13 +20,18 @@ package org.wso2.carbon.identity.webhook.metadata.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
+import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
+import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
-import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedEventProfileMetadataDAOImpl;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.WebhookMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
+import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataValidator;
 
 import java.util.List;
 
@@ -42,11 +47,14 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     private static final Log log = LogFactory.getLog(WebhookMetadataServiceImpl.class);
     private static final WebhookMetadataServiceImpl INSTANCE = new WebhookMetadataServiceImpl();
 
-    private final FileBasedWebhookMetadataDAOImpl webhookMetadataDAO;
+    private final FileBasedEventProfileMetadataDAOImpl eventProfileMetadataDAO;
+    private final WebhookMetadataDAOImpl webhookMetadataDAO;
+    private static final WebhookMetadataValidator WEBHOOK_METADATA_VALIDATOR = new WebhookMetadataValidator();
 
     private WebhookMetadataServiceImpl() {
 
-        webhookMetadataDAO = FileBasedWebhookMetadataDAOImpl.getInstance();
+        eventProfileMetadataDAO = FileBasedEventProfileMetadataDAOImpl.getInstance();
+        webhookMetadataDAO = new WebhookMetadataDAOImpl();
     }
 
     /**
@@ -64,14 +72,14 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
      */
     public void init() throws WebhookMetadataServerException {
 
-        webhookMetadataDAO.init();
+        eventProfileMetadataDAO.init();
     }
 
     @Override
     public List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException {
 
         try {
-            return webhookMetadataDAO.getSupportedEventProfiles();
+            return eventProfileMetadataDAO.getSupportedEventProfiles();
         } catch (Exception e) {
             throw WebhookMetadataExceptionHandler.handleServerException(
                     ERROR_CODE_PROFILES_RETRIEVE_ERROR, e);
@@ -82,7 +90,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     public EventProfile getEventProfile(String profileName) throws WebhookMetadataException {
 
         try {
-            return webhookMetadataDAO.getEventProfile(profileName);
+            return eventProfileMetadataDAO.getEventProfile(profileName);
         } catch (WebhookMetadataException e) {
             throw e;
         } catch (Exception e) {
@@ -95,7 +103,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     public List<Event> getEventsByProfileURI(String profileUri) throws WebhookMetadataException {
 
         try {
-            List<Event> events = webhookMetadataDAO.getEventsByProfile(profileUri);
+            List<Event> events = eventProfileMetadataDAO.getEventsByProfile(profileUri);
             if (events.isEmpty()) {
                 log.warn("No events found for profile URI: " + profileUri);
             }
@@ -104,5 +112,38 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
             throw WebhookMetadataExceptionHandler.handleServerException(
                     ERROR_CODE_EVENTS_RETRIEVE_ERROR, e, profileUri);
         }
+    }
+
+    @Override
+    public WebhookMetadataProperties getWebhookMetadataProperties(String tenantDomain) throws WebhookMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        log.debug("Retrieving Webhook Metadata properties for tenant " + tenantDomain);
+        WebhookMetadataProperties properties = webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
+
+        if (properties == null || properties.getOrganizationPolicy() == null) {
+            return new WebhookMetadataProperties.Builder()
+                    .organizationPolicy(OrganizationPolicy.THIS_ORG_ONLY)
+                    .build();
+        }
+        return properties;
+    }
+
+    @Override
+    public WebhookMetadataProperties updateWebhookMetadataProperties(
+            WebhookMetadataProperties webhookMetadataProperties, String tenantDomain) throws WebhookMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        log.debug("Updating Webhook Metadata properties for tenant " + tenantDomain);
+        validateWebhookMetadataProperties(webhookMetadataProperties);
+        webhookMetadataDAO.updateWebhookMetadataProperties(webhookMetadataProperties, tenantId);
+        return webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
+
+    }
+
+    private void validateWebhookMetadataProperties(WebhookMetadataProperties properties)
+            throws WebhookMetadataException {
+
+        WEBHOOK_METADATA_VALIDATOR.validateOrganizationPolicy(properties.getOrganizationPolicy());
     }
 }

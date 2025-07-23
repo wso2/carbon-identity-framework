@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataEx
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
-import org.wso2.carbon.identity.webhook.metadata.internal.dao.EventAdopterMetadataDAO;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.EventAdapterMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 
 import java.io.InputStream;
@@ -49,10 +49,10 @@ import static org.wso2.carbon.identity.webhook.metadata.internal.constant.Webhoo
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.TYPE_KEY;
 
 /**
- * File-based implementation of the EventAdopterMetadataDAO.
+ * File-based implementation of the EventAdapterMetadataDAO.
  * This DAO reads event adapter metadata from a configuration file.
  */
-public class FileBasedEventAdapterMetadataDAOImpl implements EventAdopterMetadataDAO {
+public class FileBasedEventAdapterMetadataDAOImpl implements EventAdapterMetadataDAO {
 
     private static final Log log = LogFactory.getLog(FileBasedEventAdapterMetadataDAOImpl.class);
     private static final FileBasedEventAdapterMetadataDAOImpl INSTANCE = new FileBasedEventAdapterMetadataDAOImpl();

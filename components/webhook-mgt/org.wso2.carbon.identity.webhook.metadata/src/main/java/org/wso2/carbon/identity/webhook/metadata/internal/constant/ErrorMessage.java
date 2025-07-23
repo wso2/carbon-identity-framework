@@ -25,6 +25,8 @@ public enum ErrorMessage {
 
     // Client errors (61xxx range)
     // Continuation of client error codes can be found in the Webhook Metadata API layer as well.
+    ERROR_INVALID_WEBHOOK_REQUEST_FIELD("WEBHOOKMGT-60001", "Invalid request.",
+            "%s is invalid."),
 
     // Server errors (66xxx range)
     // Continuation of server error codes can be found in the Webhook Metadata API layer as well.

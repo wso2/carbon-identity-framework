@@ -19,39 +19,29 @@
 package org.wso2.carbon.identity.webhook.metadata.internal.dao;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
-import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-
-import java.util.List;
+import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 
 /**
- * DAO interface for webhook metadata operations.
+ * Data Access Object interface for webhook management.
  */
 public interface WebhookMetadataDAO {
 
     /**
-     * Get all supported event profiles.
+     * Get webhook metadata properties from the database.
      *
-     * @return List of event profiles
-     * @throws WebhookMetadataException If an error occurs while retrieving event profiles
+     * @param tenantId Tenant ID.
+     * @return Webhook metadata properties.
+     * @throws WebhookMetadataException If an error occurs while retrieving the webhook metadata properties.
      */
-    List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException;
+    WebhookMetadataProperties getWebhookMetadataProperties(int tenantId) throws WebhookMetadataException;
 
     /**
-     * Get details of a specific event profile including its channels.
+     * Update webhook metadata properties in the database.
      *
-     * @param profileName Name of the event profile
-     * @return EventProfile object containing profile details and channels
-     * @throws WebhookMetadataException If an error occurs while retrieving event profile details
+     * @param webhookMetadataProperties Webhook metadata properties to be updated.
+     * @param tenantId                  Tenant ID.
+     * @throws WebhookMetadataException If an error occurs while updating the webhook metadata properties.
      */
-    EventProfile getEventProfile(String profileName) throws WebhookMetadataException;
-
-    /**
-     * Get list of events under the given event profile.
-     *
-     * @param profileUri URI of the event profile
-     * @return List of events
-     * @throws WebhookMetadataException If an error occurs while retrieving events
-     */
-    List<Event> getEventsByProfile(String profileUri) throws WebhookMetadataException;
+    void updateWebhookMetadataProperties(WebhookMetadataProperties webhookMetadataProperties,
+                                                              int tenantId) throws WebhookMetadataException;
 }

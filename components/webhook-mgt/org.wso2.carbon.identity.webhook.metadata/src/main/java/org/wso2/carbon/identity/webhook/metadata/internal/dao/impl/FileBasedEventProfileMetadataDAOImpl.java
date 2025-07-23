@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataSe
 import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.EventProfileMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil;
 
@@ -50,28 +50,28 @@ import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorM
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
 /**
- * File-based implementation of the WebhookMetadataDAO.
+ * File-based implementation of the EventProfileMetadataDAO.
  * Loads event profiles from JSON files in the configured directory.
  */
-public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
+public class FileBasedEventProfileMetadataDAOImpl implements EventProfileMetadataDAO {
 
-    private static final Log log = LogFactory.getLog(FileBasedWebhookMetadataDAOImpl.class);
-    private static final FileBasedWebhookMetadataDAOImpl INSTANCE = new FileBasedWebhookMetadataDAOImpl();
+    private static final Log log = LogFactory.getLog(FileBasedEventProfileMetadataDAOImpl.class);
+    private static final FileBasedEventProfileMetadataDAOImpl INSTANCE = new FileBasedEventProfileMetadataDAOImpl();
 
     // Cache of loaded event profiles
     private final Map<String, EventProfile> profileCache = new HashMap<>();
     private boolean isInitialized = false;
 
-    private FileBasedWebhookMetadataDAOImpl() {
+    private FileBasedEventProfileMetadataDAOImpl() {
         // Private constructor to prevent instantiation
     }
 
     /**
-     * Get the singleton instance of FileBasedWebhookMetadataDAOImpl.
+     * Get the singleton instance of FileBasedEventProfileMetadataDAOImpl.
      *
      * @return Singleton instance
      */
-    public static FileBasedWebhookMetadataDAOImpl getInstance() {
+    public static FileBasedEventProfileMetadataDAOImpl getInstance() {
 
         return INSTANCE;
     }
