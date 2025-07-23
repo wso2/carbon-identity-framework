@@ -108,8 +108,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.flow.execution.engine.internal,
-                            org.wso2.carbon.identity.flow.execution.engine.util,
+                            org.wso2.carbon.identity.flow.execution.engine.internal
                         </Private-Package>
                         <Import-Package>
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
@@ -152,7 +151,7 @@
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.execution.internal,
-                            !org.wso2.carbon.identity.flow.execution.engine.util,
+                            org.wso2.carbon.identity.flow.execution.engine.util,
                             org.wso2.carbon.identity.flow.execution.engine,
                             org.wso2.carbon.identity.flow.execution.engine.core,
                             org.wso2.carbon.identity.flow.execution.engine.cache,
