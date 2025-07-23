@@ -64,6 +64,9 @@ public class WebhookMetadataProperties {
                 '}';
     }
 
+    /**
+     * Builder class for WebhookMetadataProperties.
+     */
     public static class Builder {
 
         private OrganizationPolicy organizationPolicy;

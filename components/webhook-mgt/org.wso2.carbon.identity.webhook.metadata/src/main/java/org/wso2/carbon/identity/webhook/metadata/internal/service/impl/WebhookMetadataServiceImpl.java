@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.CacheBackedWebhookMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedEventProfileMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.WebhookMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
@@ -48,13 +50,13 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     private static final WebhookMetadataServiceImpl INSTANCE = new WebhookMetadataServiceImpl();
 
     private final FileBasedEventProfileMetadataDAOImpl eventProfileMetadataDAO;
-    private final WebhookMetadataDAOImpl webhookMetadataDAO;
+    private final WebhookMetadataDAO webhookMetadataDAO;
     private static final WebhookMetadataValidator WEBHOOK_METADATA_VALIDATOR = new WebhookMetadataValidator();
 
     private WebhookMetadataServiceImpl() {
 
         eventProfileMetadataDAO = FileBasedEventProfileMetadataDAOImpl.getInstance();
-        webhookMetadataDAO = new WebhookMetadataDAOImpl();
+        webhookMetadataDAO = new CacheBackedWebhookMetadataDAO(new WebhookMetadataDAOImpl());
     }
 
     /**
