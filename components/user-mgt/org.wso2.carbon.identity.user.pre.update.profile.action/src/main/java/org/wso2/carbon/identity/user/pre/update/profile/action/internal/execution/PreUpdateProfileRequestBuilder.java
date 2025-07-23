@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
 import org.wso2.carbon.identity.user.pre.update.profile.action.api.model.PreUpdateProfileAction;
@@ -44,7 +45,6 @@ import org.wso2.carbon.identity.user.pre.update.profile.action.internal.componen
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileEvent;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileRequest;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.UpdatingUserClaim;
-import org.wso2.carbon.identity.user.pre.update.profile.action.internal.util.OrganizationMgtUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -93,22 +93,16 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
     private Event getEvent(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction)
             throws ActionExecutionRequestBuilderException {
 
-        Organization organization = null;
-        boolean isOrganizationFlow = OrganizationMgtUtil.isOrganization();
-        if (isOrganizationFlow) {
-            organization = OrganizationMgtUtil.getOrganization();
-        }
-
         PreUpdateProfileEvent.Builder eventBuilder = new PreUpdateProfileEvent.Builder();
         eventBuilder.initiatorType(getInitiatorType());
         eventBuilder.action(PreUpdateProfileEvent.Action.UPDATE);
         eventBuilder.request(getPreUpdateProfileRequest(userActionContext));
-        eventBuilder.tenant(getTenant(organization != null ? organization.getId() : null));
+        eventBuilder.tenant(getTenant());
 
         UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
-        eventBuilder.user(getUser(userActionContext, preUpdateProfileAction, userStoreManager, organization));
+        eventBuilder.user(getUser(userActionContext, preUpdateProfileAction, userStoreManager));
         eventBuilder.userStore(getUserStore(userActionContext, userStoreManager));
-        eventBuilder.organization(organization);
+        eventBuilder.organization(getOrganization());
 
         return eventBuilder.build();
     }
@@ -162,25 +156,42 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         return preUpdateProfileRequestBuilder.build();
     }
 
-    private static Tenant getTenant(String organizationId) throws ActionExecutionRequestBuilderException {
+    private static Tenant getTenant() throws ActionExecutionRequestBuilderException {
 
-        if (organizationId != null) {
-            return OrganizationMgtUtil.resolveTenant(organizationId);
+        RootOrganization rootOrganization = IdentityContext.getThreadLocalIdentityContext().getRootOrganization();
+        if (rootOrganization == null) {
+            throw new ActionExecutionRequestBuilderException("Root organization information is not available in " +
+                    "Identity Context.");
         }
 
-        return new Tenant(String.valueOf(IdentityContext.getThreadLocalCarbonContext().getTenantId()),
-                IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
+        return new Tenant(String.valueOf(rootOrganization.getAssociatedTenantId()),
+                rootOrganization.getAssociatedTenantDomain());
+    }
+
+    private Organization getOrganization() {
+
+        org.wso2.carbon.identity.core.context.model.Organization organization =
+                IdentityContext.getThreadLocalIdentityContext().getOrganization();
+        if (organization == null) {
+            return null;
+        }
+
+        return new Organization.Builder()
+                .id(organization.getId())
+                .name(organization.getName())
+                .orgHandle(organization.getOrganizationHandle())
+                .depth(organization.getDepth())
+                .build();
     }
 
     private User getUser(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction,
-                         UniqueIDUserStoreManager userStoreManager, Organization organization)
-            throws ActionExecutionRequestBuilderException {
+                         UniqueIDUserStoreManager userStoreManager) throws ActionExecutionRequestBuilderException {
 
         UserActionRequestDTO userActionRequestDTO = userActionContext.getUserActionRequestDTO();
         List<String> userClaimsToSetInEvent = preUpdateProfileAction.getAttributes();
 
         User.Builder userBuilder = new User.Builder(userActionRequestDTO.getUserId())
-                .organization(organization);
+                .organization(userActionContext.getUserActionRequestDTO().getResidentOrganization());
         if (userClaimsToSetInEvent == null || userClaimsToSetInEvent.isEmpty()) {
             return userBuilder.build();
         }

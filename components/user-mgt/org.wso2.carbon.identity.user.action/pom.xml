@@ -34,6 +34,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
@@ -102,6 +106,8 @@
                             org.wso2.carbon.user.core; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.listener; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
+
+                            org.wso2.carbon.identity.organization.management.service.*; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
 
                             org.wso2.carbon.identity.core; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.context; version="${carbon.identity.package.import.version.range}",

@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionReques
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
-import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -45,6 +44,7 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.realm.UserStoreModel;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
 import org.wso2.carbon.identity.user.pre.update.profile.action.api.model.PreUpdateProfileAction;
@@ -54,7 +54,6 @@ import org.wso2.carbon.identity.user.pre.update.profile.action.internal.executio
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileEvent;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileRequest;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.UpdatingUserClaim;
-import org.wso2.carbon.identity.user.pre.update.profile.action.internal.util.OrganizationMgtUtil;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -87,12 +86,17 @@ import static org.wso2.carbon.identity.user.pre.update.profile.action.constant.P
 import static org.wso2.carbon.identity.user.pre.update.profile.action.constant.PreUpdateProfileTestConstants.TENANT_ID;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.constant.PreUpdateProfileTestConstants.USER_ID;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.constant.PreUpdateProfileTestConstants.USER_STORE_DOMAIN;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ORG_DEPTH;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ORG_HANDLE;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ORG_ID;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ORG_NAME;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_PRIMARY_ORG_ID;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_PRIMARY_ORG_NAME;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ROOT_ORG_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ROOT_ORG_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ROOT_ORG_TENANT_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACCESSING_ORG_DEPTH;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACCESSING_ORG_HANDLE;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACCESSING_ORG_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACCESSING_ORG_NAME;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_RESIDENT_ORG_DEPTH;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_RESIDENT_ORG_HANDLE;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_RESIDENT_ORG_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_RESIDENT_ORG_NAME;
 
 @WithCarbonHome
 @WithH2Database(files = {"dbscripts/h2.sql"})
@@ -102,17 +106,17 @@ public class PreUpdateProfileRequestBuilderTest {
 
     private PreUpdateProfileRequestBuilder preUpdateProfileRequestBuilder;
     private UserStoreModel userStoreModel;
-    private Organization organization;
+    private Organization userResidentOrganization;
+    private org.wso2.carbon.identity.core.context.model.Organization accessingOrganization;
+    private org.wso2.carbon.identity.core.context.model.RootOrganization rootOrganization;
     private ClaimMetadataManagementService claimMetadataManagementService;
     private MockedStatic<FrameworkUtils> frameworkUtils;
-    private MockedStatic<OrganizationMgtUtil> organizationMgtUtil;
 
     @BeforeClass
     public void setUpClass() throws Exception {
 
         frameworkUtils = mockStatic(FrameworkUtils.class);
         frameworkUtils.when(FrameworkUtils::getMultiAttributeSeparator).thenReturn(",");
-        organizationMgtUtil = mockStatic(OrganizationMgtUtil.class);
 
         claimMetadataManagementService = mock(ClaimMetadataManagementService.class);
 
@@ -125,11 +129,22 @@ public class PreUpdateProfileRequestBuilderTest {
         PreUpdateProfileActionServiceComponentHolder.getInstance()
                 .setClaimManagementService(claimMetadataManagementService);
 
-        organization = new Organization.Builder()
-                .id(TEST_ORG_ID)
-                .name(TEST_ORG_NAME)
-                .orgHandle(TEST_ORG_HANDLE)
-                .depth(TEST_ORG_DEPTH)
+        userResidentOrganization = new Organization.Builder()
+                .id(TEST_RESIDENT_ORG_ID)
+                .name(TEST_RESIDENT_ORG_NAME)
+                .orgHandle(TEST_RESIDENT_ORG_HANDLE)
+                .depth(TEST_RESIDENT_ORG_DEPTH)
+                .build();
+        rootOrganization = new RootOrganization.Builder()
+                .associatedTenantId(ROOT_ORG_TENANT_ID)
+                .associatedTenantDomain(ROOT_ORG_TENANT_DOMAIN)
+                .organizationId(ROOT_ORG_ID)
+                .build();
+        accessingOrganization = new org.wso2.carbon.identity.core.context.model.Organization.Builder()
+                .id(TEST_ACCESSING_ORG_ID)
+                .name(TEST_ACCESSING_ORG_NAME)
+                .organizationHandle(TEST_ACCESSING_ORG_HANDLE)
+                .depth(TEST_ACCESSING_ORG_DEPTH)
                 .build();
     }
 
@@ -137,7 +152,6 @@ public class PreUpdateProfileRequestBuilderTest {
     public void tearDownClass() {
 
         frameworkUtils.close();
-        organizationMgtUtil.close();
     }
 
     @BeforeMethod
@@ -152,7 +166,7 @@ public class PreUpdateProfileRequestBuilderTest {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(
                 PreUpdateProfileTestConstants.TENANT_DOMAIN);
 
-        organizationMgtUtil.when(OrganizationMgtUtil::isOrganization).thenReturn(false);
+        IdentityContext.getThreadLocalIdentityContext().setRootOrganization(rootOrganization);
     }
 
     @AfterMethod
@@ -194,10 +208,7 @@ public class PreUpdateProfileRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         if (isOrganizationFlow) {
-            organizationMgtUtil.when(OrganizationMgtUtil::isOrganization).thenReturn(true);
-            organizationMgtUtil.when(OrganizationMgtUtil::getOrganization).thenReturn(organization);
-            organizationMgtUtil.when(() -> OrganizationMgtUtil.resolveTenant(TEST_ORG_ID))
-                    .thenReturn(new Tenant(String.valueOf(TEST_PRIMARY_ORG_ID), TEST_PRIMARY_ORG_NAME));
+            IdentityContext.getThreadLocalIdentityContext().setOrganization(accessingOrganization);
         }
 
         IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
@@ -244,18 +255,18 @@ public class PreUpdateProfileRequestBuilderTest {
         // Validate 'roles' in 'user' is empty as roles are not expected to be shared at this instance.
         assertEquals(event.getUser().getRoles().size(), 0);
 
+        assertEquals(event.getTenant().getId(), String.valueOf(ROOT_ORG_TENANT_ID));
+        assertEquals(event.getTenant().getName(), ROOT_ORG_TENANT_DOMAIN);
+
         if (isOrganizationFlow) {
             assertNotNull(event.getOrganization());
-            assertEquals(event.getOrganization(), organization);
-            assertEquals(event.getUser().getOrganization(), organization);
-            assertEquals(event.getTenant().getId(), String.valueOf(TEST_PRIMARY_ORG_ID));
-            assertEquals(event.getTenant().getName(), TEST_PRIMARY_ORG_NAME);
+            assertEquals(event.getOrganization().getId(), accessingOrganization.getId());
+            assertEquals(event.getOrganization().getName(), accessingOrganization.getName());
+            assertEquals(event.getOrganization().getOrgHandle(), accessingOrganization.getOrganizationHandle());
+            assertEquals(event.getOrganization().getDepth(), accessingOrganization.getDepth());
+            assertEquals(event.getUser().getOrganization(), userResidentOrganization);
         } else {
-            assertNotNull(event.getTenant());
-            assertEquals(event.getTenant().getId(), String.valueOf(TENANT_ID));
-            assertEquals(event.getTenant().getName(), TENANT_DOMAIN);
             assertNull(event.getOrganization());
-            assertNull(event.getUser().getOrganization());
         }
     }
 
@@ -285,8 +296,8 @@ public class PreUpdateProfileRequestBuilderTest {
         // Validate 'event'
         PreUpdateProfileEvent event = (PreUpdateProfileEvent) request.getEvent();
         assertNotNull(event.getTenant());
-        assertEquals(event.getTenant().getId(), String.valueOf(TENANT_ID));
-        assertEquals(event.getTenant().getName(), TENANT_DOMAIN);
+        assertEquals(event.getTenant().getId(), String.valueOf(ROOT_ORG_TENANT_ID));
+        assertEquals(event.getTenant().getName(), ROOT_ORG_TENANT_DOMAIN);
         assertNull(event.getOrganization());
         assertEquals(event.getAction(), PreUpdateProfileEvent.Action.UPDATE);
         assertEquals(event.getInitiatorType(), PreUpdateProfileEvent.FlowInitiatorType.USER);
@@ -512,7 +523,7 @@ public class PreUpdateProfileRequestBuilderTest {
         }
     }
 
-    private static UserActionContext getMockUserActionContextWithUpdatingClaims() {
+    private UserActionContext getMockUserActionContextWithUpdatingClaims() {
 
         return new UserActionContext(new UserActionRequestDTO.Builder()
                 .userId(USER_ID)
@@ -524,6 +535,7 @@ public class PreUpdateProfileRequestBuilderTest {
                 .addClaim(CLAIM5.getClaimURI(), (String) CLAIM5.getUpdatingValue())
                 .addClaim(GROUPS.getClaimURI(), (String[]) GROUPS.getUpdatingValue())
                 .addClaim(ROLES.getClaimURI(), (String[]) ROLES.getUpdatingValue())
+                .residentOrganization(userResidentOrganization)
                 .build());
     }
 

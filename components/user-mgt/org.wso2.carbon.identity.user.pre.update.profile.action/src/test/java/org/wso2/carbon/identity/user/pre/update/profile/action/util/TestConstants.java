@@ -29,8 +29,6 @@ import java.util.List;
  */
 public class TestConstants {
 
-    public static final int TENANT_ID = 10;
-    public static final String TENANT_UUID = "87d11efc-dc60-4aff-8154-6d9ebeacc1ad";
     public static final String TENANT_DOMAIN = "wso2.com";
     public static final String TEST_ID = "test-id";
     public static final String TEST_ACTION = "Test Action";
@@ -39,12 +37,17 @@ public class TestConstants {
     public static final String TEST_USERNAME = "test-username";
     public static final String TEST_PASSWORD = "test-password";
 
-    public static final String TEST_ORG_ID = "9a56eb19-23c4-4306-ae13-75299c2a40af";
-    public static final String TEST_ORG_NAME = "mySubOrg";
-    public static final String TEST_ORG_HANDLE = "mySubOrg.com";
-    public static final int TEST_ORG_DEPTH = 20;
-    public static final int TEST_PRIMARY_ORG_ID = 1;
-    public static final String TEST_PRIMARY_ORG_NAME = "primaryOrg.com";
+    public static final String TEST_ACCESSING_ORG_ID = "9a56eb19-23c4-4306-ae13-75299c2a40af";
+    public static final String TEST_ACCESSING_ORG_NAME = "mySubOrg";
+    public static final String TEST_ACCESSING_ORG_HANDLE = "mySubOrg.com";
+    public static final int TEST_ACCESSING_ORG_DEPTH = 20;
+    public static final String TEST_RESIDENT_ORG_ID = "6a56eba9-23c4-4306-ae13-11259c2a40ae";
+    public static final String TEST_RESIDENT_ORG_NAME = "mySubOrg2";
+    public static final String TEST_RESIDENT_ORG_HANDLE = "mySubOrg2.com";
+    public static final int TEST_RESIDENT_ORG_DEPTH = 20;
+    public static final int ROOT_ORG_TENANT_ID = 12;
+    public static final String ROOT_ORG_TENANT_DOMAIN = "primaryOrg.com";
+    public static final String ROOT_ORG_ID = "6a56eba9-23c4-4306-ae13-11259c2a40ae";
 
     public static final String TEST_USER_STORE_DOMAIN_NAME = "PRIMARY";
     public static final String TEST_USER_STORE_DOMAIN_ID = Base64.getEncoder()

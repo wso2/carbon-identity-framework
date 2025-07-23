@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
 import org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener;
@@ -82,5 +83,24 @@ public class UserActionServiceComponent {
         LOG.debug("Unregistering UserActionExecutor: " + userActionExecutor.getClass().getName() +
                 " in the UserActionServiceComponent.");
         UserActionExecutorFactory.unregisterUserActionExecutor(userActionExecutor);
+    }
+
+    @Reference(
+            name = "organization.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        UserActionServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("Organization management service set in UserActionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        UserActionServiceComponentHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("Organization management service unset in UserActionServiceComponentHolder bundle.");
     }
 }
