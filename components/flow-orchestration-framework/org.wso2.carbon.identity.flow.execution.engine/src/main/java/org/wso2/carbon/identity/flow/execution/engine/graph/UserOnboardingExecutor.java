@@ -71,7 +71,7 @@ public class UserOnboardingExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(UserOnboardingExecutor.class);
     private static final String WSO2_CLAIM_DIALECT = "http://wso2.org/claims/";
-    public static final String USERNAME_PATTERN_VALIDATION_SKIPPED = "isUsernamePatternValidationSkipped";
+    private static final String USERNAME_PATTERN_VALIDATION_SKIPPED = "isUsernamePatternValidationSkipped";
 
     @Override
     public String getName() {
