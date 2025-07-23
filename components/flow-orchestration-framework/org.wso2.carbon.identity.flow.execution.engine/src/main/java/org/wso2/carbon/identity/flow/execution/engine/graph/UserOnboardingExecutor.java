@@ -108,7 +108,7 @@ public class UserOnboardingExecutor implements Executor {
             userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
                     String.valueOf(password), null, userClaims, null);
             String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
-            user.setUserstoreDomain(userStoreDomainName);
+            user.setUserStoreDomain(userStoreDomainName);
             user.setUserId(userid);
             createFederatedAssociations(user, context.getTenantDomain());
             return new ExecutorResponse(STATUS_USER_CREATED);
@@ -214,13 +214,13 @@ public class UserOnboardingExecutor implements Executor {
                     User localUser = new User();
                     localUser.setUserName(user.getUsername());
                     localUser.setTenantDomain(tenantDomain);
-                    localUser.setUserStoreDomain(user.getUserstoreDomain());
+                    localUser.setUserStoreDomain(user.getUserStoreDomain());
                     fedAssociationManager.createFederatedAssociation(localUser, idpName, idpSubjectId);
                 } catch (FederatedAssociationManagerException e) {
                     LOG.error("Error while creating federated association for user: " + user.getUsername()
                             + " with IdP: " + idpName + " and subject ID: " + idpSubjectId, e);
                     throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, user.getUsername(),
-                            user.getUserstoreDomain(), tenantDomain);
+                            user.getUserStoreDomain(), tenantDomain);
                 }
             }
         }));
