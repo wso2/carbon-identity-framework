@@ -47,9 +47,8 @@ public class OrganizationResolver {
     private static final Log LOG = LogFactory.getLog(OrganizationResolver.class);
     private static final String TENANT_SEPARATOR = "/t/";
     private static final String ORG_SEPARATOR = "/o/";
-    private static final Pattern PATTERN_ORG_CONTEXT = Pattern.compile("^/o/[a-f0-9\\-]+?");
-    private static final Pattern PATTERN_ORG_CONTEXT_IN_TENANT_PERSPECTIVE =
-            Pattern.compile("^/t/[^/]+/o/[a-f0-9\\-]+?");
+    private static final Pattern PATTERN_ORG_QUALIFIED_ONLY = Pattern.compile("^/o/[a-f0-9\\-]+?");
+    private static final Pattern PATTERN_TENANT_AND_ORG_QUALIFIED = Pattern.compile("^/t/[^/]+/o/[a-f0-9\\-]+?");
 
     private OrganizationResolver() {
         // Private constructor to prevent instantiation.
@@ -73,7 +72,7 @@ public class OrganizationResolver {
         }
 
         try {
-            if (PATTERN_ORG_CONTEXT_IN_TENANT_PERSPECTIVE.matcher(requestURI).find()) {
+            if (PATTERN_TENANT_AND_ORG_QUALIFIED.matcher(requestURI).find()) {
                 // Handle the requests starts with /t/<tenant>/o/<org_id>/
                 // Request URI has tenant domain -> Resolve Root organization info.
                 String tenantDomainOfRootOrg = extractResourceFromURI(requestURI, TENANT_SEPARATOR);
@@ -82,7 +81,7 @@ public class OrganizationResolver {
                 // Request URI has an organization ID -> Resolve sub-organization info.
                 String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
                 resolveSubOrganization(organizationId);
-            } else if (PATTERN_ORG_CONTEXT.matcher(requestURI).find()) {
+            } else if (PATTERN_ORG_QUALIFIED_ONLY.matcher(requestURI).find()) {
                 // Handle the requests starts with /o/<org_id>/
                 // Request URI has an organization ID -> Resolve both root and sub-organization info.
                 resolveRootAndSubOrganization(requestURI);
