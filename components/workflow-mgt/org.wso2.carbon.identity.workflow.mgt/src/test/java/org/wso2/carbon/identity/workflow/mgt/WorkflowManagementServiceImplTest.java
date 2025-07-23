@@ -129,7 +129,7 @@ public class WorkflowManagementServiceImplTest {
         WorkflowRequest expectedRequest = new WorkflowRequest();
         expectedRequest.setRequestId(requestId);
         expectedRequest.setCreatedBy(createdBy);
-        expectedRequest.setEventType(operation);
+        expectedRequest.setOperationType(operation);
         expectedRequest.setCreatedAt(createdAt);
         expectedRequest.setUpdatedAt(updatedAt);
         expectedRequest.setStatus(status);
@@ -140,7 +140,7 @@ public class WorkflowManagementServiceImplTest {
 
         assertNotNull(result, "Returned workflow request should not be null");
         assertEquals(result.getRequestId(), requestId, "Request ID should match");
-        assertEquals(result.getEventType(), operation, "Event type should match");
+        assertEquals(result.getOperationType(), operation, "Operation type should match");
         assertEquals(result.getStatus(), status, "Status should match");
         assertEquals(result.getCreatedBy(), createdBy, "Created by should match");
 

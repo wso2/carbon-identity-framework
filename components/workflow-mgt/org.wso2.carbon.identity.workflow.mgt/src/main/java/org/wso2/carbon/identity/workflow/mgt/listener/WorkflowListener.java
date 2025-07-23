@@ -605,8 +605,10 @@ public interface WorkflowListener {
      * instead.
      */
     @Deprecated
-    void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status) throws WorkflowException;
+    default void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
+            dateCategory, int tenantId, String status) throws WorkflowException{
+
+        }
 
     /**
      * Trigger after retrieving requests from filter.
@@ -623,8 +625,10 @@ public interface WorkflowListener {
      *  WorkflowRequest[])} instead.
      */
     @Deprecated
-    void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status, WorkflowRequest[] result) throws WorkflowException;
+    default void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
+            dateCategory, int tenantId, String status, WorkflowRequest[] result) throws WorkflowException{
+
+        }
 
     /**
      * Trigger before retrieving requests from filter.
@@ -637,8 +641,10 @@ public interface WorkflowListener {
      * @param status
      * @throws WorkflowException
      */
-    void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException;
+    default void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
+            dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException {
+
+        }
 
     /**
      * Trigger after retrieving requests from filter.
@@ -652,9 +658,11 @@ public interface WorkflowListener {
      * @param result
      * @throws WorkflowException
      */
-    void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status, int limit, int offset, WorkflowRequestFilterResponse result) 
-            throws WorkflowException;
+     default void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
+            dateCategory, int tenantId, String status, int limit, int offset, WorkflowRequestFilterResponse result)
+            throws WorkflowException {
+
+     }
 
     /**
      * @param wfOperationType

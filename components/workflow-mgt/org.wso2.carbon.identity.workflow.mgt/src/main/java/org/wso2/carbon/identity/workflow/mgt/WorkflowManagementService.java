@@ -393,11 +393,8 @@ public interface WorkflowManagementService {
      *             instead.
      */
     @Deprecated
-    default WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
-            int tenantId, String status) throws WorkflowException {
-
-        throw new NotImplementedException("Get requests from filter functionality is not implemented.");
-    }
+    WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,
+            int tenantId, String status) throws WorkflowException;
 
     /**
      * Get workflow requests based on the filter criteria.
@@ -414,8 +411,9 @@ public interface WorkflowManagementService {
      * @return Array of WorkflowRequest objects matching the criteria.
      * @throws WorkflowException If an error occurs while retrieving the requests.
      */
-    default WorkflowRequestFilterResponse getRequestsFromFilter(String user, String beginDate, String endDate,
-            String dateCategory, int tenantId, String status, int limit, int offset) throws WorkflowException {
+    default WorkflowRequestFilterResponse getRequestsFromFilter(String user, String operationType, String beginDate, 
+            String endDate, String dateCategory, int tenantId, String status, int limit, int offset) 
+            throws WorkflowException {
                 
         throw new NotImplementedException("Get requests from filter functionality is not implemented.");
     }

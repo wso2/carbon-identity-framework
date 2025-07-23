@@ -115,7 +115,7 @@ public class WorkflowRequestDAOTest {
 
             assertNotNull(result, "Workflow request should not be null for ID: " + requestId);
             assertEquals(result.getRequestId(), requestId, "Request ID mismatch");
-            assertEquals(result.getEventType(), expectedOperation, "Operation type mismatch");
+            assertEquals(result.getOperationType(), expectedOperation, "Operation type mismatch");
             assertEquals(result.getCreatedAt().toString(), expectedCreatedAt.toString(),
                     "Created at timestamp mismatch");
             assertEquals(result.getUpdatedAt().toString(), expectedUpdatedAt.toString(),

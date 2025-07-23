@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dao;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
@@ -51,9 +49,6 @@ public class WorkflowRequestDAO {
 
     public static final String UPDATED_AT_FILTER = "updatedAt";
     public static final String ALL_TASKS_FILTER = "allTasks";
-    private static final String BASE_SELECT = SQLConstants.GET_WORKFLOW_REQUESTS_BASE_QUERY;
-    private static final String BASE_COUNT = SQLConstants.COUNT_WORKFLOW_REQUESTS_BASE_QUERY;
-    private static final Log log = LogFactory.getLog(WorkflowRequestDAO.class);
 
     /**
      * Persists WorkflowRequest to be used when workflow is completed.
@@ -351,14 +346,14 @@ public class WorkflowRequestDAO {
             Connection connection = IdentityDatabaseUtil.getDBConnection(false);
             String databaseType = getDatabaseType(connection);
             WorkflowRequestSQLBuilder workflowRequestSQLBuilderSelect = 
-                    new WorkflowRequestSQLBuilder(databaseType, BASE_SELECT);
+                    new WorkflowRequestSQLBuilder(databaseType, SQLConstants.GET_WORKFLOW_REQUESTS_BASE_QUERY);
             workflowRequestSQLBuilderSelect = workflowRequestSQLBuilderSelect.getAllRequestsWithSpecificFilters
                     (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
             List<org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest> results =
                     workflowRequestSQLBuilderSelect.execute();
 
             WorkflowRequestSQLBuilder workflowRequestSQLBuilderCount = 
-                    new WorkflowRequestSQLBuilder(databaseType, BASE_COUNT);
+                    new WorkflowRequestSQLBuilder(databaseType, SQLConstants.COUNT_WORKFLOW_REQUESTS_BASE_QUERY);
             workflowRequestSQLBuilderCount = workflowRequestSQLBuilderCount.getAllRequestsWithSpecificFilters
                     (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
             int totalCount = workflowRequestSQLBuilderCount.executeCount();
@@ -390,7 +385,7 @@ public class WorkflowRequestDAO {
         org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest requestDTO =
                 new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
             requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
-            requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
+            requestDTO.setOperationType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
             requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
             requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
             requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
@@ -724,10 +719,9 @@ public class WorkflowRequestDAO {
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
-        String query = SQLConstants.GET_FULL_WORKFLOW_REQUEST_QUERY;
 
         try {
-            prepStmt = connection.prepareStatement(query);
+            prepStmt = connection.prepareStatement(SQLConstants.GET_FULL_WORKFLOW_REQUEST_QUERY);
             prepStmt.setString(1, requestId);
             resultSet = prepStmt.executeQuery();
 
@@ -736,7 +730,7 @@ public class WorkflowRequestDAO {
                     new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest();
 
                 requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
-                requestDTO.setEventType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
+                requestDTO.setOperationType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
                 requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
                 requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
                 requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
@@ -756,7 +750,8 @@ public class WorkflowRequestDAO {
                 throw new WorkflowClientException("Workflow request not found with ID: " + requestId);
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when executing the sql query:" + 
+                    SQLConstants.GET_FULL_WORKFLOW_REQUEST_QUERY, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException(
                     "Error when deserializing the workflow request. requestId = " + requestId, e);

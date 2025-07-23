@@ -43,14 +43,15 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
     private static final String ALL_FILTER = "ALL";
     private static final List<String> VALID_ORDER_COLUMNS = Arrays.asList(
             "UUID", "CREATED_BY", "CREATED_AT", "UPDATED_AT", "STATUS", "OPERATION_TYPE", "REQUEST");
+    private static final String ORDER_BY_STRING = " ORDER BY ";
 
     private Integer limit;
     private Integer offset;
     private final String databaseType;
-    private String customOrderBy;
-    private boolean skipOrderingAndPagination = false;
+    private boolean isSkipOrderingAndPagination;
 
     public WorkflowRequestSQLBuilder(String databaseType , String baseQuery) {
+
         super(new StringBuilder(baseQuery));
         if (databaseType == null || databaseType.trim().isEmpty()) {
             throw new IllegalArgumentException("Database type cannot be null or empty");
@@ -73,15 +74,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
             throw new IllegalArgumentException("Offset must be non-negative");
         }
         this.offset = offset;
-        return this;
-    }
-
-    public WorkflowRequestSQLBuilder setOrderBy(String column, String direction) {
-
-        if (column != null && isValidOrderColumn(column)) {
-            String dir = (direction != null && "DESC".equalsIgnoreCase(direction)) ? "DESC" : "ASC";
-            this.customOrderBy = " ORDER BY " + column + " " + dir;
-        }
         return this;
     }
 
@@ -137,43 +129,25 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         return this;
     }
 
-    public WorkflowRequestSQLBuilder searchByKeyword(String keyword) {
-
-        if (isValidFilter(keyword)) {
-            StringBuilder searchClause = new StringBuilder("(");
-            searchClause.append("REQUEST LIKE ? OR ");
-            searchClause.append("CREATED_BY LIKE ? OR ");
-            searchClause.append("STATUS LIKE ? OR ");
-            searchClause.append("OPERATION_TYPE LIKE ?");
-            searchClause.append(")");
-
-            String searchTerm = "%" + keyword + "%";
-            List<Object> params = Arrays.asList(searchTerm, searchTerm, searchTerm, searchTerm);
-            super.appendParameterizedSqlFragment(" AND " + searchClause.toString(), params);
-        }
-        return this;
-    }
-
     @Override
     public String getQuery() {
+
         String query = super.getQuery();
 
-        if (!skipOrderingAndPagination) {
-            if (customOrderBy != null) {
-                query += customOrderBy;
-            } else if (!query.contains("ORDER BY")) {
+        if (!isSkipOrderingAndPagination) {
+            if (!query.contains(ORDER_BY_STRING)) {
                 query += DEFAULT_ORDER_BY;
             }
 
             if (limit != null) {
-                query = applyDatabaseSpecificPagination(query);
+                query = applyDBSpecificPagination(query);
             }
         }
 
         return query;
     }
 
-    private String applyDatabaseSpecificPagination(String query) {
+    private String applyDBSpecificPagination(String query) {
 
         switch (databaseType) {
             case "ORACLE":
@@ -263,7 +237,8 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
     }
 
     public int executeCount() throws InternalWorkflowException {
-        skipOrderingAndPagination = true;
+
+        isSkipOrderingAndPagination = true;
         Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -271,7 +246,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
 
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
-            customOrderBy = "";
             String finalQuery = getQuery();
             stmt = connection.prepareStatement(finalQuery);
 
@@ -408,7 +382,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
             if (startDate != null || endDate != null) {
                 builder = builder.filterByUpdatedDateRange(startDate.toString(), endDate.toString());
             }
-        } else {
         }
 
         if (createdBy != null && !createdBy.isEmpty()) {
