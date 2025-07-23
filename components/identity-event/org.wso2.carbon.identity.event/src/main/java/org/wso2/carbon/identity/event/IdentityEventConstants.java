@@ -500,6 +500,12 @@ public class IdentityEventConstants {
         public static final String USER_CLAIMS_DELETED = "USER_CLAIMS_DELETED";
         public static final String SESSION_IDS = "SESSION_IDS";
 
+        public static final String CONSUMER_KEY = "CONSUMER_KEY";
+        public static final String IAT = "IAT";
+        public static final String JTI = "JTI";
+        public static final String TOKEN_TYPE = "TOKEN_TYPE";
+        public static final String GRANT_TYPE = "GRANT_TYPE";
+
         public class Scenario {
 
             public class ScenarioTypes {
