@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProper
  */
 public class WebhookMetadataCacheEntry extends CacheEntry {
 
-    private static final long serialVersionUID = -823489232732983923L;
+    private static final long serialVersionUID = 202406120101L;
     private WebhookMetadataProperties webhookMetadataProperties;
 
     /**
