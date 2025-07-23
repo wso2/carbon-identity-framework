@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.action.management.internal.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
@@ -28,6 +30,7 @@ import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +38,8 @@ import java.util.Map;
  * Utility class for Action Management DAO.
  */
 public class ActionManagementDAOUtil {
+
+    private static final Log LOG = LogFactory.getLog(ActionManagementDAOUtil.class);
 
     /**
      * Reads a database property from the given map of properties and converts it into a list of strings.
@@ -49,7 +54,8 @@ public class ActionManagementDAOUtil {
 
         ActionProperty dbActionProperty = properties.remove(dbPropertyToRead);
         if (dbActionProperty == null) {
-            throw new ActionMgtServerException(dbPropertyToRead + " does not exist in the DB.");
+            LOG.debug(dbPropertyToRead + " property does not exist in the DB.");
+            return Collections.emptyList();
         }
 
         Object dbValueBinary = dbActionProperty.getValue();

@@ -317,10 +317,17 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             endpoint.getAuthentication().getProperties().forEach(
                     authProperty -> endpointProperties.put(authProperty.getName(),
                             new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
-            endpointProperties.put(ALLOWED_HEADERS_PROPERTY,
-                    actionMgtDAOUtil.buildActionPropertyFromList(endpoint.getAllowedHeaders()));
-            endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY,
-                    actionMgtDAOUtil.buildActionPropertyFromList(endpoint.getAllowedParameters()));
+
+            // Allowed headers and parameters are optional properties.
+            if (endpoint.getAllowedHeaders() != null) {
+                endpointProperties.put(ALLOWED_HEADERS_PROPERTY,
+                        actionMgtDAOUtil.buildActionPropertyFromList(endpoint.getAllowedHeaders()));
+            }
+            if (endpoint.getAllowedParameters() != null) {
+                endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY,
+                        actionMgtDAOUtil.buildActionPropertyFromList(endpoint.getAllowedParameters()));
+            }
+
             addActionPropertiesToDB(actionDTO.getId(), endpointProperties, tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while adding Action Endpoint configurations in the system.", e);
@@ -329,7 +336,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
     /**
      * Update Action Endpoint Configurations.
-     * If the endpoint configuration is updated, the existing configuration is deleted and replaced with the new one.
+     * If the endpoint configuration is updated, the existing configuration is deleted
+     * and re added with updating values.
      *
      * @param updatingActionDTO Updating ActionDTO object with endpoint information.
      * @param existingActionDTO Existing ActionDTO object with endpoint information.
@@ -346,9 +354,37 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         try {
             // Deletes existing endpoint config.
             deleteEndpoint(existingActionDTO.getId(), existingActionDTO.getEndpoint(), tenantId);
-            // Adds updated action config.
+
             ActionDTO actionDTO = actionMgtDAOUtil.buildActionDTOWithEndpoint(updatingActionDTO, existingActionDTO);
-            addEndpoint(actionDTO, tenantId);
+            EndpointConfig updatingEndpoint = actionDTO.getEndpoint();
+
+            Map<String, ActionProperty> updatingEndpointProperties = new HashMap<>();
+            try {
+                updatingEndpointProperties.put(URI_PROPERTY,
+                        new ActionProperty.BuilderForDAO(updatingEndpoint.getUri()).build());
+                updatingEndpointProperties.put(AUTHN_TYPE_PROPERTY,
+                        new ActionProperty.BuilderForDAO(
+                                updatingEndpoint.getAuthentication().getType().name()).build());
+                updatingEndpoint.getAuthentication().getProperties().forEach(authProperty ->
+                        updatingEndpointProperties.put(authProperty.getName(),
+                                new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
+
+                // Allowed headers and parameters are optional properties.
+                if (updatingEndpoint.getAllowedHeaders() != null) {
+                    updatingEndpointProperties.put(ALLOWED_HEADERS_PROPERTY,
+                            actionMgtDAOUtil.buildActionPropertyFromList(updatingEndpoint.getAllowedHeaders()));
+                }
+                if (updatingEndpoint.getAllowedParameters() != null) {
+                    updatingEndpointProperties.put(ALLOWED_PARAMETERS_PROPERTY,
+                            actionMgtDAOUtil.buildActionPropertyFromList(updatingEndpoint.getAllowedParameters()));
+                }
+
+                // Adds the updated values to the DB
+                addActionPropertiesToDB(actionDTO.getId(), updatingEndpointProperties, tenantId);
+            } catch (TransactionException e) {
+                throw new ActionMgtServerException(
+                        "Error while adding Action Endpoint configurations in the system.", e);
+            }
         } catch (ActionMgtException e) {
             throw new ActionMgtServerException("Error while updating Action Endpoint information in the system.", e);
         }
@@ -357,9 +393,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     /**
      * Deletes the existing endpoint configuration for a given action.
      *
-     * @param actionId        UUID of the Action whose endpoint is being deleted.
+     * @param actionId         UUID of the Action whose endpoint is being deleted.
      * @param deletingEndpoint The endpoint configuration to be deleted.
-     * @param tenantId        Tenant ID.
+     * @param tenantId         Tenant ID.
      * @throws ActionMgtServerException If an error occurs while deleting the endpoint configuration.
      */
     private void deleteEndpoint(String actionId, EndpointConfig deletingEndpoint, Integer tenantId)
@@ -367,10 +403,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         List<String> deletingProperties = new ArrayList<>();
         deletingProperties.add(URI_PROPERTY);
-        deletingProperties.add(ALLOWED_HEADERS_PROPERTY);
-        deletingProperties.add(ALLOWED_PARAMETERS_PROPERTY);
 
-        // Deletes endpoint authentication
+        if (deletingEndpoint.getAllowedHeaders() != null) {
+            deletingProperties.add(ALLOWED_HEADERS_PROPERTY);
+        }
+        if (deletingEndpoint.getAllowedParameters() != null) {
+            deletingProperties.add(ALLOWED_PARAMETERS_PROPERTY);
+        }
+
         List<String> deletingAuthProperties = deletingEndpoint.getAuthentication().getProperties().stream()
                 .map(AuthProperty::getName)
                 .collect(Collectors.toList());
@@ -414,107 +454,25 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             default:
                 throw new ActionMgtServerException("Authentication type is not defined for the Action Endpoint.");
         }
+
+        EndpointConfig.EndpointConfigBuilder endpointBuilder = new EndpointConfig.EndpointConfigBuilder();
+
+        // Updates optional allowed headers and parameters
         List<String> allowedHeaders = actionMgtDAOUtil
                 .readDBListProperty(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
         List<String> allowedParameters = actionMgtDAOUtil
                 .readDBListProperty(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
+        if (!allowedHeaders.isEmpty()) {
+            endpointBuilder = endpointBuilder.allowedHeaders(allowedHeaders);
+        }
+        if (!allowedParameters.isEmpty()) {
+            endpointBuilder = endpointBuilder.allowedParameters(allowedParameters);
+        }
 
-        return new EndpointConfig.EndpointConfigBuilder()
+        return endpointBuilder
                 .uri(propertiesFromDB.remove(URI_PROPERTY).getValue().toString())
                 .authentication(authentication)
-                .allowedHeaders(allowedHeaders)
-                .allowedParameters(allowedParameters)
                 .build();
-    }
-
-    /**
-     * Update Action Endpoint Authentication.
-     *
-     * @param actionId               UUID of the created Action.
-     * @param updatingAuthentication Authentication object with updated configurations.
-     * @param existingAuthentication Existing Authentication object.
-     * @param tenantId               Tenant ID.
-     * @throws ActionMgtException If an error occurs while updating action endpoint authentication.
-     */
-    private void updateEndpointAuthentication(String actionId, Authentication updatingAuthentication,
-                                              Authentication existingAuthentication, Integer tenantId)
-            throws ActionMgtException {
-
-        if (updatingAuthentication == null) {
-            return;
-        }
-
-        try {
-            if (updatingAuthentication.getType() == existingAuthentication.getType()) {
-                updateAuthentication(actionId, updatingAuthentication, tenantId);
-            } else {
-                // Delete existing authentication configurations.
-                deleteAuthentication(actionId, existingAuthentication, tenantId);
-                // Add new authentication configurations.
-                addAuthentication(actionId, updatingAuthentication, tenantId);
-            }
-        } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while updating Action Endpoint Authentication.", e);
-        }
-    }
-
-    /**
-     * Add Authentication Configurations of a new Authentication type.
-     *
-     * @param actionId               UUID of the created Action.
-     * @param updatingAuthentication Authentication object with updated configurations.
-     * @param tenantId               Tenant ID.
-     * @throws TransactionException If an error occurs while adding action authentication.
-     */
-    private void addAuthentication(String actionId, Authentication updatingAuthentication, Integer tenantId)
-            throws TransactionException {
-
-        Map<String, ActionProperty> authenticationProperties = updatingAuthentication.getProperties().stream()
-                .collect(Collectors.toMap(AuthProperty::getName, authProp ->
-                        new ActionProperty.BuilderForDAO(authProp.getValue()).build()));
-        authenticationProperties.put(AUTHN_TYPE_PROPERTY, new ActionProperty.BuilderForDAO(
-                updatingAuthentication.getType().name()).build());
-
-        addActionPropertiesToDB(actionId, authenticationProperties, tenantId);
-    }
-
-    /**
-     * Delete Authentication Configurations of an existing Authentication type.
-     *
-     * @param actionId               UUID of the created Action.
-     * @param existingAuthentication Existing Authentication object.
-     * @param tenantId               Tenant ID.
-     * @throws TransactionException If an error occurs while deleting action authentication.
-     */
-    private void deleteAuthentication(String actionId, Authentication existingAuthentication, Integer tenantId)
-            throws TransactionException {
-
-        List<String> deletingProperties = existingAuthentication.getProperties().stream()
-                .map(AuthProperty::getName)
-                .collect(Collectors.toList());
-        deletingProperties.add(AUTHN_TYPE_PROPERTY);
-
-        deleteActionPropertiesInDB(actionId, deletingProperties, tenantId);
-    }
-
-    /**
-     * Update Authentication Configurations of an existing Authentication type.
-     *
-     * @param actionId               UUID of the created Action.
-     * @param updatingAuthentication Authentication object with updated configurations.
-     * @param tenantId               Tenant ID.
-     * @throws TransactionException If an error occurs while updating action authentication.
-     */
-    private void updateAuthentication(String actionId, Authentication updatingAuthentication, Integer tenantId)
-            throws TransactionException {
-
-        Map<String, ActionProperty> nonSecretAuthenticationProperties = updatingAuthentication.getProperties()
-                .stream()
-                .filter(property -> !property.getIsConfidential())
-                .collect(Collectors.toMap(AuthProperty::getName, authProp ->
-                        new ActionProperty.BuilderForDAO(authProp.getValue()).build()));
-        // Update non-secret endpoint properties.
-        updateActionPropertiesInDB(actionId, nonSecretAuthenticationProperties, tenantId);
     }
 
     private void addRuleReference(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
@@ -665,6 +623,47 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         });
     }
 
+    private void addActionEndpointPropertiesToDB(String actionId, Map<String, ActionProperty> actionProperties,
+                                         Integer tenantId) throws TransactionException {
+
+        boolean isPropertyValueColumnExists  = isPropertyValueColumnExists();
+        String query = isPropertyValueColumnExists ? ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES
+                : ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES_WITH_PRIMITIVE_VALUE_COLUMN;
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.withTransaction(template -> {
+            template.executeBatchInsert(query,
+                    statement -> {
+                        for (Map.Entry<String, ActionProperty> property : actionProperties.entrySet()) {
+                            boolean isPrimitive = property.getValue().isPrimitive();
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
+                            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
+                                    property.getKey());
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_TYPE,
+                                    property.getValue().getType().toString());
+                            if (isPrimitive) {
+                                statement.setString(isPropertyValueColumnExists ?
+                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
+                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
+                                        property.getValue().getValue().toString());
+                                statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
+                                        null, 0);
+                            } else {
+                                BinaryObject binaryObject = (BinaryObject) property.getValue().getValue();
+                                statement.setNull(isPropertyValueColumnExists ?
+                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
+                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
+                                        java.sql.Types.VARCHAR);
+                                statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
+                                        binaryObject.getInputStream(), binaryObject.getLength());
+                            }
+                            statement.addBatch();
+                        }
+                    }, null);
+            return null;
+        });
+    }
+
     /**
      * Get Action properties by ID.
      *
@@ -709,76 +708,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return actionEndpointProperties;
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while retrieving Action Properties from the system.", e);
-        }
-    }
-
-    /**
-     * Update the given property of an {@link ActionDTO} by given Action ID.
-     *
-     * @param actionId           UUID of the created Action.
-     * @param updatingProperties Action properties to be updated.
-     * @param tenantId           Tenant ID.
-     * @throws TransactionException If an error occurs while updating the Action properties in the database.
-     */
-    private void updateActionPropertiesInDB(String actionId, Map<String, ActionProperty> updatingProperties,
-                                            Integer tenantId) throws TransactionException {
-
-        boolean isPropertyValueColumnExists = isPropertyValueColumnExists();
-        String query = isPropertyValueColumnExists ? ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY
-                : ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY_WITH_PRIMITIVE_VALUE_COLUMN;
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.withTransaction(template ->
-                template.executeBatchInsert(query,
-                        statement -> {
-                            for (Map.Entry<String, ActionProperty> property : updatingProperties
-                                    .entrySet()) {
-                                boolean isPrimitive = property.getValue().isPrimitive();
-                                if (isPrimitive) {
-                                    statement.setString(isPropertyValueColumnExists ?
-                                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
-                                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
-                                            property.getValue().getValue().toString());
-                                    statement.setBinaryStream(ActionMgtSQLConstants.Column
-                                                    .ACTION_PROPERTIES_OBJECT_VALUE, null, 0);
-                                } else {
-                                    statement.setNull(isPropertyValueColumnExists ?
-                                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
-                                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
-                                            java.sql.Types.VARCHAR);
-                                    BinaryObject binaryObject = (BinaryObject) property.getValue().getValue();
-                                    statement.setBinaryStream(ActionMgtSQLConstants.Column
-                                                    .ACTION_PROPERTIES_OBJECT_VALUE, binaryObject.getInputStream(),
-                                            binaryObject.getLength());
-                                }
-                                statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
-                                        property.getKey());
-                                statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
-                                statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                                statement.addBatch();
-                            }
-                        }, null));
-    }
-
-    /**
-     * Update the list of values for a given properties of an {@link EndpointConfig}.
-     *
-     * @param actionId   UUID of the Action to be updated.
-     * @param updatingPropertyKey Key of the property to be updated.
-     * @param updatingValues      List of new values for the property.
-     * @param tenantId            Tenant ID.
-     * @throws ActionMgtException If an error occurs while updating the property in the database.
-     */
-    private void updateActionPropertyListInDB(String actionId, String updatingPropertyKey, List<String> updatingValues,
-                                              Integer tenantId) throws ActionMgtException {
-
-        Map<String, ActionProperty> endpointProperties = new HashMap<>();
-        try {
-            deleteActionPropertiesInDB(actionId, Collections.singletonList(updatingPropertyKey), tenantId);
-            endpointProperties.put(updatingPropertyKey,
-                    actionMgtDAOUtil.buildActionPropertyFromList(updatingValues));
-            addActionPropertiesToDB(actionId, endpointProperties, tenantId);
-        } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while updating " + updatingPropertyKey + e);
         }
     }
 
