@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.ConfigurationContextService;

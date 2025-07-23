@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtE
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;

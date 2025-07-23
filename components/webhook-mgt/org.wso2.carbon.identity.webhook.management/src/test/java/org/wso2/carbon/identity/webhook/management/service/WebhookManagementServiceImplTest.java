@@ -25,7 +25,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtClientException;
