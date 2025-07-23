@@ -156,7 +156,7 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         return preUpdateProfileRequestBuilder.build();
     }
 
-    private static Tenant getTenant() throws ActionExecutionRequestBuilderException {
+    private Tenant getTenant() throws ActionExecutionRequestBuilderException {
 
         RootOrganization rootOrganization = IdentityContext.getThreadLocalIdentityContext().getRootOrganization();
         if (rootOrganization == null) {

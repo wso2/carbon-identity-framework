@@ -153,7 +153,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             // If the managed organization claim is set, retrieve the organization details.
             return getOrganization(managedOrgId);
         } catch (UserStoreException e) {
-            throw new ActionExecutionException("Error while retrieving the user's managed organization claim.", e);
+            throw new ActionExecutionException("Error while retrieving the user's managed by organization claim.", e);
         }
     }
 
