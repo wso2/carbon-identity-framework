@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.context.model.Organization;
 import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.core.context.model.UserActor;
-import org.wso2.carbon.identity.core.internal.IdentityContextDataHolder;
+import org.wso2.carbon.identity.core.internal.context.IdentityContextDataHolder;
 import org.wso2.carbon.utils.CarbonUtils;
 
 /**

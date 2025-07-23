@@ -167,8 +167,7 @@
                             ${project.artifactId}
                         </Bundle-SymbolicName>
                         <Private-Package>
-                            org.wso2.carbon.identity.core.internal,
-                            org.wso2.carbon.identity.core.context.util
+                            org.wso2.carbon.identity.core.internal.*
                         </Private-Package>
                         <Import-Package>
                             !javax.ws.rs,
@@ -222,8 +221,7 @@
                             org.wso2.carbon.utils.security;version="${carbon.kernel.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.core.internal,
-                            !org.wso2.carbon.identity.core.context.util,
+                            !org.wso2.carbon.identity.core.internal.*,
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.core.context.util;
+package org.wso2.carbon.identity.core.internal.context;
 
 import org.apache.catalina.connector.Request;
 import org.apache.commons.lang.StringUtils;
@@ -25,7 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Organization;
 import org.wso2.carbon.identity.core.context.model.RootOrganization;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -41,17 +41,23 @@ import java.util.regex.Pattern;
 /**
  * Utility class for managing organization operations for the IdentityContextCreatorValve.
  */
-public class OrganizationManagementUtil {
+public class OrganizationResolver {
 
-    private static final Log LOG = LogFactory.getLog(OrganizationManagementUtil.class);
+    private static final OrganizationResolver INSTANCE = new OrganizationResolver();
+    private static final Log LOG = LogFactory.getLog(OrganizationResolver.class);
     private static final String TENANT_SEPARATOR = "/t/";
     private static final String ORG_SEPARATOR = "/o/";
     private static final Pattern PATTERN_ORG_CONTEXT = Pattern.compile("^/o/[a-f0-9\\-]+?");
     private static final Pattern PATTERN_ORG_CONTEXT_IN_TENANT_PERSPECTIVE =
             Pattern.compile("^/t/[^/]+/o/[a-f0-9\\-]+?");
 
-    private OrganizationManagementUtil() {
+    private OrganizationResolver() {
         // Private constructor to prevent instantiation.
+    }
+
+    public static OrganizationResolver getInstance() {
+
+        return INSTANCE;
     }
 
     /**
@@ -59,7 +65,7 @@ public class OrganizationManagementUtil {
      *
      * @param request The HTTP request containing the URI.
      */
-    public static void initOrganizationInfo(Request request) {
+    public void resolveOrganizationInContext(Request request) {
 
         String requestURI = request.getRequestURI();
         if (StringUtils.isBlank(requestURI)) {
@@ -71,27 +77,28 @@ public class OrganizationManagementUtil {
                 // Handle the requests starts with /t/<tenant>/o/<org_id>/
                 // Request URI has tenant domain -> Resolve Root organization info.
                 String tenantDomainOfRootOrg = extractResourceFromURI(requestURI, TENANT_SEPARATOR);
-                initRootOrganization(IdentityTenantUtil.getTenantId(tenantDomainOfRootOrg));
+                resolveRootOrganization(IdentityTenantUtil.getTenantId(tenantDomainOfRootOrg));
 
                 // Request URI has an organization ID -> Resolve sub-organization info.
                 String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
-                initOrganization(organizationId);
+                resolveSubOrganization(organizationId);
             } else if (PATTERN_ORG_CONTEXT.matcher(requestURI).find()) {
                 // Handle the requests starts with /o/<org_id>/
                 // Request URI has an organization ID -> Resolve both root and sub-organization info.
-                initRootAndSubOrganization(requestURI);
+                resolveRootAndSubOrganization(requestURI);
             } else {
                 // Handle the requests starts with /t/<tenant>/, /o/ or /t/<tenant>/o/
+                // /o/ -> Resolves to /t/carbon.super/o/
                 // Resolve root organization with tenant information in the CarbonContext.
                 // Resolving sub organization is handled in org.wso2.carbon.identity.authz.valve.AuthorizationValve.
-                initRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
+                resolveRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
             }
         } catch (OrganizationManagementException | UserStoreException e) {
             LOG.error("Error while initializing organization information.", e);
         }
     }
 
-    private static void initOrganization(String organizationId) throws OrganizationManagementException {
+    private void resolveSubOrganization(String organizationId) throws OrganizationManagementException {
 
         int organizationDepth = getOrganizationDepthInHierarchy(organizationId);
         if (organizationDepth <
@@ -115,7 +122,7 @@ public class OrganizationManagementUtil {
                 .build());
     }
 
-    private static void initRootAndSubOrganization(String requestURI) throws OrganizationManagementException {
+    private void resolveRootAndSubOrganization(String requestURI) throws OrganizationManagementException {
 
         String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
         String organizationIdOfRootOrg = getRootOrganizationId(organizationId);
@@ -136,10 +143,10 @@ public class OrganizationManagementUtil {
                     .build());
         }
 
-        initOrganization(organizationId);
+        resolveSubOrganization(organizationId);
     }
 
-    private static void initRootOrganization(int tenantId) throws UserStoreException {
+    private void resolveRootOrganization(int tenantId) throws UserStoreException {
 
         if (MultitenantConstants.SUPER_TENANT_ID == tenantId) {
             IdentityContext.getThreadLocalIdentityContext().setRootOrganization(new RootOrganization.Builder()
@@ -164,32 +171,32 @@ public class OrganizationManagementUtil {
                 .build());
     }
 
-    private static int getOrganizationDepthInHierarchy(String organizationId) throws OrganizationManagementException {
+    private int getOrganizationDepthInHierarchy(String organizationId) throws OrganizationManagementException {
 
         return IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
                 .getOrganizationDepthInHierarchy(organizationId);
     }
 
-    private static BasicOrganization getBasicOrganization(String organizationId) throws OrganizationManagementException {
+    private BasicOrganization getBasicOrganization(String organizationId) throws OrganizationManagementException {
 
         Map<String, BasicOrganization> orgsMap = IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
                 .getBasicOrganizationDetailsByOrgIDs(Collections.singletonList(organizationId));
         return orgsMap.get(organizationId);
     }
 
-    private static String getRootOrganizationId(String organizationId) throws OrganizationManagementException {
+    private String getRootOrganizationId(String organizationId) throws OrganizationManagementException {
 
         return IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
                 .getPrimaryOrganizationId(organizationId);
     }
 
-    private static String getOrganizationTenantDomain(String organizationId) throws OrganizationManagementException {
+    private String getOrganizationTenantDomain(String organizationId) throws OrganizationManagementException {
 
         return IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
                 .resolveTenantDomain(organizationId);
     }
 
-    private static String extractResourceFromURI(String requestURI, String resourceIdentifier) {
+    private String extractResourceFromURI(String requestURI, String resourceIdentifier) {
 
         int startIndex = requestURI.indexOf(resourceIdentifier) + resourceIdentifier.length();
         if (startIndex < resourceIdentifier.length() || startIndex >= requestURI.length()) {
