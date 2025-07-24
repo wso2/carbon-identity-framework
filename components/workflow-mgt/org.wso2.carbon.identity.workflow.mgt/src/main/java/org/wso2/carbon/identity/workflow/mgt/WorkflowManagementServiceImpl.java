@@ -103,6 +103,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public boolean isWorkflowExistByName(String workflowName, String tenantDomain) throws WorkflowException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Checking if workflow exists with name: " + workflowName + " in tenant domain: " + tenantDomain);
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return workflowDAO.getWorkflowByName(workflowName, tenantId) != null;
     }
