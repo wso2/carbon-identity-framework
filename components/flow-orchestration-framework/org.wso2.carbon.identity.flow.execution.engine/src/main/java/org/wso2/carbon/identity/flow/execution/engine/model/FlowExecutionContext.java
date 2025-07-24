@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.slf4j.MDC;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
@@ -148,6 +149,7 @@ public class FlowExecutionContext implements Serializable {
         this.currentActionId = currentActionId;
     }
 
+    @JsonIgnore
     public String getCorrelationId() {
 
         return Optional.ofNullable(MDC.get(CORRELATION_ID_MDC)).orElse("");
