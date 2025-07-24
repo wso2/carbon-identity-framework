@@ -217,7 +217,7 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
                 paramIndex++;
             }
 
-            setPaginationParameters(stmt, paramIndex);
+            setPaginationParams(stmt, paramIndex);
 
             rs = stmt.executeQuery();
 
@@ -276,7 +276,7 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         }
     }
 
-    private void setPaginationParameters(PreparedStatement stmt, int startIndex) throws SQLException {
+    private void setPaginationParams(PreparedStatement stmt, int startIndex) throws SQLException {
 
         if (limit == null) {
             return;

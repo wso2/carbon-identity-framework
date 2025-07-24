@@ -362,9 +362,8 @@ public class WorkflowRequestDAO {
                     (tenantId, userName, operationType, status, timeCategory, beginTime, endTime, limit, offset);
             int totalCount = workflowRequestSQLBuilderCount.executeCount();
 
-            WorkflowRequestFilterResponse response = new WorkflowRequestFilterResponse(
+            return new WorkflowRequestFilterResponse(
                 results.toArray(new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest[0]), totalCount);
-            return response;
 
         } catch (IdentityRuntimeException e) {
             throw new InternalWorkflowException
