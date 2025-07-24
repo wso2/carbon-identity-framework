@@ -41,6 +41,17 @@ public class TestUtil {
     public static final String TEST_CERTIFICATE_NAME = "ACTIONS:certId";
     public static final String TEST_CERTIFICATE = "dummyCertificate";
     public static final String TEST_UPDATED_CERTIFICATE = "dummyCertificate";
+    public static final String TEST_ACCESSING_ORG_ID = "9a56eb19-23c4-4306-ae13-75299c2a40af";
+    public static final String TEST_ACCESSING_ORG_NAME = "mySubOrg";
+    public static final String TEST_ACCESSING_ORG_HANDLE = "mySubOrg.com";
+    public static final int TEST_ACCESSING_ORG_DEPTH = 20;
+    public static final String TEST_RESIDENT_ORG_ID = "6a56eba9-23c4-4306-ae13-11259c2a40ae";
+    public static final String TEST_RESIDENT_ORG_NAME = "mySubOrg2";
+    public static final String TEST_RESIDENT_ORG_HANDLE = "mySubOrg2.com";
+    public static final int TEST_RESIDENT_ORG_DEPTH = 20;
+    public static final int ROOT_ORG_TENANT_ID = 12;
+    public static final String ROOT_ORG_TENANT_DOMAIN = "primaryOrg.com";
+    public static final String ROOT_ORG_ID = "6a56eba9-23c4-4306-ae13-11259c2a40ae";
 
     public static final String TEST_USER_STORE_DOMAIN_NAME = "PRIMARY";
     public static final String TEST_USER_STORE_DOMAIN_ID = Base64.getEncoder()
