@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.organization.resource.sharing.policy.management.
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.BinaryObject;
+import org.wso2.carbon.identity.webhook.metadata.api.model.PolicyEnumWrapper;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataSQLConstants;
@@ -49,9 +50,10 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
         Map<String, WebhookMetadataProperty> propertiesMap = getWebhookPropertiesFromDB(tenantId);
 
         WebhookMetadataProperty orgPolicyProperty = propertiesMap.get(ORGANIZATION_POLICY_PROPERTY_NAME);
-        PolicyEnum organizationPolicy = null;
+        PolicyEnumWrapper organizationPolicy = null;
         if (orgPolicyProperty != null && orgPolicyProperty.isPrimitive()) {
-            organizationPolicy = PolicyEnum.getPolicyByPolicyName(orgPolicyProperty.getValue().toString());
+            organizationPolicy =
+                    new PolicyEnumWrapper(PolicyEnum.getPolicyByPolicyName(orgPolicyProperty.getValue().toString()));
         }
 
         return new WebhookMetadataProperties.Builder()
@@ -63,7 +65,7 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
     public void updateWebhookMetadataProperties(WebhookMetadataProperties webhookMetadataProperties, int tenantId)
             throws WebhookMetadataException {
 
-        PolicyEnum updatedOrganizationPolicy = webhookMetadataProperties.getOrganizationPolicy();
+        PolicyEnumWrapper updatedOrganizationPolicy = webhookMetadataProperties.getOrganizationPolicy();
         if (updatedOrganizationPolicy == null) {
             return;
         }

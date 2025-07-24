@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataEx
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
+import org.wso2.carbon.identity.webhook.metadata.api.model.PolicyEnumWrapper;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
@@ -125,7 +126,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
 
         if (properties == null || properties.getOrganizationPolicy() == null) {
             return new WebhookMetadataProperties.Builder()
-                    .organizationPolicy(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS)
+                    .organizationPolicy(new PolicyEnumWrapper(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS))
                     .build();
         }
         return properties;

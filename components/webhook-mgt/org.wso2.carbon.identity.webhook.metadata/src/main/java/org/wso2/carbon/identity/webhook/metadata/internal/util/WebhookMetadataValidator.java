@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.webhook.metadata.internal.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.organization.resource.sharing.policy.management.constant.PolicyEnum;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataClientException;
+import org.wso2.carbon.identity.webhook.metadata.api.model.PolicyEnumWrapper;
 
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_INVALID_WEBHOOK_REQUEST_FIELD;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ORGANIZATION_POLICY_FIELD;
@@ -33,14 +34,14 @@ public class WebhookMetadataValidator {
     /**
      * Validate the organization policy name.
      *
-     * @param policyEnum Organization policy enum.
+     * @param policyEnumWrapper Organization policy enum wrapper.
      * @throws WebhookMetadataClientException if the organization policy is invalid.
      */
-    public void validateOrganizationPolicy(PolicyEnum policyEnum) throws WebhookMetadataClientException {
+    public void validateOrganizationPolicy(PolicyEnumWrapper policyEnumWrapper) throws WebhookMetadataClientException {
 
-        if (StringUtils.isNotBlank(String.valueOf(policyEnum)) &&
-                !policyEnum.equals(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS) &&
-                !policyEnum.equals(PolicyEnum.NO_SHARING)) {
+        if (StringUtils.isNotBlank(String.valueOf(policyEnumWrapper)) &&
+                !policyEnumWrapper.getPolicyEnum().equals(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS) &&
+                !policyEnumWrapper.getPolicyEnum().equals(PolicyEnum.NO_SHARING)) {
             throw WebhookMetadataExceptionHandler.handleClientException(
                     ERROR_INVALID_WEBHOOK_REQUEST_FIELD, ORGANIZATION_POLICY_FIELD);
         }
