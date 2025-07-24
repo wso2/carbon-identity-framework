@@ -120,7 +120,6 @@ public class FlowExecutionEngineUtils {
             return;
         }
         FlowExecCtxCache.getInstance().clearCacheEntry(new FlowExecCtxCacheKey(contextId));
-        FlowContextStore.getInstance().deleteContext(contextId);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow context removed from cache for context id: " + contextId + ".");
         }

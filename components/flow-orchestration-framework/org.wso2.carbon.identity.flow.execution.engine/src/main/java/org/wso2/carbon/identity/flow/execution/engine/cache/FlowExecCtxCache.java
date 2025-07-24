@@ -104,5 +104,6 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
         LOG.debug("Clearing FlowExecutionContext cache entry for key: " + key.getContextId());
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
         super.clearCacheEntry(key, tenantName);
+        FlowContextStore.getInstance().deleteContext(key.getContextId());
     }
 }
