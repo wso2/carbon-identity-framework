@@ -24,9 +24,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.resource.sharing.policy.management.constant.PolicyEnum;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.PolicyEnumWrapper;
+import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
@@ -38,7 +37,6 @@ import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataVa
 
 import java.util.List;
 
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
@@ -103,21 +101,6 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
     }
 
     @Override
-    public List<Event> getEventsByProfileURI(String profileUri) throws WebhookMetadataException {
-
-        try {
-            List<Event> events = eventProfileMetadataDAO.getEventsByProfile(profileUri);
-            if (events.isEmpty()) {
-                log.warn("No events found for profile URI: " + profileUri);
-            }
-            return events;
-        } catch (Exception e) {
-            throw WebhookMetadataExceptionHandler.handleServerException(
-                    ERROR_CODE_EVENTS_RETRIEVE_ERROR, e, profileUri);
-        }
-    }
-
-    @Override
     public WebhookMetadataProperties getWebhookMetadataProperties(String tenantDomain) throws WebhookMetadataException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -126,7 +109,7 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
 
         if (properties == null || properties.getOrganizationPolicy() == null) {
             return new WebhookMetadataProperties.Builder()
-                    .organizationPolicy(new PolicyEnumWrapper(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS))
+                    .organizationPolicy(new OrganizationPolicy(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS))
                     .build();
         }
         return properties;

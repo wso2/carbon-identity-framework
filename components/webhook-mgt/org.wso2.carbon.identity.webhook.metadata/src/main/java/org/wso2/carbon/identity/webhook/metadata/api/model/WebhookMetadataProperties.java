@@ -25,14 +25,14 @@ import java.util.Objects;
  */
 public class WebhookMetadataProperties {
 
-    private final PolicyEnumWrapper organizationPolicy;
+    private final OrganizationPolicy organizationPolicy;
 
     private WebhookMetadataProperties(Builder builder) {
 
         this.organizationPolicy = builder.organizationPolicy;
     }
 
-    public PolicyEnumWrapper getOrganizationPolicy() {
+    public OrganizationPolicy getOrganizationPolicy() {
 
         return organizationPolicy;
     }
@@ -69,9 +69,9 @@ public class WebhookMetadataProperties {
      */
     public static class Builder {
 
-        private PolicyEnumWrapper organizationPolicy;
+        private OrganizationPolicy organizationPolicy;
 
-        public Builder organizationPolicy(PolicyEnumWrapper organizationPolicy) {
+        public Builder organizationPolicy(OrganizationPolicy organizationPolicy) {
 
             this.organizationPolicy = organizationPolicy;
             return this;

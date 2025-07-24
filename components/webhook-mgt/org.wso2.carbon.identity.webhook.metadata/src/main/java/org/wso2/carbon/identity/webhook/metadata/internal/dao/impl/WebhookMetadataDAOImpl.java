@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.organization.resource.sharing.policy.management.
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.BinaryObject;
-import org.wso2.carbon.identity.webhook.metadata.api.model.PolicyEnumWrapper;
+import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataSQLConstants;
@@ -50,10 +50,10 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
         Map<String, WebhookMetadataProperty> propertiesMap = getWebhookPropertiesFromDB(tenantId);
 
         WebhookMetadataProperty orgPolicyProperty = propertiesMap.get(ORGANIZATION_POLICY_PROPERTY_NAME);
-        PolicyEnumWrapper organizationPolicy = null;
+        OrganizationPolicy organizationPolicy = null;
         if (orgPolicyProperty != null && orgPolicyProperty.isPrimitive()) {
             organizationPolicy =
-                    new PolicyEnumWrapper(PolicyEnum.getPolicyByPolicyName(orgPolicyProperty.getValue().toString()));
+                    new OrganizationPolicy(PolicyEnum.getPolicyByPolicyName(orgPolicyProperty.getValue().toString()));
         }
 
         return new WebhookMetadataProperties.Builder()
@@ -65,7 +65,7 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
     public void updateWebhookMetadataProperties(WebhookMetadataProperties webhookMetadataProperties, int tenantId)
             throws WebhookMetadataException {
 
-        PolicyEnumWrapper updatedOrganizationPolicy = webhookMetadataProperties.getOrganizationPolicy();
+        OrganizationPolicy updatedOrganizationPolicy = webhookMetadataProperties.getOrganizationPolicy();
         if (updatedOrganizationPolicy == null) {
             return;
         }

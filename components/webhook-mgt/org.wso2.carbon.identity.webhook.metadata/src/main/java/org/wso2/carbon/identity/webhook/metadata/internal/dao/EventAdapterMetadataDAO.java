@@ -24,9 +24,9 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 import java.util.List;
 
 /**
- * Data Access Object interface for managing event adopters metadata.
+ * Data Access Object interface for managing event adapters metadata.
  */
 public interface EventAdapterMetadataDAO {
 
-    List<Adapter> getAdopters() throws WebhookMetadataException;
+    List<Adapter> getAdapters() throws WebhookMetadataException;
 }

@@ -26,8 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.EventProfileMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
@@ -44,7 +42,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_FILES_LOAD_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
@@ -164,34 +161,5 @@ public class FileBasedEventProfileMetadataDAOImpl implements EventProfileMetadat
             log.debug("Event profile not found for name: " + profileName);
         }
         return profile;
-    }
-
-    @Override
-    public List<Event> getEventsByProfile(String profileUri) throws WebhookMetadataException {
-
-        if (!isInitialized) {
-            throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_CODE_EVENTS_RETRIEVE_ERROR, profileUri);
-        }
-
-        List<Event> matchingEvents = new ArrayList<>();
-        profileCache.values().forEach(profile ->
-                matchingEvents.addAll(getEventsFromProfile(profile, profileUri))
-        );
-        return matchingEvents;
-    }
-
-    private List<Event> getEventsFromProfile(EventProfile profile, String profileUri) {
-
-        List<Event> events = new ArrayList<>();
-        if (profile.getChannels() != null) {
-            for (Channel channel : profile.getChannels()) {
-                if (channel != null && profileUri.equals(channel.getUri()) && channel.getEvents() != null) {
-                    events.addAll(channel.getEvents());
-                }
-
-            }
-        }
-        return events;
     }
 }

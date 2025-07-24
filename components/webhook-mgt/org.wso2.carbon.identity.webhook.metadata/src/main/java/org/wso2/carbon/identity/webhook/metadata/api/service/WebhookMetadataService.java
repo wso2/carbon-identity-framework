@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.webhook.metadata.api.service;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 
@@ -46,15 +45,6 @@ public interface WebhookMetadataService {
      * @throws WebhookMetadataException If an error occurs while retrieving event profile details
      */
     EventProfile getEventProfile(String profileName) throws WebhookMetadataException;
-
-    /**
-     * Get list of events under the given event profile.
-     *
-     * @param profileUri URI of the event profile
-     * @return List of events
-     * @throws WebhookMetadataException If an error occurs while retrieving events
-     */
-    List<Event> getEventsByProfileURI(String profileUri) throws WebhookMetadataException;
 
     /**
      * Get metadata properties for webhooks.

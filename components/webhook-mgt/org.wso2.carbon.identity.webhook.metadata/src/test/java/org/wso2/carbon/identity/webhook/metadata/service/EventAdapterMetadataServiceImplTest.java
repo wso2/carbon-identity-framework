@@ -53,7 +53,7 @@ public class EventAdapterMetadataServiceImplTest {
         MockitoAnnotations.openMocks(this);
         service = EventAdapterMetadataServiceImpl.getInstance();
 
-        Field daoField = EventAdapterMetadataServiceImpl.class.getDeclaredField("adopterMetadataDAO");
+        Field daoField = EventAdapterMetadataServiceImpl.class.getDeclaredField("adapterMetadataDAO");
         daoField.setAccessible(true);
         daoField.set(service, mockDAO);
 
@@ -61,8 +61,8 @@ public class EventAdapterMetadataServiceImplTest {
         initializedField.setAccessible(true);
         initializedField.set(service, true);
 
-        Field adoptersField = EventAdapterMetadataServiceImpl.class.getDeclaredField("adopters");
-        adoptersField.setAccessible(true);
+        Field adaptersField = EventAdapterMetadataServiceImpl.class.getDeclaredField("adapters");
+        adaptersField.setAccessible(true);
         Adapter enabledAdapter = new Adapter.Builder()
                 .name("websubhub")
                 .type(AdapterType.PublisherSubscriber)
@@ -75,7 +75,7 @@ public class EventAdapterMetadataServiceImplTest {
                 .enabled(false)
                 .properties(Collections.emptyMap())
                 .build();
-        adoptersField.set(service, Arrays.asList(enabledAdapter, disabledAdapter));
+        adaptersField.set(service, Arrays.asList(enabledAdapter, disabledAdapter));
     }
 
     @AfterMethod
@@ -86,7 +86,7 @@ public class EventAdapterMetadataServiceImplTest {
     @Test
     public void testGetAdapters() throws Exception {
 
-        when(mockDAO.getAdopters()).thenReturn(service.getAdapters());
+        when(mockDAO.getAdapters()).thenReturn(service.getAdapters());
         List<Adapter> result = service.getAdapters();
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 2);

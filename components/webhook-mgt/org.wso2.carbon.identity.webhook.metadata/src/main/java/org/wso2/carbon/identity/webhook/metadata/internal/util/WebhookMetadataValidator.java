@@ -21,10 +21,10 @@ package org.wso2.carbon.identity.webhook.metadata.internal.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.organization.resource.sharing.policy.management.constant.PolicyEnum;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataClientException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.PolicyEnumWrapper;
+import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
+import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants;
 
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_INVALID_WEBHOOK_REQUEST_FIELD;
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants.ORGANIZATION_POLICY_FIELD;
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_INVALID_WEBHOOK_METADATA_REQUEST_FIELD;
 
 /**
  * Webhook metadata validator.
@@ -34,16 +34,17 @@ public class WebhookMetadataValidator {
     /**
      * Validate the organization policy name.
      *
-     * @param policyEnumWrapper Organization policy enum wrapper.
+     * @param organizationPolicy Organization policy enum wrapper.
      * @throws WebhookMetadataClientException if the organization policy is invalid.
      */
-    public void validateOrganizationPolicy(PolicyEnumWrapper policyEnumWrapper) throws WebhookMetadataClientException {
+    public void validateOrganizationPolicy(OrganizationPolicy organizationPolicy) throws WebhookMetadataClientException {
 
-        if (StringUtils.isNotBlank(String.valueOf(policyEnumWrapper)) &&
-                !policyEnumWrapper.getPolicyEnum().equals(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS) &&
-                !policyEnumWrapper.getPolicyEnum().equals(PolicyEnum.NO_SHARING)) {
+        if (StringUtils.isNotBlank(String.valueOf(organizationPolicy)) &&
+                !organizationPolicy.getPolicyEnum().equals(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS) &&
+                !organizationPolicy.getPolicyEnum().equals(PolicyEnum.NO_SHARING)) {
             throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_INVALID_WEBHOOK_REQUEST_FIELD, ORGANIZATION_POLICY_FIELD);
+                    ERROR_INVALID_WEBHOOK_METADATA_REQUEST_FIELD,
+                    WebhookMetadataConstants.MetadataPropertyFields.ORGANIZATION_POLICY_FIELD);
         }
     }
 }

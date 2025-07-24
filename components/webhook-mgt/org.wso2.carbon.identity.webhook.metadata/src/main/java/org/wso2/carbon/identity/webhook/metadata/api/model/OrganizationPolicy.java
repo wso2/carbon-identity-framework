@@ -23,13 +23,13 @@ import org.wso2.carbon.identity.organization.resource.sharing.policy.management.
 /**
  * Wrapper class for PolicyEnum to expose policyCode, policyName, and the full PolicyEnum.
  */
-public class PolicyEnumWrapper {
+public class OrganizationPolicy {
 
     private final String policyCode;
     private final String policyName;
     private final PolicyEnum policyEnum;
 
-    public PolicyEnumWrapper(PolicyEnum policyEnum) {
+    public OrganizationPolicy(PolicyEnum policyEnum) {
 
         this.policyEnum = policyEnum;
         this.policyCode = policyEnum.getPolicyCode();

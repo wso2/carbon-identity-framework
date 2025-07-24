@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.webhook.metadata.internal.dao;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 
 import java.util.List;
@@ -45,13 +44,4 @@ public interface EventProfileMetadataDAO {
      * @throws WebhookMetadataException If an error occurs while retrieving event profile details
      */
     EventProfile getEventProfile(String profileName) throws WebhookMetadataException;
-
-    /**
-     * Get list of events under the given event profile.
-     *
-     * @param profileUri URI of the event profile
-     * @return List of events
-     * @throws WebhookMetadataException If an error occurs while retrieving events
-     */
-    List<Event> getEventsByProfile(String profileUri) throws WebhookMetadataException;
 }
