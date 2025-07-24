@@ -19,7 +19,9 @@
 package org.wso2.carbon.identity.webhook.metadata.internal.dao;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
+import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
+
+import java.util.Map;
 
 /**
  * Data Access Object interface for webhook management.
@@ -30,18 +32,28 @@ public interface WebhookMetadataDAO {
      * Get webhook metadata properties from the database.
      *
      * @param tenantId Tenant ID.
-     * @return Webhook metadata properties.
+     * @return A map of webhook metadata properties.
      * @throws WebhookMetadataException If an error occurs while retrieving the webhook metadata properties.
      */
-    WebhookMetadataProperties getWebhookMetadataProperties(int tenantId) throws WebhookMetadataException;
+    Map<String, WebhookMetadataProperty> getWebhookMetadataProperties(int tenantId) throws WebhookMetadataException;
+
+    /**
+     * Add webhook metadata properties to the database.
+     *
+     * @param webhookMetadataProperties A map of webhook metadata properties to add.
+     * @param tenantId                  Tenant ID.
+     * @throws WebhookMetadataException If an error occurs while adding the webhook metadata properties.
+     */
+    public void addWebhookMetadataProperties(Map<String, WebhookMetadataProperty> webhookMetadataProperties,
+                                             int tenantId) throws WebhookMetadataException;
 
     /**
      * Update webhook metadata properties in the database.
      *
-     * @param webhookMetadataProperties Webhook metadata properties to be updated.
+     * @param webhookMetadataProperties A map of webhook metadata properties to update.
      * @param tenantId                  Tenant ID.
      * @throws WebhookMetadataException If an error occurs while updating the webhook metadata properties.
      */
-    void updateWebhookMetadataProperties(WebhookMetadataProperties webhookMetadataProperties,
-                                                              int tenantId) throws WebhookMetadataException;
+    void updateWebhookMetadataProperties(Map<String, WebhookMetadataProperty> webhookMetadataProperties,
+                                         int tenantId) throws WebhookMetadataException;
 }

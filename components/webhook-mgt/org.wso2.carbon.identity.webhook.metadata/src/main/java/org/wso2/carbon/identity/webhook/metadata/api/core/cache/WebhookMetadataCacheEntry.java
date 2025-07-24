@@ -19,7 +19,9 @@
 package org.wso2.carbon.identity.webhook.metadata.api.core.cache;
 
 import org.wso2.carbon.identity.core.cache.CacheEntry;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
+import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
+
+import java.util.Map;
 
 /**
  * Cache entry for webhook metadata cache.
@@ -28,14 +30,14 @@ import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProper
 public class WebhookMetadataCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 202406120101L;
-    private WebhookMetadataProperties webhookMetadataProperties;
+    private Map<String, WebhookMetadataProperty> webhookMetadataProperties;
 
     /**
      * Constructor.
      *
      * @param webhookMetadataProperties Webhook metadata properties object.
      */
-    public WebhookMetadataCacheEntry(WebhookMetadataProperties webhookMetadataProperties) {
+    public WebhookMetadataCacheEntry(Map<String, WebhookMetadataProperty> webhookMetadataProperties) {
 
         this.webhookMetadataProperties = webhookMetadataProperties;
     }
@@ -45,7 +47,7 @@ public class WebhookMetadataCacheEntry extends CacheEntry {
      *
      * @return WebhookMetadataProperties object.
      */
-    public WebhookMetadataProperties getWebhookMetadataProperties() {
+    public Map<String, WebhookMetadataProperty> getWebhookMetadataProperties() {
 
         return webhookMetadataProperties;
     }

@@ -21,13 +21,14 @@ package org.wso2.carbon.identity.webhook.metadata.internal.service.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.organization.resource.sharing.policy.management.constant.PolicyEnum;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
+import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
+import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.CacheBackedWebhookMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedEventProfileMetadataDAOImpl;
@@ -35,7 +36,9 @@ import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.WebhookMetada
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataValidator;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
@@ -105,14 +108,12 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         log.debug("Retrieving Webhook Metadata properties for tenant " + tenantDomain);
-        WebhookMetadataProperties properties = webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
-
-        if (properties == null || properties.getOrganizationPolicy() == null) {
-            return new WebhookMetadataProperties.Builder()
-                    .organizationPolicy(new OrganizationPolicy(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS))
-                    .build();
-        }
-        return properties;
+        Map<String, WebhookMetadataProperty> updatedWebhookMetadataPropertyMap =
+                webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
+        return new WebhookMetadataProperties.Builder()
+                .organizationPolicy((OrganizationPolicy) updatedWebhookMetadataPropertyMap.get(
+                        WebhookMetadataConstants.MetadataPropertyFields.ORGANIZATION_POLICY_PROPERTY_NAME).getValue())
+                .build();
     }
 
     @Override
@@ -122,9 +123,23 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         log.debug("Updating Webhook Metadata properties for tenant " + tenantDomain);
         validateWebhookMetadataProperties(webhookMetadataProperties);
-        webhookMetadataDAO.updateWebhookMetadataProperties(webhookMetadataProperties, tenantId);
-        return webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
 
+        Map<String, WebhookMetadataProperty> webhookMetadataPropertyMap = new HashMap<>();
+        webhookMetadataPropertyMap.put(
+                WebhookMetadataConstants.MetadataPropertyFields.ORGANIZATION_POLICY_PROPERTY_NAME,
+                new WebhookMetadataProperty.Builder(
+                        webhookMetadataProperties.getOrganizationPolicy().getPolicyCode()).build());
+
+        // Check existence
+        Map<String, WebhookMetadataProperty> existingProperties =
+                webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
+        if (existingProperties.containsKey(
+                WebhookMetadataConstants.MetadataPropertyFields.ORGANIZATION_POLICY_PROPERTY_NAME)) {
+            webhookMetadataDAO.updateWebhookMetadataProperties(webhookMetadataPropertyMap, tenantId);
+        } else {
+            webhookMetadataDAO.addWebhookMetadataProperties(webhookMetadataPropertyMap, tenantId);
+        }
+        return getWebhookMetadataProperties(tenantDomain);
     }
 
     private void validateWebhookMetadataProperties(WebhookMetadataProperties properties)

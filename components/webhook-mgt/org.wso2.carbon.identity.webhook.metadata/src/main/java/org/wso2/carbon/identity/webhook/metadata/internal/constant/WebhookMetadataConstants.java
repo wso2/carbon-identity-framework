@@ -49,6 +49,7 @@ public class WebhookMetadataConstants {
     public static class MetadataPropertyFields {
 
         public static final String ORGANIZATION_POLICY_FIELD = "organization policy";
+        public static final String ORGANIZATION_POLICY_PROPERTY_NAME = "organizationPolicy";
 
         private MetadataPropertyFields() {
 

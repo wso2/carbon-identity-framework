@@ -24,8 +24,10 @@ import org.wso2.carbon.identity.webhook.metadata.api.core.cache.WebhookMetadataC
 import org.wso2.carbon.identity.webhook.metadata.api.core.cache.WebhookMetadataCacheEntry;
 import org.wso2.carbon.identity.webhook.metadata.api.core.cache.WebhookMetadataCacheKey;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
+import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
+
+import java.util.Map;
 
 /**
  * Cache backed implementation of WebhookMetadataDAO.
@@ -44,7 +46,8 @@ public class CacheBackedWebhookMetadataDAO implements WebhookMetadataDAO {
     }
 
     @Override
-    public WebhookMetadataProperties getWebhookMetadataProperties(int tenantId) throws WebhookMetadataException {
+    public Map<String, WebhookMetadataProperty> getWebhookMetadataProperties(int tenantId)
+            throws WebhookMetadataException {
 
         WebhookMetadataCacheKey cacheKey = new WebhookMetadataCacheKey(tenantId);
         WebhookMetadataCacheEntry cacheEntry = webhookMetadataCache.getValueFromCache(cacheKey, tenantId);
@@ -54,7 +57,7 @@ public class CacheBackedWebhookMetadataDAO implements WebhookMetadataDAO {
             return cacheEntry.getWebhookMetadataProperties();
         }
 
-        WebhookMetadataProperties properties = webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
+        Map<String, WebhookMetadataProperty> properties = webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
         if (properties != null) {
             LOG.debug("Webhook metadata cache miss for tenant ID: " + tenantId + ". Adding to cache.");
             webhookMetadataCache.addToCache(cacheKey, new WebhookMetadataCacheEntry(properties), tenantId);
@@ -63,12 +66,24 @@ public class CacheBackedWebhookMetadataDAO implements WebhookMetadataDAO {
     }
 
     @Override
-    public void updateWebhookMetadataProperties(WebhookMetadataProperties webhookMetadataProperties, int tenantId)
+    public void updateWebhookMetadataProperties(Map<String, WebhookMetadataProperty> webhookMetadataProperties,
+                                                int tenantId)
             throws WebhookMetadataException {
 
         WebhookMetadataCacheKey cacheKey = new WebhookMetadataCacheKey(tenantId);
         webhookMetadataCache.clearCacheEntry(cacheKey, tenantId);
         LOG.debug("Webhook metadata cache entry is cleared for tenant ID: " + tenantId + " for update.");
         webhookMetadataDAO.updateWebhookMetadataProperties(webhookMetadataProperties, tenantId);
+    }
+
+    @Override
+    public void addWebhookMetadataProperties(Map<String, WebhookMetadataProperty> webhookMetadataProperties,
+                                             int tenantId)
+            throws WebhookMetadataException {
+
+        WebhookMetadataCacheKey cacheKey = new WebhookMetadataCacheKey(tenantId);
+        webhookMetadataCache.clearCacheEntry(cacheKey, tenantId);
+        LOG.debug("Webhook metadata cache entry is cleared for tenant ID: " + tenantId + " for add.");
+        webhookMetadataDAO.addWebhookMetadataProperties(webhookMetadataProperties, tenantId);
     }
 }
