@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.flow.mgt.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -121,6 +122,7 @@ public class NodeConfig implements Serializable {
         this.edges.add(edge);
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
         @JsonProperty("id")
