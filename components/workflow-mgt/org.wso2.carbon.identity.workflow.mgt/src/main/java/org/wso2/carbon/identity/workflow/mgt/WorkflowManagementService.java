@@ -113,10 +113,11 @@ public interface WorkflowManagementService {
      * Check if a workflow exists by given name.
      *
      * @param workflowName workflow name
+     * @param tenantDomain tenant domain
      * @return true if workflow exists, false otherwise
      * @throws WorkflowException
      */
-    default boolean isWorkflowExistByName(String workflowName) throws WorkflowException {
+    default boolean isWorkflowExistByName(String workflowName, String tenantDomain) throws WorkflowException {
 
         throw new NotImplementedException("This functionality is not implemented.");
     }
