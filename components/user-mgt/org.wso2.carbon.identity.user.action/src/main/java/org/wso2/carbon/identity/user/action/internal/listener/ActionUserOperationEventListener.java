@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
 import org.wso2.carbon.identity.user.action.api.constant.UserActionError;
@@ -44,6 +45,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.listener.SecretHandleableListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.Secret;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.Map;
@@ -158,6 +160,15 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     }
 
     private Organization getOrganization(String managedOrgId) throws ActionExecutionException {
+
+        if (OrganizationManagementConstants.SUPER_ORG_ID.equals(managedOrgId)) {
+            return new Organization.Builder()
+                    .id(OrganizationManagementConstants.SUPER_ORG_ID)
+                    .name(OrganizationManagementConstants.SUPER)
+                    .orgHandle(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)
+                    .depth(0)
+                    .build();
+        }
 
         try {
             Map<String, BasicOrganization> orgsMap = UserActionServiceComponentHolder.getInstance().
