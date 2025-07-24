@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.flow.execution.engine.dao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
@@ -35,17 +34,9 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.DB2_DATABASE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.DELETE_CONTEXT_SQL;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.DELETE_EXPIRED_SQL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.FLOW_STATE_JSON;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.H2_DATABASE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.INSERT_CONTEXT_SQL;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.MARIA_DATABASE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.MICROSOFT_DATABASE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.MS_SQL_DATABASE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.MYSQL_DATABASE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.POSTGRESQL_DATABASE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.SELECT_CONTEXT_SQL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConstants.UPDATE_CONTEXT_SQL;
 
