@@ -22,10 +22,10 @@ import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.organization.resource.sharing.policy.management.constant.PolicyEnum;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.BinaryObject;
-import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataSQLConstants;
@@ -49,9 +49,9 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
         Map<String, WebhookMetadataProperty> propertiesMap = getWebhookPropertiesFromDB(tenantId);
 
         WebhookMetadataProperty orgPolicyProperty = propertiesMap.get(ORGANIZATION_POLICY_PROPERTY_NAME);
-        OrganizationPolicy organizationPolicy = null;
+        PolicyEnum organizationPolicy = null;
         if (orgPolicyProperty != null && orgPolicyProperty.isPrimitive()) {
-            organizationPolicy = OrganizationPolicy.valueOf(orgPolicyProperty.getValue().toString());
+            organizationPolicy = PolicyEnum.getPolicyByPolicyName(orgPolicyProperty.getValue().toString());
         }
 
         return new WebhookMetadataProperties.Builder()
@@ -63,7 +63,7 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
     public void updateWebhookMetadataProperties(WebhookMetadataProperties webhookMetadataProperties, int tenantId)
             throws WebhookMetadataException {
 
-        OrganizationPolicy updatedOrganizationPolicy = webhookMetadataProperties.getOrganizationPolicy();
+        PolicyEnum updatedOrganizationPolicy = webhookMetadataProperties.getOrganizationPolicy();
         if (updatedOrganizationPolicy == null) {
             return;
         }
@@ -71,7 +71,7 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
         try {
             updateWebhookPropertiesInDB(
                     Collections.singletonMap(ORGANIZATION_POLICY_PROPERTY_NAME, new WebhookMetadataProperty.Builder(
-                            updatedOrganizationPolicy.name()).build()), tenantId);
+                            updatedOrganizationPolicy.getPolicyCode()).build()), tenantId);
         } catch (TransactionException e) {
             throw new WebhookMetadataServerException("Error while updating webhook metadata properties in the system.",
                     e);

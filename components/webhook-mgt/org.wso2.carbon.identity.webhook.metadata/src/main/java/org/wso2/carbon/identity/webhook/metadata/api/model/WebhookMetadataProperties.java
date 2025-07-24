@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.webhook.metadata.api.model;
 
+import org.wso2.carbon.identity.organization.resource.sharing.policy.management.constant.PolicyEnum;
+
 import java.util.Objects;
 
 /**
@@ -25,14 +27,14 @@ import java.util.Objects;
  */
 public class WebhookMetadataProperties {
 
-    private final OrganizationPolicy organizationPolicy;
+    private final PolicyEnum organizationPolicy;
 
     private WebhookMetadataProperties(Builder builder) {
 
         this.organizationPolicy = builder.organizationPolicy;
     }
 
-    public OrganizationPolicy getOrganizationPolicy() {
+    public PolicyEnum getOrganizationPolicy() {
 
         return organizationPolicy;
     }
@@ -69,9 +71,9 @@ public class WebhookMetadataProperties {
      */
     public static class Builder {
 
-        private OrganizationPolicy organizationPolicy;
+        private PolicyEnum organizationPolicy;
 
-        public Builder organizationPolicy(OrganizationPolicy organizationPolicy) {
+        public Builder organizationPolicy(PolicyEnum organizationPolicy) {
 
             this.organizationPolicy = organizationPolicy;
             return this;
