@@ -52,7 +52,7 @@ public final class WebhookMetadataSQLConstants {
 
         public static final String GET_WEBHOOK_METADATA_PROPERTIES_INFO_BY_ID =
                 "SELECT PROPERTY_NAME, PROPERTY_TYPE, " +
-                        "PROPERTY_VALUE, OBJECT_VALUE FROM IDN_WEBHOOK_METADATA WHERE " +
+                        "PRIMITIVE_VALUE, OBJECT_VALUE FROM IDN_WEBHOOK_METADATA WHERE " +
                         "TENANT_ID = :TENANT_ID;";
 
         public static final String CHECK_PROPERTY_EXISTS =
