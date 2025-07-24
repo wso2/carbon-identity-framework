@@ -62,7 +62,7 @@ public class WebhookMetadataProperty {
     }
 
     /**
-     * This builder creates the Action Property object to be used in Service Layer
+     * This builder creates the WebhookMetadataProperty object to be used in the Service Layer.
      */
     public static class Builder {
 
