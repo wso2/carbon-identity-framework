@@ -634,6 +634,7 @@ public interface WorkflowListener {
      * Trigger before retrieving requests from filter.
      * 
      * @param user
+     * @param operationType
      * @param beginDate
      * @param endDate
      * @param dateCategory
@@ -641,8 +642,8 @@ public interface WorkflowListener {
      * @param status
      * @throws WorkflowException
      */
-    default void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException {
+    default void doPreGetRequestsFromFilter(String user,String operationType, String beginDate, String endDate,
+                String dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException {
 
         }
 
@@ -650,6 +651,7 @@ public interface WorkflowListener {
      * Trigger after retrieving requests from filter.
      * 
      * @param user
+     * @param operationType
      * @param beginDate
      * @param endDate
      * @param dateCategory
@@ -658,9 +660,9 @@ public interface WorkflowListener {
      * @param result
      * @throws WorkflowException
      */
-     default void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String
-            dateCategory, int tenantId, String status, int limit, int offset, WorkflowRequestFilterResponse result)
-            throws WorkflowException {
+     default void doPostGetRequestsFromFilter(String user, String operationType, String beginDate, String endDate,
+            String dateCategory, int tenantId, String status, int limit, int offset, 
+            WorkflowRequestFilterResponse result) throws WorkflowException {
 
      }
 

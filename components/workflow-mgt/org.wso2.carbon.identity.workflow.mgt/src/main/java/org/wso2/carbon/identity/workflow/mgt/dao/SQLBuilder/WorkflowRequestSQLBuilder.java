@@ -30,19 +30,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * SQL Builder for Workflow Request operations.
- * This class builds SQL queries for various operations related to workflow requests.
+ * This class builds SQL queries for various operations related to workflow
+ * requests.
  */
 public class WorkflowRequestSQLBuilder extends SqlBuilder {
 
     private static final String DEFAULT_ORDER_BY = " ORDER BY CREATED_AT DESC";
     private static final String ALL_FILTER = "ALL";
-    private static final List<String> VALID_ORDER_COLUMNS = Arrays.asList(
-            "UUID", "CREATED_BY", "CREATED_AT", "UPDATED_AT", "STATUS", "OPERATION_TYPE", "REQUEST");
     private static final String ORDER_BY_STRING = " ORDER BY ";
 
     private Integer limit;
@@ -50,7 +48,7 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
     private final String databaseType;
     private boolean isSkipOrderingAndPagination;
 
-    public WorkflowRequestSQLBuilder(String databaseType , String baseQuery) {
+    public WorkflowRequestSQLBuilder(String databaseType, String baseQuery) {
 
         super(new StringBuilder(baseQuery));
         if (databaseType == null || databaseType.trim().isEmpty()) {
@@ -278,7 +276,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         }
     }
 
-
     private void setPaginationParameters(PreparedStatement stmt, int startIndex) throws SQLException {
 
         if (limit == null) {
@@ -353,11 +350,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         return value != null && !value.trim().isEmpty() && !ALL_FILTER.equalsIgnoreCase(value);
     }
 
-    private boolean isValidOrderColumn(String column) {
-
-        return column != null && VALID_ORDER_COLUMNS.contains(column.toUpperCase());
-    }
-
     public WorkflowRequestSQLBuilder getAllRequestsWithSpecificFilters(
             int tenantId,
             String createdBy,
@@ -375,11 +367,11 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         WorkflowRequestSQLBuilder builder = this.filterByTenantId(tenantId);
 
         if ("CREATED".equalsIgnoreCase(category)) {
-            if (startDate != null || endDate != null) {
+            if (startDate != null && endDate != null) {
                 builder = builder.filterByCreatedDateRange(startDate.toString(), endDate.toString());
             }
         } else if ("UPDATED".equalsIgnoreCase(category)) {
-            if (startDate != null || endDate != null) {
+            if (startDate != null && endDate != null) {
                 builder = builder.filterByUpdatedDateRange(startDate.toString(), endDate.toString());
             }
         }

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dao;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
@@ -49,6 +51,8 @@ public class WorkflowRequestDAO {
 
     public static final String UPDATED_AT_FILTER = "updatedAt";
     public static final String ALL_TASKS_FILTER = "allTasks";
+    private static final Log log = LogFactory.getLog(WorkflowRequestDAO.class);
+
 
     /**
      * Persists WorkflowRequest to be used when workflow is completed.
@@ -338,13 +342,13 @@ public class WorkflowRequestDAO {
      * @return Array of WorkflowRequest objects matching the filters.
      * @throws InternalWorkflowException If an error occurs while retrieving the requests.
      */
-    public WorkflowRequestFilterResponse getFilteredRequests(String
-            userName, String operationType, Timestamp beginTime, Timestamp endTime, String timeCategory, int tenantId,
-            String status, int limit, int offset) throws InternalWorkflowException {
+    public WorkflowRequestFilterResponse getFilteredRequests(
+        String userName, String operationType, Timestamp beginTime, Timestamp endTime, String timeCategory, 
+        int tenantId, String status, int limit, int offset) throws InternalWorkflowException {
 
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        String databaseType = getDatabaseType(connection);
         try {
-            Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-            String databaseType = getDatabaseType(connection);
             WorkflowRequestSQLBuilder workflowRequestSQLBuilderSelect = 
                     new WorkflowRequestSQLBuilder(databaseType, SQLConstants.GET_WORKFLOW_REQUESTS_BASE_QUERY);
             workflowRequestSQLBuilderSelect = workflowRequestSQLBuilderSelect.getAllRequestsWithSpecificFilters
@@ -367,6 +371,8 @@ public class WorkflowRequestDAO {
                     ("Error getting database connection while getting filtered workflow requests.", e);
         } catch (Exception e) {
             throw new InternalWorkflowException("Error when getting filtered workflow requests.", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, null);
         }
     }
     

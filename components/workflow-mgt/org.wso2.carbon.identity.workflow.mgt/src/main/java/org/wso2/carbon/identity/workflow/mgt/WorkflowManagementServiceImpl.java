@@ -1150,8 +1150,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     /**
      * get requests list according to createdUser, createdTime, and lastUpdatedTime.
      *
-     * @param user         User to get requests of, empty String to retrieve
-     *                     requests of all users.
+     * @param user         User to get requests of, empty String to retrieve requests of all users.
+     * @param operationType Operation type to filter.
      * @param beginDate    lower limit of date range to filter.
      * @param endDate      upper limit of date range to filter.
      * @param dateCategory filter by created time or last updated time ?
@@ -1159,12 +1159,12 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      * @param status       status of the request.
      * @param limit        limit of the number of requests to return.
      * @param offset       offset for pagination.
-     * @return
+     * @return WorkflowRequestFilterResponse containing the list of requests and total count.
      * @throws WorkflowException
      */
     @Override
-    public WorkflowRequestFilterResponse getRequestsFromFilter
-            (String user, String operationType, String beginDate, String endDate, String dateCategory,
+    public WorkflowRequestFilterResponse getRequestsFromFilter(
+            String user, String operationType, String beginDate, String endDate, String dateCategory,
             int tenantId, String status, int limit, int offset) throws WorkflowException {
 
         Timestamp beginTime;
@@ -1174,7 +1174,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                workflowListener.doPreGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status,
+                workflowListener.doPreGetRequestsFromFilter(user, operationType, beginDate, endDate, dateCategory, tenantId, status,
                         limit, offset);
             }
         }
@@ -1191,7 +1191,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 beginTime, endTime, dateCategory, tenantId, status, limit, offset);
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                workflowListener.doPostGetRequestsFromFilter(user, beginDate, endDate, dateCategory, tenantId, status,
+                workflowListener.doPostGetRequestsFromFilter(user, operationType, beginDate, endDate, dateCategory, tenantId, status,
                         limit, offset, resultList);
             }
         }

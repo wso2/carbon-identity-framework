@@ -40,6 +40,7 @@ import java.util.List;
  * Abstract Workflow listener class.
  */
 public abstract class AbstractWorkflowListener implements WorkflowListener {
+    private static final int MAX_LIMIT = 1000;
 
     /**
      * Trigger Before Listing Workflow Events.
@@ -698,6 +699,8 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     public void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
             tenantId, String status) throws WorkflowException {
 
+        doPreGetRequestsFromFilter(user, null, beginDate, endDate, dateCategory, tenantId, status, MAX_LIMIT, 0);
+
     }
 
     /**
@@ -714,6 +717,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     public void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
             tenantId, String status, WorkflowRequest[] result) throws WorkflowException {
 
+        doPostGetRequestsFromFilter(user, null, beginDate, endDate, dateCategory, tenantId, status, MAX_LIMIT, 0,
+                new WorkflowRequestFilterResponse(result, MAX_LIMIT));
+
     }
 
     /**
@@ -726,13 +732,14 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @throws WorkflowException
      */
     @Override
-    public void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
-            tenantId, String status , int limit, int offset) throws WorkflowException {
+    public void doPreGetRequestsFromFilter(String user, String operationType, String beginDate, String endDate,
+                String dateCategory, int tenantId, String status, int limit, int offset) throws WorkflowException {
 
     }
 
     /**
      * @param user
+     * @param operationType
      * @param beginDate
      * @param endDate
      * @param dateCategory
@@ -742,9 +749,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @throws WorkflowException
      */
     @Override
-    public void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, 
-            int tenantId, String status, int limit, int offset, WorkflowRequestFilterResponse result) 
-            throws WorkflowException {
+    public void doPostGetRequestsFromFilter(String user, String operationType, String beginDate, String endDate,
+                String dateCategory, int tenantId, String status, int limit, int offset,
+                WorkflowRequestFilterResponse result) throws WorkflowException {
 
     }
 
