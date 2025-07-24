@@ -1046,6 +1046,8 @@
             Supported versions : IS 6.0.0 onwards
         -->
         <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
+
+        <EnableScim2RolesV3Api>false</EnableScim2RolesV3Api>
     </SCIM2>
 
     <PasswordPolicy>
