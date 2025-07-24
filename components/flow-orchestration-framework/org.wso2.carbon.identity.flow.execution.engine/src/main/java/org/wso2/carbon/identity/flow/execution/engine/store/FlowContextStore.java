@@ -44,7 +44,7 @@ public class FlowContextStore {
 
     private static final Log LOG = LogFactory.getLog(FlowContextStore.class);
     private static final FlowContextStoreDAO flowContextStoreDAO = new FlowContextStoreDAOImpl();
-    private static final long DEFAULT_TTL_FALLBACK_MINUTES = 15L;
+    private static final long DEFAULT_TTL_FALLBACK_MINUTES = 30L;
 
     private static final Map<String, Long> FLOW_TYPE_TTL_MAP = loadFlowTypeTTLMap();
     private static final long DEFAULT_TTL_MINUTES = loadDefaultTTL();

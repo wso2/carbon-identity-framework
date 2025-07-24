@@ -56,7 +56,6 @@ public class FlowContextStoreDAOImplTest {
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String FLOW_TYPE = "REGISTRATION";
     private static final long TTL_SECONDS = 900L;
-    private static final int CLEANUP_LIMIT = 1000;
 
     private FlowContextStoreDAOImpl flowContextStoreDAO;
 
@@ -176,32 +175,6 @@ public class FlowContextStoreDAOImplTest {
                 .thenReturn(expectedException);
 
         assertThrows(FlowEngineException.class, () -> flowContextStoreDAO.deleteContext(CONTEXT_ID));
-    }
-
-    @Test
-    public void testCleanupExpiredContextsSuccess() throws Exception {
-
-        when(jdbcTemplate.getDriverName()).thenReturn("MySQL");
-
-        flowContextStoreDAO.cleanupExpiredContexts(CLEANUP_LIMIT);
-
-        verify(jdbcTemplate).executeUpdate(anyString(), any());
-        verify(jdbcTemplate).getDriverName();
-    }
-
-    @Test
-    public void testCleanupExpiredContextsWithDataAccessExceptionDuringExecution() throws Exception {
-
-        when(jdbcTemplate.getDriverName()).thenReturn("MySQL");
-        DataAccessException dataAccessException = new DataAccessException("Database error");
-        doThrow(dataAccessException).when(jdbcTemplate).executeUpdate(anyString(), any());
-
-        FlowEngineServerException expectedException = new FlowEngineServerException("Cleanup failure");
-        flowEngineUtils.when(() -> FlowExecutionEngineUtils.handleServerException(
-                        any(Constants.ErrorMessages.class), any(Exception.class)))
-                .thenReturn(expectedException);
-
-        assertThrows(FlowEngineException.class, () -> flowContextStoreDAO.cleanupExpiredContexts(CLEANUP_LIMIT));
     }
 
     private FlowExecutionContext createTestContext() {

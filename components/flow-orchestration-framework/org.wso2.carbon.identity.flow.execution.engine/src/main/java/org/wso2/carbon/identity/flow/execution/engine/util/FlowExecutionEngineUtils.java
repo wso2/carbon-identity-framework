@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.store.FlowContextStore;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
@@ -119,6 +120,7 @@ public class FlowExecutionEngineUtils {
             return;
         }
         FlowExecCtxCache.getInstance().clearCacheEntry(new FlowExecCtxCacheKey(contextId));
+        FlowContextStore.getInstance().deleteContext(contextId);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow context removed from cache for context id: " + contextId + ".");
         }
