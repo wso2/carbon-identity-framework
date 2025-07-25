@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dao.sqlbuilder;
 
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
