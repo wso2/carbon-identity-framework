@@ -361,9 +361,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
             int limit,
             int offset) {
 
-        if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
-            throw new IllegalArgumentException("Tenant ID must be " + MultitenantConstants.SUPER_TENANT_ID);
-        }
         WorkflowRequestSQLBuilder builder = this.filterByTenantId(tenantId);
 
         if ("CREATED".equalsIgnoreCase(category)) {
