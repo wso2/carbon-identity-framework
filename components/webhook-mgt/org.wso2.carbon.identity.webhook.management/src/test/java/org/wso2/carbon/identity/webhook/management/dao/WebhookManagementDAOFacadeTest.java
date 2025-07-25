@@ -157,7 +157,18 @@ public class WebhookManagementDAOFacadeTest {
     @Test(priority = 1)
     public void testAddWebhook() throws Exception {
 
-        testWebhook = createTestWebhook(WEBHOOK_ENDPOINT1);
+        testWebhook = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint(WEBHOOK_ENDPOINT1)
+                .name(WEBHOOK_NAME)
+                .secret(WEBHOOK_SECRET)
+                .eventProfileName(WEBHOOK_EVENT_PROFILE_NAME)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
+                .status(WebhookStatus.PARTIALLY_ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .build();
+
         daoFacade.createWebhook(testWebhook, TENANT_ID);
 
         Webhook webhookRetrieved = daoFacade.getWebhook(testWebhook.getId(), TENANT_ID);
@@ -185,7 +196,7 @@ public class WebhookManagementDAOFacadeTest {
         Assert.assertEquals(webhookRetrieved.getName(), testWebhook.getName());
         Assert.assertEquals(webhookRetrieved.getEventProfileName(), testWebhook.getEventProfileName());
         Assert.assertEquals(webhookRetrieved.getEventProfileUri(), testWebhook.getEventProfileUri());
-        Assert.assertEquals(webhookRetrieved.getStatus(), testWebhook.getStatus());
+        Assert.assertEquals(webhookRetrieved.getStatus(), WebhookStatus.PARTIALLY_ACTIVE);
 
         List<Subscription> expected = testWebhook.getEventsSubscribed();
         List<Subscription> actual = webhookRetrieved.getEventsSubscribed();
