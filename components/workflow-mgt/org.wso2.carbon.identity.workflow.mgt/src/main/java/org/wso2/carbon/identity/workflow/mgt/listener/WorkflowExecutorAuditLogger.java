@@ -41,7 +41,7 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     private static final String AUDIT_SUCCESS = "Success";
 
     /**
-     * Trigger after executing a workflow request
+     * Trigger after executing a workflow request.
      *
      * @param workFlowRequest
      * @throws WorkflowException
@@ -66,7 +66,7 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     }
 
     /**
-     * Trigger after handling a callback
+     * Trigger after handling a callback.
      *
      * @param uuid
      * @param status
