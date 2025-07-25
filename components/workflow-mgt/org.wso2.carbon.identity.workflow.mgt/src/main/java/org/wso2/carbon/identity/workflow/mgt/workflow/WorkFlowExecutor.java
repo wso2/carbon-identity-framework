@@ -31,9 +31,9 @@ public interface WorkFlowExecutor {
 
     /**
      * Returns whether this executor can execute the request.
-     * {@link #execute(WorkflowRequest)} will be called only when this return true.
+     * {@link #execute(WorkflowRequest)} will be called only when this return true
      *
-     * @param workFlowRequest The request that need to be checked.
+     * @param workFlowRequest The request that need to be checked
      * @return
      */
     boolean canHandle(WorkflowRequest workFlowRequest) throws WorkflowException;
@@ -42,7 +42,7 @@ public interface WorkFlowExecutor {
     void initialize(List<Parameter> parameterList) throws WorkflowException;
 
     /**
-     * Execute the workflow. Once workflow is finish it should call the callback service.
+     * Execute the workflow. Once workflow is finish it should call the callback service
      *
      * @param workFlowRequest
      * @throws WorkflowException
@@ -51,7 +51,7 @@ public interface WorkFlowExecutor {
 // Todo: return a code, detail to decide whether retry?,...
 
     /**
-     * Returns the name of the executor.
+     * Returns the name of the executor
      *
      * @return
      */

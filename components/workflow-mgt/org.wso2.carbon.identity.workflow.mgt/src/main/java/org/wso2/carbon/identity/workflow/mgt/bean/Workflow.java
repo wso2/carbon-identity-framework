@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.workflow.mgt.bean;
 import java.io.Serializable;
 
 /**
- * Simple Bean for Workflow.
+ * Simple Bean for Workflow
  */
 public class Workflow implements Serializable {
 

@@ -41,7 +41,7 @@ import java.util.Objects;
 import static org.wso2.carbon.identity.workflow.mgt.util.Utils.generatePrepStmt;
 
 /**
- * Association related DAO operation provides by this class.
+ * Association related DAO operation provides by this class
  */
 public class AssociationDAO {
 

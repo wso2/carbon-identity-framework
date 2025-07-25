@@ -34,7 +34,7 @@ public class RoleEntity extends Entity {
     }
 
     /**
-     * Get audience ID of the entity.
+     * Get audience ID of the entity
      *
      * @return Audience ID
      */
@@ -44,7 +44,7 @@ public class RoleEntity extends Entity {
     }
 
     /**
-     * Set audience ID for entity.
+     * Set audience ID for entity
      *
      * @param audienceId value to set as audience ID
      */
@@ -54,7 +54,7 @@ public class RoleEntity extends Entity {
     }
 
     /**
-     * Get audience of the entity.
+     * Get audience of the entity
      *
      * @return Audience
      */
@@ -64,7 +64,7 @@ public class RoleEntity extends Entity {
     }
 
     /**
-     * Set audience for entity.
+     * Set audience for entity
      *
      * @param audience value to set as audience
      */

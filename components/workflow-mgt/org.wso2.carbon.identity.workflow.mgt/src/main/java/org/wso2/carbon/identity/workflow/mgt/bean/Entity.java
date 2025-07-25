@@ -35,9 +35,9 @@ public class Entity {
     }
 
     /**
-     * Retrieve entity type.
+     * Retrieve entity type
      *
-     * @return Entity Type.
+     * @return Entity Type
      */
     public String getEntityType() {
 
@@ -45,9 +45,9 @@ public class Entity {
     }
 
     /**
-     * Set type of entity.
+     * Set type of entity
      *
-     * @param entityType value to set as entity type.
+     * @param entityType value to set as entity type
      */
     public void setEntityType(String entityType) {
 
@@ -55,9 +55,9 @@ public class Entity {
     }
 
     /**
-     * Retrieve entity ID.
+     * Retrieve entity ID
      *
-     * @return Entity ID.
+     * @return Entity ID
      */
     public String getEntityId() {
 
@@ -65,9 +65,9 @@ public class Entity {
     }
 
     /**
-     * Set entity ID.
+     * Set entity ID
      *
-     * @param entityId value to set as entity ID.
+     * @param entityId value to set as entity ID
      */
     public void setEntityId(String entityId) {
 
@@ -75,9 +75,9 @@ public class Entity {
     }
 
     /**
-     * Get ID of the tenant which entity belongs.
+     * Get ID of the tenant which entity belongs
      *
-     * @return Tenant ID.
+     * @return Tenant ID
      */
     public int getTenantId() {
 
@@ -85,9 +85,9 @@ public class Entity {
     }
 
     /**
-     * Set tenant ID for entity.
+     * Set tenant ID for entity
      *
-     * @param tenantId value to set as tenant ID.
+     * @param tenantId value to set as tenant ID
      */
     public void setTenantId(int tenantId) {
 

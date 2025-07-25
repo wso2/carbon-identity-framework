@@ -31,8 +31,8 @@ import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import javax.xml.bind.JAXBException;
 
 /**
- * Abstract Template class can be extended to create concrete.
- * template that is providing its own details and metadata.
+ * Abstract Template class can be extended to create concrete
+ * template that is providing its own details and metadata
  */
 public abstract class AbstractTemplate {
 
@@ -41,9 +41,9 @@ public abstract class AbstractTemplate {
     private ParametersMetaData parametersMetaData = null;
 
     /**
-     * AbstractTemplate Constructor with metadata xml string parameter.
+     * AbstractTemplate Constructor with metadata xml string parameter
      *
-     * @param metaDataXML metadata xml string that is validated against ParameterMetaData.xsd.
+     * @param metaDataXML metadata xml string that is validated against ParameterMetaData.xsd
      * @throws WorkflowRuntimeException
      */
     public AbstractTemplate(String metaDataXML) throws WorkflowRuntimeException {
@@ -64,7 +64,7 @@ public abstract class AbstractTemplate {
     protected abstract InputData getInputData(String parameterName) throws WorkflowException;
 
     /**
-     * Retrieve template specific metadata.
+     * Retrieve template specific metadata
      *
      * @return ParametersMetaData object that is contain all the template specific parameter metadata.
      */
@@ -88,9 +88,9 @@ public abstract class AbstractTemplate {
     }
 
     /**
-     * Template Id is unique representation of the template.
+     * Template Id is unique representation of the template
      *
-     * @return String templateId.
+     * @return String templateId
      */
     public String getTemplateId() {
 
@@ -98,7 +98,7 @@ public abstract class AbstractTemplate {
     }
 
     /**
-     * Template Name.
+     * Template Name
      *
      * @return String Template Name
      */
@@ -108,9 +108,9 @@ public abstract class AbstractTemplate {
     }
 
     /**
-     * Template Description.
+     * Template Description
      *
-     * @return String description.
+     * @return String description
      */
     public String getDescription() {
 

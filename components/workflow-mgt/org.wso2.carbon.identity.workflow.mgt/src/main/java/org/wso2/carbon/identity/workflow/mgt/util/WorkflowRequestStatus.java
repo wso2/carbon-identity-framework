@@ -28,12 +28,12 @@ public enum WorkflowRequestStatus {
     SKIPPED,
 
     /**
-     * Request is received and persisted, but the executor is yet to be invoked.
+     * Request is received and persisted, but the executor is yet to be invoked
      */
     CREATED,
 
     /**
-     * Invoked the executor and waiting for the callback.
+     * Invoked the executor and waiting for the callback
      */
     PENDING,
 

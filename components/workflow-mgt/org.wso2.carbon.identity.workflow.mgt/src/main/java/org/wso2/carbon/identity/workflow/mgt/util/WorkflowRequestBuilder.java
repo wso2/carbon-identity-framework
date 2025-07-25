@@ -89,10 +89,10 @@ public class WorkflowRequestBuilder {
     private Map<String, Object> initParams;
 
     /**
-     * Initialize the Request builder with uuid and event.
+     * Initialize the Request builder with uuid and event
      *
-     * @param uuid   Uniquely identifies the workflow.
-     * @param action The identifier for the event for which the workflow was triggered.
+     * @param uuid   Uniquely identifies the workflow
+     * @param action The identifier for the event for which the workflow was triggered
      */
     public WorkflowRequestBuilder(String uuid, String action) {
 
@@ -208,9 +208,9 @@ public class WorkflowRequestBuilder {
     }
 
     /**
-     * Check whether the given object is of valid type.
+     * Check whether the given object is of valid type
      *
-     * @param obj The object to be tested.
+     * @param obj The object to be tested
      * @return
      */
     protected boolean isValidValue(Object obj) {
@@ -281,7 +281,7 @@ public class WorkflowRequestBuilder {
     }
 
     /**
-     * Builds the SOAP request body for the Service endpoint.
+     * Builds the SOAP request body for the Service endpoint
      *
      * @return
      */
