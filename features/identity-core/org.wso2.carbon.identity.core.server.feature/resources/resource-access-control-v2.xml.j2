@@ -442,10 +442,10 @@
         <Resource context="(.*)/o/scim2/v3/Roles/.search" secured="true" http-method="POST">
             <Scopes>internal_org_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/o/scim2/v3/Roles(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/o/scim2/v3/Roles/(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_role_mgt_meta_create</Scopes>
         </Resource>
-        <Resource context="(.*)/o/scim2/v3/Roles(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/o/scim2/v3/Roles/(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_role_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PUT">
@@ -562,10 +562,10 @@
         <Resource context="(.*)/scim2/v3/Roles/.search" secured="true" http-method="POST">
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/scim2/v3/Roles(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/scim2/v3/Roles/(.*)" secured="true" http-method="POST">
             <Scopes>internal_role_mgt_meta_create</Scopes>
         </Resource>
-        <Resource context="(.*)/scim2/v3/Roles(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/scim2/v3/Roles/(.*)" secured="true" http-method="GET">
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PUT">
