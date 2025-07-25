@@ -642,7 +642,7 @@ public interface WorkflowListener {
      * @param status
      * @throws WorkflowException
      */
-    default void doPreGetRequestsFromFilter(String user,String operationType, String beginDate, String endDate,
+    default void doPreGetRequestsFromFilter(String user, String operationType, String beginDate, String endDate,
                 String dateCategory, int tenantId, String status , int limit, int offset) throws WorkflowException {
 
         }

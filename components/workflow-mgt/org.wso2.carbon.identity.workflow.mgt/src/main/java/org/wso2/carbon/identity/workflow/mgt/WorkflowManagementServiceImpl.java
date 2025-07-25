@@ -1179,8 +1179,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                workflowListener.doPreGetRequestsFromFilter(user, operationType, beginDate, endDate, dateCategory, tenantId, status,
-                        limit, offset);
+                workflowListener.doPreGetRequestsFromFilter(user, operationType, beginDate, endDate, dateCategory,
+                        tenantId, status, limit, offset);
             }
         }
         try {
@@ -1196,8 +1196,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 beginTime, endTime, dateCategory, tenantId, status, limit, offset);
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                workflowListener.doPostGetRequestsFromFilter(user, operationType, beginDate, endDate, dateCategory, tenantId, status,
-                        limit, offset, resultList);
+                workflowListener.doPostGetRequestsFromFilter(user, operationType, beginDate, endDate, dateCategory,
+                        tenantId, status, limit, offset, resultList);
             }
         }
 
