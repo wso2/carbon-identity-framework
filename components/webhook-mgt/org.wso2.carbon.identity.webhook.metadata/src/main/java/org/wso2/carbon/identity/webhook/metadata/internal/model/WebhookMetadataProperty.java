@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.metadata.api.model;
+package org.wso2.carbon.identity.webhook.metadata.internal.model;
 
 /**
  * This class models the Webhook Metadata Property.

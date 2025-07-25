@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.webhook.metadata.api.core.cache;
 
 import org.wso2.carbon.identity.core.cache.CacheEntry;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
+import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 
 import java.util.Map;
 

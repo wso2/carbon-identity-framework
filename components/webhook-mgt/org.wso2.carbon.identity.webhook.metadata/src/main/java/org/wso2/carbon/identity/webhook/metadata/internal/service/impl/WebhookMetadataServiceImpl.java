@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataSe
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
+import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;

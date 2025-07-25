@@ -40,7 +40,7 @@ public class WebhookMetadataValidator {
     public void validateOrganizationPolicy(OrganizationPolicy organizationPolicy) throws WebhookMetadataClientException {
 
         if (StringUtils.isNotBlank(String.valueOf(organizationPolicy)) &&
-                !organizationPolicy.getPolicyEnum().equals(PolicyEnum.ALL_EXISTING_AND_FUTURE_ORGS) &&
+                !organizationPolicy.getPolicyEnum().equals(PolicyEnum.IMMEDIATE_EXISTING_AND_FUTURE_ORGS) &&
                 !organizationPolicy.getPolicyEnum().equals(PolicyEnum.NO_SHARING)) {
             throw WebhookMetadataExceptionHandler.handleClientException(
                     ERROR_INVALID_WEBHOOK_METADATA_REQUEST_FIELD,

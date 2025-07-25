@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.webhook.metadata.internal.dao;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
+import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 
 import java.util.Map;
 
@@ -44,8 +44,8 @@ public interface WebhookMetadataDAO {
      * @param tenantId                  Tenant ID.
      * @throws WebhookMetadataException If an error occurs while adding the webhook metadata properties.
      */
-    public void addWebhookMetadataProperties(Map<String, WebhookMetadataProperty> webhookMetadataProperties,
-                                             int tenantId) throws WebhookMetadataException;
+    void addWebhookMetadataProperties(Map<String, WebhookMetadataProperty> webhookMetadataProperties,
+                                      int tenantId) throws WebhookMetadataException;
 
     /**
      * Update webhook metadata properties in the database.

@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.BinaryObject;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperty;
+import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataSQLConstants;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
 
@@ -33,6 +33,10 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Implementation of WebhookMetadataDAO.
+ * This class handles the database operations related to webhook metadata properties.
+ */
 public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
 
     @Override
