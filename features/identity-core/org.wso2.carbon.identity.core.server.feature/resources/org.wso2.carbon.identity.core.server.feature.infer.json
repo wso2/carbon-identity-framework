@@ -268,5 +268,11 @@
       "console.ui.legacy_mode.applicationSystemAppsSettings": true,
       "console.ui.legacy_mode.roleMapping": false
     }
+  },
+  "preserve_previous_product_behaviour.version": {
+    "IS_7.0.0": {
+    },
+    "IS_7.1.0": {
+    }
   }
 }
