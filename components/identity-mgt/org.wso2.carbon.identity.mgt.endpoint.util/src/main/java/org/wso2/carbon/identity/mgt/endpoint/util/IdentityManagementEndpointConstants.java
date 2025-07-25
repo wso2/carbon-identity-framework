@@ -128,6 +128,8 @@ public class IdentityManagementEndpointConstants {
 
     public static final String ERROR_CODE_INVALID_TENANT = "60001";
 
+    public static final String REQUEST_ACCEPTED_RESPONSE = "Request accepted.";
+
     public static class Consent {
 
         public static final String COLLECTION_METHOD_SELF_REGISTRATION = "Web Form - Self Registration";

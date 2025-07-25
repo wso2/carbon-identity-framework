@@ -61,6 +61,8 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status.Family;
 
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.REQUEST_ACCEPTED_RESPONSE;
+
 public class ApiClient {
 
     private static final String AUTHORIZATION           = "Authorization";
@@ -586,7 +588,8 @@ public class ApiClient {
         if (response.getStatusInfo().getStatusCode() == ClientResponse.Status.NO_CONTENT.getStatusCode()) {
 
             throw new ApiException(204, "No content Found");
-
+        } else if (response.getStatusInfo().getStatusCode() == ClientResponse.Status.ACCEPTED.getStatusCode()) {
+            return (T) REQUEST_ACCEPTED_RESPONSE;
         } else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
             if (returnType != null) {
                 if (response.hasEntity()) {
