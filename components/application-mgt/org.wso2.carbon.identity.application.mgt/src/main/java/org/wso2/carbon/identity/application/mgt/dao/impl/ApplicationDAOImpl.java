@@ -83,6 +83,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.Authenticati
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
@@ -206,7 +207,6 @@ import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSEN
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
@@ -6728,7 +6728,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      */
     private void audit(String action, String data, String result) {
 
-        if (isLegacyAuditLogsDisabled()) {
+        if (LoggerUtils.isEnableV2AuditLogs()) {
             return;
         }
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();

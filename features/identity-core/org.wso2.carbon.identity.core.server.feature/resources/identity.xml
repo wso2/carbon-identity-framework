@@ -1046,6 +1046,8 @@
             Supported versions : IS 6.0.0 onwards
         -->
         <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
+
+        <EnableScim2RolesV3Api>false</EnableScim2RolesV3Api>
     </SCIM2>
 
     <PasswordPolicy>
@@ -2479,7 +2481,7 @@
 	    If none defines for any handler, then this authorization control will be not applied for that.
 	 -->
     <AuthorizationControl>
-        <SkipAuthorization authHandler="ClientAuthentication" endpoints="(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*)"/>
+        <SkipAuthorization authHandler="ClientAuthentication" endpoints="(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*),(.*)/api/users/v2/recovery/username/(.*),(.*)/api/server/v(.*)/organization-configs/discovery(.*),(.*)/api/server/v(.*)/configs/authenticators(.*),(.*)/api/server/v1/flow/config(.*),(.*)/api/server/v1/flow/configs(.*)"/>
     </AuthorizationControl>
 
     <!--

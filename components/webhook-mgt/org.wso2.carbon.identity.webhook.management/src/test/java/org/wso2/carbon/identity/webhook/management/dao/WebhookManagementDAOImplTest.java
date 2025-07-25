@@ -279,6 +279,61 @@ public class WebhookManagementDAOImplTest {
         assertEquals(newCount, count + 1, "Webhook count should increase by 1 after adding a new webhook");
     }
 
+    @Test(dependsOnMethods = {"testGetWebhooks"})
+    public void testGetActiveWebhooks() throws WebhookMgtException {
+
+        String eventProfileName = WEBHOOK_EVENT_PROFILE_NAME;
+        String eventProfileVersion = "v1";
+        String channelUri = "active-channel-uri";
+
+        // Create an active webhook
+        List<Subscription> eventsSubscribed = new ArrayList<>();
+        eventsSubscribed.add(
+                Subscription.builder().channelUri(channelUri).status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED)
+                        .build());
+        Webhook activeWebhook = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint("https://example.com/active-webhook")
+                .name("Active Webhook")
+                .secret(WEBHOOK_SECRET)
+                .eventProfileName(eventProfileName)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
+                .eventProfileVersion(eventProfileVersion)
+                .status(WebhookStatus.ACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .eventsSubscribed(eventsSubscribed)
+                .build();
+        webhookManagementDAOImpl.createWebhook(activeWebhook, TENANT_ID);
+
+        // Create an inactive webhook (should not be returned)
+        List<Subscription> eventsSubscribed1 = new ArrayList<>();
+        eventsSubscribed1.add(
+                Subscription.builder().channelUri(channelUri).status(SubscriptionStatus.SUBSCRIPTION_ACCEPTED)
+                        .build());
+        Webhook inactiveWebhook = new Webhook.Builder()
+                .uuid(UUID.randomUUID().toString())
+                .endpoint("https://example.com/inactive-webhook")
+                .name("Inactive Webhook")
+                .secret(WEBHOOK_SECRET)
+                .eventProfileName(eventProfileName)
+                .eventProfileUri(WEBHOOK_EVENT_PROFILE_URI)
+                .eventProfileVersion(eventProfileVersion)
+                .status(WebhookStatus.INACTIVE)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .eventsSubscribed(eventsSubscribed1)
+                .build();
+        webhookManagementDAOImpl.createWebhook(inactiveWebhook, TENANT_ID);
+
+        List<Webhook> activeWebhooks = webhookManagementDAOImpl.getActiveWebhooks(
+                eventProfileName, eventProfileVersion, channelUri, TENANT_ID);
+
+        assertNotNull(activeWebhooks);
+        assertTrue(activeWebhooks.stream().anyMatch(w -> w.getId().equals(activeWebhook.getId())));
+        assertFalse(activeWebhooks.stream().anyMatch(w -> w.getId().equals(inactiveWebhook.getId())));
+    }
+
     private Webhook createTestWebhook() {
 
         return new Webhook.Builder()

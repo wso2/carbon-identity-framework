@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.core.internal;
+package org.wso2.carbon.identity.core.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEventImpl;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
@@ -391,5 +392,24 @@ public class IdentityCoreServiceComponent {
         
         log.debug("Unset organization management service.");
         IdentityCoreServiceDataHolder.getInstance().setOrganizationUserResidentResolverService(null);
+    }
+
+    @Reference(
+            name = "organization.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        IdentityCoreServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        log.debug("OrganizationManager set in IdentityCoreServiceDataHolder bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        IdentityCoreServiceDataHolder.getInstance().setOrganizationManager(null);
+        log.debug("OrganizationManager unset in IdentityCoreServiceDataHolder bundle.");
     }
 }

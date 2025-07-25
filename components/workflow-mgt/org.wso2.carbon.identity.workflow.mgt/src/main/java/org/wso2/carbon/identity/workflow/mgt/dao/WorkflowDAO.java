@@ -125,10 +125,11 @@ public class WorkflowDAO {
      * Get a Workflow object for given workflow name.
      *
      * @param workflowName Workflow name.
-     * @return Workflow object.
+     * @param tenantId Tenant ID.
+     * @return Workflow object
      * @throws InternalWorkflowException Throws when an error occurs while retrieving the workflow.
      */
-    public Workflow getWorkflowByName(String workflowName) throws InternalWorkflowException {
+    public Workflow getWorkflowByName(String workflowName, int tenantId) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
@@ -138,7 +139,8 @@ public class WorkflowDAO {
         Workflow workflow = null;
         try {
             prepStmt = connection.prepareStatement(query);
-            prepStmt.setString(1, workflowName);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, workflowName);
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
                 String workflowId = resultSet.getString(SQLConstants.ID_COLUMN);

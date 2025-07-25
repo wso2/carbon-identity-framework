@@ -112,16 +112,19 @@ public enum ErrorMessage {
             "An error occurred while updating the retry status of the webhook: %s."),
     ERROR_UPDATE_OPERATION_NOT_SUPPORTED("65027", "Unable to perform the update operation.",
             "Update operation is not supported for %s"),
-    ERROR_RETRY_OPERATION_NOT_SUPPORTED("65028", "Unable to perform the retry operation.",
-            "Retry operation is not supported for %s"),
+    ERROR_OPERATION_NOT_SUPPORTED("65028", "Unable to perform the operation.",
+            "Operation is not supported for %s adapter type."),
     ERROR_WHILE_RETRIEVING_WEBHOOKS_COUNT("65029", "Error while retrieving webhook count.",
             "An error occurred while retrieving the webhook count for tenant: %s."),
-    ERROR_CODE_WEBHOOK_ACTIVATION_ADAPTOR_ERROR("65030", "Webhook activation error",
+    ERROR_CODE_WEBHOOK_ACTIVATION_ADAPTER_ERROR("65030", "Webhook activation error",
             "An error occurred while activating the webhook: %s."),
-    ERROR_CODE_WEBHOOK_DEACTIVATION_ADAPTOR_ERROR("65031", "Webhook deactivation error",
+    ERROR_CODE_WEBHOOK_DEACTIVATION_ADAPTER_ERROR("65031", "Webhook deactivation error",
             "An error occurred while deactivating the webhook: %s."),
-    ERROR_CODE_WEBHOOK_RETRY_ADAPTOR_ERROR("65032", "Webhook retry error",
-            "An error occurred while retrying the webhook: %s.");
+    ERROR_CODE_WEBHOOK_RETRY_ADAPTER_ERROR("65032", "Webhook retry error",
+            "An error occurred while retrying the webhook: %s."),
+    ERROR_CODE_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL_ERROR("65033",
+            "Error occurred while retrieving active webhooks by channel",
+            "An error occurred while retrieving active webhooks for channel: %s and tenant: %s.");
 
     private final String code;
     private final String message;
@@ -154,4 +157,4 @@ public enum ErrorMessage {
 
         return code + " : " + message;
     }
-    }
+}

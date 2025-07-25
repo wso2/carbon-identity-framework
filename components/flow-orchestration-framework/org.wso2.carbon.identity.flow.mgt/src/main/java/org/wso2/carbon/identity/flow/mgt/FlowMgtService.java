@@ -30,8 +30,10 @@ import org.wso2.carbon.identity.flow.mgt.dao.FlowDAO;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
+import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -41,13 +43,13 @@ import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.FirstFoundAggregationStrategy;
 import org.wso2.carbon.utils.AuditLog;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.flow.mgt.Constants.DEFAULT_FLOW_NAME;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.getInitiatorId;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
-import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.isEnableV2AuditLogs;
 
 /**
  * This class is responsible for managing the flow.
@@ -78,14 +80,12 @@ public class FlowMgtService {
         clearFlowResolveCache(tenantID);
         GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         FLOW_DAO.updateFlow(flowDTO.getFlowType(), flowConfig, tenantID, DEFAULT_FLOW_NAME);
-        if (isEnableV2AuditLogs()) {
-            AuditLog.AuditLogBuilder auditLogBuilder =
-                    new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                            flowConfig.getId(),
-                            LoggerUtils.Target.Flow.name(),
-                            String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, flowDTO.getFlowType()));
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
+        AuditLog.AuditLogBuilder auditLogBuilder =
+                new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                        flowConfig.getId(),
+                        LoggerUtils.Target.Flow.name(),
+                        String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, flowDTO.getFlowType()));
+        triggerAuditLogEvent(auditLogBuilder, true);
     }
 
     /**
@@ -117,6 +117,54 @@ public class FlowMgtService {
             return null;
         }
         return FLOW_DAO.getGraphConfig(flowType, tenantIdWithResource);
+    }
+
+    /**
+     * Get the flow management configuration for the given tenant.
+     *
+     * @param tenantID The tenant ID.
+     * @return The list of flow configurations.
+     * @throws FlowMgtFrameworkException If an error occurs while retrieving the flow management configuration.
+     */
+    public List<FlowConfigDTO> getFlowConfigs(int tenantID) throws FlowMgtFrameworkException {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
+        return FlowMgtConfigUtils.getFlowConfigs(tenantDomain);
+    }
+
+    /**
+     * Get a flow configuration for the given tenant.
+     *
+     * @param flowType The flow type.
+     * @param tenantID The tenant ID.
+     * @return The flow configuration.
+     * @throws FlowMgtFrameworkException If an error occurs while retrieving the flow configuration.
+     */
+    public FlowConfigDTO getFlowConfig(String flowType, int tenantID) throws FlowMgtFrameworkException {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
+        return FlowMgtConfigUtils.getFlowConfig(flowType, tenantDomain);
+    }
+
+    /**
+     * Update a flow configuration for the given tenant.
+     *
+     * @param flowConfigDTO The flow configuration.
+     * @param tenantID      The tenant ID.
+     * @throws FlowMgtFrameworkException If an error occurs while updating the flow configuration.
+     */
+    public FlowConfigDTO updateFlowConfig(FlowConfigDTO flowConfigDTO, int tenantID) throws FlowMgtFrameworkException {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
+        FlowConfigDTO updatedFlowConfigDTO = FlowMgtConfigUtils.addFlowConfig(flowConfigDTO, tenantDomain);
+        AuditLog.AuditLogBuilder auditLogBuilder =
+                new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                        flowConfigDTO.getFlowType(),
+                        LoggerUtils.Target.Flow.name(),
+                        String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW_CONFIG,
+                                flowConfigDTO.getFlowType()));
+        triggerAuditLogEvent(auditLogBuilder, true);
+        return updatedFlowConfigDTO;
     }
 
     private Integer getFirstTenantWithFlow(String flowType, int tenantID) throws FlowMgtServerException {

@@ -32,8 +32,10 @@ public class FlowUser implements Serializable {
     private static final long serialVersionUID = -1873658743998134877L;
     private final Map<String, String> claims = new HashMap<>();
     private final Map<String, char[]> userCredentials = new HashMap<>();
+    private final Map<String, String> federatedAssociations = new HashMap<>();
     private String username;
     private String userId;
+    private String userStoreDomain;
 
     public String getUsername() {
 
@@ -87,5 +89,25 @@ public class FlowUser implements Serializable {
     public void setUserId(String userId) {
 
         this.userId = userId;
+    }
+
+    public String getUserStoreDomain() {
+
+        return userStoreDomain;
+    }
+
+    public void setUserStoreDomain(String userStoreDomain) {
+
+        this.userStoreDomain = userStoreDomain;
+    }
+
+    public Map<String, String> getFederatedAssociations() {
+
+        return federatedAssociations;
+    }
+
+    public void addFederatedAssociation(String idpName, String idpSubject) {
+
+        this.federatedAssociations.put(idpName, idpSubject);
     }
 }

@@ -43,7 +43,7 @@ public class SubscriptionManagementServiceImplTest {
     private EventSubscriber eventSubscriber;
     private WebhookSubscriptionRequest subscriptionRequest;
     private WebhookUnsubscriptionRequest unsubscriptionRequest;
-    private static final String ADAPTOR = "TestAdaptor";
+    private static final String ADAPTER = "TestAdapter";
     private static final String TENANT_DOMAIN = "carbon.super";
     private Subscription subscription;
 
@@ -62,7 +62,7 @@ public class SubscriptionManagementServiceImplTest {
 
         // Mock EventSubscriber
         eventSubscriber = mock(EventSubscriber.class);
-        when(eventSubscriber.getAssociatedAdaptor()).thenReturn(ADAPTOR);
+        when(eventSubscriber.getAssociatedAdapter()).thenReturn(ADAPTER);
 
         // Add mock to holder
         holder.addEventSubscriber(eventSubscriber);
@@ -79,7 +79,7 @@ public class SubscriptionManagementServiceImplTest {
         List<Subscription> expected = Collections.singletonList(subscription);
         when(eventSubscriber.subscribe(subscriptionRequest, TENANT_DOMAIN)).thenReturn(expected);
 
-        List<Subscription> result = service.subscribe(subscriptionRequest, ADAPTOR, TENANT_DOMAIN);
+        List<Subscription> result = service.subscribe(subscriptionRequest, ADAPTER, TENANT_DOMAIN);
         assertEquals(result, expected);
         verify(eventSubscriber).subscribe(subscriptionRequest, TENANT_DOMAIN);
     }
@@ -90,7 +90,7 @@ public class SubscriptionManagementServiceImplTest {
         List<Subscription> expected = Collections.singletonList(subscription);
         when(eventSubscriber.unsubscribe(unsubscriptionRequest, TENANT_DOMAIN)).thenReturn(expected);
 
-        List<Subscription> result = service.unsubscribe(unsubscriptionRequest, ADAPTOR, TENANT_DOMAIN);
+        List<Subscription> result = service.unsubscribe(unsubscriptionRequest, ADAPTER, TENANT_DOMAIN);
         assertEquals(result, expected);
         verify(eventSubscriber).unsubscribe(unsubscriptionRequest, TENANT_DOMAIN);
     }
@@ -104,11 +104,11 @@ public class SubscriptionManagementServiceImplTest {
         for (EventSubscriber subscriber : toRemove) {
             holder.removeEventSubscriber(subscriber);
         }
-        service.subscribe(subscriptionRequest, ADAPTOR, TENANT_DOMAIN);
+        service.subscribe(subscriptionRequest, ADAPTER, TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = SubscriptionManagementException.class)
-    public void testSubscribeAdaptorNotFound() throws Exception {
+    public void testSubscribeAdapterNotFound() throws Exception {
         // Remove the correct subscriber and add a wrong one
         SubscriptionManagementComponentServiceHolder holder =
                 SubscriptionManagementComponentServiceHolder.getInstance();
@@ -117,9 +117,9 @@ public class SubscriptionManagementServiceImplTest {
             holder.removeEventSubscriber(subscriber);
         }
         EventSubscriber otherSubscriber = mock(EventSubscriber.class);
-        when(otherSubscriber.getAssociatedAdaptor()).thenReturn("OtherAdaptor");
+        when(otherSubscriber.getAssociatedAdapter()).thenReturn("OtherAdapter");
         holder.addEventSubscriber(otherSubscriber);
 
-        service.subscribe(subscriptionRequest, ADAPTOR, TENANT_DOMAIN);
+        service.subscribe(subscriptionRequest, ADAPTER, TENANT_DOMAIN);
     }
 }

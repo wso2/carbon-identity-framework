@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
@@ -103,9 +104,13 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
-    public boolean isWorkflowExistByName(String workflowName) throws WorkflowException {
+    public boolean isWorkflowExistByName(String workflowName, String tenantDomain) throws WorkflowException {
 
-        return workflowDAO.getWorkflowByName(workflowName) != null;
+        if (log.isDebugEnabled()) {
+            log.debug("Checking if workflow exists with name: " + workflowName + " in tenant domain: " + tenantDomain);
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return workflowDAO.getWorkflowByName(workflowName, tenantId) != null;
     }
 
     @Override

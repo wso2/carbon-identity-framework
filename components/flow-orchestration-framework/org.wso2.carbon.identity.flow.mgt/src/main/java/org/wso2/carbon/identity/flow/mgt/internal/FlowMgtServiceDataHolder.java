@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.mgt.internal;
 
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
@@ -28,6 +29,7 @@ public class FlowMgtServiceDataHolder {
 
     private OrganizationManager organizationManager;
     private OrgResourceResolverService orgResourceResolverService;
+    private ConfigurationManager configurationManager;
 
     private static final FlowMgtServiceDataHolder INSTANCE = new FlowMgtServiceDataHolder();
 
@@ -58,5 +60,15 @@ public class FlowMgtServiceDataHolder {
     public void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
 
         this.orgResourceResolverService = orgResourceResolverService;
+    }
+
+    public ConfigurationManager getConfigurationManager() {
+
+        return configurationManager;
+    }
+
+    public void setConfigurationManager(ConfigurationManager configurationManager) {
+
+        this.configurationManager = configurationManager;
     }
 }

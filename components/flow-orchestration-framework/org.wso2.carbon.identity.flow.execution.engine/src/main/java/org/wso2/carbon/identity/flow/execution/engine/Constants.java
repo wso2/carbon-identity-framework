@@ -38,6 +38,9 @@ public class Constants {
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
     public static final String WEBAUTHN_DATA = "webAuthnData";
+
+    public static final String USER_ASSERTION_EXPIRY_PROPERTY = "FlowExecution.UserAssertion.ExpiryTime";
+
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
 
@@ -128,11 +131,33 @@ public class Constants {
                 "Error while executing flow execution listener.",
                 "Error occurred while executing the flow execution listener: %s for the %s " +
                         "request of flow id: %s."),
+        ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE("65022",
+                "Error while generating authentication assertion.",
+                "Error occurred while generating the authentication assertion for the flow id: %s."),
+        ERROR_CODE_FLOW_USER_NOT_FOUND("65023",
+                "Flow user not found.",
+                "Flow user not found in the flow execution context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_STORE_FAILURE("65024",
+                "Error while storing flow context.",
+                "Error occurred while storing the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_UPDATE_FAILURE("65025",
+                "Error while updating flow context.",
+                "Error occurred while updating the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_RETRIEVAL_FAILURE("65026",
+                "Error while retrieving flow context.",
+                "Error occurred while retrieving the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_DELETION_FAILURE("65027",
+                "Error while deleting flow context.",
+                "Error occurred while deleting the flow context for the flow id: %s."),
+        ERROR_CODE_FLOW_CONTEXT_CLEANUP_FAILURE("65028",
+                "Error while cleaning up expired flow contexts.",
+                "Error occurred while cleaning up expired flow contexts."),
+
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
-                "Invalid flow id.",
-                "The given flow id: %s is invalid."),
+                "Invalid or expired flow id.",
+                "The given flow id: %s is invalid or expired."),
         ERROR_CODE_USERNAME_NOT_PROVIDED("60002",
                 "Username not provided.",
                 "Username is not provided in the %s request of flow id: %s"),
@@ -219,5 +244,35 @@ public class Constants {
         private ExecutorStatus() {
 
         }
+    }
+
+    public static class SQLConstants {
+
+        private SQLConstants() {
+
+        }
+
+        public static final String FLOW_STATE_JSON = "FLOW_STATE_JSON";
+
+        public static final String INSERT_CONTEXT_SQL = "INSERT INTO IDN_FLOW_CONTEXT_STORE " +
+                "(ID, TENANT_ID, FLOW_TYPE, CREATED_AT, EXPIRES_AT, FLOW_STATE_JSON) VALUES (?, ?, ?, ?, ?, ?)";
+        public static final String UPDATE_CONTEXT_SQL = "UPDATE IDN_FLOW_CONTEXT_STORE SET FLOW_STATE_JSON = ? WHERE" +
+                " ID = ? AND TENANT_ID = ?";
+        public static final String SELECT_CONTEXT_SQL = "SELECT FLOW_STATE_JSON FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?" +
+                " AND TENANT_ID = ? AND EXPIRES_AT > ?";
+        public static final String DELETE_CONTEXT_SQL = "DELETE FROM IDN_FLOW_CONTEXT_STORE WHERE ID = ?";
+    }
+
+    public static class FlowExecutionConfigs {
+
+        private FlowExecutionConfigs() {
+
+        }
+
+        public static final String FLOW_EXECUTION_PROPERTY = "FlowExecution";
+        public static final String DEFAULT_TTL_PROPERTY = "FlowExecution.DefaultTTL";
+        public static final String FLOW_TYPE_TTL_CONFIG_KEY_PREFIX = "FlowTypeTTLs";
+        public static final String FLOW_TYPE_TTL_CONFIG_KEY = "FlowTypeTTL";
+        public static final String FLOW_TYPE_ATTRIBUTE = "type";
     }
 }

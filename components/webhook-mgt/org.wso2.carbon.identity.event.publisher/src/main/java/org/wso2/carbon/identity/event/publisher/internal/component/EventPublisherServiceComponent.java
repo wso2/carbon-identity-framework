@@ -31,6 +31,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisher;
 import org.wso2.carbon.identity.event.publisher.api.service.EventPublisherService;
 import org.wso2.carbon.identity.event.publisher.internal.service.impl.EventPublisherServiceImpl;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 
 /**
  * EventPublisherServiceComponent is responsible for registering the event publisher service
@@ -54,13 +56,19 @@ public class EventPublisherServiceComponent {
 
         try {
             BundleContext bundleContext = context.getBundleContext();
+
+            Adapter adapter = EventPublisherComponentServiceHolder.getInstance().getEventAdapterMetadataService()
+                    .getCurrentActiveAdapter();
+            EventPublisherComponentServiceHolder.getInstance()
+                    .setWebhookAdapter(adapter);
+
             // Register the EventPublisherService
             bundleContext.registerService(EventPublisherService.class.getName(),
                     EventPublisherServiceImpl.getInstance(), null);
 
             LOG.debug("EventPublisherService is activated");
         } catch (Throwable e) {
-            LOG.error("Error while activating EventPublisherService", e);
+            LOG.debug("Error while activating EventPublisherService", e);
         }
     }
 
@@ -98,5 +106,25 @@ public class EventPublisherServiceComponent {
         LOG.debug("Removing the event publisher service : " +
                 eventPublisher.getClass().getName());
         EventPublisherComponentServiceHolder.getInstance().removeEventPublisher(eventPublisher);
+    }
+
+    @Reference(
+            name = "identity.webhook.adapter.metadata.component",
+            service = EventAdapterMetadataService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetEventAdapterMetadataService"
+    )
+    protected void setEventAdapterMetadataService(EventAdapterMetadataService eventAdapterMetadataService) {
+
+        EventPublisherComponentServiceHolder.getInstance()
+                .setEventAdapterMetadataService(eventAdapterMetadataService);
+        LOG.debug("EventAdapterMetadataService set in EventPublisherComponentServiceHolder bundle.");
+    }
+
+    protected void unsetEventAdapterMetadataService(EventAdapterMetadataService eventAdapterMetadataService) {
+
+        EventPublisherComponentServiceHolder.getInstance().setEventAdapterMetadataService(null);
+        LOG.debug("EventAdapterMetadataService unset in EventPublisherComponentServiceHolder bundle.");
     }
 }

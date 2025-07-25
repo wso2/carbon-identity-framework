@@ -32,16 +32,19 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.util.SessionEventPublishingUtil;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -179,6 +182,28 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
     }
 
+    private String resolveUserIdFromUser(User user) {
+
+        String username = user.getUserName();
+        String userStoreDomain = user.getUserStoreDomain();
+        String tenantDomain = user.getTenantDomain();
+
+        if (StringUtils.isBlank(username) || StringUtils.isBlank(userStoreDomain) ||
+                StringUtils.isBlank(tenantDomain)) {
+            return null;
+        }
+
+        try {
+            return resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
+        } catch (UserSessionException e) {
+            log.warn(String.format("Failed to resolve userId for user: %s in userstore domain: %s and tenant: %s.",
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username),
+                    userStoreDomain, tenantDomain), e);
+        }
+
+        return null;
+    }
+
     private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
             throws UserStoreException {
 
@@ -253,10 +278,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
                 String fedAssociatedUserId = authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.USER_ID);
                 if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
-                    userSessions = getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
-                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
-                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME));
-                    userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(userId), null, null));
+                    userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
+                    addAssociatedFedUserIdSessions(userSessions, fedAssociatedUserId, authSessionUserMap);
                 } else {
                     userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
                 }
@@ -320,6 +343,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         }
         terminateSessionsOfUser(sessionIdList);
+        // Publish session termination event after session cleanup from session store,
+        // but before the session metadata is removed.
+        // Session publishing event may use session related metadata.
+        SessionEventPublishingUtil.publishSessionTerminationEvent(userId, sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
         }
@@ -412,9 +439,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
+
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
+            // Publish session termination event after session cleanup from session store,
+            // but before the session metadata is removed.
+            // Session publishing event may use session related metadata.
+            SessionEventPublishingUtil.publishSessionTerminationEvent(userId, sessionId);
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
             return true;
         } else {
@@ -503,6 +535,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             sessionManagementService.removeSession(sessionId);
+
+            // Publish session termination event after session cleanup from session store,
+            // but before the session metadata is removed.
+            // Session publishing event may use session related metadata.
+            SessionEventPublishingUtil.publishSessionTerminationEvent(resolveUserIdFromUser(user), sessionId);
+
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -906,5 +944,29 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
 
         return idpManagementService;
+    }
+
+    private void addAssociatedFedUserIdSessions(List<UserSession> userSessions, String fedAssociatedUserId,
+                                                Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap)
+            throws SessionManagementServerException {
+
+        /* If the `FilterByUniqueSessionIdForUser` property is set to true, the `getSessionsByUserId` method will return
+         entries with unique session IDs. If set to false, it will return duplicate entries with corresponding idpId and
+         idpName for associated federated user. */
+        if (!Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))) {
+            userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
+                    authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
+                    authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME)));
+            return;
+        }
+
+        List<UserSession> associatedFedUserIdSessions =
+                getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId), null, null);
+        for (UserSession associatedFedUserIdSession : associatedFedUserIdSessions) {
+            if (userSessions.stream().noneMatch(userSession ->
+                    StringUtils.equals(userSession.getSessionId(), associatedFedUserIdSession.getSessionId()))) {
+                userSessions.add(associatedFedUserIdSession);
+            }
+        }
     }
 }

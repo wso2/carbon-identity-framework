@@ -50,24 +50,24 @@ public class SubscriptionManagementServiceImpl implements SubscriptionManagement
     }
 
     @Override
-    public List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String adaptor,
+    public List<Subscription> subscribe(WebhookSubscriptionRequest subscriptionRequest, String adapter,
                                         String tenantDomain)
             throws SubscriptionManagementException {
 
-        EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
+        EventSubscriber subscriber = retrieveAdapterManager(adapter);
         return subscriber.subscribe(subscriptionRequest, tenantDomain);
     }
 
     @Override
-    public List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String adaptor,
+    public List<Subscription> unsubscribe(WebhookUnsubscriptionRequest unsubscriptionRequest, String adapter,
                                           String tenantDomain)
             throws SubscriptionManagementException {
 
-        EventSubscriber subscriber = retrieveAdaptorManager(adaptor);
+        EventSubscriber subscriber = retrieveAdapterManager(adapter);
         return subscriber.unsubscribe(unsubscriptionRequest, tenantDomain);
     }
 
-    private EventSubscriber retrieveAdaptorManager(String adaptor) throws SubscriptionManagementException {
+    private EventSubscriber retrieveAdapterManager(String adapter) throws SubscriptionManagementException {
 
         List<EventSubscriber> subscribers =
                 SubscriptionManagementComponentServiceHolder.getInstance().getEventSubscribers();
@@ -78,12 +78,12 @@ public class SubscriptionManagementServiceImpl implements SubscriptionManagement
         }
 
         for (EventSubscriber subscriber : subscribers) {
-            if (adaptor.equals(subscriber.getAssociatedAdaptor())) {
+            if (adapter.equals(subscriber.getAssociatedAdapter())) {
                 return subscriber;
             }
         }
 
         throw SubscriptionManagementExceptionHandler.handleServerException(
-                ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIBER_NOT_FOUND, adaptor);
+                ErrorMessage.ERROR_CODE_WEBHOOK_SUBSCRIBER_NOT_FOUND, adapter);
     }
 }

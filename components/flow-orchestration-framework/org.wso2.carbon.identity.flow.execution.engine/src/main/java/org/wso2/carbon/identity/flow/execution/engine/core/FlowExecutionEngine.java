@@ -161,6 +161,8 @@ public class FlowExecutionEngine {
         }
         if (Constants.NodeTypes.DECISION.equals(currentNode.getType())) {
             // If the current node is a decision node, reset the next node ID to null.
+            LOG.debug("Current node " + currentNode.getId() + " is a decision node. " +
+                    "Resetting the next node ID to null.");
             currentNode.setNextNodeId(null);
         }
         return nextNode;
@@ -194,12 +196,22 @@ public class FlowExecutionEngine {
                                                    FlowExecutionContext context, NodeResponse nodeResponse) {
 
         DataDTO dataDTO = graph.getNodePageMappings().get(currentNode.getId()).getData();
-        handleError(dataDTO, nodeResponse);
+
+        DataDTO finalDataDTO = null;
+        if (dataDTO != null) {
+            finalDataDTO = new DataDTO.Builder()
+                    .components(dataDTO.getComponents())
+                    .requiredParams(nodeResponse.getRequiredData())
+                    .additionalData(dataDTO.getAdditionalData())
+                    .build();
+            handleError(finalDataDTO, nodeResponse);
+        }
+
         return new FlowExecutionStep.Builder()
                 .flowId(context.getContextIdentifier())
                 .flowStatus(STATUS_INCOMPLETE)
                 .stepType(VIEW)
-                .data(dataDTO)
+                .data(finalDataDTO)
                 .build();
     }
 

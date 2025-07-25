@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class FlowExecutionEngineDataHolder {
     private RealmService realmService;
     private InputValidationManagementService inputValidationManagementService;
     private ApplicationManagementService applicationManagementService;
+    private FederatedAssociationManager federatedAssociationManager;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
     private FlowExecutionEngineDataHolder() {
@@ -161,5 +163,25 @@ public class FlowExecutionEngineDataHolder {
             ApplicationManagementService applicationManagementService) {
 
         this.applicationManagementService = applicationManagementService;
+    }
+
+    /**
+     * Get the federated association manager.
+     *
+     * @return Federated association manager.
+     */
+    public FederatedAssociationManager getFederatedAssociationManager() {
+
+        return federatedAssociationManager;
+    }
+
+    /**
+     * Set the federated association manager.
+     *
+     * @param federatedAssociationManager Federated association manager.
+     */
+    public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
+
+        this.federatedAssociationManager = federatedAssociationManager;
     }
 }

@@ -16,11 +16,16 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.core.internal;
+package org.wso2.carbon.identity.core.internal.context;
 
 import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.Organization;
+import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.utils.CarbonUtils;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * This class is used to store the identity context information of the current thread.
@@ -30,14 +35,20 @@ public class IdentityContextDataHolder {
     private Flow flow;
     private Actor actor;
     private String accessTokenIssuedOrganization;
+    private RootOrganization rootOrganization;
+    private Organization organization;
+
+    // Stack (FILO) to manage nested flows in the current thread context.
+    private Deque<Flow> flowSequence = new ArrayDeque<>();
 
     private static final ThreadLocal<IdentityContextDataHolder> currentContextHolder =
             new ThreadLocal<IdentityContextDataHolder>() {
-        @Override
-        protected IdentityContextDataHolder initialValue() {
-            return new IdentityContextDataHolder();
-        }
-    };
+                @Override
+                protected IdentityContextDataHolder initialValue() {
+
+                    return new IdentityContextDataHolder();
+                }
+            };
 
     /**
      * Default constructor to disallow creation of the IdentityContextDataHolder.
@@ -110,11 +121,73 @@ public class IdentityContextDataHolder {
         this.accessTokenIssuedOrganization = accessTokenIssuedOrganization;
     }
 
+    public RootOrganization getRootOrganization() {
+
+        return rootOrganization;
+    }
+
+    public void setRootOrganization(RootOrganization rootOrganization) {
+
+        CarbonUtils.checkSecurity();
+        this.rootOrganization = rootOrganization;
+    }
+
+    public Organization getOrganization() {
+
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+
+        CarbonUtils.checkSecurity();
+        this.organization = organization;
+    }
+
     /**
      * This method will destroy the current IdentityContextDataHolder.
      */
     public static void destroyCurrentIdentityContextDataHolder() {
 
         currentContextHolder.remove();
+    }
+
+    /**
+     * Enter a new flow. Pushes the given flow onto the flow sequence.
+     *
+     * @param flow The new flow to be started.
+     */
+    public void enterFlow(Flow flow) {
+
+        CarbonUtils.checkSecurity();
+        if (flow != null) {
+            flowSequence.push(flow);
+        }
+    }
+
+    /**
+     * Exit the current flow. Pops the top flow from the flow sequence.
+     *
+     * @return The flow that was removed, or null if none.
+     */
+    public Flow exitFlow() {
+
+        CarbonUtils.checkSecurity();
+        if (!flowSequence.isEmpty()) {
+            return flowSequence.pop();
+        }
+        return null;
+    }
+
+    /**
+     * Peek at the current flow without removing it from the flow sequence.
+     *
+     * @return The current active flow, or null if no flow is active.
+     */
+    public Flow getCurrentFlow() {
+
+        if (!flowSequence.isEmpty()) {
+            return flowSequence.peek();
+        }
+        return null;
     }
 }
