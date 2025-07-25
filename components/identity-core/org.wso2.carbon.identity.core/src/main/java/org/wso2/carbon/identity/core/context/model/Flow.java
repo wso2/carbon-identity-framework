@@ -236,9 +236,7 @@ public class Flow {
     public enum CredentialType {
 
         PASSWORD,
-        PASSKEY,
-        OTP,
-        FIDO
+        PASSKEY
     }
 
     private final Name name;
