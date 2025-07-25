@@ -40,7 +40,7 @@ import java.util.List;
 import static org.wso2.carbon.identity.workflow.mgt.util.Utils.generatePrepStmt;
 
 /**
- * Workflow related DAO operation provides by this class
+ * Workflow related DAO operation provides by this class.
  *
  */
 public class WorkflowDAO {
@@ -49,10 +49,10 @@ public class WorkflowDAO {
     private static final Log log = LogFactory.getLog(WorkflowDAO.class);
 
     /**
-     * Adding a workflow
+     * Adding a workflow.
      *
-     * @param workflow Workflow bean object
-     * @param tenantId Tenant ID
+     * @param workflow Workflow bean object.
+     * @param tenantId Tenant ID.
      * @throws InternalWorkflowException
      */
     public void addWorkflow(Workflow workflow, int
@@ -80,10 +80,10 @@ public class WorkflowDAO {
     }
 
     /**
-     * Get a Workflow object for given workflowid
+     * Get a Workflow object for given workflowid.
      *
-     * @param workflowId Workflow unique id
-     * @return Workflow object
+     * @param workflowId Workflow unique id.
+     * @return Workflow object.
      * @throws InternalWorkflowException
      */
     public Workflow getWorkflow(String workflowId) throws InternalWorkflowException {
@@ -122,7 +122,7 @@ public class WorkflowDAO {
     }
 
     /**
-     * Get a Workflow object for given workflow name
+     * Get a Workflow object for given workflow name.
      *
      * @param workflowName Workflow name.
      * @param tenantId Tenant ID.
@@ -163,9 +163,9 @@ public class WorkflowDAO {
     }
 
     /**
-     * Remove Workflow from the DB
+     * Remove Workflow from the DB.
      *
-     * @param workflowId workflow Id
+     * @param workflowId workflow Id.
      * @throws InternalWorkflowException
      */
     public void removeWorkflow(String workflowId) throws InternalWorkflowException {
@@ -209,9 +209,9 @@ public class WorkflowDAO {
     }
 
     /**
-     * Update current workflow
+     * Update current workflow.
      *
-     * @param workflow Workflow object
+     * @param workflow Workflow object.
      * @throws InternalWorkflowException
      */
     public void updateWorkflow(Workflow workflow)
@@ -283,10 +283,10 @@ public class WorkflowDAO {
     }
 
     /**
-     * Retrieve all the Workflows for a tenant
+     * Retrieve all the Workflows for a tenant.
      *
      * @Deprecated Use {@link #listPaginatedWorkflows(int, String, int, int)} instead.
-     * @param tenantId Tenant ID
+     * @param tenantId Tenant ID.
      * @return List<Workflow>
      * @throws InternalWorkflowException
      */
@@ -327,9 +327,9 @@ public class WorkflowDAO {
     /**
      * Get workflows count of a tenant.
      *
-     * @param tenantId
-     * @param filter
-     * @return Return workflows count
+     * @param tenantId Tenant ID.
+     * @param filter   Filter criteria.
+     * @return Return workflows count.
      * @throws InternalWorkflowException
      */
     public int getWorkflowsCount(int tenantId, String filter) throws InternalWorkflowException {
@@ -355,9 +355,9 @@ public class WorkflowDAO {
 
 
     /**
-     * Clear all the parameters that stored under workflow Id
+     * Clear all the parameters that stored under workflow Id.
      *
-     * @param workflowId WorkflowId
+     * @param workflowId WorkflowId.
      * @throws InternalWorkflowException
      */
     public void removeWorkflowParams(String workflowId) throws InternalWorkflowException {
@@ -401,10 +401,10 @@ public class WorkflowDAO {
     }
     
     /**
-     * Add new parameter List to given workflow id
+     * Add new parameter List to given workflow id.
      *
-     * @param parameterList Paramter List
-     * @param workflowId Workflow Id
+     * @param parameterList Parameter List.
+     * @param workflowId Workflow Id.
      * @throws InternalWorkflowException
      */
     public void addWorkflowParams(List<Parameter> parameterList, String workflowId, int tenantId) throws
@@ -436,10 +436,10 @@ public class WorkflowDAO {
     }
 
     /**
-     * Retrieve List of Parameters for given workflow id
+     * Retrieve List of Parameters for given workflow id.
      *
-     * @param workflowId
-     * @return
+     * @param workflowId Workflow Id.
+     * @return List of Parameters.
      * @throws InternalWorkflowException
      */
     public List<Parameter> getWorkflowParams(String workflowId) throws InternalWorkflowException {
@@ -534,8 +534,8 @@ public class WorkflowDAO {
     /**
      * Logs and wraps the given exception.
      *
-     * @param errorMsg Error message
-     * @param e   Exception
+     * @param errorMsg Error message.
+     * @param e   Exception.
      * @throws InternalWorkflowException
      */
     private void handleException(String errorMsg, Exception e) throws InternalWorkflowException {
