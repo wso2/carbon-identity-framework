@@ -34,6 +34,9 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertThrows;
 
+/**
+ * Test class for AssociationDAO.
+ */
 public class AssociationDAOTest {
 
     @Test
