@@ -92,20 +92,20 @@ public class FileBasedEventAdapterMetadataDAOImplTest {
     }
 
     @Test
-    public void testGetAdopters() throws Exception {
+    public void testGetAdapters() throws Exception {
 
-        List<Adapter> adopters = dao.getAdopters();
-        Assert.assertNotNull(adopters);
-        Assert.assertEquals(adopters.size(), 2);
-        Assert.assertTrue(adopters.stream().anyMatch(a -> "websubhub".equals(a.getName())));
-        Assert.assertTrue(adopters.stream().anyMatch(a -> "httppublisher".equals(a.getName())));
+        List<Adapter> adapters = dao.getAdapters();
+        Assert.assertNotNull(adapters);
+        Assert.assertEquals(adapters.size(), 2);
+        Assert.assertTrue(adapters.stream().anyMatch(a -> "websubhub".equals(a.getName())));
+        Assert.assertTrue(adapters.stream().anyMatch(a -> "httppublisher".equals(a.getName())));
     }
 
     @Test
     public void testEnabledAdapter() throws Exception {
 
-        List<Adapter> adopters = dao.getAdopters();
-        Adapter enabled = adopters.stream().filter(Adapter::isEnabled).findFirst().orElse(null);
+        List<Adapter> adapters = dao.getAdapters();
+        Adapter enabled = adapters.stream().filter(Adapter::isEnabled).findFirst().orElse(null);
         Assert.assertNotNull(enabled);
         Assert.assertEquals(enabled.getName(), "websubhub");
         Assert.assertEquals(enabled.getType(), AdapterType.PublisherSubscriber);
@@ -115,18 +115,18 @@ public class FileBasedEventAdapterMetadataDAOImplTest {
     @Test
     public void testDisabledAdapter() throws Exception {
 
-        List<Adapter> adopters = dao.getAdopters();
-        Adapter disabled = adopters.stream().filter(a -> "httppublisher".equals(a.getName())).findFirst().orElse(null);
+        List<Adapter> adapters = dao.getAdapters();
+        Adapter disabled = adapters.stream().filter(a -> "httppublisher".equals(a.getName())).findFirst().orElse(null);
         Assert.assertNotNull(disabled);
         Assert.assertFalse(disabled.isEnabled());
         Assert.assertEquals(disabled.getType(), AdapterType.Publisher);
     }
 
     @Test(expectedExceptions = WebhookMetadataException.class)
-    public void testGetAdoptersNotInitialized() throws Exception {
+    public void testGetAdaptersNotInitialized() throws Exception {
 
         resetDAOState(dao);
-        dao.getAdopters();
+        dao.getAdapters();
     }
 
     @Test(expectedExceptions = WebhookMetadataServerException.class)
@@ -158,9 +158,9 @@ public class FileBasedEventAdapterMetadataDAOImplTest {
         isInitializedField.setAccessible(true);
         isInitializedField.set(dao, false);
 
-        Field adopterCacheField = FileBasedEventAdapterMetadataDAOImpl.class.getDeclaredField("adopterCache");
-        adopterCacheField.setAccessible(true);
-        Map<String, Adapter> adopterCache = (Map<String, Adapter>) adopterCacheField.get(dao);
-        adopterCache.clear();
+        Field adapterCacheField = FileBasedEventAdapterMetadataDAOImpl.class.getDeclaredField("adapterCache");
+        adapterCacheField.setAccessible(true);
+        Map<String, Adapter> adapterCache = (Map<String, Adapter>) adapterCacheField.get(dao);
+        adapterCache.clear();
     }
 }

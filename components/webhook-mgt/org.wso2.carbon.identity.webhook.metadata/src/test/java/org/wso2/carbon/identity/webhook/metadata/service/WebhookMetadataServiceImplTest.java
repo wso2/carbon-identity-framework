@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedEventProfileMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.service.impl.WebhookMetadataServiceImpl;
 
 import java.lang.reflect.Field;
@@ -48,7 +48,7 @@ public class WebhookMetadataServiceImplTest {
     private static final String TEST_URI = "https://schemas.identity.wso2.org";
 
     @Mock
-    private FileBasedWebhookMetadataDAOImpl mockDAO;
+    private FileBasedEventProfileMetadataDAOImpl mockDAO;
 
     private WebhookMetadataServiceImpl service;
 

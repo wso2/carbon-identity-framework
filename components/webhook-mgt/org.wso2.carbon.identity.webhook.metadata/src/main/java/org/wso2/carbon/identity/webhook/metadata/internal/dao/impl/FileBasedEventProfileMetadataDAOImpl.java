@@ -26,10 +26,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.EventProfileMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataUtil;
 
@@ -44,34 +42,33 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_EVENTS_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILES_RETRIEVE_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_FILES_LOAD_ERROR;
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_PROFILE_RETRIEVE_ERROR;
 
 /**
- * File-based implementation of the WebhookMetadataDAO.
+ * File-based implementation of the EventProfileMetadataDAO.
  * Loads event profiles from JSON files in the configured directory.
  */
-public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
+public class FileBasedEventProfileMetadataDAOImpl implements EventProfileMetadataDAO {
 
-    private static final Log log = LogFactory.getLog(FileBasedWebhookMetadataDAOImpl.class);
-    private static final FileBasedWebhookMetadataDAOImpl INSTANCE = new FileBasedWebhookMetadataDAOImpl();
+    private static final Log log = LogFactory.getLog(FileBasedEventProfileMetadataDAOImpl.class);
+    private static final FileBasedEventProfileMetadataDAOImpl INSTANCE = new FileBasedEventProfileMetadataDAOImpl();
 
     // Cache of loaded event profiles
     private final Map<String, EventProfile> profileCache = new HashMap<>();
     private boolean isInitialized = false;
 
-    private FileBasedWebhookMetadataDAOImpl() {
+    private FileBasedEventProfileMetadataDAOImpl() {
         // Private constructor to prevent instantiation
     }
 
     /**
-     * Get the singleton instance of FileBasedWebhookMetadataDAOImpl.
+     * Get the singleton instance of FileBasedEventProfileMetadataDAOImpl.
      *
      * @return Singleton instance
      */
-    public static FileBasedWebhookMetadataDAOImpl getInstance() {
+    public static FileBasedEventProfileMetadataDAOImpl getInstance() {
 
         return INSTANCE;
     }
@@ -164,34 +161,5 @@ public class FileBasedWebhookMetadataDAOImpl implements WebhookMetadataDAO {
             log.debug("Event profile not found for name: " + profileName);
         }
         return profile;
-    }
-
-    @Override
-    public List<Event> getEventsByProfile(String profileUri) throws WebhookMetadataException {
-
-        if (!isInitialized) {
-            throw WebhookMetadataExceptionHandler.handleClientException(
-                    ERROR_CODE_EVENTS_RETRIEVE_ERROR, profileUri);
-        }
-
-        List<Event> matchingEvents = new ArrayList<>();
-        profileCache.values().forEach(profile ->
-                matchingEvents.addAll(getEventsFromProfile(profile, profileUri))
-        );
-        return matchingEvents;
-    }
-
-    private List<Event> getEventsFromProfile(EventProfile profile, String profileUri) {
-
-        List<Event> events = new ArrayList<>();
-        if (profile.getChannels() != null) {
-            for (Channel channel : profile.getChannels()) {
-                if (channel != null && profileUri.equals(channel.getUri()) && channel.getEvents() != null) {
-                    events.addAll(channel.getEvents());
-                }
-
-            }
-        }
-        return events;
     }
 }

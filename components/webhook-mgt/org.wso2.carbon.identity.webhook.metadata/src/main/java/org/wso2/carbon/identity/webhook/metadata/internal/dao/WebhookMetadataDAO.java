@@ -19,39 +19,41 @@
 package org.wso2.carbon.identity.webhook.metadata.internal.dao;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
-import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
+import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 
-import java.util.List;
+import java.util.Map;
 
 /**
- * DAO interface for webhook metadata operations.
+ * Data Access Object interface for webhook management.
  */
 public interface WebhookMetadataDAO {
 
     /**
-     * Get all supported event profiles.
+     * Get webhook metadata properties from the database.
      *
-     * @return List of event profiles
-     * @throws WebhookMetadataException If an error occurs while retrieving event profiles
+     * @param tenantId Tenant ID.
+     * @return A map of webhook metadata properties.
+     * @throws WebhookMetadataException If an error occurs while retrieving the webhook metadata properties.
      */
-    List<EventProfile> getSupportedEventProfiles() throws WebhookMetadataException;
+    Map<String, WebhookMetadataProperty> getWebhookMetadataProperties(int tenantId) throws WebhookMetadataException;
 
     /**
-     * Get details of a specific event profile including its channels.
+     * Add webhook metadata properties to the database.
      *
-     * @param profileName Name of the event profile
-     * @return EventProfile object containing profile details and channels
-     * @throws WebhookMetadataException If an error occurs while retrieving event profile details
+     * @param webhookMetadataProperties A map of webhook metadata properties to add.
+     * @param tenantId                  Tenant ID.
+     * @throws WebhookMetadataException If an error occurs while adding the webhook metadata properties.
      */
-    EventProfile getEventProfile(String profileName) throws WebhookMetadataException;
+    void addWebhookMetadataProperties(Map<String, WebhookMetadataProperty> webhookMetadataProperties,
+                                      int tenantId) throws WebhookMetadataException;
 
     /**
-     * Get list of events under the given event profile.
+     * Update webhook metadata properties in the database.
      *
-     * @param profileUri URI of the event profile
-     * @return List of events
-     * @throws WebhookMetadataException If an error occurs while retrieving events
+     * @param webhookMetadataProperties A map of webhook metadata properties to update.
+     * @param tenantId                  Tenant ID.
+     * @throws WebhookMetadataException If an error occurs while updating the webhook metadata properties.
      */
-    List<Event> getEventsByProfile(String profileUri) throws WebhookMetadataException;
+    void updateWebhookMetadataProperties(Map<String, WebhookMetadataProperty> webhookMetadataProperties,
+                                         int tenantId) throws WebhookMetadataException;
 }

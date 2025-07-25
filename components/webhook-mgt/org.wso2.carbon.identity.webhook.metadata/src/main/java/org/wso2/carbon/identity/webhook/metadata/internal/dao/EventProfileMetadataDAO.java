@@ -16,18 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.webhook.metadata.api.service;
+package org.wso2.carbon.identity.webhook.metadata.internal.dao;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 
 import java.util.List;
 
 /**
- * Service interface for webhook metadata operations.
+ * DAO interface for event profile metadata operations.
  */
-public interface WebhookMetadataService {
+public interface EventProfileMetadataDAO {
 
     /**
      * Get all supported event profiles.
@@ -45,24 +44,4 @@ public interface WebhookMetadataService {
      * @throws WebhookMetadataException If an error occurs while retrieving event profile details
      */
     EventProfile getEventProfile(String profileName) throws WebhookMetadataException;
-
-    /**
-     * Get metadata properties for webhooks.
-     *
-     * @param tenantDomain Tenant domain for which metadata properties are requested
-     * @return WebhookMetadataProperties object containing metadata properties
-     * @throws WebhookMetadataException If an error occurs while retrieving webhook metadata properties
-     */
-    WebhookMetadataProperties getWebhookMetadataProperties(String tenantDomain) throws WebhookMetadataException;
-
-    /**
-     * Update webhook metadata properties.
-     *
-     * @param webhookMetadataProperties WebhookMetadataProperties object containing properties to be updated
-     * @param tenantDomain              Tenant domain for which metadata properties are being updated
-     * @return Updated WebhookMetadataProperties object
-     * @throws WebhookMetadataException If an error occurs while updating webhook metadata properties
-     */
-    WebhookMetadataProperties updateWebhookMetadataProperties(WebhookMetadataProperties webhookMetadataProperties,
-                                                              String tenantDomain) throws WebhookMetadataException;
 }

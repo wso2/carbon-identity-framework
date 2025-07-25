@@ -54,11 +54,11 @@ public class WebhookMetadataServiceComponent {
             context.getBundleContext().registerService(WebhookMetadataService.class.getName(),
                     webhookMetadataService, null);
 
-            EventAdapterMetadataServiceImpl eventAdopterMetadataService = EventAdapterMetadataServiceImpl.getInstance();
-            eventAdopterMetadataService.init();
+            EventAdapterMetadataServiceImpl eventAdapterMetadataService = EventAdapterMetadataServiceImpl.getInstance();
+            eventAdapterMetadataService.init();
 
             context.getBundleContext().registerService(EventAdapterMetadataService.class.getName(),
-                    eventAdopterMetadataService, null);
+                    eventAdapterMetadataService, null);
 
             log.debug("Webhook Metadata component activated successfully");
         } catch (Throwable e) {

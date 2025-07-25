@@ -23,13 +23,36 @@ package org.wso2.carbon.identity.webhook.metadata.internal.constant;
  */
 public class WebhookMetadataConstants {
 
-    public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
-    public static final String ADAPTER_PREFIX = "adapter.";
-    public static final String ENABLED_KEY = "enabled";
-    public static final String ENABLED_VALUE_TRUE = "true";
-    public static final String TYPE_KEY = "type";
-
     private WebhookMetadataConstants() {
 
+    }
+
+    /**
+     * Adapter configuration related constants.
+     */
+    public static class AdapterConfig {
+
+        public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
+        public static final String ADAPTER_PREFIX = "adapter.";
+        public static final String ENABLED_KEY = "enabled";
+        public static final String ENABLED_VALUE_TRUE = "true";
+        public static final String TYPE_KEY = "type";
+
+        private AdapterConfig() {
+
+        }
+    }
+
+    /**
+     * Metadata property field names.
+     */
+    public static class MetadataPropertyFields {
+
+        public static final String ORGANIZATION_POLICY_FIELD = "organization policy";
+        public static final String ORGANIZATION_POLICY_PROPERTY_NAME = "organizationPolicy";
+
+        private MetadataPropertyFields() {
+
+        }
     }
 }

@@ -47,6 +47,10 @@
             <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.resource.sharing.policy.management</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.utils</groupId>
             <artifactId>org.wso2.carbon.database.utils</artifactId>
         </dependency>
@@ -116,6 +120,8 @@
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.event;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.resource.sharing.policy.management.*;
+                            version="${org.wso2.carbon.identity.organization.management.version.range}",
                             org.wso2.carbon.identity.event.handler;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.services;
