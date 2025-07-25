@@ -238,9 +238,7 @@ public class Flow {
         PASSWORD,
         PASSKEY,
         OTP,
-        FIDO,
-        OAUTH2_CLIENT_CREDENTIALS,
-        OAUTH2_DEVICE_AUTHORIZATION
+        FIDO
     }
 
     private final Name name;
