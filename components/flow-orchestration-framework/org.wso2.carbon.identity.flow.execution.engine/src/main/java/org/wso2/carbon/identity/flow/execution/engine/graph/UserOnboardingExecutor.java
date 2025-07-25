@@ -21,30 +21,40 @@ package org.wso2.carbon.identity.flow.execution.engine.graph;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static java.util.Locale.ENGLISH;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USERNAME;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_ALREADY_EXISTS;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_NOT_PROVIDED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
@@ -55,6 +65,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 import static org.wso2.carbon.user.core.UserCoreConstants.APPLICATION_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
@@ -66,6 +77,8 @@ public class UserOnboardingExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(UserOnboardingExecutor.class);
     private static final String WSO2_CLAIM_DIALECT = "http://wso2.org/claims/";
+    private static final String USERNAME_PATTERN_VALIDATION_SKIPPED = "isUsernamePatternValidationSkipped";
+    private static final String USERNAME = "username";
 
     @Override
     public String getName() {
@@ -102,7 +115,9 @@ public class UserOnboardingExecutor implements Executor {
             userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
                     String.valueOf(password), null, userClaims, null);
             String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
-            context.getFlowUser().setUserId(userid);
+            user.setUserStoreDomain(userStoreDomainName);
+            user.setUserId(userid);
+            createFederatedAssociations(user, context.getTenantDomain());
             return new ExecutorResponse(STATUS_USER_CREATED);
         } catch (UserStoreException e) {
             if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
@@ -125,8 +140,18 @@ public class UserOnboardingExecutor implements Executor {
                 }
             }
         });
-        user.setUsername(resolveUsername(user, context.getContextIdentifier(), context.getFlowType()));
+        user.setUsername(resolveUsername(user, context.getTenantDomain()));
+        setUsernamePatternValidation(context);
         return user;
+    }
+
+    private static void setUsernamePatternValidation(FlowExecutionContext context) {
+
+        Boolean isUsernamePatternValidationSkipped = (Boolean) context.getProperty(USERNAME_PATTERN_VALIDATION_SKIPPED);
+        if (isUsernamePatternValidationSkipped == null) {
+            isUsernamePatternValidationSkipped = false;
+        }
+        UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(isUsernamePatternValidationSkipped);
     }
 
     private UserStoreManager getUserStoreManager(String tenantDomain, String userdomain, String flowId, String flowType)
@@ -168,16 +193,78 @@ public class UserOnboardingExecutor implements Executor {
                 IdentityUtil.getPrimaryDomainName().toUpperCase(ENGLISH);
     }
 
-    private String resolveUsername(FlowUser user, String flowId, String flowType) throws FlowEngineException {
+    private String resolveUsername(FlowUser user, String tenantDomain) throws FlowEngineException {
 
         String username = Optional.ofNullable(user.getUsername())
                 .orElseGet(() -> Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse(""));
         if (StringUtils.isBlank(username)) {
-            throw handleClientException(ERROR_CODE_USERNAME_NOT_PROVIDED, flowType, flowId);
-        }
-        if (IdentityUtil.isEmailUsernameEnabled() && !username.contains("@")) {
+            if ((isEmailUsernameValidator(tenantDomain) || IdentityUtil.isEmailUsernameEnabled())
+                    && StringUtils.isNotBlank((String) user.getClaim(EMAIL_ADDRESS_CLAIM))) {
+                // If email format validation is enabled and username is not provided, use email as username.
+                return (String) user.getClaim(EMAIL_ADDRESS_CLAIM);
+            }
+            // Else generate a random UUID as the username and set the skip validation flag.
+            username = UUID.randomUUID().toString();
+            UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+            return username;
+        } else if (IdentityUtil.isEmailUsernameEnabled() && !username.contains("@")) {
             throw handleClientException(ERROR_CODE_INVALID_USERNAME, username);
         }
         return username;
+    }
+
+    private void createFederatedAssociations(FlowUser user, String tenantDomain) {
+
+        if (user.getFederatedAssociations().isEmpty()) {
+            return;
+        }
+        FederatedAssociationManager fedAssociationManager =
+                FlowExecutionEngineDataHolder.getInstance().getFederatedAssociationManager();
+        user.getFederatedAssociations().forEach(LambdaExceptionUtils.rethrowBiConsumer((idpName, idpSubjectId) -> {
+            if (StringUtils.isNotBlank(idpName) && StringUtils.isNotBlank(idpSubjectId)) {
+                try {
+                    User localUser = new User();
+                    localUser.setUserName(user.getUsername());
+                    localUser.setTenantDomain(tenantDomain);
+                    localUser.setUserStoreDomain(user.getUserStoreDomain());
+                    fedAssociationManager.createFederatedAssociation(localUser, idpName, idpSubjectId);
+                } catch (FederatedAssociationManagerException e) {
+                    LOG.error("Error while creating federated association for user: " + user.getUsername()
+                            + " with IdP: " + idpName + " and subject ID: " + idpSubjectId, e);
+                    throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, user.getUsername(),
+                            user.getUserStoreDomain(), tenantDomain);
+                }
+            }
+        }));
+    }
+
+    private boolean isEmailUsernameValidator(String tenantDomain) throws FlowEngineServerException {
+
+        List<String> usernameValidators = getUsernameValidators(tenantDomain);
+        return usernameValidators.contains(EMAIL_FORMAT_VALIDATOR);
+    }
+
+    private List<String> getUsernameValidators(String tenantDomain) throws FlowEngineServerException {
+
+        List<String> usernameValidators = new ArrayList<>();
+        try {
+            List<ValidationConfiguration> validationConfigurations = FlowExecutionEngineDataHolder.getInstance()
+                    .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
+            for (ValidationConfiguration config : validationConfigurations) {
+                if (!USERNAME.equals(config.getField())) {
+                    continue;
+                }
+
+                if (config.getRules() != null && !config.getRules().isEmpty()) {
+                    config.getRules().forEach(rule -> {
+                        usernameValidators.add(rule.getValidatorName());
+                    });
+                }
+            }
+        } catch (InputValidationMgtException e) {
+            LOG.error("Error while retrieving input validation configurations for tenant: " + tenantDomain, e);
+            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, tenantDomain);
+        }
+        return usernameValidators;
     }
 }

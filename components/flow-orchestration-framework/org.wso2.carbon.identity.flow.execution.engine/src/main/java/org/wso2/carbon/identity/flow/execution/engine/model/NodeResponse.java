@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.flow.execution.engine.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.io.Serializable;
 import java.util.List;
@@ -48,10 +49,12 @@ public class NodeResponse implements Serializable {
     }
 
     public String getStatus() {
+
         return status;
     }
 
     public void setStatus(String status) {
+
         this.status = status;
     }
 
@@ -93,6 +96,7 @@ public class NodeResponse implements Serializable {
     /**
      * Builder class to build {@link NodeResponse} objects.
      */
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
         @JsonProperty("status")

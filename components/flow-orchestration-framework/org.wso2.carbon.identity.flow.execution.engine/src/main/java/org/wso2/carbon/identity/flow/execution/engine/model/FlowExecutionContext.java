@@ -39,8 +39,8 @@ public class FlowExecutionContext implements Serializable {
 
     private static final long serialVersionUID = 542871476395078667L;
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
-    private final Map<String, String> userInputData = new HashMap<>();
-    private final Map<String, Object> properties = new HashMap<>();
+    private Map<String, String> userInputData = new HashMap<>();
+    private Map<String, Object> properties = new HashMap<>();
     private Map<String, String> authenticatorProperties;
     private Map<String, Set<String>> currentStepInputs = new HashMap<>();
     private Map<String, Set<String>> currentRequiredInputs = new HashMap<>();
@@ -56,6 +56,7 @@ public class FlowExecutionContext implements Serializable {
     private String portalUrl;
     private String applicationId;
     private String flowType;
+    @JsonIgnore
     private ExternalIdPConfig externalIdPConfig;
     private boolean generateAuthenticationAssertion = false;
 
@@ -87,6 +88,10 @@ public class FlowExecutionContext implements Serializable {
     public void addUserInputData(String key, String value) {
 
         userInputData.put(key, value);
+    }
+
+    public void setUserInputData(Map<String, String> userInputData) {
+        this.userInputData = userInputData;
     }
 
     public String getContextIdentifier() {
@@ -127,6 +132,11 @@ public class FlowExecutionContext implements Serializable {
     public void addProperties(Map<String, Object> properties) {
 
         this.properties.putAll(properties);
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+
+        this.properties = properties;
     }
 
     public Object getProperty(String key) {
@@ -204,6 +214,11 @@ public class FlowExecutionContext implements Serializable {
     public void addCompletedNode(NodeConfig nodeConfig) {
 
         this.completedNodes.add(nodeConfig);
+    }
+
+    public void setCompletedNodes(List<NodeConfig> completedNodes) {
+
+        this.completedNodes = completedNodes;
     }
 
     public NodeResponse getCurrentNodeResponse() {
