@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.action.management.api.model;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * EndpointConfig.
  */
@@ -25,6 +28,8 @@ public class EndpointConfig {
 
     private String uri;
     private Authentication authentication;
+    private List<String> allowedHeaders;
+    private List<String> allowedParameters;
 
     public EndpointConfig() {
     }
@@ -33,6 +38,8 @@ public class EndpointConfig {
 
         this.uri = endpointConfigBuilder.uri;
         this.authentication = endpointConfigBuilder.authentication;
+        this.allowedHeaders = endpointConfigBuilder.allowedHeaders;
+        this.allowedParameters = endpointConfigBuilder.allowedParameters;
     }
 
     public String getUri() {
@@ -45,6 +52,16 @@ public class EndpointConfig {
         return authentication;
     }
 
+    public List<String> getAllowedHeaders() {
+
+        return (allowedHeaders == null) ? null : Collections.unmodifiableList(allowedHeaders);
+    }
+
+    public List<String> getAllowedParameters() {
+
+        return (allowedParameters == null) ? null : Collections.unmodifiableList(allowedParameters);
+    }
+
     /**
      * EndpointConfig builder.
      */
@@ -52,8 +69,18 @@ public class EndpointConfig {
 
         private String uri;
         private Authentication authentication;
+        private List<String> allowedHeaders;
+        private List<String> allowedParameters;
 
         public EndpointConfigBuilder() {
+        }
+
+        public EndpointConfigBuilder(EndpointConfig endpointConfig) {
+
+            this.uri = endpointConfig.getUri();
+            this.authentication = endpointConfig.getAuthentication();
+            this.allowedHeaders = endpointConfig.getAllowedHeaders();
+            this.allowedParameters = endpointConfig.getAllowedParameters();
         }
 
         public EndpointConfigBuilder uri(String uri) {
@@ -65,6 +92,18 @@ public class EndpointConfig {
         public EndpointConfigBuilder authentication(Authentication authentication) {
 
             this.authentication = authentication;
+            return this;
+        }
+
+        public EndpointConfigBuilder allowedHeaders(List<String> allowedHeaders) {
+
+            this.allowedHeaders = allowedHeaders;
+            return this;
+        }
+
+        public EndpointConfigBuilder allowedParameters(List<String> allowedParameters) {
+
+            this.allowedParameters = allowedParameters;
             return this;
         }
 
