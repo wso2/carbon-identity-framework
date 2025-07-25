@@ -34,9 +34,9 @@ import java.util.Map;
 public abstract class AbstractWorkflowExecutorManagerListener implements WorkflowExecutorManagerListener {
 
     /**
-     * Trigger before executing a workflow request.
+     * Trigger before executing a workflow request
      *
-     * @param workFlowRequest Details of request to execute.
+     * @param workFlowRequest Details of request to execute
      * @throws WorkflowException
      */
     @Override
@@ -45,10 +45,10 @@ public abstract class AbstractWorkflowExecutorManagerListener implements Workflo
     }
 
     /**
-     * Trigger after executing a workflow request.
+     * Trigger after executing a workflow request
      *
-     * @param workFlowRequest Details of request to execute.
-     * @param result          Result of the original operation.
+     * @param workFlowRequest Details of request to execute
+     * @param result          Result of the original operation
      * @throws WorkflowException
      */
     @Override
@@ -58,11 +58,11 @@ public abstract class AbstractWorkflowExecutorManagerListener implements Workflo
     }
 
     /**
-     * Trigger before handling a callback.
+     * Trigger before handling a callback
      *
-     * @param uuid             UUID to request which callback received.
-     * @param status           Status of call back.
-     * @param additionalParams Additional parameters required to execute request.
+     * @param uuid             UUID to request which callback received
+     * @param status           Status of call back
+     * @param additionalParams Additional parameters required to execute request
      * @throws WorkflowException
      */
     @Override
@@ -72,11 +72,11 @@ public abstract class AbstractWorkflowExecutorManagerListener implements Workflo
     }
 
     /**
-     * Trigger after handling a callback.
+     * Trigger after handling a callback
      *
-     * @param uuid             UUID to request which callback received.
-     * @param status           Status of call back.
-     * @param additionalParams Additional parameters required to execute request.
+     * @param uuid             UUID to request which callback received
+     * @param status           Status of call back
+     * @param additionalParams Additional parameters required to execute request
      * @throws WorkflowException
      */
     @Override
@@ -107,7 +107,7 @@ public abstract class AbstractWorkflowExecutorManagerListener implements Workflo
     }
 
     /**
-     * get order ID (priority of current listener).
+     * get order ID (priority of current listener)
      *
      * @return
      */

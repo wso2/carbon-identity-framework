@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Holds the SQL queries and constants.
+ * Holds the SQL queries and constants
  */
 public class SQLConstants {
 
@@ -81,9 +81,6 @@ public class SQLConstants {
     public static final String GET_WORKFLOW_REQUEST_QUERY = "SELECT UUID, REQUEST, STATUS, CREATED_BY FROM WF_REQUEST" +
             " WHERE UUID = ?";
 
-    public static final String GET_FULL_WORKFLOW_REQUEST_QUERY = "SELECT UUID, REQUEST, STATUS, " +
-            "CREATED_BY, OPERATION_TYPE, CREATED_AT, UPDATED_AT FROM WF_REQUEST WHERE UUID = ?";
-            
     public static final String UPDATE_STATUS_OF_REQUEST = "UPDATE WF_REQUEST SET STATUS = ? , UPDATED_AT = ? WHERE " +
             "UUID = ?";
 
@@ -386,7 +383,7 @@ public class SQLConstants {
 
     public static final String GET_REQUESTS_OF_USER_FILTER_FROM_UPDATED_TIME_AND_STATUS_INFORMIX = "SELECT FIRST 1000" +
             " * FROM  (SELECT UUID, OPERATION_TYPE, CREATED_AT, UPDATED_AT, STATUS, REQUEST, CREATED_BY FROM " +
-            "WF_REQUEST WHERE CREATED_BY = ? AND UPDATED_AT > ? AND UPDATED_AT < ? AND TENANT_ID = ? AND STATUS = ? )" +
+            "WF_REQUEST WHERE CREATED_BY = ? AND UPDATED_AT > ? AND UPDATED_AT < ? AND TENANT_ID = ? AND STATUS = ?) " +
             "RESULT";
 
     public static final String GET_REQUESTS_FILTER_FROM_CREATED_TIME_ORACLE = "SELECT UUID, OPERATION_TYPE, " +
@@ -508,11 +505,6 @@ public class SQLConstants {
             "WF_WORKFLOW_REQUEST_RELATION.STATUS, WF_WORKFLOW_REQUEST_RELATION.UPDATED_AT FROM WF_WORKFLOW, " +
             "WF_WORKFLOW_REQUEST_RELATION WHERE WF_WORKFLOW.ID = WF_WORKFLOW_REQUEST_RELATION.WORKFLOW_ID AND" +
             " WF_WORKFLOW_REQUEST_RELATION.REQUEST_ID = ?";
-
-    public static final String GET_WORKFLOW_REQUESTS_BASE_QUERY = "SELECT UUID, OPERATION_TYPE, CREATED_AT, " +
-            "UPDATED_AT, STATUS, REQUEST, CREATED_BY FROM WF_REQUEST";
-
-    public static final String COUNT_WORKFLOW_REQUESTS_BASE_QUERY = "SELECT COUNT(*) FROM WF_REQUEST";
 
     private SQLConstants() {
 

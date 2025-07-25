@@ -22,9 +22,6 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- * Test class for RoleEntity.
- */
 public class RoleEntityTest {
 
     private static final String ENTITY_ID = "role1";

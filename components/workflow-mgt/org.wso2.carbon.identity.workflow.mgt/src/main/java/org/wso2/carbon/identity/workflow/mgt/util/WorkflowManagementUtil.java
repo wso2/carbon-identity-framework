@@ -58,7 +58,7 @@ public class WorkflowManagementUtil {
     /**
      * Create a internal role in workflow domain with same name as workflow.
      *
-     * @param workflowName Workflow name.
+     * @param workflowName Workflow name
      * @throws WorkflowException
      */
     public static void createAppRole(String workflowName) throws WorkflowException {
@@ -83,7 +83,7 @@ public class WorkflowManagementUtil {
     /**
      * Delete role created for workflow.
      *
-     * @param workflowName Workflow  name.
+     * @param workflowName Workflow  name
      * @throws WorkflowException
      */
     public static void deleteWorkflowRole(String workflowName) throws WorkflowException {
@@ -102,10 +102,10 @@ public class WorkflowManagementUtil {
     }
 
     /**
-     * Update name of workflow role.
+     * Update name of workflow role
      *
-     * @param oldWorkflowName Previous role name.
-     * @param newWorkflowName New role name.
+     * @param oldWorkflowName Previous role name
+     * @param newWorkflowName New role name
      * @throws WorkflowException
      */
     public static void updateWorkflowRoleName(String oldWorkflowName, String newWorkflowName) throws
@@ -128,7 +128,7 @@ public class WorkflowManagementUtil {
     /**
      * Generate owner role name for workflow.
      *
-     * @param workflowName Workflow name.
+     * @param workflowName Workflow name
      * @return
      */
     public static String createWorkflowRoleName(String workflowName) {
@@ -137,12 +137,12 @@ public class WorkflowManagementUtil {
     }
 
     /**
-     * Un-marshall given string to given class type.
+     * Un-marshall given string to given class type
      *
-     * @param xmlString XML String that is validated against its XSD.
-     * @param classType Root Class Name to convert XML String to Object.
-     * @param <T>       Root Class that should return.
-     * @return Instance of T.
+     * @param xmlString XML String that is validated against its XSD
+     * @param classType Root Class Name to convert XML String to Object
+     * @param <T>       Root Class that should return
+     * @return Instance of T
      * @throws JAXBException
      */
     public static <T> T unmarshalXML(String xmlString, Class<T> classType) throws JAXBException {
@@ -167,7 +167,7 @@ public class WorkflowManagementUtil {
     }
 
     /**
-     * Reading File Content from the resource path.
+     * Reading File Content from the resource path
      *
      * @param resourceAsStream
      * @return
@@ -196,7 +196,7 @@ public class WorkflowManagementUtil {
     }
 
     /**
-     * Utility method to read Parameter from the list.
+     * Utility method to read Parameter from the list
      *
      * @param parameterList
      * @param paramName
@@ -215,7 +215,7 @@ public class WorkflowManagementUtil {
     }
 
     /**
-     * Return no of results per page.
+     * Return no of results per page
      *
      * @return
      */

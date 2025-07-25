@@ -29,16 +29,16 @@ import java.util.List;
 public interface TemplateInitializer {
 
     /**
-     * Initialize template at start up.
+     * Initialize template at start up
      *
      * @return
      */
     boolean initNeededAtStartUp();
 
     /**
-     * Initialize template.
+     * Initialize template
      *
-     * @param parameterList parameters of template.
+     * @param parameterList parameters of template
      * @throws WorkflowException
      */
     void initialize(List<Parameter> parameterList) throws WorkflowException;

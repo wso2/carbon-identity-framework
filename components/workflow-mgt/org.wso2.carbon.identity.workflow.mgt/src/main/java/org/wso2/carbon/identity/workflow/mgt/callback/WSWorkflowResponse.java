@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.workflow.mgt.callback;
 import org.wso2.carbon.identity.core.model.ParameterDO;
 
 /**
- * Represents the response from WS workflow executors.
+ * Represents the response from WS workflow executors
  */
 public class WSWorkflowResponse {
 

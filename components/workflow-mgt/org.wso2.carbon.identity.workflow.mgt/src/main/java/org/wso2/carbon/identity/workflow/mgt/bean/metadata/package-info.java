@@ -16,11 +16,6 @@
  * under the License.
  */
 
-/**
- * This package contains JAXB-annotated classes for workflow metadata management.
- * The {@code @XmlSchema} annotation configures the XML namespace and element qualification
- * for XML marshalling/unmarshalling.
- */
 @javax.xml.bind.annotation.XmlSchema(namespace = "http://metadata.bean.mgt.workflow.identity.carbon.wso2.org",
         elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package org.wso2.carbon.identity.workflow.mgt.bean.metadata;
