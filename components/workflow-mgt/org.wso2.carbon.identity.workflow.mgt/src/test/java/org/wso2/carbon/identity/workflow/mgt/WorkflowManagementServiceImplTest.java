@@ -65,6 +65,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -119,18 +120,19 @@ public class WorkflowManagementServiceImplTest {
     private AbstractTemplate mockAbstractTemplate;
     @Mock
     private AbstractWorkflow mockAbstractWorkflow;
-    @Mock
-    private CarbonContext mockCarbonContext;
 
     private MockedStatic<WorkflowServiceDataHolder> mockedWorkflowServiceDataHolder;
     private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
-    private MockedStatic<CarbonContext> mockedCarbonContext;
     private MockedStatic<WorkflowManagementUtil> mockedWorkflowManagementUtil;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
         openMocks(this);
+
+        // Set up required system properties to avoid CarbonContext initialization issues
+        System.setProperty("carbon.home", System.getProperty("java.io.tmpdir"));
+        System.setProperty("java.naming.factory.initial", "org.wso2.carbon.tomcat.jndi.CarbonJavaURLContextFactory");
 
         workflowManagementService = new WorkflowManagementServiceImpl();
 
@@ -144,7 +146,6 @@ public class WorkflowManagementServiceImplTest {
         // Mock static classes
         mockedWorkflowServiceDataHolder = mockStatic(WorkflowServiceDataHolder.class);
         mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
-        mockedCarbonContext = mockStatic(CarbonContext.class);
         mockedWorkflowManagementUtil = mockStatic(WorkflowManagementUtil.class);
 
         // Set up common mock behaviors
@@ -152,16 +153,11 @@ public class WorkflowManagementServiceImplTest {
                 .thenReturn(mockWorkflowServiceDataHolder);
         mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN))
                 .thenReturn(TENANT_ID);
-        mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext)
-                .thenReturn(mockCarbonContext);
 
         // Set up workflow listener
         List<WorkflowListener> workflowListeners = Arrays.asList(mockWorkflowListener);
         when(mockWorkflowServiceDataHolder.getWorkflowListenerList()).thenReturn(workflowListeners);
         when(mockWorkflowListener.isEnable()).thenReturn(true);
-
-        when(mockCarbonContext.getTenantId()).thenReturn(TENANT_ID);
-        when(mockCarbonContext.getUsername()).thenReturn(USER_NAME);
     }
 
     @AfterMethod
@@ -172,9 +168,6 @@ public class WorkflowManagementServiceImplTest {
         }
         if (mockedIdentityTenantUtil != null) {
             mockedIdentityTenantUtil.close();
-        }
-        if (mockedCarbonContext != null) {
-            mockedCarbonContext.close();
         }
         if (mockedWorkflowManagementUtil != null) {
             mockedWorkflowManagementUtil.close();
@@ -792,9 +785,16 @@ public class WorkflowManagementServiceImplTest {
         List<WorkflowAssociation> associations = Arrays.asList(new WorkflowAssociation());
         when(mockWorkflowRequestAssociationDAO.getWorkflowAssociationsForRequest(EVENT_ID, TENANT_ID))
                 .thenReturn(associations);
-        boolean result = workflowManagementService.isEventAssociated(EVENT_ID);
-        assertTrue(result);
-        verify(mockWorkflowListener, times(2)).doPreIsEventAssociated(EVENT_ID);
+        
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getTenantId()).thenReturn(TENANT_ID);
+
+            boolean result = workflowManagementService.isEventAssociated(EVENT_ID);
+            assertTrue(result);
+            verify(mockWorkflowListener, times(2)).doPreIsEventAssociated(EVENT_ID);
+        }
     }
 
     @Test
@@ -802,8 +802,15 @@ public class WorkflowManagementServiceImplTest {
 
         when(mockWorkflowRequestAssociationDAO.getWorkflowAssociationsForRequest(EVENT_ID, TENANT_ID))
                 .thenReturn(Collections.emptyList());
-        boolean result = workflowManagementService.isEventAssociated(EVENT_ID);
-        assertFalse(result);
+        
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getTenantId()).thenReturn(TENANT_ID);
+
+            boolean result = workflowManagementService.isEventAssociated(EVENT_ID);
+            assertFalse(result);
+        }
     }
 
     @Test
@@ -838,15 +845,21 @@ public class WorkflowManagementServiceImplTest {
     public void testDeleteWorkflowRequest() throws WorkflowException {
 
         when(mockWorkflowRequestDAO.retrieveCreatedUserOfRequest(REQUEST_ID)).thenReturn(USER_NAME);
+        
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUsername()).thenReturn(USER_NAME);
 
-        workflowManagementService.deleteWorkflowRequest(REQUEST_ID);
+            workflowManagementService.deleteWorkflowRequest(REQUEST_ID);
 
-        verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.DELETED.toString());
-        verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
-                WFConstant.HT_STATE_SKIPPED);
-        verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);
-        verify(mockWorkflowListener).doPreDeleteWorkflowRequest(any(WorkflowRequest.class));
-        verify(mockWorkflowListener).doPostDeleteWorkflowRequest(any(WorkflowRequest.class));
+            verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.DELETED.toString());
+            verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
+                    WFConstant.HT_STATE_SKIPPED);
+            verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);
+            verify(mockWorkflowListener).doPreDeleteWorkflowRequest(any(WorkflowRequest.class));
+            verify(mockWorkflowListener).doPostDeleteWorkflowRequest(any(WorkflowRequest.class));
+        }
     }
 
     @Test
@@ -854,8 +867,14 @@ public class WorkflowManagementServiceImplTest {
 
         when(mockWorkflowRequestDAO.retrieveCreatedUserOfRequest(REQUEST_ID)).thenReturn("different-user");
 
-        assertThrows(WorkflowException.class, () ->
-                workflowManagementService.deleteWorkflowRequest(REQUEST_ID));
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUsername()).thenReturn(USER_NAME);
+
+            assertThrows(WorkflowException.class, () ->
+                    workflowManagementService.deleteWorkflowRequest(REQUEST_ID));
+        }
     }
 
     @Test
