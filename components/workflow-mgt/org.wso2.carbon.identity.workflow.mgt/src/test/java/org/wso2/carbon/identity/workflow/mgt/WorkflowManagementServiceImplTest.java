@@ -156,12 +156,13 @@ public class WorkflowManagementServiceImplTest {
     @Mock
     private AbstractWorkflow mockAbstractWorkflow;
 
-    private MockedStatic<WorkflowServiceDataHolder> mockedWorkflowServiceDataHolder;
     private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
     private MockedStatic<WorkflowManagementUtil> mockedWorkflowManagementUtil;
 
     @BeforeMethod
     public void setUp() throws Exception {
+
+        openMocks(this);
 
         mocks = MockitoAnnotations.openMocks(this);
 
@@ -172,17 +173,6 @@ public class WorkflowManagementServiceImplTest {
 
         WorkflowServiceDataHolder mockHolder = mock(WorkflowServiceDataHolder.class);
         when(mockHolder.getWorkflowListenerList()).thenReturn(listeners);
-
-        mockedDataHolder = mockStatic(WorkflowServiceDataHolder.class);
-        mockedDataHolder.when(WorkflowServiceDataHolder::getInstance).thenReturn(mockHolder);
-
-        service = new WorkflowManagementServiceImpl();
-
-        Field daoField = WorkflowManagementServiceImpl.class.getDeclaredField("workflowRequestDAO");
-        daoField.setAccessible(true);
-        daoField.set(service, mockDAO);
-
-        openMocks(this);
 
         // Set up required system properties to avoid CarbonContext initialization issues
         System.setProperty("carbon.home", System.getProperty("java.io.tmpdir"));
@@ -198,12 +188,12 @@ public class WorkflowManagementServiceImplTest {
         injectMockDAO("workflowRequestAssociationDAO", mockWorkflowRequestAssociationDAO);
 
         // Mock static classes
-        mockedWorkflowServiceDataHolder = mockStatic(WorkflowServiceDataHolder.class);
+        mockedDataHolder = mockStatic(WorkflowServiceDataHolder.class);
         mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
         mockedWorkflowManagementUtil = mockStatic(WorkflowManagementUtil.class);
 
         // Set up common mock behaviors
-        mockedWorkflowServiceDataHolder.when(WorkflowServiceDataHolder::getInstance)
+        mockedDataHolder.when(WorkflowServiceDataHolder::getInstance)
                 .thenReturn(mockWorkflowServiceDataHolder);
         mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN))
                 .thenReturn(TENANT_ID);
@@ -212,7 +202,13 @@ public class WorkflowManagementServiceImplTest {
         List<WorkflowListener> workflowListeners = Arrays.asList(mockWorkflowListener);
         when(mockWorkflowServiceDataHolder.getWorkflowListenerList()).thenReturn(workflowListeners);
         when(mockWorkflowListener.isEnable()).thenReturn(true);
-        
+
+        service = new WorkflowManagementServiceImpl();
+
+        Field daoField = WorkflowManagementServiceImpl.class.getDeclaredField("workflowRequestDAO");
+        daoField.setAccessible(true);
+        daoField.set(service, mockDAO);
+
     }
 
     @AfterMethod
@@ -220,9 +216,6 @@ public class WorkflowManagementServiceImplTest {
 
         mockedDataHolder.close();
         mocks.close();
-        if (mockedWorkflowServiceDataHolder != null) {
-            mockedWorkflowServiceDataHolder.close();
-        }
         if (mockedIdentityTenantUtil != null) {
             mockedIdentityTenantUtil.close();
         }
@@ -280,8 +273,8 @@ public class WorkflowManagementServiceImplTest {
 
         service.getWorkflowRequestBean(null);
     }
-  
-      private void injectMockDAO(String fieldName, Object mockObject) throws Exception {
+
+    private void injectMockDAO(String fieldName, Object mockObject) throws Exception {
 
         Field field = WorkflowManagementServiceImpl.class.getDeclaredField(fieldName);
         field.setAccessible(true);
@@ -892,7 +885,7 @@ public class WorkflowManagementServiceImplTest {
         List<WorkflowAssociation> associations = Arrays.asList(new WorkflowAssociation());
         when(mockWorkflowRequestAssociationDAO.getWorkflowAssociationsForRequest(EVENT_ID, TENANT_ID))
                 .thenReturn(associations);
-        
+
         try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
             CarbonContext mockCarbonContext = mock(CarbonContext.class);
             mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
@@ -909,7 +902,7 @@ public class WorkflowManagementServiceImplTest {
 
         when(mockWorkflowRequestAssociationDAO.getWorkflowAssociationsForRequest(EVENT_ID, TENANT_ID))
                 .thenReturn(Collections.emptyList());
-        
+
         try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
             CarbonContext mockCarbonContext = mock(CarbonContext.class);
             mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
@@ -952,7 +945,7 @@ public class WorkflowManagementServiceImplTest {
     public void testDeleteWorkflowRequest() throws WorkflowException {
 
         when(mockWorkflowRequestDAO.retrieveCreatedUserOfRequest(REQUEST_ID)).thenReturn(USER_NAME);
-        
+
         try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
             CarbonContext mockCarbonContext = mock(CarbonContext.class);
             mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
@@ -1000,23 +993,26 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testGetRequestsFromFilter() throws WorkflowException {
 
-        String beginDate = "01/01/2025";
-        String endDate = "01/31/2025";
+        String beginDate = "2025-01-01:00:00:00.000";
+        String endDate = "2025-01-31:23:59:59.999";
         String dateCategory = "created";
         String status = "PENDING";
         WorkflowRequest[] expectedRequests = {createTestWorkflowRequest()};
-        when(mockWorkflowRequestDAO.getRequestsOfUserFilteredByTime(eq(USER_NAME), any(Timestamp.class),
-                any(Timestamp.class), eq(dateCategory), eq(TENANT_ID), eq(status))).thenReturn(expectedRequests);
+        org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse expectedResponse =
+                new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse(expectedRequests, 1);
+        when(mockWorkflowRequestDAO.getFilteredRequests(eq(USER_NAME), eq((String) null), any(Timestamp.class),
+                any(Timestamp.class), eq(dateCategory), eq(TENANT_ID), eq(status), eq(1000), eq(0)))
+                .thenReturn(expectedResponse);
 
         WorkflowRequest[] result = workflowManagementService.getRequestsFromFilter(USER_NAME, beginDate, endDate,
                 dateCategory, TENANT_ID, status);
 
         assertNotNull(result);
         assertEquals(result.length, 1);
-        verify(mockWorkflowListener).doPreGetRequestsFromFilter(USER_NAME, beginDate, endDate, dateCategory, TENANT_ID,
-                status);
-        verify(mockWorkflowListener).doPostGetRequestsFromFilter(USER_NAME, beginDate, endDate, dateCategory, TENANT_ID,
-                status, result);
+        verify(mockWorkflowListener).doPreGetRequestsFromFilter(USER_NAME, null, beginDate, endDate, dateCategory,
+                TENANT_ID, status, 1000, 0);
+        verify(mockWorkflowListener).doPostGetRequestsFromFilter(USER_NAME, null, beginDate, endDate, dateCategory,
+                TENANT_ID, status, 1000, 0, expectedResponse);
     }
 
     @Test
