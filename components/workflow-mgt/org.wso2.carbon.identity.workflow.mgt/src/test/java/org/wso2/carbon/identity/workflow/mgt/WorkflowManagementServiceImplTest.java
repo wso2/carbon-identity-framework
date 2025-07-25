@@ -164,8 +164,6 @@ public class WorkflowManagementServiceImplTest {
 
         openMocks(this);
 
-        mocks = MockitoAnnotations.openMocks(this);
-
         when(mockListener.isEnable()).thenReturn(true);
 
         List<WorkflowListener> listeners = new ArrayList<>();
