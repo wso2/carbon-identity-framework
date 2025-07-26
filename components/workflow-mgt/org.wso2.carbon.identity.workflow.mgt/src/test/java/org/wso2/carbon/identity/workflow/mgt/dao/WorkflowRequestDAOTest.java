@@ -205,6 +205,5 @@ public class WorkflowRequestDAOTest {
 
         return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "h2.sql")
                     .toString();
-        throw new IllegalArgumentException("DB Script file name cannot be empty.");
     }
 }
