@@ -202,7 +202,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
 
         return flow.getName() == Flow.Name.PASSWORD_RESET ||
-                flow.getName() == Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD ||
+                flow.getName() == Flow.Name.INVITE ||
                 flow.getName() == Flow.Name.INVITED_USER_REGISTRATION ||
                 flow.getName() == Flow.Name.PROFILE_UPDATE;
     }

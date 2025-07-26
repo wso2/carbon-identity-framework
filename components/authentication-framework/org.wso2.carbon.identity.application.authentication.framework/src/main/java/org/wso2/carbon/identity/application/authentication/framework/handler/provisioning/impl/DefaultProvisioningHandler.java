@@ -301,7 +301,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             }
         } else {
-            FrameworkUtils.updateIdentityContextFlow(Flow.Name.JIT_PROVISION);
+            FrameworkUtils.updateIdentityContextFlow(Flow.Name.JUST_IN_TIME_PROVISION);
             password = resolvePassword(userClaims);
             // Check for inconsistencies in username attribute and the username claim.
             if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
