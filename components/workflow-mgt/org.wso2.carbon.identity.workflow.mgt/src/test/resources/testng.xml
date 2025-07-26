@@ -22,6 +22,8 @@
     <test name="workflow-association-test">
         <classes>
             <class name="org.wso2.carbon.identity.workflow.mgt.dao.AssociationDAOTest"/>
+            <class name="org.wso2.carbon.identity.workflow.mgt.dao.WorkflowDAOTest"/>
+            <class name="org.wso2.carbon.identity.workflow.mgt.dao.WorkflowRequestDAOTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.bean.RoleEntityTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstantsTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImplTest"/>
