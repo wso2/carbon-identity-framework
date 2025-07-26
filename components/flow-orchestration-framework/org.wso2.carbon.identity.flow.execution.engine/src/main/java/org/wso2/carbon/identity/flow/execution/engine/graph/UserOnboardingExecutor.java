@@ -143,10 +143,10 @@ public class UserOnboardingExecutor implements Executor {
     private static void setUsernamePatternValidation(FlowExecutionContext context) {
 
         Boolean isUsernamePatternValidationSkipped = (Boolean) context.getProperty(USERNAME_PATTERN_VALIDATION_SKIPPED);
-        if (isUsernamePatternValidationSkipped == null) {
+        if (isUsernamePatternValidationSkipped == null || !isUsernamePatternValidationSkipped ) {
             return;
         }
-        UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(isUsernamePatternValidationSkipped);
+        UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
     }
 
     private UserStoreManager getUserStoreManager(String tenantDomain, String userdomain, String flowId, String flowType)
