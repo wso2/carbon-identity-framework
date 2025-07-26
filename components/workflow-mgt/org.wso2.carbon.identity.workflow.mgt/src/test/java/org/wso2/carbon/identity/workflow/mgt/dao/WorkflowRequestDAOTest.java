@@ -26,6 +26,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 
 import java.nio.file.Paths;
@@ -95,6 +96,27 @@ public class WorkflowRequestDAOTest {
                 { TEST_REQUEST_ID_3, CREATED_BY, OPERATION_DELETE_USER, CREATED_AT_3, UPDATED_AT_3,
                         STATUS_REJECTED }
         };
+    }
+
+    @Test
+    public void testFilterWorkflowRequests() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(getConnection());
+
+            Timestamp startTime = Timestamp.valueOf("2023-10-01 09:00:00");
+            Timestamp endTime = Timestamp.valueOf("2023-11-01 09:00:00");
+
+            WorkflowRequestFilterResponse workflowRequestFilterResponse =
+                    workflowRequestDAO.getFilteredRequests("admin", "ADD_USER", startTime, endTime,
+                    "CREATED", -1234, "APPROVED", 10, 1);
+            assertNotNull(workflowRequestFilterResponse, "WorkflowRequestFilterResponse should not be null");
+            assertEquals(workflowRequestFilterResponse.getTotalCount(), 2,
+                    "Total results should match the expected count");
+            assertEquals(workflowRequestFilterResponse.getRequests()[0].getRequestId(), "test_request_id_2",
+                    "Could not find the expected request ID in the results");
+        }
     }
 
     @Test(dataProvider = "validRequestData")

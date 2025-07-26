@@ -21,9 +21,10 @@ INSERT INTO WF_REQUEST (
     REQUEST
 )
 VALUES
-    ('test_request_id_1', 'admin', 1234, 'UPDATE_USER', '2023-10-01 10:00:00', '2023-10-01 10:05:00', 'PENDING', NULL),
-    ('test_request_id_2', 'admin', 1234, 'ADD_USER', '2023-10-01 11:00:00', '2023-10-01 11:05:00', 'APPROVED', NULL),
-    ('test_request_id_3', 'admin', 1234, 'DELETE_USER', '2023-10-01 12:00:00', '2023-10-01 12:05:00', 'REJECTED', NULL);
+    ('test_request_id_1', 'admin', -1234, 'UPDATE_USER', '2023-10-01 10:00:00', '2023-10-01 10:05:00', 'PENDING', NULL),
+    ('test_request_id_2', 'admin', -1234, 'ADD_USER', '2023-10-01 11:00:00', '2023-10-01 11:05:00', 'APPROVED', NULL),
+    ('test_request_id_3', 'admin', -1234, 'DELETE_USER', '2023-10-01 12:00:00', '2023-10-01 12:05:00', 'REJECTED', NULL),
+    ('test_request_id_4', 'admin', -1234, 'ADD_USER', '2023-10-01 11:20:00', '2023-10-01 11:45:00', 'APPROVED', NULL);
 
 CREATE TABLE IF NOT EXISTS WF_WORKFLOW(
     ID VARCHAR (45),

@@ -196,7 +196,7 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         List<WorkflowRequest> requests = new ArrayList<>();
 
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection(false);
             String finalQuery = getQuery();
             stmt = connection.prepareStatement(finalQuery);
 
@@ -242,7 +242,7 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         int count = 0;
 
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection(false);
             String finalQuery = getQuery();
             stmt = connection.prepareStatement(finalQuery);
 
