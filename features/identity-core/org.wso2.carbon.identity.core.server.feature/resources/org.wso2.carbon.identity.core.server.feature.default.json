@@ -392,7 +392,7 @@
   "scim2.consider_total_records_for_total_results_of_ldap": false,
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
-
+  "scim2.enable_scim2_roles_v3_api": false,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -1744,6 +1744,36 @@
   "console.ui.is_header_avatar_label_allowed": true,
   "console.get_profile_info_from_id_token": false,
   "console.super_tenant_proxy_name": "",
+  "console.role_assignments.enabled": false,
+  "console.role_assignments.disabled_features": [],
+  "console.role_assignments.scopes.create": [],
+  "console.role_assignments.scopes.delete": [],
+  "console.role_assignments.scopes.feature": ["console:role_assignments", "console:roles"],
+  "console.role_assignments.scopes.read": [
+    "internal_api_resource_view",
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.role_assignments.scopes.update": ["internal_role_mgt_groups_update", "internal_role_mgt_users_update"],
+  "console.user_roles_v3.disabled_features": [],
+  "console.user_roles_v3.scopes.create": ["internal_role_mgt_meta_create"],
+  "console.user_roles_v3.scopes.delete": ["internal_role_mgt_delete"],
+  "console.user_roles_v3.scopes.feature": ["console:roles"],
+  "console.user_roles_v3.scopes.read": [
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.user_roles_v3.scopes.update": ["internal_role_mgt_meta_update"],
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
   "myaccount.login_callback_path": "",
@@ -1915,6 +1945,12 @@
 
   "session_management.filter_by_unique_session_id_for_user": false,
 
-  "flow_execution.user_assertion.expiry_time": "2000"
+  "flow_execution.user_assertion.expiry_time": "2000",
+  "flow_execution.default_ttl": "30",
+  "flow_execution.flow_type_ttl": {
+    "REGISTRATION": "30",
+    "PASSWORD_RECOVERY": "30",
+    "INVITED_USER_REGISTRATION": "30"
+  }
 }
 

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.user.pre.update.profile.action.internal.compone
 
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -30,6 +31,7 @@ public class PreUpdateProfileActionServiceComponentHolder {
     private ActionExecutorService actionExecutorService;
     private RealmService realmService;
     private ClaimMetadataManagementService claimManagementService;
+    private OrganizationManager organizationManager;
 
     public static final PreUpdateProfileActionServiceComponentHolder INSTANCE =
             new PreUpdateProfileActionServiceComponentHolder();
@@ -106,5 +108,25 @@ public class PreUpdateProfileActionServiceComponentHolder {
     public void setClaimManagementService(ClaimMetadataManagementService claimManagementService) {
 
         this.claimManagementService = claimManagementService;
+    }
+
+    /**
+     * Get OrganizationManager instance.
+     *
+     * @return OrganizationManager instance.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Set OrganizationManager instance.
+     *
+     * @param organizationManager OrganizationManager instance.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
     }
 }

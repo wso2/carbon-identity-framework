@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.core.internal;
+package org.wso2.carbon.identity.core.internal.context;
 
 import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.Flow;

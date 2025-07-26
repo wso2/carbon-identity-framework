@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.internal.context.OrganizationResolver;
 
 import java.io.IOException;
 
@@ -49,6 +50,7 @@ public class IdentityContextCreatorValve extends ValveBase {
         try {
             initIdentityContext();
             initAccessTokenIssuedOrganization(request.getRequestURI());
+            OrganizationResolver.getInstance().resolveOrganizationInContext(request);
             getNext().invoke(request, response);
         } catch (Exception e) {
             LOG.error("Could not handle request: " + request.getRequestURI(), e);

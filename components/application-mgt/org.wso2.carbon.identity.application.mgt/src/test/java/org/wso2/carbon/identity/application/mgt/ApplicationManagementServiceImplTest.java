@@ -79,7 +79,7 @@ import org.wso2.carbon.identity.certificate.management.service.ApplicationCertif
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;

@@ -22,6 +22,9 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+/**
+ * Test class for WorkflowErrorConstants.
+ */
 public class WorkflowErrorConstantsTest {
 
     @Test

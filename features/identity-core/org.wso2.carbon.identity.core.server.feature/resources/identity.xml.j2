@@ -1649,6 +1649,8 @@
         {% if scim2.enable_error_code_for_password_policy_violations is defined %}
             <EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>
         {% endif %}
+
+        <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
     </SCIM2>
 
       <PasswordPolicy>
@@ -4666,6 +4668,12 @@
         <UserAssertion>
             <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
         </UserAssertion>
+        <DefaultTTL>{{flow_execution.default_ttl}}</DefaultTTL>
+        <FlowTypeTTLs>
+            {% for flow_type, ttl in flow_execution.flow_type_ttl.items() %}
+            <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
+            {% endfor %}
+        </FlowTypeTTLs>
     </FlowExecution>
 
 </Server>

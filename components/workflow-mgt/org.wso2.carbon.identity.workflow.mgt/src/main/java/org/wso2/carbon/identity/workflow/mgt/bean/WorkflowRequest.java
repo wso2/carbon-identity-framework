@@ -24,7 +24,7 @@ package org.wso2.carbon.identity.workflow.mgt.bean;
 public class WorkflowRequest {
 
     private String requestId;
-    private String eventType;
+    private String operationType;
     private String createdAt;
     private String updatedAt;
     private String status;
@@ -41,14 +41,14 @@ public class WorkflowRequest {
         this.requestId = requestId;
     }
 
-    public String getEventType() {
+    public String getOperationType() {
 
-        return eventType;
+        return operationType;
     }
 
-    public void setEventType(String eventType) {
+    public void setOperationType(String operationType) {
 
-        this.eventType = eventType;
+        this.operationType = operationType;
     }
 
     public String getRequestParams() {

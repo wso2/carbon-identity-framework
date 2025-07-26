@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.context.model.Flow;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -126,7 +125,7 @@ public class FlowExecutionService {
                         userClaims, tenantDomain);
             }
 
-            FlowExecutionEngineUtils.rollbackContext(flowId);
+            FlowExecutionEngineUtils.rollbackContext(flowType, flowId);
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             throw e;
         }
