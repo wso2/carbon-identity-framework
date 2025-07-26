@@ -26,13 +26,11 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
-import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
-import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
-import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.UserRealm;
@@ -44,7 +42,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +62,6 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 import static org.wso2.carbon.user.core.UserCoreConstants.APPLICATION_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
@@ -78,7 +74,6 @@ public class UserOnboardingExecutor implements Executor {
     private static final Log LOG = LogFactory.getLog(UserOnboardingExecutor.class);
     private static final String WSO2_CLAIM_DIALECT = "http://wso2.org/claims/";
     private static final String USERNAME_PATTERN_VALIDATION_SKIPPED = "isUsernamePatternValidationSkipped";
-    private static final String USERNAME = "username";
 
     @Override
     public String getName() {
@@ -149,7 +144,7 @@ public class UserOnboardingExecutor implements Executor {
 
         Boolean isUsernamePatternValidationSkipped = (Boolean) context.getProperty(USERNAME_PATTERN_VALIDATION_SKIPPED);
         if (isUsernamePatternValidationSkipped == null) {
-            isUsernamePatternValidationSkipped = false;
+            return;
         }
         UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(isUsernamePatternValidationSkipped);
     }
@@ -195,10 +190,10 @@ public class UserOnboardingExecutor implements Executor {
 
     private String resolveUsername(FlowUser user, String tenantDomain) throws FlowEngineException {
 
-        String username = Optional.ofNullable(user.getUsername())
-                .orElseGet(() -> Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse(""));
+        String username = Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse("");
         if (StringUtils.isBlank(username)) {
-            if ((isEmailUsernameValidator(tenantDomain) || IdentityUtil.isEmailUsernameEnabled())
+            if ((FlowExecutionEngineUtils.isEmailUsernameValidator(tenantDomain) ||
+                    IdentityUtil.isEmailUsernameEnabled())
                     && StringUtils.isNotBlank((String) user.getClaim(EMAIL_ADDRESS_CLAIM))) {
                 // If email format validation is enabled and username is not provided, use email as username.
                 return (String) user.getClaim(EMAIL_ADDRESS_CLAIM);
@@ -236,35 +231,5 @@ public class UserOnboardingExecutor implements Executor {
                 }
             }
         }));
-    }
-
-    private boolean isEmailUsernameValidator(String tenantDomain) throws FlowEngineServerException {
-
-        List<String> usernameValidators = getUsernameValidators(tenantDomain);
-        return usernameValidators.contains(EMAIL_FORMAT_VALIDATOR);
-    }
-
-    private List<String> getUsernameValidators(String tenantDomain) throws FlowEngineServerException {
-
-        List<String> usernameValidators = new ArrayList<>();
-        try {
-            List<ValidationConfiguration> validationConfigurations = FlowExecutionEngineDataHolder.getInstance()
-                    .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
-            for (ValidationConfiguration config : validationConfigurations) {
-                if (!USERNAME.equals(config.getField())) {
-                    continue;
-                }
-
-                if (config.getRules() != null && !config.getRules().isEmpty()) {
-                    config.getRules().forEach(rule -> {
-                        usernameValidators.add(rule.getValidatorName());
-                    });
-                }
-            }
-        } catch (InputValidationMgtException e) {
-            LOG.error("Error while retrieving input validation configurations for tenant: " + tenantDomain, e);
-            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, tenantDomain);
-        }
-        return usernameValidators;
     }
 }
