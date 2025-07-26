@@ -46,7 +46,11 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -58,6 +62,8 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 
 /**
  * Utility class for flow engine.
@@ -66,6 +72,8 @@ public class FlowExecutionEngineUtils {
 
     private static final Log LOG = LogFactory.getLog(FlowExecutionEngineUtils.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String USERNAME = "username";
+
 
     /**
      * Add flow context to cache.
@@ -380,5 +388,35 @@ public class FlowExecutionEngineUtils {
                     ErrorMessages.ERROR_CODE_NODE_RESPONSE_PROCESSING_FAILURE, e,
                     "JSON String to Map conversion failed.");
         }
+    }
+
+    public static boolean isEmailUsernameValidator(String tenantDomain) throws FlowEngineServerException {
+
+        List<String> usernameValidators = getUsernameValidators(tenantDomain);
+        return usernameValidators.contains(EMAIL_FORMAT_VALIDATOR);
+    }
+
+    private static List<String> getUsernameValidators(String tenantDomain) throws FlowEngineServerException {
+
+        List<String> usernameValidators = new ArrayList<>();
+        try {
+            List<ValidationConfiguration> validationConfigurations = FlowExecutionEngineDataHolder.getInstance()
+                    .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
+            for (ValidationConfiguration config : validationConfigurations) {
+                if (!USERNAME.equals(config.getField())) {
+                    continue;
+                }
+
+                if (config.getRules() != null && !config.getRules().isEmpty()) {
+                    config.getRules().forEach(rule -> {
+                        usernameValidators.add(rule.getValidatorName());
+                    });
+                }
+            }
+        } catch (InputValidationMgtException e) {
+            LOG.error("Error while retrieving input validation configurations for tenant: " + tenantDomain, e);
+            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, tenantDomain);
+        }
+        return usernameValidators;
     }
 }
