@@ -120,7 +120,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
             return PasswordUpdateFlowType.USER_INITIATED_PASSWORD_RESET.getFlowName();
         }
 
-        if ((flow.getName() == Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD || flow.getName() ==
+        if ((flow.getName() == Flow.Name.INVITE || flow.getName() ==
                 Flow.Name.INVITED_USER_REGISTRATION) && flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             return PasswordUpdateFlowType.ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD.getFlowName();
         }

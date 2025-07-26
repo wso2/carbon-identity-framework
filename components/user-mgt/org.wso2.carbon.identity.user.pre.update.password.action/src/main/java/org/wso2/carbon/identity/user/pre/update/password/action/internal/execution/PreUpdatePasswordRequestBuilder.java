@@ -169,7 +169,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
                 return PreUpdatePasswordEvent.Action.UPDATE;
             case PASSWORD_RESET:
                 return PreUpdatePasswordEvent.Action.RESET;
-            case USER_REGISTRATION_INVITE_WITH_PASSWORD:
+            case INVITE:
             case INVITED_USER_REGISTRATION:
                 return PreUpdatePasswordEvent.Action.INVITE;
             default:

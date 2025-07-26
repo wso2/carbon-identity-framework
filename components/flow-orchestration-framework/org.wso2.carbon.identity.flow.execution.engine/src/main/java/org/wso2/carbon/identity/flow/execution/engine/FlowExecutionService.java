@@ -82,7 +82,7 @@ public class FlowExecutionService {
             }
 
             if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
-                FrameworkUtils.updateIdentityContextFlow(Flow.Name.USER_REGISTRATION);
+                FrameworkUtils.updateIdentityContextFlow(Flow.Name.REGISTER);
             }
 
             if (inputs != null) {
