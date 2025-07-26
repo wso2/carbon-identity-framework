@@ -114,8 +114,6 @@ public class WorkflowManagementServiceImplTest {
     private MockedStatic<WorkflowServiceDataHolder> mockedDataHolder;
     private WorkflowManagementServiceImpl service;
 
-    private AutoCloseable mocks;
-
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final int TENANT_ID = -1234;
     private static final String WORKFLOW_ID = "test-workflow-1";
@@ -212,7 +210,6 @@ public class WorkflowManagementServiceImplTest {
     public void tearDown() throws Exception {
 
         mockedDataHolder.close();
-        mocks.close();
         if (mockedIdentityTenantUtil != null) {
             mockedIdentityTenantUtil.close();
         }
