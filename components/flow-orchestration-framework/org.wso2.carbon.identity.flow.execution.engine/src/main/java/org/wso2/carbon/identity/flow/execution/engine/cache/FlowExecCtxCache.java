@@ -61,8 +61,8 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
     public void addToCache(FlowExecCtxCacheKey key, FlowExecCtxCacheEntry entry) throws FlowEngineException {
 
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
-        int tenantId = IdentityTenantUtil.getTenantId(tenantName);
         if (tenantName != null) {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantName);
             super.addToCache(key, entry, tenantName);
             SessionDataStore.getInstance().storeSessionData(
                     key.getContextId(), FLOW_EXECUTION_CONTEXT , entry, tenantId);
