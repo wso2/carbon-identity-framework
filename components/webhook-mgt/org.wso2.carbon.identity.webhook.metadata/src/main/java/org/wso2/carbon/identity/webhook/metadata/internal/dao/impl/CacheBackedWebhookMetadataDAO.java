@@ -24,8 +24,8 @@ import org.wso2.carbon.identity.webhook.metadata.api.core.cache.WebhookMetadataC
 import org.wso2.carbon.identity.webhook.metadata.api.core.cache.WebhookMetadataCacheEntry;
 import org.wso2.carbon.identity.webhook.metadata.api.core.cache.WebhookMetadataCacheKey;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
+import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 
 import java.util.Map;
 

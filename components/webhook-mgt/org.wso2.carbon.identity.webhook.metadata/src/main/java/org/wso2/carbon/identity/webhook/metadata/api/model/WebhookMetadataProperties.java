@@ -37,33 +37,6 @@ public class WebhookMetadataProperties {
         return organizationPolicy;
     }
 
-    @Override
-    public boolean equals(Object o) {
-
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof WebhookMetadataProperties)) {
-            return false;
-        }
-        WebhookMetadataProperties that = (WebhookMetadataProperties) o;
-        return organizationPolicy == that.organizationPolicy;
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(organizationPolicy);
-    }
-
-    @Override
-    public String toString() {
-
-        return "WebhookMetadataProperties{" +
-                "organizationPolicy=" + organizationPolicy +
-                '}';
-    }
-
     /**
      * Builder class for WebhookMetadataProperties.
      */

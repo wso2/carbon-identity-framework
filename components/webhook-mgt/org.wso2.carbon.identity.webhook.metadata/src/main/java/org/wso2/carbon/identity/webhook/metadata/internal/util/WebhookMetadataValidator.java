@@ -37,7 +37,8 @@ public class WebhookMetadataValidator {
      * @param organizationPolicy Organization policy enum wrapper.
      * @throws WebhookMetadataClientException if the organization policy is invalid.
      */
-    public void validateOrganizationPolicy(OrganizationPolicy organizationPolicy) throws WebhookMetadataClientException {
+    public void validateOrganizationPolicy(OrganizationPolicy organizationPolicy)
+            throws WebhookMetadataClientException {
 
         if (StringUtils.isNotBlank(String.valueOf(organizationPolicy)) &&
                 !organizationPolicy.getPolicyEnum().equals(PolicyEnum.IMMEDIATE_EXISTING_AND_FUTURE_ORGS) &&

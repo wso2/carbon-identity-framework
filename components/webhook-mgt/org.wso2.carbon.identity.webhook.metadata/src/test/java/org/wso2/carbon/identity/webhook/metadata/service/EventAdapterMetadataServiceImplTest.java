@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.webhook.metadata.service;
 
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -81,6 +82,38 @@ public class EventAdapterMetadataServiceImplTest {
     @AfterMethod
     public void tearDown() {
         // No cleanup needed
+    }
+
+    @Test
+    public void testInitSuccess() throws Exception {
+        // Prepare
+        Field initializedField = EventAdapterMetadataServiceImpl.class.getDeclaredField("initialized");
+        initializedField.setAccessible(true);
+        initializedField.set(service, false);
+
+        List<Adapter> adapters = Arrays.asList(
+                new Adapter.Builder().name("A").type(AdapterType.Publisher).enabled(true).build()
+        );
+        Mockito.doNothing().when(mockDAO).init();
+        when(mockDAO.getAdapters()).thenReturn(adapters);
+
+        // Act
+        service.init();
+
+        // Assert
+        Assert.assertTrue((Boolean) initializedField.get(service));
+        Assert.assertEquals(service.getAdapters().size(), 1);
+    }
+
+    @Test
+    public void testInitAlreadyInitialized() throws Exception {
+
+        Field initializedField = EventAdapterMetadataServiceImpl.class.getDeclaredField("initialized");
+        initializedField.setAccessible(true);
+        initializedField.set(service, true);
+
+        service.init(); // Should not call DAO again, no exception
+        Assert.assertTrue((Boolean) initializedField.get(service));
     }
 
     @Test

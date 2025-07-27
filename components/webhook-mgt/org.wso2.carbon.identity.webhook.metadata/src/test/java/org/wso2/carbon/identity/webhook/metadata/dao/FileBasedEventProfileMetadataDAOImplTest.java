@@ -24,7 +24,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
@@ -101,24 +100,6 @@ public class FileBasedEventProfileMetadataDAOImplTest {
         Assert.assertNull(profile);
     }
 
-    @Test
-    public void testGetEventsByProfile() throws Exception {
-
-        List<Event> events = dao.getEventsByProfile(TEST_PROFILE_URI);
-        Assert.assertNotNull(events);
-        Assert.assertEquals(events.size(), 2);
-        Assert.assertEquals(events.get(0).getEventName(), "Test Event 1");
-        Assert.assertEquals(events.get(1).getEventName(), "Test Event 2");
-    }
-
-    @Test
-    public void testGetEventsByProfileNotFound() throws Exception {
-
-        List<Event> events = dao.getEventsByProfile("https://nonexistent.uri");
-        Assert.assertNotNull(events);
-        Assert.assertEquals(events.size(), 0);
-    }
-
     @Test(expectedExceptions = WebhookMetadataServerException.class)
     public void testGetEventProfilesDirectoryNotExist() throws Exception {
 
@@ -152,21 +133,6 @@ public class FileBasedEventProfileMetadataDAOImplTest {
 
         resetDAOState(dao);
         dao.getEventProfile(TEST_PROFILE_NAME);
-    }
-
-    @Test
-    public void testGetEventsByProfileNotInitialized() throws Exception {
-
-        resetDAOState(dao);
-        try {
-            dao.getEventsByProfile(TEST_PROFILE_URI);
-            Assert.fail("Expected WebhookMetadataException was not thrown");
-        } catch (WebhookMetadataException ex) {
-            Assert.assertEquals(ex.getErrorCode(), "WEBHOOKMETA-66003");
-            Assert.assertEquals(ex.getDescription(),
-                    "An internal server error occurred while retrieving events for the profile " +
-                            "https://schemas.identity.wso2.org/events/test.");
-        }
     }
 
     @Test

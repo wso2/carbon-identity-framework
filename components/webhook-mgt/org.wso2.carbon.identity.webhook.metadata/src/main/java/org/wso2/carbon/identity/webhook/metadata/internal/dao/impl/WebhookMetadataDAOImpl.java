@@ -25,13 +25,16 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.BinaryObject;
-import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataSQLConstants;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
+import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
+import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_WEBHOOK_METADATA_UPDATE_ERROR;
 
 /**
  * Implementation of WebhookMetadataDAO.
@@ -54,8 +57,7 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
             batchProcessWebhookProperties(webhookMetadataProperties, tenantId,
                     WebhookMetadataSQLConstants.Query.UPDATE_WEBHOOK_METADATA_PROPERTY);
         } catch (TransactionException e) {
-            throw new WebhookMetadataServerException("Error while updating webhook metadata properties in the system.",
-                    e);
+            throw WebhookMetadataExceptionHandler.handleServerException(ERROR_CODE_WEBHOOK_METADATA_UPDATE_ERROR);
         }
     }
 
@@ -67,8 +69,7 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
             batchProcessWebhookProperties(webhookMetadataProperties, tenantId,
                     WebhookMetadataSQLConstants.Query.INSERT_WEBHOOK_METADATA_PROPERTY);
         } catch (TransactionException e) {
-            throw new WebhookMetadataServerException("Error while adding webhook metadata properties in the system.",
-                    e);
+            throw WebhookMetadataExceptionHandler.handleServerException(ERROR_CODE_WEBHOOK_METADATA_UPDATE_ERROR);
         }
     }
 
@@ -122,9 +123,8 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
                                         resultSet.getString(WebhookMetadataSQLConstants.Column.PROPERTY_NAME);
                                 if (WebhookMetadataProperty.Type.PRIMITIVE.name().equals(propertyType)) {
                                     webhookMetadataProperties.put(propertyName,
-                                            new WebhookMetadataProperty.Builder(
-                                                    resultSet.getString(
-                                                            WebhookMetadataSQLConstants.Column.PRIMITIVE_VALUE)).build());
+                                            new WebhookMetadataProperty.Builder(resultSet.getString(
+                                                    WebhookMetadataSQLConstants.Column.PRIMITIVE_VALUE)).build());
                                 } else {
                                     webhookMetadataProperties.put(propertyName,
                                             new WebhookMetadataProperty.Builder(
@@ -133,7 +133,8 @@ public class WebhookMetadataDAOImpl implements WebhookMetadataDAO {
                                 }
                                 return null;
                             },
-                            statement -> statement.setInt(WebhookMetadataSQLConstants.Column.TENANT_ID, tenantId)));
+                            statement -> statement
+                                    .setInt(WebhookMetadataSQLConstants.Column.TENANT_ID, tenantId)));
             return webhookMetadataProperties;
         } catch (TransactionException e) {
             throw new WebhookMetadataServerException(

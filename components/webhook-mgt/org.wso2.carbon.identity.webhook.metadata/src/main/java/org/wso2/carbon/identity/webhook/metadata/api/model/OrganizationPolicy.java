@@ -27,6 +27,7 @@ public class OrganizationPolicy {
 
     private final String policyCode;
     private final String policyName;
+    private final String policyValue;
     private final PolicyEnum policyEnum;
 
     public OrganizationPolicy(PolicyEnum policyEnum) {
@@ -34,6 +35,7 @@ public class OrganizationPolicy {
         this.policyEnum = policyEnum;
         this.policyCode = policyEnum.getPolicyCode();
         this.policyName = policyEnum.getPolicyName();
+        this.policyValue = policyEnum.getValue();
     }
 
     public String getPolicyCode() {
@@ -49,5 +51,10 @@ public class OrganizationPolicy {
     public PolicyEnum getPolicyEnum() {
 
         return policyEnum;
+    }
+
+    public String getPolicyValue() {
+
+        return policyValue;
     }
 }

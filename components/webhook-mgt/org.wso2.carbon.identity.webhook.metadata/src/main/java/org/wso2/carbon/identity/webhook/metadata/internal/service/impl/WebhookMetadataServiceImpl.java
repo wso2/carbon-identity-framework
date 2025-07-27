@@ -21,18 +21,19 @@ package org.wso2.carbon.identity.webhook.metadata.internal.service.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.resource.sharing.policy.management.constant.PolicyEnum;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.api.model.OrganizationPolicy;
 import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
-import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.internal.constant.WebhookMetadataConstants;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.WebhookMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.CacheBackedWebhookMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedEventProfileMetadataDAOImpl;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.WebhookMetadataDAOImpl;
+import org.wso2.carbon.identity.webhook.metadata.internal.model.WebhookMetadataProperty;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataValidator;
 
@@ -110,9 +111,18 @@ public class WebhookMetadataServiceImpl implements WebhookMetadataService {
         log.debug("Retrieving Webhook Metadata properties for tenant " + tenantDomain);
         Map<String, WebhookMetadataProperty> updatedWebhookMetadataPropertyMap =
                 webhookMetadataDAO.getWebhookMetadataProperties(tenantId);
+        OrganizationPolicy organizationPolicy;
+        if (updatedWebhookMetadataPropertyMap.containsKey(
+                WebhookMetadataConstants.MetadataPropertyFields.ORGANIZATION_POLICY_PROPERTY_NAME)) {
+            organizationPolicy =
+                    new OrganizationPolicy(PolicyEnum.getPolicyByPolicyCode(updatedWebhookMetadataPropertyMap.get(
+                                    WebhookMetadataConstants.MetadataPropertyFields.ORGANIZATION_POLICY_PROPERTY_NAME)
+                            .getValue().toString()));
+        } else {
+            organizationPolicy = new OrganizationPolicy(PolicyEnum.NO_SHARING);
+        }
         return new WebhookMetadataProperties.Builder()
-                .organizationPolicy((OrganizationPolicy) updatedWebhookMetadataPropertyMap.get(
-                        WebhookMetadataConstants.MetadataPropertyFields.ORGANIZATION_POLICY_PROPERTY_NAME).getValue())
+                .organizationPolicy(organizationPolicy)
                 .build();
     }
 

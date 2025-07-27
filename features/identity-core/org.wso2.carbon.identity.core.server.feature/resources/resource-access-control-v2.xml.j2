@@ -179,6 +179,9 @@
         <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="GET">
             <Scopes>internal_webhook_meta_view</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PATCH">
+            <Scopes>internal_webhook_meta_update</Scopes>
+        </Resource>
 
         <!-- Webhook Management API -->
         <Resource context="(.*)/api/server/v1/webhooks(.*)" secured="true" http-method="POST">
