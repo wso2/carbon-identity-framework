@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.webhook.metadata.api.model;
 
-import java.util.Objects;
-
 /**
  * Represents metadata properties for a webhook.
  */
