@@ -1012,7 +1012,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      * Returns array of requests initiated by a user.
      *
      * @param user     User to get requests of, empty String to retrieve requests of all users
-     * @param tenantId tenant id of currently logged in user
+     * @param tenantId tenant ID.
      * @return
      * @throws WorkflowException
      */
@@ -1069,9 +1069,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
-        String loggedUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        String requestInitiatedUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String createdUser = workflowRequestDAO.retrieveCreatedUserOfRequest(requestId);
-        if (!loggedUser.equals(createdUser)) {
+        if (!requestInitiatedUser.equals(createdUser)) {
             throw new WorkflowException("User not authorized to delete this request");
         }
         WorkflowRequest workflowRequest = new WorkflowRequest();
@@ -1154,10 +1154,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      *
      * @param user         User to get requests of, empty String to retrieve requests of all users.
      * @param operationType Operation type to filter.
-     * @param beginDate    lower limit of date range to filter.
-     * @param endDate      upper limit of date range to filter.
-     * @param dateCategory filter by created time or last updated time ?
-     * @param tenantId     tenant id of currently logged in user.
+     * @param beginDate    lower limit of date range to filter \(format: yyyy-MM-dd or yyyy-MM-dd HH:mm:ss.SSS\).
+     * @param endDate      upper limit of date range to filter \(format: yyyy-MM-dd or yyyy-MM-dd HH:mm:ss.SSS\).
+     * @param dateCategory filter by created time or last updated time?
+     * @param tenantId     tenant ID.
      * @param status       status of the request.
      * @param limit        limit of the number of requests to return.
      * @param offset       offset for pagination.
@@ -1180,6 +1180,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
         WorkflowRequestFilterResponse resultList = workflowRequestDAO.getFilteredRequests(user, operationType,
                 beginDate, endDate, dateCategory, tenantId, status, limit, offset);
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieved " + resultList.getRequests().length + " workflow requests matching the filter " +
+                    "criteria.");
+        }
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostGetRequestsFromFilter(user, operationType, beginDate, endDate, dateCategory,
@@ -1196,7 +1200,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      * @param wfOperationType Operation Type of the Work-flow.
      * @param wfStatus        Current Status of the Work-flow.
      * @param entityType      Entity Type of the Work-flow.
-     * @param tenantID        Tenant ID of the currently Logged user.
+     * @param tenantID        Tenant ID
      * @param idFilter        Entity ID filter to search
      * @return
      * @throws InternalWorkflowException
