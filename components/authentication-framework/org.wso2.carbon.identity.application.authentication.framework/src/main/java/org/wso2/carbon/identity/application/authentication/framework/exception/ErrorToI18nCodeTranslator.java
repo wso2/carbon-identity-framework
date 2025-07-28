@@ -25,6 +25,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.exce
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_GETTING_ASSOCIATION_FOR_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_INVALID_USER_STORE;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_INVALID_USER_STORE_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_POST_AUTH_COOKIE_NOT_FOUND;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_RETRIEVING_CLAIM;
@@ -139,6 +140,8 @@ public class ErrorToI18nCodeTranslator {
                 "authenticated.subject.identifier.null"),
         ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL("80029", "authentication.error",
                 "authenticated.user.id.null"),
+        ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND("80030", "authentication.error",
+                "no.associated.local.user.found"),
         ERROR_CODE_DEFAULT("Default", "authentication.attempt.failed", "authorization.failed");
 
         private final String errorCode;
@@ -282,6 +285,9 @@ public class ErrorToI18nCodeTranslator {
         } else if (ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getErrorCode().equals(errorCode)) {
             return new I18nErrorCodeWrapper(ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getStatus(),
                     ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getStatusMsg());
+        } else if (ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getErrorCode().equals(errorCode)) {
+            return new I18nErrorCodeWrapper(ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getStatus(),
+                    ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getStatusMsg());
         } else {
             return new I18nErrorCodeWrapper(ERROR_CODE_DEFAULT.getStatus(), ERROR_CODE_DEFAULT.getStatusMsg());
         }
