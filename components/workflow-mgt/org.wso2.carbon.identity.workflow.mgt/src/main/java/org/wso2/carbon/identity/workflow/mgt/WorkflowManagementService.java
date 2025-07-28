@@ -389,7 +389,8 @@ public interface WorkflowManagementService {
      * @param status       Status of the request (e.g., pending, approved).
      * @return Array of WorkflowRequest objects matching the criteria.
      * @throws WorkflowException If an error occurs while retrieving the requests.
-     * @deprecated Use {@link #getRequestsFromFilter(String, String, String, String, int, String, int, int)} instead.
+     * @deprecated Use {@link #getRequestsFromFilter(String, String, String, String, String, int, String, int, int)}
+     * instead.
      */
     @Deprecated
     WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory,

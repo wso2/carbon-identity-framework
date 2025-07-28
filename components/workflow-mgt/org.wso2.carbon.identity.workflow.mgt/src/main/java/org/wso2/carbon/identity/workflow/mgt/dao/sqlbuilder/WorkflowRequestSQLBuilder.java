@@ -27,7 +27,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -292,26 +291,9 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
                     stmt.setInt(paramIndex, limit);
                 }
                 break;
-            case "MYSQL":
-            case "POSTGRESQL":
-            case "H2":
-                if (offset != null) {
-                    stmt.setInt(paramIndex++, limit);
-                    stmt.setInt(paramIndex, offset);
-                } else {
-                    stmt.setInt(paramIndex, limit);
-                }
-                break;
             case "DB2":
             case "DB2SQL":
             case "MSSQL":
-                if (offset != null) {
-                    stmt.setInt(paramIndex++, offset);
-                    stmt.setInt(paramIndex, limit);
-                } else {
-                    stmt.setInt(paramIndex, limit);
-                }
-                break;
             case "INFORMIX":
                 if (offset != null) {
                     stmt.setInt(paramIndex++, offset);
@@ -349,26 +331,19 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         return value != null && !value.trim().isEmpty() && !ALL_FILTER.equalsIgnoreCase(value);
     }
 
-    public WorkflowRequestSQLBuilder getAllRequestsWithSpecificFilters(
-            int tenantId,
-            String createdBy,
-            String operationType,
-            String status,
-            String category,
-            Timestamp startDate,
-            Timestamp endDate,
-            int limit,
-            int offset) {
+    public WorkflowRequestSQLBuilder getAllRequestsWithSpecificFilters(int tenantId, String createdBy,
+            String operationType, String status, String category, String startDate, String endDate, int limit,
+                                                                       int offset) {
 
         WorkflowRequestSQLBuilder builder = this.filterByTenantId(tenantId);
 
         if ("CREATED".equalsIgnoreCase(category)) {
             if (startDate != null && endDate != null) {
-                builder = builder.filterByCreatedDateRange(startDate.toString(), endDate.toString());
+                builder = builder.filterByCreatedDateRange(startDate, endDate);
             }
         } else if ("UPDATED".equalsIgnoreCase(category)) {
             if (startDate != null && endDate != null) {
-                builder = builder.filterByUpdatedDateRange(startDate.toString(), endDate.toString());
+                builder = builder.filterByUpdatedDateRange(startDate, endDate);
             }
         }
 
@@ -385,7 +360,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         }
 
         builder = builder.setLimit(limit).setOffset(offset);
-
         return builder;
     }
 }

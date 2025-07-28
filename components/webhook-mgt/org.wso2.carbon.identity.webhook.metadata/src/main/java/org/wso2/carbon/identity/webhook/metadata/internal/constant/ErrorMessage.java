@@ -25,6 +25,8 @@ public enum ErrorMessage {
 
     // Client errors (61xxx range)
     // Continuation of client error codes can be found in the Webhook Metadata API layer as well.
+    ERROR_INVALID_WEBHOOK_METADATA_REQUEST_FIELD("WEBHOOKMETA-60001", "Invalid request.",
+            "%s is invalid."),
 
     // Server errors (66xxx range)
     // Continuation of server error codes can be found in the Webhook Metadata API layer as well.
@@ -49,7 +51,9 @@ public enum ErrorMessage {
     ERROR_CODE_ENABLED_ADAPTER_RETRIEVE_ERROR("WEBHOOKMETA-66010", "Error occurred while retrieving enabled adapter",
             "An internal server error occurred while retrieving enabled event adapter."),
     ERROR_CODE_ADAPTER_NOT_FOUND("WEBHOOKMETA-66011", "Adapter not found",
-            "The specified adapter %s does not exist or is not accessible.");
+            "The specified adapter %s does not exist or is not accessible."),
+    ERROR_CODE_WEBHOOK_METADATA_UPDATE_ERROR("WEBHOOKMETA-66012", "Error occurred while updating webhook metadata",
+            "An internal server error occurred while updating the webhook metadata properties.");
 
     private final String code;
     private final String message;

@@ -1377,6 +1377,7 @@
             </Feature>
             <Update>
                 <Scope name="internal_webhook_mgt_update"/>
+                <Scope name="internal_webhook_meta_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_webhook_mgt_delete"/>

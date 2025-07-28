@@ -24,11 +24,10 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
-import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedWebhookMetadataDAOImpl;
+import org.wso2.carbon.identity.webhook.metadata.internal.dao.impl.FileBasedEventProfileMetadataDAOImpl;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -38,13 +37,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unit tests for FileBasedWebhookMetadataDAOImpl.
+ * Unit tests for FileBasedEventProfileMetadataDAOImpl.
  */
-public class FileBasedWebhookMetadataDAOImplTest {
+public class FileBasedEventProfileMetadataDAOImplTest {
 
     private static final String TEST_PROFILE_NAME = "Test";
     private static final String TEST_PROFILE_URI = "https://schemas.identity.wso2.org/events/test";
-    private FileBasedWebhookMetadataDAOImpl dao;
+    private FileBasedEventProfileMetadataDAOImpl dao;
     private File tempDir;
 
     @BeforeMethod
@@ -58,7 +57,7 @@ public class FileBasedWebhookMetadataDAOImplTest {
         File file = new File(root.getPath());
         System.setProperty("carbon.home", file.getAbsolutePath());
 
-        dao = FileBasedWebhookMetadataDAOImpl.getInstance();
+        dao = FileBasedEventProfileMetadataDAOImpl.getInstance();
 
         resetDAOState(dao);
 
@@ -101,24 +100,6 @@ public class FileBasedWebhookMetadataDAOImplTest {
         Assert.assertNull(profile);
     }
 
-    @Test
-    public void testGetEventsByProfile() throws Exception {
-
-        List<Event> events = dao.getEventsByProfile(TEST_PROFILE_URI);
-        Assert.assertNotNull(events);
-        Assert.assertEquals(events.size(), 2);
-        Assert.assertEquals(events.get(0).getEventName(), "Test Event 1");
-        Assert.assertEquals(events.get(1).getEventName(), "Test Event 2");
-    }
-
-    @Test
-    public void testGetEventsByProfileNotFound() throws Exception {
-
-        List<Event> events = dao.getEventsByProfile("https://nonexistent.uri");
-        Assert.assertNotNull(events);
-        Assert.assertEquals(events.size(), 0);
-    }
-
     @Test(expectedExceptions = WebhookMetadataServerException.class)
     public void testGetEventProfilesDirectoryNotExist() throws Exception {
 
@@ -152,21 +133,6 @@ public class FileBasedWebhookMetadataDAOImplTest {
 
         resetDAOState(dao);
         dao.getEventProfile(TEST_PROFILE_NAME);
-    }
-
-    @Test
-    public void testGetEventsByProfileNotInitialized() throws Exception {
-
-        resetDAOState(dao);
-        try {
-            dao.getEventsByProfile(TEST_PROFILE_URI);
-            Assert.fail("Expected WebhookMetadataException was not thrown");
-        } catch (WebhookMetadataException ex) {
-            Assert.assertEquals(ex.getErrorCode(), "WEBHOOKMETA-66003");
-            Assert.assertEquals(ex.getDescription(),
-                    "An internal server error occurred while retrieving events for the profile " +
-                            "https://schemas.identity.wso2.org/events/test.");
-        }
     }
 
     @Test
@@ -218,13 +184,13 @@ public class FileBasedWebhookMetadataDAOImplTest {
      * @param dao DAO instance to reset
      * @throws Exception If an error occurs
      */
-    private void resetDAOState(FileBasedWebhookMetadataDAOImpl dao) throws Exception {
+    private void resetDAOState(FileBasedEventProfileMetadataDAOImpl dao) throws Exception {
 
-        Field isInitializedField = FileBasedWebhookMetadataDAOImpl.class.getDeclaredField("isInitialized");
+        Field isInitializedField = FileBasedEventProfileMetadataDAOImpl.class.getDeclaredField("isInitialized");
         isInitializedField.setAccessible(true);
         isInitializedField.set(dao, false);
 
-        Field profileCacheField = FileBasedWebhookMetadataDAOImpl.class.getDeclaredField("profileCache");
+        Field profileCacheField = FileBasedEventProfileMetadataDAOImpl.class.getDeclaredField("profileCache");
         profileCacheField.setAccessible(true);
         Map<String, EventProfile> profileCache = (Map<String, EventProfile>) profileCacheField.get(dao);
         profileCache.clear();

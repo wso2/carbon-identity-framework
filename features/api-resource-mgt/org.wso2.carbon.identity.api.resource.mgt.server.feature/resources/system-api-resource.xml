@@ -901,6 +901,8 @@
         <Scopes>
             <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
                    description="View webhook metadata in the organization (root)"/>
+            <Scope displayName="Update Webhook Metadata" name="internal_webhook_meta_update"
+                   description="Update webhook metadata in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management API v1/v2"
