@@ -29,11 +29,13 @@ import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataH
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
+import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -78,59 +80,44 @@ public class OrganizationResolver {
 
                 // Request URI has an organization ID -> Resolve sub-organization info.
                 String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
-                resolveOrganization(organizationId);
+                resolveSubOrganization(organizationId);
             } else if (PATTERN_ORG_QUALIFIED_ONLY.matcher(requestURI).find()) {
                 // Handle the requests starts with /o/<org_id>/
                 // Request URI has an organization ID -> Resolve both root and sub-organization info.
                 resolveRootAndSubOrganization(requestURI);
-            } else if (requestURI.contains(ORG_SEPARATOR)) {
-                // Handle the requests starts with /o/ or /t/<tenant>/o/
-                // /o/ -> Act as /t/carbon.super/o/
+            } else {
+                // Handle the requests starts with /t/<tenant>/, /o/ or /t/<tenant>/o/
+                // /o/ -> Resolves to /t/carbon.super/o/
                 // Resolve root organization with tenant information in the CarbonContext.
                 // Resolving sub organization is handled in org.wso2.carbon.identity.authz.valve.AuthorizationValve.
                 resolveRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
-            } else {
-                // Handle the requests starts with /t/<tenant>/ and the super tenant requests without /t/carbon.super/.
-                // Resolve root organization with tenant information in the CarbonContext.
-                resolveRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
-                // Resolve root organization information to the Organization object in tenanted paths.
-                RootOrganization rootOrganization = IdentityContext.getThreadLocalIdentityContext().getRootOrganization();
-                resolveOrganization(rootOrganization.getOrganizationId(), rootOrganization.getAssociatedTenantDomain());
             }
         } catch (OrganizationManagementException | UserStoreException e) {
             LOG.error("Error while initializing organization information.", e);
         }
     }
 
-    private void resolveOrganization(String organizationId) throws OrganizationManagementException {
+    private void resolveSubOrganization(String organizationId) throws OrganizationManagementException {
 
-        // When tenant domain is not provided, it will be resolved from the organization ID inside the
-        // organization manager service.
-        resolveOrganization(organizationId, null);
-    }
-
-    private void resolveOrganization(String organizationId, String associatedTenantDomain)
-            throws OrganizationManagementException {
-
-        MinimalOrganization minimalOrganization = getMinimalOrganization(organizationId, associatedTenantDomain);
-        if (minimalOrganization == null) {
-            LOG.debug("Unable to find an organization for the id: " + organizationId +
-                    ". Cannot initialize organization.");
-            return;
-        }
-        if (minimalOrganization.getDepth() <
+        int organizationDepth = getOrganizationDepthInHierarchy(organizationId);
+        if (organizationDepth <
                 org.wso2.carbon.identity.organization.management.service.util.Utils.getSubOrgStartLevel()) {
             LOG.debug("Organization with id: " + organizationId + " is not a sub organization. " +
                     "Skipping initialization of organization.");
             return;
         }
 
+        BasicOrganization basicOrganizationInfo = getBasicOrganization(organizationId);
+        if (basicOrganizationInfo == null) {
+            LOG.debug("Unable to find an organization for the id: " + organizationId +
+                    ". Cannot initialize organization.");
+            return;
+        }
         IdentityContext.getThreadLocalIdentityContext().setOrganization(new Organization.Builder()
-                .id(minimalOrganization.getId())
-                .name(minimalOrganization.getName())
-                .organizationHandle(minimalOrganization.getOrganizationHandle())
-                .parentOrganizationId(minimalOrganization.getParentOrganizationId())
-                .depth(minimalOrganization.getDepth())
+                .id(basicOrganizationInfo.getId())
+                .name(basicOrganizationInfo.getName())
+                .organizationHandle(basicOrganizationInfo.getOrganizationHandle())
+                .depth(organizationDepth)
                 .build());
     }
 
@@ -155,7 +142,7 @@ public class OrganizationResolver {
                     .build());
         }
 
-        resolveOrganization(organizationId);
+        resolveSubOrganization(organizationId);
     }
 
     private void resolveRootOrganization(int tenantId) throws UserStoreException {
@@ -183,11 +170,17 @@ public class OrganizationResolver {
                 .build());
     }
 
-    private MinimalOrganization getMinimalOrganization(String organizationId, String associatedTenantDomain)
-            throws OrganizationManagementException {
+    private int getOrganizationDepthInHierarchy(String organizationId) throws OrganizationManagementException {
 
         return IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
-                .getMinimalOrganization(organizationId, associatedTenantDomain);
+                .getOrganizationDepthInHierarchy(organizationId);
+    }
+
+    private BasicOrganization getBasicOrganization(String organizationId) throws OrganizationManagementException {
+
+        Map<String, BasicOrganization> orgsMap = IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
+                .getBasicOrganizationDetailsByOrgIDs(Collections.singletonList(organizationId));
+        return orgsMap.get(organizationId);
     }
 
     private String getRootOrganizationId(String organizationId) throws OrganizationManagementException {
