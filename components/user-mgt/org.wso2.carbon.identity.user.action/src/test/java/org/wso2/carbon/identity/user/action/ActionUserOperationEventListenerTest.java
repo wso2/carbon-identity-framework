@@ -81,9 +81,10 @@ public class ActionUserOperationEventListenerTest {
         userCoreUtil = mockStatic(UserCoreUtil.class);
         listener = new ActionUserOperationEventListener();
         userCoreUtil.when(() -> UserCoreUtil.getDomainName(any())).thenReturn("PRIMARY");
-        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
-                .name(Flow.Name.PASSWORD_RESET)
+        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.CredentialFlowBuilder()
+                .name(Flow.Name.CREDENTIAL_RESET)
                 .initiatingPersona(Flow.InitiatingPersona.USER)
+                .credentialType(Flow.CredentialType.PASSWORD)
                 .build());
 
         organizationManager = mock(OrganizationManager.class);

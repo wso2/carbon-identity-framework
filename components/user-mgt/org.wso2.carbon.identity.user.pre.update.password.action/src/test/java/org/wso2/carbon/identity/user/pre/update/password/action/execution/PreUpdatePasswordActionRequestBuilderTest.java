@@ -255,9 +255,9 @@ public class PreUpdatePasswordActionRequestBuilderTest {
                         PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.APPLICATION},
                 {false, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
-                {false, buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER),
+                {false, buildMockedFlow(Flow.Name.CREDENTIAL_RESET, Flow.InitiatingPersona.USER),
                         PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.USER},
-                {false, buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN),
+                {false, buildMockedFlow(Flow.Name.CREDENTIAL_RESET, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
                 {false, buildMockedFlow(Flow.Name.INVITE, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
@@ -269,9 +269,9 @@ public class PreUpdatePasswordActionRequestBuilderTest {
                         PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.APPLICATION},
                 {true, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
-                {true, buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER),
+                {true, buildMockedFlow(Flow.Name.CREDENTIAL_RESET, Flow.InitiatingPersona.USER),
                         PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.USER},
-                {true, buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN),
+                {true, buildMockedFlow(Flow.Name.CREDENTIAL_RESET, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
                 {true, buildMockedFlow(Flow.Name.INVITE, Flow.InitiatingPersona.ADMIN),
                         PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
@@ -509,10 +509,18 @@ public class PreUpdatePasswordActionRequestBuilderTest {
 
     private static Flow buildMockedFlow(Flow.Name flowName, Flow.InitiatingPersona initiatingPersona) {
 
-        return new Flow.Builder()
-                .name(flowName)
-                .initiatingPersona(initiatingPersona)
-                .build();
+        if (Flow.Name.CREDENTIAL_RESET.equals(flowName)) {
+            return new Flow.CredentialFlowBuilder()
+                    .name(flowName)
+                    .initiatingPersona(initiatingPersona)
+                    .credentialType(Flow.CredentialType.PASSWORD)
+                    .build();
+        } else {
+            return new Flow.Builder()
+                    .name(flowName)
+                    .initiatingPersona(initiatingPersona)
+                    .build();
+        }
     }
 
     private static UserStoreModel createUserStoreModel() {
