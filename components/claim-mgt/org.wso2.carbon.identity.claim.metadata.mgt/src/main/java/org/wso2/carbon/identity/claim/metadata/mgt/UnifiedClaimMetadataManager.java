@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
@@ -31,13 +32,14 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -183,6 +185,9 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             setFlowInitiatorClaimProperty(localClaim.getClaimURI(), tenantId, localClaim);
             // If SharedProfileValueResolvingMethod is missing in localClaimsInDB, set it to default value.
             setDefaultSharedProfileValueResolvingMethod(localClaim.getClaimURI(), tenantId, localClaim);
+            // Set excluded user stores property if not set.
+            setExcludedUserStoresProperty(localClaim, tenantId);
+
         }
 
         return new ArrayList<>(localClaimMap.values());
@@ -678,4 +683,37 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         claim.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
     }
+
+    private void setExcludedUserStoresProperty(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
+
+        // If excludedUserStores is not an identity claim then the claim value is considered defined.
+        if (!localClaim.getClaimURI().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI_PREFIX)) {
+            return;
+        }
+
+        /* If the claim is null, and it is an identity claim,
+        * then we set the excluded user stores property with all available user stores.
+        */
+        AbstractUserStoreManager userStoreManager = null;
+        UserRealm userRealm;
+        try {
+            userRealm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId);
+            if (userRealm != null){
+                userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager();
+            }
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw new ClaimMetadataClientException("Code", "Error while retrieving user realm for tenant: " + tenantId);
+        }
+
+        if (userRealm != null){
+            StringBuilder sb = new StringBuilder();
+            while( userStoreManager !=null) {
+                String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty("DomainName");
+                sb.append(domainName).append(",");
+                userStoreManager = (AbstractUserStoreManager) userStoreManager.getSecondaryUserStoreManager();
+            }
+            localClaim.setClaimProperty("ExcludedUserStores", sb.toString());
+        }
+    }
+
 }
