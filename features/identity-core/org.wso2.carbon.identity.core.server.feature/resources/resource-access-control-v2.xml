@@ -631,9 +631,11 @@
     </Resource>
 
     <!-- Approval Tasks -->
-    <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true"
-              http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
-        <Scopes>internal_humantask_view</Scopes>
+    <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
+        <Scopes>internal_approval_task_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_approval_task_update</Scopes>
     </Resource>
 
     <!-- Me APIs -->

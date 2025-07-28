@@ -674,6 +674,12 @@
   "event.default_listener.identity_verification_event_listener.priority": "120",
   "event.default_listener.identity_verification_event_listener.enable": true,
 
+  "event.default_listener.identity_user_workflow_operation.enable": true,
+  "event.default_listener.identity_user_workflow_operation.priority": "10",
+
+  "event.default_listener.identity_role_workflow_operation.enable": true,
+  "event.default_listener.identity_role_workflow_operation.priority": "11",
+
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
   "event.default_recorder.user_delete_event.write_to_separate_csv.enable": false,
@@ -1367,10 +1373,8 @@
   "console.application_roles.enabled": false,
   "console.approvals.enabled": false,
   "console.approvals.scopes.feature": ["console:workflowApprovals"],
-  "console.approvals.scopes.create": ["internal_humantask_view"],
-  "console.approvals.scopes.read": ["internal_humantask_view"],
-  "console.approvals.scopes.update": ["internal_humantask_view"],
-  "console.approvals.scopes.delete": ["internal_humantask_view"],
+  "console.approvals.scopes.read": ["internal_approval_task_view"],
+  "console.approvals.scopes.update": ["internal_approval_task_update"],
   "console.workflows.enabled": false,
   "console.workflows.scopes.feature": ["console:workflowApprovals"],
   "console.workflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
