@@ -1058,7 +1058,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String path = null;
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             if (FrameworkUtils.isOrganizationQualifiedRequest()) {
-                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+                // Handling the cookie path for requests coming with the path `/o/<org-id>`.
+                String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
             } else {
                 if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getLoginTenantDomain())) {
@@ -1232,6 +1234,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void addAuditLogs(String sessionAction, AuthenticatedUser authenticatedUser, String sessionKey,
                               String traceId, Long lastAccessedTimestamp, boolean isRememberMe) {
 
+        if (LoggerUtils.isEnableV2AuditLogs()) {
+            return;
+        }
         String userTenantDomain = authenticatedUser.getTenantDomain();
         boolean isFederated = authenticatedUser.isFederatedUser();
         String username = authenticatedUser.getUserName();

@@ -19,7 +19,9 @@
 package org.wso2.carbon.identity.action.management.service;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -32,12 +34,14 @@ import org.wso2.carbon.identity.action.management.api.service.ActionManagementSe
 import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionManagementServiceImpl;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.management.api.util.AuditLogBuilderForRule;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
@@ -48,6 +52,7 @@ import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_PATH;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_DOMAIN;
@@ -79,6 +84,8 @@ public class ActionManagementServiceImplTest {
     private ActionManagementService actionManagementService;
     private Action sampleAction;
     private Rule sampleRule;
+    private MockedStatic<LoggerUtils> loggerUtilsMockedStatic;
+    private MockedStatic<AuditLogBuilderForRule> auditLogBuilderForRuleMockedStatic;
 
     @BeforeClass
     public void setUpClass() {
@@ -101,6 +108,19 @@ public class ActionManagementServiceImplTest {
         when(ruleManagementService.getRuleByRuleId(any(), any())).thenReturn(sampleRule);
         when(ruleManagementService.addRule(any(), any())).thenReturn(sampleRule);
         when(ruleManagementService.updateRule(any(), any())).thenReturn(sampleRule);
+
+        loggerUtilsMockedStatic = mockStatic(LoggerUtils.class);
+        loggerUtilsMockedStatic.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+        auditLogBuilderForRuleMockedStatic = mockStatic(AuditLogBuilderForRule.class);
+        auditLogBuilderForRuleMockedStatic.when(() -> AuditLogBuilderForRule.buildRuleValue(any(Rule.class)))
+                .thenReturn("");
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        loggerUtilsMockedStatic.close();
+        auditLogBuilderForRuleMockedStatic.close();
     }
 
     @Test(priority = 1)

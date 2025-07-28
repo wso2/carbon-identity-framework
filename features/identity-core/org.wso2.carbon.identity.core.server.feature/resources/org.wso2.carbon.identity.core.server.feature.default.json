@@ -392,7 +392,7 @@
   "scim2.consider_total_records_for_total_results_of_ldap": false,
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
-
+  "scim2.enable_scim2_roles_v3_api": false,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -939,6 +939,12 @@
   "console.i18n_resource_path": "",
   "console.login_callback_path": "",
   "console.logout_callback_path": "",
+  "console.remote_logging.enabled": true,
+  "console.remote_logging.scopes.feature": [],
+  "console.remote_logging.scopes.create": [],
+  "console.remote_logging.scopes.read": [],
+  "console.remote_logging.scopes.update": [],
+  "console.remote_logging.scopes.delete": [],
   "console.route_paths.home": "/getting-started",
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
@@ -1157,6 +1163,16 @@
       "id": "SW1wZXJzb25hdGlvbkVtYWlsTm90aWZpY2F0aW9u",
       "displayName": "Impersonation Email Notification",
       "description": "This email is sent to the impersonated user when the impersonation session is started"
+    },
+    {
+      "description": "This email is sent to request credentials from the user when a new account is created and the registration flow is incomplete",
+      "displayName": "Request New User Credentials",
+      "id": "T3JjaGVzdHJhdGVkQXNrUGFzc3dvcmQ"
+    },
+    {
+      "description": "This email is resent to request credentials from the user when a new account is created and the registration flow is incomplete",
+      "displayName": "Resend New User Credentials Email",
+      "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1200,6 +1216,8 @@
   "console.ui.is_cookie_consent_banner_enabled": false,
   "console.ui.is_editing_system_roles_allowed": true,
   "console.ui.cookie_policy_url": "/authenticationendpoint/cookie_policy.do",
+  "console.ui.privacy_policy_url": "/authenticationendpoint/privacy_policy.do",
+  "console.ui.terms_of_service_url": "https://wso2.com/terms-of-use",
   "console.ui.app_title": "WSO2 Identity Server Console",
   "console.ui.app_name": "Console",
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
@@ -1220,6 +1238,7 @@
     "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [],
+  "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
@@ -1278,8 +1297,23 @@
   ],
   "console.actions.scopes.update": ["internal_action_mgt_update"],
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
-  "console.webhooks.enabled": false,
+  "console.webhooks.enabled": true,
   "console.webhooks.disabled_features": [],
+  "console.agents.enabled": true,
+  "console.agents.disabled_features": [],
+  "console.agents.scopes.feature": ["console:users"],
+  "console.agents.scopes.create": ["internal_user_mgt_create"],
+  "console.agents.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_login",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.agents.scopes.update": ["internal_user_mgt_update"],
+  "console.agents.scopes.delete": ["internal_user_mgt_delete"],
   "console.webhooks.scopes.feature": ["console:webhooks"],
   "console.webhooks.scopes.create": ["internal_webhook_mgt_create"],
   "console.webhooks.scopes.read": [
@@ -1294,7 +1328,7 @@
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.disabled_features": [],
+  "console.ai.disabled_features": ["ai.flows.types.list.registration"],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
   "console.ai.scopes.read": [],
@@ -1372,10 +1406,7 @@
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
   "console.flows.enabled": true,
   "console.flows.scopes.feature": ["console:flows"],
-  "console.flows.disabled_features": [
-    "flows.types.list.inviteUserToSetPassword",
-    "flows.types.list.passwordRecovery"
-  ],
+  "console.flows.disabled_features": [],
   "console.flows.scopes.create": [],
   "console.flows.scopes.read": [],
   "console.flows.scopes.update": [],
@@ -1713,6 +1744,36 @@
   "console.ui.is_header_avatar_label_allowed": true,
   "console.get_profile_info_from_id_token": false,
   "console.super_tenant_proxy_name": "",
+  "console.role_assignments.enabled": false,
+  "console.role_assignments.disabled_features": [],
+  "console.role_assignments.scopes.create": [],
+  "console.role_assignments.scopes.delete": [],
+  "console.role_assignments.scopes.feature": ["console:role_assignments", "console:roles"],
+  "console.role_assignments.scopes.read": [
+    "internal_api_resource_view",
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.role_assignments.scopes.update": ["internal_role_mgt_groups_update", "internal_role_mgt_users_update"],
+  "console.user_roles_v3.disabled_features": [],
+  "console.user_roles_v3.scopes.create": ["internal_role_mgt_meta_create"],
+  "console.user_roles_v3.scopes.delete": ["internal_role_mgt_delete"],
+  "console.user_roles_v3.scopes.feature": ["console:roles"],
+  "console.user_roles_v3.scopes.read": [
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.user_roles_v3.scopes.update": ["internal_role_mgt_meta_update"],
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
   "myaccount.login_callback_path": "",
@@ -1831,6 +1892,8 @@
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
+  "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+  "organization_discovery.default_param": "orgName",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
@@ -1855,6 +1918,15 @@
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
 
+  "outbound_adapters.httppublisher.enabled": true,
+  "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
+  "outbound_adapters.httppublisher.httpReadTimeout": "5000",
+  "outbound_adapters.httppublisher.httpConnectionRequestTimeout": "5000",
+  "outbound_adapters.httppublisher.connectionHandshakeTimeout": "5000",
+  "outbound_adapters.httppublisher.defaultMaxConnections": "20",
+  "outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute": "20",
+  "outbound_adapters.httppublisher.type": "Publisher",
+
   "webhooks.maximum_webhooks_per_tenant": "10",
 
   "oauth.authorize_all_scopes": false,
@@ -1869,6 +1941,16 @@
 
   "attribute.return_previous_additional_properties.enabled": false,
 
-  "agent_identity.enabled": false
+  "agent_identity.enabled": false,
+
+  "session_management.filter_by_unique_session_id_for_user": false,
+
+  "flow_execution.user_assertion.expiry_time": "2000",
+  "flow_execution.default_ttl": "30",
+  "flow_execution.flow_type_ttl": {
+    "REGISTRATION": "30",
+    "PASSWORD_RECOVERY": "30",
+    "INVITED_USER_REGISTRATION": "30"
+  }
 }
 

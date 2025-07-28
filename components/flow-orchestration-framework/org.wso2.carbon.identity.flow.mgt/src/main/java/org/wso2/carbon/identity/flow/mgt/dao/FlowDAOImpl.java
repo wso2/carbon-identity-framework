@@ -47,11 +47,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_NODE_EXECUTOR_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.GET_VIEW_PAGES_IN_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_INTO_IDN_FLOW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_NODE_INFO;
@@ -59,14 +61,18 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_PAG
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EDGES;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EXECUTOR_INFO;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.INSERT_NODE_EXECUTOR_META;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_FLOW_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_X;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_Y;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_METADATA_NAME;
+import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_METADATA_VALUE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_TYPE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT;
@@ -128,13 +134,24 @@ public class FlowDAOImpl implements FlowDAO {
                     // Insert into IDN_FLOW_NODE_EXECUTOR.
                     ExecutorDTO executorConfig = node.getExecutorConfig();
                     if (executorConfig != null) {
-                        template.executeInsert(INSERT_NODE_EXECUTOR_INFO,
+                        int executorId = template.executeInsert(INSERT_NODE_EXECUTOR_INFO,
                                 preparedStatement -> {
                                     preparedStatement.setInt(1,
                                             nodeIdToNodeIdMap.get(node.getId()));
                                     preparedStatement.setString(2, executorConfig.getName());
-                                    preparedStatement.setString(3, executorConfig.getIdpName());
-                                }, null, false);
+                                }, null, true);
+
+                        // Insert into IDN_FLOW_NODE_EXECUTOR_META.
+                        if (executorConfig.getMetadata() != null) {
+                            for (Map.Entry<String, String> metaEntry : executorConfig.getMetadata().entrySet()) {
+                                template.executeInsert(INSERT_NODE_EXECUTOR_META,
+                                        preparedStatement -> {
+                                            preparedStatement.setInt(1, executorId);
+                                            preparedStatement.setString(2, metaEntry.getKey());
+                                            preparedStatement.setString(3, metaEntry.getValue());
+                                        }, null, false);
+                            }
+                        }
                     }
                 }
                 // Insert graph edges into IDN_FLOW_NODE_MAPPING.
@@ -246,7 +263,7 @@ public class FlowDAOImpl implements FlowDAO {
             List<Map<String, Object>> rows = getGraphNodes(flowType, tenantId, jdbcTemplate);
 
             // Step 2: Process Data to Avoid Duplication.
-            GraphConfig graphConfig = buildGraph(rows);
+            GraphConfig graphConfig = buildGraph(jdbcTemplate, rows);
 
             // Step 3: Fetch Page Content with JOIN (Updated Query).
             Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(graphConfig.getId(),tenantId, jdbcTemplate);
@@ -287,6 +304,7 @@ public class FlowDAOImpl implements FlowDAO {
             row.put(DB_SCHEMA_COLUMN_NAME_NODE_TYPE, resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_TYPE));
             row.put(DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE, resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE));
             row.put(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME, resultSet.getString(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME));
+            row.put(DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID, resultSet.getInt(DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID));
             row.put(DB_SCHEMA_COLUMN_NAME_IDP_NAME, resultSet.getString(DB_SCHEMA_COLUMN_NAME_IDP_NAME));
             row.put(DB_SCHEMA_ALIAS_NEXT_NODE_ID, resultSet.getString(DB_SCHEMA_ALIAS_NEXT_NODE_ID));
             row.put(DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT, resultSet.getString(DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT));
@@ -314,10 +332,26 @@ public class FlowDAOImpl implements FlowDAO {
             preparedStatement.setString(1, flowId);
             preparedStatement.setString(2, VIEW);
         });
+
+        // Fetch execution steps with page content.
+        jdbcTemplate.executeQuery(GET_VIEW_PAGES_IN_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
+            StepDTO stepDTO = new StepDTO.Builder()
+                    .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
+                    .type(EXECUTION)
+                    .build();
+            resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+            if (stepDTO.getData() != null && stepDTO.getData().getComponents() != null) {
+                nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
+            }
+            return null;
+        })), preparedStatement -> {
+            preparedStatement.setString(1, flowId);
+            preparedStatement.setString(2, EXECUTION);
+        });
         return nodePageMappings;
     }
 
-    private GraphConfig buildGraph(List<Map<String, Object>> rows) {
+    private GraphConfig buildGraph(JdbcTemplate jdbcTemplate, List<Map<String, Object>> rows) throws DataAccessException {
 
         GraphConfig graphConfig = new GraphConfig();
         Map<String, NodeConfig> nodeConfigs = new HashMap<>();
@@ -341,9 +375,19 @@ public class FlowDAOImpl implements FlowDAO {
             }
             // Attach executor details if present.
             if (row.get(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME) != null) {
-                nodeConfig.setExecutorConfig(
-                        new ExecutorDTO((String) row.get(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME),
-                                        (String) row.get(DB_SCHEMA_COLUMN_NAME_IDP_NAME)));
+                ExecutorDTO executorDTO = new ExecutorDTO((String) row.get(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME));
+                // Fetch executor metadata.
+                Map<String, String> metadata = getExecutorMetadata(jdbcTemplate,
+                        (Integer) row.get(DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID));
+
+                // Check if IDP name is present in the row and add it to metadata.
+                if (row.get(DB_SCHEMA_COLUMN_NAME_IDP_NAME) != null &&
+                        !metadata.containsKey(Constants.IDP_NAME)) {
+                    // Add IDP name to metadata if not already present.
+                    metadata.put(Constants.IDP_NAME, (String) row.get(DB_SCHEMA_COLUMN_NAME_IDP_NAME));
+                }
+                executorDTO.setMetadata(metadata);
+                nodeConfig.setExecutorConfig(executorDTO);
             }
 
             // Attach edges (mappings).
@@ -355,6 +399,20 @@ public class FlowDAOImpl implements FlowDAO {
         }
         graphConfig.setNodeConfigs(nodeConfigs);
         return graphConfig;
+    }
+
+    private Map<String, String> getExecutorMetadata(JdbcTemplate jdbcTemplate, int executorId)
+            throws DataAccessException {
+
+        Map<String, String> metadata = new HashMap<>();
+        jdbcTemplate.executeQuery(GET_NODE_EXECUTOR_META, (resultSet, rowNumber) -> {
+            metadata.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_METADATA_NAME),
+                    resultSet.getString(DB_SCHEMA_COLUMN_NAME_METADATA_VALUE));
+            return null;
+        }, preparedStatement -> {
+            preparedStatement.setInt(1, executorId);
+        });
+        return metadata;
     }
 
     private void resolvePageContent(StepDTO stepDTO, byte[] pageContent, int tenantId)

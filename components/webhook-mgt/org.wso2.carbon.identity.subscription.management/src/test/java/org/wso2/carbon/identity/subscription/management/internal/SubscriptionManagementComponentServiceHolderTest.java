@@ -48,7 +48,7 @@ public class SubscriptionManagementComponentServiceHolderTest {
 
         // Create a fresh mock for each test
         eventSubscriber = Mockito.mock(EventSubscriber.class);
-        Mockito.when(eventSubscriber.getAssociatedAdaptor()).thenReturn("TestAdaptor");
+        Mockito.when(eventSubscriber.getAssociatedAdapter()).thenReturn("TestAdapter");
     }
 
     @Test

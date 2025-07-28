@@ -79,7 +79,7 @@ import org.wso2.carbon.identity.certificate.management.service.ApplicationCertif
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
@@ -1857,6 +1857,16 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
             applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
         });
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 18, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetSharedAppId() throws Exception {
+
+        String l1SharedAppId = applicationManagementService.getSharedAppId(rootAppId, ROOT_ORG_ID, L1_ORG_ID);
+        Assert.assertEquals(l1SharedAppId, l1AppId, "Incorrect shared app ID for level 1 organization.");
+
+        String l2SharedAppId = applicationManagementService.getSharedAppId(rootAppId, ROOT_ORG_ID, L2_ORG_ID);
+        Assert.assertEquals(l2SharedAppId, l2AppId, "Incorrect shared app ID for level 2 organization.");
     }
 
     @DataProvider(name = "testGetGroupsDataProvider")

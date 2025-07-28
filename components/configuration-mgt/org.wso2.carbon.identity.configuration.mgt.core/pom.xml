@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>configuration-mgt</artifactId>
-        <version>7.8.279-SNAPSHOT</version>
+        <version>7.8.349-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -61,6 +61,14 @@
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.utils</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -144,6 +152,15 @@
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.util; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service;
+                            version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception;
+                            version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy;
+                            version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.configuration.mgt.core.internal,

@@ -24,42 +24,45 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
 import java.util.Map;
 
+/**
+ * Listener interface for workflow executor manager.
+ */
 public interface WorkflowExecutorManagerListener {
 
     /**
-     * Trigger before executing a workflow request
+     * Trigger before executing a workflow request.
      *
-     * @param workFlowRequest Details of request to execute
+     * @param workFlowRequest Details of request to execute.
      * @throws WorkflowException
      */
     void doPreExecuteWorkflow(WorkflowRequest workFlowRequest) throws WorkflowException;
 
     /**
-     * Trigger after executing a workflow request
+     * Trigger after executing a workflow request.
      *
-     * @param workFlowRequest Details of request to execute
-     * @param result          Result of the original operation
+     * @param workFlowRequest Details of request to execute.
+     * @param result          Result of the original operation.
      * @throws WorkflowException
      */
     void doPostExecuteWorkflow(WorkflowRequest workFlowRequest, WorkflowExecutorResult result) throws WorkflowException;
 
     /**
-     * Trigger before handling a callback
+     * Trigger before handling a callback.
      *
-     * @param uuid             UUID to request which callback received
-     * @param status           Status of call back
-     * @param additionalParams Additional parameters required to execute request
+     * @param uuid             UUID to request which callback received.
+     * @param status           Status of call back.
+     * @param additionalParams Additional parameters required to execute request.
      * @throws WorkflowException
      */
     void doPreHandleCallback(String uuid, String status, Map<String, Object> additionalParams)
             throws WorkflowException;
 
     /**
-     * Trigger after handling a callback
+     * Trigger after handling a callback.
      *
-     * @param uuid             UUID to request which callback received
-     * @param status           Status of call back
-     * @param additionalParams Additional parameters required to execute request
+     * @param uuid             UUID to request which callback received.
+     * @param status           Status of call back.
+     * @param additionalParams Additional parameters required to execute request.
      * @throws WorkflowException
      */
     void doPostHandleCallback(String uuid, String status, Map<String, Object> additionalParams)
@@ -73,7 +76,7 @@ public interface WorkflowExecutorManagerListener {
     boolean isEnable();
 
     /**
-     * get order ID (priority of current listener)
+     * get order ID (priority of current listener).
      *
      * @return
      */

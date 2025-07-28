@@ -101,6 +101,14 @@ public class DataDTO implements Serializable {
         this.additionalData.put(key, value);
     }
 
+    public void addRequiredParam(String param) {
+
+        if (this.requiredParams == null) {
+            this.requiredParams = new ArrayList<>();
+        }
+        this.requiredParams.add(param);
+    }
+
     public Map<String, Object> getWebAuthnData() {
 
         return webAuthnData;

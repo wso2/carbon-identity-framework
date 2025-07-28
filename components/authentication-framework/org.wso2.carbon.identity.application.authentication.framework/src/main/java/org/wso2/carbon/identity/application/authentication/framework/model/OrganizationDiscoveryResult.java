@@ -18,8 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
+import org.wso2.carbon.identity.organization.management.service.model.Organization;
 
 /**
  * This class represents the result of an organization discovery operation.
@@ -27,24 +26,23 @@ import org.wso2.carbon.identity.organization.management.service.model.BasicOrgan
 public class OrganizationDiscoveryResult {
 
     private boolean successful;
-    private BasicOrganization discoveredOrganization;
-    private ServiceProvider sharedApplication;
+    private Organization discoveredOrganization;
+    private String sharedApplicationId;
     private FailureDetails failureDetails;
 
     /**
      * Factory method to create a successful organization discovery result.
      *
-     * @param organization      The discovered organization.
-     * @param sharedApplication The shared application.
+     * @param organization        The discovered organization.
+     * @param sharedApplicationId The shared application id.
      * @return A successful OrganizationDiscoveryResult instance.
      */
-    public static OrganizationDiscoveryResult success(BasicOrganization organization,
-                                                      ServiceProvider sharedApplication) {
+    public static OrganizationDiscoveryResult success(Organization organization, String sharedApplicationId) {
 
         OrganizationDiscoveryResult result = new OrganizationDiscoveryResult();
         result.setSuccessful(true);
         result.setDiscoveredOrganization(organization);
-        result.setSharedApplication(sharedApplication);
+        result.setSharedApplicationId(sharedApplicationId);
         return result;
     }
 
@@ -73,24 +71,24 @@ public class OrganizationDiscoveryResult {
         this.successful = successful;
     }
 
-    public BasicOrganization getDiscoveredOrganization() {
+    public Organization getDiscoveredOrganization() {
 
         return discoveredOrganization;
     }
 
-    public void setDiscoveredOrganization(BasicOrganization discoveredOrganization) {
+    public void setDiscoveredOrganization(Organization discoveredOrganization) {
 
         this.discoveredOrganization = discoveredOrganization;
     }
 
-    public ServiceProvider getSharedApplication() {
+    public String getSharedApplicationId() {
 
-        return sharedApplication;
+        return sharedApplicationId;
     }
 
-    public void setSharedApplication(ServiceProvider sharedApplication) {
+    public void setSharedApplicationId(String sharedApplicationId) {
 
-        this.sharedApplication = sharedApplication;
+        this.sharedApplicationId = sharedApplicationId;
     }
 
     public FailureDetails getFailureDetails() {

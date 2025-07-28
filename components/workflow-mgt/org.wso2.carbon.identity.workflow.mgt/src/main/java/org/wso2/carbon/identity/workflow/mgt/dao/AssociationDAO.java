@@ -41,7 +41,7 @@ import java.util.Objects;
 import static org.wso2.carbon.identity.workflow.mgt.util.Utils.generatePrepStmt;
 
 /**
- * Association related DAO operation provides by this class
+ * Association related DAO operation provides by this class.
  */
 public class AssociationDAO {
 
@@ -80,7 +80,7 @@ public class AssociationDAO {
 
     /**
      * @param associationDTO
-     * @throws InternalWorkflowException, WorkflowClientException
+     * @throws InternalWorkflowException WorkflowClientException
      */
     public void updateAssociation(Association associationDTO)
             throws InternalWorkflowException, WorkflowClientException {
@@ -243,7 +243,7 @@ public class AssociationDAO {
     /**
      * @param associationId
      * @return
-     * @throws InternalWorkflowException, WorkflowClientException
+     * @throws InternalWorkflowException WorkflowClientException
      */
     public Association getAssociation(String associationId) throws InternalWorkflowException, WorkflowClientException {
 

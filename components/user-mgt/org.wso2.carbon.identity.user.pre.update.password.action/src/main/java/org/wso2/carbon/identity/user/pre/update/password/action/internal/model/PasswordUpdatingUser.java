@@ -29,11 +29,15 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.User;
+import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 
 import java.security.Key;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class models the user object at a pre update password trigger.
@@ -46,8 +50,10 @@ public class PasswordUpdatingUser extends User {
 
     private PasswordUpdatingUser(Builder builder) {
 
-
-        super(builder.id);
+        super(new User.Builder(builder.id)
+                .claims(builder.claims)
+                .groups(builder.groups)
+                .organization(builder.organization));
         this.updatingCredential = builder.updatingCredential;
     }
 
@@ -62,6 +68,9 @@ public class PasswordUpdatingUser extends User {
     public static class Builder {
 
         private String id;
+        private final List<UserClaim> claims = new ArrayList<>();
+        private final List<String> groups = new ArrayList<>();
+        private Organization organization;
         private Object updatingCredential;
         private Credential unEncryptedCredential;
         private boolean isCredentialEncryptionRequired = false;
@@ -70,6 +79,24 @@ public class PasswordUpdatingUser extends User {
         public Builder id(String id) {
 
             this.id = id;
+            return this;
+        }
+
+        public Builder claims(List<? extends UserClaim> claims) {
+
+            this.claims.addAll(claims);
+            return this;
+        }
+
+        public Builder groups(List<String> groups) {
+
+            this.groups.addAll(groups);
+            return this;
+        }
+
+        public Builder organization(Organization organization) {
+
+            this.organization = organization;
             return this;
         }
 

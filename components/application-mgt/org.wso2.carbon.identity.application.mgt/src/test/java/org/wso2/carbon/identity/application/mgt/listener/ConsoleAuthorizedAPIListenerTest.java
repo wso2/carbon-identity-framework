@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -56,7 +55,7 @@ public class ConsoleAuthorizedAPIListenerTest {
         applicationManagementService = mockStatic(ApplicationManagementService.class);
         loggerUtils = mockStatic(LoggerUtils.class);
 
-        loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any(), anyBoolean()))
+        loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any()))
                 .thenAnswer(inv -> null);
 
         consoleAuthorizedAPIListener = new ConsoleAuthorizedAPIListener();

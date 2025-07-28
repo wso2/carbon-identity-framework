@@ -995,7 +995,9 @@ public class FrameworkUtils {
 
         String path;
         if (isOrganizationQualifiedRequest()) {
-            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
+            // Handling the cookie path for requests coming with the path `/o/<org-id>`.
+            String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
         } else {
             if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
@@ -1553,6 +1555,17 @@ public class FrameworkUtils {
     public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String tenantDomain) {
 
         HashMap<String, Object> properties = new HashMap<>();
+        Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
+
+        publishEventOnUserRegistration(claims, tenantDomain, event);
+    }
+
+    public static void publishEventOnUserRegistrationSuccess(Map<String, String> claims, String userStoreDomain,
+                                                             String tenantDomain) {
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, userStoreDomain);
+
         Event event = new Event(IdentityEventConstants.Event.USER_REGISTRATION_SUCCESS, properties);
 
         publishEventOnUserRegistration(claims, tenantDomain, event);

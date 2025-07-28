@@ -1649,6 +1649,8 @@
         {% if scim2.enable_error_code_for_password_policy_violations is defined %}
             <EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>
         {% endif %}
+
+        <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
     </SCIM2>
 
       <PasswordPolicy>
@@ -4632,6 +4634,9 @@
         </BrandingAI>
     </AIServices>
 
+    <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
+    <FilterByUniqueSessionIdForUser>{{session_management.filter_by_unique_session_id_for_user}}</FilterByUniqueSessionIdForUser>
+
     <AgentIdentity>
         <Enabled>{{agent_identity.enabled}}</Enabled>
         <Userstore>{{agent_identity.userstore}}</Userstore>
@@ -4651,5 +4656,24 @@
     <AsyncOperationStatus>
         <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
     </AsyncOperationStatus>
+
+    <FlowExecution>
+        {% if flow_execution.excluded_userstores is defined %}
+        <ExcludedUserstores>
+            {% for userstore in flow_execution.excluded_userstores %}
+            <Userstore>{{userstore}}</Userstore>
+            {% endfor %}
+        </ExcludedUserstores>
+        {% endif %}
+        <UserAssertion>
+            <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
+        </UserAssertion>
+        <DefaultTTL>{{flow_execution.default_ttl}}</DefaultTTL>
+        <FlowTypeTTLs>
+            {% for flow_type, ttl in flow_execution.flow_type_ttl.items() %}
+            <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
+            {% endfor %}
+        </FlowTypeTTLs>
+    </FlowExecution>
 
 </Server>

@@ -23,11 +23,12 @@ import java.io.Serializable;
 /**
  * This is the Bean class that represent the Parameter per workflow.
  * <p>
- * workflowId : Unique Id for the workflow
+ * workflowId : Unique ID for the workflow
  * paramName : Parameter Name that is defined in the metafile
  * paramValue : Value for this parameter
- * qName :  Fully qualified name for this parameter. There can be more than one Parameter in same ParamName and but unique by qName.
- * holder : This is represent either template or workflowImpl
+ * qName :  Fully qualified name for this parameter. There can be more than one Parameter in same ParamName
+ * but unique by qName.
+ * holder : This represents either template or workflowImpl
  */
 public class Parameter implements Serializable {
 
@@ -112,14 +113,24 @@ public class Parameter implements Serializable {
     @Override
     public boolean equals(Object o) {
 
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Parameter parameter = (Parameter) o;
 
-        if (!workflowId.equals(parameter.workflowId)) return false;
-        if (!paramName.equals(parameter.paramName)) return false;
-        if (!qName.equals(parameter.qName)) return false;
+        if (!workflowId.equals(parameter.workflowId)) {
+            return false;
+        }
+        if (!paramName.equals(parameter.paramName)) {
+            return false;
+        }
+        if (!qName.equals(parameter.qName)) {
+            return false;
+        }
         return holder.equals(parameter.holder);
     }
 

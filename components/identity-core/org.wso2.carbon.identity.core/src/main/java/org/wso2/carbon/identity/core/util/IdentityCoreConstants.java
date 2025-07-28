@@ -86,6 +86,9 @@ public class IdentityCoreConstants {
     public static final String USER_ACCOUNT_PENDING_APPROVAL_ERROR_CODE = "17009";
     public static final String USER_INVALID_CREDENTIALS = "17010";
     public static final String LOGIN_FAILED_GENERIC_ERROR_CODE = "17011";
+    public static final String USER_EMAIL_NOT_VERIFIED_ERROR_CODE = "17012";
+    public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE = "17013";
+    public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_MISMATCHED_ERROR_CODE = "17014";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 
