@@ -160,6 +160,10 @@
     <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PATCH">
         <Scopes>internal_webhook_meta_update</Scopes>
     </Resource>
+    <!-- The Webhook Metadata update operation using the PUT method is not supported. However, due to the shared API path structure, this method must be explicitly disallowed within the application logic. -->
+    <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_webhook_meta_update</Scopes>
+    </Resource>
 
     <!-- Webhook Management API -->
     <Resource context="(.*)/api/server/v1/webhooks(.*)" secured="true" http-method="POST">
