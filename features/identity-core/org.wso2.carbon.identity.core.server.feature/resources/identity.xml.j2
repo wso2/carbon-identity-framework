@@ -2495,6 +2495,20 @@
                        orderId="{{event.default_listener.identity_verification_event_listener.priority}}"
                        enable="{{event.default_listener.identity_verification_event_listener.enable}}"/>
 
+       <!-- Workflow event listeners -->
+       <EventListener id="identity_user_workflow_operation"
+                      type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
+                      orderId="{{event.default_listener.identity_user_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_user_workflow_operation.enable}}">
+       </EventListener>
+       <EventListener id="identity_role_workflow_operation"
+                      type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.RoleManagementActionListener"
+                      orderId="{{event.default_listener.identity_role_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_role_workflow_operation.enable}}">
+         </EventListener>
+
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"

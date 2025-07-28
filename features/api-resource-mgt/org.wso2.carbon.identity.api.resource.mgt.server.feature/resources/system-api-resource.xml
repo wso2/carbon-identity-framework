@@ -1670,4 +1670,11 @@
                    description="Delete workflow association"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Workflow Approval API" identifier="me/approval-tasks" requiredAuthorization="true"
+                 description="API representation of the workflow Approval API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow Approval" name="internal_humantask_view"
+                   description="View workflow approvals"/>
+        </Scopes>
+    </APIResource>
 </APIResources>
