@@ -343,7 +343,7 @@ public class WorkflowRequestDAO {
      * @throws InternalWorkflowException If an error occurs while retrieving the requests.
      */
     public WorkflowRequestFilterResponse getFilteredRequests(
-        String userName, String operationType, Timestamp beginTime, Timestamp endTime, String timeCategory, 
+        String userName, String operationType, String beginTime, String endTime, String timeCategory,
         int tenantId, String status, int limit, int offset) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);

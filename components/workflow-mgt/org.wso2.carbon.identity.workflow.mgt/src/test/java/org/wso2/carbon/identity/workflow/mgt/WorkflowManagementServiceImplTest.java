@@ -56,7 +56,6 @@ import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
 import java.lang.reflect.Field;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -994,8 +993,8 @@ public class WorkflowManagementServiceImplTest {
         WorkflowRequest[] expectedRequests = {createTestWorkflowRequest()};
         org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse expectedResponse =
                 new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse(expectedRequests, 1);
-        when(mockWorkflowRequestDAO.getFilteredRequests(eq(USER_NAME), eq((String) null), any(Timestamp.class),
-                any(Timestamp.class), eq(dateCategory), eq(TENANT_ID), eq(status), eq(1000), eq(0)))
+        when(mockWorkflowRequestDAO.getFilteredRequests(eq(USER_NAME), eq((String) null), any(String.class),
+                any(String.class), eq(dateCategory), eq(TENANT_ID), eq(status), eq(1000), eq(0)))
                 .thenReturn(expectedResponse);
 
         WorkflowRequest[] result = workflowManagementService.getRequestsFromFilter(USER_NAME, beginDate, endDate,
