@@ -105,8 +105,8 @@ public class WorkflowRequestDAOTest {
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
                     .thenReturn(getConnection());
 
-            Timestamp startTime = Timestamp.valueOf("2023-10-01 09:00:00");
-            Timestamp endTime = Timestamp.valueOf("2023-11-01 09:00:00");
+            String startTime = "2023-10-01 09:00:00";
+            String endTime = "2023-11-01 09:00:00";
 
             WorkflowRequestFilterResponse workflowRequestFilterResponse =
                     workflowRequestDAO.getFilteredRequests("admin", "ADD_USER", startTime, endTime,

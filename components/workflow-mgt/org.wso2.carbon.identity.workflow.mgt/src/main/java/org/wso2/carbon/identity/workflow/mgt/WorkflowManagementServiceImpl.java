@@ -52,10 +52,7 @@ import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -1172,9 +1169,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             String user, String operationType, String beginDate, String endDate, String dateCategory,
             int tenantId, String status, int limit, int offset) throws WorkflowException {
 
-        Timestamp beginTime;
-        Timestamp endTime;
-
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -1183,17 +1177,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                         tenantId, status, limit, offset);
             }
         }
-        try {
-            LocalDateTime parsedBeginDate = LocalDateTime.parse(beginDate, dateTimeFormatter);
-            LocalDateTime parsedEndDate = LocalDateTime.parse(endDate, dateTimeFormatter);
 
-            beginTime = Timestamp.valueOf(parsedBeginDate);
-            endTime = Timestamp.valueOf(parsedEndDate);
-        } catch (DateTimeParseException e) {
-            throw new WorkflowClientException("Invalid date format", e);
-        }
-        WorkflowRequestFilterResponse resultList = workflowRequestDAO.getFilteredRequests(user, operationType, 
-                beginTime, endTime, dateCategory, tenantId, status, limit, offset);
+        WorkflowRequestFilterResponse resultList = workflowRequestDAO.getFilteredRequests(user, operationType,
+                beginDate, endDate, dateCategory, tenantId, status, limit, offset);
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostGetRequestsFromFilter(user, operationType, beginDate, endDate, dateCategory,
