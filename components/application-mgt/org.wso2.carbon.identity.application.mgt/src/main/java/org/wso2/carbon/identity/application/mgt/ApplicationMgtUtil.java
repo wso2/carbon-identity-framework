@@ -1217,7 +1217,13 @@ public class ApplicationMgtUtil {
         if (StringUtils.isEmpty(basePath)) {
             return resolveOriginUrlFromPlaceholders(absoluteUrl);
         }
-        return StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+        absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+
+        if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
+            String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_CUSTOM_PLACEHOLDER, consoleBasePath);
+        }
+        return absoluteUrl;
     }
 
     /**
