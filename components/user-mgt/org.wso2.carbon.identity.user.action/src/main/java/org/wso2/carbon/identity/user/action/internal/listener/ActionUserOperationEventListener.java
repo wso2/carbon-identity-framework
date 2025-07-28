@@ -88,43 +88,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        if (!isExecutableFlow()) {
-            return true;
-        }
-
-        try {
-            UserActionContext userActionContext = new UserActionContext(
-                    new UserActionRequestDTO.Builder()
-                            .userId(userID)
-                            .password(getSecret(credential))
-                            .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
-                            .residentOrganization(getUserResidentOrganization(userID, userStoreManager))
-                            .build());
-
-            ActionExecutionStatus<?> executionStatus =
-                    UserActionExecutorFactory.getUserActionExecutor(ActionType.PRE_UPDATE_PASSWORD)
-                            .execute(userActionContext,
-                                    IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
-
-            if (executionStatus.getStatus() == ActionExecutionStatus.Status.SUCCESS) {
-                return true;
-            } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.FAILED) {
-                Failure failure = (Failure) executionStatus.getResponse();
-                throw new UserActionExecutionClientException(
-                        UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED,
-                        failure.getFailureReason(), failure.getFailureDescription());
-            } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.ERROR) {
-                Error error = (Error) executionStatus.getResponse();
-                throw new UserActionExecutionServerException(
-                        UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR,
-                        error.getErrorMessage(), error.getErrorDescription());
-            } else {
-                return false;
-            }
-        } catch (ActionExecutionException e) {
-            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
-                    "Error while executing pre update password action.");
-        }
+        return executePreUpdatePasswordAction(userID, credential, userStoreManager);
     }
 
     /**
@@ -132,6 +96,9 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
      *
      * @param userID           User id of the user.
      * @param credential       Credential of the user.
+     * @param roleList         List of roles to be assigned to the user.
+     * @param claims           Claims to be set for the user.
+     * @param profile          User profile.
      * @param userStoreManager User store manager.
      * @return True if the operation is successful.
      * @throws UserStoreException If an error occurs while executing the action.
@@ -144,7 +111,13 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        if (!isPreAddUserWithIDExecutableFlow()) {
+        return executePreUpdatePasswordAction(userID, credential, userStoreManager);
+    }
+
+    private boolean executePreUpdatePasswordAction(String userID, Object credential,
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isExecutableFlow()) {
             return true;
         }
 
@@ -154,6 +127,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
                             .userId(userID)
                             .password(getSecret(credential))
                             .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
+                            .residentOrganization(getUserResidentOrganization(userID, userStoreManager))
                             .build());
 
             ActionExecutionStatus<?> executionStatus =
@@ -259,16 +233,8 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         return flow.getName() == Flow.Name.PASSWORD_RESET ||
                 flow.getName() == Flow.Name.INVITE ||
                 flow.getName() == Flow.Name.INVITED_USER_REGISTRATION ||
-                flow.getName() == Flow.Name.PROFILE_UPDATE;
-    }
-
-    private boolean isPreAddUserWithIDExecutableFlow() {
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
-        if (flow == null) {
-            return false;
-        }
-
-        return flow.getName() == Flow.Name.USER_REGISTRATION;
+                flow.getName() == Flow.Name.PROFILE_UPDATE ||
+                flow.getName() == Flow.Name.USER_REGISTRATION;
     }
 
     private char[] getSecret(Object credential) throws UserActionExecutionServerException {
