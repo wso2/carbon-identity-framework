@@ -95,16 +95,10 @@
                 <Scope name="console:workflowApprovals"/>
             </Feature>
             <Update>
-                <Scope name="internal_humantask_view"/>
+                <Scope name="internal_approval_task_update"/>
             </Update>
-            <Delete>
-                <Scope name="internal_humantask_view"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_humantask_view"/>
-            </Create>
             <Read>
-                <Scope name="internal_humantask_view"/>
+                <Scope name="internal_approval_task_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

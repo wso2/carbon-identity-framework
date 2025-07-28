@@ -676,14 +676,8 @@
         <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
             <Scopes>internal_approval_task_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="POST">
-            <Scopes>internal_approval_task_create</Scopes>
-        </Resource>
         <Resource context="(.*)/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_approval_task_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_approval_task_delete</Scopes>
         </Resource>
 
         <!-- Me APIs -->

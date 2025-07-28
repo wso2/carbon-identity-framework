@@ -1763,17 +1763,13 @@
                    description="Delete workflow association"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Task API" identifier="/me/approval-tasks" requiresAuthorization="true"
+    <APIResource name="Workflow Approval Task API" identifier="/api/users/v1/me/approval-tasks" requiresAuthorization="false"
                  description="API representation of the workflow approval task API" type="TENANT">
         <Scopes>
             <Scope displayName="View Workflow Approval Task" name="internal_approval_task_view"
                    description="View workflow approvals Tasks"/>
-            <Scope displayName="Create Workflow Approval Task" name="internal_approval_task_create"
-                   description="Create new workflow approval Tasks"/>
             <Scope displayName="Update Workflow Approval Task" name="internal_approval_task_update"
                    description="Update workflow approval Tasks"/>
-            <Scope displayName="Delete Workflow Approval Task" name="internal_approval_task_delete"
-                   description="Delete workflow approval Tasks"/>
         </Scopes>
     </APIResource>
 </APIResources>
