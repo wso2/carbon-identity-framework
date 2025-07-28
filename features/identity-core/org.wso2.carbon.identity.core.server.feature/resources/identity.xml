@@ -1466,14 +1466,12 @@
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
                        orderId="10"
-                       enable="true">
-        </EventListener>
+                       enable="true"/>
         <EventListener id="identity_role_workflow_operation"
                        type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
                        name="org.wso2.carbon.user.mgt.workflow.userstore.RoleManagementActionListener"
                        orderId="11"
-                       enable="true">
-        </EventListener>
+                       enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
