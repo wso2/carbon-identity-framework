@@ -57,6 +57,15 @@ public class OperationComparator {
                     performableOperationBasePath.equals(allowedPath)) {
                 return true;
             }
+
+            //Validate if the allowed path contains a wildcard '*'
+            if (allowedPath.contains("*")) {
+
+                String regex = allowedPath.replace("*", "\\d+");
+                if (performableOp.getPath().matches(regex)) {
+                    return true;
+                }
+            }
         }
 
         return false;

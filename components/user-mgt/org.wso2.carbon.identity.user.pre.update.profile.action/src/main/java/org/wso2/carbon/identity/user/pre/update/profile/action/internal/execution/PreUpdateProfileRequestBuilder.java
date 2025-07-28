@@ -23,10 +23,13 @@ import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRe
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
+import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -64,6 +67,9 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
 
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
     private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
+    public static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
+    public static final String USER_CLAIMS_VALUE_PATH_PREFIX = "/user/claims/*/value";
+    public static final String MULTI_VALUED_USER_CLAIMS_VALUE_PATH_PREFIX = "/user/claims/*/value/*";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -79,11 +85,50 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         UserActionContext userActionContext =
                 flowContext.getValue(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY, UserActionContext.class);
         PreUpdateProfileAction preUpdateProfileAction = (PreUpdateProfileAction) actionExecutionContext.getAction();
+        Event event  = getEvent(userActionContext, preUpdateProfileAction);
 
         return new ActionExecutionRequest.Builder()
                 .actionType(getSupportedActionType())
-                .event(getEvent(userActionContext, preUpdateProfileAction))
+                .event(event)
+                .allowedOperations(getAllowedOperations(event))
                 .build();
+    }
+
+    private List<AllowedOperation> getAllowedOperations(Event event) throws ActionExecutionRequestBuilderException {
+
+        List<String> removeOrAddPaths = new ArrayList<>();
+        List<String> replacePaths = new ArrayList<>();
+        if (!event.getUser().getClaims().isEmpty()) {
+            removeOrAddPaths.add(USER_CLAIMS_PATH_PREFIX);
+            replacePaths.add(USER_CLAIMS_VALUE_PATH_PREFIX);
+            if (hasMultiValuedClaims(event.getUser().getClaims())) {
+                removeOrAddPaths.add(MULTI_VALUED_USER_CLAIMS_VALUE_PATH_PREFIX);
+                replacePaths.add(MULTI_VALUED_USER_CLAIMS_VALUE_PATH_PREFIX);
+            }
+        }
+
+        return Arrays.asList(
+                createAllowedOperation(Operation.ADD, removeOrAddPaths),
+                createAllowedOperation(Operation.REMOVE, removeOrAddPaths),
+                createAllowedOperation(Operation.REPLACE, replacePaths));
+    }
+
+    private boolean hasMultiValuedClaims(List<UserClaim> claims) throws ActionExecutionRequestBuilderException {
+
+        for (UserClaim claim : claims) {
+            if (isMultiValuedClaim(claim.getUri())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private AllowedOperation createAllowedOperation(Operation op, List<String> paths) {
+
+        AllowedOperation operation = new AllowedOperation();
+        operation.setOp(op);
+        operation.setPaths(new ArrayList<>(paths));
+        return operation;
     }
 
     private Event getEvent(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction)
