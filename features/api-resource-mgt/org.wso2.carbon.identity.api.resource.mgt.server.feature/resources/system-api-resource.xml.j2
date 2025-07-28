@@ -129,6 +129,20 @@
                    description="Delete actions"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Action Management API" identifier="/o/api/server/v1/actions"
+                 requiresAuthorization="true"
+                 description="API representation of the Action Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Create Action" name="internal_org_action_mgt_create"
+                   description="Create new actions in the organization"/>
+            <Scope displayName="Update Action" name="internal_org_action_mgt_update"
+                   description="Update actions in the organization"/>
+            <Scope displayName="View Action" name="internal_org_action_mgt_view"
+                   description="View actions in the organization"/>
+            <Scope displayName="Delete Action" name="internal_org_action_mgt_delete"
+                   description="Delete actions in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">

@@ -1785,4 +1785,28 @@
             </Delete>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_actions" displayName="Actions" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:actions"/>
+                <Scope name="console:org:actions_view"/>
+                <Scope name="console:org:actions_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_action_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_action_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_action_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_action_mgt_view"/>
+                <Scope name="internal_org_rule_metadata_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
 </APIResourceCollections>
