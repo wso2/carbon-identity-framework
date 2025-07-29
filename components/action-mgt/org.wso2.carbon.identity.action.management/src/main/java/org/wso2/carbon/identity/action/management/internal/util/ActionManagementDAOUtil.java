@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.internal.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
@@ -28,8 +29,10 @@ import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -117,5 +120,39 @@ public class ActionManagementDAOUtil {
         }
 
         return builder.build();
+    }
+
+    /**
+     * Builds a map of ActionProperty objects from the given EndpointConfig.
+     * This includes properties such as URI, authentication type, allowed headers, and allowed parameters.
+     *
+     * @param updatingEndpoint The EndpointConfig containing the updated endpoint properties.
+     * @return A map of ActionProperty objects representing the updated endpoint properties.
+     * @throws ActionMgtServerException If an error occurs while processing the endpoint properties.
+     */
+    public Map<String, ActionProperty> getUpdatingEndpointProperties(EndpointConfig updatingEndpoint)
+            throws ActionMgtServerException {
+
+        Map<String, ActionProperty> updatingEndpointProperties = new HashMap<>();
+
+        updatingEndpointProperties.put(ActionMgtConstants.URI_PROPERTY, new ActionProperty.BuilderForDAO(
+                updatingEndpoint.getUri()).build());
+        updatingEndpointProperties.put(ActionMgtConstants.AUTHN_TYPE_PROPERTY, new ActionProperty.BuilderForDAO(
+                updatingEndpoint.getAuthentication().getType().name()).build());
+
+        updatingEndpoint.getAuthentication().getProperties().forEach(authProperty ->
+                updatingEndpointProperties.put(authProperty.getName(),
+                        new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
+        // Allowed headers and parameters are optional properties.
+        if (CollectionUtils.isNotEmpty(updatingEndpoint.getAllowedHeaders())) {
+            updatingEndpointProperties.put(ActionMgtConstants.ALLOWED_HEADERS_PROPERTY,
+                    buildActionPropertyFromList(updatingEndpoint.getAllowedHeaders()));
+        }
+        if (CollectionUtils.isNotEmpty(updatingEndpoint.getAllowedParameters())) {
+            updatingEndpointProperties.put(ActionMgtConstants.ALLOWED_PARAMETERS_PROPERTY,
+                    buildActionPropertyFromList(updatingEndpoint.getAllowedParameters()));
+        }
+
+        return updatingEndpointProperties;
     }
 }

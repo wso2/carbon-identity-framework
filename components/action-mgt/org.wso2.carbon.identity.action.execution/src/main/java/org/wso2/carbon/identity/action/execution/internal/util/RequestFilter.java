@@ -100,7 +100,8 @@ public class RequestFilter {
     public static List<Param> getFilteredParams(List<Param> requestParameters, List<String> allowedParamsInAction,
                                                 ActionType actionType) {
 
-        Set<String> allowedParamsInServer = ActionExecutorConfig.getInstance().getAllowedParamsForActionType(actionType);
+        Set<String> allowedParamsInServer = ActionExecutorConfig.getInstance()
+                .getAllowedParamsForActionType(actionType);
         Set<String> excludedParamsInServer = ActionExecutorConfig.getInstance()
                 .getExcludedParamsInActionRequestForActionType(actionType);
 

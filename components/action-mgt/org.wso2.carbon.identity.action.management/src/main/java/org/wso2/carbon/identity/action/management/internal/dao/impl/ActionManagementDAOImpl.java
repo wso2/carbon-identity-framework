@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.management.internal.dao.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -32,6 +31,7 @@ import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.internal.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
@@ -55,11 +55,6 @@ import java.util.stream.Collectors;
 public class ActionManagementDAOImpl implements ActionManagementDAO {
 
     private static final String V1 = "1.0.0";
-    private static final String URI_PROPERTY = "uri";
-    private static final String AUTHN_TYPE_PROPERTY = "authnType";
-    private static final String ALLOWED_HEADERS_PROPERTY = "allowedHeaders";
-    private static final String ALLOWED_PARAMETERS_PROPERTY = "allowedParameters";
-    private static final String RULE_PROPERTY = "rule";
 
     private static final ActionManagementDAOUtil actionMgtDAOUtil = new ActionManagementDAOUtil();
 
@@ -312,20 +307,21 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         EndpointConfig endpoint = actionDTO.getEndpoint();
         Map<String, ActionProperty> endpointProperties = new HashMap<>();
         try {
-            endpointProperties.put(URI_PROPERTY, new ActionProperty.BuilderForDAO(endpoint.getUri()).build());
-            endpointProperties.put(AUTHN_TYPE_PROPERTY, new ActionProperty.BuilderForDAO(endpoint.getAuthentication()
-                    .getType().name()).build());
+            endpointProperties.put(ActionMgtConstants.URI_PROPERTY, new ActionProperty.BuilderForDAO(
+                    endpoint.getUri()).build());
+            endpointProperties.put(ActionMgtConstants.AUTHN_TYPE_PROPERTY, new ActionProperty.BuilderForDAO(
+                    endpoint.getAuthentication().getType().name()).build());
+
             endpoint.getAuthentication().getProperties().forEach(
                     authProperty -> endpointProperties.put(authProperty.getName(),
                             new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
-
             // Allowed headers and parameters are optional properties.
             if (endpoint.getAllowedHeaders() != null) {
-                endpointProperties.put(ALLOWED_HEADERS_PROPERTY,
+                endpointProperties.put(ActionMgtConstants.ALLOWED_HEADERS_PROPERTY,
                         actionMgtDAOUtil.buildActionPropertyFromList(endpoint.getAllowedHeaders()));
             }
             if (endpoint.getAllowedParameters() != null) {
-                endpointProperties.put(ALLOWED_PARAMETERS_PROPERTY,
+                endpointProperties.put(ActionMgtConstants.ALLOWED_PARAMETERS_PROPERTY,
                         actionMgtDAOUtil.buildActionPropertyFromList(endpoint.getAllowedParameters()));
             }
 
@@ -358,28 +354,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             EndpointConfig updatingEndpoint = actionMgtDAOUtil.buildUpdatingEndpointConfig(
                     updatingActionDTO.getEndpoint(),
                     existingActionDTO.getEndpoint());
-
-            Map<String, ActionProperty> updatingEndpointProperties = new HashMap<>();
+            Map<String, ActionProperty> updatingEndpointProperties = actionMgtDAOUtil.getUpdatingEndpointProperties(
+                    updatingEndpoint);
             try {
-                updatingEndpointProperties.put(URI_PROPERTY, new ActionProperty.BuilderForDAO(
-                        updatingEndpoint.getUri()).build());
-                updatingEndpointProperties.put(AUTHN_TYPE_PROPERTY, new ActionProperty.BuilderForDAO(
-                        updatingEndpoint.getAuthentication().getType().name()).build());
-
-                updatingEndpoint.getAuthentication().getProperties().forEach(authProperty ->
-                        updatingEndpointProperties.put(authProperty.getName(),
-                                new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
-                // Allowed headers and parameters are optional properties.
-                if (CollectionUtils.isNotEmpty(updatingEndpoint.getAllowedHeaders())) {
-                    updatingEndpointProperties.put(ALLOWED_HEADERS_PROPERTY,
-                            actionMgtDAOUtil.buildActionPropertyFromList(updatingEndpoint.getAllowedHeaders()));
-                }
-                if (CollectionUtils.isNotEmpty(updatingEndpoint.getAllowedParameters())) {
-                    updatingEndpointProperties.put(ALLOWED_PARAMETERS_PROPERTY,
-                            actionMgtDAOUtil.buildActionPropertyFromList(updatingEndpoint.getAllowedParameters()));
-                }
-
-                // Adds the updated values to the DB
                 addActionPropertiesToDB(existingActionDTO.getId(), updatingEndpointProperties, tenantId);
             } catch (TransactionException e) {
                 throw new ActionMgtServerException(
@@ -402,13 +379,13 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             throws ActionMgtServerException {
 
         List<String> deletingProperties = new ArrayList<>();
-        deletingProperties.add(URI_PROPERTY);
+        deletingProperties.add(ActionMgtConstants.URI_PROPERTY);
 
         if (deletingEndpoint.getAllowedHeaders() != null) {
-            deletingProperties.add(ALLOWED_HEADERS_PROPERTY);
+            deletingProperties.add(ActionMgtConstants.ALLOWED_HEADERS_PROPERTY);
         }
         if (deletingEndpoint.getAllowedParameters() != null) {
-            deletingProperties.add(ALLOWED_PARAMETERS_PROPERTY);
+            deletingProperties.add(ActionMgtConstants.ALLOWED_PARAMETERS_PROPERTY);
         }
 
         List<String> deletingAuthProperties = deletingEndpoint.getAuthentication().getProperties().stream()
@@ -416,7 +393,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 .collect(Collectors.toList());
 
         deletingProperties.addAll(deletingAuthProperties);
-        deletingProperties.add(AUTHN_TYPE_PROPERTY);
+        deletingProperties.add(ActionMgtConstants.AUTHN_TYPE_PROPERTY);
 
         try {
             deleteActionPropertiesInDB(actionId, deletingProperties, tenantId);
@@ -429,8 +406,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             throws ActionMgtException {
 
         Authentication authentication;
-        Authentication.Type authnType =
-                Authentication.Type.valueOfName(propertiesFromDB.remove(AUTHN_TYPE_PROPERTY).getValue().toString());
+        Authentication.Type authnType = Authentication.Type.valueOfName(propertiesFromDB.remove(
+                ActionMgtConstants.AUTHN_TYPE_PROPERTY).getValue().toString());
         switch (authnType) {
             case BASIC:
                 authentication = new Authentication.BasicAuthBuilder(
@@ -457,11 +434,10 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         EndpointConfig.EndpointConfigBuilder endpointBuilder = new EndpointConfig.EndpointConfigBuilder();
 
-        // Updates optional allowed headers and parameters
         List<String> allowedHeaders = actionMgtDAOUtil
-                .readDBListProperty(propertiesFromDB, ALLOWED_HEADERS_PROPERTY);
+                .readDBListProperty(propertiesFromDB, ActionMgtConstants.ALLOWED_HEADERS_PROPERTY);
         List<String> allowedParameters = actionMgtDAOUtil
-                .readDBListProperty(propertiesFromDB, ALLOWED_PARAMETERS_PROPERTY);
+                .readDBListProperty(propertiesFromDB, ActionMgtConstants.ALLOWED_PARAMETERS_PROPERTY);
         if (!allowedHeaders.isEmpty()) {
             endpointBuilder = endpointBuilder.allowedHeaders(allowedHeaders);
         }
@@ -470,7 +446,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
 
         return endpointBuilder
-                .uri(propertiesFromDB.remove(URI_PROPERTY).getValue().toString())
+                .uri(propertiesFromDB.remove(ActionMgtConstants.URI_PROPERTY).getValue().toString())
                 .authentication(authentication)
                 .build();
     }
@@ -481,7 +457,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return;
         }
 
-        Map<String, ActionProperty> propertiesMap = Collections.singletonMap(RULE_PROPERTY,
+        Map<String, ActionProperty> propertiesMap = Collections.singletonMap(ActionMgtConstants.RULE_PROPERTY,
                 new ActionProperty.BuilderForDAO(actionDTO.getActionRule().getId()).build());
         try {
             addActionPropertiesToDB(actionDTO.getId(), propertiesMap, tenantId);
@@ -512,7 +488,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         try {
             deleteActionPropertiesInDB(actionDTO.getId(),
-                    Collections.singletonList(RULE_PROPERTY), tenantId);
+                    Collections.singletonList(ActionMgtConstants.RULE_PROPERTY), tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while removing the reference for the Rule in Action.", e);
         }
@@ -520,11 +496,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
     private ActionRule populateRule(Map<String, ActionProperty> propertiesFromDB, Integer tenantId) {
 
-        if (!propertiesFromDB.containsKey(RULE_PROPERTY)) {
+        if (!propertiesFromDB.containsKey(ActionMgtConstants.RULE_PROPERTY)) {
             return null;
         }
 
-        return ActionRule.create(propertiesFromDB.remove(RULE_PROPERTY).getValue().toString(),
+        return ActionRule.create(propertiesFromDB.remove(ActionMgtConstants.RULE_PROPERTY).getValue().toString(),
                 IdentityTenantUtil.getTenantDomain(tenantId));
     }
 

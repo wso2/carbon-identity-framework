@@ -30,7 +30,18 @@ import java.util.List;
  */
 public class ActionManagementConfig {
 
+    private static final ActionManagementConfig INSTANCE = new ActionManagementConfig();
+
     private static final Log LOG = LogFactory.getLog(ActionManagementConfig.class);
+
+    private ActionManagementConfig() {
+
+    }
+
+    public static ActionManagementConfig getInstance() {
+
+        return INSTANCE;
+    }
 
     /**
      * Retrieves the property values for a given property key from the identity configuration of the server.

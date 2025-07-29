@@ -34,6 +34,12 @@ public class ActionMgtConstants {
     public static final String ALLOWED_HEADERS_FIELD = "Allowed headers";
     public static final String ALLOWED_PARAMETERS_FIELD = "Allowed parameters";
 
+    public static final String URI_PROPERTY = "uri";
+    public static final String AUTHN_TYPE_PROPERTY = "authnType";
+    public static final String ALLOWED_HEADERS_PROPERTY = "allowedHeaders";
+    public static final String ALLOWED_PARAMETERS_PROPERTY = "allowedParameters";
+    public static final String RULE_PROPERTY = "rule";
+
     private ActionMgtConstants() {
     }
 }

@@ -33,8 +33,6 @@ import java.util.regex.Pattern;
  */
 public class ActionValidator {
 
-    private static final ActionManagementConfig ACTION_MGT_CONFIG = new ActionManagementConfig();
-
     private static final String ACTION_NAME_REGEX = "^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$";
     private static final String ENDPOINT_URI_REGEX = "^https?://[^\\s/$.?#]\\S*";
     // According to RFC 9910 a header name must contain only alphanumeric characters, period (.) and hyphen (-),
@@ -174,7 +172,7 @@ public class ActionValidator {
      */
     private void validateAllowedHeaders(List<String> allowedHeadersInAction) throws ActionMgtClientException {
 
-        List<String> excludedHeadersServerConfig = ACTION_MGT_CONFIG.getPropertyValues(
+        List<String> excludedHeadersServerConfig = ActionManagementConfig.getInstance().getPropertyValues(
                 ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
         boolean hasExcluded = allowedHeadersInAction.stream().anyMatch(excludedHeadersServerConfig::contains);
         if (hasExcluded) {
@@ -190,7 +188,7 @@ public class ActionValidator {
      */
     private void validateAllowedParameters(List<String> allowedParametersInAction) throws ActionMgtClientException {
 
-        List<String> excludedParamsServerConfig = ACTION_MGT_CONFIG.getPropertyValues(
+        List<String> excludedParamsServerConfig = ActionManagementConfig.getInstance().getPropertyValues(
                 ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
         boolean hasExcluded = allowedParametersInAction.stream()
                 .anyMatch(excludedParamsServerConfig::contains);
