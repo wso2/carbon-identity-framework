@@ -74,8 +74,8 @@ public class ConfigurationUtilsTest {
                 .thenReturn(true);
         identityDatabaseUtilMockedStatic.when(() -> IdentityDatabaseUtil.isTableExists("IDN_CONFIG_RESOURCE"))
                 .thenReturn(true);
-        identityDatabaseUtilMockedStatic.when(() -> IdentityDatabaseUtil.isTableExists("IDN_CONFIG_ATTRIBUTE"))
-                .thenReturn(true);
+        identityDatabaseUtilMockedStatic.when(() ->
+                        IdentityDatabaseUtil.isTableExists("IDN_CONFIG_ATTRIBUTE")).thenReturn(true);
         identityDatabaseUtilMockedStatic.when(() -> IdentityDatabaseUtil.isTableExists("IDN_CONFIG_FILE"))
                 .thenReturn(true);
 
@@ -90,8 +90,8 @@ public class ConfigurationUtilsTest {
                 .thenReturn(true);
         identityDatabaseUtilMockedStatic.when(() -> IdentityDatabaseUtil.isTableExists("IDN_CONFIG_RESOURCE"))
                 .thenReturn(true);
-        identityDatabaseUtilMockedStatic.when(() -> IdentityDatabaseUtil.isTableExists("IDN_CONFIG_ATTRIBUTE"))
-                .thenReturn(false);
+        identityDatabaseUtilMockedStatic.when(() ->
+                        IdentityDatabaseUtil.isTableExists("IDN_CONFIG_ATTRIBUTE")).thenReturn(false);
         identityDatabaseUtilMockedStatic.when(() -> IdentityDatabaseUtil.isTableExists("IDN_CONFIG_FILE"))
                 .thenReturn(true);
 
@@ -274,7 +274,6 @@ public class ConfigurationUtilsTest {
 
         dataHolderMockedStatic.when(() -> ConfigurationManagerComponentDataHolder.setUseCreatedTime(false))
                 .thenAnswer(invocation -> null);
-
 
         ConfigurationUtils.setUseCreatedTime();
         dataHolderMockedStatic.verify(() -> ConfigurationManagerComponentDataHolder.setUseCreatedTime(false));
