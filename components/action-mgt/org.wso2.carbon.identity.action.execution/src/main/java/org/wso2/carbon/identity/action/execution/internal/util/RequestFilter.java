@@ -18,13 +18,16 @@
 
 package org.wso2.carbon.identity.action.execution.internal.util;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Header;
 import org.wso2.carbon.identity.action.execution.api.model.Param;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,32 +45,31 @@ public class RequestFilter {
      * If allowed headers per action have been configured, then the server config will be ignored.
      * List of excluded headers can be configured only at server level. These will be filtered out from the
      * list of allowed headers.
-     *
-     * @param requestHeaders Request headers.
+     * @param requestHeaders         Request headers.
      * @param allowedHeadersInAction Allowed headers configured for the action.
-     * @param actionType Action type.
+     * @param actionType             Action type.
      * @return A list of filtered headers.
      */
     public static List<Header> getFilteredHeaders(List<Header> requestHeaders, List<String> allowedHeadersInAction,
                                                   ActionType actionType) {
 
-        Set<String> serverAllowedHeaders = ActionExecutorConfig.getInstance()
-                .getAllowedHeadersForActionType(actionType);
-        Set<String> serverExcludedHeaders = ActionExecutorConfig.getInstance()
-                .getExcludedHeadersInActionRequestForActionType(actionType);
+        Set<String> allowedHeadersInServer = Optional.ofNullable(ActionExecutorConfig.getInstance()
+                .getAllowedHeadersForActionType(actionType)).orElse(Collections.emptySet());
+        Set<String> excludedHeadersInServer = Optional.ofNullable(ActionExecutorConfig.getInstance()
+                .getExcludedHeadersInActionRequestForActionType(actionType)).orElse(Collections.emptySet());
 
-        boolean hasServerAllowedHeaders = !serverAllowedHeaders.isEmpty();
-        boolean hasActionAllowedHeaders = !allowedHeadersInAction.isEmpty();
+        boolean hasServerAllowedHeaders = CollectionUtils.isNotEmpty(allowedHeadersInServer);
+        boolean hasActionAllowedHeaders = CollectionUtils.isNotEmpty(allowedHeadersInAction);
 
         // Filter out allowed headers at action level and server level.
         Set<String> allowedHeaders = new HashSet<>();
         if (hasActionAllowedHeaders) {
             allowedHeaders.addAll(allowedHeadersInAction);
         } else if (hasServerAllowedHeaders) {
-            allowedHeaders.addAll(serverAllowedHeaders);
+            allowedHeaders.addAll(allowedHeadersInServer);
         }
         // Filter out excluded headers configured at server level.
-        allowedHeaders.removeAll(serverExcludedHeaders);
+        allowedHeaders.removeAll(excludedHeadersInServer);
 
         // Normalize final headers to lower case
         // Header Fields should be case-insensitive - RFC 7230
@@ -85,34 +87,34 @@ public class RequestFilter {
 
     /**
      * Filters request parameters based on the allowedParameters and excludedParameters configured.
-     *
+
      * List of allowed parameters can be configured per action or globally at server level.
      * If allowed parameters per action have been configured, then the server config will be ignored.
      * List of excluded parameters can be configured only at server level. These will be filtered out from the
      * list of allowed parameters.
-     * @param requestParameters Request parameters.
-     * @param allowedParametersInAction Allowed parameters configured for the action.
-     * @param actionType Action type.
+     * @param requestParameters     Request parameters.
+     * @param allowedParamsInAction Allowed parameters configured for the action.
+     * @param actionType            Action type.
      * @return A list of filtered parameters.
      */
-    public static List<Param> getFilteredParams(List<Param> requestParameters, List<String> allowedParametersInAction,
+    public static List<Param> getFilteredParams(List<Param> requestParameters, List<String> allowedParamsInAction,
                                                 ActionType actionType) {
 
-        Set<String> serverAllowedParams = ActionExecutorConfig.getInstance().getAllowedParamsForActionType(actionType);
-        Set<String> serverExcludedParams = ActionExecutorConfig.getInstance()
+        Set<String> allowedParamsInServer = ActionExecutorConfig.getInstance().getAllowedParamsForActionType(actionType);
+        Set<String> excludedParamsInServer = ActionExecutorConfig.getInstance()
                 .getExcludedParamsInActionRequestForActionType(actionType);
 
-        boolean hasServerAllowedParams = !serverAllowedParams.isEmpty();
-        boolean hasActionAllowedParams = !allowedParametersInAction.isEmpty();
+        boolean hasServerAllowedParams = CollectionUtils.isNotEmpty(allowedParamsInServer);
+        boolean hasActionAllowedParams = CollectionUtils.isNotEmpty(allowedParamsInAction);
 
         Set<String> allAllowedParamsSet = new HashSet<>();
         if (hasActionAllowedParams) {
-            allAllowedParamsSet.addAll(allowedParametersInAction);
+            allAllowedParamsSet.addAll(allowedParamsInAction);
         } else if (hasServerAllowedParams) {
-            allAllowedParamsSet.addAll(serverAllowedParams);
+            allAllowedParamsSet.addAll(allowedParamsInServer);
         }
         // Filter out excluded parameters configured at server level.
-        allAllowedParamsSet.removeAll(serverExcludedParams);
+        allAllowedParamsSet.removeAll(excludedParamsInServer);
 
         return requestParameters.stream()
                 .filter(param -> allAllowedParamsSet.contains(param.getName()))

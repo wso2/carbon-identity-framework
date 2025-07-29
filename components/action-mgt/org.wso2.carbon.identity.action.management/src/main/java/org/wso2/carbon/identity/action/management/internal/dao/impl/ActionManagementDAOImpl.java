@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.internal.dao.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -352,35 +353,34 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
 
         try {
-            // Deletes existing endpoint config.
-            deleteEndpoint(existingActionDTO.getId(), existingActionDTO.getEndpoint(), tenantId);
+            deleteExistingEndpoint(existingActionDTO.getId(), existingActionDTO.getEndpoint(), tenantId);
 
-            ActionDTO actionDTO = actionMgtDAOUtil.buildActionDTOWithEndpoint(updatingActionDTO, existingActionDTO);
-            EndpointConfig updatingEndpoint = actionDTO.getEndpoint();
+            EndpointConfig updatingEndpoint = actionMgtDAOUtil.buildUpdatingEndpointConfig(
+                    updatingActionDTO.getEndpoint(),
+                    existingActionDTO.getEndpoint());
 
             Map<String, ActionProperty> updatingEndpointProperties = new HashMap<>();
             try {
-                updatingEndpointProperties.put(URI_PROPERTY,
-                        new ActionProperty.BuilderForDAO(updatingEndpoint.getUri()).build());
-                updatingEndpointProperties.put(AUTHN_TYPE_PROPERTY,
-                        new ActionProperty.BuilderForDAO(
-                                updatingEndpoint.getAuthentication().getType().name()).build());
+                updatingEndpointProperties.put(URI_PROPERTY, new ActionProperty.BuilderForDAO(
+                        updatingEndpoint.getUri()).build());
+                updatingEndpointProperties.put(AUTHN_TYPE_PROPERTY, new ActionProperty.BuilderForDAO(
+                        updatingEndpoint.getAuthentication().getType().name()).build());
+
                 updatingEndpoint.getAuthentication().getProperties().forEach(authProperty ->
                         updatingEndpointProperties.put(authProperty.getName(),
                                 new ActionProperty.BuilderForDAO(authProperty.getValue()).build()));
-
                 // Allowed headers and parameters are optional properties.
-                if (updatingEndpoint.getAllowedHeaders() != null) {
+                if (CollectionUtils.isNotEmpty(updatingEndpoint.getAllowedHeaders())) {
                     updatingEndpointProperties.put(ALLOWED_HEADERS_PROPERTY,
                             actionMgtDAOUtil.buildActionPropertyFromList(updatingEndpoint.getAllowedHeaders()));
                 }
-                if (updatingEndpoint.getAllowedParameters() != null) {
+                if (CollectionUtils.isNotEmpty(updatingEndpoint.getAllowedParameters())) {
                     updatingEndpointProperties.put(ALLOWED_PARAMETERS_PROPERTY,
                             actionMgtDAOUtil.buildActionPropertyFromList(updatingEndpoint.getAllowedParameters()));
                 }
 
                 // Adds the updated values to the DB
-                addActionPropertiesToDB(actionDTO.getId(), updatingEndpointProperties, tenantId);
+                addActionPropertiesToDB(existingActionDTO.getId(), updatingEndpointProperties, tenantId);
             } catch (TransactionException e) {
                 throw new ActionMgtServerException(
                         "Error while adding Action Endpoint configurations in the system.", e);
@@ -398,7 +398,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param tenantId         Tenant ID.
      * @throws ActionMgtServerException If an error occurs while deleting the endpoint configuration.
      */
-    private void deleteEndpoint(String actionId, EndpointConfig deletingEndpoint, Integer tenantId)
+    private void deleteExistingEndpoint(String actionId, EndpointConfig deletingEndpoint, Integer tenantId)
             throws ActionMgtServerException {
 
         List<String> deletingProperties = new ArrayList<>();
@@ -583,47 +583,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @throws TransactionException If an error occurs while persisting action properties to the database.
      */
     private void addActionPropertiesToDB(String actionId, Map<String, ActionProperty> actionProperties,
-                                         Integer tenantId) throws TransactionException {
-
-        boolean isPropertyValueColumnExists  = isPropertyValueColumnExists();
-        String query = isPropertyValueColumnExists ? ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES
-                : ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES_WITH_PRIMITIVE_VALUE_COLUMN;
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.withTransaction(template -> {
-            template.executeBatchInsert(query,
-                    statement -> {
-                        for (Map.Entry<String, ActionProperty> property : actionProperties.entrySet()) {
-                            boolean isPrimitive = property.getValue().isPrimitive();
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
-                            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
-                                    property.getKey());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_TYPE,
-                                    property.getValue().getType().toString());
-                            if (isPrimitive) {
-                                statement.setString(isPropertyValueColumnExists ?
-                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
-                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
-                                        property.getValue().getValue().toString());
-                                statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
-                                        null, 0);
-                            } else {
-                                BinaryObject binaryObject = (BinaryObject) property.getValue().getValue();
-                                statement.setNull(isPropertyValueColumnExists ?
-                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
-                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
-                                        java.sql.Types.VARCHAR);
-                                statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
-                                        binaryObject.getInputStream(), binaryObject.getLength());
-                            }
-                            statement.addBatch();
-                        }
-                    }, null);
-            return null;
-        });
-    }
-
-    private void addActionEndpointPropertiesToDB(String actionId, Map<String, ActionProperty> actionProperties,
                                          Integer tenantId) throws TransactionException {
 
         boolean isPropertyValueColumnExists  = isPropertyValueColumnExists();

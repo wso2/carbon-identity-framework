@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
-import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
@@ -89,36 +88,34 @@ public class ActionManagementDAOUtil {
     }
 
     /**
-     * Builds an updated Action DTO by merging the updated endpoint configuration with the existing action.
+     * Builds an updated EndpointConfig by merging the updated endpoint configuration with the existing endpoint.
      *
-     * @param updatingActionDTO Updating Action DTO.
-     * @param existingActionDTO Existing Action DTO.
-     * @return Resolved Action DTO with the updated endpoint config.
+     * @param updatingEndpoint  The EndpointConfig containing the updated values.
+     * @param existingEndpoint  The existing EndpointConfig to be updated.
+     * @return Resolved EndpointConfig with the merged configuration.
      */
-    public ActionDTO buildActionDTOWithEndpoint(ActionDTO updatingActionDTO, ActionDTO existingActionDTO) {
+    public EndpointConfig buildUpdatingEndpointConfig(EndpointConfig updatingEndpoint,
+                                                      EndpointConfig existingEndpoint) {
 
-        ActionDTOBuilder builder = new ActionDTOBuilder(existingActionDTO);
-        EndpointConfig.EndpointConfigBuilder endpointBuilder =
-                new EndpointConfig.EndpointConfigBuilder(existingActionDTO.getEndpoint());
+        EndpointConfig.EndpointConfigBuilder builder =
+                new EndpointConfig.EndpointConfigBuilder(existingEndpoint);
 
-        EndpointConfig updatingEndpoint = updatingActionDTO.getEndpoint();
         if (updatingEndpoint.getUri() != null) {
-            endpointBuilder.uri(updatingEndpoint.getUri());
+            builder.uri(updatingEndpoint.getUri());
         }
         if (updatingEndpoint.getAllowedHeaders() != null) {
-            endpointBuilder.allowedHeaders(updatingEndpoint.getAllowedHeaders());
+            builder.allowedHeaders(updatingEndpoint.getAllowedHeaders());
         }
         if (updatingEndpoint.getAllowedParameters() != null) {
-            endpointBuilder.allowedParameters(updatingEndpoint.getAllowedParameters());
+            builder.allowedParameters(updatingEndpoint.getAllowedParameters());
         }
 
         // If endpoint authentication is updated.
         Authentication updatingAuthentication = updatingEndpoint.getAuthentication();
         if (updatingAuthentication != null) {
-            endpointBuilder = endpointBuilder.authentication(updatingAuthentication);
+            builder = builder.authentication(updatingAuthentication);
         }
 
-        builder = builder.endpoint(endpointBuilder.build());
         return builder.build();
     }
 }
