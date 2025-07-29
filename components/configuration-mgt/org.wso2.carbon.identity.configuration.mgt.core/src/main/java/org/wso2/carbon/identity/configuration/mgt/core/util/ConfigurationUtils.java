@@ -209,11 +209,19 @@ public class ConfigurationUtils {
                 // Following statement will throw SQLException if the column is not found
                 resultSet.findColumn(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
                 // If we are here then the column exists.
+                log.debug("CREATED_TIME field exists in IDN_CONFIG_RESOURCE table.");
                 return true;
             } catch (SQLException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("CREATED_TIME field does not exist in IDN_CONFIG_RESOURCE table.", e);
+                }
                 return false;
             }
         } catch (IdentityRuntimeException | SQLException | DataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while checking if CREATED_TIME field exists in IDN_CONFIG_RESOURCE table.",
+                        e);
+            }
             return false;
         }
     }

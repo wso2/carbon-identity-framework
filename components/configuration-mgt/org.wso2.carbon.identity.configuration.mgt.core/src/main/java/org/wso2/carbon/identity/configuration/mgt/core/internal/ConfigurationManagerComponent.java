@@ -73,7 +73,7 @@ public class ConfigurationManagerComponent {
 
             ConfigurationManagerComponentDataHolder.getInstance()
                     .setConfigurationManagementEnabled(ConfigurationUtils.isConfigurationManagementEnabled());
-            setUseCreatedTime();
+            ConfigurationUtils.setUseCreatedTime();
             ConfigurationManagerConfigurationHolder configurationManagerConfigurationHolder =
                     new ConfigurationManagerConfigurationHolder();
             configurationManagerConfigurationHolder.setConfigurationDAOS(configurationDAOs);
@@ -188,15 +188,5 @@ public class ConfigurationManagerComponent {
     protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
 
         ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(null);
-    }
-
-    private void setUseCreatedTime() throws DataAccessException {
-
-        if (ConfigurationManagerComponentDataHolder.getInstance().isConfigurationManagementEnabled() &&
-                ConfigurationUtils.isCreatedTimeFieldExists()) {
-            ConfigurationManagerComponentDataHolder.setUseCreatedTime(true);
-        } else {
-            ConfigurationManagerComponentDataHolder.setUseCreatedTime(false);
-        }
     }
 }
