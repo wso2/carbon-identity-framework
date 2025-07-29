@@ -21,11 +21,13 @@ package org.wso2.carbon.identity.flow.execution.engine.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.cache.BaseCache;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.store.FlowContextStore;
+
+import java.util.Optional;
 
 /**
  * Cache for FlowExecutionContext.
@@ -36,7 +38,6 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
     private static final Log LOG = LogFactory.getLog(FlowExecCtxCache.class);
     private static final FlowExecCtxCache instance = new FlowExecCtxCache(FLOW_CONTEXT_CACHE_NAME,
             true);
-    private static final String FLOW_EXECUTION_CONTEXT = "FlowExecutionContextObject";
 
     private FlowExecCtxCache(String cacheName, boolean isTemporary) {
 
@@ -62,12 +63,9 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
 
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
         if (tenantName != null) {
-            int tenantId = IdentityTenantUtil.getTenantId(tenantName);
             super.addToCache(key, entry, tenantName);
-            SessionDataStore.getInstance().storeSessionData(
-                    key.getContextId(), FLOW_EXECUTION_CONTEXT , entry, tenantId);
+            FlowContextStore.getInstance().storeContext(entry.getContext());
             LOG.debug("Added FlowExecutionContext to cache for key: " + key);
-
         }
     }
 
@@ -82,12 +80,13 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
         String tenantName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         FlowExecCtxCacheEntry entry = super.getValueFromCache(key, tenantName);
         if (entry == null) {
-            LOG.debug("FlowExecutionContext not found in cache for key: " + key + ". Retrieving from store.");
-            entry = (FlowExecCtxCacheEntry) SessionDataStore.getInstance().getSessionData(key.getContextId()
-                    , FLOW_EXECUTION_CONTEXT);
-            if (entry != null) {
+            Optional<FlowExecutionContext> context = FlowContextStore.getInstance().getContext(key.getContextId());
+            if (context.isPresent()) {
+                entry = new FlowExecCtxCacheEntry(context.get());
                 super.addToCache(key, entry, tenantName);
                 LOG.debug("FlowExecutionContext found in store and added to cache for key: " + key.getContextId());
+            } else {
+                LOG.debug("No valid FlowExecutionContext found for the session data key: " + key.getContextId());
             }
         }
         return entry;
@@ -103,6 +102,6 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
         LOG.debug("Clearing FlowExecutionContext cache entry for key: " + key.getContextId());
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
         super.clearCacheEntry(key, tenantName);
-        SessionDataStore.getInstance().clearSessionData(key.getContextId(), FLOW_EXECUTION_CONTEXT);
+        FlowContextStore.getInstance().deleteContext(key.getContextId());
     }
 }
