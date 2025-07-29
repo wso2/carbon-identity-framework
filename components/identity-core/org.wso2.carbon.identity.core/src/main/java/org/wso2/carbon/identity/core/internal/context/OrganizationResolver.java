@@ -95,7 +95,8 @@ public class OrganizationResolver {
                 resolveRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
                 // Resolve root organization information to the Organization object in tenanted paths.
                 RootOrganization rootOrganization = IdentityContext.getThreadLocalIdentityContext().getRootOrganization();
-                resolveOrganization(rootOrganization.getOrganizationId(), rootOrganization.getAssociatedTenantDomain());
+                resolveRootOrganizationToOrganization(rootOrganization.getOrganizationId(),
+                        rootOrganization.getAssociatedTenantDomain());
             }
         } catch (OrganizationManagementException | UserStoreException e) {
             LOG.error("Error while initializing organization information.", e);
@@ -122,6 +123,25 @@ public class OrganizationResolver {
                 org.wso2.carbon.identity.organization.management.service.util.Utils.getSubOrgStartLevel()) {
             LOG.debug("Organization with id: " + organizationId + " is not a sub organization. " +
                     "Skipping initialization of organization.");
+            return;
+        }
+
+        IdentityContext.getThreadLocalIdentityContext().setOrganization(new Organization.Builder()
+                .id(minimalOrganization.getId())
+                .name(minimalOrganization.getName())
+                .organizationHandle(minimalOrganization.getOrganizationHandle())
+                .parentOrganizationId(minimalOrganization.getParentOrganizationId())
+                .depth(minimalOrganization.getDepth())
+                .build());
+    }
+
+    private void resolveRootOrganizationToOrganization(String organizationId, String associatedTenantDomain)
+            throws OrganizationManagementException {
+
+        MinimalOrganization minimalOrganization = getMinimalOrganization(organizationId, associatedTenantDomain);
+        if (minimalOrganization == null) {
+            LOG.debug("Unable to find an organization for the root organization id: " + organizationId +
+                    ". Cannot initialize organization.");
             return;
         }
 
