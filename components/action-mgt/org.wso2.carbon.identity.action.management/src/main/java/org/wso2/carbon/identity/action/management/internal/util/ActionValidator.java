@@ -38,10 +38,7 @@ public class ActionValidator {
     // According to RFC 9910 a header name must contain only alphanumeric characters, period (.) and hyphen (-),
     // and should start with an alphanumeric character.
     private static final String HEADER_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-.]+$";
-    private static final String GENERAL_DELIMITERS_REGEX = "[:/?#\\[\\]@]";
-
-    // According to RFC 3986 subcomponent-delimiters: ! $ & ' ( ) * + , ; =
-    private static final String SUB_COMPONENT_DELIMETERS = "!$&'()*+,;=";
+    private static final String GENERAL_DELIMITERS_REGEX = ".*[:/?#\\[\\]@].*";
 
     private final Pattern actionNameRegexPattern = Pattern.compile(ACTION_NAME_REGEX);
     private final Pattern endpointUriRegexPattern = Pattern.compile(ENDPOINT_URI_REGEX);
@@ -190,8 +187,7 @@ public class ActionValidator {
 
         List<String> excludedParamsServerConfig = ActionManagementConfig.getInstance().getPropertyValues(
                 ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
-        boolean hasExcluded = allowedParametersInAction.stream()
-                .anyMatch(excludedParamsServerConfig::contains);
+        boolean hasExcluded = allowedParametersInAction.stream().anyMatch(excludedParamsServerConfig::contains);
         if (hasExcluded) {
             throw ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_NOT_ALLOWED_PARAMETER);
         }
@@ -257,7 +253,7 @@ public class ActionValidator {
     }
 
     /**
-     * Validates the provided parameter to ensure it does not contain general delimiters.
+     * Validate the provided parameter to ensure it does not contain general delimiters.
      *
      * @param param The parameter to validate.
      * @throws ActionMgtClientException If the parameter contains general delimiters.
@@ -268,8 +264,7 @@ public class ActionValidator {
 
         if (hasGeneralDelimiters) {
             throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ALLOWED_PARAMETERS_FIELD, param);
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, param);
         }
     }
 }

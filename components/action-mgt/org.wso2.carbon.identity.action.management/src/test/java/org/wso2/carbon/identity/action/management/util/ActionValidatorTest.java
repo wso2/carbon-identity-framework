@@ -180,7 +180,7 @@ public class ActionValidatorTest {
     }
 
     @DataProvider
-    public Object[][] invalidHeaderDataProvider() {
+    public Object[][] invalidHeaderData() {
 
         return new String[][]{
                 {"-test-header"},
@@ -190,8 +190,8 @@ public class ActionValidatorTest {
         };
     }
 
-    @Test(dataProvider = "invalidHeaderDataProvider")
-    public void testIsInvalidHeader(String header) {
+    @Test(dataProvider = "invalidHeaderData")
+    public void testValidateHeaderWithInvalidData(String header) {
 
         try {
             actionValidator.validateHeader(header);
@@ -202,7 +202,7 @@ public class ActionValidatorTest {
     }
 
     @DataProvider
-    public Object[][] validHeaderDataProvider() {
+    public Object[][] validHeaderData() {
 
         return new String[][]{
                 {"test-header"},
@@ -212,34 +212,73 @@ public class ActionValidatorTest {
         };
     }
 
-    @Test(dataProvider = "validHeaderDataProvider")
-    public void testIsValidHeader(String header) throws ActionMgtClientException {
+    @Test(dataProvider = "validHeaderData")
+    public void testValidateHeaderWithValidData(String header) throws ActionMgtClientException {
 
         actionValidator.validateHeader(header);
     }
 
     @DataProvider
-    public Object[][] validateAllowedHeadersDataProvider() {
+    public Object[][] invalidParameterData() {
 
-        List<String> allowedHeadersTest1 = new ArrayList<>();
-        allowedHeadersTest1.add("test-header-1");
-        allowedHeadersTest1.add("test-header-2");
-        allowedHeadersTest1.add("test-header-3");
-
-        List<String> allowedHeadersTest2 = new ArrayList<>();
-        allowedHeadersTest2.add(" ");
-
-        List<String> allowedHeadersTest3 = new ArrayList<>();
-        allowedHeadersTest3.add("test-header-#");
-
-        return new Object[][]{
-                { allowedHeadersTest1,  null},
-                { allowedHeadersTest2, "Allowed headers is empty." },
-                { allowedHeadersTest3, allowedHeadersTest3.get(0) + " is invalid." }
+        return new String[][]{
+                {"test/param"},
+                {":test-param"},
+                {"parameter?"},
+                {"test#param"}
         };
     }
 
-    @Test(dataProvider = "validateAllowedHeadersDataProvider")
+    @Test(dataProvider = "invalidParameterData")
+    public void testValidateParameterWithInvalidData(String parameter) {
+
+        try {
+            actionValidator.validateParameter(parameter);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), parameter + " is invalid.");
+        }
+    }
+
+    @DataProvider
+    public Object[][] validParameterData() {
+
+        return new String[][]{
+                {"test-param"},
+                {"test-param-1"},
+                {"testParam"},
+                {"test param"}
+        };
+    }
+
+    @Test(dataProvider = "validParameterData")
+    public void testValidateParameterWithValidData(String parameter) throws ActionMgtClientException {
+
+        actionValidator.validateParameter(parameter);
+    }
+
+    @DataProvider
+    public Object[][] doValidateAllowedHeadersDataProvider() {
+
+        List<String> allowedHeaderList1 = new ArrayList<>();
+        allowedHeaderList1.add("test-header-1");
+        allowedHeaderList1.add("test-header-2");
+        allowedHeaderList1.add("test-header-3");
+
+        List<String> allowedHeaderList2 = new ArrayList<>();
+        allowedHeaderList2.add(" ");
+
+        List<String> allowedHeaderList3 = new ArrayList<>();
+        allowedHeaderList3.add("test-header-#");
+
+        return new Object[][]{
+                { allowedHeaderList1,  null},
+                { allowedHeaderList2, "Allowed headers is empty." },
+                { allowedHeaderList3, allowedHeaderList3.get(0) + " is invalid." }
+        };
+    }
+
+    @Test(dataProvider = "doValidateAllowedHeadersDataProvider")
     public void testDoValidateAllowedHeaders(List<String> allowedHeadersInAction, String expectedError) {
 
         String propertyKey = ActionManagementConfig.ActionTypeConfig
@@ -260,7 +299,7 @@ public class ActionValidatorTest {
     }
 
     @DataProvider
-    public Object[][] validateAllowedHeadersWithExcludedHeadersDataProvider() {
+    public Object[][] doValidateAllowedHeadersWithExcludedHeadersDataProvider() {
 
         List<String> allowedHeadersTest1 = new ArrayList<>();
         allowedHeadersTest1.add("test-header-1");
@@ -277,7 +316,7 @@ public class ActionValidatorTest {
         };
     }
 
-    @Test(dataProvider = "validateAllowedHeadersWithExcludedHeadersDataProvider")
+    @Test(dataProvider = "doValidateAllowedHeadersWithExcludedHeadersDataProvider")
     public void testDoValidateAllowedHeadersWithExcludedHeaders(List<String> allowedHeadersInAction,
                                                                 List<String> excludedHeaders) {
 
@@ -298,27 +337,27 @@ public class ActionValidatorTest {
     }
 
     @DataProvider
-    public Object[][] validateAllowedParamsDataProvider() {
+    public Object[][] doValidateAllowedParamsDataProvider() {
 
-        List<String> allowedParams1 = new ArrayList<>();
-        allowedParams1.add("test-param-1");
-        allowedParams1.add("test-param-2");
-        allowedParams1.add("test-param-3");
+        List<String> allowedParamList1 = new ArrayList<>();
+        allowedParamList1.add("test-param-1");
+        allowedParamList1.add("test-param-2");
+        allowedParamList1.add("test-param-3");
 
-        List<String> allowedParams2 = new ArrayList<>();
-        allowedParams2.add("    ");
+        List<String> allowedParamList2 = new ArrayList<>();
+        allowedParamList2.add("    ");
 
-        List<String> allowedParams3 = new ArrayList<>();
-        allowedParams3.add("test/param");
+        List<String> allowedParamList3 = new ArrayList<>();
+        allowedParamList3.add("test/param");
 
         return new Object[][]{
-                { allowedParams1, null },
-                { allowedParams2, "Allowed parameters is empty." },
-                { allowedParams3, "Allowed parameters is invalid." }
+                { allowedParamList1, null },
+                { allowedParamList2, "Allowed parameters is empty." },
+                { allowedParamList3, allowedParamList3.get(0) + " is invalid." }
         };
     }
 
-    @Test(dataProvider = "validateAllowedParamsDataProvider")
+    @Test(dataProvider = "doValidateAllowedParamsDataProvider")
     public void testDoValidateAllowedParams(List<String> allowedParams, String expectedError) {
 
         String propertyKey = ActionManagementConfig.ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty();
@@ -338,7 +377,7 @@ public class ActionValidatorTest {
     }
 
     @DataProvider
-    public Object[][] validateAllowedParametersWithExcludedParamsDataProvider() {
+    public Object[][] doValidateAllowedParametersWithExcludedParamsDataProvider() {
 
         List<String> allowedParamsTest1 = new ArrayList<>();
         allowedParamsTest1.add("test-param-1");
@@ -355,7 +394,7 @@ public class ActionValidatorTest {
         };
     }
 
-    @Test(dataProvider = "validateAllowedParametersWithExcludedParamsDataProvider")
+    @Test(dataProvider = "doValidateAllowedParametersWithExcludedParamsDataProvider")
     public void testDoValidateAllowedParametersWithExcludedParams(List<String> allowedParametersInAction,
                                                                 List<String> excludedParameters) {
 
