@@ -83,6 +83,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
@@ -114,6 +116,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -1221,9 +1224,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @Test(dataProvider = "dataProviderGetImpersonatedUser")
     public void testGetImpersonatedUser(String tenantDomain, String userAccessingOrg, String userResidentOrg,
                                         boolean isSubOrgUser)
-            throws UserStoreException, FrameworkException {
+            throws UserStoreException, FrameworkException, OrganizationManagementException {
 
         String userId = "user-123";
+        String subOrgHandle = "org1.com";
 
         // User object.
         User user = new User(
@@ -1238,6 +1242,9 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
         RealmService realmService = mock(RealmService.class);
         FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        FrameworkServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        lenient().when(organizationManager.resolveTenantDomain(anyString())).thenReturn(subOrgHandle);
         TenantManager tenantManager = mock(TenantManager.class);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(tenantManager.getTenantId(anyString())).thenReturn(1);

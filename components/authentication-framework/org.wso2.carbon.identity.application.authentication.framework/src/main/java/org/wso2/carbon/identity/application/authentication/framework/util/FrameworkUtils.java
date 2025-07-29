@@ -4683,9 +4683,9 @@ public class FrameworkUtils {
             RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
             int tenantId;
             if (StringUtils.isNotBlank(userResidentOrg)) {
-                String userAccessingOrgHandle = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
-                        .resolveTenantDomain(userAccessingOrg);
-                tenantId = realmService.getTenantManager().getTenantId(userAccessingOrgHandle);
+                String userResidentOrgHandle = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(userResidentOrg);
+                tenantId = realmService.getTenantManager().getTenantId(userResidentOrgHandle);
             } else {
                 tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             }
