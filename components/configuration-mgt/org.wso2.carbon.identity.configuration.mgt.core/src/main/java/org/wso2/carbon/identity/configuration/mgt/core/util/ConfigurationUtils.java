@@ -179,6 +179,7 @@ public class ConfigurationUtils {
      */
     public static boolean isConfigurationManagementEnabled() {
 
+        log.debug("Checking if configuration management is enabled.");
         return IdentityDatabaseUtil.isTableExists("IDN_CONFIG_TYPE")
                 && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_RESOURCE")
                 && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_ATTRIBUTE")
