@@ -91,6 +91,10 @@
             <artifactId>org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.multitenancy</groupId>
+            <artifactId>org.wso2.carbon.tenant.mgt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -190,7 +194,8 @@
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.json;version="${json.wso2.version.range}",
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
-                            org.wso2.carbon.identity.action.management.api.*; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.action.management.api.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.tenant.mgt.util.*;version="${carbon.multitenancy.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.idp.mgt.internal,
