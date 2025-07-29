@@ -233,6 +233,7 @@ public class ConfigurationUtils {
      */
     public static void setUseCreatedTime() {
 
+        log.debug("Setting useCreatedTime flag in ConfigurationManagerComponentDataHolder.");
         ConfigurationManagerComponentDataHolder.setUseCreatedTime(
                 isConfigurationManagementEnabled() && isCreatedTimeFieldExists());
     }
