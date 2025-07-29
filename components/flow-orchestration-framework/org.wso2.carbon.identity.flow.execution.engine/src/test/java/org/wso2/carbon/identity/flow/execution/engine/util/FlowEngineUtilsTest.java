@@ -216,9 +216,13 @@ public class FlowEngineUtilsTest {
 
         FlowExecCtxCacheEntry entry = new FlowExecCtxCacheEntry(testContext);
 
-        try (MockedStatic<FlowExecCtxCache> flowContextCacheMockedStatic = mockStatic(
-                FlowExecCtxCache.class)) {
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        try (MockedStatic<FlowExecCtxCache> flowContextCacheMockedStatic = mockStatic(FlowExecCtxCache.class);
+             MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                     FlowExecutionEngineDataHolder.class)) {
             flowContextCacheMockedStatic.when(FlowExecCtxCache::getInstance).thenReturn(flowContextCacheMock);
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getFlowMgtService()).thenReturn(mgtServiceMock);
             lenient().when(flowContextCacheMock.getValueFromCache(any())).thenReturn(entry);
             FlowExecutionContext context =
                     FlowExecutionEngineUtils.retrieveFlowContextFromCache(testContext.getContextIdentifier());

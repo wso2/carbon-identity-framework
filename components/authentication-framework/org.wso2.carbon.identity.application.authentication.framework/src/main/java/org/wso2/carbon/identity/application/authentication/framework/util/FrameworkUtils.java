@@ -995,7 +995,9 @@ public class FrameworkUtils {
 
         String path;
         if (isOrganizationQualifiedRequest()) {
-            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
+            // Handling the cookie path for requests coming with the path `/o/<org-id>`.
+            String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
         } else {
             if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {

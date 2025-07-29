@@ -1649,6 +1649,8 @@
         {% if scim2.enable_error_code_for_password_policy_violations is defined %}
             <EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>
         {% endif %}
+
+        <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
     </SCIM2>
 
       <PasswordPolicy>
@@ -2492,6 +2494,18 @@
                        name="org.wso2.carbon.extension.identity.verification.mgt.listeners.IdVUserOperationEventListener"
                        orderId="{{event.default_listener.identity_verification_event_listener.priority}}"
                        enable="{{event.default_listener.identity_verification_event_listener.enable}}"/>
+
+       <!-- Workflow event listeners -->
+       <EventListener id="identity_user_workflow_operation"
+                      type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
+                      orderId="{{event.default_listener.identity_user_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_user_workflow_operation.enable}}"/>
+       <EventListener id="identity_role_workflow_operation"
+                      type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.RoleManagementActionListener"
+                      orderId="{{event.default_listener.identity_role_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_role_workflow_operation.enable}}"/>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
@@ -4666,6 +4680,12 @@
         <UserAssertion>
             <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
         </UserAssertion>
+        <DefaultTTL>{{flow_execution.default_ttl}}</DefaultTTL>
+        <FlowTypeTTLs>
+            {% for flow_type, ttl in flow_execution.flow_type_ttl.items() %}
+            <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
+            {% endfor %}
+        </FlowTypeTTLs>
     </FlowExecution>
 
 </Server>

@@ -17,15 +17,20 @@ import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.Organization;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.action.internal.component.UserActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
 import org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener;
+import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.UnsupportedSecretTypeException;
@@ -52,9 +57,18 @@ public class ActionUserOperationEventListenerTest {
     private static final int DEFAULT_LISTENER_ORDER = 10000;
     public static final String USER_NAME = "USER_NAME";
     public static final String PASSWORD = "PASSWORD";
+    public static final String TEST_RESIDENT_ORG_ID = "6a56eba9-23c4-4306-ae13-11259c2a40ae";
+    public static final String TEST_RESIDENT_ORG_NAME = "mySubOrg1";
+    public static final String TEST_RESIDENT_ORG_HANDLE = "mySubOrg1.com";
+    public static final int TEST_RESIDENT_ORG_DEPTH = 20;
+    public static final String TEST_MANAGED_BY_ORG_ID = "9a56eb19-23c4-4306-ae13-75299c2a40af";
+    public static final String TEST_MANAGED_BY_ORG_NAME = "mySubOrg2";
+    public static final String TEST_MANAGED_BY_ORG_HANDLE = "mySubOrg2.com";
+    public static final int TEST_MANAGED_BY_ORG_DEPTH = 10;
 
-    private UserStoreManager userStoreManager;
+    private UniqueIDUserStoreManager userStoreManager;
     private UserActionExecutor mockExecutor;
+    private OrganizationManager organizationManager;
     private MockedStatic<UserCoreUtil> userCoreUtil;
 
     private ActionUserOperationEventListener listener;
@@ -62,7 +76,7 @@ public class ActionUserOperationEventListenerTest {
     @BeforeMethod
     public void setUp() {
 
-        userStoreManager = mock(UserStoreManager.class);
+        userStoreManager = mock(UniqueIDUserStoreManager.class);
         mockExecutor = mock(UserActionExecutor.class);
         userCoreUtil = mockStatic(UserCoreUtil.class);
         listener = new ActionUserOperationEventListener();
@@ -71,6 +85,9 @@ public class ActionUserOperationEventListenerTest {
                 .name(Flow.Name.PASSWORD_RESET)
                 .initiatingPersona(Flow.InitiatingPersona.USER)
                 .build());
+
+        organizationManager = mock(OrganizationManager.class);
+        UserActionServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
     }
 
     @AfterMethod
@@ -113,6 +130,61 @@ public class ActionUserOperationEventListenerTest {
     @Test
     public void testPreUpdatePasswordActionExecutionSuccess()
             throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
+
+        ActionExecutionStatus<Success> successStatus =
+                new SuccessStatus.Builder().setResponseContext(Collections.emptyMap()).build();
+        doReturn(successStatus).when(mockExecutor).execute(any(), any());
+        doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
+        UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
+
+        boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                userStoreManager);
+        Assert.assertTrue(result, "The method should return true for successful execution.");
+    }
+
+    @Test
+    public void testPreUpdatePasswordActionExecutionSuccessInSubOrgFlow()
+            throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
+
+        IdentityContext.getThreadLocalIdentityContext().setOrganization(new Organization.Builder()
+                .id(TEST_RESIDENT_ORG_ID)
+                .name(TEST_RESIDENT_ORG_NAME)
+                .organizationHandle(TEST_RESIDENT_ORG_HANDLE)
+                .depth(TEST_RESIDENT_ORG_DEPTH)
+                .build());
+        doReturn(null).when(userStoreManager).getUserClaimValueWithID(any(), any(), any());
+
+        ActionExecutionStatus<Success> successStatus =
+                new SuccessStatus.Builder().setResponseContext(Collections.emptyMap()).build();
+        doReturn(successStatus).when(mockExecutor).execute(any(), any());
+        doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
+        UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
+
+        boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                userStoreManager);
+        Assert.assertTrue(result, "The method should return true for successful execution.");
+    }
+
+    @Test
+    public void testPreUpdatePasswordActionExecutionSuccessInSubOrgFlowForSharedUser()
+            throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException,
+            OrganizationManagementException {
+
+        IdentityContext.getThreadLocalIdentityContext().setOrganization(new Organization.Builder()
+                .id(TEST_RESIDENT_ORG_ID)
+                .name(TEST_RESIDENT_ORG_NAME)
+                .organizationHandle(TEST_RESIDENT_ORG_HANDLE)
+                .depth(TEST_RESIDENT_ORG_DEPTH)
+                .build());
+        doReturn(TEST_MANAGED_BY_ORG_ID).when(userStoreManager).getUserClaimValueWithID(any(), any(), any());
+
+        BasicOrganization managedByOrg = new BasicOrganization();
+        managedByOrg.setId(TEST_MANAGED_BY_ORG_ID);
+        managedByOrg.setName(TEST_MANAGED_BY_ORG_NAME);
+        managedByOrg.setOrganizationHandle(TEST_MANAGED_BY_ORG_HANDLE);
+        doReturn(Collections.singletonMap(TEST_MANAGED_BY_ORG_ID, managedByOrg)).when(organizationManager)
+                .getBasicOrganizationDetailsByOrgIDs(any());
+        doReturn(TEST_MANAGED_BY_ORG_DEPTH).when(organizationManager).getOrganizationDepthInHierarchy(any());
 
         ActionExecutionStatus<Success> successStatus =
                 new SuccessStatus.Builder().setResponseContext(Collections.emptyMap()).build();

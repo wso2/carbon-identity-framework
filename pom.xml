@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.335-SNAPSHOT</version>
+    <version>7.8.351-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -1268,6 +1268,11 @@
                 <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
                 <version>${org.wso2.carbon.identity.organization.management.core.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.resource.sharing.policy.management</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.organization.management</groupId>
@@ -2001,7 +2006,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.53</carbon.kernel.version>
+        <carbon.kernel.version>4.10.55</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -2029,6 +2034,8 @@
         <org.bouncycastle.imp.pkg.version.range>[0.0.0,2.0.0)</org.bouncycastle.imp.pkg.version.range>
         <org.wso2.carbon.identity.organization.management.core.version>1.1.40
         </org.wso2.carbon.identity.organization.management.core.version>
+        <org.wso2.carbon.identity.organization.management.version>2.0.8</org.wso2.carbon.identity.organization.management.version>
+        <org.wso2.carbon.identity.organization.management.version.range>[2.0.0, 3.0.0)</org.wso2.carbon.identity.organization.management.version.range>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
         <identity.organization.management.version>2.0.7</identity.organization.management.version>

@@ -363,5 +363,11 @@
   "identity_mgt.events.schemes.CredentialEventHook.subscriptions": [
     "POST_ADD_NEW_PASSWORD",
     "POST_UPDATE_CREDENTIAL_BY_SCIM"
+  ],
+  "identity_mgt.events.schemes.askPasswordBasedPasswordSetup.module_index": "55",
+  "identity_mgt.events.schemes.askPasswordBasedPasswordSetup.subscriptions": [
+    "PRE_ADD_USER",
+    "POST_ADD_USER",
+    "PRE_AUTHENTICATION"
   ]
 }

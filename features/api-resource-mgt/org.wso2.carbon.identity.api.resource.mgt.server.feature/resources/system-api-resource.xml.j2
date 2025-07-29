@@ -698,8 +698,8 @@
                     description="Delete user accounts in the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="SCIM2 Roles API" identifier="/scim2/Roles" requiresAuthorization="true"
-                 description="API representation of the SCIM2 Roles API" type="TENANT">
+    <APIResource name="SCIM2 Roles V1/V2 API" identifier="/scim2/Roles" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Roles V1/V2 API" type="TENANT">
         <Scopes>
             <Scope displayName="View Role" name="internal_role_mgt_view" 
                     description="View roles details in the organization (root)"/>
@@ -711,9 +711,28 @@
                     description="Delete roles in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="SCIM2 Roles API" identifier="/o/scim2/Roles"
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
+    <APIResource name="SCIM2 Roles V3 API" identifier="/scim2/v3/Roles" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Roles V3 API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Role" name="internal_role_mgt_view"
+                    description="View roles details in the organization (root)"/>
+            <Scope displayName="Create Role" name="internal_role_mgt_meta_create"
+                    description="Create new roles in the organization (root)"/>
+            <Scope displayName="Update Role Metadata" name="internal_role_mgt_meta_update"
+                    description="Update roles details in the organization (root)"/>
+            <Scope displayName="Update Users of Role" name="internal_role_mgt_users_update"
+                    description="Assign/De-assign users into the role in the organization (root)"/>
+            <Scope displayName="Update Groups of Role" name="internal_role_mgt_groups_update"
+                    description="Assign/De-assign groups into the role in the organization (root)"/>
+            <Scope displayName="Delete Role" name="internal_role_mgt_delete"
+                    description="Delete roles in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    {% endif %}
+    <APIResource name="SCIM2 Roles V1/V2 API" identifier="/o/scim2/Roles"
                  requiresAuthorization="true"
-                 description="API representation of the SCIM2 Roles API" type="ORGANIZATION">
+                 description="API representation of the SCIM2 Roles V1/V2 API" type="ORGANIZATION">
         <Scopes>
             <Scope displayName="View Role" name="internal_org_role_mgt_view" 
                     description="View roles details in the organization"/>
@@ -725,6 +744,25 @@
                     description="Delete roles in the organization"/>
         </Scopes>
     </APIResource>
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
+    <APIResource name="SCIM2 Roles V3 API" identifier="/o/scim2/v3/Roles" requiresAuthorization="true"
+                     description="API representation of the SCIM2 Roles V3 API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Role" name="internal_org_role_mgt_view"
+                    description="View roles details in the organization"/>
+            <Scope displayName="Create Role" name="internal_org_role_mgt_meta_create"
+                    description="Create new roles in the organization"/>
+            <Scope displayName="Update Role Metadata" name="internal_org_role_mgt_meta_update"
+                    description="Update roles details in the organization"/>
+            <Scope displayName="Update Users of Role" name="internal_org_role_mgt_users_update"
+                    description="Assign/De-assign users into the role in the organization"/>
+            <Scope displayName="Update Groups of Role" name="internal_org_role_mgt_groups_update"
+                    description="Assign/De-assign groups into the role in the organization"/>
+            <Scope displayName="Delete Role" name="internal_org_role_mgt_delete"
+                    description="Delete roles in the organization"/>
+        </Scopes>
+    </APIResource>
+    {% endif %}
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API" type="TENANT">
         <Scopes>
@@ -896,6 +934,8 @@
         <Scopes>
             <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
                    description="View webhook metadata in the organization (root)"/>
+            <Scope displayName="Update Webhook Metadata" name="internal_webhook_meta_update"
+                   description="Update webhook metadata in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management API v1/v2"
@@ -1316,6 +1356,34 @@
                    description="Manage edits of roles in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
+    <APIResource name="Role Assignments Feature" identifier="console:role_assignments"
+                requiresAuthorization="true"
+                description="Resource representation of the Role Assignments Management Feature"
+                type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Assignments Feature" name="console:role_assignments"
+                description="Manage Role Assignments from the Console"/>
+            <Scope displayName="Role Assignments View Feature" name="console:role_assignments_view"
+                description="Manage views of Role Assignments from the Console"/>
+            <Scope displayName="Role Assignments Edit Feature" name="console:role_assignments_edit"
+                description="Manage edits of Role Assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Assignments Feature" identifier="console:org:role_assignments"
+                requiresAuthorization="true"
+                description="Resource representation of the Role Assignments Management Feature"
+                type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Assignments Feature" name="console:org:role_assignments"
+                description="Manage Role Assignments from the Console"/>
+            <Scope displayName="Role Assignments View Feature" name="console:org:role_assignments_view"
+                description="Manage views of Role Assignments from the Console"/>
+            <Scope displayName="Role Assignments Edit Feature" name="console:org:role_assignments_edit"
+                description="Manage edits of Role Assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    {% endif %}
     <APIResource name="User Management Feature" identifier="console:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
@@ -1695,6 +1763,15 @@
                    description="Update workflow association"/>
             <Scope displayName="Delete Workflow Association" name="internal_workflow_association_delete"
                    description="Delete workflow association"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Approval Task API" identifier="/api/users/v1/me/approval-tasks" requiresAuthorization="false"
+                 description="API representation of the workflow approval task API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow Approval Task" name="internal_approval_task_view"
+                   description="View workflow approvals Tasks"/>
+            <Scope displayName="Update Workflow Approval Task" name="internal_approval_task_update"
+                   description="Update workflow approval Tasks"/>
         </Scopes>
     </APIResource>
 </APIResources>

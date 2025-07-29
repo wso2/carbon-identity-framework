@@ -888,16 +888,10 @@
                 <Scope name="console:workflowApprovals_edit"/>
             </Feature>
             <Update>
-                <Scope name="internal_humantask_view"/>
+                <Scope name="internal_approval_task_update"/>
             </Update>
-            <Delete>
-                <Scope name="internal_humantask_view"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_humantask_view"/>
-            </Create>
             <Read>
-                <Scope name="internal_humantask_view"/>
+                <Scope name="internal_approval_task_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -960,7 +954,11 @@
             <Delete>
             </Delete>
             <Create>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_create"/>
+                {% else %}
+                <Scope name="internal_role_mgt_meta_create"/>
+                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_application_mgt_view"/>
@@ -1279,13 +1277,21 @@
                 <Scope name="console:roles_edit"/>
             </Feature>
             <Update>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_update"/>
+                {% else %}
+                <Scope name="internal_role_mgt_meta_update"/>
+                {% endif %}
             </Update>
             <Delete>
                 <Scope name="internal_role_mgt_delete"/>
             </Delete>
             <Create>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_create"/>
+                {% else %}
+                <Scope name="internal_role_mgt_meta_create"/>
+                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_user_mgt_view"/>
@@ -1299,6 +1305,34 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
+    <APIResourceCollection name="roleAssignments" displayName="Role Assignments" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:roles"/>
+                <Scope name="console:role_assignments"/>
+                <Scope name="console:role_assignments_view"/>
+                <Scope name="console:role_assignments_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_role_mgt_users_update"/>
+                <Scope name="internal_role_mgt_groups_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    {% endif %}
     <APIResourceCollection name="rolesV1" displayName="Roles" type="tenant">
         <Scopes>
             <Feature>
@@ -1412,6 +1446,7 @@
             </Feature>
             <Update>
                 <Scope name="internal_webhook_mgt_update"/>
+                <Scope name="internal_webhook_meta_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_webhook_mgt_delete"/>
@@ -1479,7 +1514,11 @@
                 <Scope name="internal_org_guest_mgt_invite_delete"/>
             </Delete>
             <Create>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_create"/>
+                {% else %}
+                <Scope name="internal_org_role_mgt_meta_create"/>
+                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
@@ -1616,13 +1655,21 @@
                 <Scope name="console:org:roles_edit"/>
             </Feature>
             <Update>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_update"/>
+                {% else %}
+                <Scope name="internal_org_role_mgt_meta_update"/>
+                {% endif %}
             </Update>
             <Delete>
                 <Scope name="internal_org_role_mgt_delete"/>
             </Delete>
             <Create>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_create"/>
+                {% else %}
+                <Scope name="internal_org_role_mgt_meta_create"/>
+                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_org_user_mgt_view"/>
@@ -1635,6 +1682,32 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
+    <APIResourceCollection name="org_roleAssignments" displayName="Role Assignments" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:roles"/>
+                <Scope name="console:org:role_assignments"/>
+                <Scope name="console:org:role_assignments_view"/>
+                <Scope name="console:org:role_assignments_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_role_mgt_users_update"/>
+                <Scope name="internal_org_role_mgt_groups_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    {% endif %}
     <APIResourceCollection name="org_rolesV1" displayName="Roles" type="organization">
         <Scopes>
             <Feature>

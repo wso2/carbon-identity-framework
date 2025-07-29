@@ -18,10 +18,24 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 
 /**
@@ -30,16 +44,23 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_
 public class FlowUser implements Serializable {
 
     private static final long serialVersionUID = -1873658743998134877L;
+    private static final Log LOG = LogFactory.getLog(FlowUser.class);
     private final Map<String, String> claims = new HashMap<>();
     private final Map<String, char[]> userCredentials = new HashMap<>();
+    private final Map<String, String> federatedAssociations = new HashMap<>();
+    @JsonProperty("username")
     private String username;
     private String userId;
     private String userStoreDomain;
 
+    @JsonIgnore
     public String getUsername() {
 
-        if (username == null) {
+        if (StringUtils.isBlank(username)) {
             username = claims.get(USERNAME_CLAIM_URI);
+        }
+        if (StringUtils.isBlank(username)) {
+            return resolveUsername(this, IdentityTenantUtil.getTenantDomainFromContext());
         }
         return username;
     }
@@ -98,5 +119,40 @@ public class FlowUser implements Serializable {
     public void setUserStoreDomain(String userStoreDomain) {
 
         this.userStoreDomain = userStoreDomain;
+    }
+
+    public Map<String, String> getFederatedAssociations() {
+
+        return federatedAssociations;
+    }
+
+    public void addFederatedAssociation(String idpName, String idpSubject) {
+
+        this.federatedAssociations.put(idpName, idpSubject);
+    }
+
+    private String resolveUsername(FlowUser user, String tenantDomain) {
+
+        String username = Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse("");
+        if (StringUtils.isNotBlank(username)) {
+            return username;
+        }
+        try {
+            if ((FlowExecutionEngineUtils.isEmailUsernameValidator(tenantDomain) ||
+                    IdentityUtil.isEmailUsernameEnabled())
+                    && StringUtils.isNotBlank((String) user.getClaim(EMAIL_ADDRESS_CLAIM))) {
+                // If email format validation is enabled and username is not provided, use email as username.
+                return (String) user.getClaim(EMAIL_ADDRESS_CLAIM);
+            }
+        } catch (FlowEngineException e) {
+            // Log the error and return a random UUID as the username.
+            // This is a fallback mechanism to ensure that the flow can continue.
+            // The error will be handled by the caller.
+            LOG.error("Error while resolving username for the user in the flow.", e);
+        }
+        // Else generate a random UUID as the username and set the skip validation flag.
+        username = UUID.randomUUID().toString();
+        UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+        return username;
     }
 }
