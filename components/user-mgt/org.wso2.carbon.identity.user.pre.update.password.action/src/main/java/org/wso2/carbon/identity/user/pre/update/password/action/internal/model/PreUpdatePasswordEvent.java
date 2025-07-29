@@ -50,7 +50,8 @@ public class PreUpdatePasswordEvent extends Event {
     public enum Action {
         UPDATE,
         RESET,
-        INVITE
+        INVITE,
+        REGISTER
     }
 
     private final FlowInitiatorType initiatorType;

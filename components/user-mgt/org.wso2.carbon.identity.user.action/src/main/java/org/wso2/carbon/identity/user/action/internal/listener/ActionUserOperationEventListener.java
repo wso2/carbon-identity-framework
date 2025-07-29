@@ -88,6 +88,35 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             return true;
         }
 
+        return executePreUpdatePasswordAction(userID, credential, userStoreManager);
+    }
+
+    /**
+     * This method is responsible for handling the pre add user action execution.
+     *
+     * @param userID           User id of the user.
+     * @param credential       Credential of the user.
+     * @param roleList         List of roles to be assigned to the user.
+     * @param claims           Claims to be set for the user.
+     * @param profile          User profile.
+     * @param userStoreManager User store manager.
+     * @return True if the operation is successful.
+     * @throws UserStoreException If an error occurs while executing the action.
+     */
+    @Override
+    public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
+                                      String profile, UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        return executePreUpdatePasswordAction(userID, credential, userStoreManager);
+    }
+
+    private boolean executePreUpdatePasswordAction(String userID, Object credential,
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
+
         if (!isExecutableFlow()) {
             return true;
         }
@@ -204,7 +233,8 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         return flow.getName() == Flow.Name.PASSWORD_RESET ||
                 flow.getName() == Flow.Name.INVITE ||
                 flow.getName() == Flow.Name.INVITED_USER_REGISTRATION ||
-                flow.getName() == Flow.Name.PROFILE_UPDATE;
+                flow.getName() == Flow.Name.PROFILE_UPDATE ||
+                flow.getName() == Flow.Name.USER_REGISTRATION;
     }
 
     private char[] getSecret(Object credential) throws UserActionExecutionServerException {
