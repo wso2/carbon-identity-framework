@@ -20,6 +20,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementRuntimeException;
@@ -27,19 +29,30 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.net.URI;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.PATH_SEPARATOR;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.SERVER_API_PATH_COMPONENT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_CONTEXT_PATH_COMPONENT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_NAME_FROM_CONTEXT;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MSSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_ORACLE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_IN_BYTES_SQL;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMSSqlDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 
 /**
  * Utility methods for configuration management.
@@ -157,6 +170,72 @@ public class ConfigurationUtils {
     public static int getMaximumQueryLengthInBytes() {
 
         return StringUtils.isEmpty(MAX_QUERY_LENGTH_IN_BYTES_SQL) ? 4194304 : Integer.parseInt(MAX_QUERY_LENGTH_IN_BYTES_SQL);
+    }
+
+    /**
+     * Checks whether the configuration management is enabled by checking the existence of the required tables.
+     *
+     * @return true if configuration management is enabled, false otherwise.
+     */
+    public static boolean isConfigurationManagementEnabled() {
+
+        log.debug("Checking if configuration management is enabled.");
+        return IdentityDatabaseUtil.isTableExists("IDN_CONFIG_TYPE")
+                && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_RESOURCE")
+                && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_ATTRIBUTE")
+                && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_FILE");
+    }
+
+    /**
+     * Checks whether the CREATED_TIME field exists in the IDN_CONFIG_RESOURCE table.
+     *
+     * @return true if the CREATED_TIME field exists, false otherwise.
+     */
+    public static boolean isCreatedTimeFieldExists() {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            /*
+            DB scripts without CREATED_TIME field can exists for H2 and MYSQL 5.7.
+             */
+            String sql = GET_CREATED_TIME_COLUMN_MYSQL;
+
+            if (isMSSqlDB()) {
+                sql = GET_CREATED_TIME_COLUMN_MSSQL;
+            } else if (isOracleDB()) {
+                sql = GET_CREATED_TIME_COLUMN_ORACLE;
+            }
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                 ResultSet resultSet = preparedStatement.executeQuery()) {
+                // Following statement will throw SQLException if the column is not found
+                resultSet.findColumn(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
+                // If we are here then the column exists.
+                log.debug("CREATED_TIME field exists in IDN_CONFIG_RESOURCE table.");
+                return true;
+            } catch (SQLException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("CREATED_TIME field does not exist in IDN_CONFIG_RESOURCE table.", e);
+                }
+                return false;
+            }
+        } catch (IdentityRuntimeException | SQLException | DataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while checking if CREATED_TIME field exists in IDN_CONFIG_RESOURCE table.",
+                        e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Sets the useCreatedTime flag in the ConfigurationManagerComponentDataHolder.
+     * This flag indicates whether the created time field exists in the database.
+     */
+    public static void setUseCreatedTime() {
+
+        log.debug("Setting useCreatedTime flag in ConfigurationManagerComponentDataHolder.");
+        ConfigurationManagerComponentDataHolder.setUseCreatedTime(
+                isConfigurationManagementEnabled() && isCreatedTimeFieldExists());
     }
 
     public static boolean useCreatedTimeField() {
