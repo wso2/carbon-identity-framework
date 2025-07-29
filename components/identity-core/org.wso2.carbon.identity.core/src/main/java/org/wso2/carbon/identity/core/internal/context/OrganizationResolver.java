@@ -45,8 +45,10 @@ public class OrganizationResolver {
     private static final Log LOG = LogFactory.getLog(OrganizationResolver.class);
     private static final String TENANT_SEPARATOR = "/t/";
     private static final String ORG_SEPARATOR = "/o/";
-    private static final Pattern PATTERN_ORG_QUALIFIED_ONLY = Pattern.compile("^/o/[a-f0-9\\-]+?");
-    private static final Pattern PATTERN_TENANT_AND_ORG_QUALIFIED = Pattern.compile("^/t/[^/]+/o/[a-f0-9\\-]+?");
+    private static final Pattern PATTERN_ORG_QUALIFIED_ONLY =
+            Pattern.compile("^/o/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$");
+    private static final Pattern PATTERN_TENANT_AND_ORG_QUALIFIED =
+            Pattern.compile("^/t/[^/]+/o/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$");
 
     private OrganizationResolver() {
         // Private constructor to prevent instantiation.
