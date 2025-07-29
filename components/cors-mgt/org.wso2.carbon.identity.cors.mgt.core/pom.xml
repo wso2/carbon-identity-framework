@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>cors-mgt</artifactId>
-        <version>7.8.352</version>
+        <version>7.8.353-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
