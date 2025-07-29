@@ -24,6 +24,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManagerTest"/>
             <class name="org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtilsTest"/>
         </classes>
     </test>
 </suite>

@@ -179,6 +179,13 @@
         <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="GET">
             <Scopes>internal_webhook_meta_view</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PATCH">
+            <Scopes>internal_webhook_meta_update</Scopes>
+        </Resource>
+        <!-- The Webhook Metadata update operation using the PUT method is not supported. However, due to the shared API path structure, this method must be explicitly disallowed within the application logic. -->
+        <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_webhook_meta_update</Scopes>
+        </Resource>
 
         <!-- Webhook Management API -->
         <Resource context="(.*)/api/server/v1/webhooks(.*)" secured="true" http-method="POST">
@@ -673,9 +680,11 @@
         {% endif %}
 
         <!-- Approval Tasks -->
-        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true"
-                  http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
-            <Scopes>internal_humantask_view</Scopes>
+        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
+            <Scopes>internal_approval_task_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
+            <Scopes>internal_approval_task_update</Scopes>
         </Resource>
 
         <!-- Me APIs -->
