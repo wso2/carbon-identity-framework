@@ -351,10 +351,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 externalIdPConfig.getAccountLookupAttributeMappings();
                         boolean isEmailUsernameLookup =
                                 ArrayUtils.isEmpty(accountLookupAttributeMappingConfigs);
-                        log.debug("Account lookup attribute mappings are not configured for the IDP: "
-                                + externalIdPConfig.getIdPName() + ". Hence, using email address claim for account "
-                                + "lookup matching with local username.");
-
+                        if (log.isDebugEnabled()) {
+                            log.debug("Account lookup attribute mappings are not configured for the IDP: "
+                                    + externalIdPConfig.getIdPName() + ". Hence, using email address claim for account "
+                                    + "lookup matching with local username.");
+                        }
                         if (isEmailUsernameLookup &&
                                 StringUtils.isNotBlank(localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
                             try {
@@ -380,6 +381,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 handleExceptions(e.getMessage(), e.getErrorCode(), e);
                             }
                         } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Account lookup attribute mappings configured for IDP: " +
+                                        externalIdPConfig.getIdPName() + ". Attempting to match user using mapped " +
+                                        "attributes.");
+                            }
                             Map<String, String> localClaimValuesForLookup =
                                     getLocalClaimsForAccountLookup(federatedClaimValues,
                                             externalIdPConfig.getAccountLookupAttributeMappings());
@@ -388,10 +394,19 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                     externalIdPConfig.getProvisioningUserStoreId(), localClaimValuesForLookup);
 
                             try {
-                                FrameworkUtils.getFederatedAssociationManager()
-                                        .createFederatedAssociation(new User(user), stepConfig.getAuthenticatedIdP(),
-                                                externalSubject);
-                                associatedLocalUser = user.getDomainQualifiedUsername();
+                                if (user != null) {
+                                    FrameworkUtils.getFederatedAssociationManager()
+                                            .createFederatedAssociation(new User(user),
+                                                    stepConfig.getAuthenticatedIdP(),
+                                                    externalSubject);
+                                    associatedLocalUser = user.getDomainQualifiedUsername();
+                                } else {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug("No local user found for the account lookup attributes: "
+                                                + localClaimValuesForLookup + " in tenant domain: "
+                                                + context.getTenantDomain());
+                                    }
+                                }
                             } catch (FederatedAssociationManagerException | FrameworkException e) {
                                 handleExceptions(e.getMessage(), e.getErrorCode(), e);
                             }
@@ -526,44 +541,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     }
                 }
             }
-        } catch (UserStoreException e) {
-            handleExceptions(e.getMessage(), "", e);
-        }
-        return user;
-    }
-
-    /**
-     * Method to resolve and return the matching local user account based on the provided claims.
-     *
-     * @param tenantDomain    Tenant domain of the user.
-     * @param userStoreDomain User store domain of the user.
-     * @param localClaimKey   Local claim key to search for the user.
-     * @param localClaimValue Local claim value to search for the user.
-     * @return Matching local user account
-     */
-    private org.wso2.carbon.user.core.common.User getLocalUser(String tenantDomain, String userStoreDomain,
-                                                               String localClaimKey, String localClaimValue)
-            throws PostAuthenticationFailedException {
-
-        org.wso2.carbon.user.core.common.User user = null;
-
-        try {
-            UserRealm realm = getUserRealm(tenantDomain);
-            AbstractUserStoreManager userStoreManager =
-                    (AbstractUserStoreManager) getUserStoreManager(userStoreDomain, realm);
-            List<org.wso2.carbon.user.core.common.User> users =
-                    userStoreManager.getUserListWithID(localClaimKey, localClaimValue, null);
-            if (users.size() == 1) {
-                user = users.get(0);
-            } else if (users.size() > 1) {
-                throw new PostAuthenticationFailedException("Error while getting user with claim", "code-123");
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("No user found with the claim: " + localClaimKey + " and value: " + localClaimValue +
-                            " in tenant domain: " + tenantDomain);
-                }
-            }
-
         } catch (UserStoreException e) {
             handleExceptions(e.getMessage(), "", e);
         }
