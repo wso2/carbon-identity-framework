@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
+import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
 import org.wso2.carbon.identity.user.action.api.constant.UserActionError;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionClientException;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionServerException;
@@ -46,9 +46,6 @@ import org.wso2.carbon.user.core.listener.SecretHandleableListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * This class is responsible for handling the action invocation related to user flows.
@@ -128,15 +125,13 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     }
 
     private Organization getUserResidentOrganization(String userID, UserStoreManager userStoreManager)
-            throws ActionExecutionException {
-
+            throws UserActionExecutionServerException {
 
         org.wso2.carbon.identity.core.context.model.Organization accessingOrganization =
                 IdentityContext.getThreadLocalIdentityContext().getOrganization();
         if (accessingOrganization == null) {
-            // If the accessing organization is null, it means the user is not accessing from an organization context.
-            // Hence, return null.
-            return null;
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                    "Accessing organization is not present in the identity context.");
         }
 
         try {
@@ -155,11 +150,12 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             // If the managed organization claim is set, retrieve the organization details.
             return getOrganization(managedOrgId);
         } catch (UserStoreException e) {
-            throw new ActionExecutionException("Error while retrieving the user's managed by organization claim.", e);
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                    "Error while retrieving the user's managed by organization claim.", e);
         }
     }
 
-    private Organization getOrganization(String managedOrgId) throws ActionExecutionException {
+    private Organization getOrganization(String managedOrgId) throws UserActionExecutionServerException {
 
         if (OrganizationManagementConstants.SUPER_ORG_ID.equals(managedOrgId)) {
             return new Organization.Builder()
@@ -171,26 +167,23 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
 
         try {
-            Map<String, BasicOrganization> orgsMap = UserActionServiceComponentHolder.getInstance().
-                    getOrganizationManager()
-                    .getBasicOrganizationDetailsByOrgIDs(Collections.singletonList(managedOrgId));
-            BasicOrganization basicOrganization = orgsMap.get(managedOrgId);
-            if (basicOrganization == null) {
-                throw new ActionExecutionException("No organization found for the user's managed organization id: "
-                        + managedOrgId);
+            MinimalOrganization minimalOrganization = UserActionServiceComponentHolder.getInstance().
+                    getOrganizationManager().getMinimalOrganization(managedOrgId, null);
+            if (minimalOrganization == null) {
+                throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                        "No organization found for the user's managed organization id: " + managedOrgId);
             }
 
-            int depth = UserActionServiceComponentHolder.getInstance().getOrganizationManager()
-                    .getOrganizationDepthInHierarchy(managedOrgId);
             return new Organization.Builder()
-                    .id(basicOrganization.getId())
-                    .name(basicOrganization.getName())
-                    .orgHandle(basicOrganization.getOrganizationHandle())
-                    .depth(depth)
+                    .id(minimalOrganization.getId())
+                    .name(minimalOrganization.getName())
+                    .orgHandle(minimalOrganization.getOrganizationHandle())
+                    .depth(minimalOrganization.getDepth())
                     .build();
         } catch (OrganizationManagementException e) {
-            throw new ActionExecutionException("Error while retrieving organization details for the user's " +
-                    "managed organization id: " + managedOrgId, e);
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                    "Error while retrieving organization details for the user's managed organization id: "
+                            + managedOrgId, e);
         }
     }
 
