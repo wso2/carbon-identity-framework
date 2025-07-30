@@ -96,9 +96,7 @@ public class OrganizationResolver {
                 // Resolve root organization with tenant information in the CarbonContext.
                 resolveRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
                 // Resolve root organization information to the Organization object in tenanted paths.
-                RootOrganization rootOrganization = IdentityContext.getThreadLocalIdentityContext().getRootOrganization();
-                resolveRootOrganizationToOrganization(rootOrganization.getOrganizationId(),
-                        rootOrganization.getAssociatedTenantDomain());
+                resolveRootOrganizationToOrganization();
             }
         } catch (OrganizationManagementException | UserStoreException e) {
             LOG.error("Error while initializing organization information.", e);
@@ -137,9 +135,16 @@ public class OrganizationResolver {
                 .build());
     }
 
-    private void resolveRootOrganizationToOrganization(String organizationId, String associatedTenantDomain)
-            throws OrganizationManagementException {
+    private void resolveRootOrganizationToOrganization() throws OrganizationManagementException {
 
+        RootOrganization rootOrganization = IdentityContext.getThreadLocalIdentityContext().getRootOrganization();
+        if (rootOrganization == null) {
+            LOG.debug("Root organization is not set in the IdentityContext. Cannot initialize organization.");
+            return;
+        }
+
+        String organizationId = rootOrganization.getOrganizationId();
+        String associatedTenantDomain = rootOrganization.getAssociatedTenantDomain();
         MinimalOrganization minimalOrganization = getMinimalOrganization(organizationId, associatedTenantDomain);
         if (minimalOrganization == null) {
             LOG.debug("Unable to find an organization for the root organization id: " + organizationId +
