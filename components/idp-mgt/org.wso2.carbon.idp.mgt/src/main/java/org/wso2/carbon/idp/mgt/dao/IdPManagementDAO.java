@@ -3686,14 +3686,20 @@ public class IdPManagementDAO {
 
     private void fillAccountLookUpAttributesIdpProperties(JustInTimeProvisioningConfig justInTimeProvisioningConfig,
                                                           IdentityProviderProperty localLookupAttributesProperty,
-                                                          IdentityProviderProperty federatedLookupAttributesProperty) {
+                                                          IdentityProviderProperty federatedLookupAttributesProperty)
+            throws IdentityProviderManagementException {
 
         if (justInTimeProvisioningConfig == null) {
             return;
         }
-        if (justInTimeProvisioningConfig.getAccountLookupAttributeMappings() == null ||
-                justInTimeProvisioningConfig.getAccountLookupAttributeMappings().length == 0) {
+        AccountLookupAttributeMappingConfig[] accountLookupAttributeMappings =
+                justInTimeProvisioningConfig.getAccountLookupAttributeMappings();
+        if (accountLookupAttributeMappings == null || accountLookupAttributeMappings.length == 0) {
             return;
+        }
+        if (accountLookupAttributeMappings.length > 2) {
+            throw new IdentityProviderManagementException("Error occurred while storing account lookup attributes." +
+                    " More than two account lookup attribute mappings are not supported.");
         }
         List<String> localAttributes = new ArrayList<>();
         List<String> federatedAttributes = new ArrayList<>();
