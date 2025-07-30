@@ -4708,8 +4708,7 @@ public class FrameworkUtils {
             throw new FrameworkException(INVALID_REQUEST.getCode(),
                     "Use mapped local subject is mandatory but a local user couldn't be found");
         } catch (OrganizationManagementException e) {
-            throw new FrameworkException(INVALID_REQUEST.getCode(),
-                    "Error while getting org handle.");
+            throw new FrameworkException(INVALID_REQUEST.getCode(), "Error while getting org handle.");
         }
     }
 
@@ -4749,11 +4748,11 @@ public class FrameworkUtils {
         try {
             String subjectIdentifier = impersonatedUser.getUserId();
             String userStoreDomain = impersonatedUser.getUserStoreDomain();
-            String userResidentOrg = impersonatedUser.getTenantDomain();
+            String userResidentOrgHandle = impersonatedUser.getTenantDomain();
             String tenantDomain = impersonatedUser.getTenantDomain();
             if (impersonatedUser.isFederatedUser()
                     && ORGANIZATION_LOGIN_IDP_NAME.equals(impersonatedUser.getFederatedIdPName())) {
-                userResidentOrg = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                userResidentOrgHandle = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
                         .resolveTenantDomain(impersonatedUser.getUserResidentOrganization());
             }
             String userName = impersonatedUser.getUserName();
@@ -4772,7 +4771,7 @@ public class FrameworkUtils {
             if (subjectClaimUri != null) {
                 RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
                 String subjectClaimValue = getClaimValue(IdentityUtil.addDomainToName(userName, userStoreDomain),
-                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(userResidentOrg))
+                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(userResidentOrgHandle))
                                 .getUserStoreManager(), subjectClaimUri);
 
                 if (subjectClaimValue != null) {
