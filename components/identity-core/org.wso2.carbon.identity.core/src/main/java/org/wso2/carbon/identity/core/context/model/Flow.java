@@ -44,9 +44,6 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
 
         // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.USER_REGISTRATION_INVITE_WITH_PASSWORD,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
-        // Deprecated: To be removed when migration is complete.
         FLOW_DEFINITIONS.put(Name.INVITED_USER_REGISTRATION,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
@@ -54,17 +51,10 @@ public class Flow {
         // -------------------------------- Direct and self-registration flows ---------------------------
         FLOW_DEFINITIONS.put(Name.REGISTER,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
-
-        // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.USER_REGISTRATION,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         // -----------------------------------------------------------------------------------------------
 
         // -------------------------------- JIT Provisioning flows ----------------------------------------
         FLOW_DEFINITIONS.put(Name.JUST_IN_TIME_PROVISION, EnumSet.of(InitiatingPersona.USER));
-
-        // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.JIT_PROVISION, EnumSet.of(InitiatingPersona.USER));
         // -----------------------------------------------------------------------------------------------
 
         // -------------------------------- Authentication flows -----------------------------------------
@@ -145,21 +135,15 @@ public class Flow {
         // ------------ Invited registration flows ----------
         INVITE,
         @Deprecated // Use INVITE instead.
-        USER_REGISTRATION_INVITE_WITH_PASSWORD,
-        @Deprecated // Use INVITE instead.
         INVITED_USER_REGISTRATION,
         // --------------------------------------------------
 
         // --------Direct and self-registration flows--------
         REGISTER,
-        @Deprecated // Use REGISTER instead.
-        USER_REGISTRATION,
         // --------------------------------------------------
 
         // -------------JIT Provisioning flows---------------
         JUST_IN_TIME_PROVISION,
-        @Deprecated // Use JUST_IN_TIME_PROVISION instead.
-        JIT_PROVISION,
         // --------------------------------------------------
 
         // -------------Authentication flows-----------------

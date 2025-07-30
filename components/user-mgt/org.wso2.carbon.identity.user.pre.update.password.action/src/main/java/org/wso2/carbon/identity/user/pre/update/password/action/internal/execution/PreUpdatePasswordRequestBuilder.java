@@ -167,7 +167,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             case PROFILE_UPDATE:
                 // Password update is a sub-flow of profile update.
                 return PreUpdatePasswordEvent.Action.UPDATE;
-            case PASSWORD_RESET:
+            case CREDENTIAL_RESET:
                 return PreUpdatePasswordEvent.Action.RESET;
             case INVITE:
             case INVITED_USER_REGISTRATION:

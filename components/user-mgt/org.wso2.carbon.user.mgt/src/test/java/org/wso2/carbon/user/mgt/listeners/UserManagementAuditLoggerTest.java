@@ -59,9 +59,10 @@ public class UserManagementAuditLoggerTest {
     public void testGetPasswordUpdateAuditMessageAction(Flow.InitiatingPersona persona, String expectedAction) {
 
         configureCarbonHome();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
-                .name(Flow.Name.PASSWORD_RESET)
+        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.CredentialFlowBuilder()
+                .name(Flow.Name.CREDENTIAL_RESET)
                 .initiatingPersona(persona)
+                .credentialType(Flow.CredentialType.PASSWORD)
                 .build());
         String action = auditLogger.getPasswordUpdateAuditMessageAction();
         assertEquals(action, expectedAction);
