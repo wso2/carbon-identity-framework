@@ -38,12 +38,12 @@ public class ActionValidator {
     // According to RFC 9910 a header name must contain only alphanumeric characters, period (.) and hyphen (-),
     // and should start with an alphanumeric character.
     private static final String HEADER_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-.]+$";
-    private static final String GENERAL_DELIMITERS_REGEX = ".*[:/?#\\[\\]@].*";
+    private static final String GENERAL_DELIMITER_REGEX = "[:/?#\\[\\]@]";
 
     private final Pattern actionNameRegexPattern = Pattern.compile(ACTION_NAME_REGEX);
     private final Pattern endpointUriRegexPattern = Pattern.compile(ENDPOINT_URI_REGEX);
     private final Pattern headerRegexPattern = Pattern.compile(HEADER_REGEX);
-    private final Pattern generalDelimitersRegex = Pattern.compile(GENERAL_DELIMITERS_REGEX);
+    private final Pattern generalDelimiterRegex = Pattern.compile(GENERAL_DELIMITER_REGEX);
 
     /**
      * Perform pre validations on action model when creating an action.
@@ -260,7 +260,7 @@ public class ActionValidator {
      */
     public void validateParameter(String param) throws ActionMgtClientException {
 
-        boolean hasGeneralDelimiters = generalDelimitersRegex.matcher(param).matches();
+        boolean hasGeneralDelimiters = generalDelimiterRegex.matcher(param).find();
 
         if (hasGeneralDelimiters) {
             throw ActionManagementExceptionHandler.handleClientException(
