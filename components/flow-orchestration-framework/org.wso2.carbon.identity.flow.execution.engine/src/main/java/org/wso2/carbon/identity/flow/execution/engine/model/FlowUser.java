@@ -42,6 +42,8 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -86,6 +88,7 @@ public class FlowUser implements Serializable {
         return username;
     }
 
+    @JsonIgnore
     public void setUsername(String username) {
 
         this.username = username;
@@ -183,19 +186,27 @@ public class FlowUser implements Serializable {
         public void serialize(Map<String, char[]> value, JsonGenerator gen, SerializerProvider serializers)
                 throws IOException {
 
-            try {
-                Map<String, String> encrypted = new HashMap<>();
-                for (Map.Entry<String, char[]> entry : value.entrySet()) {
-                    String plain = new String(entry.getValue());
-                    String encryptedVal = CryptoUtil.getDefaultCryptoUtil()
-                            .encryptAndBase64Encode(plain.getBytes(StandardCharsets.UTF_8));
+            Map<String, String> encrypted = new HashMap<>();
+            for (Map.Entry<String, char[]> entry : value.entrySet()) {
+                char[] chars = entry.getValue();
+                byte[] bytes = null;
+                try {
+                    // Encode char[] directly to byte[] using UTF-8.
+                    bytes = StandardCharsets.UTF_8.encode(CharBuffer.wrap(chars)).array();
+                    String encryptedVal = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(bytes);
                     encrypted.put(entry.getKey(), encryptedVal);
+                } catch (CryptoException e) {
+                    throw new IOException("Error while encrypting user credentials.", e);
+                } finally {
+                    // Wipe the byte array to prevent credential leakage.
+                    if (bytes != null) {
+                        java.util.Arrays.fill(bytes, (byte) 0);
+                    }
                 }
-                gen.writeObject(encrypted);
-            } catch (CryptoException e) {
-                throw new IOException("Error while encrypting user credentials.", e);
             }
+            gen.writeObject(encrypted);
         }
+
     }
 
     /**
@@ -205,20 +216,37 @@ public class FlowUser implements Serializable {
     public static class UserCredentialsDeserializer extends JsonDeserializer<Map<String, char[]>> {
 
         @Override
-        public Map<String, char[]> deserialize(JsonParser p, DeserializationContext ctxt)
-                throws IOException {
+        public Map<String, char[]> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
 
+            Map<String, char[]> decrypted = new HashMap<>();
             try {
                 Map<String, String> encrypted = p.readValueAs(new StringMapTypeReference());
-                Map<String, char[]> decrypted = new HashMap<>();
                 for (Map.Entry<String, String> entry : encrypted.entrySet()) {
-                    byte[] decoded = CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(entry.getValue());
-                    decrypted.put(entry.getKey(), new String(decoded, StandardCharsets.UTF_8).toCharArray());
+                    byte[] decoded = null;
+                    CharBuffer charBuffer = null;
+                    try {
+                        decoded = CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(entry.getValue());
+                        // Decode byte[] directly to CharBuffer and then to char[].
+                        charBuffer = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(decoded));
+                        char[] chars = new char[charBuffer.remaining()];
+                        charBuffer.get(chars);
+                        decrypted.put(entry.getKey(), chars);
+                    } catch (CryptoException e) {
+                        throw new IOException("Error while decrypting user credentials.", e);
+                    } finally {
+                        // Wipe sensitive data.
+                        if (decoded != null) {
+                            java.util.Arrays.fill(decoded, (byte) 0);
+                        }
+                        if (charBuffer != null) {
+                            charBuffer.clear();
+                        }
+                    }
                 }
-                return decrypted;
-            } catch (CryptoException e) {
-                throw new IOException("Error while decrypting user credentials.", e);
+            } catch (IOException e) {
+                throw e;
             }
+            return decrypted;
         }
     }
 
