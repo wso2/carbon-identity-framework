@@ -163,8 +163,7 @@ public class IdPManagementConstants {
             "Organization.SelfService.Enable",
             "Organization.SelfService.AdminEmailVerification",
             "Organization.SelfService.OnboardAdminToOrg",
-            "Organization.SelfService.EnableAutoLogin",
-            "passwordExpiry.rule");
+            "Organization.SelfService.EnableAutoLogin");
 
 
     public static class SQLConstants {

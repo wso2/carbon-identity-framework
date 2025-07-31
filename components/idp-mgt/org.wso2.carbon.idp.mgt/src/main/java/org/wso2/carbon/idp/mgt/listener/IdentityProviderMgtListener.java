@@ -118,6 +118,19 @@ public interface IdentityProviderMgtListener {
     }
 
     /**
+     * Define any additional actions after getting the resident idp.
+     *
+     * @param identityProvider Resident Identity Provider
+     * @return Whether the post get operations were successful.
+     * @throws IdentityProviderManagementException When an error occurs while handling the event.
+     */
+    default boolean doPostGetResidentIdP(IdentityProvider identityProvider, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        return true;
+    }
+
+    /**
      * Define any additional actions before adding idp
      *
      * @param identityProvider Created Identity Provider

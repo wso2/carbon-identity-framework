@@ -3543,10 +3543,21 @@ public class IdPManagementDAO {
          * passwordExpiry.rulex where x is the rule number.
          */
         list2 = list2.stream()
-                .filter(property -> !IdPManagementConstants.INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES
-                        .stream()
-                        .anyMatch(disabledProp -> property.getName().startsWith(disabledProp)))
-                .collect(Collectors.toList());
+                .filter(property -> {
+                    if (IdPManagementConstants.INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES.contains(
+                            property.getName())) {
+                        return false;
+                    }
+
+                    if (property.getName().startsWith("passwordExpiry.rule")) {
+                        String[] ruleTokens = property.getValue().split(",");
+                        if (Arrays.stream(ruleTokens).anyMatch(token -> "groups".equals(token))) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }).collect(Collectors.toList());
 
         for (IdentityProviderProperty property : list2) {
             if (list1.stream().noneMatch(p -> p.getName().equals(property.getName()))) {
