@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authorization-framework-feature</artifactId>
-        <version>7.8.359-SNAPSHOT</version>
+        <version>7.8.360-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
