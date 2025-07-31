@@ -154,6 +154,9 @@ public class IdPManagementConstants {
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATORS = List.of(
             IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
 
+    // Constants related to inheriting login & registration configurations.
+    public static final String PASSWORD_EXPIRY_RULES_KEY_PREFIX = "passwordExpiry.rule";
+    public static final String PASSWORD_EXPIRY_RULES_GROUPS = "groups";
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES = List.of(
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,

@@ -126,6 +126,8 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOKEN_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PASSWORD_EXPIRY_RULES_GROUPS;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PASSWORD_EXPIRY_RULES_KEY_PREFIX;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLConstants.DEFINED_BY_COLUMN;
@@ -3549,9 +3551,9 @@ public class IdPManagementDAO {
                         return false;
                     }
 
-                    if (property.getName().startsWith("passwordExpiry.rule")) {
+                    if (property.getName().startsWith(PASSWORD_EXPIRY_RULES_KEY_PREFIX)) {
                         String[] ruleTokens = property.getValue().split(",");
-                        if (Arrays.stream(ruleTokens).anyMatch(token -> "groups".equals(token))) {
+                        if (Arrays.stream(ruleTokens).anyMatch(token -> PASSWORD_EXPIRY_RULES_GROUPS.equals(token))) {
                             return false;
                         }
                     }

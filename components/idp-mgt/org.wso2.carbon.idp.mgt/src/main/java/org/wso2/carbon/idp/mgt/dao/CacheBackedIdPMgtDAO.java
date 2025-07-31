@@ -247,12 +247,15 @@ public class CacheBackedIdPMgtDAO {
                                                                    tenantId, tenantDomain);
 
         if (identityProvider != null) {
-            Collection<IdentityProviderMgtListener> listeners = IdpMgtServiceComponentHolder.getInstance()
-                    .getIdpMgtListeners();
-            for (IdentityProviderMgtListener listener: listeners) {
-                if (listener.isEnable() && !listener.doPostGetResidentIdP(identityProvider, tenantDomain)) {
-                    // If the listener returns false, skip adding to cache and return.
-                    return identityProvider;
+            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
+                    identityProvider.getIdentityProviderName())) {
+                Collection<IdentityProviderMgtListener> listeners = IdpMgtServiceComponentHolder.getInstance()
+                        .getIdpMgtListeners();
+                for (IdentityProviderMgtListener listener : listeners) {
+                    if (listener.isEnable() && !listener.doPostGetResidentIdP(identityProvider, tenantDomain)) {
+                        // If the listener returns false, skip adding to cache and return.
+                        return identityProvider;
+                    }
                 }
             }
 
