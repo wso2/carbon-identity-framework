@@ -369,5 +369,10 @@
     "PRE_ADD_USER",
     "POST_ADD_USER",
     "PRE_AUTHENTICATION"
+  ],
+  "identity_mgt.events.schemes.OrganizationVersionHandler.module_index": "56",
+  "identity_mgt.events.schemes.OrganizationVersionHandler.subscriptions": [
+    "PRE_UPDATE_ORGANIZATION",
+    "PRE_PATCH_ORGANIZATION"
   ]
 }
