@@ -1565,6 +1565,29 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_webhooks" displayName="Webhooks" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:webhooks"/>
+                <Scope name="console:org:webhooks_view"/>
+                <Scope name="console:org:webhooks_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_webhook_mgt_update"/>
+                <Scope name="internal_org_webhook_meta_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_webhook_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_webhook_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_webhook_mgt_view"/>
+                <Scope name="internal_org_webhook_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="org_users" displayName="Users" type="organization">
         <Scopes>
             <Feature>
