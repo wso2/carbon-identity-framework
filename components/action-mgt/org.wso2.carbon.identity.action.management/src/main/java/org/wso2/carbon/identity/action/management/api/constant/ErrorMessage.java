@@ -33,6 +33,10 @@ public enum ErrorMessage {
     ERROR_EMPTY_ACTION_REQUEST_FIELD("60004", "Invalid request.", "%s is empty."),
     ERROR_INVALID_ACTION_REQUEST_FIELD("60005", "Invalid request.", "%s is invalid."),
     ERROR_INVALID_ACTION_PROPERTIES("60006", "Provided Action Properties are invalid.", "%s"),
+    ERROR_NOT_ALLOWED_HEADER("60007", "Provided Headers are not allowed.",
+            "One or more provided headers are not allowed by the server."),
+    ERROR_NOT_ALLOWED_PARAMETER("60008", "Provided Parameters are not allowed.",
+            "One or more provided parameters are not allowed by the server."),
 
     // Server errors.
     ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",

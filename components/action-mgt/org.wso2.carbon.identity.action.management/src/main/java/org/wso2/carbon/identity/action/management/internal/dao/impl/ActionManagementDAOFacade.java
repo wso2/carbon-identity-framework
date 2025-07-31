@@ -304,6 +304,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                                 .type(actionDTOBuilder.getEndpoint().getAuthentication().getType())
                                 .properties(encryptedPropertyMap)
                                 .build())
+                        .allowedHeaders(actionDTOBuilder.getEndpoint().getAllowedHeaders())
+                        .allowedParameters(actionDTOBuilder.getEndpoint().getAllowedParameters())
                         .build());
     }
 
