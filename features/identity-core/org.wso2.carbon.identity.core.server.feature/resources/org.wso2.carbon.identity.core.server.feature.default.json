@@ -1179,6 +1179,21 @@
       "description": "This email is resent to request credentials from the user when a new account is created and the registration flow is incomplete",
       "displayName": "Resend New User Credentials Email",
       "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
+    },
+    {
+      "id": "YXNrUGFzc3dvcmRFbWFpbE90cA",
+      "displayName": "Invite user to set password via Email OTP",
+      "description": "This email OTP is sent to the user to set their password"
+    },
+    {
+      "id": "YXNrUGFzc3dvcmRSZXNlbmRFbWFpbE90cA",
+      "displayName": "Invite user to set password via Email OTP Resend",
+      "description": "This email is resent to the user to set their password via Email OTP"
+    },
+    {
+      "id": "ZW1haWxDb25maXJtV2l0aE90cA",
+      "displayName": "Confirm Email Address via Email OTP",
+      "description": "This email is sent to confirm the user email address via Email OTP"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1216,6 +1231,21 @@
       "description": "This SMS is sent to verify the user's mobile number after an update.",
       "displayName": "Verify Mobile On Update",
       "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
+    },
+    {
+      "description": "This SMS is sent to send the OTP for setting a password.",
+      "displayName": "Send Password Set",
+      "id": "YXNrUGFzc3dvcmRTbXNPdHA"
+    },
+    {
+      "description": "This SMS is sent to resend the OTP for setting a password.",
+      "displayName": "Resend Password Set",
+      "id": "YXNrUGFzc3dvcmRSZXNlbmRTbXNPdHA"
+    },
+    {
+      "description": "This SMS is sent to notify the user that their account is now unlocked.",
+      "displayName": "Password Set Success",
+      "id": "YXNrUGFzc3dvcmRTZXRTdWNjZXNz"
     }
   ],
   "console.ui.app_copyright": "WSO2 Identity Server",
