@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -52,12 +53,15 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.co
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.AccountLookupAttributeMappingConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -65,6 +69,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
@@ -72,8 +77,12 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -355,6 +364,226 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
                 Assert.assertFalse(urlContainsUsernameParam);
             }
         }
+    }
+
+    @DataProvider(name = "accountLookupClaimMappingDataProvider")
+    public Object[][] accountLookupClaimMappingDataProvider() {
+
+        return new Object[][]{
+                {null, new HashMap<>(), new HashMap<>()},
+                {new AccountLookupAttributeMappingConfig[0], new HashMap<>(), new HashMap<>()},
+                {createAccountLookupMappings(), createFederatedClaimValues(), createExpectedLocalClaims()},
+                {createAccountLookupMappingsWithBlankAttributes(), createFederatedClaimValues(), new HashMap<>()},
+                {createAccountLookupMappings(), new HashMap<>(), new HashMap<>()}
+        };
+    }
+
+    @Test(description = "Test the getLocalClaimsForAccountLookup method with various inputs",
+            dataProvider = "accountLookupClaimMappingDataProvider")
+    public void testGetLocalClaimsForAccountLookup(AccountLookupAttributeMappingConfig[] mappings,
+                                                   Map<ClaimMapping, String> federatedClaims,
+                                                   Map<String, String> expectedLocalClaims)
+            throws Exception {
+
+        // Use reflection to access the private method
+        Method getLocalClaimsForAccountLookupMethod = JITProvisioningPostAuthenticationHandler.class
+                .getDeclaredMethod("getLocalClaimsForAccountLookup", Map.class,
+                        AccountLookupAttributeMappingConfig[].class);
+        getLocalClaimsForAccountLookupMethod.setAccessible(true);
+
+        Map<String, String> result = (Map<String, String>) getLocalClaimsForAccountLookupMethod
+                .invoke(postJITProvisioningHandler, federatedClaims, mappings);
+
+        Assert.assertEquals(result, expectedLocalClaims,
+                "Local claims for account lookup should match expected values");
+    }
+
+    @Test(description = "Test the getLocalUser method with multiple users found scenario")
+    public void testGetLocalUserWithMultipleUsersFound() throws Exception {
+
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            frameworkServiceDataHolder.when(FrameworkServiceDataHolder::getInstance)
+                    .thenReturn(mockFrameworkServiceDataHolder);
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+
+            RealmService mockRealmService = mock(RealmService.class);
+            UserRealm mockRealm = mock(UserRealm.class);
+            AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+            AbstractUserStoreManager mockPrimaryUserStoreManager = mock(AbstractUserStoreManager.class);
+
+            when(mockFrameworkServiceDataHolder.getRealmService()).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantUserRealm(1)).thenReturn(mockRealm);
+            when(mockRealm.getUserStoreManager()).thenReturn(mockPrimaryUserStoreManager);
+
+            // Mock the secondary user store manager return for PRIMARY domain
+            when(mockPrimaryUserStoreManager.getSecondaryUserStoreManager("PRIMARY")).thenReturn(mockUserStoreManager);
+
+            // Mock multiple users found scenario
+            List<org.wso2.carbon.user.core.common.User> multipleUsers = new ArrayList<>();
+            multipleUsers.add(mock(org.wso2.carbon.user.core.common.User.class));
+            multipleUsers.add(mock(org.wso2.carbon.user.core.common.User.class));
+
+            when(mockUserStoreManager.getUserListWithID(anyString(), anyString(), any()))
+                    .thenReturn(multipleUsers);
+
+            Map<String, String> localClaims = new HashMap<>();
+            localClaims.put("email", "test@example.com");
+
+            // Use reflection to access the private method
+            Method getLocalUserMethod = JITProvisioningPostAuthenticationHandler.class
+                    .getDeclaredMethod("getLocalUser", String.class, String.class, Map.class);
+            getLocalUserMethod.setAccessible(true);
+
+            try {
+                getLocalUserMethod.invoke(postJITProvisioningHandler, "test-tenant", "PRIMARY", localClaims);
+                Assert.fail("Expected PostAuthenticationFailedException due to multiple users found");
+            } catch (InvocationTargetException e) {
+                Throwable cause = e.getCause();
+                Assert.assertTrue(cause instanceof PostAuthenticationFailedException,
+                        "Expected PostAuthenticationFailedException. Actual: " + cause.getClass().getSimpleName());
+                PostAuthenticationFailedException exception = (PostAuthenticationFailedException) cause;
+                // Check that the exception indicates a multiple matching accounts error
+                Assert.assertTrue(exception.getMessage().contains("Multiple matching local accounts") ||
+                                exception.getMessage().contains("Multiple users found") ||
+                                exception.getErrorCode().equals("80037"),
+                        "Exception should indicate multiple matching accounts error. Actual message: " +
+                                exception.getMessage() + ", Error code: " + exception.getErrorCode());
+            }
+        }
+    }
+
+    @Test(description = "Test the email username lookup functionality when user exists")
+    public void testEmailUsernameLookupWithExistingUser() throws Exception {
+
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(
+                     org.wso2.carbon.identity.core.util.IdentityUtil.class)) {
+
+            frameworkServiceDataHolder.when(FrameworkServiceDataHolder::getInstance)
+                    .thenReturn(mockFrameworkServiceDataHolder);
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            identityUtil.when(() -> org.wso2.carbon.identity.core.util.IdentityUtil.getProperty(anyString()))
+                    .thenReturn("false");
+
+            AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
+            FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
+            frameworkUtils.when(FrameworkUtils::getFederatedAssociationManager).thenReturn(federatedAssociationManager);
+            frameworkUtils.when(FrameworkUtils::getStepBasedSequenceHandler)
+                    .thenReturn(mock(StepBasedSequenceHandler.class));
+
+            RealmService mockRealmService = mock(RealmService.class);
+            UserRealm mockRealm = mock(UserRealm.class);
+            AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+            AbstractUserStoreManager mockPrimaryUserStoreManager = mock(AbstractUserStoreManager.class);
+
+            when(mockFrameworkServiceDataHolder.getRealmService()).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantUserRealm(1)).thenReturn(mockRealm);
+            when(mockRealm.getUserStoreManager()).thenReturn(mockPrimaryUserStoreManager);
+            when(mockPrimaryUserStoreManager.getSecondaryUserStoreManager("PRIMARY")).thenReturn(mockUserStoreManager);
+
+            when(mockUserStoreManager.isExistingUser(anyString())).thenReturn(true);
+
+            org.wso2.carbon.user.core.common.User mockUser = mock(org.wso2.carbon.user.core.common.User.class);
+            when(mockUser.getUsername()).thenReturn("testuser");
+            when(mockUser.getUserStoreDomain()).thenReturn("PRIMARY");
+            when(mockUser.getTenantDomain()).thenReturn("carbon.super");
+            when(mockUser.getDomainQualifiedUsername()).thenReturn("PRIMARY/testuser");
+
+            List<org.wso2.carbon.user.core.common.User> userList = new ArrayList<>();
+            userList.add(mockUser);
+            when(mockUserStoreManager.getUser(null, "test@example.com")).thenReturn(mockUser);
+
+            ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
+            configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
+            IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
+            identityProvider.getJustInTimeProvisioningConfig().setAssociateLocalUserEnabled(true);
+            // Clear account lookup mappings to trigger email lookup
+            identityProvider.getJustInTimeProvisioningConfig().setAccountLookupAttributeMappings(null);
+            ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
+            doReturn(externalIdPConfig).when(mockConfigurationFacade).getIdPConfigByName(eq(null), anyString());
+
+            Map<String, String> localClaimValues = new HashMap<>();
+            localClaimValues.put("http://wso2.org/claims/emailaddress", "test@example.com");
+            context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, localClaimValues);
+
+            PostAuthnHandlerFlowStatus result = postJITProvisioningHandler.handle(request, response, context);
+            Assert.assertEquals(result, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED,
+                    "Handler should complete successfully when email username lookup finds existing user");
+        }
+    }
+
+    /**
+     * Creates account lookup attribute mappings for testing.
+     *
+     * @return Array of AccountLookupAttributeMappingConfig.
+     */
+    private AccountLookupAttributeMappingConfig[] createAccountLookupMappings() {
+
+        AccountLookupAttributeMappingConfig mapping1 = new AccountLookupAttributeMappingConfig();
+        mapping1.setFederatedAttribute("remote_email");
+        mapping1.setLocalAttribute("local_email");
+
+        AccountLookupAttributeMappingConfig mapping2 = new AccountLookupAttributeMappingConfig();
+        mapping2.setFederatedAttribute("remote_username");
+        mapping2.setLocalAttribute("local_username");
+
+        return new AccountLookupAttributeMappingConfig[]{mapping1, mapping2};
+    }
+
+    /**
+     * Creates account lookup attribute mappings with blank attributes for testing.
+     *
+     * @return Array of AccountLookupAttributeMappingConfig with blank attributes.
+     */
+    private AccountLookupAttributeMappingConfig[] createAccountLookupMappingsWithBlankAttributes() {
+
+        AccountLookupAttributeMappingConfig mapping1 = new AccountLookupAttributeMappingConfig();
+        mapping1.setFederatedAttribute("");
+        mapping1.setLocalAttribute("local_email");
+
+        AccountLookupAttributeMappingConfig mapping2 = new AccountLookupAttributeMappingConfig();
+        mapping2.setFederatedAttribute("remote_username");
+        mapping2.setLocalAttribute("");
+
+        return new AccountLookupAttributeMappingConfig[]{mapping1, mapping2};
+    }
+
+    /**
+     * Creates a map of federated claims for testing.
+     *
+     * @return Map of ClaimMapping to claim values.
+     */
+    private Map<ClaimMapping, String> createFederatedClaimValues() {
+
+        Map<ClaimMapping, String> federatedClaims = new HashMap<>();
+
+        ClaimMapping emailClaimMapping = ClaimMapping.build("remote_email", "remote_email", null, false);
+        ClaimMapping usernameClaimMapping = ClaimMapping.build("remote_username", "remote_username", null, false);
+        ClaimMapping otherClaimMapping = ClaimMapping.build("remote_other", "remote_other", null, false);
+
+        federatedClaims.put(emailClaimMapping, "test@example.com");
+        federatedClaims.put(usernameClaimMapping, "testuser");
+        federatedClaims.put(otherClaimMapping, "othervalue");
+
+        return federatedClaims;
+    }
+
+    /**
+     * Creates expected local claims for testing.
+     *
+     * @return Map of expected local claims.
+     */
+    private Map<String, String> createExpectedLocalClaims() {
+
+        Map<String, String> expectedClaims = new HashMap<>();
+        expectedClaims.put("local_email", "test@example.com");
+        expectedClaims.put("local_username", "testuser");
+        return expectedClaims;
     }
 
     /**
