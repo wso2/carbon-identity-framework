@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.webhook.metadata.service;
 
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -53,7 +54,7 @@ public class EventAdapterMetadataServiceImplTest {
         MockitoAnnotations.openMocks(this);
         service = EventAdapterMetadataServiceImpl.getInstance();
 
-        Field daoField = EventAdapterMetadataServiceImpl.class.getDeclaredField("adopterMetadataDAO");
+        Field daoField = EventAdapterMetadataServiceImpl.class.getDeclaredField("adapterMetadataDAO");
         daoField.setAccessible(true);
         daoField.set(service, mockDAO);
 
@@ -61,8 +62,8 @@ public class EventAdapterMetadataServiceImplTest {
         initializedField.setAccessible(true);
         initializedField.set(service, true);
 
-        Field adoptersField = EventAdapterMetadataServiceImpl.class.getDeclaredField("adopters");
-        adoptersField.setAccessible(true);
+        Field adaptersField = EventAdapterMetadataServiceImpl.class.getDeclaredField("adapters");
+        adaptersField.setAccessible(true);
         Adapter enabledAdapter = new Adapter.Builder()
                 .name("websubhub")
                 .type(AdapterType.PublisherSubscriber)
@@ -75,7 +76,7 @@ public class EventAdapterMetadataServiceImplTest {
                 .enabled(false)
                 .properties(Collections.emptyMap())
                 .build();
-        adoptersField.set(service, Arrays.asList(enabledAdapter, disabledAdapter));
+        adaptersField.set(service, Arrays.asList(enabledAdapter, disabledAdapter));
     }
 
     @AfterMethod
@@ -84,9 +85,41 @@ public class EventAdapterMetadataServiceImplTest {
     }
 
     @Test
+    public void testInitSuccess() throws Exception {
+        // Prepare
+        Field initializedField = EventAdapterMetadataServiceImpl.class.getDeclaredField("initialized");
+        initializedField.setAccessible(true);
+        initializedField.set(service, false);
+
+        List<Adapter> adapters = Arrays.asList(
+                new Adapter.Builder().name("A").type(AdapterType.Publisher).enabled(true).build()
+        );
+        Mockito.doNothing().when(mockDAO).init();
+        when(mockDAO.getAdapters()).thenReturn(adapters);
+
+        // Act
+        service.init();
+
+        // Assert
+        Assert.assertTrue((Boolean) initializedField.get(service));
+        Assert.assertEquals(service.getAdapters().size(), 1);
+    }
+
+    @Test
+    public void testInitAlreadyInitialized() throws Exception {
+
+        Field initializedField = EventAdapterMetadataServiceImpl.class.getDeclaredField("initialized");
+        initializedField.setAccessible(true);
+        initializedField.set(service, true);
+
+        service.init(); // Should not call DAO again, no exception
+        Assert.assertTrue((Boolean) initializedField.get(service));
+    }
+
+    @Test
     public void testGetAdapters() throws Exception {
 
-        when(mockDAO.getAdopters()).thenReturn(service.getAdapters());
+        when(mockDAO.getAdapters()).thenReturn(service.getAdapters());
         List<Adapter> result = service.getAdapters();
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 2);

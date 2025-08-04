@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-provider-management</artifactId>
-        <version>7.8.348-SNAPSHOT</version>
+        <version>7.8.365-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -89,6 +89,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.organization.management</groupId>
             <artifactId>org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.multitenancy</groupId>
+            <artifactId>org.wso2.carbon.tenant.mgt</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -190,7 +194,8 @@
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.json;version="${json.wso2.version.range}",
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
-                            org.wso2.carbon.identity.action.management.api.*; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.action.management.api.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.tenant.mgt.util.*;version="${carbon.multitenancy.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.idp.mgt.internal,
