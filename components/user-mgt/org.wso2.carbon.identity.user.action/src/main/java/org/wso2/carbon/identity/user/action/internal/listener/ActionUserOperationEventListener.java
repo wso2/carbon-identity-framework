@@ -113,31 +113,28 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || !isEnablePreUpdatePasswordFlow()) {
+        if (!isEnable() || isEnablePreUpdatePasswordFlow() <= 0) {
             return true;
         }
 
         return executePreUpdatePasswordAction(userID, credential, userStoreManager);
     }
 
-    public static boolean isEnablePreUpdatePasswordFlow() {
+    public static int isEnablePreUpdatePasswordFlow() {
 
+        boolean isFlowEnabled = DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW;
         String propertyValue = IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
-        Log log = LogFactory.getLog(ActionUserOperationEventListener.class);
 
         if (StringUtils.isNotBlank(propertyValue)) {
-            String trimmed = propertyValue.trim();
-            if ("true".equalsIgnoreCase(trimmed)) {
-                return true;
-            } else if ("false".equalsIgnoreCase(trimmed)) {
-                return false;
-            } else {
-                log.warn("Invalid value for " + ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW +
-                        ": " + trimmed + " (expecting 'true' or 'false'). Using default.");
+            try {
+                isFlowEnabled = Boolean.parseBoolean(propertyValue);
+            } catch (NumberFormatException e) {
+                Log log = LogFactory.getLog(ActionUserOperationEventListener.class);
+                log.warn("Error occurred while parsing the 'RegistrationFlow' property value in identity.xml.", e);
             }
         }
 
-        return DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW;
+        return isFlowEnabled ? 1 : 0;
     }
 
     private boolean executePreUpdatePasswordAction(String userID, Object credential,

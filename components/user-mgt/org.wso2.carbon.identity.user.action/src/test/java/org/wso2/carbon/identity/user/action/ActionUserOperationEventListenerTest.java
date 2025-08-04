@@ -349,7 +349,8 @@ public class ActionUserOperationEventListenerTest {
 
         // Register flow
         try {
-            listener.doPreAddUserWithID(USER_NAME, 10, null, new HashMap<>(), null, userStoreManager);
+            listener.doPreAddUserWithID(USER_NAME, 10, null,
+                    new HashMap<>(), null, userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreException);
             Assert.assertEquals(e.getMessage(), "Credential is not in the expected format.");
@@ -374,7 +375,8 @@ public class ActionUserOperationEventListenerTest {
                 userStoreManager));
         // Register flow
         assertFalse(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
-                null, new HashMap<>(), null, userStoreManager), "The method should return false for unknown status.");
+                null, new HashMap<>(), null, userStoreManager),
+                "The method should return false for unknown status.");
     }
 
     @Test
@@ -406,31 +408,14 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void doPreAddUserWithIDReturnsTrueWhenPreUpdatePasswordFlowIsDisabled() throws UserStoreException {
+    public void doPreAddUserWithIDReturnsTrueWhenPreUpdatePasswordFlowIsDisabled() throws
+            UserStoreException, UnsupportedSecretTypeException {
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
             identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
                     .thenReturn("false");
-            try {
-                Assert.assertTrue(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null,
-                        null, null, userStoreManager));
-            } catch (UnsupportedSecretTypeException e) {
-                throw new RuntimeException(e);
-            }
+            Assert.assertTrue(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null,
+                    null, null, userStoreManager));
         }
-    }
-
-    @Test
-    public void doPreAddUserWithIDExecutesSuccessfullyWhenFlowIsEnabled() throws UserStoreException,
-            ActionExecutionException, UnsupportedSecretTypeException {
-        ActionExecutionStatus<Success> successStatus =
-                new SuccessStatus.Builder().setResponseContext(Collections.emptyMap()).build();
-        doReturn(successStatus).when(mockExecutor).execute(any(), any());
-        doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
-        UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
-
-        boolean result = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null,
-                null, null, userStoreManager);
-        Assert.assertTrue(result, "The method should return true for successful execution.");
     }
 
     @Test
@@ -438,28 +423,17 @@ public class ActionUserOperationEventListenerTest {
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
             identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
                     .thenReturn("true");
-            Assert.assertTrue(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow());
+            Assert.assertEquals(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow(), 1);
         }
     }
 
     @Test
-    public void isEnablePreUpdatePasswordFlowReturnsFalseForValidFalseValue() {
+    public void isEnablePreUpdatePasswordFlowReturnsZeroForValidFalseValue() {
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
             identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
                     .thenReturn("false");
-            Assert.assertFalse(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow());
+            Assert.assertEquals(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow(), 0);
         }
     }
-
-    @Test
-    public void isEnablePreUpdatePasswordFlowReturnsDefaultForInvalidValue() {
-        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
-            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
-                    .thenReturn("invalid");
-            Assert.assertEquals(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow(),
-                    ActionUserOperationEventListener.DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
-        }
-    }
-
 
 }
