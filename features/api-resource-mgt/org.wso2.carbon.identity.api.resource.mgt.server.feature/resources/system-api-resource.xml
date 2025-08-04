@@ -120,6 +120,26 @@
                    description="Delete actions"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Workflow Approval Task API" identifier="/api/users/v1/me/approval-tasks"
+                 requiresAuthorization="false"
+                 description="API representation of the workflow approval task API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow Approval Task" name="internal_approval_task_view"
+                   description="View workflow approvals Tasks"/>
+            <Scope displayName="Update Workflow Approval Task" name="internal_approval_task_update"
+                   description="Update workflow approval Tasks"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Approval Task API" identifier="/o/api/users/v1/me/approval-tasks"
+                 requiresAuthorization="false"
+                 description="API representation of the workflow approval task API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Workflow Approval Task" name="internal_org_approval_task_view"
+                   description="View workflow approvals Tasks"/>
+            <Scope displayName="Update Workflow Approval Task" name="internal_org_approval_task_update"
+                   description="Update workflow approval Tasks"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">
@@ -1381,17 +1401,30 @@
                     description="Manage server from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Management Feature" identifier="console:workflowApprovals"
+    <APIResource name="Approval Workflow Management Feature" identifier="console:workflows"
                  requiresAuthorization="true"
-                 description="Resource representation of the Workflow Approval Management Feature"
+                 description="Resource representation of the Approval Workflow Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="Workflow Approval Feature" name="console:workflowApprovals" 
-                    description="Manage workflow approvals from the Console"/>
-            <Scope displayName="Workflow Approval View Feature" name="console:workflowApprovals_view"
-                   description="Manage views of workflow approvals from the Console"/>
-            <Scope displayName="Workflow Approval Edit Feature" name="console:workflowApprovals_edit"
-                   description="Manage edits of workflow approvals from the Console"/>
+            <Scope displayName="Approval Workflow Feature" name="console:workflows"
+                   description="Manage workflows from the Console"/>
+            <Scope displayName="Approval Workflow View Feature" name="console:workflows_view"
+                   description="Manage views of workflows from the Console"/>
+            <Scope displayName="Approval Workflow Edit Feature" name="console:workflows_edit"
+                   description="Manage edits of workflows from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:workflows"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Approval Workflow Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Approval Workflow Feature" name="console:org:workflows"
+                   description="Manage Approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow View Feature" name="console:org:workflows_view"
+                   description="Manage views of approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow Edit Feature" name="console:org:workflows_edit"
+                   description="Manage edits of approval workflows from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
@@ -1709,13 +1742,32 @@
                    description="Delete workflow association"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Task API" identifier="/api/users/v1/me/approval-tasks" requiresAuthorization="false"
-                 description="API representation of the workflow approval Task API" type="TENANT">
+    <APIResource name="Workflow Management API Organization" identifier="/o/api/server/v1/workflows"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Management API Organization" type="ORGANIZATION">
         <Scopes>
-            <Scope displayName="View Workflow Approval Task" name="internal_approval_task_view"
-                   description="View workflow approvals Tasks"/>
-            <Scope displayName="Update Workflow Approval Task" name="internal_approval_task_update"
-                   description="Update workflow approval Tasks"/>
+            <Scope displayName="View Workflow" name="internal_org_workflow_view"
+                   description="View workflows"/>
+            <Scope displayName="Create Workflow" name="internal_org_workflow_create"
+                   description="Create new workflow"/>
+            <Scope displayName="Update Workflow" name="internal_org_workflow_update"
+                   description="Update workflow"/>
+            <Scope displayName="Delete Workflow" name="internal_org_workflow_delete"
+                   description="Delete workflow"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Association Management API Organization" identifier="/o/api/server/v1/workflow-associations"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Association Management API Organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Workflow Association" name="internal_org_workflow_association_view"
+                   description="View workflow associations"/>
+            <Scope displayName="Create Workflow Association" name="internal_org_workflow_association_create"
+                   description="Create new workflow association"/>
+            <Scope displayName="Update Workflow Association" name="internal_org_workflow_association_update"
+                   description="Update workflow association"/>
+            <Scope displayName="Delete Workflow Association" name="internal_org_workflow_association_delete"
+                   description="Delete workflow association"/>
         </Scopes>
     </APIResource>
 </APIResources>
