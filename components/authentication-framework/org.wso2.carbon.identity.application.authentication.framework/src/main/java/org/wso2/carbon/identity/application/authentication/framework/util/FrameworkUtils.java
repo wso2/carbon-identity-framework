@@ -4250,6 +4250,38 @@ public class FrameworkUtils {
                 }));
     }
 
+    /**
+     * Remove the common auth cookie from the response.
+     *
+     * @param request  HttpServletRequest
+     * @param response HttpServletResponse
+     */
+    public static void removeCommonAuthCookie(HttpServletRequest request, HttpServletResponse response) {
+
+        if (request == null || response == null) {
+            return;
+        }
+
+        String cookieValue = Arrays.stream(request.getCookies())
+                .filter(cookie -> FrameworkConstants.AutoLoginConstant.COOKIE_NAME.equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElse(StringUtils.EMPTY);
+        CookieBuilder cookieBuilder = new CookieBuilder(FrameworkConstants.COMMONAUTH_COOKIE, cookieValue);
+        IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
+
+        if (cookieConfig != null) {
+            updateCookieConfig(cookieBuilder, cookieConfig, 0, ROOT_DOMAIN);
+        } else {
+            cookieBuilder.setHttpOnly(true);
+            cookieBuilder.setSecure(true);
+            cookieBuilder.setPath(ROOT_DOMAIN);
+        }
+
+        cookieBuilder.setMaxAge(0);
+        response.addCookie(cookieBuilder.build());
+    }
+
     /*
     TODO: This needs to be refactored so that there is a separate context object for each authentication step,
      rather than resetting.
