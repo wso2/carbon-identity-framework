@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>thrift-authenticator</artifactId>
-        <version>7.8.366</version>
+        <version>7.8.367-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
