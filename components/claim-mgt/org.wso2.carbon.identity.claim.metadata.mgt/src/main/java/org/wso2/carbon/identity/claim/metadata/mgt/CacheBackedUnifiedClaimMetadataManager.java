@@ -25,10 +25,16 @@ import org.wso2.carbon.identity.claim.metadata.mgt.cache.ExternalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.ExternalClaimCacheKey;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,7 +149,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         super.addLocalClaim(localClaim, tenantId);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        removeLocalClaimCache(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Local claim: " + localClaim.getClaimURI() + " is added for tenant: " + tenantId +
                     ". Invalidated LocalClaimCache.");
@@ -154,7 +160,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         super.updateLocalClaim(localClaim, tenantId);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        removeLocalClaimCache(tenantId);
         associatedClaimCache.clearCacheEntry(localClaim.getClaimURI(), tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Local claim: " + localClaim.getClaimURI() + " is updated in tenant: " + tenantId +
@@ -167,7 +173,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
             throws ClaimMetadataException {
 
         super.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        removeLocalClaimCache(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim mappings for user-store domain: " + userStoreDomain + " is updated in tenant: " +
                     tenantId + ". Invalidated LocalClaimCache.");
@@ -178,7 +184,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         super.removeLocalClaim(localClaimURI, tenantId);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        removeLocalClaimCache(tenantId);
         associatedClaimCache.clearCacheEntry(localClaimURI, tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Local claim: " + localClaimURI + " is deleted in tenant: " + tenantId +
@@ -276,7 +282,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
         super.removeClaimMappingAttributes(tenantId, userstoreDomain);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        removeLocalClaimCache(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim mappings for user-store domain: " + userstoreDomain + " is removed in tenant: " +
                     tenantId + ". Invalidated LocalClaimCache.");
@@ -332,5 +338,33 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
         for (String localClaim : mappedLocalClaim) {
             associatedClaimCache.clearCacheEntry(localClaim, tenantId);
         }
+    }
+
+    /**
+     * Removes the local claim cache of the given tenant and its child organizations.
+     *
+     * @param tenantId The id of the tenant for which the cache needs to be cleared.
+     */
+    private void removeLocalClaimCache(int tenantId) {
+
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        try {
+            if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+                String organizationId = IdentityClaimManagementServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveOrganizationId(tenantDomain);
+                List<BasicOrganization> childOrganizations = IdentityClaimManagementServiceDataHolder.getInstance()
+                        .getOrganizationManager()
+                        .getChildOrganizations(organizationId, true);
+                for (BasicOrganization childOrg : childOrganizations) {
+                    int childTenantId = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService().
+                            getTenantManager().getTenantId(childOrg.getOrganizationHandle());
+                    localClaimCache.clearCacheEntry(childTenantId, childTenantId);
+                }
+            }
+        } catch (OrganizationManagementException | UserStoreException e) {
+            log.error(e);
+        }
+        localClaimCache.clearCacheEntry(tenantId, tenantId);
     }
 }
