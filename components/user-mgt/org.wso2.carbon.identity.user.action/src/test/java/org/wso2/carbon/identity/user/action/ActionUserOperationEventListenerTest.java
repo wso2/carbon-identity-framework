@@ -48,6 +48,7 @@ import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET;
+import static org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener.ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW;
 
 /**
  * Unit tests for ActionUserOperationEventListener.
@@ -386,4 +387,62 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR);
         }
     }
+
+    @Test
+    public void doPreAddUserWithIDReturnsTrueWhenPreUpdatePasswordFlowIsDisabled() throws UserStoreException {
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
+                    .thenReturn("false");
+            try {
+                Assert.assertTrue(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null,
+                        null, null, userStoreManager));
+            } catch (UnsupportedSecretTypeException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Test
+    public void doPreAddUserWithIDExecutesSuccessfullyWhenFlowIsEnabled() throws UserStoreException,
+            ActionExecutionException, UnsupportedSecretTypeException {
+        ActionExecutionStatus<Success> successStatus =
+                new SuccessStatus.Builder().setResponseContext(Collections.emptyMap()).build();
+        doReturn(successStatus).when(mockExecutor).execute(any(), any());
+        doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
+        UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
+
+        boolean result = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null,
+                null, null, userStoreManager);
+        Assert.assertTrue(result, "The method should return true for successful execution.");
+    }
+
+    @Test
+    public void isEnablePreUpdatePasswordFlowReturnsTrueForValidTrueValue() {
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
+                    .thenReturn("true");
+            Assert.assertTrue(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow());
+        }
+    }
+
+    @Test
+    public void isEnablePreUpdatePasswordFlowReturnsFalseForValidFalseValue() {
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
+                    .thenReturn("false");
+            Assert.assertFalse(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow());
+        }
+    }
+
+    @Test
+    public void isEnablePreUpdatePasswordFlowReturnsDefaultForInvalidValue() {
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
+                    .thenReturn("invalid");
+            Assert.assertEquals(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow(),
+                    ActionUserOperationEventListener.DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
+        }
+    }
+
+
 }
