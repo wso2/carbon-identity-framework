@@ -23,26 +23,37 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Error;
 import org.wso2.carbon.identity.action.execution.api.model.Failure;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
 import org.wso2.carbon.identity.user.action.api.constant.UserActionError;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionClientException;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionServerException;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
+import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
+import org.wso2.carbon.identity.user.action.internal.component.UserActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
+import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.listener.SecretHandleableListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.Secret;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 /**
  * This class is responsible for handling the action invocation related to user flows.
  */
 public class ActionUserOperationEventListener extends AbstractIdentityUserOperationEventListener implements
         SecretHandleableListener {
+
+    private static final String MANAGED_ORG_CLAIM_URI = "http://wso2.org/claims/identity/managedOrg";
 
     @Override
     public int getExecutionOrderId() {
@@ -79,11 +90,13 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
 
         try {
-            UserActionContext userActionContext = new UserActionContext.Builder()
-                    .userId(userID)
-                    .password(getSecret(credential))
-                    .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
-                    .build();
+            UserActionContext userActionContext = new UserActionContext(
+                    new UserActionRequestDTO.Builder()
+                            .userId(userID)
+                            .password(getSecret(credential))
+                            .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
+                            .residentOrganization(getUserResidentOrganization(userID, userStoreManager))
+                            .build());
 
             ActionExecutionStatus<?> executionStatus =
                     UserActionExecutorFactory.getUserActionExecutor(ActionType.PRE_UPDATE_PASSWORD)
@@ -111,6 +124,69 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
     }
 
+    private Organization getUserResidentOrganization(String userID, UserStoreManager userStoreManager)
+            throws UserActionExecutionServerException {
+
+        org.wso2.carbon.identity.core.context.model.Organization accessingOrganization =
+                IdentityContext.getThreadLocalIdentityContext().getOrganization();
+        if (accessingOrganization == null) {
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                    "Accessing organization is not present in the identity context.");
+        }
+
+        try {
+            String managedOrgId = ((UniqueIDUserStoreManager) userStoreManager)
+                    .getUserClaimValueWithID(userID, MANAGED_ORG_CLAIM_URI, UserCoreConstants.DEFAULT_PROFILE);
+            if (managedOrgId == null) {
+                // User resident organization is the accessing organization if the managed organization claim is
+                // not set.
+               return new Organization.Builder()
+                       .id(accessingOrganization.getId())
+                       .name(accessingOrganization.getName())
+                       .orgHandle(accessingOrganization.getOrganizationHandle())
+                       .depth(accessingOrganization.getDepth())
+                       .build();
+            }
+            // If the managed organization claim is set, retrieve the organization details.
+            return getOrganization(managedOrgId);
+        } catch (UserStoreException e) {
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                    "Error while retrieving the user's managed by organization claim.", e);
+        }
+    }
+
+    private Organization getOrganization(String managedOrgId) throws UserActionExecutionServerException {
+
+        if (OrganizationManagementConstants.SUPER_ORG_ID.equals(managedOrgId)) {
+            return new Organization.Builder()
+                    .id(OrganizationManagementConstants.SUPER_ORG_ID)
+                    .name(OrganizationManagementConstants.SUPER)
+                    .orgHandle(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)
+                    .depth(0)
+                    .build();
+        }
+
+        try {
+            MinimalOrganization minimalOrganization = UserActionServiceComponentHolder.getInstance().
+                    getOrganizationManager().getMinimalOrganization(managedOrgId, null);
+            if (minimalOrganization == null) {
+                throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                        "No organization found for the user's managed organization id: " + managedOrgId);
+            }
+
+            return new Organization.Builder()
+                    .id(minimalOrganization.getId())
+                    .name(minimalOrganization.getName())
+                    .orgHandle(minimalOrganization.getOrganizationHandle())
+                    .depth(minimalOrganization.getDepth())
+                    .build();
+        } catch (OrganizationManagementException e) {
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                    "Error while retrieving organization details for the user's managed organization id: "
+                            + managedOrgId, e);
+        }
+    }
+
     private boolean isExecutableFlow() {
 
         Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
@@ -119,7 +195,8 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
 
         return flow.getName() == Flow.Name.PASSWORD_RESET ||
-                flow.getName() == Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD ||
+                flow.getName() == Flow.Name.INVITE ||
+                flow.getName() == Flow.Name.INVITED_USER_REGISTRATION ||
                 flow.getName() == Flow.Name.PROFILE_UPDATE;
     }
 

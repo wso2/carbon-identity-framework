@@ -105,7 +105,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_A
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TENANT_DOMAIN_PLACEHOLDER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Few common utility functions related to Application (aka. Service Provider) Management.
@@ -1113,7 +1112,7 @@ public class ApplicationMgtUtil {
     public static boolean isLegacyAuditLogsDisabledInAppMgt() {
 
         return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
-                || isLegacyAuditLogsDisabled();
+                || isEnableV2AuditLogs();
     }
 
     /**

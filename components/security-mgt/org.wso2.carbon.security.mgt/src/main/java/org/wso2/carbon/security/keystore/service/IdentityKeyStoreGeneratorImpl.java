@@ -235,7 +235,7 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
             Date notAfter = new Date(System.currentTimeMillis() + CERT_NOT_AFTER_TIME);
 
             SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
-            BigInteger serialNumber = BigInteger.valueOf(new SecureRandom().nextInt());
+            BigInteger serialNumber = new BigInteger(32, new SecureRandom());
 
             X509v3CertificateBuilder certificateBuilder = new X509v3CertificateBuilder(
                     distinguishedName,

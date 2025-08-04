@@ -1205,6 +1205,7 @@
             {% endif %}
             <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_enforcement}}</EnableFAPIEnforcement>
             <EnableSectorIdentifierURIValidation>{{oauth.dcr.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
+            <ReturnNullFieldsInResponse>{{oauth.dcrm.return_null_fields_in_response}}</ReturnNullFieldsInResponse>
         </DCRM>
 
         <!--
@@ -1648,6 +1649,8 @@
         {% if scim2.enable_error_code_for_password_policy_violations is defined %}
             <EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>
         {% endif %}
+
+        <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
     </SCIM2>
 
       <PasswordPolicy>
@@ -1770,6 +1773,12 @@
             <Enable>{{identity_mgt.recovery.enable_auto_login}}</Enable>
         </AutoLogin>
     </Recovery>
+
+    <AccountLock>
+        <EmailTemplate>
+            <AdminUnlockForFailedAttempts>{{account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts}}</AdminUnlockForFailedAttempts>
+        </EmailTemplate>
+    </AccountLock>
 
     <Notification>
         <DefaultNotificationChannel>{{identity_mgt.notification.default_notification_channel}}</DefaultNotificationChannel>
@@ -1898,6 +1907,7 @@
     <LoginIdentifiers>
         <Enable>{{identity_mgt.login_identifiers.enable}}</Enable>
         <PrimaryLoginIdentifier>{{identity_mgt.login_identifiers.primary_claim}}</PrimaryLoginIdentifier>
+        <enableIdentifierAsDisplayUsername>{{identity_mgt.login_identifiers.enable_identifier_as_display_username}}</enableIdentifierAsDisplayUsername>
     </LoginIdentifiers>
 
     <UserClaimUpdate>
@@ -2187,12 +2197,21 @@
         </Types>
     </Actions>
 
+    <Webhooks>
+        <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
+    </Webhooks>
+
     <EventListeners>
         <EventListener id="input_validation"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener"
                        orderId="{{event.default_listener.validation.priority}}"
                        enable="{{event.default_listener.validation.enable}}"/>
+        <EventListener id="data_type_validation"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.input.validation.mgt.listener.DataTypeValidationListener"
+                       orderId="{{event.default_listener.data_type_validation.priority}}"
+                       enable="{{event.default_listener.data_type_validation.enable}}"/>
         <EventListener id="identity_mgt"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.IdentityMgtEventListener"
@@ -2475,6 +2494,18 @@
                        name="org.wso2.carbon.extension.identity.verification.mgt.listeners.IdVUserOperationEventListener"
                        orderId="{{event.default_listener.identity_verification_event_listener.priority}}"
                        enable="{{event.default_listener.identity_verification_event_listener.enable}}"/>
+
+       <!-- Workflow event listeners -->
+       <EventListener id="identity_user_workflow_operation"
+                      type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
+                      orderId="{{event.default_listener.identity_user_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_user_workflow_operation.enable}}"/>
+       <EventListener id="identity_role_workflow_operation"
+                      type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.RoleManagementActionListener"
+                      orderId="{{event.default_listener.identity_role_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_role_workflow_operation.enable}}"/>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
@@ -4615,6 +4646,14 @@
         </BrandingAI>
     </AIServices>
 
+    <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
+    <FilterByUniqueSessionIdForUser>{{session_management.filter_by_unique_session_id_for_user}}</FilterByUniqueSessionIdForUser>
+
+    <AgentIdentity>
+        <Enabled>{{agent_identity.enabled}}</Enabled>
+        <Userstore>{{agent_identity.userstore}}</Userstore>
+    </AgentIdentity>
+
     {% if platform_idp is defined %}
     <PlatformIdp>
         <Enabled>true</Enabled>
@@ -4629,5 +4668,24 @@
     <AsyncOperationStatus>
         <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
     </AsyncOperationStatus>
+
+    <FlowExecution>
+        {% if flow_execution.excluded_userstores is defined %}
+        <ExcludedUserstores>
+            {% for userstore in flow_execution.excluded_userstores %}
+            <Userstore>{{userstore}}</Userstore>
+            {% endfor %}
+        </ExcludedUserstores>
+        {% endif %}
+        <UserAssertion>
+            <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
+        </UserAssertion>
+        <DefaultTTL>{{flow_execution.default_ttl}}</DefaultTTL>
+        <FlowTypeTTLs>
+            {% for flow_type, ttl in flow_execution.flow_type_ttl.items() %}
+            <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
+            {% endfor %}
+        </FlowTypeTTLs>
+    </FlowExecution>
 
 </Server>

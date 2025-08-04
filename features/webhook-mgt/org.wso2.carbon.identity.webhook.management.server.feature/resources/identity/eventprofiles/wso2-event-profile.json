@@ -20,27 +20,15 @@
       ]
     },
     {
-      "name": "Registrations",
-      "description": "Registration success or failed",
-      "uri": "https://schemas.identity.wso2.org/events/registration",
-      "events": [
-        {
-          "eventName": "Registration success",
-          "eventDescription": "Notify if user registration is successful",
-          "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationSuccess"
-        },
-        {
-          "eventName": "Registration failed",
-          "eventDescription": "Notify if user registration failed",
-          "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationFailed"
-        }
-      ]
-    },
-    {
-      "name": "User management operations",
-      "description": "User profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
+      "name": "User account management",
+      "description": "User created, profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
       "uri": "https://schemas.identity.wso2.org/events/user",
       "events": [
+        {
+          "eventName": "User created",
+          "eventDescription": "Notify if user is created",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userCreated"
+        },
         {
           "eventName": "User profile updated",
           "eventDescription": "Notify if user profile is updated",
@@ -74,19 +62,19 @@
       ]
     },
     {
-      "name": "Sessions",
-      "description": "Session established or revoked",
-      "uri": "https://schemas.identity.wso2.org/events/sessions",
+      "name": "Registrations",
+      "description": "Registration success or failed",
+      "uri": "https://schemas.identity.wso2.org/events/registration",
       "events": [
         {
-          "eventName": "Session established",
-          "eventDescription": "Notify if session is established",
-          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionEstablished"
+          "eventName": "Registration success",
+          "eventDescription": "Notify if user registration is successful",
+          "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationSuccess"
         },
         {
-          "eventName": "Session(s) revoked",
-          "eventDescription": "Notify if session(s) revoked",
-          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionsRevoked"
+          "eventName": "Registration failed",
+          "eventDescription": "Notify if user registration failed",
+          "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationFailed"
         }
       ]
     },

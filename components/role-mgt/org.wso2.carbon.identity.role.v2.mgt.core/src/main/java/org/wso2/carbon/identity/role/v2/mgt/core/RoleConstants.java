@@ -152,6 +152,7 @@ public class RoleConstants {
         INVALID_AUDIENCE("60011"),
         INVALID_PERMISSION("60012"),
         PERMISSION_ALREADY_ADDED("60013"),
+        ROLE_WORKFLOW_CREATED("60014"),
 
         // Error thrown by custom event handler.
         ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),

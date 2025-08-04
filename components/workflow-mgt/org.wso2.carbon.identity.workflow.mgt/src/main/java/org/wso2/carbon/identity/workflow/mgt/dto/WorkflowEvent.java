@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.workflow.mgt.dto;
 
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 
+/**
+ * WorkflowEvent class is a DTO that represents a workflow event.
+ */
 public class WorkflowEvent {
 
     private String eventId;

@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.webhook.management.internal.constant;
 
 /**
- * Constants for Action management service.
+ * Constants for Webhook Management.
  */
 public class WebhookMgtConstants {
 

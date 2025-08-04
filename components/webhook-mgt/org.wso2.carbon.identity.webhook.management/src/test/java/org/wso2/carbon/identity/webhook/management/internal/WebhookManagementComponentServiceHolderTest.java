@@ -22,91 +22,98 @@ import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
-import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
-import org.wso2.carbon.identity.webhook.management.internal.service.impl.EventSubscriberService;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.model.AdapterType;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
 import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertNull;
 
 public class WebhookManagementComponentServiceHolderTest {
 
     private WebhookManagementComponentServiceHolder holder;
-    private EventSubscriber subscriber;
 
     @BeforeMethod
     public void setUp() {
 
         holder = WebhookManagementComponentServiceHolder.getInstance();
-        // Copy to avoid ConcurrentModificationException
-        List<EventSubscriber> toRemove = new ArrayList<>(holder.getEventSubscribers());
-        toRemove.forEach(holder::removeEventSubscriber);
-        subscriber = Mockito.mock(EventSubscriber.class);
-        Mockito.when(subscriber.getName()).thenReturn("TestSubscriber");
+
+        // Reset all services to null before each test
+        holder.setSecretManager(null);
+        holder.setSecretResolveManager(null);
+        holder.setTopicManagementService(null);
+        holder.setSubscriptionManagementService(null);
+        holder.setWebhookMetadataService(null);
+        holder.setEventAdapterMetadataService(null);
+        Adapter adapter = Mockito.mock(Adapter.class);
+        Mockito.when(adapter.getType()).thenReturn(AdapterType.Publisher);
+        holder.setWebhookAdapter(adapter);
     }
 
     @Test
-    public void testAddEventSubscriber() {
+    public void testSecretManager() {
 
-        holder.addEventSubscriber(subscriber);
-        List<EventSubscriber> subscribers = holder.getEventSubscribers();
-        assertTrue(subscribers.contains(subscriber));
-    }
-
-    @Test
-    public void testRemoveEventSubscriber() {
-
-        holder.addEventSubscriber(subscriber);
-        holder.removeEventSubscriber(subscriber);
-        List<EventSubscriber> subscribers = holder.getEventSubscribers();
-        assertFalse(subscribers.contains(subscriber));
-    }
-
-    @Test
-    public void testGetEventSubscribers() {
-
-        holder.addEventSubscriber(subscriber);
-        List<EventSubscriber> subscribers = holder.getEventSubscribers();
-        assertEquals(subscribers.size(), 1);
-        assertEquals(subscribers.get(0), subscriber);
-    }
-
-    @Test
-    public void testSetAndGetEventSubscriberService() {
-
-        EventSubscriberService eventSubscriberService = Mockito.mock(EventSubscriberService.class);
-        holder.setEventSubscriberService(eventSubscriberService);
-        assertSame(holder.getEventSubscriberService(), eventSubscriberService);
-    }
-
-    @Test
-    public void testSetAndGetSecretManager() {
-
+        assertNull(holder.getSecretManager());
         SecretManager secretManager = Mockito.mock(SecretManager.class);
         holder.setSecretManager(secretManager);
-        assertSame(holder.getSecretManager(), secretManager);
+        assertEquals(holder.getSecretManager(), secretManager);
     }
 
     @Test
-    public void testSetAndGetTopicManagementService() {
+    public void testSecretResolveManager() {
 
+        assertNull(holder.getSecretResolveManager());
+        SecretResolveManager secretResolveManager = Mockito.mock(SecretResolveManager.class);
+        holder.setSecretResolveManager(secretResolveManager);
+        assertEquals(holder.getSecretResolveManager(), secretResolveManager);
+    }
+
+    @Test
+    public void testTopicManagementService() {
+
+        assertNull(holder.getTopicManagementService());
         TopicManagementService topicManagementService = Mockito.mock(TopicManagementService.class);
         holder.setTopicManagementService(topicManagementService);
-        assertSame(holder.getTopicManagementService(), topicManagementService);
+        assertEquals(holder.getTopicManagementService(), topicManagementService);
     }
 
     @Test
-    public void testSetAndGetWebhookMetadataService() {
+    public void testSubscriptionManagementService() {
 
+        assertNull(holder.getSubscriptionManagementService());
+        SubscriptionManagementService subscriptionManagementService = Mockito.mock(SubscriptionManagementService.class);
+        holder.setSubscriptionManagementService(subscriptionManagementService);
+        assertEquals(holder.getSubscriptionManagementService(), subscriptionManagementService);
+    }
+
+    @Test
+    public void testWebhookMetadataService() {
+
+        assertNull(holder.getWebhookMetadataService());
         WebhookMetadataService webhookMetadataService = Mockito.mock(WebhookMetadataService.class);
         holder.setWebhookMetadataService(webhookMetadataService);
-        assertSame(holder.getWebhookMetadataService(), webhookMetadataService);
+        assertEquals(holder.getWebhookMetadataService(), webhookMetadataService);
+    }
+
+    @Test
+    public void testEventAdapterMetadataService() {
+
+        assertNull(holder.getEventAdapterMetadataService());
+        EventAdapterMetadataService eventAdapterMetadataService = Mockito.mock(EventAdapterMetadataService.class);
+        holder.setEventAdapterMetadataService(eventAdapterMetadataService);
+        assertEquals(holder.getEventAdapterMetadataService(), eventAdapterMetadataService);
+    }
+
+    @Test
+    public void testWebhookAdapter() {
+
+        Adapter webhookAdapter = Mockito.mock(Adapter.class);
+        holder.setWebhookAdapter(webhookAdapter);
+        assertEquals(holder.getWebhookAdapter(), webhookAdapter);
     }
 }

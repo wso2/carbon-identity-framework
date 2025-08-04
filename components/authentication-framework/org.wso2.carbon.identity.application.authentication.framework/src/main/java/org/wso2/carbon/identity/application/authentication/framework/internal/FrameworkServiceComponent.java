@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -59,6 +59,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.app
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.impl.AppAssociatedRolesResolverImpl;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.orgdiscovery.OrganizationDiscoveryHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
@@ -1133,5 +1134,24 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
         log.debug("UserDefinedAuthenticatorService unset in FrameworkServiceComponent bundle.");
+    }
+
+    @Reference(
+            name = "org.discovery.handler",
+            service = OrganizationDiscoveryHandler.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationDiscoveryHandler"
+    )
+    protected void setOrganizationDiscoveryHandler(OrganizationDiscoveryHandler organizationDiscoveryHandler) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationDiscoveryHandler(organizationDiscoveryHandler);
+        log.debug("OrganizationDiscoveryHandler set in FrameworkServiceComponent bundle.");
+    }
+
+    protected void unsetOrganizationDiscoveryHandler(OrganizationDiscoveryHandler organizationDiscoveryHandler) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationDiscoveryHandler(null);
+        log.debug("OrganizationDiscoveryHandler unset in FrameworkServiceComponent bundle.");
     }
 }

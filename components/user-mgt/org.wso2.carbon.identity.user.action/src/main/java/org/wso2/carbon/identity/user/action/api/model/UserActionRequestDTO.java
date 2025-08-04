@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.action.api.model;
 
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +37,7 @@ public class UserActionRequestDTO {
     private final List<String> groups;
     private final Map<String, Object> claims;
     private final String userStoreDomain;
+    private final Organization residentOrganization;
 
     private UserActionRequestDTO(Builder builder) {
 
@@ -44,6 +47,7 @@ public class UserActionRequestDTO {
         this.claims = builder.claims;
         this.roles = builder.roles;
         this.groups = builder.groups;
+        this.residentOrganization = builder.residentOrganization;
     }
 
     public String getUserId() {
@@ -76,6 +80,11 @@ public class UserActionRequestDTO {
         return userStoreDomain;
     }
 
+    public Organization getResidentOrganization() {
+
+        return residentOrganization;
+    }
+
     /**
      * Builder for the UserActionRequestDTO.
      */
@@ -87,6 +96,7 @@ public class UserActionRequestDTO {
         private final List<String> groups = new ArrayList<>();
         private final Map<String, Object> claims = new HashMap<>();
         private String userStoreDomain;
+        private Organization residentOrganization;
 
         public Builder userId(String userId) {
 
@@ -127,6 +137,12 @@ public class UserActionRequestDTO {
         public Builder addClaim(String claimURI, String[] claimValue) {
 
             this.claims.put(claimURI, claimValue);
+            return this;
+        }
+
+        public Builder residentOrganization(Organization residentOrganization) {
+
+            this.residentOrganization = residentOrganization;
             return this;
         }
 

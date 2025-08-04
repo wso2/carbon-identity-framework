@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>webhook-mgt</artifactId>
-        <version>7.8.240-SNAPSHOT</version>
+        <version>7.8.364-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -45,6 +45,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.topic.management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.subscription.management</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -139,6 +143,8 @@
                             org.wso2.carbon.identity.secret.mgt.core.model;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.topic.management.api.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.subscription.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.webhook.metadata.api.*;
                             version="${carbon.identity.package.import.version.range}",

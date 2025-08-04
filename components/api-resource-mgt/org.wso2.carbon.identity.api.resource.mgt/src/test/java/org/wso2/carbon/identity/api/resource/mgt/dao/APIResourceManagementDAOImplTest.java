@@ -28,7 +28,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtClientException;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
+import org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
+import org.wso2.carbon.identity.api.resource.mgt.constant.SQLConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
@@ -40,8 +43,12 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +64,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class APIResourceManagementDAOImplTest {
 
@@ -599,6 +609,300 @@ public class APIResourceManagementDAOImplTest {
             deleteAPIResourceFromDB(apiResource.getId(), TENANT_ID);
         }
 
+    }
+
+    @Test(priority = 15)
+    public void testIsManagementOrOrganizationAPIResourceType_withTenant() throws Exception {
+
+        boolean result = invokeIsManagementOrOrganizationAPIResourceType(
+                APIResourceManagementConstants.APIResourceTypes.TENANT);
+        Assert.assertTrue(result, "TENANT type should be identified as management or organization type");
+    }
+
+    @Test(priority = 16)
+    public void testIsManagementOrOrganizationAPIResourceType_withOrganization() throws Exception {
+
+        boolean result = invokeIsManagementOrOrganizationAPIResourceType(
+                APIResourceManagementConstants.APIResourceTypes.ORGANIZATION);
+        Assert.assertTrue(result, "ORGANIZATION type should be identified " +
+                "as management or organization type");
+    }
+
+    @Test(priority = 17)
+    public void testIsManagementOrOrganizationAPIResourceType_withBusiness() throws Exception {
+
+        boolean result = invokeIsManagementOrOrganizationAPIResourceType(
+                APIResourceManagementConstants.APIResourceTypes.BUSINESS);
+        Assert.assertFalse(result, "BUSINESS type should not be identified " +
+                "as management or organization type");
+    }
+
+    @Test(priority = 18)
+    public void testIsScopeExistsByApiID_whenScopeExists() throws Exception {
+
+        try (
+                MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                        mockStatic(OrganizationManagementUtil.class)
+        ) {
+            Connection connection = mock(Connection.class);
+            PreparedStatement preparedStatement = mock(PreparedStatement.class);
+            ResultSet resultSet = mock(ResultSet.class);
+
+            when(connection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)).thenReturn(preparedStatement);
+            when(preparedStatement.executeQuery()).thenReturn(resultSet);
+            when(resultSet.next()).thenReturn(true);
+
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenReturn(false);
+
+            boolean result = invokeIsScopeExistsByApiID(connection, "read", 1, "api-123");
+            Assert.assertTrue(result, "Scope should exist when resultSet.next() returns true");
+
+            verify(preparedStatement).setString(1, "read");
+            verify(preparedStatement).setInt(2, 1);
+            verify(preparedStatement).setString(3, "api-123");
+        }
+    }
+
+    @Test(priority = 19)
+    public void testIsScopeExistsByApiID_whenScopeDoesNotExist() throws Exception {
+
+        try (
+                MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                        mockStatic(OrganizationManagementUtil.class)
+        ) {
+            Connection connection = mock(Connection.class);
+            PreparedStatement preparedStatement = mock(PreparedStatement.class);
+            ResultSet resultSet = mock(ResultSet.class);
+
+            when(connection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)).thenReturn(preparedStatement);
+            when(preparedStatement.executeQuery()).thenReturn(resultSet);
+            when(resultSet.next()).thenReturn(false);
+
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenReturn(false);
+
+            boolean result = invokeIsScopeExistsByApiID(connection, "write", 1, "api-123");
+            Assert.assertFalse(result, "Scope should not exist when resultSet.next() returns false");
+        }
+    }
+
+    @Test(priority = 20)
+    public void testAddScopesWithTenantResourceType() throws Exception {
+
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+
+            Connection mockConnection = mock(Connection.class);
+            PreparedStatement mockInsertStmt = mock(PreparedStatement.class);
+            PreparedStatement mockExistStmt = mock(PreparedStatement.class);
+            ResultSet mockResultSet = mock(ResultSet.class);
+
+            Scope testScope1 = createScope("testScope1");
+            Scope testScope2 = createScope("testScope2");
+            List<Scope> testScopes = Arrays.asList(testScope1, testScope2);
+            addAPIResourceToDB("testAPI1", testScopes, "TENANT", getConnection(),
+                    TENANT_ID, organizationManagementUtil);
+
+            Scope testScope3 = createScope("testScope1");
+            Scope testScope4 = createScope("testScope3");
+            List<Scope> scopes = Arrays.asList(testScope3, testScope4);
+
+            APIResource apiResource = addAPIResourceToDB("testAPI", scopes, "TENANT", getConnection(),
+                    TENANT_ID, organizationManagementUtil);
+            String apiId = apiResource.getId();
+            String apiType = apiResource.getType();
+
+            when(mockConnection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID)).thenReturn(mockExistStmt);
+            when(mockExistStmt.executeQuery()).thenReturn(mockResultSet);
+            when(mockResultSet.next()).thenReturn(false);
+            when(mockConnection.prepareStatement(SQLConstants.ADD_SCOPE)).thenReturn(mockInsertStmt);
+
+            Method addScopesMethod = APIResourceManagementDAOImpl.class.getDeclaredMethod(
+                    "addScopes", Connection.class, String.class, List.class, Integer.class, String.class);
+            addScopesMethod.setAccessible(true);
+            addScopesMethod.invoke(daoImpl, mockConnection, apiId, scopes, TENANT_ID, apiType);
+
+            // Verifications
+            verify(mockConnection, times(scopes.size()))
+                    .prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID);
+            verify(mockConnection, times(1))
+                    .prepareStatement(SQLConstants.ADD_SCOPE);
+            verify(mockInsertStmt, times(scopes.size())).addBatch();
+            verify(mockInsertStmt, times(1)).executeBatch();
+        }
+    }
+
+    @Test(priority = 21)
+    public void testAddBusinessAPIResourceWithDuplicateScope() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
+                     mockStatic(OrganizationManagementUtil.class)) {
+
+            // Mock database utilities to return fresh connections
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenAnswer(invocation -> getConnection());
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.commitTransaction(any(Connection.class)))
+                    .thenAnswer((Answer<Void>) invocation -> {
+                        Connection conn = invocation.getArgument(0);
+                        if (!conn.isClosed()) {
+                            conn.commit();
+                        }
+                        return null;
+                    });
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.rollbackTransaction(any(Connection.class)))
+                    .thenAnswer((Answer<Void>) invocation -> {
+                        Connection conn = invocation.getArgument(0);
+                        if (!conn.isClosed()) {
+                            conn.rollback();
+                        }
+                        return null;
+                    });
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenReturn(false);
+
+            // Create the first business API resource with a scope
+            String sharedScopeName = "duplicate_scope_test";
+
+            List<Scope> firstApiScopes = new ArrayList<>();
+            firstApiScopes.add(TestDAOUtils.createScope(sharedScopeName));
+
+            APIResource.APIResourceBuilder firstApiBuilder = new APIResource.APIResourceBuilder()
+                    .name("BusinessAPI-1")
+                    .identifier("business-api-1-identifier-" + System.currentTimeMillis())
+                    .description("First business API resource")
+                    .type(APIResourceManagementConstants.APIResourceTypes.BUSINESS)
+                    .requiresAuthorization(true)
+                    .scopes(firstApiScopes);
+
+            APIResource firstApiResource = firstApiBuilder.build();
+
+            // Add the first business API resource - this should succeed
+            APIResource createdFirstApi = daoImpl.addAPIResource(firstApiResource, TENANT_ID);
+            Assert.assertNotNull(createdFirstApi);
+            Assert.assertEquals(createdFirstApi.getType(), APIResourceManagementConstants.APIResourceTypes.BUSINESS);
+            Assert.assertNotNull(createdFirstApi.getId());
+            Assert.assertEquals(createdFirstApi.getScopes().size(), 1);
+            Assert.assertEquals(createdFirstApi.getScopes().get(0).getName(), sharedScopeName);
+
+            // Verify the scope exists in the database
+            boolean scopeExists = daoImpl.isScopeExistByName(sharedScopeName, TENANT_ID);
+            Assert.assertTrue(scopeExists, "Scope should exist after first API creation");
+
+            // Create the second business API resource with the same scope name
+            List<Scope> secondApiScopes = new ArrayList<>();
+            secondApiScopes.add(TestDAOUtils.createScope(sharedScopeName)); // Same scope name as first API
+
+            APIResource.APIResourceBuilder secondApiBuilder = new APIResource.APIResourceBuilder()
+                    .name("BusinessAPI-2")
+                    .identifier("business-api-2-identifier-" + System.currentTimeMillis())
+                    .description("Second business API resource")
+                    .type(APIResourceManagementConstants.APIResourceTypes.BUSINESS)
+                    .requiresAuthorization(true)
+                    .scopes(secondApiScopes);
+
+            APIResource secondApiResource = secondApiBuilder.build();
+
+            // Try to add the second business API resource with duplicate scope - this should fail
+            APIResourceMgtClientException exception = Assert.expectThrows(APIResourceMgtClientException.class, () ->
+                    daoImpl.addAPIResource(secondApiResource, TENANT_ID));
+
+            // Verify the exception details
+            Assert.assertEquals(exception.getErrorCode(),
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS.getCode());
+            Assert.assertTrue(exception.getMessage().contains("Unable to add scope"));
+            Assert.assertTrue(exception.getDescription().contains("Scope already exists for the tenant"));
+        }
+    }
+
+    @Test(priority = 22)
+    public void testIsScopeExistsByApiId_SQLException() throws Exception {
+        
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil = 
+                     mockStatic(OrganizationManagementUtil.class)) {
+            
+            Connection connection = mock(Connection.class);
+            PreparedStatement preparedStatement = mock(PreparedStatement.class);
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenReturn(false);
+            when(connection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_AND_API_ID))
+                    .thenReturn(preparedStatement);
+            when(preparedStatement.executeQuery()).thenThrow(new SQLException("Database connection error"));
+            
+            try {
+                invokeIsScopeExistsByApiID(connection, "testScope", TENANT_ID, "api-123");
+                Assert.fail("Should have thrown exception due to SQLException");
+            } catch (Exception e) {
+                // Check if it's InvocationTargetException (from reflection) or direct exception
+                Throwable actualCause = e;
+                if (e instanceof InvocationTargetException) {
+                    actualCause = ((InvocationTargetException) e).getCause();
+                }
+                
+                // Verify it's the expected server exception
+                Assert.assertTrue(actualCause instanceof APIResourceMgtServerException, 
+                    "Expected APIResourceMgtServerException but got: " + actualCause.getClass().getName());
+                Assert.assertTrue(actualCause.getMessage().contains("Error while checking existence of scope"), 
+                    "Exception message should contain scope existence error");
+            }
+        }
+    }
+
+    @Test(priority = 23)
+    public void testIsScopeExistsByApiId_OrganizationManagementException() throws Exception {
+        
+        try (MockedStatic<OrganizationManagementUtil> organizationManagementUtil = 
+                     mockStatic(OrganizationManagementUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = 
+                     mockStatic(IdentityTenantUtil.class)) {
+            
+            Connection connection = mock(Connection.class);
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                    .thenThrow(new OrganizationManagementException("Error while checking organization"));
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenReturn("carbon.super");
+            
+            try {
+                invokeIsScopeExistsByApiID(connection, "testScope", TENANT_ID, "api-123");
+                Assert.fail("Should have thrown exception due to OrganizationManagementException");
+            } catch (Exception e) {
+                Throwable actualCause = e;
+                if (e instanceof InvocationTargetException) {
+                    actualCause = ((InvocationTargetException) e).getCause();
+                }
+                
+                Assert.assertTrue(actualCause instanceof APIResourceMgtServerException, 
+                    "Expected APIResourceMgtServerException but got: " + actualCause.getClass().getName());
+                Assert.assertNotNull(actualCause.getCause(),
+                         "Should have original OrganizationManagementException as cause");
+                Assert.assertTrue(actualCause.getCause() instanceof OrganizationManagementException, 
+                    "Root cause should be OrganizationManagementException");
+            }
+        }
+    }
+
+    private boolean invokeIsScopeExistsByApiID(Connection connection, String scope,
+                                               int tenantId, String apiId) throws Exception {
+
+        APIResourceManagementDAOImpl daoImpl = new APIResourceManagementDAOImpl();
+        Method method = APIResourceManagementDAOImpl.class.getDeclaredMethod(
+                "isScopeExistsByApiId", Connection.class, String.class, Integer.class, String.class);
+        method.setAccessible(true);
+        try {
+            return (boolean) method.invoke(daoImpl, connection, scope, tenantId, apiId);
+        } finally {
+            method.setAccessible(false);
+        }
+    }
+
+    private boolean invokeIsManagementOrOrganizationAPIResourceType(String type) throws Exception {
+
+        APIResourceManagementDAOImpl daoImpl = new APIResourceManagementDAOImpl();
+        Method method = APIResourceManagementDAOImpl.class.getDeclaredMethod(
+                "isManagementOrOrganizationAPIResourceType", String.class);
+        method.setAccessible(true);
+        return (boolean) method.invoke(daoImpl, type);
     }
 
     /**

@@ -30,14 +30,15 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 
-import javax.xml.bind.JAXBException;
-
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 /**
- * AbstractWorkflow can be used to implement different workflow implementation based on different template implementation
+ * AbstractWorkflow can be used to implement different workflow implementation based on different template.
+ * implementation.
  * <p>
- * TemplateInitializer and WorkFlowExecutor should be provided to execute
+ * TemplateInitializer and WorkFlowExecutor should be provided to execute.
  */
 public abstract class AbstractWorkflow {
 
@@ -50,7 +51,7 @@ public abstract class AbstractWorkflow {
     private Class<? extends WorkFlowExecutor> workFlowExecutorClass;
 
     /**
-     * @param metaDataXML Parameter Metadata XML string
+     * @param metaDataXML Parameter Metadata XML string.
      * @throws WorkflowRuntimeException
      */
     public AbstractWorkflow(Class<? extends TemplateInitializer> templateInitializerClass, Class<? extends
@@ -74,9 +75,9 @@ public abstract class AbstractWorkflow {
     }
 
     /**
-     * Deploy artifacts of a workflow
+     * Deploy artifacts of a workflow.
      *
-     * @param parameterList Parameter of the workflow
+     * @param parameterList Parameter of the workflow.
      * @throws WorkflowException
      */
     public void deploy(List<Parameter> parameterList) throws WorkflowException {
@@ -86,7 +87,7 @@ public abstract class AbstractWorkflow {
     }
 
     /**
-     * Execute workflow request at profile
+     * Execute workflow request at profile.
      *
      * @param workFlowRequest
      * @throws WorkflowException
@@ -99,7 +100,7 @@ public abstract class AbstractWorkflow {
     }
 
     /**
-     * Can be retrieve workflow implementation specific meta data
+     * Can be retrieve workflow implementation specific meta data.
      *
      * @return
      * @throws WorkflowException
@@ -129,7 +130,7 @@ public abstract class AbstractWorkflow {
     protected abstract InputData getInputData(ParameterMetaData parameterMetaData) throws WorkflowException;
 
     /**
-     * Get the ID of current template
+     * Get the ID of current template.
      *
      * @return
      */

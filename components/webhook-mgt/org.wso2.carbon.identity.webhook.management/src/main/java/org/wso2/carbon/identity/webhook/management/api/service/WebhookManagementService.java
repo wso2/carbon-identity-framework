@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.api.service;
 
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
@@ -37,7 +38,7 @@ public interface WebhookManagementService {
      * @return Created webhook subscription.
      * @throws WebhookMgtException If an error occurs while creating the webhook subscription.
      */
-    public Webhook createWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException;
+    Webhook createWebhook(Webhook webhook, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Get a webhook subscription by ID.
@@ -47,7 +48,7 @@ public interface WebhookManagementService {
      * @return Webhook subscription.
      * @throws WebhookMgtException If an error occurs while retrieving the webhook subscription.
      */
-    public Webhook getWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+    Webhook getWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Update a webhook subscription.
@@ -58,7 +59,7 @@ public interface WebhookManagementService {
      * @return Updated webhook subscription.
      * @throws WebhookMgtException If an error occurs while updating the webhook subscription.
      */
-    public Webhook updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException;
+    Webhook updateWebhook(String webhookId, Webhook webhook, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Delete a webhook subscription.
@@ -67,7 +68,7 @@ public interface WebhookManagementService {
      * @param tenantDomain Tenant domain.
      * @throws WebhookMgtException If an error occurs while deleting the webhook subscription.
      */
-    public void deleteWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+    void deleteWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Get all webhooks for a tenant.
@@ -76,7 +77,7 @@ public interface WebhookManagementService {
      * @return List of webhook subscriptions.
      * @throws WebhookMgtException If an error occurs while retrieving webhook subscriptions.
      */
-    public List<Webhook> getWebhooks(String tenantDomain) throws WebhookMgtException;
+    List<Webhook> getWebhooks(String tenantDomain) throws WebhookMgtException;
 
     /**
      * Get webhook events by webhook ID.
@@ -86,7 +87,7 @@ public interface WebhookManagementService {
      * @return List of webhook events.
      * @throws WebhookMgtException If an error occurs while retrieving webhook events.
      */
-    public List<String> getWebhookEvents(String webhookId, String tenantDomain) throws WebhookMgtException;
+    List<Subscription> getWebhookEvents(String webhookId, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Enable a webhook subscription.
@@ -96,7 +97,7 @@ public interface WebhookManagementService {
      * @return Activated webhook subscription.
      * @throws WebhookMgtException If an error occurs while enabling the webhook.
      */
-    public Webhook activateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+    Webhook activateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
 
     /**
      * Disable a webhook subscription.
@@ -106,5 +107,28 @@ public interface WebhookManagementService {
      * @return Deactivated webhook subscription.
      * @throws WebhookMgtException If an error occurs while disabling the webhook.
      */
-    public Webhook deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+    Webhook deactivateWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+
+    /**
+     * Retry a webhook subscription or unsubscription that has failed.
+     *
+     * @param webhookId    Webhook subscription ID.
+     * @param tenantDomain Tenant domain.
+     * @return Retried webhook subscription.
+     * @throws WebhookMgtException If an error occurs while retrying the webhook.
+     */
+    Webhook retryWebhook(String webhookId, String tenantDomain) throws WebhookMgtException;
+
+    /**
+     * Get active webhooks for a specific channel URI and tenant ID.
+     *
+     * @param eventProfileName    Name of the event profile.
+     * @param eventProfileVersion Version of the event profile.
+     * @param channelUri          Channel URI to filter webhooks.
+     * @param tenantDomain        Tenant domain.
+     * @return List of active webhooks for the specified channel URI and tenant ID.
+     * @throws WebhookMgtException If an error occurs while retrieving the active webhooks.
+     */
+    List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                    String tenantDomain) throws WebhookMgtException;
 }

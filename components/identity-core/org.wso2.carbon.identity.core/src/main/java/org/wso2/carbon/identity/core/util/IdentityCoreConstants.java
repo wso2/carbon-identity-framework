@@ -86,6 +86,9 @@ public class IdentityCoreConstants {
     public static final String USER_ACCOUNT_PENDING_APPROVAL_ERROR_CODE = "17009";
     public static final String USER_INVALID_CREDENTIALS = "17010";
     public static final String LOGIN_FAILED_GENERIC_ERROR_CODE = "17011";
+    public static final String USER_EMAIL_NOT_VERIFIED_ERROR_CODE = "17012";
+    public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE = "17013";
+    public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_MISMATCHED_ERROR_CODE = "17014";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 
@@ -114,6 +117,9 @@ public class IdentityCoreConstants {
     // Actions constants.
     public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "Actions.MaximumActionsPerType";
 
+    // Webhook constants.
+    public static final String MAXIMUM_WEBHOOKS_PER_TENANT_PROPERTY = "Webhooks.MaximumWebhooksPerTenant";
+
     // System application constants
     public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
     public static final String MY_ACCOUNT_APPLICATION_CLIENT_ID = "MY_ACCOUNT";
@@ -122,6 +128,13 @@ public class IdentityCoreConstants {
     public static final String IS_SYSTEM_APPLICATION = "IsSystemApplication";
 
     public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
+
+    public static final int DEFAULT_MAXIMUM_WEBHOOKS_PER_TENANT = 10;
+
+    // Agentic AI constants
+    public static final String AGENT_IDENTITY_ENABLE = "AgentIdentity.Enabled";
+    public static final String AGENT_IDENTITY_USERSTORE_NAME = "AgentIdentity.Userstore";
+    public static final String DEFAULT_AGENT_IDENTITY_USERSTORE_NAME = "AGENT";
 
     public static class Filter {
 

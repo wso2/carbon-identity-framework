@@ -23,6 +23,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -42,6 +43,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -65,6 +67,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -75,14 +79,26 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.User;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,9 +112,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -112,6 +130,11 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.GROUPS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ROLES_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
@@ -1167,6 +1190,159 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     }
 
     @Test
+    public void testGetClaimValue() throws Exception {
+
+        String username = "DOMAIN/user";
+        String claimURI = "http://wso2.org/claims/emailaddress";
+        String expectedValue = "user@example.com";
+
+        UserStoreManager mockUserStoreManager = Mockito.mock(UserStoreManager.class);
+        Map<String, String> claims = new HashMap<>();
+        claims.put(claimURI, expectedValue);
+        Mockito.when(mockUserStoreManager.getUserClaimValues(
+                Mockito.eq(username),
+                Mockito.eq(new String[]{claimURI}),
+                Mockito.eq(UserCoreConstants.DEFAULT_PROFILE))).thenReturn(claims);
+
+        Method method = FrameworkUtils.class.getDeclaredMethod("getClaimValue", String.class,
+                UserStoreManager.class, String.class);
+        method.setAccessible(true);
+        String result = (String) method.invoke(null, username, mockUserStoreManager, claimURI);
+        assertEquals(result, expectedValue);
+    }
+
+    @DataProvider(name = "dataProviderGetImpersonatedUser")
+    public Object[][] dataProviderGetImpersonatedUser() {
+
+        // tenantDomain, userAccessingOrg, userResidentOrg, isSubOrgUser
+        return new Object[][]{
+                {"tenant1.com", "org1", "org1", true},
+                {"tenant1.com", null, null, false},
+        };
+    }
+
+    @Test(dataProvider = "dataProviderGetImpersonatedUser")
+    public void testGetImpersonatedUser(String tenantDomain, String userAccessingOrg, String userResidentOrg,
+                                        boolean isSubOrgUser)
+            throws UserStoreException, FrameworkException, OrganizationManagementException {
+
+        String userId = "user-123";
+        String subOrgHandle = "org1.com";
+
+        // User object.
+        User user = new User(
+        "user-123",
+        "dummyUser",
+        "dummyUser",
+        "dummyUser",
+        "dummyTenantDomain",
+        "DUMMYDOMAIN",
+        null
+        );
+
+        RealmService realmService = mock(RealmService.class);
+        FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        FrameworkServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        lenient().when(organizationManager.resolveTenantDomain(anyString())).thenReturn(subOrgHandle);
+        TenantManager tenantManager = mock(TenantManager.class);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getTenantId(anyString())).thenReturn(1);
+        UserRealm userRealm = mock(UserRealm.class);
+        when(realmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
+        AbstractUserStoreManager userStoreManager = mock(AbstractUserStoreManager.class);
+        when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+        when(userStoreManager.getUser(userId, null)).thenReturn(user);
+        when(userStoreManager.isExistingUserWithID(anyString())).thenReturn(true);
+
+        // Create Application config.
+        ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+        when(applicationConfig.getSubjectClaimUri()).thenReturn(null);
+        when(applicationConfig.isUseUserstoreDomainInLocalSubjectIdentifier()).thenReturn(false);
+        when(applicationConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(false);
+
+        ImpersonatedUser impersonatedUser = FrameworkUtils.getImpersonatedUser(userId, tenantDomain,
+                userAccessingOrg, userResidentOrg, applicationConfig);
+
+        assertNotNull(impersonatedUser);
+        assertEquals(impersonatedUser.isFederatedUser(), isSubOrgUser);
+        assertEquals(impersonatedUser.getAuthenticatedSubjectIdentifier(), userId);
+    }
+
+    @DataProvider
+    public Object[][] dataProviderGetSubjectIdentifier() {
+
+        // userDomain, tenantDomain, isFederatedUser, federatedIdp, useUserStoreDomainInLocalSubjectIdentifier,
+        // useTenantDomainInLocalSubjectIdentifier, subjectClaimUri, subjectClaimUriValue, expectedSubjectClaimUri
+        return new Object[][]{
+                {"DUMMYDOMAIN", "dummyTenantDomain", false, "LOCAL", true, true, "http://wso2.org/claims/emailaddress",
+                        "dummyUser@email.com", "DUMMYDOMAIN/dummyUser@email.com@dummyTenantDomain"},
+                {"DUMMYDOMAIN", "dummyTenantDomain", true, "LOCAL", true, true, "http://wso2.org/claims/emailaddress",
+                        "dummyUser@email.com", "DUMMYDOMAIN/dummyUser@email.com@dummyTenantDomain"},
+                {"DUMMYDOMAIN", "dummyTenantDomain", true, "SSO", true, true, "http://wso2.org/claims/emailaddress",
+                        "dummyUser@email.com", "dummyUser@email.com@dummyTenantDomain"},
+        };
+    }
+
+    @Test(dataProvider = "dataProviderGetSubjectIdentifier")
+    public void testGetSubjectIdentifier(String userDomain, String tenantDomain, boolean isFederatedUser,
+                                         String federatedIdp, boolean useUserStoreDomainInLocalSubjectIdentifier,
+                                         boolean useTenantDomainInLocalSubjectIdentifier, String subjectClaimUri,
+                                         String subjectClaimUriValue, String expectedSubjectClaimUri)
+            throws UserStoreException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        // Create impersonated user.
+        String userName = "dummyUser";
+        ImpersonatedUser impersonatedUser = new ImpersonatedUser();
+        impersonatedUser.setUserId("user-123");
+        impersonatedUser.setUserName(userName);
+        impersonatedUser.setUserStoreDomain(userDomain);
+        impersonatedUser.setTenantDomain(tenantDomain);
+        impersonatedUser.setFederatedUser(isFederatedUser);
+        impersonatedUser.setFederatedIdPName(federatedIdp);
+
+        // Create Application config.
+        ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+        when(applicationConfig.getSubjectClaimUri()).thenReturn(subjectClaimUri);
+        when(applicationConfig.isUseUserstoreDomainInLocalSubjectIdentifier()).thenReturn(
+                useUserStoreDomainInLocalSubjectIdentifier);
+        when(applicationConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(
+                useTenantDomainInLocalSubjectIdentifier);
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+            MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+
+            // Mock IdentityUtil methods.
+            identityUtilMockedStatic.when(() -> IdentityUtil.addDomainToName(subjectClaimUriValue, userDomain))
+                    .thenReturn(userDomain + "/" + subjectClaimUriValue);
+            identityUtilMockedStatic.when(() -> IdentityUtil.addDomainToName(userName, userDomain))
+                    .thenReturn(userDomain + "/" + userName);
+            identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId(tenantDomain)).thenReturn(1);
+
+            // Mock RealmService and UserStoreManager.
+            RealmService realmService = mock(RealmService.class);
+            UserRealm userRealm = mock(UserRealm.class);
+            UserStoreManager userStoreManager = mock(UserStoreManager.class);
+            FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
+            when(realmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
+            when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+            Map<String, String> claims = new HashMap<>();
+            claims.put(subjectClaimUri, subjectClaimUriValue);
+            when(userStoreManager.getUserClaimValues(
+                    userDomain + "/" + userName,
+                    new String[]{subjectClaimUri},
+                    UserCoreConstants.DEFAULT_PROFILE)).thenReturn(claims);
+
+            // Invoke method.
+            Method method = FrameworkUtils.class.getDeclaredMethod("getSubjectIdentifier",
+                    ImpersonatedUser.class, ApplicationConfig.class);
+            method.setAccessible(true);
+            String result = (String) method.invoke(null, impersonatedUser, applicationConfig);
+            assertEquals(result, expectedSubjectClaimUri);
+        }
+    }
+
+    @Test
     public void getAppAuthenticatorByNameExistingAuthenticator() {
 
         Assert.assertNotNull(FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator"));
@@ -1176,6 +1352,25 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void getAppAuthenticatorByNameNonExistingAuthenticator() {
 
         Assert.assertNull(FrameworkUtils.getAppAuthenticatorByName("NonExistAuthenticator"));
+    }
+
+    @Test
+    public void testGetOrganizationDiscoveryInput() {
+
+        Mockito.when(request.getParameter(ORG_ID)).thenReturn("org123");
+        Mockito.when(request.getParameter(ORG_HANDLE)).thenReturn("orgHandle123");
+        Mockito.when(request.getParameter(ORG_NAME)).thenReturn("Organization Name");
+        Mockito.when(request.getParameter(LOGIN_HINT)).thenReturn("loginHint123");
+        Mockito.when(request.getParameter(ORG_DISCOVERY_TYPE)).thenReturn("discoveryType123");
+
+        // Call the method.
+        OrganizationDiscoveryInput input = FrameworkUtils.getOrganizationDiscoveryInput(request);
+
+        assertEquals(input.getOrgId(), "org123");
+        assertEquals(input.getOrgHandle(), "orgHandle123");
+        assertEquals(input.getOrgName(), "Organization Name");
+        assertEquals(input.getLoginHint(), "loginHint123");
+        assertEquals(input.getOrgDiscoveryType(), "discoveryType123");
     }
  
     private void removeAllSystemDefinedAuthenticators() {

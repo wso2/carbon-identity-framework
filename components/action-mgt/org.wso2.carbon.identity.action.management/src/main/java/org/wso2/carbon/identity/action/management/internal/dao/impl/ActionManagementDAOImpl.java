@@ -584,9 +584,12 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private void addActionPropertiesToDB(String actionId, Map<String, ActionProperty> actionProperties,
                                          Integer tenantId) throws TransactionException {
 
+        boolean isPropertyValueColumnExists  = isPropertyValueColumnExists();
+        String query = isPropertyValueColumnExists ? ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES
+                : ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES_WITH_PRIMITIVE_VALUE_COLUMN;
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template -> {
-            template.executeBatchInsert(ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES,
+            template.executeBatchInsert(query,
                     statement -> {
                         for (Map.Entry<String, ActionProperty> property : actionProperties.entrySet()) {
                             boolean isPrimitive = property.getValue().isPrimitive();
@@ -597,13 +600,17 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                             statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_TYPE,
                                     property.getValue().getType().toString());
                             if (isPrimitive) {
-                                statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
+                                statement.setString(isPropertyValueColumnExists ?
+                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
+                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
                                         property.getValue().getValue().toString());
                                 statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
                                         null, 0);
                             } else {
                                 BinaryObject binaryObject = (BinaryObject) property.getValue().getValue();
-                                statement.setNull(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
+                                statement.setNull(isPropertyValueColumnExists ?
+                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
+                                                ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
                                         java.sql.Types.VARCHAR);
                                 statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
                                         binaryObject.getInputStream(), binaryObject.getLength());
@@ -629,15 +636,20 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         Map<String, ActionProperty> actionEndpointProperties = new HashMap<>();
         try {
+            boolean isPropertyValueColumnExists = isPropertyValueColumnExists();
+            String query = isPropertyValueColumnExists ? ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID
+                    : ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID_WITH_PRIMITIVE_VALUE_COLUMN;
             jdbcTemplate.withTransaction(template ->
-                template.executeQuery(ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID,
+                template.executeQuery(query,
                     (resultSet, rowNumber) -> {
                         if (ActionProperty.Type.PRIMITIVE.name().equals(resultSet.getString(ActionMgtSQLConstants
                                 .Column.ACTION_PROPERTIES_PROPERTY_TYPE))) {
+                            String columnName = isPropertyValueColumnExists ?
+                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
+                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE;
                             actionEndpointProperties.put(
                                     resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
-                                    new ActionProperty.BuilderForDAO(resultSet.getString(ActionMgtSQLConstants.Column
-                                            .ACTION_PROPERTIES_PRIMITIVE_VALUE)).build());
+                                    new ActionProperty.BuilderForDAO(resultSet.getString(columnName)).build());
                         } else {
                             actionEndpointProperties.put(
                                     resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
@@ -668,20 +680,27 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private void updateActionPropertiesInDB(String actionId, Map<String, ActionProperty> updatingProperties,
                                             Integer tenantId) throws TransactionException {
 
+        boolean isPropertyValueColumnExists = isPropertyValueColumnExists();
+        String query = isPropertyValueColumnExists ? ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY
+                : ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY_WITH_PRIMITIVE_VALUE_COLUMN;
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template ->
-                template.executeBatchInsert(ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY,
+                template.executeBatchInsert(query,
                         statement -> {
                             for (Map.Entry<String, ActionProperty> property : updatingProperties
                                     .entrySet()) {
                                 boolean isPrimitive = property.getValue().isPrimitive();
                                 if (isPrimitive) {
-                                    statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
+                                    statement.setString(isPropertyValueColumnExists ?
+                                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
+                                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
                                             property.getValue().getValue().toString());
                                     statement.setBinaryStream(ActionMgtSQLConstants.Column
                                                     .ACTION_PROPERTIES_OBJECT_VALUE, null, 0);
                                 } else {
-                                    statement.setNull(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
+                                    statement.setNull(isPropertyValueColumnExists ?
+                                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE :
+                                                    ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
                                             java.sql.Types.VARCHAR);
                                     BinaryObject binaryObject = (BinaryObject) property.getValue().getValue();
                                     statement.setBinaryStream(ActionMgtSQLConstants.Column
@@ -752,6 +771,25 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return getBasicInfo(actionType, actionId, tenantId).build();
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action Status to " + status, e);
+        }
+    }
+
+    /**
+     * Check whether the PROPERTY_VALUE column exists in IDN_ACTION_PROPERTIES table.
+     * TODO: Remove this temporary method once the column name is changed.
+     *
+     * @return True if the column exists, False otherwise.
+     * @throws SQLException If an error occurs while checking the table existence.
+     */
+    private boolean isPropertyValueColumnExists() throws TransactionException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             ResultSet resultSet = connection.getMetaData().getColumns(null, null,
+                     "IDN_ACTION_PROPERTIES", "PROPERTY_VALUE")) {
+            return resultSet.next();
+        } catch (SQLException e) {
+            throw new TransactionException("Error while checking the existence of PROPERTY_VALUE column in " +
+                    "IDN_ACTION_PROPERTIES table.", e);
         }
     }
 }

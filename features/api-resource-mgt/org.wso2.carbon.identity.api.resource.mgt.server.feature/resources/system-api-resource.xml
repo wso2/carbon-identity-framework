@@ -177,7 +177,7 @@
     </APIResource>
     <APIResource name="Server Configuration Management API" identifier="/o/api/server/v1/configs"
                  requiresAuthorization="true" description="API representation of the Server Config Management API"
-                 type="CONSOLE_ORG_LEVEL">
+                 type="ORGANIZATION">
         <Scopes>
             <Scope displayName="View Config" name="internal_org_config_view" 
                     description="View server configurations of the organization"/>
@@ -244,10 +244,12 @@
     <APIResource name="Identity Governance Management API"
                  identifier="/o/api/server/v1/identity-governance" requiresAuthorization="true"
                  description="API representation of the Identity Governance Management API"
-                 type="CONSOLE_ORG_LEVEL">
+                 type="ORGANIZATION">
         <Scopes>
-            <Scope displayName="View Identity Governance" name="internal_org_governance_view" 
-                    description="View governance connectors in the organization"/>
+            <Scope displayName="View Identity Governance" name="internal_org_governance_view"
+                   description="View governance connectors in the organization"/>
+            <Scope displayName="Update Identity Governance" name="internal_org_governance_update"
+                   description="Update governance connectors in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Idle Account Identification Management API"
@@ -330,6 +332,13 @@
         <Scopes>
             <Scope displayName="Update Validation Rule" name="internal_validation_rule_mgt_update" 
                     description="Manage field input validation for the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Validation Rules API" identifier="/o/api/server/v1/validation-rules"
+                 requiresAuthorization="true" description="API representation of the Validation Rules API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Update Validation Rule" name="internal_org_validation_rule_mgt_update"
+                   description="Manage field input validation for the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Keystore Management API" identifier="/api/server/v1/keystores/certs"
@@ -680,8 +689,8 @@
                     description="Delete user accounts in the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="SCIM2 Roles API" identifier="/scim2/Roles" requiresAuthorization="true"
-                 description="API representation of the SCIM2 Roles API" type="TENANT">
+    <APIResource name="SCIM2 Roles V1/V2 API" identifier="/scim2/Roles" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Roles V1/V2 API" type="TENANT">
         <Scopes>
             <Scope displayName="View Role" name="internal_role_mgt_view" 
                     description="View roles details in the organization (root)"/>
@@ -693,9 +702,9 @@
                     description="Delete roles in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="SCIM2 Roles API" identifier="/o/scim2/Roles"
+    <APIResource name="SCIM2 Roles V1/V2 API" identifier="/o/scim2/Roles"
                  requiresAuthorization="true"
-                 description="API representation of the SCIM2 Roles API" type="ORGANIZATION">
+                 description="API representation of the SCIM2 Roles V1/V2 API" type="ORGANIZATION">
         <Scopes>
             <Scope displayName="View Role" name="internal_org_role_mgt_view" 
                     description="View roles details in the organization"/>
@@ -872,12 +881,38 @@
                    description="Delete webhooks in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Webhook Management API" identifier="/o/api/server/v1/webhooks"
+                 requiresAuthorization="true"
+                 description="API representation of the Webhook Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Webhooks" name="internal_org_webhook_mgt_view"
+                   description="View webhooks in the organization"/>
+            <Scope displayName="Create Webhooks" name="internal_org_webhook_mgt_create"
+                   description="Create webhooks in the organization"/>
+            <Scope displayName="Update Webhooks" name="internal_org_webhook_mgt_update"
+                   description="Update webhooks in the organization"/>
+            <Scope displayName="Delete Webhooks" name="internal_org_webhook_mgt_delete"
+                   description="Delete webhooks in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Webhook Metadata API" identifier="/api/server/v1/webhooks/metadata"
                  requiresAuthorization="true"
                  description="API representation of the Webhook Metadata API" type="TENANT">
         <Scopes>
             <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
                    description="View webhook metadata in the organization (root)"/>
+            <Scope displayName="Update Webhook Metadata" name="internal_webhook_meta_update"
+                   description="Update webhook metadata in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Webhook Metadata API" identifier="/o/api/server/v1/webhooks/metadata"
+                 requiresAuthorization="true"
+                 description="API representation of the Webhook Metadata API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Webhook Metadata" name="internal_org_webhook_meta_view"
+                   description="View webhook metadata in the organization"/>
+            <Scope displayName="Update Webhook Metadata" name="internal_org_webhook_meta_update"
+                   description="Update webhook metadata in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management API v1/v2"
@@ -1023,6 +1058,19 @@
                    description="Manage views of applications in the organization from the Console"/>
             <Scope displayName="Application Edit Feature" name="console:org:applications_edit"
                    description="Manage edits of applications in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Webhook Management Feature" identifier="console:org:webhooks"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Webhook Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Webhook Feature" name="console:org:webhooks"
+                   description="Manage webhooks from the Console"/>
+            <Scope displayName="Webhook View Feature" name="console:org:webhooks_view"
+                   description="Manage views of webhooks from the Console"/>
+            <Scope displayName="Webhook Edit Feature" name="console:org:webhooks_edit"
+                   description="Manage edits of webhooks from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:branding"
@@ -1205,6 +1253,19 @@
                    description="Manage views of login and regisgtration from the Console"/>
             <Scope displayName="Login And Registration Edit Feature" name="console:loginAndRegistration_edit"
                    description="Manage edits of login and regisgtration from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Login And Registration Management Feature" identifier="console:org:loginAndRegistration"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Login And Registration Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Login And Registration Feature" name="console:org:loginAndRegistration"
+                   description="Manage login and registration from the Console"/>
+            <Scope displayName="Login And Registration View Feature" name="console:org:loginAndRegistration_view"
+                   description="Manage views of login and registration from the Console"/>
+            <Scope displayName="Login And Registration Edit Feature" name="console:org:loginAndRegistration_edit"
+                   description="Manage edits of login and registration from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management Feature" identifier="console:organizations"
@@ -1533,6 +1594,19 @@
                    description="Manage edits of tenants from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Flows Feature" identifier="console:flows"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Flows Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Flows Feature" name="console:flows"
+                   description="Manage flows from the Console"/>
+            <Scope displayName="Flows View Feature" name="console:flows_view"
+                   description="Manage views of flows from the Console"/>
+            <Scope displayName="Flows Edit Feature" name="console:flows_edit"
+                   description="Manage edits of flows from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="ORGANIZATION">
@@ -1633,6 +1707,15 @@
                    description="Update workflow association"/>
             <Scope displayName="Delete Workflow Association" name="internal_workflow_association_delete"
                    description="Delete workflow association"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Approval Task API" identifier="/api/users/v1/me/approval-tasks" requiresAuthorization="false"
+                 description="API representation of the workflow approval Task API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow Approval Task" name="internal_approval_task_view"
+                   description="View workflow approvals Tasks"/>
+            <Scope displayName="Update Workflow Approval Task" name="internal_approval_task_update"
+                   description="Update workflow approval Tasks"/>
         </Scopes>
     </APIResource>
 </APIResources>

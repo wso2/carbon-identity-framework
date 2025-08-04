@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.internal.dao;
 
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
@@ -35,7 +36,7 @@ public interface WebhookManagementDAO {
      * @param tenantId Tenant ID.
      * @throws WebhookMgtException If an error occurs while creating the webhook subscription.
      */
-    public void createWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
+    void createWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
 
     /**
      * Get a webhook subscription by ID from the database.
@@ -45,7 +46,7 @@ public interface WebhookManagementDAO {
      * @return Webhook subscription.
      * @throws WebhookMgtException If an error occurs while retrieving the webhook subscription.
      */
-    public Webhook getWebhook(String webhookId, int tenantId) throws WebhookMgtException;
+    Webhook getWebhook(String webhookId, int tenantId) throws WebhookMgtException;
 
     /**
      * Update a webhook subscription in the database.
@@ -54,7 +55,7 @@ public interface WebhookManagementDAO {
      * @param tenantId Tenant ID.
      * @throws WebhookMgtException If an error occurs while updating the webhook subscription.
      */
-    public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
+    void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
 
     /**
      * Delete a webhook subscription from the database.
@@ -63,7 +64,7 @@ public interface WebhookManagementDAO {
      * @param tenantId  Tenant ID.
      * @throws WebhookMgtException If an error occurs while deleting the webhook subscription.
      */
-    public void deleteWebhook(String webhookId, int tenantId) throws WebhookMgtException;
+    void deleteWebhook(String webhookId, int tenantId) throws WebhookMgtException;
 
     /**
      * Get all webhooks for a tenant from the database.
@@ -72,7 +73,7 @@ public interface WebhookManagementDAO {
      * @return List of webhook subscriptions.
      * @throws WebhookMgtException If an error occurs while retrieving webhook subscriptions.
      */
-    public List<Webhook> getWebhooks(int tenantId) throws WebhookMgtException;
+    List<Webhook> getWebhooks(int tenantId) throws WebhookMgtException;
 
     /**
      * Get webhook events for a specific webhook subscription from the database.
@@ -82,7 +83,7 @@ public interface WebhookManagementDAO {
      * @return List of events subscribed to the webhook.
      * @throws WebhookMgtException If an error occurs while retrieving the events.
      */
-    public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException;
+    List<Subscription> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException;
 
     /**
      * Check if a webhook endpoint exists in the database.
@@ -92,23 +93,54 @@ public interface WebhookManagementDAO {
      * @return True if the endpoint exists, false otherwise.
      * @throws WebhookMgtException If an error occurs while checking the endpoint.
      */
-    public boolean isWebhookEndpointExists(String endpoint, int tenantId) throws WebhookMgtException;
+    boolean isWebhookEndpointExists(String endpoint, int tenantId) throws WebhookMgtException;
 
     /**
      * Enable a webhook subscription in the database.
      *
-     * @param webhookId Webhook subscription ID.
-     * @param tenantId  Tenant ID.
-     * @throws WebhookMgtException If an error occurs while enabling the webhook.
+     * @param webhook  Webhook subscription to be activated.
+     * @param tenantId Tenant ID.
+     * @throws WebhookMgtException If an error occurs while retrying the webhook.
      */
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
+    void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
 
     /**
      * Disable a webhook subscription in the database.
      *
-     * @param webhookId Webhook subscription ID.
-     * @param tenantId  Tenant ID.
-     * @throws WebhookMgtException If an error occurs while disabling the webhook.
+     * @param webhook  Webhook subscription to be deactivated.
+     * @param tenantId Tenant ID.
+     * @throws WebhookMgtException If an error occurs while retrying the webhook.
      */
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException;
+    void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
+
+    /**
+     * Retry a webhook subscription or unsubscription that has failed.
+     *
+     * @param webhook  Webhook subscription to be retried.
+     * @param tenantId Tenant ID.
+     * @throws WebhookMgtException If an error occurs while retrying the webhook.
+     */
+    void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException;
+
+    /**
+     * Get the count of webhooks for a tenant.
+     *
+     * @param tenantId Tenant ID.
+     * @return Count of webhooks.
+     * @throws WebhookMgtException If an error occurs while retrieving the webhook count.
+     */
+    int getWebhooksCount(int tenantId) throws WebhookMgtException;
+
+    /**
+     * Get active webhooks for a specific channel URI and tenant ID.
+     *
+     * @param eventProfileName    Event profile name to filter webhooks.
+     * @param eventProfileVersion Event profile version to filter webhooks.
+     * @param channelUri          Channel URI to filter webhooks.
+     * @param tenantId            Tenant ID.
+     * @return List of active webhooks for the specified channel URI and tenant ID.
+     * @throws WebhookMgtException If an error occurs while retrieving the active webhooks.
+     */
+    List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                    int tenantId) throws WebhookMgtException;
 }

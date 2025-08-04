@@ -24,6 +24,7 @@
             <class name="org.wso2.carbon.identity.input.validation.mgt.test.InputValidationManagementServiceTest"/>
             <class name="org.wso2.carbon.identity.input.validation.mgt.test.model.validators.AbstractRulesValidatorTest"/>
             <class name="org.wso2.carbon.identity.input.validation.mgt.test.listener.InputValidationListenerTest"/>
+            <class name="org.wso2.carbon.identity.input.validation.mgt.test.listener.DataTypeValidationListenerTest"/>
         </classes>
     </test>
 </suite>

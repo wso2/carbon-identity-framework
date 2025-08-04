@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.topic.management.dao;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
-import org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
+import org.wso2.carbon.identity.topic.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.topic.management.internal.dao.impl.TopicManagementDAOImpl;
 
 import static org.testng.Assert.assertEquals;

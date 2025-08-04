@@ -887,18 +887,20 @@ public class DefaultStepHandler implements StepHandler {
             authHistory.setSuccess(true);
             context.addAuthenticationStepHistory(authHistory);
 
-            String initiator = null;
-            if (stepConfig.getAuthenticatedUser() != null) {
-                initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
-                if (LoggerUtils.isLogMaskingEnable) {
-                    initiator = LoggerUtils.getMaskedContent(initiator);
+            if (!LoggerUtils.isEnableV2AuditLogs()) {
+                String initiator = null;
+                if (stepConfig.getAuthenticatedUser() != null) {
+                    initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
+                    if (LoggerUtils.isLogMaskingEnable) {
+                        initiator = LoggerUtils.getMaskedContent(initiator);
+                    }
                 }
-            }
-            String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
-                    ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
+                String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
+                        ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
 
-            audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
-                    data, SUCCESS));
+                audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                        data, SUCCESS));
+            }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
@@ -959,8 +961,10 @@ public class DefaultStepHandler implements StepHandler {
                         equals(errorContext.getErrorCode()) && !(rootCause instanceof UserStoreClientException) &&
                         !IdentityCoreConstants.USER_ACCOUNT_LOCKED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
-                        !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE
-                        .equals(errorContext.getErrorCode())) {
+                        !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(
+                                errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(
+                                errorContext.getErrorCode())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Authentication failed exception!", e);
                     }
@@ -1258,6 +1262,20 @@ public class DefaultStepHandler implements StepHandler {
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
+                } else if (IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                    retryParam = "&authFailure=true&authFailureMsg=email.verification.pending";
+                    Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
+                    if (domain != null) {
+                        username = IdentityUtil.addDomainToName(username, domain.toString());
+                    }
+                    retryParam = String.format("%s&errorCode=%s", retryParam, errorCode);
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
+                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
+                            + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
+                            reCaptchaParamString;
                 } else if (IdentityCoreConstants.USER_INVALID_CREDENTIALS.equals(errorCode)) {
                     retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
                     Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);

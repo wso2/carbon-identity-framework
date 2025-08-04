@@ -40,7 +40,7 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -1237,4 +1237,58 @@ public class IdentityUtilTest {
                     .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(), superTenantDomain));
         }
     }
+
+@Test
+public void testGetAgentIdentityUserstoreName_Default() throws Exception {
+        // Remove any cached value
+        Field field = IdentityUtil.class.getDeclaredField("groupsVsRolesSeparationImprovementsEnabled");
+        field.setAccessible(true);
+        field.set(null, null);
+
+        // No config set, should return default
+        Map<String, Object> mockConfig = new HashMap<>();
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfig);
+
+        String userstoreName = IdentityUtil.getAgentIdentityUserstoreName();
+        assertEquals(userstoreName, "AGENT", "Should return default agent identity userstore name");
+}
+
+@Test
+public void testGetAgentIdentityUserstoreName_Configured() throws Exception {
+        Map<String, Object> mockConfig = new HashMap<>();
+        mockConfig.put("AgentIdentity.Userstore", "MY_AGENT_STORE");
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfig);
+
+        String userstoreName = IdentityUtil.getAgentIdentityUserstoreName();
+        assertEquals(userstoreName, "MY_AGENT_STORE", "Should return configured agent identity userstore name");
+}
+
+@Test
+public void testIsAgentIdentityEnabled_True() throws Exception {
+        Map<String, Object> mockConfig = new HashMap<>();
+        mockConfig.put("AgentIdentity.Enabled", "true");
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfig);
+
+        boolean enabled = IdentityUtil.isAgentIdentityEnabled();
+        assertTrue(enabled, "Should return true when agent identity is enabled");
+}
+
+@Test
+public void testIsAgentIdentityEnabled_False() throws Exception {
+        Map<String, Object> mockConfig = new HashMap<>();
+        mockConfig.put("AgentIdentity.Enabled", "false");
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfig);
+
+        boolean enabled = IdentityUtil.isAgentIdentityEnabled();
+        assertFalse(enabled, "Should return false when agent identity is disabled");
+}
+
+@Test
+public void testIsAgentIdentityEnabled_Default() throws Exception {
+        Map<String, Object> mockConfig = new HashMap<>();
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfig);
+
+        boolean enabled = IdentityUtil.isAgentIdentityEnabled();
+        assertFalse(enabled, "Should return false when agent identity config is not set");
+}
 }

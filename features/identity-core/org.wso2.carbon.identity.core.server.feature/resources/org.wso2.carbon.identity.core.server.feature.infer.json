@@ -268,5 +268,13 @@
       "console.ui.legacy_mode.applicationSystemAppsSettings": true,
       "console.ui.legacy_mode.roleMapping": false
     }
+  },
+  "preserve_previous_product_behaviour.version": {
+    "IS_7.0.0": {
+      "oauth.dcrm.return_null_fields_in_response": true
+    },
+    "IS_7.1.0": {
+      "oauth.dcrm.return_null_fields_in_response": true
+    }
   }
 }

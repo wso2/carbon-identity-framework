@@ -32,7 +32,28 @@ public class WorkflowErrorConstants {
         ERROR_CODE_USER_WF_ALREADY_EXISTS("WFM-10001",
                 "There is a pending workflow already defined for the user."),
         ERROR_CODE_USER_ACCOUNT_PENDING_APPROVAL("WFM-10002",
-                "The user authentication failed due to pending approval of the user: %s");
+                "The user authentication failed due to pending approval of the user: %s"),
+        ERROR_CODE_USER_WF_USER_ACCOUNT_PENDING_DELETION("WFM-10003",
+                "The user account is pending in the deletion workflow."),
+        ERROR_CODE_USER_WF_USER_NOT_FOUND("WFM-10004",
+                "The user is not found in the system."),
+        ERROR_CODE_USER_WF_USER_ALREADY_EXISTS("WFM-10005",
+                "The user already exists in the system."),
+        ERROR_CODE_USER_WF_ROLE_NOT_FOUND("WFM-10006",
+                "The role %s is not found in the system for assign the user."),
+        ERROR_CODE_USER_WF_ROLE_PENDING_DELETION("WFM-10007",
+                "There is the pending deletion workflow for the role: %s"),
+
+        ERROR_CODE_ROLE_WF_PENDING_ALREADY_EXISTS("WFM-10008",
+                "There is a pending workflow already defined for the role."),
+        ERROR_CODE_ROLE_WF_ROLE_ALREADY_EXISTS("WFM-10009",
+                "The role already exist in the system."),
+        ERROR_CODE_ROLE_WF_USER_NOT_FOUND("WFM-10010",
+                "The user %s is not found in the system for assign the role."),
+        ERROR_CODE_ROLE_WF_USER_PENDING_DELETION("WFM-10011",
+                "There is the pending deletion workflow for the user: %s"),
+        ERROR_CODE_ROLE_WF_ROLE_NOT_FOUND("WFM-10012",
+                "The role is not found in the system.");
         private final String code;
         private final String message;
 

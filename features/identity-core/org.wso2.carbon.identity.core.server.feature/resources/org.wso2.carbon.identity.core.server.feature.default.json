@@ -212,6 +212,7 @@
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
+  "oauth.dcrm.return_null_fields_in_response": true,
   "oauth.dcr.enable_fapi_enforcement": false,
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
@@ -391,7 +392,7 @@
   "scim2.consider_total_records_for_total_results_of_ldap": false,
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
-
+  "scim2.enable_scim2_roles_v3_api": false,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -457,6 +458,7 @@
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
+  "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
 
   "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
@@ -567,6 +569,8 @@
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,
+  "event.default_listener.data_type_validation.priority": "197",
+  "event.default_listener.data_type_validation.enable": false,
   "event.default_listener.identity_mgt.priority": "50",
   "event.default_listener.identity_mgt.enable": false,
   "event.default_listener.scim.priority": "90",
@@ -669,6 +673,12 @@
 
   "event.default_listener.identity_verification_event_listener.priority": "120",
   "event.default_listener.identity_verification_event_listener.enable": true,
+
+  "event.default_listener.identity_user_workflow_operation.enable": true,
+  "event.default_listener.identity_user_workflow_operation.priority": "10",
+
+  "event.default_listener.identity_role_workflow_operation.enable": true,
+  "event.default_listener.identity_role_workflow_operation.priority": "11",
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
@@ -935,6 +945,12 @@
   "console.i18n_resource_path": "",
   "console.login_callback_path": "",
   "console.logout_callback_path": "",
+  "console.remote_logging.enabled": true,
+  "console.remote_logging.scopes.feature": [],
+  "console.remote_logging.scopes.create": [],
+  "console.remote_logging.scopes.read": [],
+  "console.remote_logging.scopes.update": [],
+  "console.remote_logging.scopes.delete": [],
   "console.route_paths.home": "/getting-started",
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
@@ -976,6 +992,16 @@
       "description": "This email is sent when the user has requested a password reset"
     },
     {
+      "id": "UGFzc3dvcmRSZXNldE9UUA",
+      "displayName": "Password Reset Email OTP",
+      "description": "This email sends an Email OTP to a user for password reset"
+    },
+    {
+      "id": "cmVzZW5kUGFzc3dvcmRSZXNldE9UUA",
+      "displayName": "Resend Password Reset Email OTP",
+      "description": "This email resends an Email OTP to a user for password reset"
+    },
+    {
       "id": "QXNrUGFzc3dvcmQ",
       "displayName": "Request New User Password",
       "description": "This email is sent to request a password from the user when the new account is created"
@@ -999,6 +1025,11 @@
       "id": "QWNjb3VudExvY2tGYWlsZWRBdHRlbXB0",
       "displayName": "Account Locked By Failed Attempts",
       "description": "This email notifies the user that the account is locked by due to too many failed login attempts"
+    },
+    {
+      "id": "YWNjb3VudExvY2tGYWlsZWRBdHRlbXB0VW50aWxBZG1pblVubG9jaw",
+      "displayName": "Account Locked By Failed Attempts Until Admin Unlocks",
+      "description": "This email notifies the user that the account is locked by due to too many failed login attempts until admin unlocks"
     },
     {
       "id": "QWNjb3VudEVuYWJsZQ",
@@ -1138,6 +1169,16 @@
       "id": "SW1wZXJzb25hdGlvbkVtYWlsTm90aWZpY2F0aW9u",
       "displayName": "Impersonation Email Notification",
       "description": "This email is sent to the impersonated user when the impersonation session is started"
+    },
+    {
+      "description": "This email is sent to request credentials from the user when a new account is created and the registration flow is incomplete",
+      "displayName": "Request New User Credentials",
+      "id": "T3JjaGVzdHJhdGVkQXNrUGFzc3dvcmQ"
+    },
+    {
+      "description": "This email is resent to request credentials from the user when a new account is created and the registration flow is incomplete",
+      "displayName": "Resend New User Credentials Email",
+      "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1181,6 +1222,8 @@
   "console.ui.is_cookie_consent_banner_enabled": false,
   "console.ui.is_editing_system_roles_allowed": true,
   "console.ui.cookie_policy_url": "/authenticationendpoint/cookie_policy.do",
+  "console.ui.privacy_policy_url": "/authenticationendpoint/privacy_policy.do",
+  "console.ui.terms_of_service_url": "https://wso2.com/terms-of-use",
   "console.ui.app_title": "WSO2 Identity Server Console",
   "console.ui.app_name": "Console",
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
@@ -1201,6 +1244,7 @@
     "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [],
+  "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
@@ -1259,15 +1303,33 @@
   ],
   "console.actions.scopes.update": ["internal_action_mgt_update"],
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
-  "console.webhooks.enabled": false,
+  "console.webhooks.enabled": true,
   "console.webhooks.disabled_features": [],
+  "console.agents.enabled": true,
+  "console.agents.disabled_features": [],
+  "console.agents.scopes.feature": ["console:users"],
+  "console.agents.scopes.create": ["internal_user_mgt_create"],
+  "console.agents.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_login",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.agents.scopes.update": ["internal_user_mgt_update"],
+  "console.agents.scopes.delete": ["internal_user_mgt_delete"],
   "console.webhooks.scopes.feature": ["console:webhooks"],
   "console.webhooks.scopes.create": ["internal_webhook_mgt_create"],
   "console.webhooks.scopes.read": [
     "internal_webhook_mgt_view",
     "internal_webhook_meta_view"
   ],
-  "console.webhooks.scopes.update": ["internal_webhook_mgt_update"],
+  "console.webhooks.scopes.update": [
+    "internal_webhook_mgt_update",
+    "internal_webhook_meta_update"
+  ],
   "console.webhooks.scopes.delete": ["internal_webhook_mgt_delete"],
   "console.administrators.enabled": false,
   "console.administrators.scopes.feature": [],
@@ -1275,7 +1337,7 @@
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.disabled_features": [],
+  "console.ai.disabled_features": ["ai.flows.types.list.registration"],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
   "console.ai.scopes.read": [],
@@ -1309,13 +1371,11 @@
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
-  "console.approvals.enabled": false,
+  "console.approvals.enabled": true,
   "console.approvals.scopes.feature": ["console:workflowApprovals"],
-  "console.approvals.scopes.create": ["internal_humantask_view"],
-  "console.approvals.scopes.read": ["internal_humantask_view"],
-  "console.approvals.scopes.update": ["internal_humantask_view"],
-  "console.approvals.scopes.delete": ["internal_humantask_view"],
-  "console.workflows.enabled": false,
+  "console.approvals.scopes.read": ["internal_approval_task_view"],
+  "console.approvals.scopes.update": ["internal_approval_task_update"],
+  "console.workflows.enabled": true,
   "console.workflows.scopes.feature": ["console:workflowApprovals"],
   "console.workflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
   "console.workflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
@@ -1351,6 +1411,13 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
+  "console.flows.enabled": true,
+  "console.flows.scopes.feature": ["console:flows"],
+  "console.flows.disabled_features": [],
+  "console.flows.scopes.create": [],
+  "console.flows.scopes.read": [],
+  "console.flows.scopes.update": [],
+  "console.flows.scopes.delete": [],
   "console.certificates.enabled": true,
   "console.certificates.scopes.feature": ["console:certificates"],
   "console.certificates.scopes.create": ["internal_keystore_update"],
@@ -1555,6 +1622,7 @@
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
+  "console.users.disabled_features": ["users.profile.legacy"],
   "console.users.scopes.feature": ["console:users"],
   "console.users.scopes.create": ["internal_user_mgt_create"],
   "console.users.scopes.read": [
@@ -1567,6 +1635,8 @@
       "internal_user_mgt_list",
       "internal_session_view"
   ],
+  "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
+  "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.secrets_management.enabled": true,
   "console.secrets_management.scopes.feature": [ "console:secretsManagement" ],
   "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
@@ -1590,8 +1660,6 @@
   "console.tenants.scopes.read": ["internal_list_tenants"],
   "console.tenants.scopes.update": ["internal_modify_tenants"],
   "console.tenants.scopes.delete": ["internal_modify_tenants"],
-  "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
-  "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.user_stores.enabled": true,
   "console.user_stores.disabled_features": [
     "userStores.type.remote"
@@ -1684,6 +1752,36 @@
   "console.ui.is_header_avatar_label_allowed": true,
   "console.get_profile_info_from_id_token": false,
   "console.super_tenant_proxy_name": "",
+  "console.role_assignments.enabled": false,
+  "console.role_assignments.disabled_features": [],
+  "console.role_assignments.scopes.create": [],
+  "console.role_assignments.scopes.delete": [],
+  "console.role_assignments.scopes.feature": ["console:role_assignments", "console:roles"],
+  "console.role_assignments.scopes.read": [
+    "internal_api_resource_view",
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.role_assignments.scopes.update": ["internal_role_mgt_groups_update", "internal_role_mgt_users_update"],
+  "console.user_roles_v3.disabled_features": [],
+  "console.user_roles_v3.scopes.create": ["internal_role_mgt_meta_create"],
+  "console.user_roles_v3.scopes.delete": ["internal_role_mgt_delete"],
+  "console.user_roles_v3.scopes.feature": ["console:roles"],
+  "console.user_roles_v3.scopes.read": [
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.user_roles_v3.scopes.update": ["internal_role_mgt_meta_update"],
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
   "myaccount.login_callback_path": "",
@@ -1710,6 +1808,7 @@
   "myaccount.operations.enabled": true,
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
+  "myaccount.personal_info.disabled_features": ["profileInfo.profile.legacy"],
   "myaccount.security.enabled": true,
   "myaccount.operations.scopes.create": [],
   "myaccount.operations.scopes.read": ["internal_humantask_view"],
@@ -1719,7 +1818,6 @@
   "myaccount.session.params.userIdleWarningTimeOut": 580,
   "myaccount.session.params.sessionRefreshTimeOut": 300,
   "myaccount.session.params.checkSessionInterval": 3,
-  "myaccount.personal_info.disabled_features": [],
   "myaccount.security.disabled_features": ["security.loginVerifyData.typingDNA", "security.mfa.sms"],
   "myaccount.idp_configs.authorizeEndpointURL": "${serverOrigin}/oauth2/authorize",
   "myaccount.idp_configs.logoutEndpointURL": "${serverOrigin}/oidc/logout",
@@ -1802,6 +1900,8 @@
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
+  "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+  "organization_discovery.default_param": "orgName",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
@@ -1826,6 +1926,17 @@
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
 
+  "outbound_adapters.httppublisher.enabled": true,
+  "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
+  "outbound_adapters.httppublisher.httpReadTimeout": "5000",
+  "outbound_adapters.httppublisher.httpConnectionRequestTimeout": "5000",
+  "outbound_adapters.httppublisher.connectionHandshakeTimeout": "5000",
+  "outbound_adapters.httppublisher.defaultMaxConnections": "20",
+  "outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute": "20",
+  "outbound_adapters.httppublisher.type": "Publisher",
+
+  "webhooks.maximum_webhooks_per_tenant": "10",
+
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
   "oauth.enable_user_session_impersonation": true,
@@ -1834,6 +1945,20 @@
 
   "notification_templates.sms_templates.apply": true,
 
-  "attribute.return_previous_additional_properties.enabled": false
+  "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+
+  "attribute.return_previous_additional_properties.enabled": false,
+
+  "agent_identity.enabled": false,
+
+  "session_management.filter_by_unique_session_id_for_user": false,
+
+  "flow_execution.user_assertion.expiry_time": "2000",
+  "flow_execution.default_ttl": "30",
+  "flow_execution.flow_type_ttl": {
+    "REGISTRATION": "30",
+    "PASSWORD_RECOVERY": "30",
+    "INVITED_USER_REGISTRATION": "30"
+  }
 }
 

@@ -46,8 +46,8 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -112,6 +112,9 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.AGENT_IDENTITY_ENABLE;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.AGENT_IDENTITY_USERSTORE_NAME;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_AGENT_IDENTITY_USERSTORE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
@@ -1380,7 +1383,7 @@ public class IdentityUtil {
         return Boolean.parseBoolean(disableEmailUsernameValidationProperty);
     }
 
-     /**
+    /**
      *
      * Converts and returns a {@link Certificate} object for given PEM content.
      *
@@ -1601,12 +1604,32 @@ public class IdentityUtil {
             try {
                 maximumActionsPerActionType = Integer.parseInt(maximumActionsPerActionTypePropertyValue);
             } catch (NumberFormatException e) {
-                maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
                 log.warn("Error occurred while parsing the 'maximumActionsPerActionType' property value " +
                         "in identity.xml.", e);
             }
         }
         return maximumActionsPerActionType;
+    }
+
+    /**
+     * Get the Maximum Webhooks per Tenant to be configured.
+     *
+     * @return maximumWebhooksPerTenant which can be configured.
+     */
+    public static int getMaximumWebhooksPerTenant() {
+
+        int maximumWebhooksPerTenant = IdentityCoreConstants.DEFAULT_MAXIMUM_WEBHOOKS_PER_TENANT;
+        String maximumWebhooksPerTenantPropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_WEBHOOKS_PER_TENANT_PROPERTY);
+        if (StringUtils.isNotBlank(maximumWebhooksPerTenantPropertyValue)) {
+            try {
+                maximumWebhooksPerTenant = Integer.parseInt(maximumWebhooksPerTenantPropertyValue);
+            } catch (NumberFormatException e) {
+                log.warn("Error occurred while parsing the 'maximumWebhooksPerTenant' property value in " +
+                        "identity.xml.", e);
+            }
+        }
+        return maximumWebhooksPerTenant;
     }
 
     /**
@@ -1657,7 +1680,7 @@ public class IdentityUtil {
             }
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Configured 'MaximumUsersListPerRole' value %s " +
-                                "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
+                        "is below the recommended minimum.", maxUsersListPerRolePropertyValue));
             }
         } catch (NumberFormatException e) {
             log.debug("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
@@ -1709,7 +1732,7 @@ public class IdentityUtil {
             if (showLegacyRoleClaimOnGroupRoleSeparationEnabled == null) {
                 showLegacyRoleClaimOnGroupRoleSeparationEnabled =
                         UserCoreUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled(
-                        userRealm.getRealmConfiguration());
+                                userRealm.getRealmConfiguration());
             }
             return showLegacyRoleClaimOnGroupRoleSeparationEnabled;
         } catch (UserStoreException | CarbonException e) {
@@ -2204,5 +2227,31 @@ public class IdentityUtil {
     public static byte[] signWithTenantKey(String data, String tenantDomain) throws SignatureException {
 
         return signWithTenantKey(data, tenantDomain, null);
+    }
+
+    /**
+     * Check whether the agent identity is enabled.
+     * @return
+     */
+    public static boolean isAgentIdentityEnabled() {
+
+        if (IdentityUtil.getProperty(AGENT_IDENTITY_ENABLE) != null) {
+            return Boolean.parseBoolean(IdentityUtil.getProperty(AGENT_IDENTITY_ENABLE));
+        }
+        return false;
+    }
+
+    /**
+     * Get the agent identity userstore name.
+     * If the property is not set, it will return the default agent identity userstore name.
+     * @return Agent identity userstore name.
+     */
+    public static String getAgentIdentityUserstoreName() {
+
+        String userStoreName = IdentityUtil.getProperty(AGENT_IDENTITY_USERSTORE_NAME);
+        if (StringUtils.isBlank(userStoreName)) {
+            userStoreName = DEFAULT_AGENT_IDENTITY_USERSTORE_NAME;
+        }
+        return userStoreName;
     }
 }

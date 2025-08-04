@@ -70,6 +70,8 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImplTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.AuthenticationServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.approles.impl.AppAssociatedRolesResolverImplTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.internal.util.SessionEventPublishingUtilTest"/>
         </classes>
     </test>
 
