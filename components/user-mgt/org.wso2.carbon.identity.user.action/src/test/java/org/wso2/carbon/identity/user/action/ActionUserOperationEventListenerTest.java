@@ -127,7 +127,8 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertTrue(listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                     userStoreManager));
             // Register flow
-            Assert.assertTrue(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null, new HashMap<>(), null,
+            Assert.assertTrue(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null,
+                    new HashMap<>(), null,
                     userStoreManager), "The method should return true when the listener is disabled.");
         }
     }

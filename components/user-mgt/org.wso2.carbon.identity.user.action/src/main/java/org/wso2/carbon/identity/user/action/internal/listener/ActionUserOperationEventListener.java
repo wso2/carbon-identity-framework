@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.user.action.internal.listener;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
@@ -28,6 +31,7 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
@@ -57,6 +61,9 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         SecretHandleableListener {
 
     private static final String MANAGED_ORG_CLAIM_URI = "http://wso2.org/claims/identity/managedOrg";
+    public static final boolean DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW = true;
+    public static final String ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW =
+            "Actions.Types.PreUpdatePassword.EnableInRegistrationFlows";
 
     @Override
     public int getExecutionOrderId() {
@@ -107,11 +114,31 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable()) {
+        if (!isEnable() || !isEnablePreUpdatePasswordFlow()) {
             return true;
         }
 
         return executePreUpdatePasswordAction(userID, credential, userStoreManager);
+    }
+
+    public static boolean isEnablePreUpdatePasswordFlow() {
+
+        String propertyValue = IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
+        Log log = LogFactory.getLog(ActionUserOperationEventListener.class);
+
+        if (StringUtils.isNotBlank(propertyValue)) {
+            String trimmed = propertyValue.trim();
+            if ("true".equalsIgnoreCase(trimmed)) {
+                return true;
+            } else if ("false".equalsIgnoreCase(trimmed)) {
+                return false;
+            } else {
+                log.warn("Invalid value for " + ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW +
+                        ": " + trimmed + " (expecting 'true' or 'false'). Using default.");
+            }
+        }
+
+        return DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW;
     }
 
     private boolean executePreUpdatePasswordAction(String userID, Object credential,
