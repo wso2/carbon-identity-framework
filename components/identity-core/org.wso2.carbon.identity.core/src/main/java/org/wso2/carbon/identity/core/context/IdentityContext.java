@@ -188,7 +188,6 @@ public class IdentityContext extends CarbonContext {
      */
     public void enterFlow(Flow flow) {
 
-        CarbonUtils.checkSecurity();
         identityContextDataHolder.enterFlow(flow);
     }
 
@@ -199,7 +198,6 @@ public class IdentityContext extends CarbonContext {
      */
     public void exitFlow() {
 
-        CarbonUtils.checkSecurity();
         identityContextDataHolder.exitFlow();
     }
 
@@ -210,7 +208,6 @@ public class IdentityContext extends CarbonContext {
      */
     public Flow getCurrentFlow() {
 
-        CarbonUtils.checkSecurity();
         return identityContextDataHolder.getCurrentFlow();
     }
 
