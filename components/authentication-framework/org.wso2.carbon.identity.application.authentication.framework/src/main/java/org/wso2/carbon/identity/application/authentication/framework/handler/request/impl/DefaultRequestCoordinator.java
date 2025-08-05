@@ -1126,13 +1126,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN).toString(),
                     context.getLoginTenantDomain());
             if (!isMatchingTenantDomain) {
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Tenant domain mismatch detected for session context. Session tenant " +
-                                    "domain: '%s', Login tenant domain: '%s', SessionContextKey: '%s'. " +
-                                    "Invalidating session context.",
-                            sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN), context.getLoginTenantDomain(),
-                            sessionContextKey));
-                }
                 request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
                 return null;
             }
