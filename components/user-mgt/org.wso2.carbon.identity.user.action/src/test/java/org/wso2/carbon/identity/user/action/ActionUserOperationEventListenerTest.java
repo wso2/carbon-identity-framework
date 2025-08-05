@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
+import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.action.internal.component.UserActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
@@ -43,6 +43,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertFalse;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
@@ -210,13 +212,14 @@ public class ActionUserOperationEventListenerTest {
                 .build());
         doReturn(TEST_MANAGED_BY_ORG_ID).when(userStoreManager).getUserClaimValueWithID(any(), any(), any());
 
-        BasicOrganization managedByOrg = new BasicOrganization();
-        managedByOrg.setId(TEST_MANAGED_BY_ORG_ID);
-        managedByOrg.setName(TEST_MANAGED_BY_ORG_NAME);
-        managedByOrg.setOrganizationHandle(TEST_MANAGED_BY_ORG_HANDLE);
-        doReturn(Collections.singletonMap(TEST_MANAGED_BY_ORG_ID, managedByOrg)).when(organizationManager)
-                .getBasicOrganizationDetailsByOrgIDs(any());
-        doReturn(TEST_MANAGED_BY_ORG_DEPTH).when(organizationManager).getOrganizationDepthInHierarchy(any());
+        MinimalOrganization managedByOrg = new MinimalOrganization.Builder()
+                .id(TEST_MANAGED_BY_ORG_ID)
+                .name(TEST_MANAGED_BY_ORG_NAME)
+                .organizationHandle(TEST_MANAGED_BY_ORG_HANDLE)
+                .parentOrganizationId(TEST_RESIDENT_ORG_ID)
+                .depth(TEST_MANAGED_BY_ORG_DEPTH)
+                .build();
+        doReturn(managedByOrg).when(organizationManager).getMinimalOrganization(any(), any());
 
         ActionExecutionStatus<Success> successStatus =
                 new SuccessStatus.Builder().setResponseContext(Collections.emptyMap()).build();
@@ -228,6 +231,7 @@ public class ActionUserOperationEventListenerTest {
         boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
+        verify(organizationManager, times(1)).getMinimalOrganization(any(), any());
 
         // Register flow
         boolean newResult = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
