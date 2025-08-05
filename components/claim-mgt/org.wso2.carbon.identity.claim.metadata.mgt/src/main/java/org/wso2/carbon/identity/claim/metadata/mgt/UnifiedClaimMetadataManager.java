@@ -293,30 +293,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
         List<LocalClaim> localClaimsInSystem = this.systemDefaultClaimMetadataManager.getLocalClaims(tenantId);
-        List<LocalClaim> localClaimsInDB;
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-
-        if (resolveWithHierarchicalMode(tenantDomain)) {
-            if (isOrganization(tenantId)) {
-                try {
-                    String organizationId = getOrganizationId(tenantDomain, tenantId);
-                    localClaimsInDB = IdentityClaimManagementServiceDataHolder.getInstance()
-                            .getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
-                                    LambdaExceptionUtils.rethrowFunction(this::retrieveLocalClaimsFromHierarchy),
-                                    new MergeAllAggregationStrategy<>(this::mergeLocalClaimsInHierarchy)
-                            );
-                } catch (OrgResourceHierarchyTraverseException e) {
-                    throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(),
-                            String.format(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId,
-                                    tenantDomain), e);
-                }
-            } else {
-                localClaimsInDB = cacheBackedDBBasedClaimMetadataManager.getLocalClaims(tenantId);
-            }
-        } else {
-            localClaimsInDB = dbBasedClaimMetadataManager.getLocalClaims(tenantId);
-        }
-
+        List<LocalClaim> localClaimsInDB = getLocalClaimsInDB(tenantId);
         Map<String, LocalClaim> localClaimMap = localClaimsInDB.stream()
                 .collect(Collectors.toMap(LocalClaim::getClaimURI, claim -> claim));
 
@@ -341,6 +318,41 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         }
 
         return new ArrayList<>(localClaimMap.values());
+    }
+
+    /**
+     * Gets the local claims in the DB for the given tenant. If hierarchical inheritance is enabled, gets the merged
+     * local claims for the given tenant and its parent tenants in the DB.
+     *
+     * @param tenantId The id of the tenant for which the claims are to be retrieved.
+     * @return The local claims in the DB.
+     * @throws ClaimMetadataException If an error occurs when getting the local claims.
+     */
+    private List<LocalClaim> getLocalClaimsInDB(int tenantId) throws ClaimMetadataException {
+
+        List<LocalClaim> localClaimsInDB;
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        if (resolveWithHierarchicalMode(tenantDomain)) {
+            if (isOrganization(tenantId)) {
+                try {
+                    String organizationId = getOrganizationId(tenantDomain, tenantId);
+                    localClaimsInDB = IdentityClaimManagementServiceDataHolder.getInstance()
+                            .getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
+                                    LambdaExceptionUtils.rethrowFunction(this::retrieveLocalClaimsFromHierarchy),
+                                    new MergeAllAggregationStrategy<>(this::mergeLocalClaimsInHierarchy)
+                            );
+                } catch (OrgResourceHierarchyTraverseException e) {
+                    throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(),
+                            String.format(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId,
+                                    tenantDomain), e);
+                }
+            } else {
+                localClaimsInDB = cacheBackedDBBasedClaimMetadataManager.getLocalClaims(tenantId);
+            }
+        } else {
+            localClaimsInDB = dbBasedClaimMetadataManager.getLocalClaims(tenantId);
+        }
+        return localClaimsInDB;
     }
 
     /**

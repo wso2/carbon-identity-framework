@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.cache.dao;
 
-import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * The DAO cache implementation for claim dialects.
