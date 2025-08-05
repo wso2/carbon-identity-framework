@@ -1254,6 +1254,7 @@
     "admin-forced-password-reset",
     "apiResources",
     "applications",
+    "approvals",
     "attributeDialects",
     "branding",
     "consoleSettings",
@@ -1272,7 +1273,8 @@
     "userRoles",
     "userStores",
     "username-recovery",
-    "users"
+    "users",
+    "workflows"
   ],
   "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
   "console.theme": "wso2is",
@@ -1311,7 +1313,9 @@
   "console.actions.scopes.update": ["internal_action_mgt_update"],
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
   "console.webhooks.enabled": true,
-  "console.webhooks.disabled_features": [],
+  "console.webhooks.disabled_features": [
+    "webhooks.settings"
+  ],
   "console.agents.enabled": true,
   "console.agents.disabled_features": [],
   "console.agents.scopes.feature": ["console:users"],
@@ -1379,11 +1383,11 @@
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
   "console.approvals.enabled": true,
-  "console.approvals.scopes.feature": ["console:workflowApprovals"],
+  "console.approvals.scopes.feature": ["console:workflows"],
   "console.approvals.scopes.read": ["internal_approval_task_view"],
   "console.approvals.scopes.update": ["internal_approval_task_update"],
   "console.workflows.enabled": true,
-  "console.workflows.scopes.feature": ["console:workflowApprovals"],
+  "console.workflows.scopes.feature": ["console:workflows"],
   "console.workflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
   "console.workflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
   "console.workflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
@@ -1629,6 +1633,7 @@
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
+  "console.users.disabled_features": ["users.profile.legacy"],
   "console.users.scopes.feature": ["console:users"],
   "console.users.scopes.create": ["internal_user_mgt_create"],
   "console.users.scopes.read": [
@@ -1641,6 +1646,8 @@
       "internal_user_mgt_list",
       "internal_session_view"
   ],
+  "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
+  "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.secrets_management.enabled": true,
   "console.secrets_management.scopes.feature": [ "console:secretsManagement" ],
   "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
@@ -1664,8 +1671,6 @@
   "console.tenants.scopes.read": ["internal_list_tenants"],
   "console.tenants.scopes.update": ["internal_modify_tenants"],
   "console.tenants.scopes.delete": ["internal_modify_tenants"],
-  "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
-  "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.user_stores.enabled": true,
   "console.user_stores.disabled_features": [
     "userStores.type.remote"
@@ -1814,6 +1819,7 @@
   "myaccount.operations.enabled": true,
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
+  "myaccount.personal_info.disabled_features": ["profileInfo.profile.legacy"],
   "myaccount.security.enabled": true,
   "myaccount.operations.scopes.create": [],
   "myaccount.operations.scopes.read": ["internal_humantask_view"],
@@ -1823,7 +1829,6 @@
   "myaccount.session.params.userIdleWarningTimeOut": 580,
   "myaccount.session.params.sessionRefreshTimeOut": 300,
   "myaccount.session.params.checkSessionInterval": 3,
-  "myaccount.personal_info.disabled_features": [],
   "myaccount.security.disabled_features": ["security.loginVerifyData.typingDNA", "security.mfa.sms"],
   "myaccount.idp_configs.authorizeEndpointURL": "${serverOrigin}/oauth2/authorize",
   "myaccount.idp_configs.logoutEndpointURL": "${serverOrigin}/oidc/logout",

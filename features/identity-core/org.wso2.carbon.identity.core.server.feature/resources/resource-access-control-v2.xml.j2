@@ -175,6 +175,32 @@
             <Scopes>internal_cert_validation_mgt_delete</Scopes>
         </Resource>
 
+    <!-- [Organization] Webhook Metadata API -->
+    <Resource context="(.*)/o/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_webhook_meta_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_webhook_meta_update</Scopes>
+    </Resource>
+    <!-- The Webhook Metadata update operation using the PUT method is not supported. However, due to the shared API path structure, this method must be explicitly disallowed within the application logic. -->
+    <Resource context="(.*)/o/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_webhook_meta_update</Scopes>
+    </Resource>
+
+    <!-- [Organization] Webhook Management API -->
+    <Resource context="(.*)/o/api/server/v1/webhooks(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_webhook_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/webhooks(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_webhook_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/webhooks(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_webhook_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/webhooks(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_webhook_mgt_delete</Scopes>
+    </Resource>
+
         <!-- Webhook Metadata API -->
         <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="GET">
             <Scopes>internal_webhook_meta_view</Scopes>
@@ -1632,6 +1658,20 @@
              <Scopes>internal_async_operation_status_view</Scopes>
          </Resource>
 
+         <!-- [Organization] Workflow Management API -->
+        <Resource context="(.*)/o/api/server/v1/workflows(.*)" secured="true" http-method="GET">
+             <Scopes>internal_org_workflow_view</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v1/workflows(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_workflow_create</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v1/workflows(.*)" secured="true" http-method="PUT">
+             <Scopes>internal_org_workflow_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v1/workflows(.*)" secured="true" http-method="DELETE">
+             <Scopes>internal_org_workflow_delete</Scopes>
+         </Resource>
+
          <!-- Workflow Management API -->
          <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="GET">
              <Scopes>internal_workflow_view</Scopes>
@@ -1644,6 +1684,20 @@
          </Resource>
          <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="DELETE">
              <Scopes>internal_workflow_delete</Scopes>
+         </Resource>
+
+         <!-- [Organization] Workflow Association Management API -->
+         <Resource context="(.*)/o/api/server/v1/workflow-associations(.*)" secured="true" http-method="GET">
+             <Scopes>internal_org_workflow_association_view</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v1/workflow-associations(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_workflow_association_create</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v1/workflow-associations(.*)" secured="true" http-method="PATCH">
+             <Scopes>internal_org_workflow_association_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v1/workflow-associations(.*)" secured="true" http-method="DELETE">
+             <Scopes>internal_org_workflow_association_delete</Scopes>
          </Resource>
 
          <!-- Workflow Association Management API -->

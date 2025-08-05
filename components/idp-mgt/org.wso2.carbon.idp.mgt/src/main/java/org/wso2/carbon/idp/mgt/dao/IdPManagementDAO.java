@@ -2471,17 +2471,10 @@ public class IdPManagementDAO {
         }
         try {
             ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().setTenant(tenantDomain);
-            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                serviceURLBuilder.setOrganization(tenantDomain);
-            }
-
             return serviceURLBuilder.addPath(defaultUrlContext).build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
                     "Error while building URL: " + defaultUrlContext, e);
-        } catch (OrganizationManagementException e) {
-            throw new IdentityProviderManagementServerException(
-                    String.format("Error while checking if tenant %s is an organization", tenantDomain), e);
         }
     }
 
