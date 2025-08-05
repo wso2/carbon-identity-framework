@@ -4258,12 +4258,12 @@ public class FrameworkUtils {
      */
     public static void removeCommonAuthCookie(HttpServletRequest request, HttpServletResponse response) {
 
-        if (request == null || response == null) {
+        if (request == null || request.getCookies() == null || response == null) {
             return;
         }
 
         String cookieValue = Arrays.stream(request.getCookies())
-                .filter(cookie -> FrameworkConstants.AutoLoginConstant.COOKIE_NAME.equals(cookie.getName()))
+                .filter(cookie -> FrameworkConstants.COMMONAUTH_COOKIE.equals(cookie.getName()))
                 .findFirst()
                 .map(Cookie::getValue)
                 .orElse(StringUtils.EMPTY);

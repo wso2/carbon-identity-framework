@@ -1117,7 +1117,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             throws FrameworkException {
 
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey);
-        if (sessionContext != null && appConfig != null && !appConfig.isSaaSApp()) {
+        if (sessionContext != null && appConfig != null && !appConfig.isSaaSApp()
+            && sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN) != null) {
             /* If the application is non-SaaS, the Service Provider tenant domain must match the user's tenant domain.
              If there is a mismatch, set the removeCommonAuthCookie attribute in the request to ensure the commonAuthId
              cookie is cleared by the AuthenticationFrameworkWrapper and remove the cookie from the response. */
@@ -1125,6 +1126,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN).toString(),
                     context.getLoginTenantDomain());
             if (!isMatchingTenantDomain) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Tenant domain mismatch detected for session context. Session tenant " +
+                                    "domain: '%s', Login tenant domain: '%s', SessionContextKey: '%s'. " +
+                                    "Invalidating session context.",
+                            sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN), context.getLoginTenantDomain(),
+                            sessionContextKey));
+                }
                 request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
                 return null;
             }
