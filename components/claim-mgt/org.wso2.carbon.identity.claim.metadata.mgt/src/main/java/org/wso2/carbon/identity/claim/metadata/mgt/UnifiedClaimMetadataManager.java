@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.FirstFoundAggregationStrategy;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
+import org.wso2.carbon.tenant.mgt.util.TenantMgtUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
@@ -88,19 +89,20 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         List<ClaimDialect> claimDialectsInDB;
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
-                String organizationId = getOrganizationId(tenantDomain, tenantId);
-                claimDialectsInDB = IdentityClaimManagementServiceDataHolder.getInstance()
-                        .getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
-                                LambdaExceptionUtils.rethrowFunction(this::retrieveClaimDialectsFromHierarchy),
-                                new MergeAllAggregationStrategy<>(this::mergeClaimDialectsInHierarchy)
-                        );
-            } catch (OrgResourceHierarchyTraverseException e) {
-                throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(), String.format(
-                        ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId, tenantDomain), e);
-            }
+                    String organizationId = getOrganizationId(tenantDomain, tenantId);
+                    claimDialectsInDB = IdentityClaimManagementServiceDataHolder.getInstance()
+                            .getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
+                                    LambdaExceptionUtils.rethrowFunction(this::retrieveClaimDialectsFromHierarchy),
+                                    new MergeAllAggregationStrategy<>(this::mergeClaimDialectsInHierarchy)
+                            );
+                } catch (OrgResourceHierarchyTraverseException e) {
+                    throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(),
+                            String.format(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId,
+                                    tenantDomain), e);
+                }
             } else {
                 claimDialectsInDB = this.cacheBackedDBBasedClaimMetadataManager.getClaimDialects(tenantId);
             }
@@ -169,7 +171,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         Optional<ClaimDialect> claimDialectInDB = Optional.empty();
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
                     String organizationId = getOrganizationId(tenantDomain, tenantId);
@@ -225,7 +227,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void addClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.addClaimDialect(claimDialect, tenantId);
         } else {
             this.dbBasedClaimMetadataManager.addClaimDialect(claimDialect, tenantId);
@@ -251,7 +253,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                             oldClaimDialect.getClaimDialectURI()));
         }
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
         } else {
             this.dbBasedClaimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
@@ -274,7 +276,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         }
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.removeClaimDialect(claimDialect, tenantId);
         } else {
             this.dbBasedClaimMetadataManager.removeClaimDialect(claimDialect, tenantId);
@@ -294,7 +296,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         List<LocalClaim> localClaimsInDB;
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
 
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
                     String organizationId = getOrganizationId(tenantDomain, tenantId);
@@ -412,7 +414,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         Optional<LocalClaim> localClaimInDB;
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
                     String organizationId = getOrganizationId(tenantDomain, tenantId);
@@ -570,7 +572,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         if (!isClaimDialectInDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId, tenantDomain)) {
             addSystemDefaultDialectToDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
         }
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 localClaim.getMappedAttributes().removeIf(attributeMapping ->
                         attributeMapping.getUserStoreDomain().equalsIgnoreCase(IdentityUtil.getPrimaryDomainName()));
@@ -593,7 +595,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         validateNonModifiableClaimProperties(localClaim);
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         if (isLocalClaimInDB(localClaim.getClaimURI(), tenantId, tenantDomain)) {
-            if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+            if (resolveWithHierarchicalMode(tenantDomain)) {
                 if (isOrganization(tenantId)) {
                     localClaim.getMappedAttributes().removeIf(attributeMapping ->
                             attributeMapping.getUserStoreDomain()
@@ -642,7 +644,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             localClaim.getMappedAttributes().addAll(missingMappedAttributes);
             localClaim.setClaimProperties(localClaimMap.get(localClaim.getClaimURI()).getClaimProperties());
         }
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager
                     .updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
         } else {
@@ -666,7 +668,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         }
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.removeLocalClaim(localClaimURI, tenantId);
         } else {
             this.dbBasedClaimMetadataManager.removeLocalClaim(localClaimURI, tenantId);
@@ -730,7 +732,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         List<ExternalClaim> externalClaimsInDB;
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
                 String organizationId = getOrganizationId(tenantDomain, tenantId);
@@ -866,7 +868,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         if (!isLocalClaimInDB(externalClaim.getMappedLocalClaim(), tenantId, tenantDomain)) {
             addSystemDefaultLocalClaimToDB(externalClaim.getMappedLocalClaim(), tenantId);
         }
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.addExternalClaim(externalClaim, tenantId);
         } else {
             this.dbBasedClaimMetadataManager.addExternalClaim(externalClaim, tenantId);
@@ -890,7 +892,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         }
         if (isExternalClaimInDB(externalClaim.getClaimURI(), externalClaim.getClaimDialectURI(), tenantId,
                 tenantDomain)) {
-            if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+            if (resolveWithHierarchicalMode(tenantDomain)) {
                 this.cacheBackedDBBasedClaimMetadataManager.updateExternalClaim(externalClaim, tenantId);
             } else {
                 this.dbBasedClaimMetadataManager.updateExternalClaim(externalClaim, tenantId);
@@ -917,7 +919,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                     String.format(ERROR_CODE_NO_DELETE_SYSTEM_CLAIM.getMessage(), externalClaimURI));
         }
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.removeExternalClaim(externalClaimDialectURI, externalClaimURI,
                     tenantId);
         } else {
@@ -959,7 +961,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.removeClaimMappingAttributes(tenantId, userstoreDomain);
         } else {
             this.dbBasedClaimMetadataManager.removeClaimMappingAttributes(tenantId, userstoreDomain);
@@ -974,7 +976,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
         } else {
             this.dbBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
@@ -1064,7 +1066,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
     private boolean isClaimDialectInDB(String claimDialectURI, int tenantId, String tenantDomain) throws ClaimMetadataException {
 
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             return this.cacheBackedDBBasedClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId).isPresent();
         } else {
             return this.dbBasedClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId).isPresent();
@@ -1073,7 +1075,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
     private boolean isLocalClaimInDB(String localClaimURI, int tenantId, String tenantDomain) throws ClaimMetadataException {
 
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             return this.cacheBackedDBBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId).isPresent();
         } else {
             return this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId).isPresent();
@@ -1083,7 +1085,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     private boolean isExternalClaimInDB(String claimURI, String claimDialectURI, int tenantId, String tenantDomain)
             throws ClaimMetadataException {
 
-        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+        if (resolveWithHierarchicalMode(tenantDomain)) {
             return this.cacheBackedDBBasedClaimMetadataManager.getExternalClaim(claimDialectURI, claimURI, tenantId).isPresent();
         } else {
             return this.dbBasedClaimMetadataManager.getExternalClaim(claimDialectURI, claimURI, tenantId).isPresent();
@@ -1096,7 +1098,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                 .getClaimDialect(claimDialectURI, tenantId);
         if (claimDialectInSystem.isPresent()) {
             String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-            if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+            if (resolveWithHierarchicalMode(tenantDomain)) {
                 this.cacheBackedDBBasedClaimMetadataManager.addClaimDialect(claimDialectInSystem.get(), tenantId);
             } else {
                 this.dbBasedClaimMetadataManager.addClaimDialect(claimDialectInSystem.get(), tenantId);
@@ -1114,7 +1116,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         }
         Optional<LocalClaim> claimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(claimURI, tenantId);
         if (claimInSystem.isPresent()) {
-            if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+            if (resolveWithHierarchicalMode(tenantDomain)) {
                 this.cacheBackedDBBasedClaimMetadataManager.addLocalClaim(claimInSystem.get(), tenantId);
             } else {
                 this.dbBasedClaimMetadataManager.addLocalClaim(claimInSystem.get(), tenantId);
@@ -1193,5 +1195,24 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             throw new ClaimMetadataException(ERROR_CODE_FAILED_TO_RESOLVE_ORGANIZATION_ID.getCode(), String.format(
                     ERROR_CODE_FAILED_TO_RESOLVE_ORGANIZATION_ID.getMessage(), tenantId, tenantDomain), e);
         }
+    }
+
+    /**
+     * Checks whether to resolve the claims for the hierarchical inheritance model.
+     *
+     * @param tenantDomain The domain of the tenant.
+     * @return true if hierarchical inheritance is enabled, false otherwise.
+     */
+    private boolean resolveWithHierarchicalMode(String tenantDomain) {
+
+        /*
+        * During tenant creation, the invoking organization is always carbon.super even for other root organizations,
+        * therefore, the claim and scope inheritance cannot be checked.
+        *
+        * During new root org creation, the non-inheritance model will be used and claims will be added to the db
+        * via the existing db metadata manager. Sub-org claims will be populated (for the non-inheritance model)
+        * after tenant creation, therefore, the above-mentioned limitation will not be an issue.
+        * */
+        return !TenantMgtUtil.isTenantCreation() && Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain);
     }
 }
