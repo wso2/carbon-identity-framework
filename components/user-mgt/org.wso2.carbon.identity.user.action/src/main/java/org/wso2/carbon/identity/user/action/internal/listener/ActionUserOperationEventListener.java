@@ -59,8 +59,9 @@ import java.util.Map;
 public class ActionUserOperationEventListener extends AbstractIdentityUserOperationEventListener implements
         SecretHandleableListener {
 
+    private static final Log log = LogFactory.getLog(ActionUserOperationEventListener.class);
     private static final String MANAGED_ORG_CLAIM_URI = "http://wso2.org/claims/identity/managedOrg";
-    public static final boolean DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW = true;
+    private static final boolean DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW = true;
     private static final String ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW =
             "Actions.Types.PreUpdatePassword.EnableInRegistrationFlows";
 
@@ -113,28 +114,27 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || isEnablePreUpdatePasswordFlow() <= 0) {
+        if (!isEnable() || !isEnablePreUpdatePasswordFlow()) {
             return true;
         }
 
         return executePreUpdatePasswordAction(userID, credential, userStoreManager);
     }
 
-    public static int isEnablePreUpdatePasswordFlow() {
+    public static boolean isEnablePreUpdatePasswordFlow() {
 
-        boolean isFlowEnabled = DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW;
         String propertyValue = IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
 
         if (StringUtils.isNotBlank(propertyValue)) {
             try {
-                isFlowEnabled = Boolean.parseBoolean(propertyValue);
+                return Boolean.parseBoolean(propertyValue);
             } catch (NumberFormatException e) {
-                Log log = LogFactory.getLog(ActionUserOperationEventListener.class);
-                log.warn("Error occurred while parsing the 'RegistrationFlow' property value in identity.xml.", e);
+                log.debug("Error occurred while parsing the 'EnableInRegistrationFlows' " +
+                        "property value in identity.xml.", e);
             }
         }
 
-        return isFlowEnabled ? 1 : 0;
+        return DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW;
     }
 
     private boolean executePreUpdatePasswordAction(String userID, Object credential,
