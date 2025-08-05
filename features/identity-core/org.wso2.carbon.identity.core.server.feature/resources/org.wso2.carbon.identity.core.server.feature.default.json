@@ -1956,7 +1956,7 @@
 
   "notification_templates.sms_templates.apply": true,
 
-  "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+  "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": true,
 
   "attribute.return_previous_additional_properties.enabled": false,
 
