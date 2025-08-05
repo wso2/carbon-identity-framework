@@ -114,14 +114,14 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || !isEnablePreUpdatePasswordFlow()) {
+        if (!isEnable() || !isEnabledInRegistrationFlows()) {
             return true;
         }
 
         return executePreUpdatePasswordAction(userID, credential, userStoreManager);
     }
 
-    public static boolean isEnablePreUpdatePasswordFlow() {
+    public static boolean isEnabledInRegistrationFlows() {
 
         String propertyValue = IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
 
