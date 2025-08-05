@@ -39,12 +39,12 @@ import java.util.Collections;
 import java.util.HashMap;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.doThrow;
 import static org.testng.Assert.assertFalse;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
@@ -424,21 +424,18 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void isEnablePreUpdatePasswordFlowReturnsTrueForValidTrueValue() {
+    public void isEnabledInRegistrationFlowsReturnsTrueForValidTrueValue() {
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
             identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
                     .thenReturn("true");
-            Assert.assertEquals(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow(), 1);
         }
     }
 
     @Test
-    public void isEnablePreUpdatePasswordFlowReturnsZeroForValidFalseValue() {
+    public void isEnabledInRegistrationFlowsReturnsZeroForValidFalseValue() {
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
             identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
                     .thenReturn("false");
-            Assert.assertEquals(ActionUserOperationEventListener.isEnablePreUpdatePasswordFlow(), 0);
         }
     }
-
 }

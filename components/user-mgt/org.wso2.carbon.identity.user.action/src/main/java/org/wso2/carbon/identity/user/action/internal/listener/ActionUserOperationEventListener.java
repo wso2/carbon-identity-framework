@@ -61,7 +61,6 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
     private static final Log log = LogFactory.getLog(ActionUserOperationEventListener.class);
     private static final String MANAGED_ORG_CLAIM_URI = "http://wso2.org/claims/identity/managedOrg";
-    private static final boolean DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW = true;
     private static final String ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW =
             "Actions.Types.PreUpdatePassword.EnableInRegistrationFlows";
 
@@ -121,7 +120,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         return executePreUpdatePasswordAction(userID, credential, userStoreManager);
     }
 
-    public static boolean isEnabledInRegistrationFlows() {
+    private boolean isEnabledInRegistrationFlows() {
 
         String propertyValue = IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
 
@@ -134,7 +133,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             }
         }
 
-        return DEFAULT_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW;
+        return true;
     }
 
     private boolean executePreUpdatePasswordAction(String userID, Object credential,
