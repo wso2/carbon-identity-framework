@@ -1615,6 +1615,19 @@
                    description="Manage edits of actions from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Action Management Feature" identifier="console:org:actions"
+                requiresAuthorization="true"
+                description="Resource representation of the Action Management Feature"
+                type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Action Feature" name="console:org:actions"
+                description="Manage actions from the Console"/>
+            <Scope displayName="Action View Feature" name="console:org:actions_view"
+                description="Manage views of actions from the Console"/>
+            <Scope displayName="Action Edit Feature" name="console:org:actions_edit"
+                description="Manage edits of actions from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Webhook Management Feature" identifier="console:webhooks"
                  requiresAuthorization="true"
                  description="Resource representation of the Webhook Management Feature"
@@ -1675,6 +1688,14 @@
                  description="API representation of the Rules Metadata API" type="TENANT">
         <Scopes>
             <Scope displayName="View Metadata" name="internal_rule_metadata_view"
+                   description="View metadata for rule configuration"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Rule Metadata API" identifier="/o/api/server/v1/rules/metadata"
+                 requiresAuthorization="true"
+                 description="API representation of the Rules Metadata API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Metadata" name="internal_org_rule_metadata_view"
                    description="View metadata for rule configuration"/>
         </Scopes>
     </APIResource>
