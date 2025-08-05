@@ -290,7 +290,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
             IdentityContext.getThreadLocalIdentityContext().setOrganization(accessingOrganization);
         }
 
-        IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(mockedFlow);
         ActionExecutionRequest actionExecutionRequest =
                 preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
                         flowContext, ActionExecutionRequestContext.create(preUpdatePasswordAction));
@@ -346,7 +346,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
             IdentityContext.getThreadLocalIdentityContext().setOrganization(accessingOrganization);
         }
 
-        IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(mockedFlow);
         ActionExecutionRequest actionExecutionRequest =
                 preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
                         flowContext, ActionExecutionRequestContext.create(preUpdatePasswordActionWithoutCert));
@@ -392,7 +392,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     public void testRequestBuilderWithErrorFromClaimMetaDataService() throws Exception {
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
         when(claimMetadataManagementService.getLocalClaim(any(), any()))
                 .thenThrow(new ClaimMetadataException("Error while retrieving local claim."));
 
@@ -416,7 +416,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
                 ActionExecutionRequestContext.create(preUpdatePasswordAction));
@@ -442,7 +442,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
                 ActionExecutionRequestContext.create(preUpdatePasswordAction));
@@ -467,7 +467,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
                 ActionExecutionRequestContext.create(preUpdatePasswordAction));

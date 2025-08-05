@@ -56,6 +56,7 @@ public class IdentityContext extends CarbonContext {
      *
      * @param flow flow of the request.
      */
+    @Deprecated // Use enterFlow() and exitFlow() methods for flow management.
     public void setFlow(Flow flow) {
 
         if (identityContextDataHolder.getFlow() != null) {
@@ -69,6 +70,7 @@ public class IdentityContext extends CarbonContext {
      *
      * @return Flow of the request.
      */
+    @Deprecated // Use getCurrentFlow() method to retrieve the current flow.
     public Flow getFlow() {
 
         return identityContextDataHolder.getFlow();

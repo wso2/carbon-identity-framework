@@ -109,7 +109,7 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
 
     private PreUpdateProfileEvent.FlowInitiatorType getInitiatorType() throws ActionExecutionRequestBuilderException {
 
-        Flow flow = Optional.ofNullable(IdentityContext.getThreadLocalIdentityContext().getFlow())
+        Flow flow = Optional.ofNullable(IdentityContext.getThreadLocalIdentityContext().getCurrentFlow())
                 .orElseThrow(() -> new ActionExecutionRequestBuilderException("Unknown flow."));
 
         switch (flow.getInitiatingPersona()) {

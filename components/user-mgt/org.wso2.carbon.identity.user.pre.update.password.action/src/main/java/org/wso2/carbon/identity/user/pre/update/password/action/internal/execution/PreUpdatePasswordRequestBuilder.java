@@ -138,7 +138,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
 
     private PreUpdatePasswordEvent.FlowInitiatorType getInitiatorType() throws ActionExecutionRequestBuilderException {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow == null) {
             throw new ActionExecutionRequestBuilderException("Flow is not identified.");
         }
@@ -158,7 +158,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
 
     private PreUpdatePasswordEvent.Action getAction() throws ActionExecutionRequestBuilderException {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow == null) {
             throw new ActionExecutionRequestBuilderException("Flow is not identified.");
         }

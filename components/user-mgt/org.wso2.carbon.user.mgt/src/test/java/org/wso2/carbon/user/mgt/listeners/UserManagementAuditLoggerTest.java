@@ -59,7 +59,7 @@ public class UserManagementAuditLoggerTest {
     public void testGetPasswordUpdateAuditMessageAction(Flow.InitiatingPersona persona, String expectedAction) {
 
         configureCarbonHome();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
                 .name(Flow.Name.PASSWORD_RESET)
                 .initiatingPersona(persona)
                 .build());
