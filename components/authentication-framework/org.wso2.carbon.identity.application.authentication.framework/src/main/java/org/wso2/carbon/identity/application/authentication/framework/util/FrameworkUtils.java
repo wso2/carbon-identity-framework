@@ -145,6 +145,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -4682,7 +4683,9 @@ public class FrameworkUtils {
             RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
             int tenantId;
             if (StringUtils.isNotBlank(userResidentOrg)) {
-                tenantId = realmService.getTenantManager().getTenantId(userResidentOrg);
+                String userResidentOrgHandle = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(userResidentOrg);
+                tenantId = realmService.getTenantManager().getTenantId(userResidentOrgHandle);
             } else {
                 tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             }
@@ -4704,6 +4707,8 @@ public class FrameworkUtils {
         } catch (UserStoreException e) {
             throw new FrameworkException(INVALID_REQUEST.getCode(),
                     "Use mapped local subject is mandatory but a local user couldn't be found");
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException(INVALID_REQUEST.getCode(), "Error while getting org handle.");
         }
     }
 
@@ -4743,11 +4748,12 @@ public class FrameworkUtils {
         try {
             String subjectIdentifier = impersonatedUser.getUserId();
             String userStoreDomain = impersonatedUser.getUserStoreDomain();
-            String userResidentOrg = impersonatedUser.getTenantDomain();
+            String userResidentOrgHandle = impersonatedUser.getTenantDomain();
             String tenantDomain = impersonatedUser.getTenantDomain();
             if (impersonatedUser.isFederatedUser()
                     && ORGANIZATION_LOGIN_IDP_NAME.equals(impersonatedUser.getFederatedIdPName())) {
-                userResidentOrg = impersonatedUser.getUserResidentOrganization();
+                userResidentOrgHandle = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(impersonatedUser.getUserResidentOrganization());
             }
             String userName = impersonatedUser.getUserName();
 
@@ -4765,7 +4771,7 @@ public class FrameworkUtils {
             if (subjectClaimUri != null) {
                 RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
                 String subjectClaimValue = getClaimValue(IdentityUtil.addDomainToName(userName, userStoreDomain),
-                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(userResidentOrg))
+                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(userResidentOrgHandle))
                                 .getUserStoreManager(), subjectClaimUri);
 
                 if (subjectClaimValue != null) {
@@ -4786,6 +4792,8 @@ public class FrameworkUtils {
             return subjectIdentifier;
         } catch (UserStoreException | UserIdNotFoundException e) {
             throw new FrameworkException("Error while obtaining subject identifier.", e);
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while resolving org handle for the org id.", e);
         }
     }
 

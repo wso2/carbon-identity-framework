@@ -222,9 +222,14 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             }
 
             Request request = actionExecutionRequest.getEvent().getRequest();
-            request.setAdditionalHeaders(
-                    RequestFilter.getFilteredHeaders(request.getAdditionalHeaders(), actionType));
-            request.setAdditionalParams(RequestFilter.getFilteredParams(request.getAdditionalParams(), actionType));
+            request.setAdditionalHeaders(RequestFilter.getFilteredHeaders(
+                    request.getAdditionalHeaders(),
+                    action.getEndpoint().getAllowedHeaders(),
+                    actionType));
+            request.setAdditionalParams(RequestFilter.getFilteredParams(
+                    request.getAdditionalParams(),
+                    action.getEndpoint().getAllowedParameters(),
+                    actionType));
             return actionExecutionRequest;
         } catch (ActionExecutionRequestBuilderException e) {
             throw new ActionExecutionException("Failed to build the request payload for action type: " + actionType, e);

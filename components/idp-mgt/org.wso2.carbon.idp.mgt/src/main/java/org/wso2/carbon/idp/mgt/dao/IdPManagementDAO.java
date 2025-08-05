@@ -76,6 +76,7 @@ import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
+import org.wso2.carbon.tenant.mgt.util.TenantMgtUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.security.KeystoreUtils;
@@ -1246,9 +1247,7 @@ public class IdPManagementDAO {
                 }
 
                 Set<Property> properties = new HashSet<Property>();
-                if (OrganizationManagementUtil.isOrganization(tenantId) &&
-                        Utils.isLoginAndRegistrationConfigInheritanceEnabled(
-                                IdentityTenantUtil.getTenantDomain(tenantId)) &&
+                if (isIdpPropertyInheritanceEnabled(IdentityTenantUtil.getTenantDomain(tenantId)) &&
                         federatedIdp != null &&
                         IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
                                 federatedIdp.getIdentityProviderName()) &&
@@ -2472,17 +2471,10 @@ public class IdPManagementDAO {
         }
         try {
             ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().setTenant(tenantDomain);
-            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                serviceURLBuilder.setOrganization(tenantDomain);
-            }
-
             return serviceURLBuilder.addPath(defaultUrlContext).build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
                     "Error while building URL: " + defaultUrlContext, e);
-        } catch (OrganizationManagementException e) {
-            throw new IdentityProviderManagementServerException(
-                    String.format("Error while checking if tenant %s is an organization", tenantDomain), e);
         }
     }
 
@@ -3427,8 +3419,7 @@ public class IdPManagementDAO {
                         getIdentityPropertiesByIdpId(dbConnection, idpId, tenantId));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     // Resolve resident IdP properties from the organization hierarchy if inheritance is enabled.
-                    if (OrganizationManagementUtil.isOrganization(tenantDomain) &&
-                            Utils.isLoginAndRegistrationConfigInheritanceEnabled(tenantDomain)) {
+                    if (isIdpPropertyInheritanceEnabled(tenantDomain)) {
                         propertyList = resolveResidentIdpProperties(tenantDomain, federatedIdp, dbConnection);
                     }
                     // Populate non-existing properties with default values.
@@ -3458,6 +3449,20 @@ public class IdPManagementDAO {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
         }
+    }
+
+    /**
+     * Checks whether the resident IDP properties should be inherited from the organization hierarchy.
+     *
+     * @param tenantDomain Tenant domain of the IDP.
+     * @return true if inheritance is enabled, false otherwise.
+     * @throws OrganizationManagementException When an error occurs while checking if the tenant is an organization.
+     */
+    private boolean isIdpPropertyInheritanceEnabled(String tenantDomain) throws OrganizationManagementException {
+
+        return OrganizationManagementUtil.isOrganization(tenantDomain) &&
+                !TenantMgtUtil.isTenantCreation() &&
+                Utils.isLoginAndRegistrationConfigInheritanceEnabled(tenantDomain);
     }
 
     /**

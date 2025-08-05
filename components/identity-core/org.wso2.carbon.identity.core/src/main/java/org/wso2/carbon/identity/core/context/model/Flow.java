@@ -272,6 +272,17 @@ public class Flow {
     }
 
     /**
+     * Checks if the given flow name corresponds to a credential flow.
+     *
+     * @param name The name of the flow.
+     * @return true if it is a credential flow; false otherwise.
+     */
+    public static boolean isCredentialFlow(Name name) {
+
+        return CREDENTIAL_FLOW_DEFINITIONS.containsKey(name);
+    }
+
+    /**
      * Builder class for Flow.
      */
     public static class Builder {
