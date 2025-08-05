@@ -980,13 +980,30 @@
                    description="Manage server from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Management Feature" identifier="console:workflowApprovals"
+    <APIResource name="Approval Workflow Management Feature" identifier="console:workflows"
                  requiresAuthorization="true"
-                 description="Resource representation of the Workflow Approval Management Feature"
+                 description="Resource representation of the Approval Workflow Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="Workflow Approval Feature" name="console:workflowApprovals"
-                   description="Manage workflow approvals from the Console"/>
+            <Scope displayName="Approval Workflow Feature" name="console:workflows"
+                   description="Manage workflows from the Console"/>
+            <Scope displayName="Approval Workflow View Feature" name="console:workflows_view"
+                   description="Manage views of workflows from the Console"/>
+            <Scope displayName="Approval Workflow Edit Feature" name="console:workflows_edit"
+                   description="Manage edits of workflows from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:workflows"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Approval Workflow Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Approval Workflow Feature" name="console:org:workflows"
+                   description="Manage Approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow View Feature" name="console:org:workflows_view"
+                   description="Manage views of approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow Edit Feature" name="console:org:workflows_edit"
+                   description="Manage edits of approval workflows from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
