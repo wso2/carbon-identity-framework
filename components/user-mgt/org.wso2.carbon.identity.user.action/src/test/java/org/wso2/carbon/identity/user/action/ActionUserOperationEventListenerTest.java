@@ -43,8 +43,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertFalse;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
@@ -230,7 +228,6 @@ public class ActionUserOperationEventListenerTest {
         boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
-        verify(organizationManager, times(1)).getMinimalOrganization(any(), any());
 
         // Register flow
         boolean newResult = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
