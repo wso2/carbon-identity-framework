@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.claim.metadata.mgt.cache.dao;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.ExternalClaimCacheKey;

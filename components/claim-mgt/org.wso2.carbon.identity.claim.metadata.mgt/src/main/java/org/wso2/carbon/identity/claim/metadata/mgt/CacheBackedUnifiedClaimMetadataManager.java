@@ -347,7 +347,6 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
      */
     private void removeLocalClaimCache(int tenantId) {
 
-
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         try {
             if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
@@ -363,7 +362,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
                 }
             }
         } catch (OrganizationManagementException | UserStoreException e) {
-            log.error(e);
+            log.error("Error occurred while clearing the local claim cache for tenant id: " + tenantId, e);
         }
         localClaimCache.clearCacheEntry(tenantId, tenantId);
     }

@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.claim.metadata.mgt.cache.dao;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -35,6 +36,7 @@ public class ClaimDialectDAOCache extends BaseCache<Integer, Serializable> {
      * The private constructor which ensures that only one instance of the cache is created.
      */
     private ClaimDialectDAOCache() {
+
         super(CACHE_NAME);
     }
 

@@ -53,6 +53,10 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_FAILED_TO_RESOLVE_ORGANIZATION_ID;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_FAILED_TO_RESOLVE_TENANT_ID_DURING_HIERARCHICAL_AGGREGATION;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_FAILURE_IN_CHECKING_IS_TENANT_AN_ORGANIZATION;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_DELETE_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_DELETE_SYSTEM_DIALECT;
@@ -84,37 +88,37 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         List<ClaimDialect> claimDialectsInDB;
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        try {
-            if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
-                if (isOrganization(tenantId)) {
-                    String organizationId = IdentityClaimManagementServiceDataHolder.getInstance()
-                            .getOrganizationManager().resolveOrganizationId(tenantDomain);
-                    claimDialectsInDB = IdentityClaimManagementServiceDataHolder.getInstance()
-                            .getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
-                                    LambdaExceptionUtils.rethrowFunction(this::retrieveClaimDialectsFromHierarchy),
-                                    new MergeAllAggregationStrategy<>(this::mergeClaimDialectsInHierarchy)
-                            );
-                } else {
-                    claimDialectsInDB = this.cacheBackedDBBasedClaimMetadataManager.getClaimDialects(tenantId);
-                }
-            } else {
-                claimDialectsInDB = this.dbBasedClaimMetadataManager.getClaimDialects(tenantId);
+        if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+            if (isOrganization(tenantId)) {
+                try {
+                String organizationId = getOrganizationId(tenantDomain, tenantId);
+                claimDialectsInDB = IdentityClaimManagementServiceDataHolder.getInstance()
+                        .getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
+                                LambdaExceptionUtils.rethrowFunction(this::retrieveClaimDialectsFromHierarchy),
+                                new MergeAllAggregationStrategy<>(this::mergeClaimDialectsInHierarchy)
+                        );
+            } catch (OrgResourceHierarchyTraverseException e) {
+                throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(), String.format(
+                        ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId, tenantDomain), e);
             }
-            List<ClaimDialect> claimDialectsInSystem =
-                    this.systemDefaultClaimMetadataManager.getClaimDialects(tenantId);
-            Set<String> claimDialectURIsInDB = claimDialectsInDB.stream()
-                    .map(ClaimDialect::getClaimDialectURI)
-                    .collect(Collectors.toSet());
-
-            List<ClaimDialect> allClaimDialects = new ArrayList<>(claimDialectsInDB);
-            claimDialectsInSystem.stream()
-                    .filter(claimDialect ->
-                            !claimDialectURIsInDB.contains(claimDialect.getClaimDialectURI()))
-                    .forEach(allClaimDialects::add);
-            return allClaimDialects;
-        } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
-            throw new ClaimMetadataException("An error occurred when retrieving the claim dialects.", e);
+            } else {
+                claimDialectsInDB = this.cacheBackedDBBasedClaimMetadataManager.getClaimDialects(tenantId);
+            }
+        } else {
+            claimDialectsInDB = this.dbBasedClaimMetadataManager.getClaimDialects(tenantId);
         }
+        List<ClaimDialect> claimDialectsInSystem =
+                this.systemDefaultClaimMetadataManager.getClaimDialects(tenantId);
+        Set<String> claimDialectURIsInDB = claimDialectsInDB.stream()
+                .map(ClaimDialect::getClaimDialectURI)
+                .collect(Collectors.toSet());
+
+        List<ClaimDialect> allClaimDialects = new ArrayList<>(claimDialectsInDB);
+        claimDialectsInSystem.stream()
+                .filter(claimDialect ->
+                        !claimDialectURIsInDB.contains(claimDialect.getClaimDialectURI()))
+                .forEach(allClaimDialects::add);
+        return allClaimDialects;
     }
 
     /**
@@ -143,11 +147,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     private List<ClaimDialect> mergeClaimDialectsInHierarchy(
             List<ClaimDialect> aggregatedClaimDialects, List<ClaimDialect> tenantClaimDialects) {
 
-        Map<String, ClaimDialect> existingLocalClaims = aggregatedClaimDialects.stream()
+        Map<String, ClaimDialect> existingClaimDialects = aggregatedClaimDialects.stream()
                 .collect(Collectors.toMap(ClaimDialect::getClaimDialectURI, Function.identity()));
-        for (ClaimDialect tenantLocalClaim : tenantClaimDialects) {
-            if (!existingLocalClaims.containsKey(tenantLocalClaim.getClaimDialectURI())) {
-                aggregatedClaimDialects.add(tenantLocalClaim);
+        for (ClaimDialect tenantClaimDialect : tenantClaimDialects) {
+            if (!existingClaimDialects.containsKey(tenantClaimDialect.getClaimDialectURI())) {
+                aggregatedClaimDialects.add(tenantClaimDialect);
             }
         }
         return aggregatedClaimDialects;
@@ -165,12 +169,10 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         Optional<ClaimDialect> claimDialectInDB = Optional.empty();
-
         if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
-                    String organizationId = IdentityClaimManagementServiceDataHolder.getInstance()
-                            .getOrganizationManager().resolveOrganizationId(tenantDomain);
+                    String organizationId = getOrganizationId(tenantDomain, tenantId);
                     ClaimDialect claimDialectInDBFromOrgHierarchy = IdentityClaimManagementServiceDataHolder
                             .getInstance().getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
                                     LambdaExceptionUtils.rethrowFunction(orgId ->
@@ -180,9 +182,10 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                     if (claimDialectInDBFromOrgHierarchy != null) {
                         claimDialectInDB = Optional.of(claimDialectInDBFromOrgHierarchy);
                     }
-                } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
-                    throw new ClaimMetadataException("An error occurred when retrieving the claim dialect: " +
-                            claimDialectURI, e);
+                } catch (OrgResourceHierarchyTraverseException e) {
+                    throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(),
+                            String.format(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId,
+                                    tenantDomain), e);
                 }
             } else {
                 claimDialectInDB = this.cacheBackedDBBasedClaimMetadataManager.getClaimDialect(claimDialectURI,
@@ -247,7 +250,6 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                     String.format(ERROR_CODE_NO_RENAME_SYSTEM_DIALECT.getMessage(),
                             oldClaimDialect.getClaimDialectURI()));
         }
-
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
             this.cacheBackedDBBasedClaimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
@@ -295,15 +297,16 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
-                    String organizationId = IdentityClaimManagementServiceDataHolder.getInstance()
-                            .getOrganizationManager().resolveOrganizationId(tenantDomain);
+                    String organizationId = getOrganizationId(tenantDomain, tenantId);
                     localClaimsInDB = IdentityClaimManagementServiceDataHolder.getInstance()
                             .getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
                                     LambdaExceptionUtils.rethrowFunction(this::retrieveLocalClaimsFromHierarchy),
                                     new MergeAllAggregationStrategy<>(this::mergeLocalClaimsInHierarchy)
                             );
-                } catch (OrgResourceHierarchyTraverseException | OrganizationManagementException e) {
-                    throw new ClaimMetadataException("An error occurred when retrieving the local claims", e);
+                } catch (OrgResourceHierarchyTraverseException e) {
+                    throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(),
+                            String.format(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId,
+                                    tenantDomain), e);
                 }
             } else {
                 localClaimsInDB = cacheBackedDBBasedClaimMetadataManager.getLocalClaims(tenantId);
@@ -412,8 +415,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
-                    String organizationId = IdentityClaimManagementServiceDataHolder.getInstance()
-                            .getOrganizationManager().resolveOrganizationId(tenantDomain);
+                    String organizationId = getOrganizationId(tenantDomain, tenantId);
                     OrgResourceResolverService orgResourceManagementService =
                             IdentityClaimManagementServiceDataHolder.getInstance().getOrgResourceResolverService();
                     LocalClaim mergedLocalClaim = orgResourceManagementService.getResourcesFromOrgHierarchy(
@@ -423,9 +425,10 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                             new MergeAllAggregationStrategy<>(this::mergeLocalClaimInHierarchy)
                     );
                     localClaimInDB = Optional.of(mergedLocalClaim);
-                } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
-                    throw new ClaimMetadataException("An error occurred when retrieving the local claim: " +
-                            localClaimURI, e);
+                } catch (OrgResourceHierarchyTraverseException e) {
+                    throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(),
+                            String.format(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId,
+                                    tenantDomain), e);
                 }
             } else {
                 localClaimInDB = this.cacheBackedDBBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
@@ -476,7 +479,6 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             LocalClaim aggregatedLocalClaim, LocalClaim tenantLocalClaim) {
 
         for (Map.Entry<String, String> entry : tenantLocalClaim.getClaimProperties().entrySet()) {
-
             /*
             The traversal is from the sub-org upwards to the parent, therefore, if the property
             is present in the existing claim, i.e., sub-org claim, it is the overridden value
@@ -731,17 +733,17 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
             if (isOrganization(tenantId)) {
                 try {
-                String organizationId = IdentityClaimManagementServiceDataHolder.getInstance()
-                        .getOrganizationManager().resolveOrganizationId(tenantDomain);
+                String organizationId = getOrganizationId(tenantDomain, tenantId);
                 externalClaimsInDB = IdentityClaimManagementServiceDataHolder.getInstance()
                         .getOrgResourceResolverService().getResourcesFromOrgHierarchy(organizationId,
                                 LambdaExceptionUtils.rethrowFunction(orgId ->
                                         retrieveExternalClaimsFromHierarchy(externalClaimDialectURI, orgId)),
                                 new MergeAllAggregationStrategy<>(this::mergesExternalClaimsInHierarchy)
                         );
-                } catch (OrgResourceHierarchyTraverseException | OrganizationManagementException e) {
-                    throw new ClaimMetadataException("An error occurred when retrieving external claims of dialect: " +
-                            externalClaimDialectURI + " for tenant: " + tenantId, e);
+                } catch (OrgResourceHierarchyTraverseException e) {
+                    throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getCode(),
+                            String.format(ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY.getMessage(), tenantId,
+                                    tenantDomain), e);
                 }
             } else {
                 externalClaimsInDB = this.cacheBackedDBBasedClaimMetadataManager.getExternalClaims(
@@ -1153,8 +1155,8 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             return IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
                     .getTenantManager().getTenantId(tenantDomain);
         } catch (OrganizationManagementException | UserStoreException e) {
-            throw new ClaimMetadataException("An error occurred while resolving the tenant id of organization: " +
-                    orgId, e);
+            throw new ClaimMetadataException(ERROR_CODE_FAILED_TO_RESOLVE_TENANT_ID_DURING_HIERARCHICAL_AGGREGATION.getCode(), String.format(
+                    ERROR_CODE_FAILED_TO_RESOLVE_TENANT_ID_DURING_HIERARCHICAL_AGGREGATION.getMessage(), orgId), e);
         }
     }
 
@@ -1170,8 +1172,26 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         try {
             return OrganizationManagementUtil.isOrganization(tenantId);
         } catch (OrganizationManagementException e) {
-            throw new ClaimMetadataException("An error occurred while checking whether the tenant is an organization",
-                    e);
+            throw new ClaimMetadataException(ERROR_CODE_FAILURE_IN_CHECKING_IS_TENANT_AN_ORGANIZATION.getCode(),
+                    String.format(ERROR_CODE_FAILURE_IN_CHECKING_IS_TENANT_AN_ORGANIZATION.getMessage(), tenantId), e);
+        }
+    }
+
+    /**
+     * Gets the organization id corresponding to a given tenant id.
+     *
+     * @param tenantDomain The domain of the tenant for which the organization id needs to be retrieved.
+     * @return The organization id of the given tenant.
+     * @throws ClaimMetadataException If an error occurs when resolving the organization id.
+     */
+    private String getOrganizationId(String tenantDomain, int tenantId) throws ClaimMetadataException {
+
+        try {
+            return IdentityClaimManagementServiceDataHolder.getInstance()
+                    .getOrganizationManager().resolveOrganizationId(tenantDomain);
+        } catch (OrganizationManagementException e) {
+            throw new ClaimMetadataException(ERROR_CODE_FAILED_TO_RESOLVE_ORGANIZATION_ID.getCode(), String.format(
+                    ERROR_CODE_FAILED_TO_RESOLVE_ORGANIZATION_ID.getMessage(), tenantId, tenantDomain), e);
         }
     }
 }

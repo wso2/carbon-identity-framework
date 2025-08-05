@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.claim.metadata.mgt.cache.dao;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -34,6 +35,7 @@ public class LocalClaimDAOCache extends BaseCache<Integer, ArrayList<LocalClaim>
      * The private constructor which ensures that only one instance of the cache is created.
      */
     private LocalClaimDAOCache() {
+
         super(CACHE_NAME);
     }
 

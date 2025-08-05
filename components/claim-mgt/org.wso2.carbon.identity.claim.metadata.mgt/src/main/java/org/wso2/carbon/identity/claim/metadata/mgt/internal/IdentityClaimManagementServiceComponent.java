@@ -269,6 +269,7 @@ public class IdentityClaimManagementServiceComponent {
     protected void setOrganizationManager(OrganizationManager organizationManager) {
 
         IdentityClaimManagementServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        log.debug("OrganizationManager set in Claim Management bundle.");
     }
 
     /**
@@ -279,6 +280,7 @@ public class IdentityClaimManagementServiceComponent {
     protected void unsetOrganizationManager(OrganizationManager organizationManager) {
 
         IdentityClaimManagementServiceDataHolder.getInstance().setOrganizationManager(null);
+        log.debug("OrganizationManager unset in Claim Management bundle.");
     }
 
     /**
@@ -297,7 +299,7 @@ public class IdentityClaimManagementServiceComponent {
 
         IdentityClaimManagementServiceDataHolder.getInstance()
                 .setOrgResourceResolverService(orgResourceResolverService);
-        log.debug("OrgResourceResolverService set in Claim Management bundle");
+        log.debug("OrgResourceResolverService set in Claim Management bundle.");
     }
 
     /**
@@ -308,6 +310,6 @@ public class IdentityClaimManagementServiceComponent {
     protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
 
         IdentityClaimManagementServiceDataHolder.getInstance().setOrgResourceResolverService(null);
-        log.debug("OrgResourceResolverService unset in Claim Management bundle");
+        log.debug("OrgResourceResolverService unset in Claim Management bundle.");
     }
 }
