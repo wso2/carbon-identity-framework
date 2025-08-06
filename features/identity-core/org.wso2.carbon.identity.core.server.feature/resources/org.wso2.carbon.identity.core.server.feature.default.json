@@ -1234,17 +1234,17 @@
     },
     {
       "description": "This SMS is sent to send the OTP for setting a password.",
-      "displayName": "Send Password Set",
+      "displayName": "Send Password Setup OTP",
       "id": "YXNrUGFzc3dvcmRTTVNPVFA"
     },
     {
       "description": "This SMS is sent to resend the OTP for setting a password.",
-      "displayName": "Resend Password Set",
+      "displayName": "Resend Password Setup OTP",
       "id": "YXNrUGFzc3dvcmRSZXNlbmRTTVNPVFA"
     },
     {
       "description": "This SMS is sent to notify the user that their account is now unlocked.",
-      "displayName": "Password Set Success",
+      "displayName": "Password Setup Success",
       "id": "YXNrUGFzc3dvcmRTZXRTdWNjZXNz"
     }
   ],
