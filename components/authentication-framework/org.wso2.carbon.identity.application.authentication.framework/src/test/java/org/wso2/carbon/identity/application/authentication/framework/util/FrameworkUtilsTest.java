@@ -1373,18 +1373,6 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         assertEquals(input.getOrgDiscoveryType(), "discoveryType123");
     }
 
-    @Test
-    public void testRemoveCommonAuthCookie() {
-
-        mockCookieTest();
-        FrameworkUtils.removeCommonAuthCookie(request, response);
-
-        verify(response, times(1)).addCookie(cookieCaptor.capture());
-        List<Cookie> capturedCookies = cookieCaptor.getAllValues();
-        Cookie removedOldSessionNonce = capturedCookies.get(0);
-        assertEquals(removedOldSessionNonce.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
-    }
- 
     private void removeAllSystemDefinedAuthenticators() {
 
         List<ApplicationAuthenticator> authenticatorList = new ArrayList<>(

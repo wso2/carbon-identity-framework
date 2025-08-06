@@ -66,6 +66,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.model.CookieBuilder;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -86,6 +88,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -121,6 +124,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.ROOT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 
 /**
@@ -499,9 +503,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
             UserCoreUtil.setDomainInThreadLocal(null);
-            if (Boolean.TRUE.toString().equals(
-                    String.valueOf(request.getAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE)))) {
-                FrameworkUtils.removeCommonAuthCookie(request, response);
+            if (Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE))) {
+                removeRootDomainCommonAuthCookie(request, response);
             }
             if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) == null ||
                     request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("false")) {
@@ -1461,5 +1464,31 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private boolean isForceAuthEnabled(HttpServletRequest request) {
 
         return Boolean.parseBoolean(request.getParameter(FORCE_AUTHENTICATE));
+    }
+
+    private static void removeRootDomainCommonAuthCookie(HttpServletRequest request, HttpServletResponse response) {
+
+        if (request == null || request.getCookies() == null || response == null) {
+            return;
+        }
+
+        String cookieValue = Arrays.stream(request.getCookies())
+                .filter(cookie -> FrameworkConstants.COMMONAUTH_COOKIE.equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElse(StringUtils.EMPTY);
+        CookieBuilder cookieBuilder = new CookieBuilder(FrameworkConstants.COMMONAUTH_COOKIE, cookieValue);
+        IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
+
+        if (cookieConfig != null) {
+            FrameworkUtils.updateCookieConfig(cookieBuilder, cookieConfig, 0, ROOT_DOMAIN);
+        } else {
+            cookieBuilder.setHttpOnly(true);
+            cookieBuilder.setSecure(true);
+            cookieBuilder.setPath(ROOT_DOMAIN);
+        }
+
+        cookieBuilder.setMaxAge(0);
+        response.addCookie(cookieBuilder.build());
     }
 }

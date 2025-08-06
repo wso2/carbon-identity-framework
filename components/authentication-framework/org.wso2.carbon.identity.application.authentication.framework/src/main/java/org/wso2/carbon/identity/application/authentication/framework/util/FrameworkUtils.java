@@ -2428,7 +2428,7 @@ public class FrameworkUtils {
         return activeSessionCount;
     }
 
-    private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
+    public static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
             cookieConfig, Integer age, String path) {
 
         if (cookieConfig.getDomain() != null) {
@@ -4248,38 +4248,6 @@ public class FrameworkUtils {
                     cookie.setPath("/");
                     response.addCookie(cookie);
                 }));
-    }
-
-    /**
-     * Remove the common auth cookie from the response.
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
-     */
-    public static void removeCommonAuthCookie(HttpServletRequest request, HttpServletResponse response) {
-
-        if (request == null || request.getCookies() == null || response == null) {
-            return;
-        }
-
-        String cookieValue = Arrays.stream(request.getCookies())
-                .filter(cookie -> FrameworkConstants.COMMONAUTH_COOKIE.equals(cookie.getName()))
-                .findFirst()
-                .map(Cookie::getValue)
-                .orElse(StringUtils.EMPTY);
-        CookieBuilder cookieBuilder = new CookieBuilder(FrameworkConstants.COMMONAUTH_COOKIE, cookieValue);
-        IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
-
-        if (cookieConfig != null) {
-            updateCookieConfig(cookieBuilder, cookieConfig, 0, ROOT_DOMAIN);
-        } else {
-            cookieBuilder.setHttpOnly(true);
-            cookieBuilder.setSecure(true);
-            cookieBuilder.setPath(ROOT_DOMAIN);
-        }
-
-        cookieBuilder.setMaxAge(0);
-        response.addCookie(cookieBuilder.build());
     }
 
     /*
