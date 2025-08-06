@@ -125,16 +125,12 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         String propertyValue = IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
 
         if (StringUtils.isNotBlank(propertyValue)) {
-            try {
-                return Boolean.parseBoolean(propertyValue);
-            } catch (NumberFormatException e) {
-                log.debug("Error occurred while parsing the 'EnableInRegistrationFlows' " +
-                        "property value in identity.xml.", e);
-            }
+            return Boolean.parseBoolean(propertyValue);
         }
 
         return true;
     }
+
 
     private boolean executePreUpdatePasswordAction(String userID, Object credential,
                                                    UserStoreManager userStoreManager) throws UserStoreException {

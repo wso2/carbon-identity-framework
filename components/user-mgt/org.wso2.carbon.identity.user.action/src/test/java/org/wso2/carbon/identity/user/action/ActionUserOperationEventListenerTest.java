@@ -45,6 +45,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.testng.Assert.assertFalse;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR;
 import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
@@ -414,29 +415,19 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void doPreAddUserWithIDReturnsTrueWhenPreUpdatePasswordFlowIsDisabled() throws
-            UserStoreException, UnsupportedSecretTypeException {
+    public void doPreAddUserWithIDReturnsTrueWhenPreUpdatePasswordFlowIsDisabled()
+            throws UserStoreException, UnsupportedSecretTypeException {
+
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
             identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
                     .thenReturn("false");
-            Assert.assertTrue(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null,
-                    null, null, userStoreManager));
-        }
-    }
 
-    @Test
-    public void isEnabledInRegistrationFlowsReturnsTrueForValidTrueValue() {
-        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
-            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
-                    .thenReturn("true");
-        }
-    }
-
-    @Test
-    public void isEnabledInRegistrationFlowsReturnsZeroForValidFalseValue() {
-        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
-            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
-                    .thenReturn("false");
+            boolean result = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                    null, null, null, userStoreManager);
+            Assert.assertTrue(result);
+            verify(mockExecutor, never()).execute(any(), any());
+        } catch (ActionExecutionException e) {
+            Assert.fail("Unexpected exception: " + e.getMessage());
         }
     }
 }
