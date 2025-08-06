@@ -174,7 +174,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         boolean hasDuplicateClaims =
                 checkDuplicateUserClaims(username, claims, profile, userStoreManager, duplicateClaims);
         if (!duplicateClaims.isEmpty() && hasDuplicateClaims) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Deleting users created with duplicate claims: " + LoggerUtils.getMaskedContent(username));
             }
             userStoreManager.deleteUser(username);
