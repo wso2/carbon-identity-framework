@@ -239,7 +239,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
     private boolean isExecutableFlow() {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow == null) {
             return false;
         }

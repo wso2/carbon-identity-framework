@@ -87,7 +87,7 @@ public class ActionUserOperationEventListenerTest {
         userCoreUtil = mockStatic(UserCoreUtil.class);
         listener = new ActionUserOperationEventListener();
         userCoreUtil.when(() -> UserCoreUtil.getDomainName(any())).thenReturn("PRIMARY");
-        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
                 .name(Flow.Name.PASSWORD_RESET)
                 .initiatingPersona(Flow.InitiatingPersona.USER)
                 .build());

@@ -211,7 +211,7 @@ public class PreUpdateProfileRequestBuilderTest {
             IdentityContext.getThreadLocalIdentityContext().setOrganization(accessingOrganization);
         }
 
-        IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(mockedFlow);
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -275,7 +275,7 @@ public class PreUpdateProfileRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -335,7 +335,7 @@ public class PreUpdateProfileRequestBuilderTest {
                 .setClaimManagementService(failingClaimMetadataManagementService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -364,7 +364,7 @@ public class PreUpdateProfileRequestBuilderTest {
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -397,7 +397,7 @@ public class PreUpdateProfileRequestBuilderTest {
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -431,7 +431,7 @@ public class PreUpdateProfileRequestBuilderTest {
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
