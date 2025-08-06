@@ -39,6 +39,14 @@
             {
               "name": "userInitiatedPasswordUpdate",
               "displayName": "User initiated password update"
+            },
+            {
+              "name": "adminRegisterUserWithPassword",
+              "displayName": "Admin initiated user registration with password"
+            },
+            {
+              "name": "userRegisterWithPassword",
+              "displayName": "User initiated registration with password"
             }
           ]
         }

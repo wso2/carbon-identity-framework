@@ -50,7 +50,9 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
         ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD("adminInitiatedUserInviteToSetPassword"),
         APPLICATION_INITIATED_PASSWORD_UPDATE("applicationInitiatedPasswordUpdate"),
         USER_INITIATED_PASSWORD_UPDATE("userInitiatedPasswordUpdate"),
-        USER_INITIATED_PASSWORD_RESET("userInitiatedPasswordReset");
+        USER_INITIATED_PASSWORD_RESET("userInitiatedPasswordReset"),
+        ADMIN_REGISTER_USER_WITH_PASSWORD("adminRegisterUserWithPassword"),
+        USER_REGISTER_WITH_PASSWORD("userRegisterWithPassword");
 
         final String flowName;
 
@@ -123,6 +125,16 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
         if ((flow.getName() == Flow.Name.INVITE || flow.getName() ==
                 Flow.Name.INVITED_USER_REGISTRATION) && flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             return PasswordUpdateFlowType.ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD.getFlowName();
+        }
+
+        if (flow.getName() == Flow.Name.USER_REGISTRATION &&
+                flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
+            return PasswordUpdateFlowType.ADMIN_REGISTER_USER_WITH_PASSWORD.getFlowName();
+        }
+
+        if (flow.getName() == Flow.Name.USER_REGISTRATION &&
+                flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
+            return PasswordUpdateFlowType.USER_REGISTER_WITH_PASSWORD.getFlowName();
         }
 
         throw new RuleEvaluationDataProviderException("Unsupported flow type: " + flow.getName() +
