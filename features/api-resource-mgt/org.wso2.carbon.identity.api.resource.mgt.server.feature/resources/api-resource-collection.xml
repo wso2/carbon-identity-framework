@@ -1302,6 +1302,39 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="agents" displayName="Agents" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:agents"/>
+                <Scope name="console:agents_view"/>
+                <Scope name="console:agents_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_agent_mgt_update"/>
+                <Scope name="internal_session_delete"/>
+                <Scope name="internal_group_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_agent_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_agent_mgt_create"/>
+                <Scope name="internal_bulk_resource_create"/>
+                <Scope name="internal_offline_invite"/>
+            </Create>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_login"/>
+                <Scope name="internal_agent_mgt_view"/>
+                <Scope name="internal_agent_mgt_list"/>
+                <Scope name="internal_session_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="userStores" displayName="User Stores" type="tenant">
         <Scopes>
             <Feature>
