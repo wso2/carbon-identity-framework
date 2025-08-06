@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.step.impl;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -55,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Commo
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
@@ -81,6 +83,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -94,6 +97,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
 /**
@@ -703,6 +707,45 @@ public class DefaultStepHandler implements StepHandler {
                 doAuthentication(request, response, context, authenticatorConfig);
                 break;
             }
+
+            try {
+                String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
+                if (StringUtils.isBlank(userAssertion)) {
+                    // If the user assertion is not set in the context, try to retrieve it from the request.
+                    userAssertion = request.getParameter(USER_ASSERTION);
+                    context.setProperty(FrameworkConstants.USER_ASSERTION, userAssertion);
+                }
+                if (userAssertion != null) {
+                    Optional<JWTClaimsSet> optionalClaims = UserAssertionUtils
+                            .retrieveClaimsFromUserAssertion(userAssertion, context.getTenantDomain());
+                    if (optionalClaims.isPresent()) {
+                        JWTClaimsSet claimsSet = optionalClaims.get();
+                        List<String> amr = claimsSet.getStringListClaim(FrameworkConstants.AMR);
+                        if (amr != null && amr.contains(authenticator.getName())) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug(authenticator.getName() + " can handle the request with user assertion.");
+                            }
+                            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP)
+                                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                                                context.getServiceProviderName())
+                                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN,
+                                                context.getTenantDomain())
+                                        .inputParam(LogConstants.InputKeys.STEP, currentStep)
+                                        .resultMessage("Initializing authentication flow with user assertion.")
+                                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                            }
+                            doAuthentication(request, response, context, authenticatorConfig);
+                            return;
+                        }
+                    }
+                }
+            } catch (ParseException e) {
+                LOG.error("Error while parsing user assertion from the request.", e);
+            }
         }
         if (isNoneCanHandle) {
             throw new FrameworkException("No authenticator can handle the request in step :  " + currentStep);
@@ -745,7 +788,13 @@ public class DefaultStepHandler implements StepHandler {
 
         try {
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
-            AuthenticatorFlowStatus status = authenticator.process(request, response, context);
+            AuthenticatorFlowStatus status;
+            if (authenticator.isAuthenticationRequired(request, response, context)) {
+                status = authenticator.process(request, response, context);
+            } else {
+                // If the authenticator does not require authentication based on the assertion, we can skip the process.
+                status = AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+            }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
              we need to send the auth initiation data in order to support performing API based authentication.*/
