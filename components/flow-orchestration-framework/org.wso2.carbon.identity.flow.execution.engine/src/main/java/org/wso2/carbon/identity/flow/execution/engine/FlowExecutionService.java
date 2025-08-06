@@ -74,6 +74,7 @@ public class FlowExecutionService {
 
         FlowExecutionStep step;
         FlowExecutionContext context = null;
+        boolean isRegistrationFlow = false;
         try {
             if (StringUtils.isBlank(flowId)) {
                 // No flowId present hence initiate the flow.
@@ -82,7 +83,12 @@ public class FlowExecutionService {
                 context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId);
             }
 
-            if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+            /*
+             Ideally this should be done for any defined flow.
+             For the moment we are doing this only for the registration flow.
+             */
+            isRegistrationFlow = REGISTRATION_FLOW_TYPE.equals(context.getFlowType());
+            if (isRegistrationFlow) {
                 IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
                         .name(Flow.Name.REGISTER)
                         .initiatingPersona(Flow.InitiatingPersona.USER)
@@ -133,7 +139,9 @@ public class FlowExecutionService {
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             throw e;
         } finally {
-            IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            if (isRegistrationFlow) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
         }
     }
 }
