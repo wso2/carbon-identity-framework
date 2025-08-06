@@ -1181,19 +1181,19 @@
       "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     },
     {
-      "id": "QXNrUGFzc3dvcmRFbWFpbE9UUA",
+      "description": "This email OTP is sent to the user to set their password",
       "displayName": "Invite user to set password via Email OTP",
-      "description": "This email OTP is sent to the user to set their password"
+      "id": "QXNrUGFzc3dvcmRFbWFpbE9UUA"
     },
     {
-      "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA",
-      "displayName": "Invite user to set password via Email OTP Resend",
-      "description": "This email is resent to the user to set their password via Email OTP"
+      "description": "This email is resent to the user to set their password via Email OTP",
+      "displayName": "Resend invite user to set password via Email OTP",
+      "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA"
     },
     {
-      "id": "RW1haWxDb25maXJtV2l0aE9UUA",
+      "description": "This email is sent to confirm the user email address via Email OTP",
       "displayName": "Confirm Email Address via Email OTP",
-      "description": "This email is sent to confirm the user email address via Email OTP"
+      "id": "RW1haWxDb25maXJtV2l0aE9UUA"
     }
   ],
   "console.extensions.smsTemplates": [
