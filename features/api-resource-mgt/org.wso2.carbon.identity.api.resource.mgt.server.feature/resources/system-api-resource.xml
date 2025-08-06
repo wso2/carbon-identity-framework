@@ -1777,6 +1777,16 @@
                    description="Delete workflow association"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Workflow Instance Management API" identifier="/api/server/v1/workflow-instances"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Instance Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow Instance" name="internal_workflow_instance_view"
+                   description="View workflow instances"/>
+            <Scope displayName="Delete Workflow Instance" name="internal_workflow_instance_delete"
+                   description="Delete workflow instance"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Workflow Management API Organization" identifier="/o/api/server/v1/workflows"
                  requiresAuthorization="true"
                  description="API representation of the Workflow Management API Organization" type="ORGANIZATION">
@@ -1803,6 +1813,16 @@
                    description="Update workflow association"/>
             <Scope displayName="Delete Workflow Association" name="internal_org_workflow_association_delete"
                    description="Delete workflow association"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Instance Management API Organization" identifier="/o/api/server/v1/workflow-instances"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Instance Management API Organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Workflow Instance" name="internal_org_workflow_instance_view"
+                   description="View workflow instances"/>
+            <Scope displayName="Delete Workflow Instance" name="internal_org_workflow_instance_delete"
+                   description="Delete workflow instance"/>
         </Scopes>
     </APIResource>
 </APIResources>
