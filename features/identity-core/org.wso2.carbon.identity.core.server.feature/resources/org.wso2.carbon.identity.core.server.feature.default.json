@@ -1181,17 +1181,17 @@
       "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     },
     {
-      "id": "YXNrUGFzc3dvcmRFbWFpbE90cA",
+      "id": "QXNrUGFzc3dvcmRFbWFpbE9UUA",
       "displayName": "Invite user to set password via Email OTP",
       "description": "This email OTP is sent to the user to set their password"
     },
     {
-      "id": "YXNrUGFzc3dvcmRSZXNlbmRFbWFpbE90cA",
+      "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA",
       "displayName": "Invite user to set password via Email OTP Resend",
       "description": "This email is resent to the user to set their password via Email OTP"
     },
     {
-      "id": "ZW1haWxDb25maXJtV2l0aE90cA",
+      "id": "RW1haWxDb25maXJtV2l0aE9UUA",
       "displayName": "Confirm Email Address via Email OTP",
       "description": "This email is sent to confirm the user email address via Email OTP"
     }
@@ -1235,12 +1235,12 @@
     {
       "description": "This SMS is sent to send the OTP for setting a password.",
       "displayName": "Send Password Set",
-      "id": "YXNrUGFzc3dvcmRTbXNPdHA"
+      "id": "YXNrUGFzc3dvcmRTTVNPVFA"
     },
     {
       "description": "This SMS is sent to resend the OTP for setting a password.",
       "displayName": "Resend Password Set",
-      "id": "YXNrUGFzc3dvcmRSZXNlbmRTbXNPdHA"
+      "id": "YXNrUGFzc3dvcmRSZXNlbmRTTVNPVFA"
     },
     {
       "description": "This SMS is sent to notify the user that their account is now unlocked.",
