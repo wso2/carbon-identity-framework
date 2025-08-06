@@ -637,11 +637,7 @@ public class IdPManagementUtil {
                                                                  boolean isAskPasswordSMSOTPEnabled)
             throws IdentityProviderManagementClientException {
 
-        List<Boolean> configs = Arrays.asList(isAskPasswordEmailOTPEnabled, isAskPasswordSMSOTPEnabled);
-
-        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
-
-        if (enabledConfigCount > 1) {
+        if (isAskPasswordEmailOTPEnabled && isAskPasswordSMSOTPEnabled) {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                     "Enabling more than one ask password set option is not allowed.");
