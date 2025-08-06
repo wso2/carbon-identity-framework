@@ -38,6 +38,12 @@ public class UserActionRequestDTO {
     private final Map<String, Object> claims;
     private final String userStoreDomain;
     private final Organization residentOrganization;
+    /**
+     * Represents the user id when the user is shared across sub-organizations.
+     * This field differs from the regular user id ({@link #userId}) in scenarios where a user is accessed in the
+     * context of a sub-organization, and the shared user id is used to identify the user in the shared organization.
+     * If the user is not shared, this value will be null.
+     */
     private final String sharedUserId;
 
     private UserActionRequestDTO(Builder builder) {

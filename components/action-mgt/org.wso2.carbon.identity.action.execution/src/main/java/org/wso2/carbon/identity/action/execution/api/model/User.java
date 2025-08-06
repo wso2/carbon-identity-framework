@@ -33,6 +33,12 @@ public class User {
     private final List<String> groups = new ArrayList<>();
     private final List<String> roles = new ArrayList<>();
     private Organization organization;
+    /**
+     * Represents the user id when the user is shared across sub-organizations.
+     * This field differs from the regular user id ({@link #id}) in scenarios where a user is accessed in the context
+     * of a sub-organization, and the shared user id is used to identify the user in the shared organization.
+     * If the user is not shared, this value will be null.
+     */
     private String sharedUserId;
 
     public User(String id) {
