@@ -172,6 +172,8 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             case INVITE:
             case INVITED_USER_REGISTRATION:
                 return PreUpdatePasswordEvent.Action.INVITE;
+            case USER_REGISTRATION:
+                return PreUpdatePasswordEvent.Action.REGISTER;
             default:
                 break;
         }

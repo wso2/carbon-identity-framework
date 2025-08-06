@@ -36,12 +36,14 @@ import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.UnsupportedSecretTypeException;
 
 import java.util.Collections;
+import java.util.HashMap;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertFalse;
@@ -67,6 +69,8 @@ public class ActionUserOperationEventListenerTest {
     public static final String TEST_MANAGED_BY_ORG_NAME = "mySubOrg2";
     public static final String TEST_MANAGED_BY_ORG_HANDLE = "mySubOrg2.com";
     public static final int TEST_MANAGED_BY_ORG_DEPTH = 10;
+    private static final String ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW =
+            "Actions.Types.PreUpdatePassword.EnableInRegistrationFlows";
 
     private UniqueIDUserStoreManager userStoreManager;
     private UserActionExecutor mockExecutor;
@@ -125,8 +129,13 @@ public class ActionUserOperationEventListenerTest {
             identityUtilMockedStatic.when(() -> IdentityUtil.readEventListenerProperty(any(), any()))
                     .thenReturn(mockConfig);
             doReturn("false").when(mockConfig).getEnable();
+            // Update flow
             Assert.assertTrue(listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                     userStoreManager));
+            // Register flow
+            Assert.assertTrue(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD), null,
+                    new HashMap<>(), null,
+                    userStoreManager), "The method should return true when the listener is disabled.");
         }
     }
 
@@ -151,9 +160,15 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
+
+        // Register flow
+        boolean newResult = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                null, new HashMap<>(), null, userStoreManager);
+        Assert.assertTrue(newResult, "The method should return true for successful execution.");
     }
 
     @Test
@@ -174,9 +189,15 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
+
+        // Register flow
+        boolean newResult = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                null, new HashMap<>(), null, userStoreManager);
+        Assert.assertTrue(newResult, "The method should return true for successful execution.");
     }
 
     @Test
@@ -207,10 +228,16 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
         verify(organizationManager, times(1)).getMinimalOrganization(any(), any());
+
+        // Register flow
+        boolean newResult = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                null, new HashMap<>(), null, userStoreManager);
+        Assert.assertTrue(newResult, "The method should return true for successful execution.");
     }
 
     @Test
@@ -223,8 +250,20 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         try {
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof UserStoreClientException);
+            Assert.assertEquals(e.getMessage(), "FailureReason. FailureDescription");
+            Assert.assertEquals(((UserStoreClientException) e).getErrorCode(),
+                    PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
+        }
+
+        // Register flow
+        try {
+            listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                    null, new HashMap<>(), null, userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreClientException);
             Assert.assertEquals(e.getMessage(), "FailureReason. FailureDescription");
@@ -243,8 +282,20 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         try {
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof UserStoreClientException);
+            Assert.assertEquals(e.getMessage(), "FailureReason");
+            Assert.assertEquals(((UserStoreClientException) e).getErrorCode(),
+                    PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
+        }
+
+        // Register flow
+        try {
+            listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                    null, new HashMap<>(), null, userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreClientException);
             Assert.assertEquals(e.getMessage(), "FailureReason");
@@ -263,12 +314,24 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         try {
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreException);
             Assert.assertEquals(e.getMessage(), "ErrorMessage. ErrorDescription");
             Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR);
+        }
+
+        // Register flow
+        try {
+            listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                    null, new HashMap<>(), null, userStoreManager);
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof UserStoreException);
+            Assert.assertEquals(e.getMessage(), "ErrorMessage. ErrorDescription");
+            Assert.assertEquals(((UserStoreException) e).getErrorCode(),
+                    PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR);
         }
     }
 
@@ -282,12 +345,24 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         try {
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, 10, userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreException);
             Assert.assertEquals(e.getMessage(), "Credential is not in the expected format.");
             Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET);
+        }
+
+        // Register flow
+        try {
+            listener.doPreAddUserWithID(USER_NAME, 10, null,
+                    new HashMap<>(), null, userStoreManager);
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof UserStoreException);
+            Assert.assertEquals(e.getMessage(), "Credential is not in the expected format.");
+            Assert.assertEquals(((UserStoreException) e).getErrorCode(),
+                    PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET);
         }
     }
 
@@ -302,8 +377,13 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         assertFalse(listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager));
+        // Register flow
+        assertFalse(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                null, new HashMap<>(), null, userStoreManager),
+                "The method should return false for unknown status.");
     }
 
     @Test
@@ -314,12 +394,40 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
+        // Update flow
         try {
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreException);
             Assert.assertEquals(e.getMessage(), "Error while executing pre update password action.");
             Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR);
+        }
+
+        // Register flow
+        try {
+            listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                    null, new HashMap<>(), null, userStoreManager);
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof UserStoreException);
+            Assert.assertEquals(e.getMessage(), "Error while executing pre update password action.");
+            Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR);
+        }
+    }
+
+    @Test
+    public void doPreAddUserWithIDReturnsTrueWhenPreUpdatePasswordFlowIsDisabled()
+            throws UserStoreException, UnsupportedSecretTypeException {
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
+                    .thenReturn("false");
+
+            boolean result = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                    null, null, null, userStoreManager);
+            Assert.assertTrue(result);
+            verify(mockExecutor, never()).execute(any(), any());
+        } catch (ActionExecutionException e) {
+            Assert.fail("Unexpected exception: " + e.getMessage());
         }
     }
 }

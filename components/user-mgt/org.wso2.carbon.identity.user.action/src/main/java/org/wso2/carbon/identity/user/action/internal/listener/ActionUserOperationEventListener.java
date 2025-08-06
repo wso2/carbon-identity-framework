@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.user.action.internal.listener;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
@@ -28,6 +31,7 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
@@ -47,13 +51,18 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Map;
+
 /**
  * This class is responsible for handling the action invocation related to user flows.
  */
 public class ActionUserOperationEventListener extends AbstractIdentityUserOperationEventListener implements
         SecretHandleableListener {
 
+    private static final Log log = LogFactory.getLog(ActionUserOperationEventListener.class);
     private static final String MANAGED_ORG_CLAIM_URI = "http://wso2.org/claims/identity/managedOrg";
+    private static final String ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW =
+            "Actions.Types.PreUpdatePassword.EnableInRegistrationFlows";
 
     @Override
     public int getExecutionOrderId() {
@@ -84,6 +93,47 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         if (!isEnable()) {
             return true;
         }
+
+        return executePreUpdatePasswordAction(userID, credential, userStoreManager);
+    }
+
+    /**
+     * This method is responsible for handling the pre add user action execution.
+     *
+     * @param userID           User id of the user.
+     * @param credential       Credential of the user.
+     * @param roleList         List of roles to be assigned to the user.
+     * @param claims           Claims to be set for the user.
+     * @param profile          User profile.
+     * @param userStoreManager User store manager.
+     * @return True if the operation is successful.
+     * @throws UserStoreException If an error occurs while executing the action.
+     */
+    @Override
+    public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
+                                      String profile, UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable() || !isEnabledInRegistrationFlows()) {
+            return true;
+        }
+
+        return executePreUpdatePasswordAction(userID, credential, userStoreManager);
+    }
+
+    private boolean isEnabledInRegistrationFlows() {
+
+        String propertyValue = IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
+
+        if (StringUtils.isNotBlank(propertyValue)) {
+            return Boolean.parseBoolean(propertyValue);
+        }
+
+        return true;
+    }
+
+
+    private boolean executePreUpdatePasswordAction(String userID, Object credential,
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isExecutableFlow()) {
             return true;
@@ -197,7 +247,8 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         return flow.getName() == Flow.Name.PASSWORD_RESET ||
                 flow.getName() == Flow.Name.INVITE ||
                 flow.getName() == Flow.Name.INVITED_USER_REGISTRATION ||
-                flow.getName() == Flow.Name.PROFILE_UPDATE;
+                flow.getName() == Flow.Name.PROFILE_UPDATE ||
+                flow.getName() == Flow.Name.USER_REGISTRATION;
     }
 
     private char[] getSecret(Object credential) throws UserActionExecutionServerException {

@@ -1939,6 +1939,7 @@
   "actions.types.authentication.enable": true,
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
+  "actions.types.pre_update_password.enable_in_registration_flows": true,
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
