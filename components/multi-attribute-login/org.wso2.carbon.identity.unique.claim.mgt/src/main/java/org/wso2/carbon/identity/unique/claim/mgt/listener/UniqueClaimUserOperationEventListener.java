@@ -295,7 +295,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                     domainName, uniquenessScope);
         }
 
-        userList = getUserListForSingleValuedClaim(claimUri, claimValue, profile, userStoreManager, domainName,
+        userList = getUserListForSingleValuedClaim(claimUri, claimValue, profile, userStoreMgrFromRealm, domainName,
                 uniquenessScope);
 
         if (userList.length == 1) {
