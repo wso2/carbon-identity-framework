@@ -521,14 +521,15 @@ public class IdPManagementUtil {
 
             boolean isAskPasswordEmailOTPEnabled = Boolean.parseBoolean(configurationDetails
                     .get(ASK_PASSWORD_SEND_EMAIL_OTP));
-            String askPasswordEmailOTP = configurationDetails.get(ASK_PASSWORD_SEND_EMAIL_OTP);
+            String askPasswordEmailOTPProperty = configurationDetails.get(ASK_PASSWORD_SEND_EMAIL_OTP);
 
             boolean isAskPasswordSMSOTPEnabled = Boolean.parseBoolean(configurationDetails
                     .get(ASK_PASSWORD_SEND_SMS_OTP));
             String askPasswordSMSOTP = configurationDetails.get(ASK_PASSWORD_SEND_SMS_OTP);
 
             validateAskPasswordCurrentConfigs(isAskPasswordEmailOTPEnabled, isAskPasswordSMSOTPEnabled);
-            validateAskPasswordWithExistingConfigs(identityMgtProperties, askPasswordEmailOTP, askPasswordSMSOTP);
+            validateAskPasswordWithExistingConfigs(identityMgtProperties, askPasswordEmailOTPProperty,
+                    askPasswordSMSOTP);
         }
     }
 
@@ -643,7 +644,7 @@ public class IdPManagementUtil {
         if (enabledConfigCount > 1) {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
-                    "Enabling more than one ask password set option is not allowed");
+                    "Enabling more than one ask password set option is not allowed.");
         }
     }
 
