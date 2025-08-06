@@ -539,7 +539,7 @@ public class IdPManagementUtil {
      * @param isAdminPasswordResetEmailOtpEnabled is admin password reset email OTP enabled.
      * @param isAdminPasswordResetEmailLinkEnabled is admin password reset email link enabled.
      * @param isAdminPasswordResetSmsOtpEnabled is admin password reset sms OTP enabled.
-     * @throws IdentityProviderManagementClientException when more than one admin password reset option is enabled.
+     * @throws IdentityProviderManagementClientException when more than one ask password reset option is enabled.
      */
     private static void validateAdminPasswordResetCurrentConfigs(boolean isAdminPasswordResetOfflineEnabled,
                                                                  boolean isAdminPasswordResetEmailOtpEnabled,
@@ -612,7 +612,7 @@ public class IdPManagementUtil {
 
         long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
 
-        if(enabledConfigCount > 1) {
+        if (enabledConfigCount > 1) {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                     "Enabling admin forced password reset option while other options are enabled is not allowed");
@@ -630,7 +630,7 @@ public class IdPManagementUtil {
      * @param isAskPasswordEmailOTPEnabled is ask password email OTP enabled.
      * @param isAskPasswordSMSOTPEnabled is ask password SMS OTP enabled.
      *
-     * @throws IdentityProviderManagementClientException when more than one admin password reset option is enabled.
+     * @throws IdentityProviderManagementClientException when more than one ask password set option is enabled.
      */
     private static void validateAskPasswordCurrentConfigs(boolean isAskPasswordEmailOTPEnabled,
                                                                  boolean isAskPasswordSMSOTPEnabled)

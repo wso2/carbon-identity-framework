@@ -145,7 +145,7 @@ public class IdPManagementConstants {
 
     // Resident IDP ask password set configs.
     public static final String ASK_PASSWORD_SEND_EMAIL_OTP = "EmailVerification.AskPassword.EmailOTP";
-    public static final String ASK_PASSWORD_SEND_SMS_OTP = "EmailVerification.AskPassword.SMSOTP";;
+    public static final String ASK_PASSWORD_SEND_SMS_OTP = "EmailVerification.AskPassword.SMSOTP";
 
     // User defined federated authenticator related constants.
     public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";
