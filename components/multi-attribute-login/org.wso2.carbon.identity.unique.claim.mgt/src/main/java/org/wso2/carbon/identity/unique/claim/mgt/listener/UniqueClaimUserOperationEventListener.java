@@ -295,7 +295,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                     domainName, uniquenessScope);
         }
 
-        userList = getUserListForDuplicatedClaim(claimUri, claimValue, profile, userStoreManager, domainName,
+        userList = getUserListForSingleValuedClaim(claimUri, claimValue, profile, userStoreManager, domainName,
                 uniquenessScope);
 
         if (userList.length == 1) {
@@ -309,9 +309,27 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         return true;
     }
 
-    private String[] getUserListForDuplicatedClaim(String claimUri, String claimValue, String profile,
-                                                   UserStoreManager userStoreMgrFromRealm, String domainName,
+    private String[] getUserListForDuplicatedClaim(String username, String claimUri, String claimValue, String profile,
+                                                   UserStoreManager userStoreManager, String domainName,
                                                    ClaimConstants.ClaimUniquenessScope uniquenessScope)
+            throws UserStoreException {
+
+        Claim claim = getClaimObject(userStoreManager, claimUri);
+        // Get UserStoreManager from realm since the received one might be for a secondary user store
+        UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
+
+        if (claim != null && claim.isMultiValued()) {
+            return getUserListForDuplicatedMultiValuedClaim(username, claimUri, claimValue, profile,
+                    userStoreMgrFromRealm, domainName, uniquenessScope);
+        } else {
+            return getUserListForSingleValuedClaim(claimUri, claimValue, profile, userStoreMgrFromRealm, domainName,
+                    uniquenessScope);
+        }
+    }
+
+    private String[] getUserListForSingleValuedClaim(String claimUri, String claimValue, String profile,
+                                                     UserStoreManager userStoreMgrFromRealm, String domainName,
+                                                     ClaimConstants.ClaimUniquenessScope uniquenessScope)
             throws UserStoreException {
 
         if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
@@ -478,13 +496,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         currentClaimValues.removeAll(existingClaimValues);
 
         for (String claimValuePart : currentClaimValues) {
-            String[] userList;
-            if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
-                String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValuePart;
-                userList = userStoreManager.getUserList(claimUri, claimValueWithDomain, profile);
-            } else {
-                userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
-            }
+            String[] userList = getUserListForSingleValuedClaim(claimUri, claimValuePart, profile, userStoreManager,
+                    domainName, uniquenessScope);
             if (userList.length > 1) {
                 return true;
             }
@@ -501,33 +514,37 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                                                               ClaimConstants.ClaimUniquenessScope uniquenessScope)
             throws UserStoreException {
 
-        String multiAttributeSeparator = userStoreManager.getSecondaryUserStoreManager(domainName)
-                .getRealmConfiguration().getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
-
-        String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
-        String existingUserClaimValue = userStoreManager.getUserClaimValues(usernameWithUserStoreDomain,
-                new String[] {claimUri},
-                UserCoreConstants.DEFAULT_PROFILE).get(claimUri);
-        List<String> existingClaimValues = new ArrayList<>();
-        if (StringUtils.isNotEmpty(existingUserClaimValue)) {
-            existingClaimValues = Arrays.stream(existingUserClaimValue.split(multiAttributeSeparator))
-                    .collect(Collectors.toList());
-        }
-        List<String> currentClaimValues = Arrays.stream(claimValue.split(multiAttributeSeparator))
-                .collect(Collectors.toList());
-        currentClaimValues.removeAll(existingClaimValues);
+        List<String> currentClaimValues =
+                getNewClaimValues(username, claimUri, claimValue, userStoreManager, domainName);
 
         HashSet<String> userList = new HashSet<>();
         for (String claimValuePart : currentClaimValues) {
-            if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
-                String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValuePart;
-                userList.addAll(
-                        Arrays.asList(userStoreManager.getUserList(claimUri, claimValueWithDomain, profile)));
-            } else {
-                userList.addAll(
-                        Arrays.asList(userStoreManager.getUserList(claimUri, claimValuePart, profile)));
-            }
+            userList.addAll(Arrays.asList(
+                    getUserListForSingleValuedClaim(claimUri, claimValuePart, profile, userStoreManager, domainName,
+                            uniquenessScope)));
         }
         return userList.toArray(new String[0]);
+    }
+
+    private List<String> getNewClaimValues(String username, String claimUri, String claimValue,
+                                           UserStoreManager userStoreManager, String domainName)
+            throws UserStoreException {
+
+        String multiAttributeSeparator = userStoreManager.getSecondaryUserStoreManager(domainName)
+                .getRealmConfiguration().getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
+
+        String existingUserClaimValue = userStoreManager.getUserClaimValues(
+                UserCoreUtil.addDomainToName(username, domainName),
+                new String[]{claimUri},
+                UserCoreConstants.DEFAULT_PROFILE).get(claimUri);
+
+        List<String> existingClaimValues = StringUtils.isNotEmpty(existingUserClaimValue)
+                ? Arrays.asList(existingUserClaimValue.split(multiAttributeSeparator))
+                : new ArrayList<>();
+
+        List<String> currentClaimValues = Arrays.asList(claimValue.split(multiAttributeSeparator));
+        currentClaimValues.removeAll(existingClaimValues);
+
+        return currentClaimValues;
     }
 }
