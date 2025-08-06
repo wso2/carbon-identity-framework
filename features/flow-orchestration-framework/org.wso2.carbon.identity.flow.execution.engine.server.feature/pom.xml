@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>flow-orchestration-framework-feature</artifactId>
-        <version>7.8.374-SNAPSHOT</version>
+        <version>7.8.374</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
