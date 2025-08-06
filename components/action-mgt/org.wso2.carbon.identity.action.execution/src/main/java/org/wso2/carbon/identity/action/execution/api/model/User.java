@@ -33,6 +33,7 @@ public class User {
     private final List<String> groups = new ArrayList<>();
     private final List<String> roles = new ArrayList<>();
     private Organization organization;
+    private String sharedUserId;
 
     public User(String id) {
 
@@ -46,6 +47,7 @@ public class User {
         this.groups.addAll(builder.groups);
         this.roles.addAll(builder.roles);
         this.organization = builder.organization;
+        this.sharedUserId = builder.sharedUserId;
     }
 
     public String getId() {
@@ -73,6 +75,11 @@ public class User {
         return organization;
     }
 
+    public String getSharedUserId() {
+
+        return sharedUserId;
+    }
+
     /**
      * Builder for the User.
      */
@@ -83,6 +90,7 @@ public class User {
         private final List<String> groups = new ArrayList<>();
         private final List<String> roles = new ArrayList<>();
         private Organization organization;
+        private String sharedUserId;
 
         public Builder(String id) {
 
@@ -110,6 +118,12 @@ public class User {
         public Builder organization(Organization organization) {
 
             this.organization = organization;
+            return this;
+        }
+
+        public Builder sharedUserId(String sharedUserId) {
+
+            this.sharedUserId = sharedUserId;
             return this;
         }
 
