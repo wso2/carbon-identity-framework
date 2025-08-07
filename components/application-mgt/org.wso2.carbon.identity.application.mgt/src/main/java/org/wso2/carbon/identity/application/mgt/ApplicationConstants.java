@@ -179,9 +179,10 @@ public class ApplicationConstants {
         public static final String APP_VERSION_V0 = "v0.0.0";
         public static final String APP_VERSION_V1 = "v1.0.0";
         public static final String APP_VERSION_V2 = "v2.0.0";
+        public static final String APP_VERSION_V3 = "v3.0.0";
 
         // Change the latest version when a new version is introduced.
-        public static final String LATEST_APP_VERSION = APP_VERSION_V2;
+        public static final String LATEST_APP_VERSION = APP_VERSION_V3;
         public static final String BASE_APP_VERSION = APP_VERSION_V0;
 
         /**
