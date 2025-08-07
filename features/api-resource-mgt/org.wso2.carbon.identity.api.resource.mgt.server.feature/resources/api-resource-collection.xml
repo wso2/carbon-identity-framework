@@ -1302,7 +1302,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="agents" displayName="Agents" type="tenant">
+    <APIResourceCollection name="agents" displayName="AI Agents" type="tenant">
         <Scopes>
             <Feature>
                 <Scope name="console:agents"/>
@@ -1319,8 +1319,6 @@
             </Delete>
             <Create>
                 <Scope name="internal_agent_mgt_create"/>
-                <Scope name="internal_bulk_resource_create"/>
-                <Scope name="internal_offline_invite"/>
             </Create>
             <Read>
                 <Scope name="internal_userstore_view"/>
