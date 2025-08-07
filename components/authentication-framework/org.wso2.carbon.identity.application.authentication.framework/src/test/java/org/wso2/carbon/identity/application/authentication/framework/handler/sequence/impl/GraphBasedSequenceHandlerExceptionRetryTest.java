@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -46,6 +47,7 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
@@ -56,6 +58,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
@@ -66,6 +69,7 @@ import static org.mockito.Mockito.mock;
 public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSequenceHandlerAbstractTest {
 
     private static final String CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES = "RetriesOnTest";
+    private MockedStatic<Utils> utilsStaticMock;
 
     @BeforeClass
     public void setUpMocks() {
@@ -73,12 +77,14 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         IdentityEventService identityEventService = mock(IdentityEventService.class);
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        utilsStaticMock = mockStatic(Utils.class);
     }
 
     @AfterClass
     public void tearDown() {
 
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+        utilsStaticMock.close();
     }
 
     public void testExceptionRetry() throws Exception {
@@ -110,6 +116,9 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        utilsStaticMock.when(() ->
+                Utils.isClaimAndOIDCScopeInheritanceEnabled("test_domain")).thenReturn(true);
 
         graphBasedSequenceHandler.handle(req, resp, context);
 
