@@ -101,7 +101,7 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
 
         UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
         eventBuilder.user(getUser(userActionContext, preUpdateProfileAction, userStoreManager));
-        eventBuilder.userStore(getUserStore(userActionContext, userStoreManager));
+        eventBuilder.userStore(getUserStore(userActionContext.getUserActionRequestDTO(), userStoreManager));
         eventBuilder.organization(getOrganization());
 
         return eventBuilder.build();
@@ -197,10 +197,8 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
             return userBuilder.build();
         }
 
-        // If the user is shared, shared user id should be used to fetch claims.
-        String userId = userActionRequestDTO.getSharedUserId() != null ?
-                userActionRequestDTO.getSharedUserId() : userActionRequestDTO.getUserId();
-        Map<String, String> claimValues = getClaimValues(userId, userClaimsToSetInEvent, userStoreManager);
+        Map<String, String> claimValues = getClaimValues(resolveOrgBoundUserId(userActionRequestDTO),
+                userClaimsToSetInEvent, userStoreManager);
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
         setClaimsInUserBuilder(userBuilder, claimValues, userActionRequestDTO.getClaims(), multiAttributeSeparator);
@@ -297,19 +295,15 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         return new UpdatingUserClaim(claimKey, claimValue);
     }
 
-    private UserStore getUserStore(UserActionContext userActionContext, UniqueIDUserStoreManager userStoreManager)
+    private UserStore getUserStore(UserActionRequestDTO userActionRequestDTO, UniqueIDUserStoreManager userStoreManager)
             throws ActionExecutionRequestBuilderException {
 
-        String userStoreDomain = userActionContext.getUserActionRequestDTO().getUserStoreDomain();
+        String userStoreDomain = userActionRequestDTO.getUserStoreDomain();
         if (StringUtils.isBlank(userStoreDomain)) {
 
             try {
-                // If the user is shared, shared user id should be used to fetch the user.
-                String userId = userActionContext.getUserActionRequestDTO().getSharedUserId() != null
-                        ? userActionContext.getUserActionRequestDTO().getSharedUserId()
-                        : userActionContext.getUserActionRequestDTO().getUserId();
-                org.wso2.carbon.user.core.common.User userFromUserStore = userStoreManager.getUserWithID(userId,
-                        null, UserCoreConstants.DEFAULT_PROFILE);
+                org.wso2.carbon.user.core.common.User userFromUserStore = userStoreManager.getUserWithID(
+                        resolveOrgBoundUserId(userActionRequestDTO), null, UserCoreConstants.DEFAULT_PROFILE);
                 userStoreDomain = userFromUserStore.getUserStoreDomain();
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
                 throw new ActionExecutionRequestBuilderException("Error while retrieving user store domain.", e);
@@ -370,5 +364,14 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
             throw new ActionExecutionRequestBuilderException("Error while retrieving claim metadata for claim URI: " +
                     claimUri, e);
         }
+    }
+
+    private static String resolveOrgBoundUserId(UserActionRequestDTO userActionRequestDTO) {
+
+        // If the user is shared, shared user id should be returned.
+        if (userActionRequestDTO.getSharedUserId() != null) {
+            return userActionRequestDTO.getSharedUserId();
+        }
+        return userActionRequestDTO.getUserId();
     }
 }
