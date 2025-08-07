@@ -70,11 +70,11 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
     @Override
     public void onTenantCreate(TenantInfoBean tenantInfo) throws StratosException {
-             
+
         if (canCreateTenantInAPIM(tenantInfo.getTenantId())) {
             sendEvent(tenantInfo, TenantManagement.ACTION_CREATE, TenantManagement.EVENT_CREATE_TENANT_URI);
         }
-        
+
     }
 
     @Override
@@ -83,7 +83,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
         if (canCreateTenantInAPIM(tenantInfo.getTenantId())) {
             sendEvent(tenantInfo, TenantManagement.ACTION_UPDATE, TenantManagement.EVENT_UPDATE_TENANT_URI);
         }
-        
+
     }
 
     @Override
@@ -103,7 +103,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
     @Override
     public void onTenantActivation(int tenantId) throws StratosException {
-            
+
         if (canCreateTenantInAPIM(tenantId)) {
             TenantInfoBean tenantInfo = new TenantInfoBean();
             try {
@@ -112,7 +112,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
                 RealmService realmService = IdentityMgtServiceComponent.getRealmService();
                 String domain = realmService.getTenantManager().getTenant(tenantId).getDomain();
-                
+
                 tenantInfo.setTenantDomain(domain);
                 tenantInfo.setTenantId(tenantId);
                 tenantInfo.setActive(true);
@@ -127,7 +127,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
     @Override
     public void onTenantDeactivation(int tenantId) throws StratosException {
-        
+
         if (canCreateTenantInAPIM(tenantId)) {
             TenantInfoBean tenantInfo = new TenantInfoBean();
             try {
@@ -136,7 +136,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
                 RealmService realmService = IdentityMgtServiceComponent.getRealmService();
                 String domain = realmService.getTenantManager().getTenant(tenantId).getDomain();
-                
+
                 tenantInfo.setTenantDomain(domain);
                 tenantInfo.setTenantId(tenantId);
                 tenantInfo.setActive(false);
@@ -164,7 +164,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
     public void onPreDelete(int tenantId) throws StratosException {
         // Not implemented.
     }
-    
+
     /**
      * Check whether tenant sharing is enabled and whether the creation is only a root organization.
      * 
@@ -172,9 +172,13 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
      * @return boolean
      */
     private boolean canCreateTenantInAPIM(int tenantId) {
-        
+
+        if (log.isDebugEnabled()) {
+            log.debug("Checking if tenant can be created in API Manager. Tenant ID: " + tenantId);
+        }
+
         boolean canCreateTenant = false;
-        
+
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
                 UserOperationEventListener.class.getName(), APIManagerTenantSyncListener.class.getName());
 
@@ -195,6 +199,11 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
                     canCreateTenant = true;
 
+                    if (log.isDebugEnabled()) {
+                        log.debug("Tenant is a root organization and can be created in API Manager. Tenant ID: "
+                                + tenantId);
+                    }
+
                 } else {
                     log.debug("Skipping creating the tenant in APIM since the triggered Event is not related "
                             + "to a root org creation.");
@@ -212,7 +221,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
         }
         return canCreateTenant;
     }
-    
+
     /**
      * Method to build the payload and send it to the external server. Event is sent asynchronously
      * 
@@ -221,17 +230,24 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
      * @param eventURI
      */
     private void sendEvent(TenantInfoBean tenantInfo, String type, String eventURI) {
-
-        TenantManagementEventDTO eventDTO = buildPayload(tenantInfo, type, eventURI, IdentityUtil.getServerURL(null, false, false));
         
+        if (log.isDebugEnabled()) {
+            log.debug("Sending event to API Manager. Event type: " + type + ", Tenant ID: " + tenantInfo.getTenantId());
+        }
+
+        TenantManagementEventDTO eventDTO = buildPayload(tenantInfo, type, eventURI,
+                IdentityUtil.getServerURL(null, false, false));
+
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
                 UserOperationEventListener.class.getName(), APIManagerTenantSyncListener.class.getName());
-        String password = Utils.replaceSystemProperty(identityEventListenerConfig.getProperties().getProperty(TenantManagement.PASSWORD));
-        String username = Utils.replaceSystemProperty(identityEventListenerConfig.getProperties().getProperty(TenantManagement.USER_NAME));
-             
+        String password = Utils.replaceSystemProperty(
+                identityEventListenerConfig.getProperties().getProperty(TenantManagement.PASSWORD));
+        String username = Utils.replaceSystemProperty(
+                identityEventListenerConfig.getProperties().getProperty(TenantManagement.USER_NAME));
+
         String notificationEndpoint = identityEventListenerConfig.getProperties()
                 .getProperty(TenantManagement.NOTIFICATION_ENDPOINT);
-        
+
         // Any headers will be defined in the config as header. prefex
         HashMap<String, String> headers = new HashMap<String, String>();
         for (Map.Entry<Object, Object> propertiesEntry : identityEventListenerConfig.getProperties().entrySet()) {
@@ -241,17 +257,17 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
                 headers.put(key.split(TenantManagement.HEADER_PROPERTY)[1], value);
             }
         }
-        EventRunner eventRunner = new EventRunner(notificationEndpoint, username, password,
-                headers, eventDTO);
+        EventRunner eventRunner = new EventRunner(notificationEndpoint, username, password, headers, eventDTO);
         executor.execute(eventRunner);
 
     }
 
-    protected TenantManagementEventDTO buildPayload(TenantInfoBean tenantInfo, String type, String eventURI, String serverURL) {
+    protected TenantManagementEventDTO buildPayload(TenantInfoBean tenantInfo, String type, String eventURI,
+            String serverURL) {
 
         TenantManagementEventDTO eventDTO = new TenantManagementEventDTO();
 
-        eventDTO.setIss(serverURL); 
+        eventDTO.setIss(serverURL);
         eventDTO.setJti(UUID.randomUUID().toString());
         eventDTO.setIat(System.currentTimeMillis() / 1000L);
 
@@ -264,22 +280,22 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
         TenantManagementEventDTO.Tenant tenant = new TenantManagementEventDTO.Tenant();
         tenant.setId(Integer.toString(tenantInfo.getTenantId()));
         tenant.setDomain(tenantInfo.getTenantDomain());
-        tenant.setRef(serverURL + "/api/server/v1/tenants/"
-                + tenantInfo.getTenantId()); 
+        tenant.setRef(serverURL + "/api/server/v1/tenants/" + tenantInfo.getTenantId());
 
-        if (TenantManagement.EVENT_CREATE_TENANT_URI.equals(eventURI) || TenantManagement.EVENT_UPDATE_TENANT_URI.equals(eventURI)) {
+        if (TenantManagement.EVENT_CREATE_TENANT_URI.equals(eventURI)
+                || TenantManagement.EVENT_UPDATE_TENANT_URI.equals(eventURI)) {
             List<TenantManagementEventDTO.Owner> owners = new ArrayList<>();
             TenantManagementEventDTO.Owner owner = new TenantManagementEventDTO.Owner();
-            
+
             if (TenantManagement.EVENT_CREATE_TENANT_URI.equals(eventURI)) {
                 // set username only it is a creation request
-                owner.setUsername(tenantInfo.getAdmin()); 
+                owner.setUsername(tenantInfo.getAdmin());
             }
-            owner.setPassword(tenantInfo.getAdminPassword()); 
+            owner.setPassword(tenantInfo.getAdminPassword());
             owner.setEmail(tenantInfo.getEmail());
             owner.setFirstname(tenantInfo.getFirstname());
             owner.setLastname(tenantInfo.getLastname());
-            owners.add(owner); 
+            owners.add(owner);
             tenant.setOwners(owners);
         }
 
@@ -287,8 +303,8 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
             TenantManagementEventDTO.LifecycleStatus lifecycleStatus = new TenantManagementEventDTO.LifecycleStatus();
             lifecycleStatus.setActivated(tenantInfo.isActive());
             tenant.setLifecycleStatus(lifecycleStatus);
-        }        
-    
+        }
+
         createEventDetail.setTenant(tenant);
         events.put(eventURI, createEventDetail);
         eventDTO.setEvents(events);
@@ -319,6 +335,10 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
         @Override
         public void run() {
             
+            if (log.isDebugEnabled()) {
+                log.debug("Sending HTTP request to notification endpoint: " + notificationEndpoint);
+            }
+
             try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
 
                 HttpPost httpPost = new HttpPost(notificationEndpoint);

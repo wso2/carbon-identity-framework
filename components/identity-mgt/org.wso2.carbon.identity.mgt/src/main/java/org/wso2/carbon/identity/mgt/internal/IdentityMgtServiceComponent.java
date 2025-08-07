@@ -420,14 +420,20 @@ public class IdentityMgtServiceComponent {
     )
     protected void setOrganizationManager(OrganizationManager organizationManager) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("OrganizationManager set in IdentityMgtServiceComponent bundle.");
+        }
+        
         IdentityMgtServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
-        log.debug("OrganizationManager set in IdentityMgtServiceComponent bundle.");
     }
 
     protected void unsetOrganizationManager(OrganizationManager organizationManager) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("OrganizationManager unset in IdentityMgtServiceComponent bundle.");
+        }
+        
         IdentityMgtServiceDataHolder.getInstance().setOrganizationManager(null);
-        log.debug("OrganizationManager unset in IdentityMgtServiceComponent bundle.");
     }
 
 }
