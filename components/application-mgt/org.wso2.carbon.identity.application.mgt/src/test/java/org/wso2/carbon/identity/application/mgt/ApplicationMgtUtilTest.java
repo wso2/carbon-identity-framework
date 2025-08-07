@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
@@ -90,6 +91,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENAB
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.PATH_CONSTANT;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SHARE_WITH_ALL_CHILDREN;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -817,6 +819,39 @@ public class ApplicationMgtUtilTest {
 
             ApplicationMgtUtil.getApplicationFromSpFileStream(spFileStream, "carbon.super");
         }
+    }
+
+    @DataProvider(name = "spPropertyTestData")
+    public Object[][] spPropertyTestData() {
+
+        return new Object[][]{
+                // currentValue is "false" → should update.
+                {"true", "false", true},
+
+                // currentValue is "true" → should NOT update.
+                {"true", "true", false},
+
+                // currentValue is null → property is missing → should update.
+                {"true", null, true}
+        };
+    }
+
+    @Test(dataProvider = "spPropertyTestData")
+    public void testShouldUpdateSpProperty(String updatedValue, String currentValue, boolean expectedResult) {
+
+        ServiceProvider application = new ServiceProvider();
+
+        if (currentValue != null) {
+            ServiceProviderProperty serviceProviderProperty = new ServiceProviderProperty();
+            serviceProviderProperty.setName(SHARE_WITH_ALL_CHILDREN);
+            serviceProviderProperty.setValue(currentValue);
+            application.setSpProperties(new ServiceProviderProperty[]{serviceProviderProperty});
+        } else {
+            application.setSpProperties(new ServiceProviderProperty[]{});
+        }
+
+        boolean result = ApplicationMgtUtil.shouldUpdateSpProperty(updatedValue, SHARE_WITH_ALL_CHILDREN, application);
+        assertEquals(result, expectedResult);
     }
 
     private void mockTenantRegistry(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext,
