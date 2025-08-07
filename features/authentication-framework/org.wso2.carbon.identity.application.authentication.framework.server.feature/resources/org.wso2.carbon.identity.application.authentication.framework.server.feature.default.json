@@ -242,6 +242,7 @@
   "authentication.authenticator.sms_otp_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.sms_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp_local.parameters.enableRetryFromAuthenticator": true,
+  "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": true,
 
   "authentication.authenticator.push_local.name": "push-notification-authenticator",
   "authentication.authenticator.push_local.enable": true,
