@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.context;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.ApplicationActor;
@@ -32,6 +34,8 @@ import org.wso2.carbon.utils.CarbonUtils;
  * This class is used to store the identity context information of the current thread.
  */
 public class IdentityContext extends CarbonContext {
+
+    private static final Log log = LogFactory.getLog(IdentityContext.class);
 
     private final IdentityContextDataHolder identityContextDataHolder;
 
@@ -193,6 +197,7 @@ public class IdentityContext extends CarbonContext {
     public void enterFlow(Flow flow) {
 
         identityContextDataHolder.enterFlow(flow);
+        log.debug("Entered flow: " + (flow != null ? flow.getName() : "null"));
     }
 
     /**
@@ -200,9 +205,11 @@ public class IdentityContext extends CarbonContext {
      *
      * @return The flow that was removed, or null if none.
      */
-    public void exitFlow() {
+    public Flow exitFlow() {
 
-        identityContextDataHolder.exitFlow();
+        Flow flow = identityContextDataHolder.exitFlow();
+        log.debug("Exited flow: " + (flow != null ? flow.getName() : "null"));
+        return flow;
     }
 
     /**

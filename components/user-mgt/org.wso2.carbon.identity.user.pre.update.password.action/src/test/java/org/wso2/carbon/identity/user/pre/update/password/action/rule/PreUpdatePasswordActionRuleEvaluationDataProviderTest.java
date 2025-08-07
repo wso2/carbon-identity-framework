@@ -85,8 +85,8 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
                 {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordUpdate"},
                 {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER, "userInitiatedPasswordUpdate"},
                 {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION, "applicationInitiatedPasswordUpdate"},
-                {Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordReset"},
-                {Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER, "userInitiatedPasswordReset"},
+                {Flow.Name.CREDENTIAL_RESET, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordReset"},
+                {Flow.Name.CREDENTIAL_RESET, Flow.InitiatingPersona.USER, "userInitiatedPasswordReset"},
                 {Flow.Name.INVITE, Flow.InitiatingPersona.ADMIN,
                         "adminInitiatedUserInviteToSetPassword"},
                 {Flow.Name.INVITED_USER_REGISTRATION, Flow.InitiatingPersona.ADMIN,
@@ -118,7 +118,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
     @Test(expectedExceptions = RuleEvaluationDataProviderException.class)
     public void testGetEvaluationDataWithUnsupportedFlow() throws RuleEvaluationDataProviderException {
 
-        doReturn(Flow.Name.PASSWORD_RESET).when(flow).getName();
+        doReturn(Flow.Name.CREDENTIAL_RESET).when(flow).getName();
         doReturn(Flow.InitiatingPersona.APPLICATION).when(flow).getInitiatingPersona();
         IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
