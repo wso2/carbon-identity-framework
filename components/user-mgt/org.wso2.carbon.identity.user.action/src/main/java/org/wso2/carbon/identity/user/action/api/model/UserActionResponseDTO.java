@@ -37,6 +37,7 @@ public class UserActionResponseDTO {
     private final Map<String, Object> claims;
     private final String userStoreDomain;
     private final Organization residentOrganization;
+    private final String sharedUserId;
 
     public UserActionResponseDTO(UserActionRequestDTO userActionRequestDTO) {
 
@@ -47,6 +48,7 @@ public class UserActionResponseDTO {
         this.roles = new ArrayList<>(userActionRequestDTO.getRoles());
         this.groups = new ArrayList<>(userActionRequestDTO.getGroups());
         this.residentOrganization = userActionRequestDTO.getResidentOrganization();
+        this.sharedUserId = userActionRequestDTO.getSharedUserId();
     }
 
     public String getUserId() {
@@ -82,6 +84,11 @@ public class UserActionResponseDTO {
     public Organization getResidentOrganization() {
 
         return residentOrganization;
+    }
+
+    public String getSharedUserId() {
+
+        return sharedUserId;
     }
 
     public void addRole(String role) {

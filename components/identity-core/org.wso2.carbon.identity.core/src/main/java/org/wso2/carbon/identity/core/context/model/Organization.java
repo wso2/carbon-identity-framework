@@ -27,6 +27,7 @@ public class Organization {
     private final String id;
     private final String name;
     private final String organizationHandle;
+    private final String parentOrganizationId;
     private final int depth;
 
     private Organization(Builder builder) {
@@ -34,6 +35,7 @@ public class Organization {
         this.id = builder.id;
         this.name = builder.name;
         this.organizationHandle = builder.organizationHandle;
+        this.parentOrganizationId = builder.parentOrganizationId;
         this.depth = builder.depth;
     }
 
@@ -68,6 +70,16 @@ public class Organization {
     }
 
     /**
+     * Returns the ID of the parent organization.
+     *
+     * @return ID of the parent organization.
+     */
+    public String getParentOrganizationId() {
+
+        return parentOrganizationId;
+    }
+
+    /**
      * Returns the depth of the organization in the organization hierarchy.
      *
      * @return Depth of the organization.
@@ -85,6 +97,7 @@ public class Organization {
         private String id;
         private String name;
         private String organizationHandle;
+        private String parentOrganizationId;
         private int depth;
 
         public Builder id(String id) {
@@ -102,6 +115,12 @@ public class Organization {
         public Builder organizationHandle(String organizationHandle) {
 
             this.organizationHandle = organizationHandle;
+            return this;
+        }
+
+        public Builder parentOrganizationId(String parentOrganizationId) {
+
+            this.parentOrganizationId = parentOrganizationId;
             return this;
         }
 

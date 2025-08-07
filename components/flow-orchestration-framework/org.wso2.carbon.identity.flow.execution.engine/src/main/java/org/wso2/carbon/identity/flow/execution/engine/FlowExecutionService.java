@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
@@ -73,6 +74,7 @@ public class FlowExecutionService {
 
         FlowExecutionStep step;
         FlowExecutionContext context = null;
+        boolean isRegistrationFlow = false;
         try {
             if (StringUtils.isBlank(flowId)) {
                 // No flowId present hence initiate the flow.
@@ -81,8 +83,16 @@ public class FlowExecutionService {
                 context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId);
             }
 
-            if (REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
-                FrameworkUtils.updateIdentityContextFlow(Flow.Name.REGISTER);
+            /*
+             Ideally this should be done for any defined flow.
+             For the moment we are doing this only for the registration flow.
+             */
+            isRegistrationFlow = REGISTRATION_FLOW_TYPE.equals(context.getFlowType());
+            if (isRegistrationFlow) {
+                IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                        .name(Flow.Name.REGISTER)
+                        .initiatingPersona(Flow.InitiatingPersona.USER)
+                        .build());
             }
 
             if (inputs != null) {
@@ -128,6 +138,10 @@ public class FlowExecutionService {
             FlowExecutionEngineUtils.rollbackContext(flowType, flowId);
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             throw e;
+        } finally {
+            if (isRegistrationFlow) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
         }
     }
 }

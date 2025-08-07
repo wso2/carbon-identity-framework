@@ -100,7 +100,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
 
         doReturn(flowName).when(flow).getName();
         doReturn(initiatingPersona).when(flow).getInitiatingPersona();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
 
         List<FieldValue> fieldValues = dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
         assertEquals(fieldValues.size(), 1);
@@ -120,7 +120,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
 
         doReturn(Flow.Name.PASSWORD_RESET).when(flow).getName();
         doReturn(Flow.InitiatingPersona.APPLICATION).when(flow).getInitiatingPersona();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
     }
 }
