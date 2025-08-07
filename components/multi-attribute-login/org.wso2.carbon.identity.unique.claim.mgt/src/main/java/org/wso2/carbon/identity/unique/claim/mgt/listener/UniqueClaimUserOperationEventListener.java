@@ -205,7 +205,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
 
                     String[] userList = getUserListForDuplicatedClaim(username, claimKey, claimValue, profile,
                             userStoreManager, domainName, uniquenessScope);
-                    if (userList.length < 2) {
+                    if (userList == null || userList.length < 2) {
                         continue;
                     }
                     String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
