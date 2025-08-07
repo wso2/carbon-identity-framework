@@ -203,8 +203,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                         continue;
                     }
 
-                    String[] userList = getUserListForDuplicatedClaim(username, claimKey, claimValue, profile,
-                            userStoreManager, domainName, uniquenessScope);
+                    String[] userList = getUserListForDuplicatedClaim(username, claimKey, claimValue, claimObject,
+                            profile, userStoreManager, domainName, uniquenessScope);
                     if (userList == null || userList.length < 2) {
                         continue;
                     }
@@ -382,12 +382,11 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         return true;
     }
 
-    private String[] getUserListForDuplicatedClaim(String username, String claimUri, String claimValue, String profile,
-                                                   UserStoreManager userStoreManager, String domainName,
+    private String[] getUserListForDuplicatedClaim(String username, String claimUri, String claimValue, Claim claim,
+                                                   String profile, UserStoreManager userStoreManager, String domainName,
                                                    ClaimConstants.ClaimUniquenessScope uniquenessScope)
             throws UserStoreException {
 
-        Claim claim = getClaimObject(userStoreManager, claimUri);
         // Get UserStoreManager from realm since the received one might be for a secondary user store
         UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
 
@@ -615,7 +614,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                 ? Arrays.asList(existingUserClaimValue.split(multiAttributeSeparator))
                 : new ArrayList<>();
 
-        List<String> currentClaimValues = Arrays.asList(claimValue.split(multiAttributeSeparator));
+        List<String> currentClaimValues = new ArrayList<>(Arrays.asList(claimValue.split(multiAttributeSeparator)));
         currentClaimValues.removeAll(existingClaimValues);
 
         return currentClaimValues;

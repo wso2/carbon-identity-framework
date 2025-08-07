@@ -288,8 +288,7 @@ public class UniqueClaimUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPostAddUserWithDuplicateClaims()
-            throws UserStoreException, ClaimMetadataException {
+    public void testDoPostAddUserWithDuplicateClaims() throws UserStoreException, ClaimMetadataException {
 
         mockInitForCheckClaimUniqueness();
         String userName = "testUser";
@@ -298,34 +297,29 @@ public class UniqueClaimUserOperationEventListenerTest {
         String profile = "default";
         String[] roleList = {"admin"};
         Object credential = "test@example.com";
+
         Claim claimEmail = new Claim();
         claimEmail.setClaimUri(EMAIL_CLAIM_URI);
         claimEmail.setDisplayTag("Email");
-
         when(userStoreManager.getClaimManager().getClaim(EMAIL_CLAIM_URI)).thenReturn(claimEmail);
-
 
         RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
         when(userStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
-
-        when(realmConfiguration.getUserStoreProperty(
-                UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME)).thenReturn("PRIMARY");
-
+        when(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME))
+                .thenReturn("PRIMARY");
         when(userStoreManager.getTenantId()).thenReturn(-1234);
 
         UserRealm userRealm = mock(UserRealm.class);
         when(realmService.getTenantUserRealm(-1234)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
-        when(userStoreManager.getUserList(EMAIL_CLAIM_URI, "PRIMARY/test@example.com", profile)).thenReturn(
-                new String[]{"testUser", "testUser2"});
+        when(userStoreManager.getUserList(EMAIL_CLAIM_URI, "PRIMARY/test@example.com", profile))
+                .thenReturn(new String[]{"testUser", "testUser2"});
 
         UniqueClaimUserOperationEventListener spiedListener = spy(new UniqueClaimUserOperationEventListener());
         doReturn(true).when(spiedListener).isEnable();
-        doThrow(new org.wso2.carbon.user.core.UserStoreException("Duplicate claims detected"))
-                .when(userStoreManager).deleteUser(userName);
+        doThrow(new UserStoreException("Duplicate claims detected")).when(userStoreManager).deleteUser(userName);
 
-        // Act & Assert
-        assertThrows(org.wso2.carbon.user.core.UserStoreException.class, () ->
+        assertThrows(UserStoreException.class, () ->
                 spiedListener.doPostAddUser(userName, credential, roleList, claims, profile, userStoreManager));
 
         verify(userStoreManager, times(1)).deleteUser(userName);
