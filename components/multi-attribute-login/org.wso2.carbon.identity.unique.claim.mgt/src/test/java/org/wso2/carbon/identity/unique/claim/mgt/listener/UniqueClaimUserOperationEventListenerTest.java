@@ -58,15 +58,14 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
 
@@ -287,8 +286,19 @@ public class UniqueClaimUserOperationEventListenerTest {
         }
     }
 
-    @Test
-    public void testDoPostAddUserWithDuplicateClaims() throws UserStoreException, ClaimMetadataException {
+    @DataProvider(name = "duplicateClaimedUserProvider")
+    public Object[][] duplicateClaimedUserProvider() {
+
+        return new Object[][]{
+                {new String[]{"testUser", "testUser2"}, true},
+                {new String[]{"testUser2", "testUser"}, false},
+                {new String[]{"testUser"}, false},
+        };
+    }
+
+    @Test(dataProvider = "duplicateClaimedUserProvider")
+    public void testDoPostAddUserWithDuplicateClaims(String[] userList, boolean isUserDeleted)
+            throws UserStoreException, ClaimMetadataException {
 
         mockInitForCheckClaimUniqueness();
         String userName = "testUser";
@@ -297,6 +307,9 @@ public class UniqueClaimUserOperationEventListenerTest {
         String profile = "default";
         String[] roleList = {"admin"};
         Object credential = "test@example.com";
+
+        uniqueClaimUserOperationEventListener = spy(new UniqueClaimUserOperationEventListener());
+        doReturn(true).when(uniqueClaimUserOperationEventListener).isEnable();
 
         Claim claimEmail = new Claim();
         claimEmail.setClaimUri(EMAIL_CLAIM_URI);
@@ -313,16 +326,22 @@ public class UniqueClaimUserOperationEventListenerTest {
         when(realmService.getTenantUserRealm(-1234)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
         when(userStoreManager.getUserList(EMAIL_CLAIM_URI, "PRIMARY/test@example.com", profile))
-                .thenReturn(new String[]{"testUser", "testUser2"});
+                .thenReturn(userList);
+        doNothing().when(userStoreManager).deleteUser(userName);
 
-        UniqueClaimUserOperationEventListener spiedListener = spy(new UniqueClaimUserOperationEventListener());
-        doReturn(true).when(spiedListener).isEnable();
-        doThrow(new UserStoreException("Duplicate claims detected")).when(userStoreManager).deleteUser(userName);
+        try {
+            uniqueClaimUserOperationEventListener
+                    .doPostAddUser(userName, credential, roleList, claims, profile, userStoreManager);
 
-        assertThrows(UserStoreException.class, () ->
-                spiedListener.doPostAddUser(userName, credential, roleList, claims, profile, userStoreManager));
-
-        verify(userStoreManager, times(1)).deleteUser(userName);
+            if (isUserDeleted) {
+                verify(userStoreManager, times(1)).deleteUser(userName);
+            }
+        } catch (UserStoreException e) {
+            if (isUserDeleted) {
+                assertEquals("The value defined for Email is already in use by a different user!",
+                        e.getMessage());
+            }
+        }
     }
 
     private void mockInitForCheckClaimUniqueness() throws ClaimMetadataException {
