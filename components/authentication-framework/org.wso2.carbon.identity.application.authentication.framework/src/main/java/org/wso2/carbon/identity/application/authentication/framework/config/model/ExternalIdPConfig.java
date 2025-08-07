@@ -253,6 +253,16 @@ public class ExternalIdPConfig implements Serializable {
     }
 
     /**
+     * To check whether skipping JIT provisioning is enabled on attribute based account lookup failure.
+     *
+     * @return true if skipping JIT provisioning is enabled on attribute based account lookup failure.
+     */
+    public boolean isSkipJITOnAttrAccountLookupEnabled() {
+
+        return justInTimeProConfig != null && justInTimeProConfig.isSkipJITOnAttrAccLookUpFailureEnabled();
+    }
+
+    /**
      * To get the account lookup attribute mappings.
      *
      * @return account lookup attribute mappings.

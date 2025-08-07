@@ -116,12 +116,13 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY;
@@ -3593,6 +3594,10 @@ public class IdPManagementDAO {
                         .equals(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED)) {
                     justInTimeProvisioningConfig
                             .setAssociateLocalUserEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (identityProviderProperty.getName()
+                        .equals(IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE)) {
+                    justInTimeProvisioningConfig.setSkipJITOnAttrAccLookUpFailureEnabled(
+                            Boolean.parseBoolean(identityProviderProperty.getValue()));
                 } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                         .equals(identityProviderProperty.getName())) {
                     justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
@@ -3630,9 +3635,9 @@ public class IdPManagementDAO {
                         .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED) ||
                         IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
-                        IdPManagementConstants.LOCAL_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING
+                        IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING
                                 .equals(identityProviderProperty.getName()) ||
-                        IdPManagementConstants.FEDERATED_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING
+                        IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                                 .equals(identityProviderProperty.getName()) ||
@@ -3647,46 +3652,51 @@ public class IdPManagementDAO {
                                                  IdentityProviderProperty[] identityProviderProperties)
             throws IdentityProviderManagementException {
 
-        IdentityProviderProperty localLookupAttributesProperty = IdentityApplicationManagementUtil
-                .getProperty(identityProviderProperties,
-                        IdPManagementConstants.LOCAL_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING);
-        IdentityProviderProperty federatedLookupAttributesProperty = IdentityApplicationManagementUtil
-                .getProperty(identityProviderProperties,
-                        IdPManagementConstants.FEDERATED_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING);
-        if (localLookupAttributesProperty == null && federatedLookupAttributesProperty == null) {
+        IdentityProviderProperty primaryAccountLookupAttributeMappingProperty =
+                IdentityApplicationManagementUtil.getProperty(identityProviderProperties,
+                        IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        IdentityProviderProperty secondaryAccountLookupAttributeMappingProperty =
+                IdentityApplicationManagementUtil.getProperty(identityProviderProperties,
+                        IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        if (primaryAccountLookupAttributeMappingProperty == null ||
+                StringUtils.isBlank(primaryAccountLookupAttributeMappingProperty.getValue())) {
             return;
         }
-        if (localLookupAttributesProperty == null || federatedLookupAttributesProperty == null) {
-            throw new IdentityProviderManagementException("Error occurred while retrieving account lookup attributes." +
-                    " Both local and federated lookup attributes must be configured for account linking.");
-        }
-        if (StringUtils.isBlank(localLookupAttributesProperty.getValue()) &&
-                StringUtils.isBlank(federatedLookupAttributesProperty.getValue())) {
-            return;
-        }
-        String[] localLookupAttributes = localLookupAttributesProperty.getValue().trim().split(",");
-        String[] federatedLookupAttributes = federatedLookupAttributesProperty.getValue().trim().split(",");
+        AccountLookupAttributeMappingConfig primaryAccountLookupAttributeMappingConfig =
+                buildAccountLookupAttributeMappingConfig(primaryAccountLookupAttributeMappingProperty.getValue());
+        List<AccountLookupAttributeMappingConfig> accountLookupAttributeMappingConfigs = new ArrayList<>();
+        accountLookupAttributeMappingConfigs.add(primaryAccountLookupAttributeMappingConfig);
 
-        if (localLookupAttributes.length == 0 || federatedLookupAttributes.length == 0 ||
-                localLookupAttributes.length != federatedLookupAttributes.length) {
-            throw new IdentityProviderManagementException("Error occurred while retrieving account lookup attributes." +
-                    " Local and federated lookup attributes are not matching.");
+        if (secondaryAccountLookupAttributeMappingProperty == null ||
+                StringUtils.isNotBlank(secondaryAccountLookupAttributeMappingProperty.getValue())) {
+            AccountLookupAttributeMappingConfig secondaryAccountLookupAttributeMappingConfig =
+                    buildAccountLookupAttributeMappingConfig(secondaryAccountLookupAttributeMappingProperty.getValue());
+            accountLookupAttributeMappingConfigs.add(secondaryAccountLookupAttributeMappingConfig);
         }
-        AccountLookupAttributeMappingConfig[] accountLookupAttributeMappingConfigs =
-                new AccountLookupAttributeMappingConfig[localLookupAttributes.length];
-        for (int i = 0; i < localLookupAttributes.length; i++) {
-            AccountLookupAttributeMappingConfig
-                    accountLookupAttributeMappingConfig = new AccountLookupAttributeMappingConfig();
-            accountLookupAttributeMappingConfig.setLocalAttribute(localLookupAttributes[i].trim());
-            accountLookupAttributeMappingConfig.setFederatedAttribute(federatedLookupAttributes[i].trim());
-            accountLookupAttributeMappingConfigs[i] = accountLookupAttributeMappingConfig;
+        justInTimeProvisioningConfig.setAccountLookupAttributeMappings(accountLookupAttributeMappingConfigs.toArray(
+                new AccountLookupAttributeMappingConfig[0]));
+    }
+
+    private AccountLookupAttributeMappingConfig buildAccountLookupAttributeMappingConfig(
+            String accountLookupAttributeMappingString)
+            throws IdentityProviderManagementException {
+
+        String[] parts = accountLookupAttributeMappingString.split(ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR);
+        if (parts.length != 2 || StringUtils.isBlank(parts[0]) || StringUtils.isBlank(parts[1])) {
+            throw new IdentityProviderManagementException("Invalid account lookup attribute mapping property: " +
+                    accountLookupAttributeMappingString);
         }
-        justInTimeProvisioningConfig.setAccountLookupAttributeMappings(accountLookupAttributeMappingConfigs);
+
+        AccountLookupAttributeMappingConfig accountLookupAttributeMappingConfig =
+                new AccountLookupAttributeMappingConfig();
+        accountLookupAttributeMappingConfig.setFederatedAttribute(parts[0].trim());
+        accountLookupAttributeMappingConfig.setLocalAttribute(parts[1].trim());
+        return accountLookupAttributeMappingConfig;
     }
 
     private void fillAccountLookUpAttributesIdpProperties(JustInTimeProvisioningConfig justInTimeProvisioningConfig,
-                                                          IdentityProviderProperty localLookupAttributesProperty,
-                                                          IdentityProviderProperty federatedLookupAttributesProperty)
+                                                          IdentityProviderProperty primaryAccountLookupAttributesProperty,
+                                                          IdentityProviderProperty secondaryAccountLookupAttributesProperty)
             throws IdentityProviderManagementException {
 
         if (justInTimeProvisioningConfig == null) {
@@ -3701,19 +3711,36 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("Error occurred while storing account lookup attributes." +
                     " More than two account lookup attribute mappings are not supported.");
         }
-        List<String> localAttributes = new ArrayList<>();
-        List<String> federatedAttributes = new ArrayList<>();
-        for (AccountLookupAttributeMappingConfig mapping : justInTimeProvisioningConfig.getAccountLookupAttributeMappings()) {
-            if (StringUtils.isNotBlank(mapping.getLocalAttribute())) {
-                localAttributes.add(mapping.getLocalAttribute());
-            }
-            if (StringUtils.isNotBlank(mapping.getFederatedAttribute())) {
-                federatedAttributes.add(mapping.getFederatedAttribute());
-            }
-        }
 
-        localLookupAttributesProperty.setValue(String.join(",", localAttributes));
-        federatedLookupAttributesProperty.setValue(String.join(",", federatedAttributes));
+        AccountLookupAttributeMappingConfig primaryMapping = accountLookupAttributeMappings[0];
+        if (primaryMapping == null || (StringUtils.isBlank(primaryMapping.getFederatedAttribute()) &
+                StringUtils.isBlank(primaryMapping.getLocalAttribute()))) {
+            return;
+        }
+        if (StringUtils.isBlank(primaryMapping.getFederatedAttribute()) ||
+                StringUtils.isBlank(primaryMapping.getLocalAttribute())) {
+            throw new IdentityProviderManagementException("Error occurred while storing account lookup attributes." +
+                    " Primary account lookup attribute mapping is empty.");
+        }
+        primaryAccountLookupAttributesProperty.setValue(
+                primaryMapping.getFederatedAttribute() + ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR +
+                        primaryMapping.getLocalAttribute());
+        if (accountLookupAttributeMappings.length > 1) {
+            AccountLookupAttributeMappingConfig secondaryMapping = accountLookupAttributeMappings[1];
+            if (secondaryMapping == null || (StringUtils.isBlank(secondaryMapping.getFederatedAttribute()) &&
+                    StringUtils.isBlank(secondaryMapping.getLocalAttribute()))) {
+                return;
+            }
+            if (StringUtils.isBlank(secondaryMapping.getFederatedAttribute()) ||
+                    StringUtils.isBlank(secondaryMapping.getLocalAttribute())) {
+                throw new IdentityProviderManagementException(
+                        "Error occurred while storing account lookup attributes." +
+                                " Secondary account lookup attribute mapping is empty.");
+            }
+            secondaryAccountLookupAttributesProperty.setValue(
+                    secondaryMapping.getFederatedAttribute() + ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR +
+                            secondaryMapping.getLocalAttribute());
+        }
     }
 
     /**
@@ -4427,11 +4454,18 @@ public class IdPManagementDAO {
         associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
         associateLocalUser.setValue("false");
 
-        IdentityProviderProperty federatedLookupAttributes = new IdentityProviderProperty();
-        federatedLookupAttributes.setName(IdPManagementConstants.FEDERATED_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING);
+        IdentityProviderProperty skipJITOnAttributeLookupFailure = new IdentityProviderProperty();
+        skipJITOnAttributeLookupFailure.setName(IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE);
+        skipJITOnAttributeLookupFailure.setValue("false");
 
-        IdentityProviderProperty localLookupAttributes = new IdentityProviderProperty();
-        localLookupAttributes.setName(IdPManagementConstants.LOCAL_LOOKUP_ATTRIBUTES_ACCOUNT_LINKING);
+        IdentityProviderProperty primaryAccountLookupAttributeMapping = new IdentityProviderProperty();
+        primaryAccountLookupAttributeMapping.setName(IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        primaryAccountLookupAttributeMapping.setValue("");
+
+        IdentityProviderProperty secondaryAccountLookupAttributeMapping = new IdentityProviderProperty();
+        secondaryAccountLookupAttributeMapping.setName(
+                IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        secondaryAccountLookupAttributeMapping.setValue("");
 
         IdentityProviderProperty federatedAssociationProperty = new IdentityProviderProperty();
         federatedAssociationProperty.setName(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED);
@@ -4452,8 +4486,10 @@ public class IdPManagementDAO {
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
             associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
-            fillAccountLookUpAttributesIdpProperties(justInTimeProvisioningConfig, localLookupAttributes,
-                    federatedLookupAttributes);
+            skipJITOnAttributeLookupFailure.setValue(
+                    String.valueOf(justInTimeProvisioningConfig.isSkipJITOnAttrAccLookUpFailureEnabled()));
+            fillAccountLookUpAttributesIdpProperties(justInTimeProvisioningConfig, primaryAccountLookupAttributeMapping,
+                    secondaryAccountLookupAttributeMapping);
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
 
@@ -4468,8 +4504,8 @@ public class IdPManagementDAO {
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
         identityProviderProperties.add(associateLocalUser);
-        identityProviderProperties.add(federatedLookupAttributes);
-        identityProviderProperties.add(localLookupAttributes);
+        identityProviderProperties.add(primaryAccountLookupAttributeMapping);
+        identityProviderProperties.add(secondaryAccountLookupAttributeMapping);
         identityProviderProperties.add(attributeSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
         if (lookupAttribute != null) {

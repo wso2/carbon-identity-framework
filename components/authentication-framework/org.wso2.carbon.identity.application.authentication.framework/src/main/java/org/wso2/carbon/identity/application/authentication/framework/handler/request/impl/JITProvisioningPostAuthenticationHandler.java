@@ -412,6 +412,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             }
                         }
                     }
+                    if (externalIdPConfig.isSkipJITOnAttrAccountLookupEnabled() &&
+                            StringUtils.isEmpty(associatedLocalUser)) {
+                        continue;
+                    }
                     if (StringUtils.isNotBlank(associatedLocalUser) && !isUserAllowsToLoginIdp) {
                         // Check if the associated local account is locked.
                         if (isAccountLocked(associatedLocalUser, context.getTenantDomain())) {

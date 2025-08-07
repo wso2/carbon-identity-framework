@@ -55,6 +55,8 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     private boolean promptConsent = false;
     @XmlElement(name = "EnableAssociateLocalUser")
     private boolean associateLocalUserEnabled = false;
+    @XmlElement(name = "EnableSkipJITOnAttributeLookUpFailure")
+    private boolean isSkipJITOnAttrAccLookUpFailureEnabled = false;
     @XmlElementWrapper(name = FILE_ELEMENT_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING_CONFIG_WRAPPER)
     @XmlElement(name = FILE_ELEMENT_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING_CONFIG)
     AccountLookupAttributeMappingConfig[]
@@ -154,6 +156,27 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     public boolean isAssociateLocalUserEnabled() {
 
         return associateLocalUserEnabled;
+    }
+
+    /**
+     * To set whether to skip JIT provisioning when attribute based account lookup fails.
+     *
+     * @param isSkipJITOnAttributeLookUpFailureEnabled to specify whether to skip JIT provisioning on attribute lookup
+     * failure.
+     */
+    public void setSkipJITOnAttrAccLookUpFailureEnabled(boolean isSkipJITOnAttributeLookUpFailureEnabled) {
+
+        this.isSkipJITOnAttrAccLookUpFailureEnabled = isSkipJITOnAttributeLookUpFailureEnabled;
+    }
+
+    /**
+     * To check whether to skip JIT provisioning when attribute based account lookup fails.
+     *
+     * @return true if the JIT provisioning is skipped on attribute lookup failure, otherwise false.
+     */
+    public boolean isSkipJITOnAttrAccLookUpFailureEnabled() {
+
+        return isSkipJITOnAttrAccLookUpFailureEnabled;
     }
 
     /**
