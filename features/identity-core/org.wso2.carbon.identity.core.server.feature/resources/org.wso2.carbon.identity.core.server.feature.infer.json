@@ -271,6 +271,7 @@
   },
   "preserve_previous_product_behaviour.version": {
     "IS_7.0.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
       "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
       "session_management.filter_by_unique_session_id_for_user": false,
       "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
@@ -279,6 +280,7 @@
       "console.identity_providers.disabled_features": []
     },
     "IS_7.1.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
       "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
       "session_management.filter_by_unique_session_id_for_user": false,
       "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
