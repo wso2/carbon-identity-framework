@@ -276,6 +276,7 @@
       "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
       "organization_management.organization_versioning.new_organization_version": "v0.0.0",
       "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
+      "remote_logging.hide_secrets": false,
       "console.identity_providers.disabled_features": []
     },
     "IS_7.1.0": {
@@ -284,6 +285,7 @@
       "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
       "organization_management.organization_versioning.new_organization_version": "v0.0.0",
       "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
+      "remote_logging.hide_secrets": false,
       "console.identity_providers.disabled_features": [],
       "scim2.enable_scim2_roles_v3_api": false
     }
