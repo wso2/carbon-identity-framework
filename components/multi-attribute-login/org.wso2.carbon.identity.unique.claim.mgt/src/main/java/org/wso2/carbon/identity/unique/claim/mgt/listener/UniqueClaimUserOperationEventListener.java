@@ -209,6 +209,11 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                         continue;
                     }
                     String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+                    /* Check if the username is the first in the list of users with the same claim value.
+                     * During concurrent creation, all threads get the same user list and try to delete the same user.
+                     * To prevent all users from being deleted, only the first user in the list is deleted.
+                     * Other threads will skip deletion and return success.
+                     */
                     if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
                         duplicateClaims.add(getClaimDisplayTag(claimObject, claimKey));
                         return true;
