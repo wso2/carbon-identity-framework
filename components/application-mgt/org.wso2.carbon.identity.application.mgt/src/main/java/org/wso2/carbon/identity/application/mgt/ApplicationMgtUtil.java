@@ -1334,6 +1334,7 @@ public class ApplicationMgtUtil {
                 }
                 break;
             case ApplicationConstants.ApplicationVersion.APP_VERSION_V2:
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V3:
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + currentVersion);
