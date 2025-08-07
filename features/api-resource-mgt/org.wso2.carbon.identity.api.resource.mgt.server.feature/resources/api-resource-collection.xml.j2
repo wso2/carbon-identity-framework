@@ -886,21 +886,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="workflowRequests" displayName="Workflow Requests" type="tenant">
-        <Scopes>
-            <Feature>
-                <Scope name="console:workflowRequests"/>
-                <Scope name="console:workflowRequests_view"/>
-                <Scope name="console:workflowRequests_edit"/>
-            </Feature>
-            <Delete>
-                <Scope name="internal_workflow_instance_delete"/>
-            </Delete>
-            <Read>
-                <Scope name="internal_workflow_instance_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
     <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects" type="tenant">
         <Scopes>
             <Feature>
@@ -1830,21 +1815,6 @@
             <Read>
                 <Scope name="internal_org_workflow_view"/>
                 <Scope name="internal_org_workflow_association_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
-    <APIResourceCollection name="org_workflowRequests" displayName="Workflow Requests" type="organization">
-        <Scopes>
-            <Feature>
-                <Scope name="console:org:workflowRequests"/>
-                <Scope name="console:org:workflowRequests_view"/>
-                <Scope name="console:org:workflowRequests_edit"/>
-            </Feature>
-            <Delete>
-                <Scope name="internal_org_workflow_instance_delete"/>
-            </Delete>
-            <Read>
-                <Scope name="internal_org_workflow_instance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
