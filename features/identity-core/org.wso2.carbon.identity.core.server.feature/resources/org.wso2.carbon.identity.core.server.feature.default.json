@@ -1332,8 +1332,7 @@
   "console.actions.disabled_features": [
     "actions.types.list.preRegistration",
     "actions.types.org.list.preIssueAccessToken",
-    "actions.types.org.list.preRegistration",
-    "actions.types.org.list.preUpdateProfile"
+    "actions.types.org.list.preRegistration"
   ],
   "console.actions.scopes.feature": ["console:actions"],
   "console.actions.scopes.create": ["internal_action_mgt_create"],
