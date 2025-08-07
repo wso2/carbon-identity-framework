@@ -256,6 +256,9 @@ public class IdentityMgtConstants {
         public static final String PASSWORD = "password";
 
         public static final String NOTIFICATION_ENDPOINT = "notification_endpoint";
+        
+        private TenantManagement() {
+        }
 
     }
     

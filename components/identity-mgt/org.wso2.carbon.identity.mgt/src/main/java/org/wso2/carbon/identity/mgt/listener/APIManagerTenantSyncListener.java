@@ -88,17 +88,17 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
     @Override
     public void onTenantDelete(int tenantId) {
-
+        // Not implemented.
     }
 
     @Override
     public void onTenantRename(int tenantId, String oldDomainName, String newDomainName) throws StratosException {
-
+        // Not implemented.
     }
 
     @Override
     public void onTenantInitialActivation(int tenantId) throws StratosException {
-
+        // Not implemented.
     }
 
     @Override
@@ -151,7 +151,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
     @Override
     public void onSubscriptionPlanChange(int tenentId, String oldPlan, String newPlan) throws StratosException {
-
+        // Not implemented.
     }
 
     @Override
@@ -162,7 +162,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
     @Override
     public void onPreDelete(int tenantId) throws StratosException {
-
+        // Not implemented.
     }
     
     /**
