@@ -140,7 +140,7 @@ public class ClaimConstants {
         ERROR_CODE_FAILURE_IN_CHECKING_IS_TENANT_AN_ORGANIZATION("65005", "Error occurred " +
                 "while checking whether the tenant: %s is an organization"),
         ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY("65006", "Error occurred while traversing the " +
-                "organization hierarchy of tenant: %s with domain: %s"),;
+                "organization hierarchy of tenant: %s with domain: %s");
 
         private final String code;
         private final String message;

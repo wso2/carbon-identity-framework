@@ -30,7 +30,7 @@ import java.util.ArrayList;
 public class ExternalClaimDAOCache extends BaseCache<ExternalClaimCacheKey, ArrayList<ExternalClaim>> {
 
     private static final String CACHE_NAME = "ExternalClaimDAOCache";
-    private static final ExternalClaimDAOCache instance = new ExternalClaimDAOCache();
+    private static final ExternalClaimDAOCache INSTANCE = new ExternalClaimDAOCache();
 
     /**
      * The private constructor which ensures that only one instance of the cache is created.
@@ -47,7 +47,7 @@ public class ExternalClaimDAOCache extends BaseCache<ExternalClaimCacheKey, Arra
      */
     public static ExternalClaimDAOCache getInstance() {
 
-        return instance;
+        return INSTANCE;
     }
 }
 

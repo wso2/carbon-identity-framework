@@ -90,9 +90,7 @@ public class CacheBackedDBBasedClaimMetadataManager implements ReadWriteClaimMet
         if (StringUtils.isBlank(localClaimURI)) {
             throw new ClaimMetadataException("Invalid local claim URI: " + localClaimURI);
         }
-
-        List<LocalClaim> localClaims = this.cacheBackedLocalClaimDAO.getLocalClaims(tenantId);
-        return localClaims.stream()
+        return this.cacheBackedLocalClaimDAO.getLocalClaims(tenantId).stream()
                 .filter(localClaim -> localClaimURI.equals(localClaim.getClaimURI()))
                 .findFirst();
     }

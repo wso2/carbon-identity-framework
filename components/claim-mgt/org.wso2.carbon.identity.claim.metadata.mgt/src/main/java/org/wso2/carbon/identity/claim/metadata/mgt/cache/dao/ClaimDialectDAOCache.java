@@ -28,7 +28,7 @@ import java.io.Serializable;
 public class ClaimDialectDAOCache extends BaseCache<Integer, Serializable> {
 
     private static final String CACHE_NAME = "ClaimDialectDAOCache";
-    private static final ClaimDialectDAOCache instance = new ClaimDialectDAOCache();
+    private static final ClaimDialectDAOCache INSTANCE = new ClaimDialectDAOCache();
 
     /**
      * The private constructor which ensures that only one instance of the cache is created.
@@ -45,6 +45,6 @@ public class ClaimDialectDAOCache extends BaseCache<Integer, Serializable> {
      */
     public static ClaimDialectDAOCache getInstance() {
 
-        return instance;
+        return INSTANCE;
     }
 }

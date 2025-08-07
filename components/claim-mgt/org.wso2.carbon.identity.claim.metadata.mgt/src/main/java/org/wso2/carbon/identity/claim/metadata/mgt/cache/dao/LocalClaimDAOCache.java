@@ -28,7 +28,7 @@ import java.util.ArrayList;
  */
 public class LocalClaimDAOCache extends BaseCache<Integer, ArrayList<LocalClaim>> {
 
-    private static final LocalClaimDAOCache instance = new LocalClaimDAOCache();
+    private static final LocalClaimDAOCache INSTANCE = new LocalClaimDAOCache();
     private static final String CACHE_NAME = "LocalClaimDAOCache";
 
     /**
@@ -45,6 +45,6 @@ public class LocalClaimDAOCache extends BaseCache<Integer, ArrayList<LocalClaim>
      * @return the instance of the associated claim DAO cache.
      */
     public static LocalClaimDAOCache getInstance() {
-        return instance;
+        return INSTANCE;
     }
 }

@@ -28,7 +28,7 @@ import java.util.ArrayList;
  */
 public class AssociatedClaimDAOCache extends BaseCache<String, ArrayList<Claim>> {
 
-    private static final AssociatedClaimDAOCache instance = new AssociatedClaimDAOCache();
+    private static final AssociatedClaimDAOCache INSTANCE = new AssociatedClaimDAOCache();
     private static final String CACHE_NAME = "AssociatedClaimDAOCache";
 
     /**
@@ -46,6 +46,6 @@ public class AssociatedClaimDAOCache extends BaseCache<String, ArrayList<Claim>>
      */
     public static AssociatedClaimDAOCache getInstance() {
 
-        return instance;
+        return INSTANCE;
     }
 }
