@@ -2426,7 +2426,7 @@ public class FrameworkUtils {
         return activeSessionCount;
     }
 
-    private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
+    public static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
             cookieConfig, Integer age, String path) {
 
         if (cookieConfig.getDomain() != null) {
