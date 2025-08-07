@@ -173,7 +173,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             case INVITE:
             case INVITED_USER_REGISTRATION:
                 return PreUpdatePasswordEvent.Action.INVITE;
-            case USER_REGISTRATION:
+            case REGISTER:
                 return PreUpdatePasswordEvent.Action.REGISTER;
             default:
                 break;
@@ -293,7 +293,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
         Map<String, String> claimValues = new HashMap<>();
         if (userActionContext.getUserActionRequestDTO().getUserId() == null
-                || getCurrentFlowName() == Flow.Name.USER_REGISTRATION) {
+                || getCurrentFlowName() == Flow.Name.REGISTER) {
             // User id is not available during the user registration where the user is not yet created.
             // In such cases, UserActionContext contains the creating user claims.
             Map<String, Object> claimsFromUserContext = userActionContext.getUserActionRequestDTO().getClaims();

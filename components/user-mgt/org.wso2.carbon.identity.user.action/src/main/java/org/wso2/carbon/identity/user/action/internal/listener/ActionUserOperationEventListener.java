@@ -90,7 +90,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreUpdateCredentialByAdminWithID(String userID, Object credential,
                                                       UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable()) {
+        if (!isEnable() || !isPasswordUpdatingFlow()) {
             return true;
         }
 
@@ -113,7 +113,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreAddUserWithID(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || !isEnabledInRegistrationFlows()) {
+        if (!isEnable() || !isEnabledInRegistrationFlows() || !isRegistrationFlow()) {
             return true;
         }
 
@@ -134,10 +134,6 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
     private boolean executePreUpdatePasswordAction(String userID, Object credential, UserStoreManager userStoreManager,
                                                    Map<String, String> claims) throws UserStoreException {
-
-        if (!isExecutableFlow()) {
-            return true;
-        }
 
         try {
             UserActionRequestDTO.Builder userActionRequestDTOBuilder = new UserActionRequestDTO.Builder()
@@ -177,7 +173,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     private Organization getUserResidentOrganization(String userID, UserStoreManager userStoreManager)
             throws UserActionExecutionServerException {
 
-        if (userID == null || getCurrentFlowName() == Flow.Name.USER_REGISTRATION) {
+        if (userID == null || getCurrentFlowName() == Flow.Name.REGISTER) {
             return getOrganizationFromIdentityContext();
         }
 
@@ -246,7 +242,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
     }
 
-    private boolean isExecutableFlow() {
+    private boolean isPasswordUpdatingFlow() {
 
         Flow.Name flowName = getCurrentFlowName();
         if (flowName == null) {
@@ -257,7 +253,19 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
                 flowName == Flow.Name.INVITE ||
                 flowName == Flow.Name.INVITED_USER_REGISTRATION ||
                 flowName == Flow.Name.PROFILE_UPDATE ||
-                flowName == Flow.Name.USER_REGISTRATION;
+                flowName == Flow.Name.CREDENTIAL_UPDATE ||
+                flowName == Flow.Name.CREDENTIAL_RESET;
+    }
+
+
+    private boolean isRegistrationFlow() {
+
+        Flow.Name flowName = getCurrentFlowName();
+        if (flowName == null) {
+            return false;
+        }
+
+        return flowName == Flow.Name.REGISTER;
     }
 
     private char[] getSecret(Object credential) throws UserActionExecutionServerException {
