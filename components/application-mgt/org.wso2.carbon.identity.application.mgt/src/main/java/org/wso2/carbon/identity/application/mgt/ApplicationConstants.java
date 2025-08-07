@@ -192,7 +192,8 @@ public class ApplicationConstants {
 
             V0(APP_VERSION_V0),
             V1(APP_VERSION_V1),
-            V2(APP_VERSION_V2);
+            V2(APP_VERSION_V2),
+            V3(APP_VERSION_V3);
 
             private final String value;
 
