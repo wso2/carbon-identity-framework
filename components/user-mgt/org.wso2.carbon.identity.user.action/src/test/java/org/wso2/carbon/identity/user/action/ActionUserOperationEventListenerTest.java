@@ -87,10 +87,6 @@ public class ActionUserOperationEventListenerTest {
         userCoreUtil = mockStatic(UserCoreUtil.class);
         listener = new ActionUserOperationEventListener();
         userCoreUtil.when(() -> UserCoreUtil.getDomainName(any())).thenReturn("PRIMARY");
-        IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
-                .name(Flow.Name.PASSWORD_RESET)
-                .initiatingPersona(Flow.InitiatingPersona.USER)
-                .build());
 
         organizationManager = mock(OrganizationManager.class);
         UserActionServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
@@ -139,16 +135,6 @@ public class ActionUserOperationEventListenerTest {
         }
     }
 
-    private void setOrganizationToIdentityContext() {
-
-        IdentityContext.getThreadLocalIdentityContext().setOrganization(new Organization.Builder()
-                .id(TEST_RESIDENT_ORG_ID)
-                .name(TEST_RESIDENT_ORG_NAME)
-                .organizationHandle(TEST_RESIDENT_ORG_HANDLE)
-                .depth(TEST_RESIDENT_ORG_DEPTH)
-                .build());
-    }
-
     @Test
     public void testPreUpdatePasswordActionExecutionSuccess()
             throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
@@ -161,14 +147,18 @@ public class ActionUserOperationEventListenerTest {
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
         // Update flow
+        enterPasswordUpdatingFlow();
         boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
+        exitCurrentFlow();
 
         // Register flow
+        enterRegistrationFlow();
         boolean newResult = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 null, new HashMap<>(), null, userStoreManager);
         Assert.assertTrue(newResult, "The method should return true for successful execution.");
+        exitCurrentFlow();
     }
 
     @Test
@@ -190,14 +180,18 @@ public class ActionUserOperationEventListenerTest {
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
         // Update flow
+        enterPasswordUpdatingFlow();
         boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
+        exitCurrentFlow();
 
         // Register flow
+        enterRegistrationFlow();
         boolean newResult = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 null, new HashMap<>(), null, userStoreManager);
         Assert.assertTrue(newResult, "The method should return true for successful execution.");
+        exitCurrentFlow();
     }
 
     @Test
@@ -229,15 +223,19 @@ public class ActionUserOperationEventListenerTest {
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
         // Update flow
+        enterPasswordUpdatingFlow();
         boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
         verify(organizationManager, times(1)).getMinimalOrganization(any(), any());
+        exitCurrentFlow();
 
         // Register flow
+        enterRegistrationFlow();
         boolean newResult = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 null, new HashMap<>(), null, userStoreManager);
         Assert.assertTrue(newResult, "The method should return true for successful execution.");
+        exitCurrentFlow();
     }
 
     @Test
@@ -252,6 +250,7 @@ public class ActionUserOperationEventListenerTest {
 
         // Update flow
         try {
+            enterPasswordUpdatingFlow();
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreClientException);
@@ -259,9 +258,11 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertEquals(((UserStoreClientException) e).getErrorCode(),
                     PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
         }
+        exitCurrentFlow();
 
         // Register flow
         try {
+            enterRegistrationFlow();
             listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                     null, new HashMap<>(), null, userStoreManager);
         } catch (Exception e) {
@@ -270,6 +271,7 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertEquals(((UserStoreClientException) e).getErrorCode(),
                     PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
         }
+        exitCurrentFlow();
     }
 
     @Test
@@ -284,6 +286,7 @@ public class ActionUserOperationEventListenerTest {
 
         // Update flow
         try {
+            enterPasswordUpdatingFlow();
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreClientException);
@@ -291,9 +294,11 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertEquals(((UserStoreClientException) e).getErrorCode(),
                     PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
         }
+        exitCurrentFlow();
 
         // Register flow
         try {
+            enterRegistrationFlow();
             listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                     null, new HashMap<>(), null, userStoreManager);
         } catch (Exception e) {
@@ -302,6 +307,7 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertEquals(((UserStoreClientException) e).getErrorCode(),
                     PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
         }
+        exitCurrentFlow();
     }
 
     @Test
@@ -316,15 +322,18 @@ public class ActionUserOperationEventListenerTest {
 
         // Update flow
         try {
+            enterPasswordUpdatingFlow();
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreException);
             Assert.assertEquals(e.getMessage(), "ErrorMessage. ErrorDescription");
             Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR);
         }
+        exitCurrentFlow();
 
         // Register flow
         try {
+            enterRegistrationFlow();
             listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                     null, new HashMap<>(), null, userStoreManager);
         } catch (Exception e) {
@@ -333,6 +342,7 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertEquals(((UserStoreException) e).getErrorCode(),
                     PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR);
         }
+        exitCurrentFlow();
     }
 
     @Test
@@ -347,15 +357,18 @@ public class ActionUserOperationEventListenerTest {
 
         // Update flow
         try {
+            enterPasswordUpdatingFlow();
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, 10, userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreException);
             Assert.assertEquals(e.getMessage(), "Credential is not in the expected format.");
             Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET);
         }
+        exitCurrentFlow();
 
         // Register flow
         try {
+            enterRegistrationFlow();
             listener.doPreAddUserWithID(USER_NAME, 10, null,
                     new HashMap<>(), null, userStoreManager);
         } catch (Exception e) {
@@ -364,6 +377,7 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertEquals(((UserStoreException) e).getErrorCode(),
                     PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET);
         }
+        exitCurrentFlow();
     }
 
     @Test
@@ -378,12 +392,17 @@ public class ActionUserOperationEventListenerTest {
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
         // Update flow
+        enterPasswordUpdatingFlow();
         assertFalse(listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager));
+        exitCurrentFlow();
+
         // Register flow
+        enterRegistrationFlow();
         assertFalse(listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 null, new HashMap<>(), null, userStoreManager),
                 "The method should return false for unknown status.");
+        exitCurrentFlow();
     }
 
     @Test
@@ -396,15 +415,18 @@ public class ActionUserOperationEventListenerTest {
 
         // Update flow
         try {
+            enterPasswordUpdatingFlow();
             listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreException);
             Assert.assertEquals(e.getMessage(), "Error while executing pre update password action.");
             Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR);
         }
+        exitCurrentFlow();
 
         // Register flow
         try {
+            enterRegistrationFlow();
             listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                     null, new HashMap<>(), null, userStoreManager);
         } catch (Exception e) {
@@ -412,10 +434,11 @@ public class ActionUserOperationEventListenerTest {
             Assert.assertEquals(e.getMessage(), "Error while executing pre update password action.");
             Assert.assertEquals(((UserStoreException) e).getErrorCode(), PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR);
         }
+        exitCurrentFlow();
     }
 
     @Test
-    public void doPreAddUserWithIDReturnsTrueWhenPreUpdatePasswordFlowIsDisabled()
+    public void  testPreUpdatePasswordActionExecutionWithRegistrationFlowsDisabled()
             throws UserStoreException, UnsupportedSecretTypeException {
 
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
@@ -429,5 +452,39 @@ public class ActionUserOperationEventListenerTest {
         } catch (ActionExecutionException e) {
             Assert.fail("Unexpected exception: " + e.getMessage());
         }
+    }
+
+    private void setOrganizationToIdentityContext() {
+
+        IdentityContext.getThreadLocalIdentityContext().setOrganization(new Organization.Builder()
+                .id(TEST_RESIDENT_ORG_ID)
+                .name(TEST_RESIDENT_ORG_NAME)
+                .organizationHandle(TEST_RESIDENT_ORG_HANDLE)
+                .depth(TEST_RESIDENT_ORG_DEPTH)
+                .build());
+    }
+
+    private void enterRegistrationFlow() {
+
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(
+                new Flow.Builder()
+                        .name(Flow.Name.REGISTER)
+                        .initiatingPersona(Flow.InitiatingPersona.ADMIN)
+                        .build());
+    }
+
+    private void enterPasswordUpdatingFlow() {
+
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(
+                new Flow.CredentialFlowBuilder()
+                        .name(Flow.Name.CREDENTIAL_UPDATE)
+                        .credentialType(Flow.CredentialType.PASSWORD)
+                        .initiatingPersona(Flow.InitiatingPersona.USER)
+                        .build());
+    }
+
+    private void exitCurrentFlow() {
+
+        IdentityContext.getThreadLocalIdentityContext().exitFlow();
     }
 }
