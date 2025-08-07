@@ -191,13 +191,16 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         List<String> userClaimsToSetInEvent = preUpdateProfileAction.getAttributes();
 
         User.Builder userBuilder = new User.Builder(userActionRequestDTO.getUserId())
-                .organization(userActionContext.getUserActionRequestDTO().getResidentOrganization());
+                .organization(userActionRequestDTO.getResidentOrganization())
+                .sharedUserId(userActionRequestDTO.getSharedUserId());
         if (userClaimsToSetInEvent == null || userClaimsToSetInEvent.isEmpty()) {
             return userBuilder.build();
         }
 
-        Map<String, String> claimValues = getClaimValues(userActionRequestDTO.getUserId(), userClaimsToSetInEvent,
-                userStoreManager);
+        // If the user is shared, shared user id should be used to fetch claims.
+        String userId = userActionRequestDTO.getSharedUserId() != null ?
+                userActionRequestDTO.getSharedUserId() : userActionRequestDTO.getUserId();
+        Map<String, String> claimValues = getClaimValues(userId, userClaimsToSetInEvent, userStoreManager);
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
         setClaimsInUserBuilder(userBuilder, claimValues, userActionRequestDTO.getClaims(), multiAttributeSeparator);
@@ -301,9 +304,12 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         if (StringUtils.isBlank(userStoreDomain)) {
 
             try {
-                org.wso2.carbon.user.core.common.User userFromUserStore =
-                        userStoreManager.getUserWithID(userActionContext.getUserActionRequestDTO().getUserId(), null,
-                                UserCoreConstants.DEFAULT_PROFILE);
+                // If the user is shared, shared user id should be used to fetch the user.
+                String userId = userActionContext.getUserActionRequestDTO().getSharedUserId() != null
+                        ? userActionContext.getUserActionRequestDTO().getSharedUserId()
+                        : userActionContext.getUserActionRequestDTO().getUserId();
+                org.wso2.carbon.user.core.common.User userFromUserStore = userStoreManager.getUserWithID(userId,
+                        null, UserCoreConstants.DEFAULT_PROFILE);
                 userStoreDomain = userFromUserStore.getUserStoreDomain();
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
                 throw new ActionExecutionRequestBuilderException("Error while retrieving user store domain.", e);
