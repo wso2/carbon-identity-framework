@@ -197,7 +197,9 @@ public class IdentityContext extends CarbonContext {
     public void enterFlow(Flow flow) {
 
         identityContextDataHolder.enterFlow(flow);
-        log.debug("Entered flow: " + (flow != null ? flow.getName() : "null"));
+        if (log.isDebugEnabled()) {
+            log.debug("Entered flow: " + (flow != null ? flow.getName() : "null"));
+        }
     }
 
     /**
@@ -208,7 +210,9 @@ public class IdentityContext extends CarbonContext {
     public Flow exitFlow() {
 
         Flow flow = identityContextDataHolder.exitFlow();
-        log.debug("Exited flow: " + (flow != null ? flow.getName() : "null"));
+        if (log.isDebugEnabled()) {
+            log.debug("Exited flow: " + (flow != null ? flow.getName() : "null"));
+        }
         return flow;
     }
 
