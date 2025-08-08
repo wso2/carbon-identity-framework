@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.common.model.AccountLookupAttributeMappingConfig;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -249,6 +250,29 @@ public class ExternalIdPConfig implements Serializable {
     public boolean isAssociateLocalUserEnabled() {
 
         return justInTimeProConfig != null && justInTimeProConfig.isAssociateLocalUserEnabled();
+    }
+
+    /**
+     * To check whether skipping JIT provisioning is enabled on attribute based account lookup failure.
+     *
+     * @return true if skipping JIT provisioning is enabled on attribute based account lookup failure.
+     */
+    public boolean isSkipJITOnAttrAccountLookupEnabled() {
+
+        return justInTimeProConfig != null && justInTimeProConfig.isSkipJITOnAttrAccLookUpFailureEnabled();
+    }
+
+    /**
+     * To get the account lookup attribute mappings.
+     *
+     * @return account lookup attribute mappings.
+     */
+    public AccountLookupAttributeMappingConfig[] getAccountLookupAttributeMappings() {
+
+        if (justInTimeProConfig != null) {
+            return justInTimeProConfig.getAccountLookupAttributeMappings();
+        }
+        return null;
     }
 
     /**
