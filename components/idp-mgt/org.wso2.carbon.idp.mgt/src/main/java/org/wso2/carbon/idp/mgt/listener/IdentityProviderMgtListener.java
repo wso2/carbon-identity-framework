@@ -92,12 +92,12 @@ public interface IdentityProviderMgtListener {
     /**
      * Define any additional actions before deleting resident idp properties.
      *
-     * @param tenantDomain Tenant domain of the resident idp.
      * @param propertyNames List of property names to be deleted.
+     * @param tenantDomain Tenant domain of the resident idp.
      * @return Whether execution of this method of the underlying UserStoreManager must happen.
      * @throws IdentityProviderManagementException When an error occurs while handling the event.
      */
-    default boolean doPreDeleteResidentIdpProperties(String tenantDomain,  List<String> propertyNames) throws
+    default boolean doPreDeleteResidentIdpProperties(List<String> propertyNames, String tenantDomain) throws
             IdentityProviderManagementException {
 
         return true;
@@ -106,12 +106,12 @@ public interface IdentityProviderMgtListener {
     /**
      * Define any additional actions after deleting resident idp properties.
      *
-     * @param tenantDomain Tenant domain of the resident idp.
      * @param propertyNames List of property names deleted.
+     * @param tenantDomain Tenant domain of the resident idp.
      * @return Whether execution of this method of the underlying UserStoreManager must happen.
      * @throws IdentityProviderManagementException When an error occurs while handling the event.
      */
-    default boolean doPostDeleteResidentIdpProperties(String tenantDomain, List<String> propertyNames) throws
+    default boolean doPostDeleteResidentIdpProperties(List<String> propertyNames, String tenantDomain) throws
             IdentityProviderManagementException {
 
         return true;
