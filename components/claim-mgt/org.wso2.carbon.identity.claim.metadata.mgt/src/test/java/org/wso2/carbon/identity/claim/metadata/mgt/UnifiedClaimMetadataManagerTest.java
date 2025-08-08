@@ -318,7 +318,7 @@ public class UnifiedClaimMetadataManagerTest {
                 ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
 
         localClaim = new LocalClaim(LOCAL_CLAIM_2, new ArrayList<>(), claimProperties);
-        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(null);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(Optional.empty());
         when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0))
                 .thenReturn(Optional.of(localClaim));
         result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0);

@@ -307,6 +307,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                         existingClaim.setClaimProperty(entry.getKey(), entry.getValue());
                     }
                 }
+                resolvePrimaryUserStoreMapping(existingClaim, newClaim);
                 return existingClaim;
             });
         });
@@ -319,6 +320,28 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         }
 
         return new ArrayList<>(localClaimMap.values());
+    }
+
+    /**
+     * Resolves the primary user store mapping; this checks if the existing claim has the primary user store mapping,
+     * and if it is not found, the value is taken from the system claim instead.
+     *
+     * @param existingClaimFromDB The local claim found in the database.
+     * @param systemClaim         The system claim from the claim-config.xml file.
+     */
+    private void resolvePrimaryUserStoreMapping(LocalClaim existingClaimFromDB, LocalClaim systemClaim) {
+
+        String primaryUserStoreDomain = IdentityUtil.getPrimaryDomainName();
+        boolean hasPrimaryMapping = existingClaimFromDB.getMappedAttributes().stream()
+                .anyMatch(mapping -> mapping.getUserStoreDomain().equalsIgnoreCase(primaryUserStoreDomain));
+        if (!hasPrimaryMapping) {
+            systemClaim.getMappedAttributes().stream()
+                    .filter(mapping -> mapping.getUserStoreDomain().equalsIgnoreCase(primaryUserStoreDomain))
+                    .findFirst()
+                    .ifPresent(mapping -> existingClaimFromDB.getMappedAttributes().add(
+                            new AttributeMapping(mapping.getUserStoreDomain(), mapping.getAttributeName())
+                    ));
+        }
     }
 
     /**
@@ -432,6 +455,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                         copiedLocalClaim.getMappedAttributes().add(new AttributeMapping(
                                 attributeMapping.getUserStoreDomain(), attributeMapping.getAttributeName()));
                     }
+                    break;
                 }
                 for (Map.Entry<String, String> entry : tenantLocalClaim.getClaimProperties().entrySet()) {
                     if (ClaimConstants.EXCLUDED_USER_STORES_PROPERTY.equalsIgnoreCase(entry.getKey())) {
@@ -481,17 +505,28 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         } else {
             localClaimInDB = this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
         }
-        if (localClaimInDB.isPresent()) {
+        Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.
+                getLocalClaim(localClaimURI, tenantId);
+        LocalClaim dbLocalClaim = localClaimInDB.orElse(null);
+        LocalClaim systemDBClaim = localClaimInSystem.orElse(null);
+        if (dbLocalClaim != null) {
             if (isSystemDefaultLocalClaim(localClaimURI, tenantId)) {
-                markAsSystemClaim(localClaimInDB.get());
+                markAsSystemClaim(dbLocalClaim);
             }
             // If SharedProfileValueResolvingMethod is missing in DB, set it to default value.
-            setDefaultSharedProfileValueResolvingMethod(localClaimURI, tenantId, localClaimInDB.get());
+            setDefaultSharedProfileValueResolvingMethod(localClaimURI, tenantId, dbLocalClaim);
+            if (systemDBClaim != null) {
+                for (Map.Entry<String, String> entry : systemDBClaim.getClaimProperties().entrySet()) {
+                    if (!dbLocalClaim.getClaimProperties().containsKey(entry.getKey())) {
+                        dbLocalClaim.setClaimProperty(entry.getKey(), entry.getValue());
+                    }
+                }
+                resolvePrimaryUserStoreMapping(dbLocalClaim, systemDBClaim);
+            }
             return localClaimInDB;
         }
-        Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
-        if (localClaimInSystem.isPresent()) {
-            markAsSystemClaim(localClaimInSystem.get());
+        if (systemDBClaim != null) {
+            markAsSystemClaim(systemDBClaim);
             return localClaimInSystem;
         }
         return Optional.empty();
@@ -542,15 +577,14 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         there will be no primary user store mapping until the root organization
         is reached, and at this point, the value will be added to the claim.
         */
-        AttributeMapping primaryUserStoreMapping = null;
         String primaryUserStoreDomain = IdentityUtil.getPrimaryDomainName();
         for (AttributeMapping attributeMapping : tenantLocalClaim.getMappedAttributes()) {
             if (attributeMapping.getUserStoreDomain().equalsIgnoreCase(primaryUserStoreDomain)) {
-                primaryUserStoreMapping = new AttributeMapping(attributeMapping.getUserStoreDomain(),
-                        attributeMapping.getAttributeName());
+                aggregatedLocalClaim.getMappedAttributes().add(new AttributeMapping(attributeMapping.
+                        getUserStoreDomain(), attributeMapping.getAttributeName()));
             }
+            break;
         }
-        aggregatedLocalClaim.getMappedAttributes().add(primaryUserStoreMapping);
         return aggregatedLocalClaim;
     }
 
