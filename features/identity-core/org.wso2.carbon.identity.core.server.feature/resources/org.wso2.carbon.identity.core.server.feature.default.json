@@ -1281,6 +1281,7 @@
   "console.ui.isXacmlConnectorEnabled": false,
   "console.ui.routes.organizationEnabledRoutes": [
     "accountSecurity",
+    "actions",
     "admin-forced-password-reset",
     "apiResources",
     "applications",
