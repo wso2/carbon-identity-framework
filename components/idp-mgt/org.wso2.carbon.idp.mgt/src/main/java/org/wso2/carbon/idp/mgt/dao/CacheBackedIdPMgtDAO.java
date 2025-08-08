@@ -50,11 +50,13 @@ import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCache;
 import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCacheEntry;
 import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCacheKey;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -245,6 +247,18 @@ public class CacheBackedIdPMgtDAO {
                                                                    tenantId, tenantDomain);
 
         if (identityProvider != null) {
+            if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(
+                    identityProvider.getIdentityProviderName())) {
+                Collection<IdentityProviderMgtListener> listeners = IdpMgtServiceComponentHolder.getInstance()
+                        .getIdpMgtListeners();
+                for (IdentityProviderMgtListener listener : listeners) {
+                    if (listener.isEnable() && !listener.doPostGetResidentIdP(identityProvider, tenantDomain)) {
+                        // If the listener returns false, skip adding to cache and return.
+                        return identityProvider;
+                    }
+                }
+            }
+
             log.debug("Entry fetched from DB for Identity Provider " + idPName + ". Updating cache");
             idPCacheByName.addToCache(cacheKey, new IdPCacheEntry(identityProvider), tenantDomain);
             if (identityProvider.getHomeRealmId() != null) {
