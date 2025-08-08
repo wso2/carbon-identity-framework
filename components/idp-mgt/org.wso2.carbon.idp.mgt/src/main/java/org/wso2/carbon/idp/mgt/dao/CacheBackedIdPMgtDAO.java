@@ -878,7 +878,7 @@ public class CacheBackedIdPMgtDAO {
                 }
 
                 for (String childOrgId : childOrgIds) {
-                    int tenantId = IdentityTenantUtil.getTenantId(childOrgId);
+                    int tenantId = IdentityTenantUtil.getTenantId(organizationManager.resolveTenantDomain(childOrgId));
                     Optional<IdentityProvider> identityProvider = this.getCachedIdpByName(idPName, childOrgId);
                     identityProvider.ifPresent(
                             provider -> clearIdPCacheEntries(provider, idPName, null, childOrgId, tenantId));
