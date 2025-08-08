@@ -94,7 +94,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
 
     private String getFlowFromContext() throws RuleEvaluationDataProviderException {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow.getName() == Flow.Name.PROFILE_UPDATE &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             // Password update is a sub-flow of profile update.

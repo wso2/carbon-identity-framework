@@ -1483,6 +1483,20 @@
         <Scopes>internal_password_expired_user_view</Scopes>
     </Resource>
 
+    <!-- [Organization] Action Management API -->
+    <Resource context="(.*)/o/api/server/v1/actions(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_action_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/actions(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_action_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/actions(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_action_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/actions(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_action_mgt_view</Scopes>
+    </Resource>
+
     <!-- Action Management API -->
     <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="POST">
         <Scopes>internal_action_mgt_create</Scopes>
@@ -1499,6 +1513,11 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="GET">
         <Scopes>internal_action_mgt_view</Scopes>
+    </Resource>
+
+    <!-- [Organization] Rule Metadata API -->
+    <Resource context="(.*)/o/api/server/v1/rules/metadata(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_rule_metadata_view</Scopes>
     </Resource>
 
     <!-- Rule Metadata API -->
@@ -1589,6 +1608,20 @@
         <Scopes>internal_async_operation_status_view</Scopes>
     </Resource>
 
+    <!-- [Organization] Workflow Management API -->
+    <Resource context="(.*)/o/api/server/v1/workflows(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_workflow_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflows(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_workflow_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflows(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_workflow_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflows(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_workflow_delete</Scopes>
+    </Resource>
+
     <!-- Workflow Management API -->
     <Resource context="(.*)/api/server/v1/workflows(.*)" secured="true" http-method="GET">
         <Scopes>internal_workflow_view</Scopes>
@@ -1603,6 +1636,20 @@
         <Scopes>internal_workflow_delete</Scopes>
     </Resource>
 
+    <!-- [Organization] Workflow Association Management API -->
+    <Resource context="(.*)/o/api/server/v1/workflow-associations(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_workflow_association_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflow-associations(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_workflow_association_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflow-associations(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_workflow_association_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflow-associations(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_workflow_association_delete</Scopes>
+    </Resource>
+
     <!-- Workflow Association Management API -->
     <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="GET">
         <Scopes>internal_workflow_association_view</Scopes>
@@ -1615,6 +1662,22 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/workflow-associations(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_workflow_association_delete</Scopes>
+    </Resource>
+
+    <!-- [Organization] Workflow Instance Management API -->
+    <Resource context="(.*)/o/api/server/v1/workflow-instances(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_workflow_instance_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_workflow_instance_delete</Scopes>
+    </Resource>
+
+    <!-- Workflow Instance Management API -->
+    <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="GET">
+        <Scopes>internal_workflow_instance_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_workflow_instance_delete</Scopes>
     </Resource>
 
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>

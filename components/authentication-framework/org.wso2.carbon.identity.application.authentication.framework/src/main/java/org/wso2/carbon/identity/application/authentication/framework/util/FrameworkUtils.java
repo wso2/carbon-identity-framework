@@ -132,8 +132,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.core.context.IdentityContext;
-import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -2428,7 +2426,7 @@ public class FrameworkUtils {
         return activeSessionCount;
     }
 
-    private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
+    public static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
             cookieConfig, Integer age, String path) {
 
         if (cookieConfig.getDomain() != null) {
@@ -4845,21 +4843,4 @@ public class FrameworkUtils {
 
     }
 
-    /**
-     * This is used to set the flow and initiator in the identity context
-     * for the user flows.
-     *
-     * @param flowName The name of the flow to set in the identity context.
-     */
-    public static void updateIdentityContextFlow(Flow.Name flowName) {
-
-        if (IdentityContext.getThreadLocalIdentityContext().getFlow() != null) {
-            // If the flow is already set, no need to update it again.
-            return;
-        }
-
-        IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
-                        Flow.InitiatingPersona.USER).build());
-    }
 }

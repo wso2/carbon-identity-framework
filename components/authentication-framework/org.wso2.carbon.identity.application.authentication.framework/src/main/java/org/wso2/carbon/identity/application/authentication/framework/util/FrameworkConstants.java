@@ -48,6 +48,7 @@ public abstract class FrameworkConstants {
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
     public static final String ROLES_CLAIM = "http://wso2.org/claims/roles";
+    public static final String VERIFIED_MOBILE_NUMBERS_CLAIM = "http://wso2.org/claims/verifiedMobileNumbers";
 
     public static final String GROUPS_CLAIM = "http://wso2.org/claims/groups";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
@@ -74,6 +75,7 @@ public abstract class FrameworkConstants {
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String SIGN_UP_ENDPOINT = "/accountrecoveryendpoint/signup.do";
+    public static final String VERIFY_ENDPOINT = "/authenticationendpoint/verify.do";
     public static final String REGISTRATION_ENDPOINT = "/accountrecoveryendpoint/register.do";
     public static final String ERROR_CODE = "errorCode";
     public static final String ERROR_MESSAGE = "errorMessage";
@@ -86,6 +88,10 @@ public abstract class FrameworkConstants {
     public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
     public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
+    public static final String IS_OTP_VERIFICATION_TRIGGERED = "isOtpVerificationTriggered";
+    public static final String OTP_VERIFICATION_PENDING_CLAIM = "otpVerificationPendingClaim";
+    public static final String CLAIM_FOR_PENDING_OTP_VERIFICATION = "claimForPendingOtpVerification";
+    public static final String IS_PROGRESSIVE_PROFILE_VERIFICATION = "isProgressiveProfileVerification";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -243,6 +249,7 @@ public abstract class FrameworkConstants {
     public static final String SYNC_NONE = "NONE";
     public static final String PRESERVE_LOCAL = "PRESERVE_LOCAL";
     public static final String RESTART_LOGIN_FLOW = "restartLoginFlow";
+    public static final String REMOVE_COMMONAUTH_COOKIE = "removeCommonAuthCookie";
     public static final String INITIAL_CONTEXT = "initialContext";
     public static final String RESTART_LOGIN_FLOW_QUERY_PARAMS =
             "&authFailure=true&authFailureMsg=login.reinitiate.message";

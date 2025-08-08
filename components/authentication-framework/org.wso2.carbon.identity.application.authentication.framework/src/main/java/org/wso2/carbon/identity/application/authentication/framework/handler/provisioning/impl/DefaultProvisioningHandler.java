@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -301,7 +302,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             }
         } else {
-            FrameworkUtils.updateIdentityContextFlow(Flow.Name.JUST_IN_TIME_PROVISION);
+            IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                    .name(Flow.Name.JUST_IN_TIME_PROVISION)
+                    .initiatingPersona(Flow.InitiatingPersona.USER)
+                    .build());
+
             password = resolvePassword(userClaims);
             // Check for inconsistencies in username attribute and the username claim.
             if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
@@ -346,6 +351,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
                 UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
                 Arrays.fill(password, '\0');
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
             }
 
             if (userWorkflowEngaged ||
