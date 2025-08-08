@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
 import org.wso2.carbon.identity.organization.management.service.util.Utils;
+import org.wso2.carbon.tenant.mgt.util.TenantMgtUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
@@ -400,7 +401,11 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
         tenantIdsToBeInvalidated.add(tenantId);
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         try {
-            if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+            /*
+             * During tenant creation, there will naturally be no child organizations for the tenant being created,
+             * therefore, there is no need to resolve child organizations.
+             */
+             if (!TenantMgtUtil.isTenantCreation() && Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
                 String organizationId = IdentityClaimManagementServiceDataHolder.getInstance().getOrganizationManager()
                         .resolveOrganizationId(tenantDomain);
                 List<BasicOrganization> childOrganizations = IdentityClaimManagementServiceDataHolder.getInstance()
@@ -411,7 +416,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
                             getTenantManager().getTenantId(childOrg.getOrganizationHandle());
                     tenantIdsToBeInvalidated.add(childTenantId);
                 }
-            }
+             }
         } catch (OrganizationManagementException | UserStoreException e) {
             log.error("Error occurred while obtaining the child organizations for tenant id: " + tenantId, e);
         }
