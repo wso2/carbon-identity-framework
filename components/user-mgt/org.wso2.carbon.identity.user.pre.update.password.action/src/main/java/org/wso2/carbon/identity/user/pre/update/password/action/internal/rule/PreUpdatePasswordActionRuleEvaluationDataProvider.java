@@ -128,17 +128,17 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
             return PasswordUpdateFlowType.ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.USER_REGISTRATION &&
+        if (flow.getName() == Flow.Name.REGISTER &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             return PasswordUpdateFlowType.ADMIN_INITIATED_REGISTRATION.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.USER_REGISTRATION &&
+        if (flow.getName() == Flow.Name.REGISTER &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.APPLICATION) {
             return PasswordUpdateFlowType.APPLICATION_INITIATED_REGISTRATION.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.USER_REGISTRATION &&
+        if (flow.getName() == Flow.Name.REGISTER &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
             return PasswordUpdateFlowType.USER_INITIATED_REGISTRATION.getFlowName();
         }
