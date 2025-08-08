@@ -92,11 +92,11 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
                 {Flow.Name.INVITED_USER_REGISTRATION, Flow.InitiatingPersona.ADMIN,
                         "adminInitiatedUserInviteToSetPassword"},
                 {Flow.Name.USER_REGISTRATION, Flow.InitiatingPersona.ADMIN,
-                        "adminInitiatedRegistrationWithPassword"},
+                        "adminInitiatedRegistration"},
                 {Flow.Name.USER_REGISTRATION, Flow.InitiatingPersona.APPLICATION,
-                        "applicationInitiatedRegistrationWithPassword"},
+                        "applicationInitiatedRegistration"},
                 {Flow.Name.USER_REGISTRATION, Flow.InitiatingPersona.USER,
-                        "userInitiatedRegistrationWithPassword"}
+                        "userInitiatedRegistration"}
         };
     }
 

@@ -51,9 +51,9 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
         APPLICATION_INITIATED_PASSWORD_UPDATE("applicationInitiatedPasswordUpdate"),
         USER_INITIATED_PASSWORD_UPDATE("userInitiatedPasswordUpdate"),
         USER_INITIATED_PASSWORD_RESET("userInitiatedPasswordReset"),
-        ADMIN_INITIATED_REGISTRATION_WITH_PASSWORD("adminInitiatedRegistrationWithPassword"),
-        APPLICATION_INITIATED_REGISTRATION_WITH_PASSWORD("applicationInitiatedRegistrationWithPassword"),
-        USER_INITIATED_REGISTRATION_WITH_PASSWORD("userInitiatedRegistrationWithPassword");
+        ADMIN_INITIATED_REGISTRATION("adminInitiatedRegistration"),
+        APPLICATION_INITIATED_REGISTRATION("applicationInitiatedRegistration"),
+        USER_INITIATED_REGISTRATION("userInitiatedRegistration");
 
         final String flowName;
 
@@ -130,17 +130,17 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
 
         if (flow.getName() == Flow.Name.USER_REGISTRATION &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
-            return PasswordUpdateFlowType.ADMIN_INITIATED_REGISTRATION_WITH_PASSWORD.getFlowName();
+            return PasswordUpdateFlowType.ADMIN_INITIATED_REGISTRATION.getFlowName();
         }
 
         if (flow.getName() == Flow.Name.USER_REGISTRATION &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.APPLICATION) {
-            return PasswordUpdateFlowType.APPLICATION_INITIATED_REGISTRATION_WITH_PASSWORD.getFlowName();
+            return PasswordUpdateFlowType.APPLICATION_INITIATED_REGISTRATION.getFlowName();
         }
 
         if (flow.getName() == Flow.Name.USER_REGISTRATION &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
-            return PasswordUpdateFlowType.USER_INITIATED_REGISTRATION_WITH_PASSWORD.getFlowName();
+            return PasswordUpdateFlowType.USER_INITIATED_REGISTRATION.getFlowName();
         }
 
         throw new RuleEvaluationDataProviderException("Unsupported flow type: " + flow.getName() +
