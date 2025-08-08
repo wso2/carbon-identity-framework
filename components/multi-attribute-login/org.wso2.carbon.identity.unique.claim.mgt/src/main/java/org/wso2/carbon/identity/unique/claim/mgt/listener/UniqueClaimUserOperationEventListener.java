@@ -109,7 +109,16 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         if (!isEnable()) {
             return true;
         }
-        deleteDuplicateClaimedUsers(userName, claims, profile, userStoreManager);
+        List<String> duplicateClaims = new ArrayList<>();
+        boolean hasDuplicateClaims =
+                checkDuplicateUserClaims(userName, claims, profile, userStoreManager, duplicateClaims);
+        if (!duplicateClaims.isEmpty() && hasDuplicateClaims) {
+            if (log.isDebugEnabled()) {
+                log.debug("Deleting user created with duplicate claims: " + LoggerUtils.getMaskedContent(userName));
+            }
+            userStoreManager.deleteUser(userName);
+            throwDuplicateClaimException(duplicateClaims);
+        }
         return true;
     }
 
@@ -162,22 +171,6 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         processClaims(username, claims, profile, userStoreManager, credential, true, duplicateClaims);
 
         if (!duplicateClaims.isEmpty()) {
-            throwDuplicateClaimException(duplicateClaims);
-        }
-    }
-
-    private void deleteDuplicateClaimedUsers(String username, Map<String, String> claims,
-                                             String profile, UserStoreManager userStoreManager)
-            throws UserStoreException {
-
-        List<String> duplicateClaims = new ArrayList<>();
-        boolean hasDuplicateClaims =
-                checkDuplicateUserClaims(username, claims, profile, userStoreManager, duplicateClaims);
-        if (!duplicateClaims.isEmpty() && hasDuplicateClaims) {
-            if (log.isDebugEnabled()) {
-                log.debug("Deleting users created with duplicate claims: " + LoggerUtils.getMaskedContent(username));
-            }
-            userStoreManager.deleteUser(username);
             throwDuplicateClaimException(duplicateClaims);
         }
     }
