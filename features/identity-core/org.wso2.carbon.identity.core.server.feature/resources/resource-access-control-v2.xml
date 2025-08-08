@@ -40,7 +40,7 @@
     <Resource context="(.*)/o/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_org_user_code_mgt_update</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
+    <Resource context="(.*)/o/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_user_code_mgt_delete</Scopes>
     </Resource>
 
