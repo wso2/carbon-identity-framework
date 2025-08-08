@@ -136,6 +136,8 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
         endpointConfig.getAuthentication().getProperties()
                 .forEach(prop -> propMap.put(prop.getName(), prop.getValue()));
         endpointConfigBuilder.authenticationProperties(propMap);
+        endpointConfigBuilder.allowedHeaders(endpointConfig.getAllowedHeaders());
+        endpointConfigBuilder.allowedParameters(endpointConfig.getAllowedParameters());
         return endpointConfigBuilder.build();
     }
 
