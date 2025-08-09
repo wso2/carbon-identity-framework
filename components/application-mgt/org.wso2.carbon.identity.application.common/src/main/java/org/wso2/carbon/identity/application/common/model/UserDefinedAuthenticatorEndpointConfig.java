@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -81,6 +82,26 @@ public class UserDefinedAuthenticatorEndpointConfig {
     }
 
     /**
+     * Get the allowed headers of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return Allowed headers of the authenticator endpoint.
+     */
+    public List<String> getAuthenticatorEndpointAllowedHeaders() {
+
+        return endpointConfig.getAllowedHeaders();
+    }
+
+    /**
+     * Get the allowed parameters of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return Allowed parameters of the authenticator endpoint.
+     */
+    public List<String> getAuthenticatorEndpointAllowedParameters() {
+
+        return endpointConfig.getAllowedParameters();
+    }
+
+    /**
      * UserDefinedAuthenticatorEndpointConfig builder.
      */
     public static class UserDefinedAuthenticatorEndpointConfigBuilder {
@@ -88,6 +109,8 @@ public class UserDefinedAuthenticatorEndpointConfig {
         private String uri;
         private String authenticationType;
         private Map<String, String> authenticationProperties;
+        private List<String> allowedHeaders;
+        private List<String> allowedParameters;
         private EndpointConfig endpointConfig;
 
         public UserDefinedAuthenticatorEndpointConfigBuilder() {
@@ -111,12 +134,26 @@ public class UserDefinedAuthenticatorEndpointConfig {
             this.authenticationType = authenticationType;
             return this;
         }
+
+        public UserDefinedAuthenticatorEndpointConfigBuilder allowedHeaders(List<String> allowedHeaders) {
+
+            this.allowedHeaders = allowedHeaders;
+            return this;
+        }
+
+        public UserDefinedAuthenticatorEndpointConfigBuilder allowedParameters(List<String> allowedParameters) {
+
+            this.allowedParameters = allowedParameters;
+            return this;
+        }
         
         public UserDefinedAuthenticatorEndpointConfig build() {
 
             EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
             endpointConfigBuilder.uri(uri);
             endpointConfigBuilder.authentication(resolveAuthentication());
+            endpointConfigBuilder.allowedHeaders(allowedHeaders);
+            endpointConfigBuilder.allowedParameters(allowedParameters);
             endpointConfig = endpointConfigBuilder.build();
 
             return new UserDefinedAuthenticatorEndpointConfig(this);
