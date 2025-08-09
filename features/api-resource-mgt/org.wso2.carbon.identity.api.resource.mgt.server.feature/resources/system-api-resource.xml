@@ -615,6 +615,22 @@
                    description="Delete the associated local/federated accounts  of a user in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Federated Association Management Bulk API"
+                 identifier="/api/users/v1/federated-associations/bulk" requiresAuthorization="true"
+                 description="Bulk API representation of the Association Management Bulk API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Manage Bulk Federated User Associations" name="internal_fed_user_association_bulk"
+                   description="Create/Delete the associated federated accounts as bulk in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Federated Association Management Bulk API"
+                 identifier="o/api/users/v1/federated-associations/bulk" requiresAuthorization="true"
+                 description="Bulk API representation of the Association Management Bulk API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Manage Bulk Federated User Associations" name="internal_org_fed_user_association_bulk"
+                   description="Create/Delete the associated federated accounts as bulk in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Authorized Application Management V1/V2 API"
                  identifier="/api/users/v(.*)/(.*)/authorized-apps" requiresAuthorization="true"
                  description="API representation of the Authorized Application Management V2 API" type="TENANT">
