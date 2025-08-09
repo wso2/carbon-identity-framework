@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.unique.claim.mgt.listener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
@@ -42,6 +43,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -100,6 +102,27 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     }
 
     @Override
+    public boolean doPostAddUser(String userName, Object credential, String[] roleList,
+                                 Map<String, String> claims, String profile,
+                                 UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+        List<String> duplicateClaims = new ArrayList<>();
+        boolean hasDuplicateClaims =
+                checkDuplicateUserClaims(userName, claims, profile, userStoreManager, duplicateClaims);
+        if (!duplicateClaims.isEmpty() && hasDuplicateClaims) {
+            if (log.isDebugEnabled()) {
+                log.debug("Deleting user created with duplicate claims: " + LoggerUtils.getMaskedContent(userName));
+            }
+            userStoreManager.deleteUser(userName);
+            throwDuplicateClaimException(duplicateClaims);
+        }
+        return true;
+    }
+
+    @Override
     public boolean doPreSetUserClaimValue(String userName, String claimURI, String claimValue, String profile,
                                           UserStoreManager userStoreManager) throws UserStoreException {
 
@@ -150,6 +173,50 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         if (!duplicateClaims.isEmpty()) {
             throwDuplicateClaimException(duplicateClaims);
         }
+    }
+
+    private boolean checkDuplicateUserClaims(String username, Map<String, String> claims,
+                                             String profile, UserStoreManager userStoreManager,
+                                             List<String> duplicateClaims)
+            throws UserStoreException {
+
+        String tenantDomain = getTenantDomain(userStoreManager);
+        String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(
+                UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+
+        for (Map.Entry<String, String> claim : claims.entrySet()) {
+            try {
+                String claimKey = claim.getKey();
+                String claimValue = claim.getValue();
+                ClaimConstants.ClaimUniquenessScope uniquenessScope = getClaimUniquenessScope(claimKey, tenantDomain);
+
+                if (StringUtils.isNotEmpty(claimValue) && shouldValidateUniqueness(uniquenessScope)) {
+                    Claim claimObject = getClaimObject(userStoreManager, claimKey);
+                    if (claimObject == null) {
+                        continue;
+                    }
+
+                    String[] userList = getUserListForDuplicatedClaim(username, claimKey, claimValue, claimObject,
+                            profile, userStoreManager, domainName, uniquenessScope);
+                    if (userList == null || userList.length < 2) {
+                        continue;
+                    }
+                    String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+                    /* Check if the username is the first in the list of users with the same claim value.
+                     * During concurrent creation, all threads get the same user list and try to delete the same user.
+                     * To prevent all users from being deleted, only the first user in the list is deleted.
+                     * Other threads will skip deletion and return success.
+                     */
+                    if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                        duplicateClaims.add(getClaimDisplayTag(claimObject, claimKey));
+                        return true;
+                    }
+                }
+            } catch (ClaimMetadataException e) {
+                log.error("Error while getting claim metadata for claimUri: " + claim.getKey() + ".", e);
+            }
+        }
+        return false;
     }
 
     /**
@@ -294,12 +361,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                     domainName, uniquenessScope);
         }
 
-        if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
-            String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
-            userList = userStoreMgrFromRealm.getUserList(claimUri, claimValueWithDomain, profile);
-        } else {
-            userList = userStoreMgrFromRealm.getUserList(claimUri, claimValue, profile);
-        }
+        userList = getUserListForSingleValuedClaim(claimUri, claimValue, profile, userStoreMgrFromRealm, domainName,
+                uniquenessScope);
 
         if (userList.length == 1) {
             String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
@@ -310,6 +373,36 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             return false;
         }
         return true;
+    }
+
+    private String[] getUserListForDuplicatedClaim(String username, String claimUri, String claimValue, Claim claim,
+                                                   String profile, UserStoreManager userStoreManager, String domainName,
+                                                   ClaimConstants.ClaimUniquenessScope uniquenessScope)
+            throws UserStoreException {
+
+        // Get UserStoreManager from realm since the received one might be for a secondary user store
+        UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
+
+        if (claim != null && claim.isMultiValued()) {
+            return getUserListForDuplicatedMultiValuedClaim(username, claimUri, claimValue, profile,
+                    userStoreMgrFromRealm, domainName, uniquenessScope);
+        } else {
+            return getUserListForSingleValuedClaim(claimUri, claimValue, profile, userStoreMgrFromRealm, domainName,
+                    uniquenessScope);
+        }
+    }
+
+    private String[] getUserListForSingleValuedClaim(String claimUri, String claimValue, String profile,
+                                                     UserStoreManager userStoreMgrFromRealm, String domainName,
+                                                     ClaimConstants.ClaimUniquenessScope uniquenessScope)
+            throws UserStoreException {
+
+        if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
+            String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
+            return userStoreMgrFromRealm.getUserList(claimUri, claimValueWithDomain, profile);
+        } else {
+            return userStoreMgrFromRealm.getUserList(claimUri, claimValue, profile);
+        }
     }
 
     /**
@@ -456,7 +549,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
 
         String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
         String existingUserClaimValue = userStoreManager.getUserClaimValues(usernameWithUserStoreDomain,
-                new String[] {claimUri},
+                new String[]{claimUri},
                 UserCoreConstants.DEFAULT_PROFILE).get(claimUri);
         List<String> existingClaimValues = new ArrayList<>();
         if (StringUtils.isNotEmpty(existingUserClaimValue)) {
@@ -468,20 +561,55 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         currentClaimValues.removeAll(existingClaimValues);
 
         for (String claimValuePart : currentClaimValues) {
-            String[] userList;
-            if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
-                String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValuePart;
-                userList = userStoreManager.getUserList(claimUri, claimValueWithDomain, profile);
-            } else {
-                userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
-            }
+            String[] userList = getUserListForSingleValuedClaim(claimUri, claimValuePart, profile, userStoreManager,
+                    domainName, uniquenessScope);
             if (userList.length > 1) {
                 return true;
             }
             if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-                    return true;
+                return true;
             }
         }
         return false;
+    }
+
+    private String[] getUserListForDuplicatedMultiValuedClaim(String username, String claimUri, String claimValue,
+                                                              String profile,
+                                                              UserStoreManager userStoreManager, String domainName,
+                                                              ClaimConstants.ClaimUniquenessScope uniquenessScope)
+            throws UserStoreException {
+
+        List<String> currentClaimValues =
+                getNewClaimValues(username, claimUri, claimValue, userStoreManager, domainName);
+
+        HashSet<String> userList = new HashSet<>();
+        for (String claimValuePart : currentClaimValues) {
+            userList.addAll(Arrays.asList(
+                    getUserListForSingleValuedClaim(claimUri, claimValuePart, profile, userStoreManager, domainName,
+                            uniquenessScope)));
+        }
+        return userList.toArray(new String[0]);
+    }
+
+    private List<String> getNewClaimValues(String username, String claimUri, String claimValue,
+                                           UserStoreManager userStoreManager, String domainName)
+            throws UserStoreException {
+
+        String multiAttributeSeparator = userStoreManager.getSecondaryUserStoreManager(domainName)
+                .getRealmConfiguration().getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
+
+        String existingUserClaimValue = userStoreManager.getUserClaimValues(
+                UserCoreUtil.addDomainToName(username, domainName),
+                new String[]{claimUri},
+                UserCoreConstants.DEFAULT_PROFILE).get(claimUri);
+
+        List<String> existingClaimValues = StringUtils.isNotEmpty(existingUserClaimValue)
+                ? Arrays.asList(existingUserClaimValue.split(multiAttributeSeparator))
+                : new ArrayList<>();
+
+        List<String> currentClaimValues = new ArrayList<>(Arrays.asList(claimValue.split(multiAttributeSeparator)));
+        currentClaimValues.removeAll(existingClaimValues);
+
+        return currentClaimValues;
     }
 }
