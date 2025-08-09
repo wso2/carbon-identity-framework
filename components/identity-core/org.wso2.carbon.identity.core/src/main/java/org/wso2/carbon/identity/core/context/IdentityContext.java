@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.ApplicationActor;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.context.model.Organization;
+import org.wso2.carbon.identity.core.context.model.Request;
 import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.core.context.model.UserActor;
 import org.wso2.carbon.identity.core.internal.context.IdentityContextDataHolder;
@@ -49,6 +50,29 @@ public class IdentityContext extends CarbonContext {
     public static IdentityContext getThreadLocalIdentityContext() {
 
         return new IdentityContext(IdentityContextDataHolder.getThreadLocalIdentityContextHolder());
+    }
+
+    /**
+     * Set the request of the IdentityContext.
+     *
+     * @param request Request of the IdentityContext.
+     */
+    public void setRequest(Request request) {
+
+        if (identityContextDataHolder.getRequest() != null) {
+            throw new IllegalStateException("Request is already set in the IdentityContext.");
+        }
+        identityContextDataHolder.setRequest(request);
+    }
+
+    /**
+     * Get the request of the IdentityContext.
+     *
+     * @return Request of the IdentityContext.
+     */
+    public Request getRequest() {
+
+        return identityContextDataHolder.getRequest();
     }
 
     /**
