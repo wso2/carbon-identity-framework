@@ -825,6 +825,20 @@
                     description="Delete user related code in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Code Management API" identifier="/o/api/identity/user/v1.0/(.*)-code"
+                 requiresAuthorization="true"
+                 description="API representation of the User Related Code Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View User Code" name="internal_org_user_code_mgt_view"
+                    description="View user related code in the organization"/>
+            <Scope displayName="Create User Code" name="internal_org_user_code_mgt_create"
+                    description="Create user related new code in the organization"/>
+            <Scope displayName="Update User Code" name="internal_org_user_code_mgt_update"
+                    description="Update user related code in the organization"/>
+            <Scope displayName="Delete User Code" name="internal_org_user_code_mgt_delete"
+                    description="Delete user related code in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Personal Identification API"
                  identifier="/api/identity/user/v1.0/pi-info" requiresAuthorization="true"
                  description="API representation of the User Personal Identification API" type="TENANT">
