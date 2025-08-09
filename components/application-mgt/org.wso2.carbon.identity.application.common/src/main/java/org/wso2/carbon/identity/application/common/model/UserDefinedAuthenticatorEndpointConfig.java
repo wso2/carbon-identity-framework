@@ -82,6 +82,26 @@ public class UserDefinedAuthenticatorEndpointConfig {
     }
 
     /**
+     * Get the allowed headers of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return Allowed headers of the authenticator endpoint.
+     */
+    public List<String> getAuthenticatorEndpointAllowedHeaders() {
+
+        return endpointConfig.getAllowedHeaders();
+    }
+
+    /**
+     * Get the allowed parameters of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return Allowed parameters of the authenticator endpoint.
+     */
+    public List<String> getAuthenticatorEndpointAllowedParameters() {
+
+        return endpointConfig.getAllowedParameters();
+    }
+
+    /**
      * UserDefinedAuthenticatorEndpointConfig builder.
      */
     public static class UserDefinedAuthenticatorEndpointConfigBuilder {
