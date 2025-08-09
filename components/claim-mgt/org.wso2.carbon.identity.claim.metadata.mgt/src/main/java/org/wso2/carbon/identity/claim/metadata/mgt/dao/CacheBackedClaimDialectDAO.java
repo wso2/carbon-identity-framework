@@ -20,10 +20,11 @@ package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.claim.metadata.mgt.cache.ClaimDialectCache;
+import org.wso2.carbon.identity.claim.metadata.mgt.cache.dao.ClaimDialectDAOCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,11 +35,12 @@ public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedClaimDialectDAO.class);
 
-    private ClaimDialectCache claimDialectCache = ClaimDialectCache.getInstance();
+    private ClaimDialectDAOCache claimDialectDAOCache = ClaimDialectDAOCache.getInstance();
 
     public List<ClaimDialect> getClaimDialects(int tenantId) throws ClaimMetadataException {
 
-        List<ClaimDialect> claimDialectList = claimDialectCache.getClaimDialects(tenantId);
+        List<ClaimDialect> claimDialectList = (List<ClaimDialect>) claimDialectDAOCache.getValueFromCache(tenantId,
+                tenantId);
         if (claimDialectList != null && !claimDialectList.isEmpty()) {
             if (log.isDebugEnabled()) {
                 log.debug("Cache hit for claim dialect list for tenant: " + tenantId + ". Claim dialect list size: "
@@ -48,13 +50,13 @@ public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
         }
 
         claimDialectList = super.getClaimDialects(tenantId);
-        claimDialectCache.putClaimDialects(tenantId, claimDialectList);
+        claimDialectDAOCache.addToCacheIfNoDuplicate(tenantId, new ArrayList<>(claimDialectList), tenantId);
 
         if (log.isDebugEnabled()) {
             log.debug("Cache miss for claim dialect list for tenant: " + tenantId + ". Updated cache with claim " +
                     "dialect list retrieved from database. Claim dialect list size: " + claimDialectList.size());
         }
-        return claimDialectList;
+        return new ArrayList<>(claimDialectList);
     }
 
     @Override
@@ -62,7 +64,7 @@ public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
             throws ClaimMetadataException {
 
         super.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
-        claimDialectCache.clearClaimDialects(tenantId);
+        claimDialectDAOCache.clearCacheEntry(tenantId, tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim dialect: " + oldClaimDialect.getClaimDialectURI() + " is renamed to new claim dialect: "
                     + newClaimDialect.getClaimDialectURI() + " for tenant: " + tenantId + ". Invalidated " +
@@ -74,7 +76,7 @@ public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
     public void removeClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         super.removeClaimDialect(claimDialect, tenantId);
-        claimDialectCache.clearClaimDialects(tenantId);
+        claimDialectDAOCache.clearCacheEntry(tenantId, tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim dialect: " + claimDialect.getClaimDialectURI() + " is removed for tenant: " + tenantId +
                     ". Invalidated ClaimDialectCache.");
@@ -85,7 +87,7 @@ public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
     public void addClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         super.addClaimDialect(claimDialect, tenantId);
-        claimDialectCache.clearClaimDialects(tenantId);
+        claimDialectDAOCache.clearCacheEntry(tenantId, tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim dialect: " + claimDialect.getClaimDialectURI() + " is added for tenant: " + tenantId +
                     ". Invalidated ClaimDialectCache.");
