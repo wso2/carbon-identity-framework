@@ -38,7 +38,7 @@ import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorM
 import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorMessage.ERROR_CODE_NO_ENABLED_ADAPTER;
 
 /**
- * Implementation of the EventAdapterMetadataService that manages event adopters metadata.
+ * Implementation of the EventAdapterMetadataService that manages event adapters metadata.
  * This service provides methods to retrieve available adapters and the currently active adapter.
  */
 public class EventAdapterMetadataServiceImpl implements EventAdapterMetadataService {
@@ -46,13 +46,13 @@ public class EventAdapterMetadataServiceImpl implements EventAdapterMetadataServ
     private static final Log log = LogFactory.getLog(EventAdapterMetadataServiceImpl.class);
     private static final EventAdapterMetadataServiceImpl INSTANCE = new EventAdapterMetadataServiceImpl();
 
-    private final FileBasedEventAdapterMetadataDAOImpl adopterMetadataDAO;
+    private final FileBasedEventAdapterMetadataDAOImpl adapterMetadataDAO;
     private boolean initialized = false;
-    private List<Adapter> adopters;
+    private List<Adapter> adapters;
 
     private EventAdapterMetadataServiceImpl() {
 
-        this.adopterMetadataDAO = FileBasedEventAdapterMetadataDAOImpl.getInstance();
+        this.adapterMetadataDAO = FileBasedEventAdapterMetadataDAOImpl.getInstance();
     }
 
     public static EventAdapterMetadataServiceImpl getInstance() {
@@ -69,12 +69,12 @@ public class EventAdapterMetadataServiceImpl implements EventAdapterMetadataServ
             return;
         }
         try {
-            adopterMetadataDAO.init();
-            adopters = adopterMetadataDAO.getAdopters();
+            adapterMetadataDAO.init();
+            adapters = adapterMetadataDAO.getAdapters();
             initialized = true;
-            List<Adapter> enabled = adopters.stream().filter(Adapter::isEnabled).collect(Collectors.toList());
+            List<Adapter> enabled = adapters.stream().filter(Adapter::isEnabled).collect(Collectors.toList());
             if (enabled.size() > 1) {
-                log.warn("Multiple enabled adopters found: " +
+                log.warn("Multiple enabled adapters found: " +
                         enabled.stream().map(Adapter::getName).collect(Collectors.joining(", ")) +
                         ". Only the first will be used as active.");
             }
@@ -92,7 +92,7 @@ public class EventAdapterMetadataServiceImpl implements EventAdapterMetadataServ
             throw WebhookMetadataExceptionHandler.handleServerException(
                     ERROR_CODE_ADAPTERS_RETRIEVE_ERROR);
         }
-        return Collections.unmodifiableList(adopters);
+        return Collections.unmodifiableList(adapters);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class EventAdapterMetadataServiceImpl implements EventAdapterMetadataServ
             throw WebhookMetadataExceptionHandler.handleServerException(
                     ERROR_CODE_ENABLED_ADAPTER_RETRIEVE_ERROR);
         }
-        return adopters.stream()
+        return adapters.stream()
                 .filter(Adapter::isEnabled)
                 .findFirst()
                 .orElseThrow(() -> WebhookMetadataExceptionHandler.handleServerException(
@@ -116,7 +116,7 @@ public class EventAdapterMetadataServiceImpl implements EventAdapterMetadataServ
             throw WebhookMetadataExceptionHandler.handleServerException(
                     ERROR_CODE_ADAPTERS_RETRIEVE_ERROR);
         }
-        return adopters.stream()
+        return adapters.stream()
                 .filter(adapter -> adapter.getName().equals(name))
                 .findFirst()
                 .orElseThrow(() -> WebhookMetadataExceptionHandler.handleServerException(

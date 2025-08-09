@@ -145,6 +145,8 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                 .uri(endpointConfig.getUri())
                 .authenticationType(endpointConfig.getAuthentication().getType().getName())
                 .authenticationProperties(propMap)
+                .allowedHeaders(endpointConfig.getAllowedHeaders())
+                .allowedParameters(endpointConfig.getAllowedParameters())
                 .build();
     }
 

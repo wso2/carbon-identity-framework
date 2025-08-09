@@ -87,7 +87,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
                 {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION, "applicationInitiatedPasswordUpdate"},
                 {Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordReset"},
                 {Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER, "userInitiatedPasswordReset"},
-                {Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD, Flow.InitiatingPersona.ADMIN,
+                {Flow.Name.INVITE, Flow.InitiatingPersona.ADMIN,
                         "adminInitiatedUserInviteToSetPassword"},
                 {Flow.Name.INVITED_USER_REGISTRATION, Flow.InitiatingPersona.ADMIN,
                         "adminInitiatedUserInviteToSetPassword"}
@@ -100,7 +100,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
 
         doReturn(flowName).when(flow).getName();
         doReturn(initiatingPersona).when(flow).getInitiatingPersona();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
 
         List<FieldValue> fieldValues = dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
         assertEquals(fieldValues.size(), 1);
@@ -120,7 +120,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
 
         doReturn(Flow.Name.PASSWORD_RESET).when(flow).getName();
         doReturn(Flow.InitiatingPersona.APPLICATION).when(flow).getInitiatingPersona();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
     }
 }

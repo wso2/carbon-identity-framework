@@ -268,5 +268,26 @@
       "console.ui.legacy_mode.applicationSystemAppsSettings": true,
       "console.ui.legacy_mode.roleMapping": false
     }
+  },
+  "preserve_previous_product_behaviour.version": {
+    "IS_7.0.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
+      "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+      "session_management.filter_by_unique_session_id_for_user": false,
+      "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+      "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+      "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
+      "console.identity_providers.disabled_features": []
+    },
+    "IS_7.1.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
+      "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+      "session_management.filter_by_unique_session_id_for_user": false,
+      "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+      "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+      "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
+      "console.identity_providers.disabled_features": [],
+      "scim2.enable_scim2_roles_v3_api": false
+    }
   }
 }

@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorServi
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.execution.PreUpdateProfileRequestBuilder;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.execution.PreUpdateProfileResponseProcessor;
@@ -141,5 +142,24 @@ public class PreUpdateProfileActionServiceComponent {
 
         PreUpdateProfileActionServiceComponentHolder.getInstance().setClaimManagementService(null);
         LOG.debug("ClaimMetadataManagementService unset in PreUpdateProfileActionServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "organization.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        PreUpdateProfileActionServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("Organization management service set in PreUpdateProfileActionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        PreUpdateProfileActionServiceComponentHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("Organization management service unset in PreUpdateProfileActionServiceComponentHolder bundle.");
     }
 }

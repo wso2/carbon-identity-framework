@@ -1362,7 +1362,6 @@
             Default value : false
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
-        <UserSessionImpersonation>{{oauth.enable_user_session_impersonation}}</UserSessionImpersonation>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1650,6 +1649,8 @@
         {% if scim2.enable_error_code_for_password_policy_violations is defined %}
             <EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>
         {% endif %}
+
+        <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
     </SCIM2>
 
       <PasswordPolicy>
@@ -2189,6 +2190,9 @@
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
             </PreUpdateProfile>
+            <PreUpdatePassword>
+                <EnableInRegistrationFlows>{{actions.types.pre_update_password.enable_in_registration_flows}}</EnableInRegistrationFlows>
+            </PreUpdatePassword>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
                 <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
@@ -2493,6 +2497,18 @@
                        name="org.wso2.carbon.extension.identity.verification.mgt.listeners.IdVUserOperationEventListener"
                        orderId="{{event.default_listener.identity_verification_event_listener.priority}}"
                        enable="{{event.default_listener.identity_verification_event_listener.enable}}"/>
+
+       <!-- Workflow event listeners -->
+       <EventListener id="identity_user_workflow_operation"
+                      type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
+                      orderId="{{event.default_listener.identity_user_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_user_workflow_operation.enable}}"/>
+       <EventListener id="identity_role_workflow_operation"
+                      type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.RoleManagementActionListener"
+                      orderId="{{event.default_listener.identity_role_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_role_workflow_operation.enable}}"/>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
@@ -4657,9 +4673,22 @@
     </AsyncOperationStatus>
 
     <FlowExecution>
+        {% if flow_execution.excluded_userstores is defined %}
+        <ExcludedUserstores>
+            {% for userstore in flow_execution.excluded_userstores %}
+            <Userstore>{{userstore}}</Userstore>
+            {% endfor %}
+        </ExcludedUserstores>
+        {% endif %}
         <UserAssertion>
             <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
         </UserAssertion>
+        <DefaultTTL>{{flow_execution.default_ttl}}</DefaultTTL>
+        <FlowTypeTTLs>
+            {% for flow_type, ttl in flow_execution.flow_type_ttl.items() %}
+            <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
+            {% endfor %}
+        </FlowTypeTTLs>
     </FlowExecution>
 
 </Server>

@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionReques
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -43,6 +44,7 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.realm.UserStoreModel;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
 import org.wso2.carbon.identity.user.pre.update.profile.action.api.model.PreUpdateProfileAction;
@@ -84,6 +86,17 @@ import static org.wso2.carbon.identity.user.pre.update.profile.action.constant.P
 import static org.wso2.carbon.identity.user.pre.update.profile.action.constant.PreUpdateProfileTestConstants.TENANT_ID;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.constant.PreUpdateProfileTestConstants.USER_ID;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.constant.PreUpdateProfileTestConstants.USER_STORE_DOMAIN;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ROOT_ORG_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ROOT_ORG_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ROOT_ORG_TENANT_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACCESSING_ORG_DEPTH;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACCESSING_ORG_HANDLE;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACCESSING_ORG_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACCESSING_ORG_NAME;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_RESIDENT_ORG_DEPTH;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_RESIDENT_ORG_HANDLE;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_RESIDENT_ORG_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_RESIDENT_ORG_NAME;
 
 @WithCarbonHome
 @WithH2Database(files = {"dbscripts/h2.sql"})
@@ -93,6 +106,9 @@ public class PreUpdateProfileRequestBuilderTest {
 
     private PreUpdateProfileRequestBuilder preUpdateProfileRequestBuilder;
     private UserStoreModel userStoreModel;
+    private Organization userResidentOrganization;
+    private org.wso2.carbon.identity.core.context.model.Organization accessingOrganization;
+    private org.wso2.carbon.identity.core.context.model.RootOrganization rootOrganization;
     private ClaimMetadataManagementService claimMetadataManagementService;
     private MockedStatic<FrameworkUtils> frameworkUtils;
 
@@ -112,6 +128,24 @@ public class PreUpdateProfileRequestBuilderTest {
 
         PreUpdateProfileActionServiceComponentHolder.getInstance()
                 .setClaimManagementService(claimMetadataManagementService);
+
+        userResidentOrganization = new Organization.Builder()
+                .id(TEST_RESIDENT_ORG_ID)
+                .name(TEST_RESIDENT_ORG_NAME)
+                .orgHandle(TEST_RESIDENT_ORG_HANDLE)
+                .depth(TEST_RESIDENT_ORG_DEPTH)
+                .build();
+        rootOrganization = new RootOrganization.Builder()
+                .associatedTenantId(ROOT_ORG_TENANT_ID)
+                .associatedTenantDomain(ROOT_ORG_TENANT_DOMAIN)
+                .organizationId(ROOT_ORG_ID)
+                .build();
+        accessingOrganization = new org.wso2.carbon.identity.core.context.model.Organization.Builder()
+                .id(TEST_ACCESSING_ORG_ID)
+                .name(TEST_ACCESSING_ORG_NAME)
+                .organizationHandle(TEST_ACCESSING_ORG_HANDLE)
+                .depth(TEST_ACCESSING_ORG_DEPTH)
+                .build();
     }
 
     @AfterClass
@@ -131,6 +165,8 @@ public class PreUpdateProfileRequestBuilderTest {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(TENANT_ID);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(
                 PreUpdateProfileTestConstants.TENANT_DOMAIN);
+
+        IdentityContext.getThreadLocalIdentityContext().setRootOrganization(rootOrganization);
     }
 
     @AfterMethod
@@ -151,21 +187,31 @@ public class PreUpdateProfileRequestBuilderTest {
     public Object[][] flowData() {
 
         return new Object[][]{
-                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER),
+                {false, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER),
                         PreUpdateProfileEvent.FlowInitiatorType.USER},
-                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
+                {false, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
                         PreUpdateProfileEvent.FlowInitiatorType.ADMIN},
-                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION),
+                {false, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION),
+                        PreUpdateProfileEvent.FlowInitiatorType.APPLICATION},
+                {true, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER),
+                        PreUpdateProfileEvent.FlowInitiatorType.USER},
+                {true, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
+                        PreUpdateProfileEvent.FlowInitiatorType.ADMIN},
+                {true, buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION),
                         PreUpdateProfileEvent.FlowInitiatorType.APPLICATION}
         };
     }
 
     @Test(dataProvider = "flowData")
-    public void testBuildActionExecutionRequest(Flow mockedFlow,
+    public void testBuildActionExecutionRequest(boolean isOrganizationFlow, Flow mockedFlow,
                                                 PreUpdateProfileEvent.FlowInitiatorType expectedInitiatorType)
             throws ActionExecutionRequestBuilderException {
 
-        IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
+        if (isOrganizationFlow) {
+            IdentityContext.getThreadLocalIdentityContext().setOrganization(accessingOrganization);
+        }
+
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(mockedFlow);
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -185,10 +231,6 @@ public class PreUpdateProfileRequestBuilderTest {
         assertTrue(request.getEvent() instanceof PreUpdateProfileEvent);
         // Validate 'event'
         PreUpdateProfileEvent event = (PreUpdateProfileEvent) request.getEvent();
-        assertNotNull(event.getTenant());
-        assertEquals(event.getTenant().getId(), String.valueOf(TENANT_ID));
-        assertEquals(event.getTenant().getName(), TENANT_DOMAIN);
-        assertNull(event.getOrganization());
         assertEquals(event.getAction(), PreUpdateProfileEvent.Action.UPDATE);
         assertEquals(event.getInitiatorType(), expectedInitiatorType);
         assertNotNull(event.getUserStore());
@@ -212,6 +254,20 @@ public class PreUpdateProfileRequestBuilderTest {
         assertTrue(event.getUser().getGroups().containsAll(Arrays.asList((String[]) GROUPS.getExistingValue())));
         // Validate 'roles' in 'user' is empty as roles are not expected to be shared at this instance.
         assertEquals(event.getUser().getRoles().size(), 0);
+
+        assertEquals(event.getTenant().getId(), String.valueOf(ROOT_ORG_TENANT_ID));
+        assertEquals(event.getTenant().getName(), ROOT_ORG_TENANT_DOMAIN);
+
+        if (isOrganizationFlow) {
+            assertNotNull(event.getOrganization());
+            assertEquals(event.getOrganization().getId(), accessingOrganization.getId());
+            assertEquals(event.getOrganization().getName(), accessingOrganization.getName());
+            assertEquals(event.getOrganization().getOrgHandle(), accessingOrganization.getOrganizationHandle());
+            assertEquals(event.getOrganization().getDepth(), accessingOrganization.getDepth());
+            assertEquals(event.getUser().getOrganization(), userResidentOrganization);
+        } else {
+            assertNull(event.getOrganization());
+        }
     }
 
     @Test
@@ -219,7 +275,7 @@ public class PreUpdateProfileRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -240,8 +296,8 @@ public class PreUpdateProfileRequestBuilderTest {
         // Validate 'event'
         PreUpdateProfileEvent event = (PreUpdateProfileEvent) request.getEvent();
         assertNotNull(event.getTenant());
-        assertEquals(event.getTenant().getId(), String.valueOf(TENANT_ID));
-        assertEquals(event.getTenant().getName(), TENANT_DOMAIN);
+        assertEquals(event.getTenant().getId(), String.valueOf(ROOT_ORG_TENANT_ID));
+        assertEquals(event.getTenant().getName(), ROOT_ORG_TENANT_DOMAIN);
         assertNull(event.getOrganization());
         assertEquals(event.getAction(), PreUpdateProfileEvent.Action.UPDATE);
         assertEquals(event.getInitiatorType(), PreUpdateProfileEvent.FlowInitiatorType.USER);
@@ -279,7 +335,7 @@ public class PreUpdateProfileRequestBuilderTest {
                 .setClaimManagementService(failingClaimMetadataManagementService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -308,7 +364,7 @@ public class PreUpdateProfileRequestBuilderTest {
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -341,7 +397,7 @@ public class PreUpdateProfileRequestBuilderTest {
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -375,7 +431,7 @@ public class PreUpdateProfileRequestBuilderTest {
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
         FlowContext flowContext = FlowContext.create();
         flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
@@ -467,7 +523,7 @@ public class PreUpdateProfileRequestBuilderTest {
         }
     }
 
-    private static UserActionContext getMockUserActionContextWithUpdatingClaims() {
+    private UserActionContext getMockUserActionContextWithUpdatingClaims() {
 
         return new UserActionContext(new UserActionRequestDTO.Builder()
                 .userId(USER_ID)
@@ -479,6 +535,7 @@ public class PreUpdateProfileRequestBuilderTest {
                 .addClaim(CLAIM5.getClaimURI(), (String) CLAIM5.getUpdatingValue())
                 .addClaim(GROUPS.getClaimURI(), (String[]) GROUPS.getUpdatingValue())
                 .addClaim(ROLES.getClaimURI(), (String[]) ROLES.getUpdatingValue())
+                .residentOrganization(userResidentOrganization)
                 .build());
     }
 

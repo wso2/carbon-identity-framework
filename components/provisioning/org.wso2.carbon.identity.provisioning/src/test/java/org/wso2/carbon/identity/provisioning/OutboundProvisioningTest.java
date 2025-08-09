@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
 import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
@@ -222,7 +223,9 @@ public class OutboundProvisioningTest {
              MockedStatic<IdentityTenantUtil> identityTenantUtil = Mockito.mockStatic(IdentityTenantUtil.class);
              MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = Mockito.mockStatic(IdentityDatabaseUtil.class);
              MockedStatic<ApplicationManagementService> appMgtService = Mockito.mockStatic(ApplicationManagementService.class);
-             MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<OrganizationManagementUtil> organizationManagementUtil = Mockito.mockStatic(
+                     OrganizationManagementUtil.class)) {
 
             mockCarbonContext(carbonContext);
             connection = getConnection(DB_NAME);
@@ -232,6 +235,8 @@ public class OutboundProvisioningTest {
             identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN)).thenReturn(SUPER_TENANT_ID);
             identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(SUPER_TENANT_ID)).thenReturn(SUPER_TENANT_DOMAIN);
             identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenReturn("PRIMARY");
+            organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                    .thenReturn(false);
             appMgtService.when(ApplicationManagementService::getInstance).thenReturn(applicationManagementService);
             when(applicationManagementService.getServiceProvider(anyString(), anyString())).thenReturn(serviceProvider);
             when(userStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);

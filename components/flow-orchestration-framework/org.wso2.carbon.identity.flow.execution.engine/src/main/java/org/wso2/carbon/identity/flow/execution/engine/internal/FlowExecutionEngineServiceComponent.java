@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionList
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.Comparator;
@@ -203,5 +204,22 @@ public class FlowExecutionEngineServiceComponent {
 
         LOG.debug("Unsetting the Flow Execution Listener in the Flow Engine component.");
         FlowExecutionEngineDataHolder.getInstance().getFlowListeners().remove(flowExecutionListener);
+    }
+
+    @Reference(
+            name = "FederatedAssociationManager",
+            service = FederatedAssociationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetFederatedAssociationManager"
+    )
+    public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
+
+        FlowExecutionEngineDataHolder.getInstance().setFederatedAssociationManager(federatedAssociationManager);
+    }
+
+    public void unsetFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
+
+        FlowExecutionEngineDataHolder.getInstance().setFederatedAssociationManager(null);
     }
 }

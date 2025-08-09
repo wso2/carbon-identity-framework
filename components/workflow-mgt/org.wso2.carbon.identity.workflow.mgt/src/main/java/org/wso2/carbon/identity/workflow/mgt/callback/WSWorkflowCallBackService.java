@@ -37,9 +37,9 @@ public class WSWorkflowCallBackService {
     private static final Log log = LogFactory.getLog(WSWorkflowCallBackService.class);
 
     /**
-     * The callback operation to be called on the completion of the workflow executor service
+     * The callback operation to be called on the completion of the workflow executor service.
      *
-     * @param response  Response received from workflow engine
+     * @param response  Response received from workflow engine.
      */
     public void onCallback(WSWorkflowResponse response) {
 

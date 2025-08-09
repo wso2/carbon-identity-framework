@@ -27,13 +27,21 @@
     </test>
     <test name="webhook-metadata-dao-test">
         <classes>
-            <class name="org.wso2.carbon.identity.webhook.metadata.dao.FileBasedWebhookMetadataDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.webhook.metadata.dao.FileBasedEventProfileMetadataDAOImplTest"/>
             <class name="org.wso2.carbon.identity.webhook.metadata.dao.FileBasedEventAdapterMetadataDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.webhook.metadata.dao.WebhookMetadataDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.webhook.metadata.dao.CacheBackedWebhookMetadataDAOTest"/>
         </classes>
     </test>
     <test name="webhook-metadata-internal-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.metadata.internal.WebhookMetadataComponentServiceHolderTest"/>
+        </classes>
+    </test>
+    <test name="webhook-metadata-util-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.webhook.metadata.util.WebhookMetadataValidatorTest"/>
+            <class name="org.wso2.carbon.identity.webhook.metadata.util.WebhookMetadataUtilTest"/>
         </classes>
     </test>
 </suite>

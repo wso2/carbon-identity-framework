@@ -23,8 +23,18 @@ package org.wso2.carbon.identity.webhook.metadata.api.exception;
  */
 public class WebhookMetadataException extends Exception {
 
-    private final String errorCode;
-    private final String description;
+    private String errorCode;
+    private String description;
+
+    public WebhookMetadataException(String message) {
+
+        super(message);
+    }
+
+    public WebhookMetadataException(String message, Throwable cause) {
+
+        super(message, cause);
+    }
 
     public WebhookMetadataException(String message, String description, String errorCode) {
 

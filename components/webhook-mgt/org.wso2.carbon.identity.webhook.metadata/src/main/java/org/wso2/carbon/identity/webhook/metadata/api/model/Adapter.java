@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.webhook.metadata.api.model;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents a webhook adapter with its properties.
@@ -60,28 +59,6 @@ public class Adapter {
     public Map<String, String> getProperties() {
 
         return properties;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Adapter)) {
-            return false;
-        }
-        Adapter adapter = (Adapter) o;
-        return enabled == adapter.enabled &&
-                Objects.equals(name, adapter.name) &&
-                Objects.equals(type, adapter.type) &&
-                Objects.equals(properties, adapter.properties);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(name, type, enabled, properties);
     }
 
     /**

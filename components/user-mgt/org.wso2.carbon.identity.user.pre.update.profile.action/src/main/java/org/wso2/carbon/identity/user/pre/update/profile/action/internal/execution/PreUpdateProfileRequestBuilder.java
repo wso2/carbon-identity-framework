@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionReques
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
 import org.wso2.carbon.identity.user.pre.update.profile.action.api.model.PreUpdateProfileAction;
@@ -99,14 +101,15 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
 
         UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
         eventBuilder.user(getUser(userActionContext, preUpdateProfileAction, userStoreManager));
-        eventBuilder.userStore(getUserStore(userActionContext, userStoreManager));
+        eventBuilder.userStore(getUserStore(userActionContext.getUserActionRequestDTO(), userStoreManager));
+        eventBuilder.organization(getOrganization());
 
         return eventBuilder.build();
     }
 
     private PreUpdateProfileEvent.FlowInitiatorType getInitiatorType() throws ActionExecutionRequestBuilderException {
 
-        Flow flow = Optional.ofNullable(IdentityContext.getThreadLocalIdentityContext().getFlow())
+        Flow flow = Optional.ofNullable(IdentityContext.getThreadLocalIdentityContext().getCurrentFlow())
                 .orElseThrow(() -> new ActionExecutionRequestBuilderException("Unknown flow."));
 
         switch (flow.getInitiatingPersona()) {
@@ -153,10 +156,32 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         return preUpdateProfileRequestBuilder.build();
     }
 
-    private Tenant getTenant() {
+    private Tenant getTenant() throws ActionExecutionRequestBuilderException {
 
-        return new Tenant(String.valueOf(IdentityContext.getThreadLocalIdentityContext().getTenantId()),
-                IdentityContext.getThreadLocalIdentityContext().getTenantDomain());
+        RootOrganization rootOrganization = IdentityContext.getThreadLocalIdentityContext().getRootOrganization();
+        if (rootOrganization == null) {
+            throw new ActionExecutionRequestBuilderException("Root organization information is not available in " +
+                    "Identity Context.");
+        }
+
+        return new Tenant(String.valueOf(rootOrganization.getAssociatedTenantId()),
+                rootOrganization.getAssociatedTenantDomain());
+    }
+
+    private Organization getOrganization() {
+
+        org.wso2.carbon.identity.core.context.model.Organization organization =
+                IdentityContext.getThreadLocalIdentityContext().getOrganization();
+        if (organization == null) {
+            return null;
+        }
+
+        return new Organization.Builder()
+                .id(organization.getId())
+                .name(organization.getName())
+                .orgHandle(organization.getOrganizationHandle())
+                .depth(organization.getDepth())
+                .build();
     }
 
     private User getUser(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction,
@@ -165,13 +190,15 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         UserActionRequestDTO userActionRequestDTO = userActionContext.getUserActionRequestDTO();
         List<String> userClaimsToSetInEvent = preUpdateProfileAction.getAttributes();
 
-        User.Builder userBuilder = new User.Builder(userActionRequestDTO.getUserId());
+        User.Builder userBuilder = new User.Builder(userActionRequestDTO.getUserId())
+                .organization(userActionRequestDTO.getResidentOrganization())
+                .sharedUserId(userActionRequestDTO.getSharedUserId());
         if (userClaimsToSetInEvent == null || userClaimsToSetInEvent.isEmpty()) {
             return userBuilder.build();
         }
 
-        Map<String, String> claimValues = getClaimValues(userActionRequestDTO.getUserId(), userClaimsToSetInEvent,
-                userStoreManager);
+        Map<String, String> claimValues = getClaimValues(resolveOrgBoundUserId(userActionRequestDTO),
+                userClaimsToSetInEvent, userStoreManager);
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
         setClaimsInUserBuilder(userBuilder, claimValues, userActionRequestDTO.getClaims(), multiAttributeSeparator);
@@ -268,16 +295,15 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         return new UpdatingUserClaim(claimKey, claimValue);
     }
 
-    private UserStore getUserStore(UserActionContext userActionContext, UniqueIDUserStoreManager userStoreManager)
+    private UserStore getUserStore(UserActionRequestDTO userActionRequestDTO, UniqueIDUserStoreManager userStoreManager)
             throws ActionExecutionRequestBuilderException {
 
-        String userStoreDomain = userActionContext.getUserActionRequestDTO().getUserStoreDomain();
+        String userStoreDomain = userActionRequestDTO.getUserStoreDomain();
         if (StringUtils.isBlank(userStoreDomain)) {
 
             try {
-                org.wso2.carbon.user.core.common.User userFromUserStore =
-                        userStoreManager.getUserWithID(userActionContext.getUserActionRequestDTO().getUserId(), null,
-                                UserCoreConstants.DEFAULT_PROFILE);
+                org.wso2.carbon.user.core.common.User userFromUserStore = userStoreManager.getUserWithID(
+                        resolveOrgBoundUserId(userActionRequestDTO), null, UserCoreConstants.DEFAULT_PROFILE);
                 userStoreDomain = userFromUserStore.getUserStoreDomain();
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
                 throw new ActionExecutionRequestBuilderException("Error while retrieving user store domain.", e);
@@ -338,5 +364,14 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
             throw new ActionExecutionRequestBuilderException("Error while retrieving claim metadata for claim URI: " +
                     claimUri, e);
         }
+    }
+
+    private static String resolveOrgBoundUserId(UserActionRequestDTO userActionRequestDTO) {
+
+        // If the user is shared, shared user id should be returned.
+        if (userActionRequestDTO.getSharedUserId() != null) {
+            return userActionRequestDTO.getSharedUserId();
+        }
+        return userActionRequestDTO.getUserId();
     }
 }

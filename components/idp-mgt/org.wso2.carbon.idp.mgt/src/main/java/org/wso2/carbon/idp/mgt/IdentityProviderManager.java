@@ -466,14 +466,14 @@ public class IdentityProviderManager implements IdpManager {
 
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreDeleteResidentIdpProperties(tenantDomain, propertyNames)) {
+            if (listener.isEnable() && !listener.doPreDeleteResidentIdpProperties(propertyNames, tenantDomain)) {
                 return;
             }
         }
 
         dao.deleteIdpProperties(residentIdp, propertyNames, tenantDomain);
         for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostDeleteResidentIdpProperties(tenantDomain, propertyNames)) {
+            if (listener.isEnable() && !listener.doPostDeleteResidentIdpProperties(propertyNames, tenantDomain)) {
                 return;
             }
         }
