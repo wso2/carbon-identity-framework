@@ -962,38 +962,12 @@
                    description="Delete webhooks in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Webhook Management API" identifier="/o/api/server/v1/webhooks"
-                 requiresAuthorization="true"
-                 description="API representation of the Webhook Management API" type="ORGANIZATION">
-        <Scopes>
-            <Scope displayName="View Webhooks" name="internal_org_webhook_mgt_view"
-                   description="View webhooks in the organization"/>
-            <Scope displayName="Create Webhooks" name="internal_org_webhook_mgt_create"
-                   description="Create webhooks in the organization"/>
-            <Scope displayName="Update Webhooks" name="internal_org_webhook_mgt_update"
-                   description="Update webhooks in the organization"/>
-            <Scope displayName="Delete Webhooks" name="internal_org_webhook_mgt_delete"
-                   description="Delete webhooks in the organization"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Webhook Metadata API" identifier="/api/server/v1/webhooks/metadata"
                  requiresAuthorization="true"
                  description="API representation of the Webhook Metadata API" type="TENANT">
         <Scopes>
             <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
                    description="View webhook metadata in the organization (root)"/>
-            <Scope displayName="Update Webhook Metadata" name="internal_webhook_meta_update"
-                   description="Update webhook metadata in the organization (root)"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Webhook Metadata API" identifier="/o/api/server/v1/webhooks/metadata"
-                 requiresAuthorization="true"
-                 description="API representation of the Webhook Metadata API" type="ORGANIZATION">
-        <Scopes>
-            <Scope displayName="View Webhook Metadata" name="internal_org_webhook_meta_view"
-                   description="View webhook metadata in the organization"/>
-            <Scope displayName="Update Webhook Metadata" name="internal_org_webhook_meta_update"
-                   description="Update webhook metadata in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management API v1/v2"
@@ -1139,19 +1113,6 @@
                    description="Manage views of applications in the organization from the Console"/>
             <Scope displayName="Application Edit Feature" name="console:org:applications_edit"
                    description="Manage edits of applications in the organization from the Console"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Webhook Management Feature" identifier="console:org:webhooks"
-                 requiresAuthorization="true"
-                 description="Resource representation of the Webhook Management Feature"
-                 type="CONSOLE_ORG_FEATURE">
-        <Scopes>
-            <Scope displayName="Webhook Feature" name="console:org:webhooks"
-                   description="Manage webhooks from the Console"/>
-            <Scope displayName="Webhook View Feature" name="console:org:webhooks_view"
-                   description="Manage views of webhooks from the Console"/>
-            <Scope displayName="Webhook Edit Feature" name="console:org:webhooks_edit"
-                   description="Manage edits of webhooks from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:branding"

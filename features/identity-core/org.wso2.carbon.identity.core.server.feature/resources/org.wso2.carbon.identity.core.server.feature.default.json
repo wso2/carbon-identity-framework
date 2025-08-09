@@ -1371,8 +1371,7 @@
     "internal_webhook_meta_view"
   ],
   "console.webhooks.scopes.update": [
-    "internal_webhook_mgt_update",
-    "internal_webhook_meta_update"
+    "internal_webhook_mgt_update"
   ],
   "console.webhooks.scopes.delete": ["internal_webhook_mgt_delete"],
   "console.administrators.enabled": false,
