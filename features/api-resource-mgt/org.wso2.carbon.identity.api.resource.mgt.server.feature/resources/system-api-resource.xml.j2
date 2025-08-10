@@ -1530,6 +1530,32 @@
                     description="Manage edits of approval workflows from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Workflow Instance Management Feature" identifier="console:workflowInstances"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Workflow Instance Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Workflow Instance Feature" name="console:workflowInstances"
+                    description="Manage workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance View Feature" name="console:workflowInstances_view"
+                    description="Manage views of workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance Edit Feature" name="console:workflowInstances_edit"
+                    description="Manage edits of workflow instances from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Instance Management Feature" identifier="console:org:workflowInstances"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Workflow Instance Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Workflow Instance Feature" name="console:org:workflowInstances"
+                    description="Manage workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance View Feature" name="console:org:workflowInstances_view"
+                    description="Manage views of workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance Edit Feature" name="console:org:workflowInstances_edit"
+                    description="Manage edits of workflow instances in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
                  requiresAuthorization="true"
                  description="Resource representation of the Notification Channel Management Feature"
