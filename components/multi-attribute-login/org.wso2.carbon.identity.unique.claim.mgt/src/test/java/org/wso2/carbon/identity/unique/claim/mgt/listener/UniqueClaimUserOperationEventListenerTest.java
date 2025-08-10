@@ -247,10 +247,11 @@ public class UniqueClaimUserOperationEventListenerTest {
         when(claimManager.getClaim(anyString())).thenReturn(emailClaimMetaDate);
 
         java.lang.reflect.Method method = UniqueClaimUserOperationEventListener.class.getDeclaredMethod(
-                "checkClaimUniqueness", String.class, Map.class, String.class, UserStoreManager.class, Object.class);
+                "checkClaimUniqueness", String.class, Map.class, String.class, UserStoreManager.class, Object.class,
+                boolean.class);
         method.setAccessible(true);
         try {
-            method.invoke(listener, username, claims, profile, userStoreManager, credential);
+            method.invoke(listener, username, claims, profile, userStoreManager, credential, false);
         } catch (InvocationTargetException e) {
             assertEquals(e.getTargetException().getClass(), org.wso2.carbon.user.core.UserStoreException.class);
             assertTrue(e.getTargetException().getMessage().contains("Password cannot be equal to the value defined " +
