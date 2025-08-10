@@ -363,6 +363,7 @@
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
 
   "user_account_association.enable_sha256": true,
+  "federated_user_account_association.max_bulk_operations": 1000,
 
   "entitlement.thrift.enable": false,
   "entitlement.thrift.receiver_port": "${Ports.ThriftEntitlementReceivePort}",
@@ -1371,8 +1372,7 @@
     "internal_webhook_meta_view"
   ],
   "console.webhooks.scopes.update": [
-    "internal_webhook_mgt_update",
-    "internal_webhook_meta_update"
+    "internal_webhook_mgt_update"
   ],
   "console.webhooks.scopes.delete": ["internal_webhook_mgt_delete"],
   "console.administrators.enabled": false,
