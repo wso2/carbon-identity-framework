@@ -25,8 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -58,20 +59,23 @@ import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 import com.google.gson.Gson;
 
 /**
- * Listener class to create, update, activate and deactivate tenants in API Manager when tenant related task is
+ * Listener class to create, update, activate and deactivate tenants when tenant related task is
  * triggered in Identity server
  */
 
-public class APIManagerTenantSyncListener implements TenantMgtListener {
+public class TenantSyncListener implements TenantMgtListener {
 
-    private static final Log log = LogFactory.getLog(APIManagerTenantSyncListener.class);
+    private static final Log LOG = LogFactory.getLog(TenantSyncListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(200, 500, 100L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingDeque<Runnable>() {
+            });
 
     @Override
     public void onTenantCreate(TenantInfoBean tenantInfo) throws StratosException {
 
-        if (canCreateTenantInAPIM(tenantInfo.getTenantId())) {
+        if (canCreateTenant(tenantInfo.getTenantId())) {
             sendEvent(tenantInfo, TenantManagement.ACTION_CREATE, TenantManagement.EVENT_CREATE_TENANT_URI);
         }
 
@@ -80,7 +84,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
     @Override
     public void onTenantUpdate(TenantInfoBean tenantInfo) throws StratosException {
 
-        if (canCreateTenantInAPIM(tenantInfo.getTenantId())) {
+        if (canCreateTenant(tenantInfo.getTenantId())) {
             sendEvent(tenantInfo, TenantManagement.ACTION_UPDATE, TenantManagement.EVENT_UPDATE_TENANT_URI);
         }
 
@@ -104,7 +108,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
     @Override
     public void onTenantActivation(int tenantId) throws StratosException {
 
-        if (canCreateTenantInAPIM(tenantId)) {
+        if (canCreateTenant(tenantId)) {
             TenantInfoBean tenantInfo = new TenantInfoBean();
             try {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
@@ -118,7 +122,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
                 tenantInfo.setActive(true);
                 sendEvent(tenantInfo, TenantManagement.ACTION_ACTIVATE, TenantManagement.EVENT_ACTIVATE_TENANT_URI);
             } catch (UserStoreException e) {
-                log.error("Error while activating tenant in API Manager ", e);
+                LOG.error("Error while activating tenant ", e);
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();
             }
@@ -128,7 +132,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
     @Override
     public void onTenantDeactivation(int tenantId) throws StratosException {
 
-        if (canCreateTenantInAPIM(tenantId)) {
+        if (canCreateTenant(tenantId)) {
             TenantInfoBean tenantInfo = new TenantInfoBean();
             try {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
@@ -142,7 +146,7 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
                 tenantInfo.setActive(false);
                 sendEvent(tenantInfo, TenantManagement.ACTION_DEACTIVATE, TenantManagement.EVENT_ACTIVATE_TENANT_URI);
             } catch (UserStoreException e) {
-                log.error("Error while deactivating tenant in API Manager ", e);
+                LOG.error("Error while deactivating tenant ", e);
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();
             }
@@ -167,20 +171,20 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
     /**
      * Check whether tenant sharing is enabled and whether the creation is only a root organization.
-     * 
+     *
      * @param tenantId id of the tenant
-     * @return boolean
+     * @return boolean Tenant creation firing is enable or not.
      */
-    private boolean canCreateTenantInAPIM(int tenantId) {
+    private boolean canCreateTenant(int tenantId) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Checking if tenant can be created in API Manager. Tenant ID: " + tenantId);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Checking if tenant can be created. Tenant ID: " + tenantId);
         }
 
         boolean canCreateTenant = false;
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
-                UserOperationEventListener.class.getName(), APIManagerTenantSyncListener.class.getName());
+                UserOperationEventListener.class.getName(), TenantSyncListener.class.getName());
 
         if (StringUtils.isNotBlank(identityEventListenerConfig.getEnable())
                 && Boolean.parseBoolean(identityEventListenerConfig.getEnable())) {
@@ -199,49 +203,49 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
                     canCreateTenant = true;
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("Tenant is a root organization and can be created in API Manager. Tenant ID: "
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Tenant is a root organization and can be created. Tenant ID: "
                                 + tenantId);
                     }
 
                 } else {
-                    log.debug("Skipping creating the tenant in APIM since the triggered Event is not related "
+                    LOG.debug("Skipping creating the tenant since the triggered Event is not related "
                             + "to a root org creation.");
                 }
 
                 // if there was an exception thrown here, tenant activation won't happen
             } catch (UserStoreException | OrganizationManagementServerException e) {
-                log.error("Error while creating tenant in API Manager ", e);
+                LOG.error("Error while creating tenant ", e);
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();
             }
         } else {
-            log.debug(
-                    "Tenant sharing is disabled. Skipping tenant creation in API Manager for tenant ID : " + tenantId);
+            LOG.debug(
+                    "Tenant sharing is disabled. Skipping tenant creation for tenant ID : " + tenantId);
         }
         return canCreateTenant;
     }
 
     /**
      * Method to build the payload and send it to the external server. Event is sent asynchronously
-     * 
-     * @param tenantInfo
-     * @param type
-     * @param eventURI
+     *
+     * @param tenantInfo TenantInfoBean containing tenant details
+     * @param type Type of the event
+     * @param eventURI URI of the event
      */
     private void sendEvent(TenantInfoBean tenantInfo, String type, String eventURI) {
-        
-        if (log.isDebugEnabled()) {
-            log.debug("Sending event to API Manager. Event type: " + type + ", Tenant ID: " + tenantInfo.getTenantId());
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending event. Event type: " + type + ", Tenant ID: " + tenantInfo.getTenantId());
         }
 
         TenantManagementEventDTO eventDTO = buildPayload(tenantInfo, type, eventURI,
                 IdentityUtil.getServerURL(null, false, false));
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
-                UserOperationEventListener.class.getName(), APIManagerTenantSyncListener.class.getName());
-        String password = Utils.replaceSystemProperty(
-                identityEventListenerConfig.getProperties().getProperty(TenantManagement.PASSWORD));
+                UserOperationEventListener.class.getName(), TenantSyncListener.class.getName());
+        char[] password = Utils.replaceSystemProperty(
+                identityEventListenerConfig.getProperties().getProperty(TenantManagement.PASSWORD)).toCharArray();
         String username = Utils.replaceSystemProperty(
                 identityEventListenerConfig.getProperties().getProperty(TenantManagement.USER_NAME));
 
@@ -258,12 +262,12 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
             }
         }
         EventRunner eventRunner = new EventRunner(notificationEndpoint, username, password, headers, eventDTO);
-        executor.execute(eventRunner);
+        EXECUTOR.execute(eventRunner);
 
     }
 
     protected TenantManagementEventDTO buildPayload(TenantInfoBean tenantInfo, String type, String eventURI,
-            String serverURL) {
+                                                    String serverURL) {
 
         TenantManagementEventDTO eventDTO = new TenantManagementEventDTO();
 
@@ -318,12 +322,12 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
         private String notificationEndpoint;
         private String username;
-        private String password;
+        private char[] password;
         private Map<String, String> headers;
         private TenantManagementEventDTO event;
 
-        public EventRunner(String notificationEndpoint, String username, String password, Map<String, String> headers,
-                TenantManagementEventDTO event) {
+        public EventRunner(String notificationEndpoint, String username, char[] password, Map<String, String> headers,
+                           TenantManagementEventDTO event) {
 
             this.notificationEndpoint = notificationEndpoint;
             this.username = username;
@@ -334,17 +338,17 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
 
         @Override
         public void run() {
-            
-            if (log.isDebugEnabled()) {
-                log.debug("Sending HTTP request to notification endpoint: " + notificationEndpoint);
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Sending HTTP request to notification endpoint: " + notificationEndpoint);
             }
 
             try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
 
                 HttpPost httpPost = new HttpPost(notificationEndpoint);
-                if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
+                if (StringUtils.isNotEmpty(username) && !(password == null || password.length == 0)) {
                     byte[] credentials = Base64
-                            .encodeBase64((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+                            .encodeBase64((username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
                     httpPost.addHeader("Authorization", "Basic " + new String(credentials, StandardCharsets.UTF_8));
                 }
 
@@ -356,14 +360,14 @@ public class APIManagerTenantSyncListener implements TenantMgtListener {
                 httpPost.setEntity(new StringEntity(content, ContentType.APPLICATION_JSON));
                 httpClient.execute(httpPost, response -> {
                     if (response.getCode() != HttpStatus.SC_OK) {
-                        log.error("Error while notifying API Manger for tenant creation. Status code: "
+                        LOG.error("Error while notifying API Manger for tenant creation. Status code: "
                                 + response.getCode());
                     }
                     return null;
                 });
 
             } catch (IOException e) {
-                log.error("An error occurred while sending the HTTP request: ", e);
+                LOG.error("An error occurred while sending the HTTP request: ", e);
             }
         }
     }

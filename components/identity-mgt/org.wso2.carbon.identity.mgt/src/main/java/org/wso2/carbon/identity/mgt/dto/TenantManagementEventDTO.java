@@ -43,32 +43,38 @@ public class TenantManagementEventDTO {
     @SerializedName("events")
     private Map<String, EventDetail> events;
 
-
     public String getIss() {
+
         return iss;
     }
 
     public void setIss(String iss) {
+
         this.iss = iss;
     }
 
     public String getJti() {
+
         return jti;
     }
 
     public void setJti(String jti) {
+
         this.jti = jti;
     }
 
     public long getIat() {
+
         return iat;
     }
 
     public void setIat(long iat) {
+
         this.iat = iat;
     }
 
     public Map<String, EventDetail> getEvents() {
+
         if (events == null) {
             return null;
         }
@@ -76,6 +82,7 @@ public class TenantManagementEventDTO {
     }
 
     public void setEvents(Map<String, EventDetail> events) {
+
         if (events == null) {
             this.events = null;
         } else {
@@ -97,28 +104,33 @@ public class TenantManagementEventDTO {
         @SerializedName("action")
         private String action;
 
-
         public String getInitiatorType() {
+
             return initiatorType;
         }
 
         public void setInitiatorType(String initiatorType) {
+
             this.initiatorType = initiatorType;
         }
 
         public Tenant getTenant() {
+
             return (this.tenant != null) ? new Tenant(this.tenant) : null;
         }
 
         public void setTenant(Tenant tenant) {
+
             this.tenant = (tenant != null) ? new Tenant(tenant) : null;
         }
 
         public String getAction() {
+
             return action;
         }
 
         public void setAction(String action) {
+
             this.action = action;
         }
     }
@@ -145,34 +157,40 @@ public class TenantManagementEventDTO {
         private String ref;
 
         public Tenant() {
-            
+
         }
 
         public Tenant(Tenant other) {
+
             this.id = other.id;
             this.domain = other.domain;
             this.ref = other.ref;
             this.setOwners(other.owners);
-            this.setLifecycleStatus(other.lifecycleStatus); 
+            this.setLifecycleStatus(other.lifecycleStatus);
         }
-        
+
         public String getId() {
+
             return id;
         }
 
         public void setId(String id) {
+
             this.id = id;
         }
 
         public String getDomain() {
+
             return domain;
         }
 
         public void setDomain(String name) {
+
             this.domain = name;
         }
 
         public List<Owner> getOwners() {
+
             if (this.owners == null) {
                 return null;
             }
@@ -180,6 +198,7 @@ public class TenantManagementEventDTO {
         }
 
         public void setOwners(List<Owner> owners) {
+
             if (owners == null) {
                 this.owners = null;
             } else {
@@ -188,18 +207,22 @@ public class TenantManagementEventDTO {
         }
 
         public LifecycleStatus getLifecycleStatus() {
+
             return (this.lifecycleStatus != null) ? new LifecycleStatus(this.lifecycleStatus) : null;
         }
 
         public void setLifecycleStatus(LifecycleStatus lifecycleStatus) {
+
             this.lifecycleStatus = (lifecycleStatus != null) ? new LifecycleStatus(lifecycleStatus) : null;
         }
 
         public String getRef() {
+
             return ref;
         }
 
         public void setRef(String ref) {
+
             this.ref = ref;
         }
     }
@@ -224,44 +247,53 @@ public class TenantManagementEventDTO {
         @SerializedName("lastname")
         private String lastname;
 
-        
         public String getUsername() {
+
             return username;
         }
 
         public void setUsername(String username) {
+
             this.username = username;
         }
 
         public String getPassword() {
+
             return password;
         }
 
         public void setPassword(String password) {
+
             this.password = password;
         }
 
         public String getEmail() {
+
             return email;
         }
 
         public void setEmail(String email) {
+
             this.email = email;
         }
 
         public String getFirstname() {
+
             return firstname;
         }
 
         public void setFirstname(String firstname) {
+
             this.firstname = firstname;
         }
 
         public String getLastname() {
+
             return lastname;
         }
 
         public void setLastname(String lastname) {
+
             this.lastname = lastname;
         }
     }
@@ -273,20 +305,23 @@ public class TenantManagementEventDTO {
 
         @SerializedName("activated")
         private boolean activated;
-        
+
         public LifecycleStatus() {
-            
+
         }
 
         public LifecycleStatus(LifecycleStatus other) {
+
             this.activated = other.activated;
         }
-        
+
         public boolean isActivated() {
+
             return activated;
         }
 
         public void setActivated(boolean activated) {
+
             this.activated = activated;
         }
     }

@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 import org.testng.annotations.Test;
 
-public class APIManagerTenantSyncListenerTest extends APIManagerTenantSyncListener {
+public class TenantSyncListenerTest extends TenantSyncListener {
 
     private TenantInfoBean mockTenantInfo;
 

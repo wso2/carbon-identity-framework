@@ -46,7 +46,7 @@ import org.wso2.carbon.identity.mgt.config.ConfigBuilder;
 import org.wso2.carbon.identity.mgt.config.EmailNotificationConfig;
 import org.wso2.carbon.identity.mgt.config.StorageType;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
-import org.wso2.carbon.identity.mgt.listener.APIManagerTenantSyncListener;
+import org.wso2.carbon.identity.mgt.listener.TenantSyncListener;
 import org.wso2.carbon.identity.mgt.listener.IdentityClaimValueEncryptionListener;
 import org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener;
 import org.wso2.carbon.identity.mgt.listener.IdentityUserNameResolverListener;
@@ -194,7 +194,7 @@ public class IdentityMgtServiceComponent {
                 UserOperationEventListener.class.getName(), notificationListener, null);
         context.getBundleContext().registerService(TenantMgtListener.class.getName(), new TenantManagementListener()
                 , null);
-        context.getBundleContext().registerService(TenantMgtListener.class.getName(), new APIManagerTenantSyncListener()
+        context.getBundleContext().registerService(TenantMgtListener.class.getName(), new TenantSyncListener()
                 , null);
         context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
                 new UserSessionTerminationListener(), null);
