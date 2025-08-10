@@ -230,8 +230,8 @@ public class TenantSyncListener implements TenantMgtListener {
      * Method to build the payload and send it to the external server. Event is sent asynchronously
      *
      * @param tenantInfo TenantInfoBean containing tenant details
-     * @param type Type of the event
-     * @param eventURI URI of the event
+     * @param type       Type of the event
+     * @param eventURI   URI of the event
      */
     private void sendEvent(TenantInfoBean tenantInfo, String type, String eventURI) {
 
@@ -325,6 +325,8 @@ public class TenantSyncListener implements TenantMgtListener {
         private char[] password;
         private Map<String, String> headers;
         private TenantManagementEventDTO event;
+        private static final int MAX_RETRIES = 5;
+        private static final long RETRY_DELAY_MS = 5000L;
 
         public EventRunner(String notificationEndpoint, String username, char[] password, Map<String, String> headers,
                            TenantManagementEventDTO event) {
@@ -343,31 +345,55 @@ public class TenantSyncListener implements TenantMgtListener {
                 LOG.debug("Sending HTTP request to notification endpoint: " + notificationEndpoint);
             }
 
-            try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+            HttpPost httpPost = new HttpPost(notificationEndpoint);
+            if (StringUtils.isNotEmpty(username) && !(password == null || password.length == 0)) {
+                byte[] credentials = Base64
+                        .encodeBase64((username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
+                httpPost.addHeader("Authorization", "Basic " + new String(credentials, StandardCharsets.UTF_8));
+            }
 
-                HttpPost httpPost = new HttpPost(notificationEndpoint);
-                if (StringUtils.isNotEmpty(username) && !(password == null || password.length == 0)) {
-                    byte[] credentials = Base64
-                            .encodeBase64((username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
-                    httpPost.addHeader("Authorization", "Basic " + new String(credentials, StandardCharsets.UTF_8));
+            headers.forEach((key, value) -> {
+                httpPost.addHeader(key, value);
+            });
+
+            String content = new Gson().toJson(event);
+            httpPost.setEntity(new StringEntity(content, ContentType.APPLICATION_JSON));
+
+            for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Sending notification... (Attempt " + attempt + "/" + MAX_RETRIES + ")");
                 }
 
-                headers.forEach((key, value) -> {
-                    httpPost.addHeader(key, value);
-                });
+                try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier()
+                        .build()) {
 
-                String content = new Gson().toJson(event);
-                httpPost.setEntity(new StringEntity(content, ContentType.APPLICATION_JSON));
-                httpClient.execute(httpPost, response -> {
-                    if (response.getCode() != HttpStatus.SC_OK) {
-                        LOG.error("Error while notifying API Manger for tenant creation. Status code: "
-                                + response.getCode());
+                    boolean success = httpClient.execute(httpPost, response -> {
+                        if (response.getCode() != HttpStatus.SC_OK) {
+                            LOG.error("Error while notifying for tenant creation. Status code: " + response.getCode());
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    if (success) {
+                        return;
                     }
-                    return null;
-                });
 
-            } catch (IOException e) {
-                LOG.error("An error occurred while sending the HTTP request: ", e);
+                } catch (IOException e) {
+                    LOG.error("An error occurred while sending the HTTP request: ", e);
+                }
+
+                if (attempt < MAX_RETRIES) {
+                    try {
+                        LOG.info("Will retry sending notification in " + RETRY_DELAY_MS + "ms.");
+                        Thread.sleep(RETRY_DELAY_MS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        LOG.error("Notification thread was interrupted during retry delay. Aborting.", e);
+                        break;
+                    }
+                }
             }
         }
     }
