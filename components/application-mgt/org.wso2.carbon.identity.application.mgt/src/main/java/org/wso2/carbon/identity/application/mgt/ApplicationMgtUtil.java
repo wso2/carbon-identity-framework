@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -1464,5 +1465,24 @@ public class ApplicationMgtUtil {
         } catch (UserStoreException e) {
             log.warn("Error while retrieving group name for group ID: " + groupID, e);
         }
+    }
+
+    /**
+     * Check if a Service Provider property should be updated.
+     *
+     * @param expectedValue Expected value for the property.
+     * @param propertyName  Name of the SP property.
+     * @param application   The application that will be updated.
+     * @return true if the property should be updated, false otherwise.
+     */
+    public static boolean shouldUpdateSpProperty(String expectedValue, String propertyName,
+                                                 ServiceProvider application) {
+
+        Optional<String> existingValue = Arrays.stream(application.getSpProperties())
+                .filter(p -> propertyName.equals(p.getName()))
+                .map(ServiceProviderProperty::getValue)
+                .findFirst();
+
+        return !existingValue.isPresent() || !Objects.equals(expectedValue, existingValue.get());
     }
 }

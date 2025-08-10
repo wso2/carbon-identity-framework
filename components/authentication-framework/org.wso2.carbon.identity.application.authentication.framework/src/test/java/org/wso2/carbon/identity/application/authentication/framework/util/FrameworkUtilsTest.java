@@ -1372,7 +1372,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         assertEquals(input.getLoginHint(), "loginHint123");
         assertEquals(input.getOrgDiscoveryType(), "discoveryType123");
     }
- 
+
     private void removeAllSystemDefinedAuthenticators() {
 
         List<ApplicationAuthenticator> authenticatorList = new ArrayList<>(

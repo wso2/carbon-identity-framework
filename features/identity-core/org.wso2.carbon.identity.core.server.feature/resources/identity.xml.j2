@@ -895,6 +895,13 @@
             {% else %}
             <EnableJWTCache>{{oauth.grant_type.jwt.enable_jwt_cache}}</EnableJWTCache>
             {% endif %}
+            <!-- When enabling this configuration, you must enable 'Use user store domain in local subject identifier'.
+            configuration in the SP issuing the id token for exchange. If not, we will not be able to identify the
+            user store domain for the local user.
+             -->
+            {% if oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp is defined %}
+            <EnableTokenExchangeForLocalUsersWithResidentIdP>{{oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp}}</EnableTokenExchangeForLocalUsersWithResidentIdP>
+            {% endif %}
         </JWTGrant>
 
         <SAML2Grant>
@@ -1361,7 +1368,6 @@
             Default value : false
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
-        <UserSessionImpersonation>{{oauth.enable_user_session_impersonation}}</UserSessionImpersonation>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1484,6 +1490,10 @@
     <UserAccountAssociation>
             <EnableSHA256Key>{{user_account_association.enable_sha256}}</EnableSHA256Key>
     </UserAccountAssociation>
+
+    <FederatedUserAccountAssociation>
+        <MaxBulkOperations>{{federated_user_account_association.max_bulk_operations}}</MaxBulkOperations>
+    </FederatedUserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>

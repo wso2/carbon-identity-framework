@@ -96,9 +96,6 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
         if (isWorkflowCompleted()) {
             return new WorkflowExecutorResult(ExecutorResultState.COMPLETED);
         }
-        if (!isAssociated()) {
-            return new WorkflowExecutorResult(ExecutorResultState.NO_ASSOCIATION);
-        }
 
         WorkflowRequest workFlowRequest = new WorkflowRequest();
         List<RequestParameter> parameters = new ArrayList<RequestParameter>(wfParams.size() + nonWfParams.size() + 1);

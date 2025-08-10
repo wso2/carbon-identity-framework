@@ -153,7 +153,6 @@ public class ApplicationConstants {
     public static final String IMPERSONATE_ROLE_NAME = "Impersonator";
     public static final String IMPERSONATION_API_RESOURCE = "system:impersonation";
     public static final String APPLICATION_ROLE_AUDIENCE = "application";
-    public static final String USER_SESSION_IMPERSONATION_ENABLED = "OAuth.UserSessionImpersonation";
 
     /**
      * Group the constants related to logs.

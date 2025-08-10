@@ -66,6 +66,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -172,7 +173,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             case INVITE:
             case INVITED_USER_REGISTRATION:
                 return PreUpdatePasswordEvent.Action.INVITE;
-            case USER_REGISTRATION:
+            case REGISTER:
                 return PreUpdatePasswordEvent.Action.REGISTER;
             default:
                 break;
@@ -289,9 +290,22 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             return;
         }
 
-        Map<String, String> claimValues = getClaimValues(userActionContext.getUserActionRequestDTO().getUserId(),
-                userClaimsToSetInEvent);
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+        Map<String, String> claimValues = new HashMap<>();
+        if (userActionContext.getUserActionRequestDTO().getUserId() == null
+                || getCurrentFlowName() == Flow.Name.REGISTER) {
+            // User id is not available during the user registration where the user is not yet created.
+            // In such cases, UserActionContext contains the creating user claims.
+            Map<String, Object> claimsFromUserContext = userActionContext.getUserActionRequestDTO().getClaims();
+            for (String claim : userClaimsToSetInEvent) {
+                if (claimsFromUserContext.containsKey(claim) && claimsFromUserContext.get(claim) instanceof String) {
+                    claimValues.put(claim, (String) claimsFromUserContext.get(claim));
+                }
+            }
+        } else {
+            claimValues = getClaimValues(userActionContext.getUserActionRequestDTO().getUserId(),
+                    userClaimsToSetInEvent);
+        }
 
         setClaimsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
         setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
@@ -400,5 +414,11 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             throw new ActionExecutionRequestBuilderException(
                     "Error while loading user store manager for tenant: " + tenantDomain, e);
         }
+    }
+
+    private Flow.Name getCurrentFlowName() {
+
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+        return (flow != null) ? flow.getName() : null;
     }
 }

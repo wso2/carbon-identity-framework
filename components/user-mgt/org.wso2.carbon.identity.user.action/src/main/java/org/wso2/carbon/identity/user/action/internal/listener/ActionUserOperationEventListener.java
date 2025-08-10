@@ -90,17 +90,17 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreUpdateCredentialByAdminWithID(String userID, Object credential,
                                                       UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable()) {
+        if (!isEnable() || !isPasswordUpdatingFlow()) {
             return true;
         }
 
-        return executePreUpdatePasswordAction(userID, credential, userStoreManager);
+        return executePreUpdatePasswordAction(userID, credential, userStoreManager, null);
     }
 
     /**
      * This method is responsible for handling the pre add user action execution.
      *
-     * @param userID           User id of the user.
+     * @param userName         Username of the user.
      * @param credential       Credential of the user.
      * @param roleList         List of roles to be assigned to the user.
      * @param claims           Claims to be set for the user.
@@ -110,14 +110,14 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
      * @throws UserStoreException If an error occurs while executing the action.
      */
     @Override
-    public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
+    public boolean doPreAddUserWithID(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || !isEnabledInRegistrationFlows()) {
+        if (!isEnable() || !isEnabledInRegistrationFlows() || !isRegistrationFlow()) {
             return true;
         }
 
-        return executePreUpdatePasswordAction(userID, credential, userStoreManager);
+        return executePreUpdatePasswordAction(null, credential, userStoreManager, claims);
     }
 
     private boolean isEnabledInRegistrationFlows() {
@@ -132,21 +132,17 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     }
 
 
-    private boolean executePreUpdatePasswordAction(String userID, Object credential,
-                                                   UserStoreManager userStoreManager) throws UserStoreException {
-
-        if (!isExecutableFlow()) {
-            return true;
-        }
+    private boolean executePreUpdatePasswordAction(String userID, Object credential, UserStoreManager userStoreManager,
+                                                   Map<String, String> claims) throws UserStoreException {
 
         try {
-            UserActionContext userActionContext = new UserActionContext(
-                    new UserActionRequestDTO.Builder()
-                            .userId(userID)
-                            .password(getSecret(credential))
-                            .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
-                            .residentOrganization(getUserResidentOrganization(userID, userStoreManager))
-                            .build());
+            UserActionRequestDTO.Builder userActionRequestDTOBuilder = new UserActionRequestDTO.Builder()
+                    .userId(userID)
+                    .password(getSecret(credential))
+                    .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
+                    .residentOrganization(getUserResidentOrganization(userID, userStoreManager));
+            populateClaimsInUserActionRequestDTO(claims, userActionRequestDTOBuilder);
+            UserActionContext userActionContext = new UserActionContext(userActionRequestDTOBuilder.build());
 
             ActionExecutionStatus<?> executionStatus =
                     UserActionExecutorFactory.getUserActionExecutor(ActionType.PRE_UPDATE_PASSWORD)
@@ -177,11 +173,8 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     private Organization getUserResidentOrganization(String userID, UserStoreManager userStoreManager)
             throws UserActionExecutionServerException {
 
-        org.wso2.carbon.identity.core.context.model.Organization accessingOrganization =
-                IdentityContext.getThreadLocalIdentityContext().getOrganization();
-        if (accessingOrganization == null) {
-            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
-                    "Accessing organization is not present in the identity context.");
+        if (userID == null || getCurrentFlowName() == Flow.Name.REGISTER) {
+            return getOrganizationFromIdentityContext();
         }
 
         try {
@@ -190,22 +183,34 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             if (managedOrgId == null) {
                 // User resident organization is the accessing organization if the managed organization claim is
                 // not set.
-               return new Organization.Builder()
-                       .id(accessingOrganization.getId())
-                       .name(accessingOrganization.getName())
-                       .orgHandle(accessingOrganization.getOrganizationHandle())
-                       .depth(accessingOrganization.getDepth())
-                       .build();
+                return getOrganizationFromIdentityContext();
             }
             // If the managed organization claim is set, retrieve the organization details.
-            return getOrganization(managedOrgId);
+            return getUserManagedOrganization(managedOrgId);
         } catch (UserStoreException e) {
             throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
                     "Error while retrieving the user's managed by organization claim.", e);
         }
     }
 
-    private Organization getOrganization(String managedOrgId) throws UserActionExecutionServerException {
+    private Organization getOrganizationFromIdentityContext() throws UserActionExecutionServerException {
+
+        org.wso2.carbon.identity.core.context.model.Organization accessingOrganization =
+                IdentityContext.getThreadLocalIdentityContext().getOrganization();
+        if (accessingOrganization == null) {
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                    "Accessing organization is not present in the identity context.");
+        }
+
+        return new Organization.Builder()
+                .id(accessingOrganization.getId())
+                .name(accessingOrganization.getName())
+                .orgHandle(accessingOrganization.getOrganizationHandle())
+                .depth(accessingOrganization.getDepth())
+                .build();
+    }
+
+    private Organization getUserManagedOrganization(String managedOrgId) throws UserActionExecutionServerException {
 
         if (OrganizationManagementConstants.SUPER_ORG_ID.equals(managedOrgId)) {
             return new Organization.Builder()
@@ -237,18 +242,30 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
     }
 
-    private boolean isExecutableFlow() {
+    private boolean isPasswordUpdatingFlow() {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
-        if (flow == null) {
+        Flow.Name flowName = getCurrentFlowName();
+        if (flowName == null) {
             return false;
         }
 
-        return flow.getName() == Flow.Name.PASSWORD_RESET ||
-                flow.getName() == Flow.Name.INVITE ||
-                flow.getName() == Flow.Name.INVITED_USER_REGISTRATION ||
-                flow.getName() == Flow.Name.PROFILE_UPDATE ||
-                flow.getName() == Flow.Name.USER_REGISTRATION;
+        return flowName == Flow.Name.PASSWORD_RESET ||
+                flowName == Flow.Name.INVITE ||
+                flowName == Flow.Name.INVITED_USER_REGISTRATION ||
+                flowName == Flow.Name.PROFILE_UPDATE ||
+                flowName == Flow.Name.CREDENTIAL_UPDATE ||
+                flowName == Flow.Name.CREDENTIAL_RESET;
+    }
+
+
+    private boolean isRegistrationFlow() {
+
+        Flow.Name flowName = getCurrentFlowName();
+        if (flowName == null) {
+            return false;
+        }
+
+        return flowName == Flow.Name.REGISTER;
     }
 
     private char[] getSecret(Object credential) throws UserActionExecutionServerException {
@@ -260,6 +277,24 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         } else {
             throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET,
                     "Credential is not in the expected format.");
+        }
+    }
+
+    private Flow.Name getCurrentFlowName() {
+
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+        return (flow != null) ? flow.getName() : null;
+    }
+
+    private void populateClaimsInUserActionRequestDTO(Map<String, String> userClaims,
+                                                      UserActionRequestDTO.Builder userActionRequestDTOBuilder) {
+
+        if (userClaims == null || userClaims.isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<String, String> entry : userClaims.entrySet()) {
+            userActionRequestDTOBuilder.addClaim(entry.getKey(), entry.getValue());
         }
     }
 }

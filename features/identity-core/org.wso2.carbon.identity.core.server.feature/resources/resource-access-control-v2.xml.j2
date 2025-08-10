@@ -175,42 +175,9 @@
             <Scopes>internal_cert_validation_mgt_delete</Scopes>
         </Resource>
 
-    <!-- [Organization] Webhook Metadata API -->
-    <Resource context="(.*)/o/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="GET">
-        <Scopes>internal_org_webhook_meta_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_org_webhook_meta_update</Scopes>
-    </Resource>
-    <!-- The Webhook Metadata update operation using the PUT method is not supported. However, due to the shared API path structure, this method must be explicitly disallowed within the application logic. -->
-    <Resource context="(.*)/o/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_org_webhook_meta_update</Scopes>
-    </Resource>
-
-    <!-- [Organization] Webhook Management API -->
-    <Resource context="(.*)/o/api/server/v1/webhooks(.*)" secured="true" http-method="POST">
-        <Scopes>internal_org_webhook_mgt_create</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/webhooks(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_org_webhook_mgt_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/webhooks(.*)" secured="true" http-method="GET">
-        <Scopes>internal_org_webhook_mgt_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/webhooks(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_org_webhook_mgt_delete</Scopes>
-    </Resource>
-
         <!-- Webhook Metadata API -->
         <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="GET">
             <Scopes>internal_webhook_meta_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PATCH">
-            <Scopes>internal_webhook_meta_update</Scopes>
-        </Resource>
-        <!-- The Webhook Metadata update operation using the PUT method is not supported. However, due to the shared API path structure, this method must be explicitly disallowed within the application logic. -->
-        <Resource context="(.*)/api/server/v1/webhooks/metadata(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_webhook_meta_update</Scopes>
         </Resource>
 
         <!-- Webhook Management API -->
@@ -801,6 +768,9 @@
         <Resource context="(.*)/o/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_user_association_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/o/api/users/v1/federated-associations/bulk" secured="true" http-method="POST">
+            <Scopes>internal_org_fed_user_association_bulk</Scopes>
+        </Resource>
 
         <!-- Association Management API -->
         <Resource context="(.*)/api/users/v1/(.*)/associations" secured="true" http-method="GET">
@@ -817,6 +787,9 @@
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_user_association_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/federated-associations/bulk" secured="true" http-method="POST">
+            <Scopes>internal_fed_user_association_bulk</Scopes>
         </Resource>
 
         <!-- [Organization] User Offline Onboard Management API -->
