@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.cache.dao;
 
-import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * The DAO cache implementation for claim dialects.
@@ -30,7 +28,7 @@ import java.util.List;
 public class ClaimDialectDAOCache extends BaseCache<Integer, Serializable> {
 
     private static final String CACHE_NAME = "ClaimDialectDAOCache";
-    private static final ClaimDialectDAOCache instance = new ClaimDialectDAOCache();
+    private static final ClaimDialectDAOCache INSTANCE = new ClaimDialectDAOCache();
 
     /**
      * The private constructor which ensures that only one instance of the cache is created.
@@ -47,6 +45,6 @@ public class ClaimDialectDAOCache extends BaseCache<Integer, Serializable> {
      */
     public static ClaimDialectDAOCache getInstance() {
 
-        return instance;
+        return INSTANCE;
     }
 }
