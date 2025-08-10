@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -196,6 +196,7 @@ public class ActionManagementDAOFacadeTest {
                 TENANT_ID);
 
         verifyActionDTO(actionDTORetrieved, actionDTOToAddOrUpdate);
+        Assert.assertEquals(actionDTORetrieved.getCreatedAt().getTime(), actionDTORetrieved.getUpdatedAt().getTime());
     }
 
     @Test(priority = 4)
@@ -206,6 +207,7 @@ public class ActionManagementDAOFacadeTest {
         ActionDTO result = actionDTOs.get(0);
 
         verifyActionDTO(result, actionDTOToAddOrUpdate);
+        Assert.assertEquals(actionDTORetrieved.getCreatedAt().getTime(), actionDTORetrieved.getUpdatedAt().getTime());
     }
 
     @Test(priority = 5)
@@ -282,6 +284,9 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(result.getName(), updatingAction.getName());
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getStatus(), actionDTORetrieved.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(actionDTORetrieved.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
 
         Authentication updatedAuthentication = result.getEndpoint().getAuthentication();
@@ -311,6 +316,9 @@ public class ActionManagementDAOFacadeTest {
         ActionDTO activatedActionDTO = daoFacade.activateAction(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
                 TENANT_ID);
         Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
+        Assert.assertNotNull(activatedActionDTO.getCreatedAt());
+        Assert.assertNotNull(activatedActionDTO.getUpdatedAt());
+        Assert.assertTrue(activatedActionDTO.getUpdatedAt().after(actionDTORetrieved.getUpdatedAt()));
         actionDTORetrieved = activatedActionDTO;
     }
 
@@ -322,6 +330,9 @@ public class ActionManagementDAOFacadeTest {
                 daoFacade.deactivateAction(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
                         TENANT_ID);
         Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
+        Assert.assertNotNull(deactivatedActionDTO.getCreatedAt());
+        Assert.assertNotNull(deactivatedActionDTO.getUpdatedAt());
+        Assert.assertTrue(deactivatedActionDTO.getUpdatedAt().after(actionDTORetrieved.getUpdatedAt()));
     }
 
     @Test(priority = 10)
@@ -438,6 +449,7 @@ public class ActionManagementDAOFacadeTest {
 
         verifyActionDTO(actionDTORetrieved, updatingActionDTO);
         verifyActionDTORule(actionDTORetrieved, updatingActionDTO);
+        Assert.assertTrue(actionDTORetrieved.getUpdatedAt().after(actionDTORetrieved.getCreatedAt()));
     }
 
     @Test(priority = 17)
@@ -513,6 +525,7 @@ public class ActionManagementDAOFacadeTest {
 
         verifyActionDTO(actionDTORetrieved, updatingActionDTO);
         verifyActionDTORule(actionDTORetrieved, updatingActionDTO);
+        Assert.assertTrue(actionDTORetrieved.getUpdatedAt().after(actionDTORetrieved.getCreatedAt()));
     }
 
     @Test(priority = 21)
@@ -531,6 +544,7 @@ public class ActionManagementDAOFacadeTest {
 
         verifyActionDTO(actionDTORetrieved, expectedActionDTO);
         verifyActionDTORule(actionDTORetrieved, expectedActionDTO);
+        Assert.assertTrue(actionDTORetrieved.getUpdatedAt().after(actionDTORetrieved.getCreatedAt()));
     }
 
     @Test(priority = 22)
@@ -606,6 +620,8 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(actualActionDTO.getName(), expectedActionDTO.getName());
         Assert.assertEquals(actualActionDTO.getDescription(), expectedActionDTO.getDescription());
         Assert.assertEquals(actualActionDTO.getStatus(), Action.Status.INACTIVE);
+        Assert.assertNotNull(actualActionDTO.getCreatedAt());
+        Assert.assertNotNull(actualActionDTO.getUpdatedAt());
         Assert.assertEquals(actualActionDTO.getEndpoint().getUri(), expectedActionDTO.getEndpoint().getUri());
 
         Authentication createdAuthentication = actualActionDTO.getEndpoint().getAuthentication();
