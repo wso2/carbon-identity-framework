@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -137,6 +137,9 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
         Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertNotNull(sampleAction.getCreatedAt());
+        Assert.assertNotNull(sampleAction.getUpdatedAt());
+        Assert.assertEquals(sampleAction.getCreatedAt().getTime(), sampleAction.getUpdatedAt().getTime());
         Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
 
@@ -203,6 +206,8 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
         Assert.assertEquals(result.getType().getActionType(), sampleAction.getType().getActionType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertEquals(result.getUpdatedAt(), sampleAction.getUpdatedAt());
         Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
 
         Authentication resultActionAuth = result.getEndpoint().getAuthentication();
@@ -225,6 +230,8 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
         Assert.assertEquals(result.getType(), sampleAction.getType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertEquals(result.getUpdatedAt(), sampleAction.getUpdatedAt());
         Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
 
         Authentication resultActionAuth = result.getEndpoint().getAuthentication();
@@ -253,6 +260,8 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getType(), sampleAction.getType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
 
         Authentication resultActionAuth = result.getEndpoint().getAuthentication();
@@ -274,6 +283,8 @@ public class ActionManagementServiceImplTest {
         Action activatedAction = actionManagementService.activateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 sampleAction.getId(), TENANT_DOMAIN);
         Assert.assertEquals(activatedAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(activatedAction.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(activatedAction.getUpdatedAt().after(sampleAction.getUpdatedAt()));
         sampleAction = activatedAction;
     }
 
@@ -298,6 +309,8 @@ public class ActionManagementServiceImplTest {
         Action deactivatedAction = actionManagementService.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 sampleAction.getId(), TENANT_DOMAIN);
         Assert.assertEquals(deactivatedAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(deactivatedAction.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(deactivatedAction.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
     @Test(priority = 11)
@@ -317,6 +330,8 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.HEADER.getName()));
         Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.VALUE).getValue(),
                 secretProperties.get(Authentication.Property.VALUE.getName()));
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
     @Test(priority = 12)
@@ -333,6 +348,8 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(resultActionAuth.getType(), updatingAuthentication.getType());
         Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.ACCESS_TOKEN).getValue(),
                 secretProperties.get(Authentication.Property.ACCESS_TOKEN.getName()));
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
     @Test(priority = 13)
@@ -370,6 +387,8 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
         Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertNotNull(sampleAction.getCreatedAt());
+        Assert.assertNotNull(sampleAction.getUpdatedAt());
         Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
 
@@ -401,6 +420,8 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
         Assert.assertEquals(result.getType().getActionType(), sampleAction.getType().getActionType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertEquals(result.getUpdatedAt(), sampleAction.getUpdatedAt());
         Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
 
         Authentication resultActionAuth = result.getEndpoint().getAuthentication();
@@ -433,6 +454,8 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getType(), sampleAction.getType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
 
         Authentication resultActionAuth = result.getEndpoint().getAuthentication();

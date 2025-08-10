@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -101,6 +101,9 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getName(), creatingActionDTO.getName());
         Assert.assertEquals(createdActionDTO.getDescription(), creatingActionDTO.getDescription());
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
+        Assert.assertNotNull(createdActionDTO.getCreatedAt());
+        Assert.assertNotNull(createdActionDTO.getUpdatedAt());
+        Assert.assertEquals(createdActionDTO.getCreatedAt().getTime(), createdActionDTO.getUpdatedAt().getTime());
         Assert.assertEquals(createdActionDTO.getEndpoint().getUri(), creatingActionDTO.getEndpoint().getUri());
         Assert.assertEquals(createdActionDTO.getEndpoint().getAllowedHeaders(),
                 creatingActionDTO.getEndpoint().getAllowedHeaders());
@@ -155,6 +158,9 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
         Assert.assertEquals(result.getEndpoint().getUri(), createdActionDTO.getEndpoint().getUri());
         Assert.assertEquals(result.getEndpoint().getAllowedHeaders(),
                 createdActionDTO.getEndpoint().getAllowedHeaders());
@@ -224,6 +230,9 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getName(), creatingActionDTO.getName());
         Assert.assertNull(createdActionDTO.getDescription());
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
+        Assert.assertNotNull(createdActionDTO.getCreatedAt());
+        Assert.assertNotNull(createdActionDTO.getUpdatedAt());
+        Assert.assertEquals(createdActionDTO.getCreatedAt().getTime(), createdActionDTO.getUpdatedAt().getTime());
         Assert.assertEquals(createdActionDTO.getEndpoint().getUri(), creatingActionDTO.getEndpoint().getUri());
         Assert.assertEquals(createdActionDTO.getEndpoint().getAllowedHeaders(),
                 creatingActionDTO.getEndpoint().getAllowedHeaders());
@@ -278,6 +287,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), updatingAction.getName());
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
         Assert.assertEquals(result.getEndpoint().getAllowedHeaders(),
                 updatingAction.getEndpoint().getAllowedHeaders());
@@ -321,6 +334,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), updatingAction.getName());
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), createdActionDTO.getEndpoint().getUri());
 
         Authentication resultAuthentication = result.getEndpoint().getAuthentication();
@@ -365,6 +382,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
         Assert.assertEquals(result.getEndpoint().getAllowedHeaders(),
                 updatingAction.getEndpoint().getAllowedHeaders());
@@ -411,6 +432,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
 
         Authentication resultAuthentication = result.getEndpoint().getAuthentication();
@@ -463,6 +488,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
         Assert.assertEquals(result.getEndpoint().getAllowedHeaders(),
                 updatingAction.getEndpoint().getAllowedHeaders());
@@ -510,6 +539,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), createdActionDTO.getEndpoint().getUri());
 
         Authentication updatedAuthentication = result.getEndpoint().getAuthentication();
@@ -553,6 +586,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), createdActionDTO.getEndpoint().getUri());
 
         Authentication updatedAuthentication = result.getEndpoint().getAuthentication();
@@ -592,6 +629,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertNotNull(result.getCreatedAt());
+        Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(result.getUpdatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), createdActionDTO.getEndpoint().getUri());
 
         Authentication resultAuthentication = result.getEndpoint().getAuthentication();
@@ -615,6 +656,10 @@ public class ActionManagementDAOImplTest {
         ActionDTO activatedActionDTO = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
                 TENANT_ID);
         Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
+        Assert.assertNotNull(activatedActionDTO.getCreatedAt());
+        Assert.assertEquals(activatedActionDTO.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(activatedActionDTO.getUpdatedAt());
+        Assert.assertTrue(activatedActionDTO.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
         createdActionDTO = activatedActionDTO;
     }
 
@@ -625,6 +670,10 @@ public class ActionManagementDAOImplTest {
         ActionDTO deactivatedActionDTO = daoImpl.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
                 TENANT_ID);
         Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
+        Assert.assertNotNull(deactivatedActionDTO.getCreatedAt());
+        Assert.assertEquals(deactivatedActionDTO.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
+        Assert.assertNotNull(deactivatedActionDTO.getUpdatedAt());
+        Assert.assertTrue(deactivatedActionDTO.getUpdatedAt().after(createdActionDTO.getUpdatedAt()));
     }
 
     @Test(priority = 17)
