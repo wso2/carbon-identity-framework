@@ -95,10 +95,6 @@
             <groupId>org.wso2.carbon.identity.organization.management</groupId>
             <artifactId>org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.multitenancy</groupId>
-            <artifactId>org.wso2.carbon.tenant.mgt</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
@@ -156,7 +152,6 @@
                             version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
                             org.wso2.carbon.identity.organization.application.resource.hierarchy.traverse.service;
                             version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
-                            org.wso2.carbon.tenant.mgt.util.*;version="${carbon.multitenancy.imp.pkg.version.range}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.apache.axiom.om; version="${axiom.osgi.version.range}",
                             org.apache.axiom.om.impl.builder; version="${axiom.osgi.version.range}"
