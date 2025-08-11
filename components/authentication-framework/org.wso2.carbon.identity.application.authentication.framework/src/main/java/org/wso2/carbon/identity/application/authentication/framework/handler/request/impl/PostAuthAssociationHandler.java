@@ -146,14 +146,16 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                             ServiceProvider serviceProvider =
                                     FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
                                             .getServiceProvider(spName, tenantDomain);
-                            FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(serviceProvider);
-                            ClaimConfig serviceProviderClaimConfig = serviceProvider.getClaimConfig();
-                            UserLinkStrategy userLinkStrategy =
-                                    resolveLocalUserLinkingStrategy(serviceProviderClaimConfig);
-                            if (userLinkStrategy == UserLinkStrategy.MANDATORY) {
-                                throw new PostAuthenticationFailedException(
-                                        ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getErrorCode(),
-                                        "Federated user is not associated with any local user.");
+
+                            if (FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(serviceProvider)) {
+                                ClaimConfig serviceProviderClaimConfig = serviceProvider.getClaimConfig();
+                                UserLinkStrategy userLinkStrategy =
+                                        resolveLocalUserLinkingStrategy(serviceProviderClaimConfig);
+                                if (userLinkStrategy == UserLinkStrategy.MANDATORY) {
+                                    throw new PostAuthenticationFailedException(
+                                            ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getErrorCode(),
+                                            "Federated user is not associated with any local user.");
+                                }
                             }
 
                         } catch (IdentityApplicationManagementException e) {
