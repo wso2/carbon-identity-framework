@@ -25,11 +25,11 @@ import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants.TenantManagem
 import org.wso2.carbon.identity.mgt.dto.TenantManagementEventDTO;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -67,7 +67,7 @@ public class TenantSyncListenerTest extends TenantSyncListener {
 
         // --- Assertions ---
         assertNotNull(resultDto);
-        assertEquals(serverUrl, resultDto.getIss());
+        assertEquals(resultDto.getIss(), serverUrl);
         assertNotNull(resultDto.getJti());
         assertTrue(resultDto.getIat() > 0);
 
@@ -75,23 +75,23 @@ public class TenantSyncListenerTest extends TenantSyncListener {
         TenantManagementEventDTO.EventDetail eventDetail = resultDto.getEvents()
                 .get(TenantManagement.EVENT_CREATE_TENANT_URI);
         assertNotNull(eventDetail);
-        assertEquals(TenantManagement.ACTION_CREATE, eventDetail.getAction());
-        assertEquals(TenantManagement.EVENT_INITIATOR, eventDetail.getInitiatorType());
+        assertEquals(eventDetail.getAction(), TenantManagement.ACTION_CREATE);
+        assertEquals(eventDetail.getInitiatorType(), TenantManagement.EVENT_INITIATOR);
 
         // Check the 'tenant' object
         TenantManagementEventDTO.Tenant tenant = eventDetail.getTenant();
         assertNotNull(tenant);
-        assertEquals("12402", tenant.getId());
-        assertEquals("wso2.com", tenant.getDomain());
-        assertEquals(serverUrl + "/api/server/v1/tenants/12402", tenant.getRef());
+        assertEquals(tenant.getId(), "12402");
+        assertEquals(tenant.getDomain(), "wso2.com");
+        assertEquals(tenant.getRef(), serverUrl + "/api/server/v1/tenants/12402");
 
         // Check the 'owners' list - crucial for CREATE event
         assertNotNull(tenant.getOwners());
-        assertEquals(1, tenant.getOwners().size());
+        assertEquals(tenant.getOwners().size(), 1);
         TenantManagementEventDTO.Owner owner = tenant.getOwners().get(0);
-        assertEquals("kim", owner.getUsername()); // Username MUST be present for creation
-        assertEquals("kim123", owner.getPassword());
-        assertEquals("kim@wso2.com", owner.getEmail());
+        assertEquals(owner.getUsername(), "kim"); // Username MUST be present for creation
+        assertEquals(owner.getPassword(), "kim123");
+        assertEquals(owner.getEmail(), "kim@wso2.com");
 
         // Lifecycle status should not be present for creation event
         assertNull(tenant.getLifecycleStatus());
@@ -114,18 +114,18 @@ public class TenantSyncListenerTest extends TenantSyncListener {
         TenantManagementEventDTO.EventDetail eventDetail = resultDto.getEvents()
                 .get(TenantManagement.EVENT_UPDATE_TENANT_URI);
         assertNotNull(eventDetail);
-        assertEquals(TenantManagement.ACTION_UPDATE, eventDetail.getAction());
+        assertEquals(eventDetail.getAction(), TenantManagement.ACTION_UPDATE);
 
         TenantManagementEventDTO.Tenant tenant = eventDetail.getTenant();
         assertNotNull(tenant);
 
         // Check the 'owners' list - crucial for UPDATE event
         assertNotNull(tenant.getOwners());
-        assertEquals(1, tenant.getOwners().size());
+        assertEquals(tenant.getOwners().size(), 1);
         TenantManagementEventDTO.Owner owner = tenant.getOwners().get(0);
         assertNull(owner.getUsername()); // Username MUST NOT be present for update
-        assertEquals("kim123", owner.getPassword());
-        assertEquals("kim@wso2.com", owner.getEmail());
+        assertEquals(owner.getPassword(), "kim123");
+        assertEquals(owner.getEmail(), "kim@wso2.com");
 
         // Lifecycle status should not be present for update event
         assertNull(tenant.getLifecycleStatus());
@@ -150,7 +150,7 @@ public class TenantSyncListenerTest extends TenantSyncListener {
         TenantManagementEventDTO.EventDetail eventDetail = resultDto.getEvents()
                 .get(TenantManagement.EVENT_ACTIVATE_TENANT_URI);
         assertNotNull(eventDetail);
-        assertEquals(TenantManagement.ACTION_ACTIVATE, eventDetail.getAction());
+        assertEquals(eventDetail.getAction(), TenantManagement.ACTION_ACTIVATE);
 
         TenantManagementEventDTO.Tenant tenant = eventDetail.getTenant();
         assertNotNull(tenant);
@@ -182,7 +182,7 @@ public class TenantSyncListenerTest extends TenantSyncListener {
         TenantManagementEventDTO.EventDetail eventDetail = resultDto.getEvents()
                 .get(TenantManagement.EVENT_ACTIVATE_TENANT_URI);
         assertNotNull(eventDetail);
-        assertEquals(TenantManagement.ACTION_DEACTIVATE, eventDetail.getAction());
+        assertEquals(eventDetail.getAction(), TenantManagement.ACTION_DEACTIVATE);
 
         TenantManagementEventDTO.Tenant tenant = eventDetail.getTenant();
         assertNotNull(tenant);

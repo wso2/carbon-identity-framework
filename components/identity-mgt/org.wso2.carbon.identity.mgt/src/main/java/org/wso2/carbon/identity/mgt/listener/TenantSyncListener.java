@@ -64,7 +64,7 @@ public class TenantSyncListener implements TenantMgtListener {
 
     private static final Log LOG = LogFactory.getLog(TenantSyncListener.class);
 
-    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(200, 500, 100L,
+    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(2, 5, 100L,
             TimeUnit.SECONDS,
             new LinkedBlockingDeque<Runnable>() {
             });
