@@ -100,52 +100,55 @@ public class TenantSyncListener implements TenantMgtListener {
         // Not implemented.
     }
 
+    /**
+     * A private helper method that fires a tenant lifecycle event (activation or deactivation).
+     * It handles the common logic for setting the tenant context, creating the event payload,
+     * and sending the event.
+     *
+     * @param tenantId The ID of the tenant.
+     * @param isActive The desired active status for the tenant (true for activation, false for deactivation).
+     * @param action   The event action string (e.g., "ACTIVATE", "DEACTIVATE").
+     * @param eventUri The URI for the event.
+     */
+    private void fireTenantLifecycleEvent(int tenantId, boolean isActive, String action, String eventUri) {
+
+        if (!isTenantEventFiringEnabled(tenantId)) {
+            return;
+        }
+
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+
+            RealmService realmService = IdentityMgtServiceComponent.getRealmService();
+            String domain = realmService.getTenantManager().getTenant(tenantId).getDomain();
+
+            TenantInfoBean tenantInfo = new TenantInfoBean();
+            tenantInfo.setTenantDomain(domain);
+            tenantInfo.setTenantId(tenantId);
+            tenantInfo.setActive(isActive);
+
+            sendEvent(tenantInfo, action, eventUri);
+        } catch (UserStoreException e) {
+            String actionVerb = isActive ? "activating" : "deactivating";
+            LOG.error("Error while " + actionVerb + " tenant " + tenantId, e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
     @Override
     public void onTenantActivation(int tenantId) throws StratosException {
 
-        if (isTenantEventFiringEnabled(tenantId)) {
-            TenantInfoBean tenantInfo = new TenantInfoBean();
-            try {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-
-                RealmService realmService = IdentityMgtServiceComponent.getRealmService();
-                String domain = realmService.getTenantManager().getTenant(tenantId).getDomain();
-
-                tenantInfo.setTenantDomain(domain);
-                tenantInfo.setTenantId(tenantId);
-                tenantInfo.setActive(true);
-                sendEvent(tenantInfo, TenantManagement.ACTION_ACTIVATE, TenantManagement.EVENT_ACTIVATE_TENANT_URI);
-            } catch (UserStoreException e) {
-                LOG.error("Error while activating tenant ", e);
-            } finally {
-                PrivilegedCarbonContext.endTenantFlow();
-            }
-        }
+        fireTenantLifecycleEvent(tenantId, true, TenantManagement.ACTION_ACTIVATE,
+                TenantManagement.EVENT_ACTIVATE_TENANT_URI);
     }
 
     @Override
     public void onTenantDeactivation(int tenantId) throws StratosException {
 
-        if (isTenantEventFiringEnabled(tenantId)) {
-            TenantInfoBean tenantInfo = new TenantInfoBean();
-            try {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-
-                RealmService realmService = IdentityMgtServiceComponent.getRealmService();
-                String domain = realmService.getTenantManager().getTenant(tenantId).getDomain();
-
-                tenantInfo.setTenantDomain(domain);
-                tenantInfo.setTenantId(tenantId);
-                tenantInfo.setActive(false);
-                sendEvent(tenantInfo, TenantManagement.ACTION_DEACTIVATE, TenantManagement.EVENT_ACTIVATE_TENANT_URI);
-            } catch (UserStoreException e) {
-                LOG.error("Error while deactivating tenant ", e);
-            } finally {
-                PrivilegedCarbonContext.endTenantFlow();
-            }
-        }
+        fireTenantLifecycleEvent(tenantId, false, TenantManagement.ACTION_DEACTIVATE,
+                TenantManagement.EVENT_ACTIVATE_TENANT_URI);
     }
 
     @Override
