@@ -828,6 +828,21 @@
                         description="Create new SCIM resources in bulk in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="SCIM2 Agents API" identifier="/scim2/Agents" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Agents API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Agent" name="internal_agent_mgt_view"
+                    description="View agent accounts in the organization (root)"/>
+            <Scope displayName="List Agents" name="internal_agent_mgt_list"
+                    description="Search agent accounts in the organization (root)"/>
+            <Scope displayName="Create Agent" name="internal_agent_mgt_create"
+                    description="Create new agent accounts in the organization (root)"/>
+            <Scope displayName="Update Agent" name="internal_agent_mgt_update"
+                    description="Update agent accounts in the organization (root)"/>
+            <Scope displayName="Delete Agent" name="internal_agent_mgt_delete"
+                    description="Delete agent accounts in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
                  requiresAuthorization="true" description="API representation of the User Related Code Management API" type="TENANT">
         <Scopes>
@@ -1456,6 +1471,19 @@
                    description="Manage views of users in the organization from the Console"/>
             <Scope displayName="User Edit Feature" name="console:org:users_edit"
                    description="Manage edits of users in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Agent Management Feature" identifier="console:agents"
+                     requiresAuthorization="true"
+                     description="Resource representation of the Agent Management Feature"
+                     type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="User Feature" name="console:agents"
+                    description="Manage agents from the Console"/>
+            <Scope displayName="User View Feature" name="console:agents_view"
+                    description="Manage views of agents from the Console"/>
+            <Scope displayName="User Edit Feature" name="console:agents_edit"
+                    description="Manage edits of agents from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"

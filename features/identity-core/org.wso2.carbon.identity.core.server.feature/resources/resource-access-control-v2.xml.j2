@@ -590,6 +590,29 @@
             <Scopes>internal_role_mgt_delete</Scopes>
         </Resource>
 
+        <!-- SCIM2 Agents API -->
+        <Resource context="(.*)/scim2/Agents/.search" secured="true" http-method="POST">
+            <Scopes>internal_agent_mgt_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Agents(.*)" secured="true" http-method="POST">
+            <Scopes>internal_agent_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Agents(/?)" secured="true" http-method="GET">
+            <Scopes>internal_agent_mgt_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Agents/(.+)" secured="true" http-method="GET">
+            <Scopes>internal_agent_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Agents/(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_agent_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Agents/(.*)" secured="true" http-method="PATCH">
+            <Scopes>internal_agent_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Agents/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_agent_mgt_delete</Scopes>
+        </Resource>
+
         <!-- Other SCIM APIs -->
         <Resource context="(.*)/scim2/ServiceProviderConfig" secured="false" http-method="all"/>
         <Resource context="(.*)/scim2/ResourceTypes" secured="false" http-method="all"/>
