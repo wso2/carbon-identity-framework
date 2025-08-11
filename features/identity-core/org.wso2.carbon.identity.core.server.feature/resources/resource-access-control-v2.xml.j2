@@ -1797,6 +1797,7 @@
         <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
         <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
+        <Resource context="(.*)/accounts(.*)" secured="false" http-method="all"/>
 
         <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
         <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
