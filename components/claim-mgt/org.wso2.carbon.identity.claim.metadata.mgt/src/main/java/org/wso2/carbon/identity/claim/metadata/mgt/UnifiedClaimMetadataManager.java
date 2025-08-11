@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,13 +34,9 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
@@ -185,9 +181,6 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             setFlowInitiatorClaimProperty(localClaim.getClaimURI(), tenantId, localClaim);
             // If SharedProfileValueResolvingMethod is missing in localClaimsInDB, set it to default value.
             setDefaultSharedProfileValueResolvingMethod(localClaim.getClaimURI(), tenantId, localClaim);
-            // Set excluded user stores property if not set.
-            setExcludedUserStoresProperty(localClaim, tenantId);
-
         }
 
         return new ArrayList<>(localClaimMap.values());
@@ -296,6 +289,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         validateNonModifiableClaimProperties(localClaim);
+
+        // Set excluded user stores property if not set.
+        setExcludedUserStoresProperty(localClaim, tenantId);
+
+        // Store the claim in the DB.
         if (isLocalClaimInDB(localClaim.getClaimURI(), tenantId)) {
             this.dbBasedClaimMetadataManager.updateLocalClaim(localClaim, tenantId);
         } else {
@@ -686,14 +684,16 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
     private void setExcludedUserStoresProperty(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
-        // If excludedUserStores is not an identity claim then the claim value is considered defined.
-        if (!localClaim.getClaimURI().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI_PREFIX)) {
+        /* If isUserStorePersistenceEnabled is not true, then we do not set the excluded user stores property.
+        * If isUserStorePersistenceEnabled is true and excluded user stores property is not null, then we do not
+        * set the excluded user stores property again.
+        */
+        if (!Boolean.parseBoolean(localClaim.getClaimProperty(ClaimConstants.ENABLE_USER_STORE_PERSISTENCE))
+        || localClaim.getClaimProperty(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY) != null) {
             return;
         }
 
-        /* If the claim is null, and it is an identity claim,
-        * then we set the excluded user stores property with all available user stores.
-        */
+        // Retrieve the user store manager for the tenant.
         AbstractUserStoreManager userStoreManager = null;
         UserRealm userRealm;
         try {
@@ -702,18 +702,21 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                 userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager();
             }
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            throw new ClaimMetadataClientException("Code", "Error while retrieving user realm for tenant: " + tenantId);
+            throw new ClaimMetadataException( "Error while retrieving user realm for tenant: " + tenantId);
         }
 
-        if (userRealm != null){
-            StringBuilder sb = new StringBuilder();
-            while( userStoreManager !=null) {
-                String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty("DomainName");
+        StringBuilder sb = new StringBuilder();
+        while (userStoreManager != null) {
+            if (Boolean.parseBoolean(userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_READ_ONLY))) {
+                String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
                 sb.append(domainName).append(",");
-                userStoreManager = (AbstractUserStoreManager) userStoreManager.getSecondaryUserStoreManager();
             }
-            localClaim.setClaimProperty("ExcludedUserStores", sb.toString());
+            userStoreManager = (AbstractUserStoreManager) userStoreManager.getSecondaryUserStoreManager();
         }
+        if (sb.length() > 0) {
+            // Remove the last comma.
+            sb.setLength(sb.length() - 1);
+        }
+        localClaim.setClaimProperty(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY, sb.toString());
     }
-
 }

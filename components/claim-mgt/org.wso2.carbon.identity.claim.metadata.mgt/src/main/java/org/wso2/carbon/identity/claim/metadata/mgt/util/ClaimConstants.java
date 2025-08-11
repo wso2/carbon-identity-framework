@@ -65,10 +65,11 @@ public class ClaimConstants {
     public static final String MULTI_VALUED_PROPERTY = "multiValued";
     public static final String SUB_ATTRIBUTES_PROPERTY = "subAttributes";
     public static final String SUB_ATTRIBUTE_PREFIX = "subAttribute.";
-    public static final String SKIP_USER_STORE = "skipUserStore";
+    public static final String ENABLE_USER_STORE_PERSISTENCE = "enableUserStorePersistence";
 
     /**
      * Enum for error messages.
+     *
      */
     public enum ErrorMessage {
 
