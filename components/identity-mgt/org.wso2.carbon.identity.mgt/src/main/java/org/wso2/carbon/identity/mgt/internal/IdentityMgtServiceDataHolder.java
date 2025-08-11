@@ -116,10 +116,6 @@ public class IdentityMgtServiceDataHolder {
     }
 
     public void setOrganizationManager(OrganizationManager organizationManager) {
-        
-        if (log.isDebugEnabled()) {
-            log.debug("OrganizationManager set in IdentityMgtServiceDataHolder");
-        }
 
         this.organizationManager = organizationManager;
     }

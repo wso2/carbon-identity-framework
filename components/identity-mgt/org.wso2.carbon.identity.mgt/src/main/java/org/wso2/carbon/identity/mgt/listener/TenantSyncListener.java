@@ -20,10 +20,8 @@ package org.wso2.carbon.identity.mgt.listener;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -37,7 +35,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.Utils;
@@ -61,7 +58,7 @@ import com.google.gson.Gson;
 
 /**
  * Listener class to create, update, activate and deactivate tenants when tenant related task is
- * triggered in Identity server
+ * triggered in Identity server.
  */
 public class TenantSyncListener implements TenantMgtListener {
 
@@ -75,7 +72,7 @@ public class TenantSyncListener implements TenantMgtListener {
     @Override
     public void onTenantCreate(TenantInfoBean tenantInfo) throws StratosException {
 
-        if (canCreateTenant(tenantInfo.getTenantId())) {
+        if (isTenantEventFiringEnabled(tenantInfo.getTenantId())) {
             sendEvent(tenantInfo, TenantManagement.ACTION_CREATE, TenantManagement.EVENT_CREATE_TENANT_URI);
         }
     }
@@ -83,7 +80,7 @@ public class TenantSyncListener implements TenantMgtListener {
     @Override
     public void onTenantUpdate(TenantInfoBean tenantInfo) throws StratosException {
 
-        if (canCreateTenant(tenantInfo.getTenantId())) {
+        if (isTenantEventFiringEnabled(tenantInfo.getTenantId())) {
             sendEvent(tenantInfo, TenantManagement.ACTION_UPDATE, TenantManagement.EVENT_UPDATE_TENANT_URI);
         }
     }
@@ -106,7 +103,7 @@ public class TenantSyncListener implements TenantMgtListener {
     @Override
     public void onTenantActivation(int tenantId) throws StratosException {
 
-        if (canCreateTenant(tenantId)) {
+        if (isTenantEventFiringEnabled(tenantId)) {
             TenantInfoBean tenantInfo = new TenantInfoBean();
             try {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
@@ -130,7 +127,7 @@ public class TenantSyncListener implements TenantMgtListener {
     @Override
     public void onTenantDeactivation(int tenantId) throws StratosException {
 
-        if (canCreateTenant(tenantId)) {
+        if (isTenantEventFiringEnabled(tenantId)) {
             TenantInfoBean tenantInfo = new TenantInfoBean();
             try {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
@@ -170,16 +167,16 @@ public class TenantSyncListener implements TenantMgtListener {
     /**
      * Check whether tenant sharing is enabled and whether the creation is only a root organization.
      *
-     * @param tenantId id of the tenant
+     * @param tenantId id of the tenant.
      * @return boolean Tenant creation firing is enable or not.
      */
-    private boolean canCreateTenant(int tenantId) {
+    private boolean isTenantEventFiringEnabled(int tenantId) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Checking if tenant can be created. Tenant ID: " + tenantId);
         }
 
-        boolean canCreateTenant = false;
+        boolean isTenantEventFiringEnabled = false;
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
                 UserOperationEventListener.class.getName(), TenantSyncListener.class.getName());
@@ -199,7 +196,7 @@ public class TenantSyncListener implements TenantMgtListener {
                 if (StringUtils.isEmpty(organizationID) || IdentityMgtServiceDataHolder.getInstance().getOrganizationManager()
                         .getOrganizationDepthInHierarchy(organizationID) == 0) {
 
-                    canCreateTenant = true;
+                    isTenantEventFiringEnabled = true;
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Tenant is a root organization and can be created. Tenant ID: "
@@ -221,15 +218,15 @@ public class TenantSyncListener implements TenantMgtListener {
             LOG.debug(
                     "Tenant sharing is disabled. Skipping tenant creation for tenant ID : " + tenantId);
         }
-        return canCreateTenant;
+        return isTenantEventFiringEnabled;
     }
 
     /**
-     * Method to build the payload and send it to the external server. Event is sent asynchronously
+     * Method to build the payload and send it to the external server. Event is sent asynchronously.
      *
-     * @param tenantInfo TenantInfoBean containing tenant details
-     * @param type       Type of the event
-     * @param eventURI   URI of the event
+     * @param tenantInfo TenantInfoBean containing tenant details.
+     * @param type       Type of the event.
+     * @param eventURI   URI of the event.
      */
     private void sendEvent(TenantInfoBean tenantInfo, String type, String eventURI) {
 
@@ -324,7 +321,7 @@ public class TenantSyncListener implements TenantMgtListener {
     }
 
     /**
-     * Runnable Thread to send Event
+     * Runnable Thread to send Event.
      */
     public static class EventRunner implements Runnable {
 
