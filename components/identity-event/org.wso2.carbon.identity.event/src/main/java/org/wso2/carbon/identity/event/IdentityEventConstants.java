@@ -341,7 +341,6 @@ public class IdentityEventConstants {
         public static final String TOKEN_REVOKED = "TOKEN_REVOKED";
 
         public static final String POST_ISSUE_ACCESS_TOKEN_V2 = "POST_ISSUE_ACCESS_TOKEN_V2";
-
     }
 
     /**
