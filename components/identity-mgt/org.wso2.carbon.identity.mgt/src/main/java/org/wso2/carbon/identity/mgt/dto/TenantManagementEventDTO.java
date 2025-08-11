@@ -28,7 +28,6 @@ import com.google.gson.annotations.SerializedName;
 /**
  * This class is used to communicate tenant management related information.
  */
-
 public class TenantManagementEventDTO {
 
     @SerializedName("iss")

@@ -62,7 +62,6 @@ import com.google.gson.Gson;
  * Listener class to create, update, activate and deactivate tenants when tenant related task is
  * triggered in Identity server
  */
-
 public class TenantSyncListener implements TenantMgtListener {
 
     private static final Log LOG = LogFactory.getLog(TenantSyncListener.class);
@@ -78,7 +77,6 @@ public class TenantSyncListener implements TenantMgtListener {
         if (canCreateTenant(tenantInfo.getTenantId())) {
             sendEvent(tenantInfo, TenantManagement.ACTION_CREATE, TenantManagement.EVENT_CREATE_TENANT_URI);
         }
-
     }
 
     @Override
@@ -87,7 +85,6 @@ public class TenantSyncListener implements TenantMgtListener {
         if (canCreateTenant(tenantInfo.getTenantId())) {
             sendEvent(tenantInfo, TenantManagement.ACTION_UPDATE, TenantManagement.EVENT_UPDATE_TENANT_URI);
         }
-
     }
 
     @Override
@@ -198,7 +195,7 @@ public class TenantSyncListener implements TenantMgtListener {
                 String organizationID = tenant.getAssociatedOrganizationUUID();
 
                 // check if the Organization Depth in the Hierarchy is 0. only then create the root org.
-                if (organizationID == null || IdentityMgtServiceDataHolder.getInstance().getOrganizationManager()
+                if (StringUtils.isEmpty(organizationID) || IdentityMgtServiceDataHolder.getInstance().getOrganizationManager()
                         .getOrganizationDepthInHierarchy(organizationID) == 0) {
 
                     canCreateTenant = true;
@@ -213,7 +210,7 @@ public class TenantSyncListener implements TenantMgtListener {
                             + "to a root org creation.");
                 }
 
-                // if there was an exception thrown here, tenant activation won't happen
+                // if there was an exception thrown here, tenant activation won't happen.
             } catch (UserStoreException | OrganizationManagementServerException e) {
                 LOG.error("Error while creating tenant ", e);
             } finally {
@@ -263,7 +260,6 @@ public class TenantSyncListener implements TenantMgtListener {
         }
         EventRunner eventRunner = new EventRunner(notificationEndpoint, username, password, headers, eventDTO);
         EXECUTOR.execute(eventRunner);
-
     }
 
     protected TenantManagementEventDTO buildPayload(TenantInfoBean tenantInfo, String type, String eventURI,
@@ -349,7 +345,8 @@ public class TenantSyncListener implements TenantMgtListener {
             if (StringUtils.isNotEmpty(username) && !(password == null || password.length == 0)) {
                 byte[] credentials = Base64
                         .encodeBase64((username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
-                httpPost.addHeader("Authorization", "Basic " + new String(credentials, StandardCharsets.UTF_8));
+                httpPost.addHeader(TenantManagement.AUTHORIZATION_HEADER,
+                        TenantManagement.BASIC_PREFIX + new String(credentials, StandardCharsets.UTF_8));
             }
 
             headers.forEach((key, value) -> {

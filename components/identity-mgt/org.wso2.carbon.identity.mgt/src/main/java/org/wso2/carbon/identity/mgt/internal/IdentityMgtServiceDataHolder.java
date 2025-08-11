@@ -122,12 +122,10 @@ public class IdentityMgtServiceDataHolder {
         }
 
         this.organizationManager = organizationManager;
-
     }
 
     public OrganizationManager getOrganizationManager() {
 
         return organizationManager;
-
     }
 }
