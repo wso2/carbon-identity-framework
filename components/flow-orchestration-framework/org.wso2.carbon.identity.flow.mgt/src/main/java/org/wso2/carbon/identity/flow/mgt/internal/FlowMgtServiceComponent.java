@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.flow.mgt.FlowAIService;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
@@ -50,6 +51,7 @@ public class FlowMgtServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(FlowMgtService.class.getName(),
                     FlowMgtService.getInstance(), null);
+            bundleContext.registerService(FlowAIService.class, FlowAIService.getInstance(), null);
             LOG.debug("Flow Management bundle is activated.");
         } catch (Throwable e) {
             LOG.error("Error occurred while activating Flow Management bundle.", e);
