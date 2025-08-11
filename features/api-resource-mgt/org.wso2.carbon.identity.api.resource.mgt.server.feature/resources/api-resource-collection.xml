@@ -829,12 +829,12 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="workflows" displayName="Workflows" type="tenant">
+    <APIResourceCollection name="approvalWorkflows" displayName="Approval Workflows" type="tenant">
         <Scopes>
             <Feature>
-                <Scope name="console:workflows"/>
-                <Scope name="console:workflows_view"/>
-                <Scope name="console:workflows_edit"/>
+                <Scope name="console:approvalWorkflows"/>
+                <Scope name="console:approvalWorkflows_view"/>
+                <Scope name="console:approvalWorkflows_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_workflow_update"/>
@@ -843,7 +843,6 @@
             <Delete>
                 <Scope name="internal_workflow_delete"/>
                 <Scope name="internal_workflow_association_delete"/>
-                <Scope name="internal_workflow_instances_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_workflow_create"/>
@@ -852,7 +851,6 @@
             <Read>
                 <Scope name="internal_workflow_view"/>
                 <Scope name="internal_workflow_association_view"/>
-                <Scope name="internal_workflow_instances_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1703,12 +1701,12 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_workflows" displayName="Workflows" type="organization">
+    <APIResourceCollection name="org_approvalWorkflows" displayName="Approval Workflows" type="organization">
         <Scopes>
             <Feature>
-                <Scope name="console:org:workflows"/>
-                <Scope name="console:org:workflows_view"/>
-                <Scope name="console:org:workflows_edit"/>
+                <Scope name="console:org:approvalWorkflows"/>
+                <Scope name="console:org:approvalWorkflows_view"/>
+                <Scope name="console:org:approvalWorkflows_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_workflow_update"/>
@@ -1717,7 +1715,6 @@
             <Delete>
                 <Scope name="internal_org_workflow_delete"/>
                 <Scope name="internal_org_workflow_association_delete"/>
-                <Scope name="internal_org_workflow_instances_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_workflow_create"/>
@@ -1726,7 +1723,6 @@
             <Read>
                 <Scope name="internal_org_workflow_view"/>
                 <Scope name="internal_org_workflow_association_view"/>
-                <Scope name="internal_org_workflow_instances_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
