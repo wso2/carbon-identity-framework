@@ -18,38 +18,43 @@
 
 package org.wso2.carbon.identity.mgt.dto;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.annotations.SerializedName;
-
 /**
  * This class is used to communicate tenant management related information.
+ * It is designed to be immutable and is constructed using the Builder pattern.
  */
-public class TenantManagementEventDTO {
+public final class TenantManagementEventDTO {
 
     @SerializedName("iss")
-    private String iss;
+    private final String iss;
 
     @SerializedName("jti")
-    private String jti;
+    private final String jti;
 
     @SerializedName("iat")
-    private long iat;
+    private final long iat;
 
     @SerializedName("events")
-    private Map<String, EventDetail> events;
+    private final Map<String, EventDetail> events;
+
+    private TenantManagementEventDTO(Builder builder) {
+
+        this.iss = builder.iss;
+        this.jti = builder.jti;
+        this.iat = builder.iat;
+        this.events = builder.events;
+    }
 
     public String getIss() {
 
         return iss;
-    }
-
-    public void setIss(String iss) {
-
-        this.iss = iss;
     }
 
     public String getJti() {
@@ -57,70 +62,88 @@ public class TenantManagementEventDTO {
         return jti;
     }
 
-    public void setJti(String jti) {
-
-        this.jti = jti;
-    }
-
     public long getIat() {
 
         return iat;
     }
 
-    public void setIat(long iat) {
-
-        this.iat = iat;
-    }
-
     public Map<String, EventDetail> getEvents() {
 
-        if (events == null) {
-            return null;
-        }
-        return new HashMap<>(events);
+        // Return an unmodifiable copy to maintain immutability.
+        return (events != null) ? Collections.unmodifiableMap(events) : null;
     }
 
-    public void setEvents(Map<String, EventDetail> events) {
+    /**
+     * Builder for {@link TenantManagementEventDTO}.
+     */
+    public static class Builder {
 
-        if (events == null) {
-            this.events = null;
-        } else {
-            this.events = new HashMap<>(events);
+        private String iss;
+        private String jti;
+        private long iat;
+        private Map<String, EventDetail> events;
+
+        public Builder iss(String iss) {
+
+            this.iss = iss;
+            return this;
+        }
+
+        public Builder jti(String jti) {
+
+            this.jti = jti;
+            return this;
+        }
+
+        public Builder iat(long iat) {
+
+            this.iat = iat;
+            return this;
+        }
+
+        public Builder events(Map<String, EventDetail> events) {
+
+            if (events != null) {
+                this.events = new HashMap<>(events);
+            }
+            return this;
+        }
+
+        public TenantManagementEventDTO build() {
+
+            return new TenantManagementEventDTO(this);
         }
     }
 
     /**
      * Represents the detailed information contained within a specific event type.
      */
-    public static class EventDetail {
+    public static final class EventDetail {
 
         @SerializedName("initiatorType")
-        private String initiatorType;
+        private final String initiatorType;
 
         @SerializedName("tenant")
-        private Tenant tenant;
+        private final Tenant tenant;
 
         @SerializedName("action")
-        private String action;
+        private final String action;
+
+        private EventDetail(Builder builder) {
+
+            this.initiatorType = builder.initiatorType;
+            this.tenant = builder.tenant;
+            this.action = builder.action;
+        }
 
         public String getInitiatorType() {
 
             return initiatorType;
         }
 
-        public void setInitiatorType(String initiatorType) {
-
-            this.initiatorType = initiatorType;
-        }
-
         public Tenant getTenant() {
 
-            return (this.tenant != null) ? new Tenant(this.tenant) : null;
-        }
-
-        public void setTenant(Tenant tenant) {
-
-            this.tenant = (tenant != null) ? new Tenant(tenant) : null;
+            return tenant;
         }
 
         public String getAction() {
@@ -128,9 +151,37 @@ public class TenantManagementEventDTO {
             return action;
         }
 
-        public void setAction(String action) {
+        /**
+         * Builder for {@link EventDetail}.
+         */
+        public static class Builder {
 
-            this.action = action;
+            private String initiatorType;
+            private Tenant tenant;
+            private String action;
+
+            public Builder initiatorType(String initiatorType) {
+
+                this.initiatorType = initiatorType;
+                return this;
+            }
+
+            public Builder tenant(Tenant tenant) {
+
+                this.tenant = tenant;
+                return this;
+            }
+
+            public Builder action(String action) {
+
+                this.action = action;
+                return this;
+            }
+
+            public EventDetail build() {
+
+                return new EventDetail(this);
+            }
         }
     }
 
@@ -138,34 +189,30 @@ public class TenantManagementEventDTO {
      * Represents the tenant object. This class includes all possible fields from all
      * event types. Fields not present in a specific JSON will be null.
      */
-    public static class Tenant {
+    public static final class Tenant {
 
         @SerializedName("id")
-        private String id;
+        private final String id;
 
         @SerializedName("domain")
-        private String domain;
+        private final String domain;
 
         @SerializedName("owners")
-        private List<Owner> owners;
+        private final List<Owner> owners;
 
         @SerializedName("lifecycleStatus")
-        private LifecycleStatus lifecycleStatus;
+        private final LifecycleStatus lifecycleStatus;
 
         @SerializedName("ref")
-        private String ref;
+        private final String ref;
 
-        public Tenant() {
+        private Tenant(Builder builder) {
 
-        }
-
-        public Tenant(Tenant other) {
-
-            this.id = other.id;
-            this.domain = other.domain;
-            this.ref = other.ref;
-            this.setOwners(other.owners);
-            this.setLifecycleStatus(other.lifecycleStatus);
+            this.id = builder.id;
+            this.domain = builder.domain;
+            this.owners = builder.owners;
+            this.lifecycleStatus = builder.lifecycleStatus;
+            this.ref = builder.ref;
         }
 
         public String getId() {
@@ -173,46 +220,20 @@ public class TenantManagementEventDTO {
             return id;
         }
 
-        public void setId(String id) {
-
-            this.id = id;
-        }
-
         public String getDomain() {
 
             return domain;
         }
 
-        public void setDomain(String name) {
-
-            this.domain = name;
-        }
-
         public List<Owner> getOwners() {
 
-            if (this.owners == null) {
-                return null;
-            }
-            return new ArrayList<>(this.owners);
-        }
-
-        public void setOwners(List<Owner> owners) {
-
-            if (owners == null) {
-                this.owners = null;
-            } else {
-                this.owners = new ArrayList<>(owners);
-            }
+            // Return an unmodifiable copy to maintain immutability.
+            return (owners != null) ? Collections.unmodifiableList(owners) : null;
         }
 
         public LifecycleStatus getLifecycleStatus() {
 
-            return (this.lifecycleStatus != null) ? new LifecycleStatus(this.lifecycleStatus) : null;
-        }
-
-        public void setLifecycleStatus(LifecycleStatus lifecycleStatus) {
-
-            this.lifecycleStatus = (lifecycleStatus != null) ? new LifecycleStatus(lifecycleStatus) : null;
+            return lifecycleStatus;
         }
 
         public String getRef() {
@@ -220,40 +241,88 @@ public class TenantManagementEventDTO {
             return ref;
         }
 
-        public void setRef(String ref) {
+        /**
+         * Builder for {@link Tenant}.
+         */
+        public static class Builder {
 
-            this.ref = ref;
+            private String id;
+            private String domain;
+            private List<Owner> owners;
+            private LifecycleStatus lifecycleStatus;
+            private String ref;
+
+            public Builder id(String id) {
+
+                this.id = id;
+                return this;
+            }
+
+            public Builder domain(String domain) {
+
+                this.domain = domain;
+                return this;
+            }
+
+            public Builder owners(List<Owner> owners) {
+
+                if (owners != null) {
+                    this.owners = new ArrayList<>(owners);
+                }
+                return this;
+            }
+
+            public Builder lifecycleStatus(LifecycleStatus lifecycleStatus) {
+
+                this.lifecycleStatus = lifecycleStatus;
+                return this;
+            }
+
+            public Builder ref(String ref) {
+
+                this.ref = ref;
+                return this;
+            }
+
+            public Tenant build() {
+
+                return new Tenant(this);
+            }
         }
     }
 
     /**
      * Represents an owner of a tenant.
      */
-    public static class Owner {
+    public static final class Owner {
 
         @SerializedName("username")
-        private String username;
+        private final String username;
 
         @SerializedName("password")
-        private String password;
+        private final String password;
 
         @SerializedName("email")
-        private String email;
+        private final String email;
 
         @SerializedName("firstname")
-        private String firstname;
+        private final String firstname;
 
         @SerializedName("lastname")
-        private String lastname;
+        private final String lastname;
+
+        private Owner(Builder builder) {
+
+            this.username = builder.username;
+            this.password = builder.password;
+            this.email = builder.email;
+            this.firstname = builder.firstname;
+            this.lastname = builder.lastname;
+        }
 
         public String getUsername() {
 
             return username;
-        }
-
-        public void setUsername(String username) {
-
-            this.username = username;
         }
 
         public String getPassword() {
@@ -261,19 +330,9 @@ public class TenantManagementEventDTO {
             return password;
         }
 
-        public void setPassword(String password) {
-
-            this.password = password;
-        }
-
         public String getEmail() {
 
             return email;
-        }
-
-        public void setEmail(String email) {
-
-            this.email = email;
         }
 
         public String getFirstname() {
@@ -281,37 +340,70 @@ public class TenantManagementEventDTO {
             return firstname;
         }
 
-        public void setFirstname(String firstname) {
-
-            this.firstname = firstname;
-        }
-
         public String getLastname() {
 
             return lastname;
         }
 
-        public void setLastname(String lastname) {
+        /**
+         * Builder for {@link Owner}.
+         */
+        public static class Builder {
 
-            this.lastname = lastname;
+            private String username;
+            private String password;
+            private String email;
+            private String firstname;
+            private String lastname;
+
+            public Builder username(String username) {
+
+                this.username = username;
+                return this;
+            }
+
+            public Builder password(String password) {
+
+                this.password = password;
+                return this;
+            }
+
+            public Builder email(String email) {
+
+                this.email = email;
+                return this;
+            }
+
+            public Builder firstname(String firstname) {
+
+                this.firstname = firstname;
+                return this;
+            }
+
+            public Builder lastname(String lastname) {
+
+                this.lastname = lastname;
+                return this;
+            }
+
+            public Owner build() {
+
+                return new Owner(this);
+            }
         }
     }
 
     /**
      * Represents the lifecycle status of a tenant, used in activation/deactivation events.
      */
-    public static class LifecycleStatus {
+    public static final class LifecycleStatus {
 
         @SerializedName("activated")
-        private boolean activated;
+        private final boolean activated;
 
-        public LifecycleStatus() {
+        private LifecycleStatus(Builder builder) {
 
-        }
-
-        public LifecycleStatus(LifecycleStatus other) {
-
-            this.activated = other.activated;
+            this.activated = builder.activated;
         }
 
         public boolean isActivated() {
@@ -319,9 +411,23 @@ public class TenantManagementEventDTO {
             return activated;
         }
 
-        public void setActivated(boolean activated) {
+        /**
+         * Builder for {@link LifecycleStatus}.
+         */
+        public static class Builder {
 
-            this.activated = activated;
+            private boolean activated;
+
+            public Builder activated(boolean activated) {
+
+                this.activated = activated;
+                return this;
+            }
+
+            public LifecycleStatus build() {
+
+                return new LifecycleStatus(this);
+            }
         }
     }
 }

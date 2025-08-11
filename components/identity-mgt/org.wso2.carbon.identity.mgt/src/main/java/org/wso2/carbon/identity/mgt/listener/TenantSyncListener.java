@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.mgt.listener;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -265,50 +266,61 @@ public class TenantSyncListener implements TenantMgtListener {
     protected TenantManagementEventDTO buildPayload(TenantInfoBean tenantInfo, String type, String eventURI,
                                                     String serverURL) {
 
-        TenantManagementEventDTO eventDTO = new TenantManagementEventDTO();
+        // Start building the Tenant object first, as it's nested.
+        TenantManagementEventDTO.Tenant.Builder tenantBuilder = new TenantManagementEventDTO.Tenant.Builder()
+                .id(Integer.toString(tenantInfo.getTenantId()))
+                .domain(tenantInfo.getTenantDomain())
+                .ref(serverURL + "/api/server/v1/tenants/" + tenantInfo.getTenantId());
 
-        eventDTO.setIss(serverURL);
-        eventDTO.setJti(UUID.randomUUID().toString());
-        eventDTO.setIat(System.currentTimeMillis() / 1000L);
-
-        Map<String, TenantManagementEventDTO.EventDetail> events = new HashMap<>();
-
-        TenantManagementEventDTO.EventDetail createEventDetail = new TenantManagementEventDTO.EventDetail();
-        createEventDetail.setInitiatorType(TenantManagement.EVENT_INITIATOR);
-        createEventDetail.setAction(type);
-
-        TenantManagementEventDTO.Tenant tenant = new TenantManagementEventDTO.Tenant();
-        tenant.setId(Integer.toString(tenantInfo.getTenantId()));
-        tenant.setDomain(tenantInfo.getTenantDomain());
-        tenant.setRef(serverURL + "/api/server/v1/tenants/" + tenantInfo.getTenantId());
-
+        // Conditionally build and add owner details for create/update events.
         if (TenantManagement.EVENT_CREATE_TENANT_URI.equals(eventURI)
                 || TenantManagement.EVENT_UPDATE_TENANT_URI.equals(eventURI)) {
-            List<TenantManagementEventDTO.Owner> owners = new ArrayList<>();
-            TenantManagementEventDTO.Owner owner = new TenantManagementEventDTO.Owner();
 
+            TenantManagementEventDTO.Owner.Builder ownerBuilder = new TenantManagementEventDTO.Owner.Builder()
+                    .password(tenantInfo.getAdminPassword())
+                    .email(tenantInfo.getEmail())
+                    .firstname(tenantInfo.getFirstname())
+                    .lastname(tenantInfo.getLastname());
+
+            // Username is only set during creation.
             if (TenantManagement.EVENT_CREATE_TENANT_URI.equals(eventURI)) {
-                // set username only it is a creation request
-                owner.setUsername(tenantInfo.getAdmin());
+                ownerBuilder.username(tenantInfo.getAdmin());
             }
-            owner.setPassword(tenantInfo.getAdminPassword());
-            owner.setEmail(tenantInfo.getEmail());
-            owner.setFirstname(tenantInfo.getFirstname());
-            owner.setLastname(tenantInfo.getLastname());
-            owners.add(owner);
-            tenant.setOwners(owners);
+
+            // Build the owner and add it to the tenant builder.
+            tenantBuilder.owners(Collections.singletonList(ownerBuilder.build()));
         }
 
+        // Conditionally build and add lifecycle status for activation events.
         if (TenantManagement.EVENT_ACTIVATE_TENANT_URI.equals(eventURI)) {
-            TenantManagementEventDTO.LifecycleStatus lifecycleStatus = new TenantManagementEventDTO.LifecycleStatus();
-            lifecycleStatus.setActivated(tenantInfo.isActive());
-            tenant.setLifecycleStatus(lifecycleStatus);
+            TenantManagementEventDTO.LifecycleStatus lifecycleStatus =
+                    new TenantManagementEventDTO.LifecycleStatus.Builder()
+                            .activated(tenantInfo.isActive())
+                            .build();
+            tenantBuilder.lifecycleStatus(lifecycleStatus);
         }
 
-        createEventDetail.setTenant(tenant);
+        // Build the final, immutable Tenant object.
+        TenantManagementEventDTO.Tenant tenant = tenantBuilder.build();
+
+        // Build the EventDetail object, including the tenant.
+        TenantManagementEventDTO.EventDetail createEventDetail = new TenantManagementEventDTO.EventDetail.Builder()
+                .initiatorType(TenantManagement.EVENT_INITIATOR)
+                .action(type)
+                .tenant(tenant)
+                .build();
+
+        // Create the events map.
+        Map<String, TenantManagementEventDTO.EventDetail> events = new HashMap<>();
         events.put(eventURI, createEventDetail);
-        eventDTO.setEvents(events);
-        return eventDTO;
+
+        // Build the final TenantManagementEventDTO and return it.
+        return new TenantManagementEventDTO.Builder()
+                .iss(serverURL)
+                .jti(UUID.randomUUID().toString())
+                .iat(System.currentTimeMillis() / 1000L)
+                .events(events)
+                .build();
     }
 
     /**
