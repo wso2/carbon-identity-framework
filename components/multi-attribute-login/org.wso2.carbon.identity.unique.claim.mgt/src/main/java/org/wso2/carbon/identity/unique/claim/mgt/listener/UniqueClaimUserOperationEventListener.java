@@ -324,21 +324,13 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             userList = userStoreMgrFromRealm.getUserList(claimUri, claimValue, profile);
         }
         String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
-        if (userList.length > 1) {
-            if (isPostAddUser) {
-                /* During concurrent creation, all threads get the same user list and try to delete the same user.
-                 * To prevent all users from being deleted, skip the last user in the list from deletion.
-                 * Other threads will skip deletion and return success.
-                 */
-                return IntStream.range(0, userList.length - 1)
-                        .anyMatch(i -> usernameWithUserStoreDomain.equalsIgnoreCase(userList[i]));
-            }
-            return true;
+        if (isPostAddUser) {
+            return shouldDeleteUserDuringConcurrentCreation(usernameWithUserStoreDomain, userList);
         }
-        if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-            return true;
+        if (userList.length == 1) {
+            return !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0]);
         }
-        return false;
+        return userList.length != 0;
     }
 
     /**
@@ -506,21 +498,32 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             } else {
                 userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
             }
-            if (userList.length > 1) {
-                if (isPostAddUser) {
-                    /* During concurrent creation, all threads get the same user list and try to delete the same user.
-                     * To prevent all users from being deleted, skip the last user in the list from deletion.
-                     * Other threads will skip deletion and return success.
-                     */
-                    return IntStream.range(0, userList.length - 1)
-                            .anyMatch(i -> usernameWithUserStoreDomain.equalsIgnoreCase(userList[i]));
-                }
+            if (isPostAddUser && shouldDeleteUserDuringConcurrentCreation(usernameWithUserStoreDomain, userList)) {
                 return true;
             }
-            if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-                return true;
+            if (!isPostAddUser) {
+                if (userList.length > 1 ||
+                        (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0]))) {
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    /**
+     * Check which users should be deleted during concurrent user creation.
+     * <p>
+     * During concurrent user creation with the same unique claim value, multiple threads may include newly created
+     * users in their retrieved user lists. To prevent a race condition where all users could be deleted, we skip
+     * deleting the last user in the list, ensuring at least one user with the claim value remains.
+     *
+     * @param username The username being created.
+     * @param userList The list of users retrieved from the user store.
+     * @return True if the user should be deleted, false otherwise.
+     */
+    private boolean shouldDeleteUserDuringConcurrentCreation(String username, String[] userList) {
+
+        return IntStream.range(0, userList.length - 1).anyMatch(i -> username.equalsIgnoreCase(userList[i]));
     }
 }
