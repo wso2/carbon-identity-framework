@@ -94,8 +94,10 @@ public class FlowAIService {
         validateAIServiceConfiguration();
 
         String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-        LOG.debug("Generating flow for tenant: " + tenantDomain + ", flowType: " +
-                flowGenerationRequestDTO.getFlowType());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Generating flow for tenant: " + tenantDomain + ", flowType: " +
+                    flowGenerationRequestDTO.getFlowType());
+        }
 
         try {
             Map<String, Object> requestBody = buildGenerateFlowRequestBody(flowGenerationRequestDTO);
@@ -111,7 +113,9 @@ public class FlowAIService {
                 throw FlowMgtUtils.handleServerException(ERROR_CODE_INVOKING_AI_SERVICE, tenantDomain);
             }
 
-            LOG.debug("Flow generation initiated successfully with operation ID: " + operationId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Flow generation request submitted successfully with operation ID: " + operationId);
+            }
             return new FlowGenerationResponseDTO.Builder()
                     .operationId(operationId)
                     .build();
@@ -135,9 +139,9 @@ public class FlowAIService {
         validateAIServiceConfiguration();
 
         String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-        LOG.debug("Getting flow generation status for operation ID: " + operationId +
-                ", tenant: " + tenantDomain);
-
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Getting flow generation status for operation ID: " + operationId + ", tenant: " + tenantDomain);
+        }
         try {
             Map<String, Object> response = executeRequest(FLOW_AI_ENDPOINT,
                     FLOW_AI_STATUS_PATH + PATH_SEPARATOR + operationId,
@@ -184,8 +188,9 @@ public class FlowAIService {
         validateAIServiceConfiguration();
 
         String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-        LOG.debug("Getting flow generation result for operation ID: " + operationId +
-                ", tenant: " + tenantDomain);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Getting flow generation result for operation ID: " + operationId + ", tenant: " + tenantDomain);
+        }
 
         try {
             Map<String, Object> response = executeRequest(FLOW_AI_ENDPOINT,
@@ -209,7 +214,9 @@ public class FlowAIService {
             Map<String, Object> dataMap = resultObj != null ?
                     OBJECT_MAPPER.convertValue(resultObj, new ResultMapTypeReference()) : new HashMap<>();
 
-            LOG.debug("Successfully retrieved flow generation result with status: " + status);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Flow generation result retrieved successfully for operation ID: " + operationId);
+            }
             return new FlowGenerationResultDTO.Builder()
                     .status(status)
                     .data(dataMap)
