@@ -240,7 +240,7 @@ public class FlowAIService {
             throw new FlowMgtClientException("User query cannot be null or empty");
         }
 
-        // Validate flow type against supported types
+        // Validate flow type against supported types.
         boolean isValidFlowType = false;
         for (Constants.FlowTypes flowType : Constants.FlowTypes.values()) {
             if (flowType.getType().equals(request.getFlowType())) {
