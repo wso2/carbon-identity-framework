@@ -327,7 +327,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         if (userList.length > 1) {
             if (isPostAddUser) {
                 /* During concurrent creation, all threads get the same user list and try to delete the same user.
-                 * To prevent all users from being deleted, only the first user in the list is deleted.
+                 * To prevent all users from being deleted, skip the last user in the list from deletion.
                  * Other threads will skip deletion and return success.
                  */
                 return IntStream.range(0, userList.length - 1)
@@ -509,7 +509,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             if (userList.length > 1) {
                 if (isPostAddUser) {
                     /* During concurrent creation, all threads get the same user list and try to delete the same user.
-                     * To prevent all users from being deleted, only the first user in the list is deleted.
+                     * To prevent all users from being deleted, skip the last user in the list from deletion.
                      * Other threads will skip deletion and return success.
                      */
                     return IntStream.range(0, userList.length - 1)
