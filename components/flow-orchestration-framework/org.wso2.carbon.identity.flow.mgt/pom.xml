@@ -182,6 +182,7 @@
                             org.wso2.carbon.identity.configuration.mgt.core.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+                            org.wso2.carbon.identity.ai.service.mgt.*; version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.mgt.internal,
