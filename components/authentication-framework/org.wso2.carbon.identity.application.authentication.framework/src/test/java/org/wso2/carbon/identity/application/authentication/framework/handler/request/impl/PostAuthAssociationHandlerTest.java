@@ -29,7 +29,6 @@ import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -39,28 +38,22 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
-import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -93,7 +86,6 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     private HttpServletResponse response;
     private PostAuthAssociationHandler postAuthAssociationHandler;
     private ServiceProvider sp;
-    private IdentityConfigParser mockIdentityConfigParser;
     private static final String ORI_ROLE_1 = "Internal/everyone";
     private static final String ORI_ROLE_2 = "locnomrole";
     private static final String SP_MAPPED_ROLE_1 = "everyone";
@@ -104,12 +96,9 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     private MockedStatic<ClaimMetadataHandler> claimMetadataHandler;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private MockedStatic<AdminServicesUtil> adminServicesUtil;
-    private MockedStatic<IdentityConfigParser> identityConfigParser;
 
     @BeforeMethod
     protected void setupSuite() throws Exception {
-
-        initAuthenticators();
 
         configurationLoader = new UIBasedConfigurationLoader();
         frameworkUtils = mockStatic(FrameworkUtils.class);
@@ -117,12 +106,6 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         claimMetadataHandler = mockStatic(ClaimMetadataHandler.class);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         adminServicesUtil = mockStatic(AdminServicesUtil.class);
-
-        mockIdentityConfigParser = mock(IdentityConfigParser.class);
-        identityConfigParser = mockStatic(IdentityConfigParser.class);
-        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
-        setAuthenticatorActionEnableStatus(false);
-
         ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
 
         configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
@@ -166,7 +149,6 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         claimMetadataHandler.close();
         identityTenantUtil.close();
         adminServicesUtil.close();
-        identityConfigParser.close();
     }
 
     @Test(description = "This test case tests the Post Authentication Association handling flow with an authenticated" +
@@ -204,53 +186,6 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         return new Object[][]{
                 {false},
                 {true}
-        };
-    }
-
-    @Test(description = "Test resolveLocalUserLinkingStrategy method with different ClaimConfig scenarios",
-            dataProvider = "provideUserLinkStrategyTestData")
-    public void testResolveLocalUserLinkingStrategy(ClaimConfig claimConfig,
-                                                    PostAuthAssociationHandler.UserLinkStrategy expectedStrategy) {
-
-        try {
-            Method method = PostAuthAssociationHandler.class.getDeclaredMethod("resolveLocalUserLinkingStrategy",
-                    ClaimConfig.class);
-            method.setAccessible(true);
-            PostAuthAssociationHandler.UserLinkStrategy actualStrategy =
-                    (PostAuthAssociationHandler.UserLinkStrategy) method.invoke(null, claimConfig);
-
-            Assert.assertEquals(actualStrategy, expectedStrategy,
-                    "User link strategy resolution failed for the given claim config");
-        } catch (Exception e) {
-            Assert.fail("Reflection access to resolveLocalUserLinkingStrategy method failed", e);
-        }
-    }
-
-    @DataProvider(name = "provideUserLinkStrategyTestData")
-    public Object[][] provideUserLinkStrategyTestData() {
-
-        // Test case 1: null ClaimConfig should return DISABLED
-        ClaimConfig nullClaimConfig = null;
-
-        // Test case 2: ClaimConfig with mappedLocalSubjectMandatory = true should return MANDATORY
-        ClaimConfig mandatoryClaimConfig = mock(ClaimConfig.class);
-        when(mandatoryClaimConfig.isMappedLocalSubjectMandatory()).thenReturn(true);
-
-        // Test case 3: ClaimConfig with alwaysSendMappedLocalSubjectId = true should return OPTIONAL
-        ClaimConfig optionalClaimConfig = mock(ClaimConfig.class);
-        when(optionalClaimConfig.isMappedLocalSubjectMandatory()).thenReturn(false);
-        when(optionalClaimConfig.isAlwaysSendMappedLocalSubjectId()).thenReturn(true);
-
-        // Test case 4: ClaimConfig with both flags false should return DISABLED
-        ClaimConfig disabledClaimConfig = mock(ClaimConfig.class);
-        when(disabledClaimConfig.isMappedLocalSubjectMandatory()).thenReturn(false);
-        when(disabledClaimConfig.isAlwaysSendMappedLocalSubjectId()).thenReturn(false);
-
-        return new Object[][]{
-                {nullClaimConfig, PostAuthAssociationHandler.UserLinkStrategy.DISABLED},
-                {mandatoryClaimConfig, PostAuthAssociationHandler.UserLinkStrategy.MANDATORY},
-                {optionalClaimConfig, PostAuthAssociationHandler.UserLinkStrategy.OPTIONAL},
-                {disabledClaimConfig, PostAuthAssociationHandler.UserLinkStrategy.DISABLED}
         };
     }
 
@@ -317,81 +252,5 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
         }
         return false;
-    }
-
-    @Test(description = "Test PostAuthAssociationHandler for MANDATORY user link strategy throws exception")
-    public void testHandleWithMandatoryUserLinkStrategyThrowsException() throws Exception {
-        // Setup ClaimConfig to return MANDATORY
-        ClaimConfig mandatoryClaimConfig = mock(ClaimConfig.class);
-        when(mandatoryClaimConfig.isMappedLocalSubjectMandatory()).thenReturn(true);
-        when(mandatoryClaimConfig.isAlwaysSendMappedLocalSubjectId()).thenReturn(false);
-
-        ServiceProvider mockSp = mock(ServiceProvider.class);
-        when(mockSp.getClaimConfig()).thenReturn(mandatoryClaimConfig);
-        String spName = "test-sp";
-        String tenantDomain = "test-tenant";
-        configurationFacade.when(() -> ConfigurationFacade.getInstance().getIdPConfigByName(anyString(), anyString()))
-                .thenReturn(null);
-        frameworkUtils.when(() -> FrameworkUtils.isStepBasedSequenceHandlerExecuted(any(AuthenticationContext.class)))
-                .thenReturn(true);
-        frameworkUtils.when(() -> FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
-        frameworkUtils.when(() -> FrameworkUtils.getClaimHandler()).thenReturn(mock(ClaimHandler.class));
-        frameworkUtils.when(() -> FrameworkUtils.getStepBasedSequenceHandler())
-                .thenReturn(mock(StepBasedSequenceHandler.class));
-        frameworkUtils.when(() -> FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(
-                                any(ServiceProvider.class))).thenReturn(false);
-        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
-
-        // Create minimal AuthenticationContext and SequenceConfig, avoid ApplicationConfig
-        AuthenticationContext context = new AuthenticationContext();
-        context.setTenantDomain(tenantDomain);
-        context.setServiceProviderName(spName);
-        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-        when(sequenceConfig.getApplicationConfig()).thenReturn(mock(ApplicationConfig.class));
-        context.setSequenceConfig(sequenceConfig);
-        StepConfig stepConfig = new StepConfig();
-        stepConfig.setSubjectIdentifierStep(true);
-        AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-        authenticatorConfig.setApplicationAuthenticator(mock(FederatedApplicationAuthenticator.class));
-        stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
-        Map<Integer, StepConfig> stepMap = new HashMap<>();
-        stepMap.put(1, stepConfig);
-        when(sequenceConfig.getStepMap()).thenReturn(stepMap);
-
-        // Mock FrameworkServiceDataHolder and ApplicationManagementService
-        ApplicationManagementService mockAppMgtService = mock(ApplicationManagementService.class);
-        FrameworkServiceDataHolder mockDataHolder = mock(FrameworkServiceDataHolder.class);
-        when(mockAppMgtService.getServiceProvider(spName, tenantDomain)).thenReturn(mockSp);
-        when(mockDataHolder.getApplicationManagementService()).thenReturn(mockAppMgtService);
-        // Static mocking for FrameworkServiceDataHolder.getInstance()
-        try (MockedStatic<FrameworkServiceDataHolder> dataHolderStatic = mockStatic(FrameworkServiceDataHolder.class)) {
-            dataHolderStatic.when(FrameworkServiceDataHolder::getInstance).thenReturn(mockDataHolder);
-
-            // Should throw PostAuthenticationFailedException
-            try {
-                postAuthAssociationHandler.handle(request, response, context);
-                Assert.fail("Expected PostAuthenticationFailedException was not thrown");
-            } catch (PostAuthenticationFailedException e) {
-                Assert.assertEquals(e.getErrorCode(), "80030", "Error code mismatch for mandatory user link strategy");
-                Assert.assertTrue(e.getMessage().contains("Federated user is not associated with any local user."),
-                        "Error message mismatch for mandatory user link strategy");
-            }
-        }
-    }
-
-    private void setAuthenticatorActionEnableStatus(boolean isEnabled) {
-
-        Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.Types.Authentication.Enable", Boolean.toString(isEnabled));
-        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
-    }
-
-    private void initAuthenticators() {
-
-        removeAllSystemDefinedAuthenticators();
-        ApplicationAuthenticatorManager authenticatorManager = ApplicationAuthenticatorManager.getInstance();
-        authenticatorManager.addSystemDefinedAuthenticator(new MockAuthenticator("BasicMockAuthenticator"));
-        authenticatorManager.addSystemDefinedAuthenticator(new MockAuthenticator("HwkMockAuthenticator"));
-        authenticatorManager.addSystemDefinedAuthenticator(new MockAuthenticator("FptMockAuthenticator"));
     }
 }

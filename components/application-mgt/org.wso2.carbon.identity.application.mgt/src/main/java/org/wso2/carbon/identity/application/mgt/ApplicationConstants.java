@@ -178,10 +178,9 @@ public class ApplicationConstants {
         public static final String APP_VERSION_V0 = "v0.0.0";
         public static final String APP_VERSION_V1 = "v1.0.0";
         public static final String APP_VERSION_V2 = "v2.0.0";
-        public static final String APP_VERSION_V3 = "v3.0.0";
 
         // Change the latest version when a new version is introduced.
-        public static final String LATEST_APP_VERSION = APP_VERSION_V3;
+        public static final String LATEST_APP_VERSION = APP_VERSION_V2;
         public static final String BASE_APP_VERSION = APP_VERSION_V0;
 
         /**
@@ -191,8 +190,7 @@ public class ApplicationConstants {
 
             V0(APP_VERSION_V0),
             V1(APP_VERSION_V1),
-            V2(APP_VERSION_V2),
-            V3(APP_VERSION_V3);
+            V2(APP_VERSION_V2);
 
             private final String value;
 

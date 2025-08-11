@@ -230,8 +230,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil.isAppVersionAllowed;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationVersion.APP_VERSION_V3;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_NAME;
@@ -4845,17 +4843,4 @@ public class FrameworkUtils {
 
     }
 
-    /**
-     * Check whether the login should be failed if an associated user is not found for the
-     * given federated user for a service provider. This will check if the application version is
-     * greater than or equal to v3.
-     *
-     * @param serviceProvider Service Provider.
-     * @return true if enabled, false otherwise.
-     */
-    public static boolean isLoginFailureWithNoLocalAssociationEnabledForApp(ServiceProvider serviceProvider) {
-
-        String appVersion = serviceProvider.getApplicationVersion();
-        return isAppVersionAllowed(appVersion, APP_VERSION_V3);
-    }
 }

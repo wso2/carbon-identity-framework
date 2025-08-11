@@ -1096,25 +1096,4 @@ public class IdentityApplicationManagementUtil {
         }
         return cleanedScript.toString();
     }
-
-    /**
-     * Compare the app version with allowed minimum app version.
-     *
-     * @param appVersion App version.
-     * @return True if the app version is greater than or equal to the allowed minimum app version.
-     */
-    public static boolean isAppVersionAllowed(String appVersion, String allowedAppVersion) {
-
-        String[] appVersionDigits = appVersion.substring(1).split("\\.");
-        String[] allowedVersionDigits = allowedAppVersion.substring(1).split("\\.");
-
-        for (int i = 0; i < appVersionDigits.length; i++) {
-            if (appVersionDigits[i].equals(allowedVersionDigits[i])) {
-                continue;
-            } else {
-                return Integer.parseInt(appVersionDigits[i]) >= Integer.parseInt(allowedVersionDigits[i]);
-            }
-        }
-        return true;
-    }
 }
