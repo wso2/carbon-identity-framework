@@ -21,7 +21,7 @@
     <parent>
         <artifactId>user-functionality-mgt</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>7.8.402</version>
+        <version>7.8.403-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
