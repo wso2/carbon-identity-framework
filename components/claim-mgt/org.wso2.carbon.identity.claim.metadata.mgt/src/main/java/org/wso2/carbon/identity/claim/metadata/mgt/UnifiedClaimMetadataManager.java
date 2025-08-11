@@ -36,7 +36,12 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
@@ -698,11 +703,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         UserRealm userRealm;
         try {
             userRealm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId);
-            if (userRealm != null){
+            if (userRealm != null) {
                 userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager();
             }
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            throw new ClaimMetadataException( "Error while retrieving user realm for tenant: " + tenantId);
+            throw new ClaimMetadataException("Error while retrieving user realm for tenant: " + tenantId, e);
         }
 
         StringBuilder sb = new StringBuilder();
