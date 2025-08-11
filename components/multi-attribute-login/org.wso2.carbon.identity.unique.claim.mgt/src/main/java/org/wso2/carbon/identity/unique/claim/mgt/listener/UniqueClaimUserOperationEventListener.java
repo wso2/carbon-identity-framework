@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
@@ -329,7 +330,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                  * To prevent all users from being deleted, only the first user in the list is deleted.
                  * Other threads will skip deletion and return success.
                  */
-                return usernameWithUserStoreDomain.equalsIgnoreCase(userList[0]);
+                return IntStream.range(0, userList.length - 1)
+                        .anyMatch(i -> usernameWithUserStoreDomain.equalsIgnoreCase(userList[i]));
             }
             return true;
         }
@@ -510,7 +512,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                      * To prevent all users from being deleted, only the first user in the list is deleted.
                      * Other threads will skip deletion and return success.
                      */
-                    return usernameWithUserStoreDomain.equalsIgnoreCase(userList[0]);
+                    return IntStream.range(0, userList.length - 1)
+                            .anyMatch(i -> usernameWithUserStoreDomain.equalsIgnoreCase(userList[i]));
                 }
                 return true;
             }
