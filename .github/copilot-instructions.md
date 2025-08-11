@@ -3,14 +3,15 @@
 - Comments should start with a capital letter.
 - Comments should always end with a period.
   
-(Fix the code if possible, otherwise mention it in the comment.)
+(Fix the code if possible; otherwise, mention the specific issue—such as 'missing docstring', 'comment does not start with a capital letter', or 'comment does not end with a period'—in the comment.)
 
 ## Logs
 ### Debug
 - If there's a string concatenation, then having `if (LOG.isDebugEnabled())` is mandatory.
-    - Make sure to not use `LOG.debug` if the string concatenation is not used.
+- If the log message involves string concatenation or any expensive computation, always wrap the log statement with `if (LOG.isDebugEnabled())` to avoid unnecessary computation.
+    - For simple log messages (e.g., static strings or simple variable interpolation), you can use `LOG.debug` directly without the debug check.
 
-  (Fix the code if possible, otherwise mention it in the comment.)
+  (If you cannot fix the logging issue, mention the performance concern in the comment.)
 
 ## DAO Layer
 - All database queries should support the following database types:
