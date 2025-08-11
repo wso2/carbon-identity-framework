@@ -291,12 +291,12 @@ public class UniqueClaimUserOperationEventListenerTest {
     public Object[][] duplicateClaimedUserProvider() {
 
         return new Object[][]{
-                {new String[]{"testUser", "testUser2"}, true},
-                {new String[]{"testUser2", "testUser"}, false},
+                {new String[]{"testUser", "testUser2"}, false},
+                {new String[]{"testUser2", "testUser"}, true},
                 {new String[]{"testUser"}, false},
                 {new String[]{"testUser2"}, false},
-                {new String[]{"testUser", "testUser2", "testUser3"}, true},
-                {new String[]{"testUser3", "testUser2", "testUser"}, false},
+                {new String[]{"testUser", "testUser2", "testUser3"}, false},
+                {new String[]{"testUser3", "testUser2", "testUser"}, true},
                 {new String[]{"testUser3", "testUser", "testUser2"}, true},
         };
     }

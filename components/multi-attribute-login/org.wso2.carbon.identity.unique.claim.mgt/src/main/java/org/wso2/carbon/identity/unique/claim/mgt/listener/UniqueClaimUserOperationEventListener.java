@@ -46,7 +46,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
@@ -124,8 +123,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             String tenantDomain = getTenantDomain(userStoreManager);
             ClaimConstants.ClaimUniquenessScope uniquenessScope = getClaimUniquenessScope(claimURI, tenantDomain);
             if (shouldValidateUniqueness(uniquenessScope)) {
-                return !isClaimDuplicated(userName, claimURI, claimValue, profile, userStoreManager, uniquenessScope,
-                        false);
+                return !isClaimDuplicated(userName, claimURI, claimValue, profile, userStoreManager, uniquenessScope);
             }
         } catch (org.wso2.carbon.user.api.UserStoreException | ClaimMetadataException e) {
             log.error("Error while retrieving details. " + e.getMessage(), e);
@@ -222,9 +220,18 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                     validatePasswordNotEqualToClaim(credential, claimObject, claimValue);
 
                     // Check for duplicate claims if required
-                    if (checkForDuplicates && isClaimDuplicated(username, claimKey, claimValue, profile,
-                            userStoreManager, uniquenessScope, isPostAddUser)) {
-                        duplicateClaims.add(getClaimDisplayTag(claimObject, claimKey));
+                    if (checkForDuplicates) {
+                        if (isPostAddUser) {
+                            if (isClaimDuplicatedPostAdd(username, claimKey, claimValue, profile,
+                                    userStoreManager, uniquenessScope)) {
+                                duplicateClaims.add(getClaimDisplayTag(claimObject, claimKey));
+                            }
+                        } else {
+                            if (isClaimDuplicated(username, claimKey, claimValue, profile,
+                                    userStoreManager, uniquenessScope)) {
+                                duplicateClaims.add(getClaimDisplayTag(claimObject, claimKey));
+                            }
+                        }
                     }
                 }
             } catch (ClaimMetadataException e) {
@@ -300,10 +307,37 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                 new PolicyViolationException(ERROR_CODE_DUPLICATE_CLAIM_VALUE, errorMessage));
     }
 
+    private boolean isClaimDuplicatedPostAdd(String username, String claimUri, String claimValue, String profile,
+                                             UserStoreManager userStoreManager,
+                                             ClaimConstants.ClaimUniquenessScope uniquenessScope)
+            throws UserStoreException {
+
+
+        String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(
+                UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        Claim claim = getClaimObject(userStoreManager, claimUri);
+        String[] userList;
+        // Get UserStoreManager from realm since the received one might be for a secondary user store
+        UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
+
+        if (claim != null && claim.isMultiValued()) {
+            return isMultiValuedClaimDuplicatedPostAdd(username, claimUri, claimValue, profile, userStoreMgrFromRealm,
+                    domainName, uniquenessScope);
+        }
+
+        if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
+            String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
+            userList = userStoreMgrFromRealm.getUserList(claimUri, claimValueWithDomain, profile);
+        } else {
+            userList = userStoreMgrFromRealm.getUserList(claimUri, claimValue, profile);
+        }
+        String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+        return shouldDeleteUserDuringConcurrentCreation(usernameWithUserStoreDomain, userList);
+    }
+
     private boolean isClaimDuplicated(String username, String claimUri, String claimValue, String profile,
                                       UserStoreManager userStoreManager,
-                                      ClaimConstants.ClaimUniquenessScope uniquenessScope, boolean isPostAddUser)
-            throws UserStoreException {
+                                      ClaimConstants.ClaimUniquenessScope uniquenessScope) throws UserStoreException {
 
         String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(
                 UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
@@ -314,7 +348,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
 
         if (claim != null && claim.isMultiValued()) {
             return isMultiValuedClaimDuplicated(username, claimUri, claimValue, profile, userStoreMgrFromRealm,
-                    domainName, uniquenessScope, isPostAddUser);
+                    domainName, uniquenessScope);
         }
 
         if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
@@ -323,14 +357,16 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         } else {
             userList = userStoreMgrFromRealm.getUserList(claimUri, claimValue, profile);
         }
-        String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
-        if (isPostAddUser) {
-            return shouldDeleteUserDuringConcurrentCreation(usernameWithUserStoreDomain, userList);
-        }
+
         if (userList.length == 1) {
-            return !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0]);
+            String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+            if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                return false;
+            }
+        } else if (userList.length == 0) {
+            return false;
         }
-        return userList.length != 0;
+        return true;
     }
 
     /**
@@ -404,8 +440,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         try {
             ClaimConstants.ClaimUniquenessScope uniquenessScope = getClaimUniquenessScope(USERNAME_CLAIM, tenantDomain);
             if (shouldValidateUniqueness(uniquenessScope) &&
-                    isClaimDuplicated(username, USERNAME_CLAIM, username, null, userStoreManager, uniquenessScope,
-                            false)) {
+                    isClaimDuplicated(username, USERNAME_CLAIM, username, null, userStoreManager, uniquenessScope)) {
 
                 errorMessage = "Username " + username + " is already in use by a different user!";
                 throw new UserStoreException(errorMessage, new PolicyViolationException(errorMessage));
@@ -468,10 +503,10 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         return true;
     }
 
-    private boolean isMultiValuedClaimDuplicated(String username, String claimUri, String claimValue, String profile,
-                                                 UserStoreManager userStoreManager, String domainName,
-                                                 ClaimConstants.ClaimUniquenessScope uniquenessScope,
-                                                 boolean isPostAddUser)
+    private boolean isMultiValuedClaimDuplicatedPostAdd(String username, String claimUri, String claimValue,
+                                                        String profile, UserStoreManager userStoreManager,
+                                                        String domainName,
+                                                        ClaimConstants.ClaimUniquenessScope uniquenessScope)
             throws UserStoreException {
 
         String multiAttributeSeparator = userStoreManager.getSecondaryUserStoreManager(domainName)
@@ -498,14 +533,47 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             } else {
                 userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
             }
-            if (isPostAddUser && shouldDeleteUserDuringConcurrentCreation(usernameWithUserStoreDomain, userList)) {
+            if (shouldDeleteUserDuringConcurrentCreation(usernameWithUserStoreDomain, userList)) {
                 return true;
             }
-            if (!isPostAddUser) {
-                if (userList.length > 1 ||
-                        (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0]))) {
-                    return true;
-                }
+        }
+        return false;
+    }
+
+    private boolean isMultiValuedClaimDuplicated(String username, String claimUri, String claimValue, String profile,
+                                                 UserStoreManager userStoreManager, String domainName,
+                                                 ClaimConstants.ClaimUniquenessScope uniquenessScope)
+            throws UserStoreException {
+
+        String multiAttributeSeparator = userStoreManager.getSecondaryUserStoreManager(domainName)
+                .getRealmConfiguration().getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
+
+        String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+        String existingUserClaimValue = userStoreManager.getUserClaimValues(usernameWithUserStoreDomain,
+                new String[] {claimUri},
+                UserCoreConstants.DEFAULT_PROFILE).get(claimUri);
+        List<String> existingClaimValues = new ArrayList<>();
+        if (StringUtils.isNotEmpty(existingUserClaimValue)) {
+            existingClaimValues = Arrays.stream(existingUserClaimValue.split(multiAttributeSeparator))
+                    .collect(Collectors.toList());
+        }
+        List<String> currentClaimValues = Arrays.stream(claimValue.split(multiAttributeSeparator))
+                .collect(Collectors.toList());
+        currentClaimValues.removeAll(existingClaimValues);
+
+        for (String claimValuePart : currentClaimValues) {
+            String[] userList;
+            if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
+                String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValuePart;
+                userList = userStoreManager.getUserList(claimUri, claimValueWithDomain, profile);
+            } else {
+                userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
+            }
+            if (userList.length > 1) {
+                return true;
+            }
+            if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                return true;
             }
         }
         return false;
@@ -515,8 +583,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
      * Check which users should be deleted during concurrent user creation.
      * <p>
      * During concurrent user creation with the same unique claim value, multiple threads may include newly created
-     * users in their retrieved user lists. To prevent a race condition where all users could be deleted, we skip
-     * deleting the last user in the list, ensuring at least one user with the claim value remains.
+     * users in their retrieved user lists. To prevent a race condition where all users could be deleted, we keep
+     * the first user in the list.
      *
      * @param username The username being created.
      * @param userList The list of users retrieved from the user store.
@@ -524,6 +592,9 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
      */
     private boolean shouldDeleteUserDuringConcurrentCreation(String username, String[] userList) {
 
-        return IntStream.range(0, userList.length - 1).anyMatch(i -> username.equalsIgnoreCase(userList[i]));
+        if (userList == null || userList.length < 2) {
+            return false;
+        }
+        return Arrays.stream(userList, 1, userList.length).anyMatch(username::equalsIgnoreCase);
     }
 }
