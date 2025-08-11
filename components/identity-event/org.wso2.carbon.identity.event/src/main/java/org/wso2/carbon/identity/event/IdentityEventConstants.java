@@ -340,6 +340,7 @@ public class IdentityEventConstants {
         public static final String TOKEN_ISSUED = "TOKEN_ISSUED";
         public static final String TOKEN_REVOKED = "TOKEN_REVOKED";
 
+        public static final String POST_ISSUE_ACCESS_TOKEN_V2 = "POST_ISSUE_ACCESS_TOKEN_V2";
     }
 
     /**
@@ -505,6 +506,8 @@ public class IdentityEventConstants {
         public static final String JTI = "JTI";
         public static final String TOKEN_TYPE = "TOKEN_TYPE";
         public static final String GRANT_TYPE = "GRANT_TYPE";
+
+        public static final String CONSUMER_KEYS = "CONSUMER_KEYS";
 
         public class Scenario {
 
