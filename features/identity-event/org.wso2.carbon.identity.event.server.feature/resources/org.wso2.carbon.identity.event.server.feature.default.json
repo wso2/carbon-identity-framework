@@ -352,7 +352,7 @@
   "identity_mgt.events.schemes.SessionEventHook.module_index": "53",
   "identity_mgt.events.schemes.SessionEventHook.properties.enable": false,
   "identity_mgt.events.schemes.SessionEventHook.subscriptions": [
-    "USER_SESSION_TERMINATE",
+    "SESSION_TERMINATE_V2",
     "SESSION_EXPIRE",
     "SESSION_CREATE",
     "SESSION_UPDATE",

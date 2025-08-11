@@ -67,7 +67,6 @@ public class IdentityEventConstants {
         public static final String SESSION_EXPIRE = "SESSION_EXPIRE";
         public static final String SESSION_EXTEND = "SESSION_EXTEND";
         public static final String VERIFICATION = "VERIFICATION";
-        public static final String USER_SESSION_TERMINATE = "USER_SESSION_TERMINATE";
         public static final String PRE_SET_USER_CLAIMS = "PRE_SET_USER_CLAIMS";
         public static final String POST_SET_USER_CLAIMS = "POST_SET_USER_CLAIMS";
         public static final String PRE_ADD_USER= "PRE_ADD_USER";
