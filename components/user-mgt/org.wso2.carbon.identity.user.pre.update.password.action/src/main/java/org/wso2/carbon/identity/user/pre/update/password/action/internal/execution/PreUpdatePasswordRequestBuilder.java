@@ -166,6 +166,7 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
 
         switch (flow.getName()) {
             case PROFILE_UPDATE:
+            case CREDENTIAL_UPDATE:
                 // Password update is a sub-flow of profile update.
                 return PreUpdatePasswordEvent.Action.UPDATE;
             case CREDENTIAL_RESET:
