@@ -322,7 +322,9 @@ public class TenantSyncListener implements TenantMgtListener {
         private Map<String, String> headers;
         private TenantManagementEventDTO event;
         private static final int MAX_RETRIES = 5;
-        private static final long RETRY_DELAY_MS = 5000L;
+        private static final long INITIAL_RETRY_DELAY_MS = 1000L;
+        private static final long MAX_RETRY_DELAY_MS = 120000L;
+        private static final double BACKOFF_FACTOR = 2.0;
 
         public EventRunner(String notificationEndpoint, String username, char[] password, Map<String, String> headers,
                            TenantManagementEventDTO event) {
@@ -366,10 +368,21 @@ public class TenantSyncListener implements TenantMgtListener {
                         .build()) {
 
                     boolean success = httpClient.execute(httpPost, response -> {
-                        if (response.getCode() != HttpStatus.SC_OK) {
-                            LOG.error("Error while notifying for tenant creation. Status code: " + response.getCode());
-                            return false;
+                        
+                        int responseCode = response.getCode();
+                        if (responseCode >= 400 && responseCode < 500) {
+                            // Client errors — unauthorized, forbidden, bad request, etc.
+                            LOG.warn("Client error: Unauthorized or invalid request. No retry will be attempted.");
+                        } else if (responseCode >= 300 && responseCode < 400) {
+                            // Redirects — usually not retried automatically unless handled.
+                            LOG.warn("Redirection response received. No retry will be attempted.");
+                        } else if (responseCode >= 200 && responseCode < 300) {
+                            // Successful responses — shouldn't be treated as unauthorized. 
+                        } else {
+                            // Other cases (1xx or >= 500).
+                            LOG.error("Unexpected response code: " + responseCode);
                         }
+
                         return true;
                     });
 
@@ -382,9 +395,10 @@ public class TenantSyncListener implements TenantMgtListener {
                 }
 
                 if (attempt < MAX_RETRIES) {
+                    long delay = calculateNextDelay(attempt);
                     try {
-                        LOG.info("Will retry sending notification in " + RETRY_DELAY_MS + "ms.");
-                        Thread.sleep(RETRY_DELAY_MS);
+                        LOG.info("Will retry sending notification in " + delay + "ms.");
+                        Thread.sleep(delay);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         LOG.error("Notification thread was interrupted during retry delay. Aborting.", e);
@@ -392,6 +406,13 @@ public class TenantSyncListener implements TenantMgtListener {
                     }
                 }
             }
+        }
+
+        private long calculateNextDelay(int attempt) {
+            double exponent = attempt - 1.0;
+            long exponentialDelay = (long) (INITIAL_RETRY_DELAY_MS * Math.pow(BACKOFF_FACTOR, exponent));
+            // Return the calculated delay, ensuring it does not exceed the maximum cap.
+            return Math.min(exponentialDelay, MAX_RETRY_DELAY_MS);
         }
     }
 
