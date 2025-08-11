@@ -56,7 +56,7 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     @XmlElement(name = "EnableAssociateLocalUser")
     private boolean associateLocalUserEnabled = false;
     @XmlElement(name = "EnableSkipJITOnAttributeLookUpFailure")
-    private boolean isSkipJITOnAttrAccLookUpFailureEnabled = false;
+    private boolean skipJITOnAttrAccLookUpFailureEnabled = false;
     @XmlElementWrapper(name = FILE_ELEMENT_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING_CONFIG_WRAPPER)
     @XmlElement(name = FILE_ELEMENT_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING_CONFIG)
     AccountLookupAttributeMappingConfig[]
@@ -166,7 +166,7 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
      */
     public void setSkipJITOnAttrAccLookUpFailureEnabled(boolean isSkipJITOnAttributeLookUpFailureEnabled) {
 
-        this.isSkipJITOnAttrAccLookUpFailureEnabled = isSkipJITOnAttributeLookUpFailureEnabled;
+        this.skipJITOnAttrAccLookUpFailureEnabled = isSkipJITOnAttributeLookUpFailureEnabled;
     }
 
     /**
@@ -176,7 +176,7 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
      */
     public boolean isSkipJITOnAttrAccLookUpFailureEnabled() {
 
-        return isSkipJITOnAttrAccLookUpFailureEnabled;
+        return skipJITOnAttrAccLookUpFailureEnabled;
     }
 
     /**

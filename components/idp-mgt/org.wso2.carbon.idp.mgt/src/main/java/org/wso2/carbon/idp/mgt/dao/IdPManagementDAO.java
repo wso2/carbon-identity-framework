@@ -3639,6 +3639,8 @@ public class IdPManagementDAO {
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING
                                 .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE
+                                        .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
@@ -4504,6 +4506,7 @@ public class IdPManagementDAO {
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
         identityProviderProperties.add(associateLocalUser);
+        identityProviderProperties.add(skipJITOnAttributeLookupFailure);
         identityProviderProperties.add(primaryAccountLookupAttributeMapping);
         identityProviderProperties.add(secondaryAccountLookupAttributeMapping);
         identityProviderProperties.add(attributeSyncMethod);
@@ -5105,6 +5108,9 @@ public class IdPManagementDAO {
                 IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED.equals(idpProperty.getName()) ||
                 IdPManagementConstants.PROMPT_CONSENT_ENABLED.equals(idpProperty.getName()) ||
                 IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE.equals(idpProperty.getName()) ||
+                IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SYNC_ATTRIBUTE_METHOD.equals(idpProperty.getName()) ||
                 IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED.equals(idpProperty.getName()) ||
                 IdPManagementConstants.LOOKUP_ATTRIBUTES.equals(idpProperty.getName());

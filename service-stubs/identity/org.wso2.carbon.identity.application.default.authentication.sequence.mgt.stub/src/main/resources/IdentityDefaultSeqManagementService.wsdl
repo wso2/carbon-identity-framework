@@ -252,15 +252,23 @@
                     <xs:element minOccurs="0" name="provisioningUserStore" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
+            <xs:complexType name="AccountLookupAttributeMappingConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="attributeName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="attributeValue" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
             <xs:complexType name="JustInTimeProvisioningConfig">
                 <xs:complexContent>
                     <xs:extension base="ax2177:InboundProvisioningConfig">
                         <xs:sequence>
+                            <xs:element maxOccurs="0" minOccurs="0" name="accountLookupAttributeMappingConfigs" nillable="true" type="ax2177:AccountLookupAttributeMappingConfig"/>
                             <xs:element minOccurs="0" name="associateLocalUserEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="attributeSyncMethod" nillable="true" type="xs:string"/>
                             <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="promptConsent" type="xs:boolean"/>
+                            <xs:element minOccurs="0" name="skipJITOnAttrAccLookUpFailureEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="userStoreClaimUri" nillable="true" type="xs:string"/>
                         </xs:sequence>
                     </xs:extension>
