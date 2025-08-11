@@ -51,7 +51,6 @@ import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
-import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
@@ -153,7 +152,6 @@ public class WorkflowManagementServiceImplTest {
     private AbstractWorkflow mockAbstractWorkflow;
 
     private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
-    private MockedStatic<WorkflowManagementUtil> mockedWorkflowManagementUtil;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -184,7 +182,6 @@ public class WorkflowManagementServiceImplTest {
         // Mock static classes
         mockedDataHolder = mockStatic(WorkflowServiceDataHolder.class);
         mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
-        mockedWorkflowManagementUtil = mockStatic(WorkflowManagementUtil.class);
 
         // Set up common mock behaviors
         mockedDataHolder.when(WorkflowServiceDataHolder::getInstance)
@@ -206,14 +203,11 @@ public class WorkflowManagementServiceImplTest {
     }
 
     @AfterMethod
-    public void tearDown() throws Exception {
+    public void tearDown() {
 
         mockedDataHolder.close();
         if (mockedIdentityTenantUtil != null) {
             mockedIdentityTenantUtil.close();
-        }
-        if (mockedWorkflowManagementUtil != null) {
-            mockedWorkflowManagementUtil.close();
         }
     }
 
@@ -518,12 +512,10 @@ public class WorkflowManagementServiceImplTest {
         verify(mockWorkflowDAO).removeWorkflowParams(WORKFLOW_ID);
         verify(mockWorkflowDAO).updateWorkflow(workflow);
         verify(mockWorkflowDAO).addWorkflowParams(any(), eq(WORKFLOW_ID), eq(TENANT_ID));
-        mockedWorkflowManagementUtil.verify(() ->
-                WorkflowManagementUtil.updateWorkflowRoleName("Old Name", WORKFLOW_NAME));
     }
 
     @Test
-    public void testAddWorkflowInvalidTemplate() throws WorkflowException {
+    public void testAddWorkflowInvalidTemplate() {
 
         Workflow workflow = createTestWorkflow();
         List<Parameter> parameters = createTestParameters();
@@ -534,7 +526,7 @@ public class WorkflowManagementServiceImplTest {
     }
 
     @Test
-    public void testAddWorkflowInvalidImpl() throws WorkflowException {
+    public void testAddWorkflowInvalidImpl() {
 
         Workflow workflow = createTestWorkflow();
         List<Parameter> parameters = createTestParameters();
