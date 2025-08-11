@@ -64,7 +64,6 @@
   "authentication.authenticator.basic.parameters.AuthMechanism": "basic",
   "authentication.authenticator.basic.parameters.Tags": "Username-Password",
   "authentication.authenticator.basic.parameters.redirectToRetryPageOnAccountLock": "false",
-  "authentication.authenticator.basic.parameters.showAuthFailureReason": "true",
 
   "authentication.authenticator.basic_request_path.name": "BasicAuthRequestPathAuthenticator",
   "authentication.authenticator.basic_request_path.enable": true,
