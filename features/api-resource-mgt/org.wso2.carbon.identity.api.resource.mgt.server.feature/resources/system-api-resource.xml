@@ -1429,29 +1429,29 @@
                     description="Manage server from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Approval Workflow Management Feature" identifier="console:workflows"
+    <APIResource name="Approval Workflow Management Feature" identifier="console:approvalWorkflows"
                  requiresAuthorization="true"
                  description="Resource representation of the Approval Workflow Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="Approval Workflow Feature" name="console:workflows"
+            <Scope displayName="Approval Workflow Feature" name="console:approvalWorkflows"
                    description="Manage workflows from the Console"/>
-            <Scope displayName="Approval Workflow View Feature" name="console:workflows_view"
+            <Scope displayName="Approval Workflow View Feature" name="console:approvalWorkflows_view"
                    description="Manage views of workflows from the Console"/>
-            <Scope displayName="Approval Workflow Edit Feature" name="console:workflows_edit"
+            <Scope displayName="Approval Workflow Edit Feature" name="console:approvalWorkflows_edit"
                    description="Manage edits of workflows from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:workflows"
+    <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:approvalWorkflows"
                  requiresAuthorization="true"
                  description="Resource representation of the Approval Workflow Management Feature"
                  type="CONSOLE_ORG_FEATURE">
         <Scopes>
-            <Scope displayName="Approval Workflow Feature" name="console:org:workflows"
+            <Scope displayName="Approval Workflow Feature" name="console:org:approvalWorkflows"
                    description="Manage Approval workflows from the Console"/>
-            <Scope displayName="Approval Workflow View Feature" name="console:org:workflows_view"
+            <Scope displayName="Approval Workflow View Feature" name="console:org:approvalWorkflows_view"
                    description="Manage views of approval workflows from the Console"/>
-            <Scope displayName="Approval Workflow Edit Feature" name="console:org:workflows_edit"
+            <Scope displayName="Approval Workflow Edit Feature" name="console:org:approvalWorkflows_edit"
                    description="Manage edits of approval workflows from the Console"/>
         </Scopes>
     </APIResource>
