@@ -120,7 +120,7 @@ public class AuthenticationAssertionUtils {
     private static String getFullQualifiedUsername(FlowExecutionContext context, String username) {
 
         String fullQualifiedUsername = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
-        fullQualifiedUsername =UserCoreUtil.addDomainToName(fullQualifiedUsername,
+        fullQualifiedUsername = UserCoreUtil.addDomainToName(fullQualifiedUsername,
                 context.getFlowUser().getUserStoreDomain());
         return fullQualifiedUsername;
     }
