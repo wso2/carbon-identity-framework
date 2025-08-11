@@ -184,7 +184,7 @@ public class TenantSyncListener implements TenantMgtListener {
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
                 UserOperationEventListener.class.getName(), TenantSyncListener.class.getName());
 
-        if (StringUtils.isNotBlank(identityEventListenerConfig.getEnable())
+        if (identityEventListenerConfig != null && StringUtils.isNotBlank(identityEventListenerConfig.getEnable())
                 && Boolean.parseBoolean(identityEventListenerConfig.getEnable())) {
             try {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
@@ -218,8 +218,10 @@ public class TenantSyncListener implements TenantMgtListener {
                 PrivilegedCarbonContext.endTenantFlow();
             }
         } else {
-            LOG.debug(
-                    "Tenant sharing is disabled. Skipping tenant creation for tenant ID : " + tenantId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(
+                        "Tenant sharing is disabled. Skipping tenant creation for tenant ID : " + tenantId);
+            }
         }
         return isTenantEventFiringEnabled;
     }
