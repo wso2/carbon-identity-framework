@@ -149,7 +149,7 @@ public class FlowAIService {
 
             Object statusObj = response.get(Constants.FlowAIConstants.STATUS);
             if (statusObj == null) {
-                LOG.warn("Status field is missing in AI service response");
+                LOG.warn("Status field is missing in AI service response for operation ID: " + operationId);
                 return createDefaultStatusResponse();
             }
 
@@ -159,7 +159,7 @@ public class FlowAIService {
 
             Map<String, Boolean> statusMap = OBJECT_MAPPER.convertValue(statusObj, new StatusMapTypeReference());
             if (statusMap == null) {
-                LOG.warn("Failed to convert status object to status map");
+                LOG.warn("Failed to convert status object to status map for operation ID: " + operationId);
                 return createDefaultStatusResponse();
             }
             return buildStatusResponse(statusMap);
@@ -203,7 +203,7 @@ public class FlowAIService {
 
             Object resultObj = response.get(Constants.FlowAIConstants.DATA);
             if (resultObj == null) {
-                LOG.warn("Data field is missing in AI service response");
+                LOG.warn("Data field is missing in AI service response for operation ID: " + operationId);
             }
 
             Map<String, Object> dataMap = resultObj != null ?
