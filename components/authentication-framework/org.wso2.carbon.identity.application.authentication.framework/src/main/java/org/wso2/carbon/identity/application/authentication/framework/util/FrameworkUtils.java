@@ -132,8 +132,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.core.context.IdentityContext;
-import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -145,6 +143,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -995,7 +994,9 @@ public class FrameworkUtils {
 
         String path;
         if (isOrganizationQualifiedRequest()) {
-            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
+            // Handling the cookie path for requests coming with the path `/o/<org-id>`.
+            String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
         } else {
             if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
@@ -2425,7 +2426,7 @@ public class FrameworkUtils {
         return activeSessionCount;
     }
 
-    private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
+    public static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
             cookieConfig, Integer age, String path) {
 
         if (cookieConfig.getDomain() != null) {
@@ -4680,7 +4681,9 @@ public class FrameworkUtils {
             RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
             int tenantId;
             if (StringUtils.isNotBlank(userResidentOrg)) {
-                tenantId = realmService.getTenantManager().getTenantId(userResidentOrg);
+                String userResidentOrgHandle = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(userResidentOrg);
+                tenantId = realmService.getTenantManager().getTenantId(userResidentOrgHandle);
             } else {
                 tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             }
@@ -4702,6 +4705,8 @@ public class FrameworkUtils {
         } catch (UserStoreException e) {
             throw new FrameworkException(INVALID_REQUEST.getCode(),
                     "Use mapped local subject is mandatory but a local user couldn't be found");
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException(INVALID_REQUEST.getCode(), "Error while getting org handle.");
         }
     }
 
@@ -4741,11 +4746,12 @@ public class FrameworkUtils {
         try {
             String subjectIdentifier = impersonatedUser.getUserId();
             String userStoreDomain = impersonatedUser.getUserStoreDomain();
-            String userResidentOrg = impersonatedUser.getTenantDomain();
+            String userResidentOrgHandle = impersonatedUser.getTenantDomain();
             String tenantDomain = impersonatedUser.getTenantDomain();
             if (impersonatedUser.isFederatedUser()
                     && ORGANIZATION_LOGIN_IDP_NAME.equals(impersonatedUser.getFederatedIdPName())) {
-                userResidentOrg = impersonatedUser.getUserResidentOrganization();
+                userResidentOrgHandle = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(impersonatedUser.getUserResidentOrganization());
             }
             String userName = impersonatedUser.getUserName();
 
@@ -4763,7 +4769,7 @@ public class FrameworkUtils {
             if (subjectClaimUri != null) {
                 RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
                 String subjectClaimValue = getClaimValue(IdentityUtil.addDomainToName(userName, userStoreDomain),
-                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(userResidentOrg))
+                        realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(userResidentOrgHandle))
                                 .getUserStoreManager(), subjectClaimUri);
 
                 if (subjectClaimValue != null) {
@@ -4784,6 +4790,8 @@ public class FrameworkUtils {
             return subjectIdentifier;
         } catch (UserStoreException | UserIdNotFoundException e) {
             throw new FrameworkException("Error while obtaining subject identifier.", e);
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while resolving org handle for the org id.", e);
         }
     }
 
@@ -4835,21 +4843,4 @@ public class FrameworkUtils {
 
     }
 
-    /**
-     * This is used to set the flow and initiator in the identity context
-     * for the user flows.
-     *
-     * @param flowName The name of the flow to set in the identity context.
-     */
-    public static void updateIdentityContextFlow(Flow.Name flowName) {
-
-        if (IdentityContext.getThreadLocalIdentityContext().getFlow() != null) {
-            // If the flow is already set, no need to update it again.
-            return;
-        }
-
-        IdentityContext.getThreadLocalIdentityContext()
-                .setFlow(new Flow.Builder().name(flowName).initiatingPersona(
-                        Flow.InitiatingPersona.USER).build());
-    }
 }

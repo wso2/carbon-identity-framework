@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.webhook.metadata.api.service;
 
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
-import org.wso2.carbon.identity.webhook.metadata.api.model.Event;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
+import org.wso2.carbon.identity.webhook.metadata.api.model.WebhookMetadataProperties;
 
 import java.util.List;
 
@@ -47,11 +47,22 @@ public interface WebhookMetadataService {
     EventProfile getEventProfile(String profileName) throws WebhookMetadataException;
 
     /**
-     * Get list of events under the given event profile.
+     * Get metadata properties for webhooks.
      *
-     * @param profileUri URI of the event profile
-     * @return List of events
-     * @throws WebhookMetadataException If an error occurs while retrieving events
+     * @param tenantDomain Tenant domain for which metadata properties are requested
+     * @return WebhookMetadataProperties object containing metadata properties
+     * @throws WebhookMetadataException If an error occurs while retrieving webhook metadata properties
      */
-    List<Event> getEventsByProfileURI(String profileUri) throws WebhookMetadataException;
+    WebhookMetadataProperties getWebhookMetadataProperties(String tenantDomain) throws WebhookMetadataException;
+
+    /**
+     * Update webhook metadata properties.
+     *
+     * @param webhookMetadataProperties WebhookMetadataProperties object containing properties to be updated
+     * @param tenantDomain              Tenant domain for which metadata properties are being updated
+     * @return Updated WebhookMetadataProperties object
+     * @throws WebhookMetadataException If an error occurs while updating webhook metadata properties
+     */
+    WebhookMetadataProperties updateWebhookMetadataProperties(WebhookMetadataProperties webhookMetadataProperties,
+                                                              String tenantDomain) throws WebhookMetadataException;
 }

@@ -121,7 +121,7 @@ public class PreUpdateProfileActionRuleEvaluationDataProviderTest {
         doReturn(Collections.singletonList(flowField)).when(ruleEvaluationContext).getFields();
         doReturn(flowName).when(flow).getName();
         doReturn(initiatingPersona).when(flow).getInitiatingPersona();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
         List<FieldValue> fieldValues = dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
         assertEquals(fieldValues.size(), 1);
         assertEquals(fieldValues.get(0).getValue(), fieldValue);
@@ -141,7 +141,7 @@ public class PreUpdateProfileActionRuleEvaluationDataProviderTest {
         claimMap.put(claims.get(0), "testValue1");
         claimMap.put(claims.get(1), "testValue2");
         doReturn(claimMap).when(userActionRequestDTO).getClaims();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
 
         List<FieldValue> fieldValues = dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
         assertEquals(fieldValues.size(), 1);
@@ -164,7 +164,7 @@ public class PreUpdateProfileActionRuleEvaluationDataProviderTest {
         doReturn(Collections.singletonList(flowField)).when(ruleEvaluationContext).getFields();
         doReturn(flowName).when(flow).getName();
         doReturn(Flow.InitiatingPersona.APPLICATION).when(flow).getInitiatingPersona();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
     }
 }

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core</artifactId>
-        <version>7.8.327-SNAPSHOT</version>
+        <version>7.8.398-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -167,7 +167,7 @@
                             ${project.artifactId}
                         </Bundle-SymbolicName>
                         <Private-Package>
-                            org.wso2.carbon.identity.core.internal
+                            org.wso2.carbon.identity.core.internal.*
                         </Private-Package>
                         <Import-Package>
                             !javax.ws.rs,
@@ -221,7 +221,7 @@
                             org.wso2.carbon.utils.security;version="${carbon.kernel.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.core.internal,
+                            !org.wso2.carbon.identity.core.internal.*,
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.context;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.ApplicationActor;
@@ -25,13 +27,15 @@ import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.context.model.Organization;
 import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.core.context.model.UserActor;
-import org.wso2.carbon.identity.core.internal.IdentityContextDataHolder;
+import org.wso2.carbon.identity.core.internal.context.IdentityContextDataHolder;
 import org.wso2.carbon.utils.CarbonUtils;
 
 /**
  * This class is used to store the identity context information of the current thread.
  */
 public class IdentityContext extends CarbonContext {
+
+    private static final Log log = LogFactory.getLog(IdentityContext.class);
 
     private final IdentityContextDataHolder identityContextDataHolder;
 
@@ -55,7 +59,9 @@ public class IdentityContext extends CarbonContext {
      * Set the flow of the request.
      *
      * @param flow flow of the request.
+     * @deprecated Use {@link #enterFlow(Flow)} and {@link #exitFlow()}
      */
+    @Deprecated
     public void setFlow(Flow flow) {
 
         if (identityContextDataHolder.getFlow() != null) {
@@ -68,7 +74,9 @@ public class IdentityContext extends CarbonContext {
      * Get the flow id of the request.
      *
      * @return Flow of the request.
+     * @deprecated Use {@link #getCurrentFlow()} method to retrieve the current flow.
      */
+    @Deprecated
     public Flow getFlow() {
 
         return identityContextDataHolder.getFlow();
@@ -179,6 +187,43 @@ public class IdentityContext extends CarbonContext {
     public Organization getOrganization() {
 
         return identityContextDataHolder.getOrganization();
+    }
+
+    /**
+     * Enter a new flow. Pushes the given flow onto the flow sequence.
+     *
+     * @param flow The new flow to be started.
+     */
+    public void enterFlow(Flow flow) {
+
+        identityContextDataHolder.enterFlow(flow);
+        if (log.isDebugEnabled()) {
+            log.debug("Entered flow: " + (flow != null ? flow.getName() : "null"));
+        }
+    }
+
+    /**
+     * Exit the current flow. Pops the top flow from the flow sequence.
+     *
+     * @return The flow that was removed, or null if none.
+     */
+    public Flow exitFlow() {
+
+        Flow flow = identityContextDataHolder.exitFlow();
+        if (log.isDebugEnabled()) {
+            log.debug("Exited flow: " + (flow != null ? flow.getName() : "null"));
+        }
+        return flow;
+    }
+
+    /**
+     * Peek at the current flow without removing it from the flow sequence.
+     *
+     * @return The current active flow, or null if no flow is active.
+     */
+    public Flow getCurrentFlow() {
+
+        return identityContextDataHolder.getCurrentFlow();
     }
 
     public static void destroyCurrentContext() {

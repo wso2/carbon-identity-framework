@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionReques
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
@@ -64,6 +66,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -130,12 +133,13 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
                 .tenant(getTenant())
                 .user(getUser(userActionContext, preUpdatePasswordAction))
                 .userStore(new UserStore(userActionContext.getUserActionRequestDTO().getUserStoreDomain()))
+                .organization(getOrganization())
                 .build();
     }
 
     private PreUpdatePasswordEvent.FlowInitiatorType getInitiatorType() throws ActionExecutionRequestBuilderException {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow == null) {
             throw new ActionExecutionRequestBuilderException("Flow is not identified.");
         }
@@ -155,37 +159,63 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
 
     private PreUpdatePasswordEvent.Action getAction() throws ActionExecutionRequestBuilderException {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow == null) {
             throw new ActionExecutionRequestBuilderException("Flow is not identified.");
         }
 
         switch (flow.getName()) {
             case PROFILE_UPDATE:
+            case CREDENTIAL_UPDATE:
                 // Password update is a sub-flow of profile update.
                 return PreUpdatePasswordEvent.Action.UPDATE;
-            case PASSWORD_RESET:
+            case CREDENTIAL_RESET:
                 return PreUpdatePasswordEvent.Action.RESET;
-            case USER_REGISTRATION_INVITE_WITH_PASSWORD:
+            case INVITE:
             case INVITED_USER_REGISTRATION:
                 return PreUpdatePasswordEvent.Action.INVITE;
+            case REGISTER:
+                return PreUpdatePasswordEvent.Action.REGISTER;
             default:
                 break;
         }
         throw new ActionExecutionRequestBuilderException("Invalid action flow.");
     }
 
-    private static Tenant getTenant() {
+    private Tenant getTenant() throws ActionExecutionRequestBuilderException {
 
-        return new Tenant(String.valueOf(IdentityContext.getThreadLocalCarbonContext().getTenantId()),
-                IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
+        RootOrganization rootOrganization = IdentityContext.getThreadLocalIdentityContext().getRootOrganization();
+        if (rootOrganization == null) {
+            throw new ActionExecutionRequestBuilderException("Root organization information is not available in " +
+                    "Identity Context.");
+        }
+
+        return new Tenant(String.valueOf(rootOrganization.getAssociatedTenantId()),
+                rootOrganization.getAssociatedTenantDomain());
+    }
+
+    private Organization getOrganization() {
+
+        org.wso2.carbon.identity.core.context.model.Organization organization =
+                IdentityContext.getThreadLocalIdentityContext().getOrganization();
+        if (organization == null) {
+            return null;
+        }
+
+        return new Organization.Builder()
+                .id(organization.getId())
+                .name(organization.getName())
+                .orgHandle(organization.getOrganizationHandle())
+                .depth(organization.getDepth())
+                .build();
     }
 
     private User getUser(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
             throws ActionExecutionRequestBuilderException {
 
         PasswordUpdatingUser.Builder userBuilder = new PasswordUpdatingUser.Builder()
-                .id(userActionContext.getUserActionRequestDTO().getUserId());
+                .id(userActionContext.getUserActionRequestDTO().getUserId())
+                .organization(userActionContext.getUserActionRequestDTO().getResidentOrganization());
         populateCredential(userBuilder, userActionContext, preUpdatePasswordAction);
 
         if (preUpdatePasswordAction.getAttributes() != null && !preUpdatePasswordAction.getAttributes().isEmpty()) {
@@ -261,9 +291,22 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             return;
         }
 
-        Map<String, String> claimValues = getClaimValues(userActionContext.getUserActionRequestDTO().getUserId(),
-                userClaimsToSetInEvent);
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+        Map<String, String> claimValues = new HashMap<>();
+        if (userActionContext.getUserActionRequestDTO().getUserId() == null
+                || getCurrentFlowName() == Flow.Name.REGISTER) {
+            // User id is not available during the user registration where the user is not yet created.
+            // In such cases, UserActionContext contains the creating user claims.
+            Map<String, Object> claimsFromUserContext = userActionContext.getUserActionRequestDTO().getClaims();
+            for (String claim : userClaimsToSetInEvent) {
+                if (claimsFromUserContext.containsKey(claim) && claimsFromUserContext.get(claim) instanceof String) {
+                    claimValues.put(claim, (String) claimsFromUserContext.get(claim));
+                }
+            }
+        } else {
+            claimValues = getClaimValues(userActionContext.getUserActionRequestDTO().getUserId(),
+                    userClaimsToSetInEvent);
+        }
 
         setClaimsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
         setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
@@ -372,5 +415,11 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             throw new ActionExecutionRequestBuilderException(
                     "Error while loading user store manager for tenant: " + tenantDomain, e);
         }
+    }
+
+    private Flow.Name getCurrentFlowName() {
+
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+        return (flow != null) ? flow.getName() : null;
     }
 }

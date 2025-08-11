@@ -106,7 +106,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                         .eventProfileName(webhook.getEventProfileName())
                         .eventProfileUri(webhook.getEventProfileUri())
                         .eventProfileVersion(webhook.getEventProfileVersion())
-                        .status(webhook.getStatus())
+                        .status(WebhookStatus.PARTIALLY_ACTIVE)
                         .createdAt(webhook.getCreatedAt())
                         .updatedAt(webhook.getUpdatedAt())
                         .eventsSubscribed(subscriptions)

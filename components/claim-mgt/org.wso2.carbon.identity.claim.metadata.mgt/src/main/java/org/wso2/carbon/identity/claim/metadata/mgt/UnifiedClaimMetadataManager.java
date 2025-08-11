@@ -724,6 +724,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         // Set excluded user stores property if not set.
         setExcludedUserStoresProperty(localClaim, tenantId);
+
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         if (isLocalClaimInDB(localClaim.getClaimURI(), tenantId, tenantDomain)) {
             if (resolveWithHierarchicalMode(tenantDomain, tenantId)) {

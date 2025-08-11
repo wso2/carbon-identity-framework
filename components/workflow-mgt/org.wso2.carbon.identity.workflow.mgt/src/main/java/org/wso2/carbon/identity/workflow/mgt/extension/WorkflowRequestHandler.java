@@ -37,19 +37,19 @@ public interface WorkflowRequestHandler {
     void engageWorkflow(WorkflowRequest workFlowRequest) throws WorkflowException;
 
     /**
-     * Gets the event that this handler is subscribed, used when handling the callback
+     * Gets the event that this handler is subscribed, used when handling the callback.
      *
      * @return
      */
     String getEventId();
 
     /**
-     * Called on workflow completion
+     * Called on workflow completion.
      *
-     * @param status          The workflow status
+     * @param status          The workflow status.
      * @param originalRequest The original request that was made by
-     *                        {@link #engageWorkflow(WorkflowRequest)}
-     * @param responseParams  Additional data returned from workflow
+     *                        {@link #engageWorkflow(WorkflowRequest)}.
+     * @param responseParams  Additional data returned from workflow.
      * @throws WorkflowException
      */
     void onWorkflowCompletion(String status, WorkflowRequest originalRequest, Map<String, Object> responseParams) throws
@@ -63,21 +63,21 @@ public interface WorkflowRequestHandler {
     Map<String, String> getParamDefinitions();
 
     /**
-     * Gets the human friendly name for the event associated with this handler
+     * Gets the human friendly name for the event associated with this handler.
      *
      * @return
      */
     String getFriendlyName();
 
     /**
-     * Gets the human friendly description for the event associated with this handler
+     * Gets the human friendly description for the event associated with this handler.
      *
      * @return
      */
     String getDescription();
 
     /**
-     * Gets the category of the event associated with this handler
+     * Gets the category of the event associated with this handler.
      *
      * @return
      */

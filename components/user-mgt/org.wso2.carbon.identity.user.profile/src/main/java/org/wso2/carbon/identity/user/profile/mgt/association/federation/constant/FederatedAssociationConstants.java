@@ -54,7 +54,10 @@ public class FederatedAssociationConstants {
         INVALID_TENANT_DOMAIN_PROVIDED(10006, "Provided tenant domain is invalid"),
         INVALID_IDP_PROVIDED(10007, "Provided federated identity provider is invalid"),
         INVALID_TENANT_ID_PROVIDED(10008, "Provided tenant id is invalid"),
-        INVALID_USER_STORE_DOMAIN_PROVIDED(10009, "Provided user store domain is invalid");
+        INVALID_USER_STORE_DOMAIN_PROVIDED(10009, "Provided user store domain is invalid"),
+        INVALID_BULK_OPERATION(10010, "Provided bulk operation is invalid"),
+        MAXIMUM_BULK_OPERATION_LIMIT_EXCEEDED(10011, "Maximum bulk operation limit exceeded."),
+        INVALID_BULK_OPERATION_PATH(10012, "Provided bulk operation path is invalid");
 
         private final int code;
         private final String description;

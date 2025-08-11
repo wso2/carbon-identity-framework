@@ -143,6 +143,10 @@ public class IdPManagementConstants {
             ".RecoveryLink";
     public static final String ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY = "Recovery.AdminPasswordReset.SMSOTP";
 
+    // Resident IDP ask password set configs.
+    public static final String ASK_PASSWORD_SEND_EMAIL_OTP = "EmailVerification.AskPassword.EmailOTP";
+    public static final String ASK_PASSWORD_SEND_SMS_OTP = "EmailVerification.AskPassword.SMSOTP";
+
     // User defined federated authenticator related constants.
     public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";
 
@@ -154,6 +158,9 @@ public class IdPManagementConstants {
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATORS = List.of(
             IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
 
+    // Constants related to inheriting login & registration configurations.
+    public static final String PASSWORD_EXPIRY_RULES_KEY_PREFIX = "passwordExpiry.rule";
+    public static final String PASSWORD_EXPIRY_RULES_GROUPS = "groups";
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES = List.of(
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,
@@ -163,8 +170,7 @@ public class IdPManagementConstants {
             "Organization.SelfService.Enable",
             "Organization.SelfService.AdminEmailVerification",
             "Organization.SelfService.OnboardAdminToOrg",
-            "Organization.SelfService.EnableAutoLogin",
-            "passwordExpiry.rule");
+            "Organization.SelfService.EnableAutoLogin");
 
 
     public static class SQLConstants {

@@ -91,7 +91,7 @@ public class InputValidationService {
 
         // Check if the actionId is empty and set it to default action.
         String actionId = context.getCurrentActionId();
-        actionId = StringUtils.EMPTY.equals(actionId) ? DEFAULT_ACTION : actionId;
+        actionId = StringUtils.isBlank(actionId) ? DEFAULT_ACTION : actionId;
         if (context.getCurrentStepInputs() == null || context.getCurrentStepInputs().isEmpty()) {
             return;
         }

@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
@@ -114,6 +115,7 @@ public class CacheBackedIdPMgtDAOTest {
     private ActionManagementService actionManagementService;
     private final ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
 
     private void initiateH2Database(String databaseName, String scriptPath) throws Exception {
 
@@ -216,6 +218,10 @@ public class CacheBackedIdPMgtDAOTest {
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(SAMPLE_TENANT_ID2))
                 .thenReturn(SAMPLE_TENANT_DOMAIN2);
 
+        organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(false);
+
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
     }
 
@@ -235,6 +241,7 @@ public class CacheBackedIdPMgtDAOTest {
 
         closeH2Database();
         identityTenantUtil.close();
+        organizationManagementUtilMockedStatic.close();
     }
 
     @DataProvider

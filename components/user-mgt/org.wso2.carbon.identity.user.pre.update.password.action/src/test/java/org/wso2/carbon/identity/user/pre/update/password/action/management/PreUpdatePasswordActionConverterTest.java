@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.user.pre.update.password.action.api.model.Passwo
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionConverter;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,12 +64,15 @@ public class PreUpdatePasswordActionConverterTest {
 
         mockCertificate = mock(Certificate.class);
         converter = new PreUpdatePasswordActionConverter();
+        Timestamp currentTimestamp = new Timestamp(new Date().getTime());
         action = new PreUpdatePasswordAction.ResponseBuilder()
                 .id(TEST_ID)
                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                 .name(TEST_ACTION)
                 .description(TEST_DESCRIPTION)
                 .status(Action.Status.ACTIVE)
+                .createdAt(new Timestamp(new Date().getTime()))
+                .updatedAt(new Timestamp(new Date().getTime() + 5000))
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_URL)
                         .authentication(new Authentication
@@ -88,7 +93,7 @@ public class PreUpdatePasswordActionConverterTest {
     }
 
     @Test
-    public void testBuildActionForGetOperationDTOWithAllFields() {
+    public void testBuildActionDTOForGetOperationWithAllFields() {
 
         // Convert the action to DTO
         ActionDTO dto = converter.buildActionDTO(action);
@@ -99,6 +104,8 @@ public class PreUpdatePasswordActionConverterTest {
         assertEquals(dto.getName(), action.getName());
         assertEquals(dto.getDescription(), action.getDescription());
         assertEquals(dto.getStatus(), action.getStatus());
+        assertEquals(dto.getCreatedAt(), action.getCreatedAt());
+        assertEquals(dto.getUpdatedAt(), action.getUpdatedAt());
         assertEquals(dto.getEndpoint().getUri(), action.getEndpoint().getUri());
         assertEquals(dto.getEndpoint().getAuthentication().getType(),
                 action.getEndpoint().getAuthentication().getType());
@@ -136,6 +143,8 @@ public class PreUpdatePasswordActionConverterTest {
         assertEquals(convertedAction.getName(), dto.getName());
         assertEquals(convertedAction.getDescription(), dto.getDescription());
         assertEquals(convertedAction.getStatus(), dto.getStatus());
+        assertEquals(convertedAction.getCreatedAt(), dto.getCreatedAt());
+        assertEquals(convertedAction.getUpdatedAt(), dto.getUpdatedAt());
         assertEquals(convertedAction.getEndpoint().getUri(), dto.getEndpoint().getUri());
         assertEquals(convertedAction.getEndpoint().getAuthentication().getType(),
                 dto.getEndpoint().getAuthentication().getType());
