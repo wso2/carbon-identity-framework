@@ -25,7 +25,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -41,6 +43,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -69,13 +72,16 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
      * @return instance of PostAuthAssociationHandler
      */
     public static PostAuthAssociationHandler getInstance() {
+
         return instance;
     }
 
     /**
      * To avoid creation of multiple instances of this handler.
      */
-    protected PostAuthAssociationHandler() { }
+    protected PostAuthAssociationHandler() {
+
+    }
 
     @Override
     public int getPriority() {
@@ -98,7 +104,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     @Override
     @SuppressWarnings("unchecked")
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context) throws PostAuthenticationFailedException {
+                                             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(context)) {
             return SUCCESS_COMPLETED;
@@ -149,19 +155,20 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
      * @throws PostAuthenticationFailedException Post Authentication failed exception.
      */
     private void setAssociatedLocalUserToContext(String associatedLocalUserName, AuthenticationContext context,
-            StepConfig stepConfig) throws PostAuthenticationFailedException {
+                                                 StepConfig stepConfig) throws PostAuthenticationFailedException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedLocalUserName));
         String fullQualifiedAssociatedUsername = FrameworkUtils.prependUserStoreDomainToName(
                 associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+        Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
         AuthenticatedUser user =
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUsername);
         sequenceConfig.setAuthenticatedUser(user);
         stepConfig.setAuthenticatedUser(user);
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
 
-        Map<String, String> mappedAttrs = handleClaimMappings(stepConfig, context);
+        Map<String, String> mappedAttrs = handleClaimMappings(stepConfig, context, extAttrs);
         handleRoleMapping(context, sequenceConfig, mappedAttrs);
         Map<ClaimMapping, String> authenticatedUserAttributes = getClaimMapping(context, mappedAttrs);
         if (MapUtils.isNotEmpty(authenticatedUserAttributes)) {
@@ -186,6 +193,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             log.debug("Authenticated User Tenant Domain: " + tenantDomain);
         }
     }
+
     /**
      * To get the local user name associated with the given federated IDP and the subject identifier.
      *
@@ -237,8 +245,8 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     /**
      * To get the claim mapping based on user local.
      *
-     * @param context    Authentication Context.
-     * @param mappedAttrs    Mapped user attributes.
+     * @param context     Authentication Context.
+     * @param mappedAttrs Mapped user attributes.
      * @return claim mapping.
      */
     @SuppressWarnings("unchecked")
@@ -286,12 +294,27 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     }
 
-    private Map<String, String> handleClaimMappings(StepConfig stepConfig, AuthenticationContext context)
+    private Map<String, String> handleClaimMappings(StepConfig stepConfig, AuthenticationContext context,
+                                                    Map<ClaimMapping, String> extAttrs)
             throws PostAuthenticationFailedException {
 
         Map<String, String> mappedAttrs;
+        Map<String, String> mappedFedAttrs = new HashMap<>();
         try {
+
+            if (isNotSyncAttributes(context, stepConfig)) {
+                mappedFedAttrs = handleFederatedClaimMappings(stepConfig, context, extAttrs);
+            }
             mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context, null, false);
+
+            // Add mappedFedAttrs to mappedAttrs if not null and if mappedAttrs do not contain the keys.
+            if (MapUtils.isNotEmpty(mappedFedAttrs)) {
+                for (Map.Entry<String, String> entry : mappedFedAttrs.entrySet()) {
+                    if (!mappedAttrs.containsKey(entry.getKey())) {
+                        mappedAttrs.put(entry.getKey(), entry.getValue());
+                    }
+                }
+            }
             return mappedAttrs;
         } catch (FrameworkException e) {
             throw new PostAuthenticationFailedException(FrameworkErrorConstants.ErrorMessages.
@@ -299,5 +322,59 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                             ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getMessage(),
                     context.getSequenceConfig().getAuthenticatedUser().getUserName()), e);
         }
+    }
+
+    /**
+     * Resolves the federated claim mappings for the given step config and removes the claims used for internal
+     * requirements.
+     *
+     * @param stepConfig Step config.
+     * @param context    Authentication context.
+     * @param extAttrs   External attributes.
+     * @return Mapped federated attributes.
+     * @throws FrameworkException If an error occurs while handling claim mappings.
+     */
+
+    private Map<String, String> handleFederatedClaimMappings(StepConfig stepConfig,
+                                                             AuthenticationContext context,
+                                                             Map<ClaimMapping, String> extAttrs)
+            throws FrameworkException {
+
+        Map<String, String> mappedFedAttrs = new HashMap<>();
+
+        Map<String, String> extAttibutesValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
+        if (MapUtils.isNotEmpty(extAttibutesValueMap)) {
+            mappedFedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context,
+                    extAttibutesValueMap, true);
+        }
+
+        // Remove the claims used for internal requirements
+        mappedFedAttrs.remove(FrameworkConstants.IDP_MAPPED_USER_ROLES);
+        mappedFedAttrs.remove(FrameworkConstants.USER_ORGANIZATION_CLAIM);
+        return mappedFedAttrs;
+    }
+
+    /**
+     * Check whether the attribute sync method is set to NONE for the external IdP.
+     *
+     * @param context    Authentication context.
+     * @param stepConfig Step config.
+     * @return true if the attribute sync method is set to none, false otherwise.
+     */
+    private boolean isNotSyncAttributes(AuthenticationContext context, StepConfig stepConfig) {
+
+        ExternalIdPConfig externalIdPConfig = null;
+        try {
+            externalIdPConfig = ConfigurationFacade.getInstance()
+                    .getIdPConfigByName(stepConfig.getAuthenticatedIdP(),
+                            context.getTenantDomain());
+        } catch (IdentityProviderManagementException e) {
+            log.error("Exception while getting IdP by name", e);
+        }
+        String attributeSyncMethod = null;
+        if (externalIdPConfig != null) {
+            attributeSyncMethod = externalIdPConfig.getAttributeSyncMethod();
+        }
+        return FrameworkConstants.SYNC_NONE.equals(attributeSyncMethod);
     }
 }
