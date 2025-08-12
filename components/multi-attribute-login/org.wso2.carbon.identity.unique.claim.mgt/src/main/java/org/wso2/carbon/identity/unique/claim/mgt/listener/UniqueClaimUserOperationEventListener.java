@@ -111,6 +111,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             checkClaimUniqueness(userName, claims, profile, userStoreManager, null);
         } catch (UserStoreClientException e) {
             userStoreManager.deleteUser(userName);
+            throw e;
         }
         return true;
     }
