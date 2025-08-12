@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
@@ -30,6 +31,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
@@ -55,6 +59,8 @@ public class UserAssertionUtils {
     private static final Map<Integer, Key> PRIVATE_KEYS = new ConcurrentHashMap<>();
     private static final Map<Integer, Certificate> PUBLIC_CERTS = new ConcurrentHashMap<>();
 
+    public static final String JWT_USER_ASSERTION_TYPE = "JWT+UA";
+
     /**
      * Generates a signed JWT user assertion with the provided claims set.
      *
@@ -69,9 +75,8 @@ public class UserAssertionUtils {
         try {
             RSAPrivateKey privateKey = (RSAPrivateKey) getPrivateKey(tenantDomain);
             SignedJWT signedJWT = new SignedJWT(
-                    new JWSHeader.Builder(JWSAlgorithm.RS256).build(),
-                    claimsSet
-            );
+                    new JWSHeader.Builder(JWSAlgorithm.RS256).type(new JOSEObjectType(JWT_USER_ASSERTION_TYPE)).build(),
+                    claimsSet);
             signedJWT.sign(new RSASSASigner(privateKey));
             return signedJWT.serialize();
         } catch (JOSEException e) {
@@ -92,6 +97,7 @@ public class UserAssertionUtils {
 
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
+            validateJWTType(signedJWT);
             verifyJWTSignature(signedJWT, tenantDomain);
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
             validateUserAssertion(claimsSet);
@@ -101,18 +107,47 @@ public class UserAssertionUtils {
         }
     }
 
+    /**
+     * Validates that the JWT has the expected type header (jwt+UA).
+     *
+     * @param signedJWT The signed JWT to validate.
+     * @throws FrameworkException If the JWT type is not jwt+UA or is missing.
+     */
+    private static void validateJWTType(SignedJWT signedJWT) throws FrameworkException {
+
+        JOSEObjectType type = signedJWT.getHeader().getType();
+        if (type == null) {
+            throw new FrameworkException("JWT type header is missing. Expected type: " + JWT_USER_ASSERTION_TYPE);
+        }
+        if (!JWT_USER_ASSERTION_TYPE.equals(type.getType())) {
+            throw new FrameworkClientException("Invalid JWT type. Expected: " + JWT_USER_ASSERTION_TYPE + ", " +
+                    "Found: " + type);
+        }
+    }
+
     private static void validateUserAssertion(JWTClaimsSet claimsSet) throws FrameworkException {
 
-        Date now = new Date();
-        if (claimsSet.getExpirationTime() == null || claimsSet.getExpirationTime().before(now)) {
-            throw new FrameworkException("User assertion is expired.");
-        }
-        String expectedIssuer = IdentityUtil.getServerURL(StringUtils.EMPTY, true, true);
-        if (!expectedIssuer.equals(claimsSet.getIssuer())) {
-            throw new FrameworkException("Invalid issuer in the user assertion.");
-        }
-        if (claimsSet.getSubject() == null) {
-            throw new FrameworkException("Subject is missing in the user assertion.");
+        try {
+            Date now = new Date();
+            if (claimsSet.getExpirationTime() == null || claimsSet.getExpirationTime().before(now)) {
+                throw new FrameworkClientException("User assertion is expired.");
+            }
+            String expectedIssuer = ServiceURLBuilder.create().build(IdentityUtil.getHostName()).getAbsolutePublicURL();
+            if (!expectedIssuer.equals(claimsSet.getIssuer())) {
+                throw new FrameworkClientException("Invalid issuer in the user assertion.");
+            }
+
+            if (claimsSet.getAudience() == null || !claimsSet.getAudience().contains(expectedIssuer)) {
+                throw new FrameworkClientException("Invalid audience in the user assertion.");
+            }
+            if (claimsSet.getSubject() == null) {
+                throw new FrameworkClientException("Subject is missing in the user assertion.");
+            }
+        } catch (URLBuilderException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while building the expected issuer URL for user assertion.", e);
+            }
+            throw new FrameworkClientException("Error while building the expected issuer URL for user assertion.");
         }
     }
 

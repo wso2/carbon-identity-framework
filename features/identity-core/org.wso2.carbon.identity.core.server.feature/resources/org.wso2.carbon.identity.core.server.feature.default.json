@@ -52,6 +52,8 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
+  "localization.prioritize_param": "true",
+
   "server.internal_hostname": "localhost",
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
@@ -212,7 +214,7 @@
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
-  "oauth.dcrm.return_null_fields_in_response": true,
+  "oauth.dcrm.return_null_fields_in_response": false,
   "oauth.dcr.enable_fapi_enforcement": false,
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
@@ -459,7 +461,7 @@
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
-  "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+  "identity_mgt.login_identifiers.enable_identifier_as_display_username": true,
 
   "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,

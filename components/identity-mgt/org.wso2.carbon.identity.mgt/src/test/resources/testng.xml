@@ -29,4 +29,9 @@
 
         </classes>
     </test>
+    <test name="org.wso2.carbon.identity.mgt.listener" preserve-order="false" parallel="false">
+        <classes>
+            <class name="org.wso2.carbon.identity.mgt.listener.TenantSyncListenerTest"/>
+        </classes>
+    </test>
 </suite>
