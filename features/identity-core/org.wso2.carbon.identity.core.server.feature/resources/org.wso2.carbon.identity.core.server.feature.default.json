@@ -1335,6 +1335,8 @@
   "console.actions.enabled": true,
   "console.actions.disabled_features": [
     "actions.types.list.preRegistration",
+    "actions.types.list.preUpdatePassword.headersAndParameters",
+    "actions.types.list.preUpdateProfile.headersAndParameters",
     "actions.types.org.list.preIssueAccessToken",
     "actions.types.org.list.preRegistration"
   ],
