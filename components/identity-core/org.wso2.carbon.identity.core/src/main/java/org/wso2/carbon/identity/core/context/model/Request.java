@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -82,33 +83,25 @@ public class Request {
 
             while (headerNames.hasMoreElements()) {
                 String headerName = (String) headerNames.nextElement();
-                Enumeration headerValues = request.getHeaders(headerName);
+                Enumeration<String> headerValues = request.getHeaders(headerName);
                 if (headerValues == null) {
                     continue;
                 }
 
-                List<String> values = new ArrayList<>();
-                while (headerValues.hasMoreElements()) {
-                    values.add((String) headerValues.nextElement());
-                }
+                List<String> values = Collections.list(headerValues);
                 this.headers.add(new Header(headerName, values.toArray(new String[0])));
             }
         }
 
         private void resolveParams(HttpServletRequest request) {
 
-            Enumeration paramNames = request.getParameterNames();
-            if (paramNames == null) {
-                return;
-            }
-
-            while (paramNames.hasMoreElements()) {
-                String paramName = (String) paramNames.nextElement();
-                String[] paramValues = request.getParameterValues(paramName);
-                if (paramValues == null) {
-                    continue;
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+                String paramName = entry.getKey();
+                String[] paramValues = entry.getValue();
+                if (paramValues != null) {
+                    this.parameters.add(new Parameter(paramName, paramValues));
                 }
-                this.parameters.add(new Parameter(paramName, paramValues));
             }
         }
     }
