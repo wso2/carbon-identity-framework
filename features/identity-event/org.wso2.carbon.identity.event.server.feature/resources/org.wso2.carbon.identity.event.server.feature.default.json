@@ -374,5 +374,11 @@
   "identity_mgt.events.schemes.OrganizationVersionHandler.subscriptions": [
     "PRE_UPDATE_ORGANIZATION",
     "PRE_PATCH_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.TokenEventHook.module_index": "57",
+  "identity_mgt.events.schemes.TokenEventHook.properties.enable": true,
+  "identity_mgt.events.schemes.TokenEventHook.subscriptions": [
+    "POST_ISSUE_ACCESS_TOKEN_V2",
+    "TOKEN_REVOKED"
   ]
 }
