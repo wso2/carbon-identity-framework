@@ -297,7 +297,8 @@
       "console.identity_providers.disabled_features": [],
       "scim2.enable_scim2_roles_v3_api": false,
       "localization.prioritize_param": false,
-      "attribute.return_previous_additional_properties.enable": true
+      "attribute.return_previous_additional_properties.enable": true,
+      "actions.types.pre_update_password.enable_in_registration_flows": false
     }
   }
 }
