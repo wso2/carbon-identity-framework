@@ -271,6 +271,11 @@
   },
   "preserve_previous_product_behaviour.version": {
     "IS_7.0.0": {
+      "scim2.enable_group_based_user_filter_improvements": false,
+      "scim2.enable_error_code_for_password_policy_violations": false,
+      "user_store_commons.enable_circuit_breaker_for_user_stores": false,
+      "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": true,
+      "event.default_listener.email_domain_validation_handler.enable": false,
       "oauth.dcrm.return_null_fields_in_response": true,
       "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
       "session_management.filter_by_unique_session_id_for_user": false,
