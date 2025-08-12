@@ -288,7 +288,8 @@
       "organization_management.organization_versioning.new_organization_version": "v0.0.0",
       "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
       "console.identity_providers.disabled_features": [],
-      "scim2.enable_scim2_roles_v3_api": false
+      "scim2.enable_scim2_roles_v3_api": false,
+      "actions.types.pre_update_password.enable_in_registration_flows": false
     }
   }
 }
