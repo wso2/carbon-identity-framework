@@ -350,7 +350,7 @@
     "USER_REGISTRATION_INVITE_WITH_PASSWORD"
     ],
   "identity_mgt.events.schemes.SessionEventHook.module_index": "53",
-  "identity_mgt.events.schemes.SessionEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.SessionEventHook.properties.enable": true,
   "identity_mgt.events.schemes.SessionEventHook.subscriptions": [
     "SESSION_TERMINATE_V2",
     "SESSION_EXPIRE",
