@@ -1676,7 +1676,10 @@
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
-  "console.users.disabled_features": ["users.profile.legacy"],
+  "console.users.disabled_features": [
+    "users.add.legacy",
+    "users.profile.legacy"
+  ],
   "console.users.scopes.feature": ["console:users"],
   "console.users.scopes.create": ["internal_user_mgt_create"],
   "console.users.scopes.read": [
