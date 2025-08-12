@@ -20,6 +20,28 @@
       ]
     },
     {
+      "name": "Sessions",
+      "description": "Sessions established, presented or revoked",
+      "uri": "https://schemas.identity.wso2.org/events/session",
+      "events": [
+        {
+          "eventName": "Session established",
+          "eventDescription": "Notify if session is established",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionEstablished"
+        },
+        {
+          "eventName": "Session presented",
+          "eventDescription": "Notify if session is presented",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionPresented"
+        },
+        {
+          "eventName": "Session revoked",
+          "eventDescription": "Notify if session is revoked",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionRevoked"
+        }
+      ]
+    },
+    {
       "name": "User account management",
       "description": "User created, profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
       "uri": "https://schemas.identity.wso2.org/events/user",
@@ -79,40 +101,6 @@
       ]
     },
     {
-      "name": "Credential updates",
-      "description": "Password created or updated",
-      "uri": "https://schemas.identity.wso2.org/events/credential",
-      "events": [
-        {
-          "eventName": "Credential updated",
-          "eventDescription": "Notify if password is created or updated",
-          "eventUri": "https://schemas.identity.wso2.org/events/credential/event-type/credentialUpdated"
-        }
-      ]
-    },
-    {
-      "name": "Sessions",
-      "description": "Sessions established, presented or revoked",
-      "uri": "https://schemas.identity.wso2.org/events/session",
-      "events": [
-        {
-          "eventName": "Session established",
-          "eventDescription": "Notify if session is established",
-          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionEstablished"
-        },
-        {
-          "eventName": "Session presented",
-          "eventDescription": "Notify if session is presented",
-          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionPresented"
-        },
-        {
-          "eventName": "Session revoked",
-          "eventDescription": "Notify if session is revoked",
-          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionRevoked"
-        }
-      ]
-    },
-    {
       "name": "Tokens",
       "description": "Access token issued or revoked",
       "uri": "https://schemas.identity.wso2.org/events/token",
@@ -126,6 +114,18 @@
           "eventName": "Access token revoked",
           "eventDescription": "Notify if access token is revoked",
           "eventUri": "https://schemas.identity.wso2.org/events/token/event-type/accessTokenRevoked"
+        }
+      ]
+    },
+    {
+      "name": "Credential updates",
+      "description": "Password created or updated",
+      "uri": "https://schemas.identity.wso2.org/events/credential",
+      "events": [
+        {
+          "eventName": "Credential updated",
+          "eventDescription": "Notify if password is created or updated",
+          "eventUri": "https://schemas.identity.wso2.org/events/credential/event-type/credentialUpdated"
         }
       ]
     }
