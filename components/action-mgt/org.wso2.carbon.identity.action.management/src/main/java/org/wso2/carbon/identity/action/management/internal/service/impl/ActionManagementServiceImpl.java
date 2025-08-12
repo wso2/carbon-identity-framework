@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -375,6 +375,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .name(actionDTO.getName())
                 .description(actionDTO.getDescription())
                 .status(actionDTO.getStatus())
+                .createdAt(actionDTO.getCreatedAt())
+                .updatedAt(actionDTO.getUpdatedAt())
                 .build();
     }
 
@@ -396,6 +398,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .name(actionDTO.getName())
                 .description(actionDTO.getDescription())
                 .status(actionDTO.getStatus())
+                .createdAt(actionDTO.getCreatedAt())
+                .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())
                 .rule(actionDTO.getActionRule())
                 .build();

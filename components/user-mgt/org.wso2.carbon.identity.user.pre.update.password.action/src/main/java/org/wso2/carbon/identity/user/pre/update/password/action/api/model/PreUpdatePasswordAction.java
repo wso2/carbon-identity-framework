@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.user.pre.update.password.action.api.model;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -95,6 +96,20 @@ public class PreUpdatePasswordAction extends Action {
         public ResponseBuilder status(Status status) {
 
             super.status(status);
+            return this;
+        }
+
+        @Override
+        public ResponseBuilder createdAt(Timestamp createdAt) {
+
+            super.createdAt(createdAt);
+            return this;
+        }
+
+        @Override
+        public ResponseBuilder updatedAt(Timestamp updatedAt) {
+
+            super.updatedAt(updatedAt);
             return this;
         }
 

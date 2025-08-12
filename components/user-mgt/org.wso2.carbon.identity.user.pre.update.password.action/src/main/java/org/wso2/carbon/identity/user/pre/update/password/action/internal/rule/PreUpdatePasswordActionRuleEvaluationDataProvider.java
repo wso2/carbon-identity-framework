@@ -50,7 +50,10 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
         ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD("adminInitiatedUserInviteToSetPassword"),
         APPLICATION_INITIATED_PASSWORD_UPDATE("applicationInitiatedPasswordUpdate"),
         USER_INITIATED_PASSWORD_UPDATE("userInitiatedPasswordUpdate"),
-        USER_INITIATED_PASSWORD_RESET("userInitiatedPasswordReset");
+        USER_INITIATED_PASSWORD_RESET("userInitiatedPasswordReset"),
+        ADMIN_INITIATED_REGISTRATION("adminInitiatedRegistration"),
+        APPLICATION_INITIATED_REGISTRATION("applicationInitiatedRegistration"),
+        USER_INITIATED_REGISTRATION("userInitiatedRegistration");
 
         final String flowName;
 
@@ -110,12 +113,12 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
             return PasswordUpdateFlowType.USER_INITIATED_PASSWORD_UPDATE.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.PASSWORD_RESET &&
+        if (flow.getName() == Flow.Name.CREDENTIAL_RESET &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             return PasswordUpdateFlowType.ADMIN_INITIATED_PASSWORD_RESET.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.PASSWORD_RESET &&
+        if (flow.getName() == Flow.Name.CREDENTIAL_RESET &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
             return PasswordUpdateFlowType.USER_INITIATED_PASSWORD_RESET.getFlowName();
         }
@@ -123,6 +126,21 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
         if ((flow.getName() == Flow.Name.INVITE || flow.getName() ==
                 Flow.Name.INVITED_USER_REGISTRATION) && flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             return PasswordUpdateFlowType.ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD.getFlowName();
+        }
+
+        if (flow.getName() == Flow.Name.REGISTER &&
+                flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
+            return PasswordUpdateFlowType.ADMIN_INITIATED_REGISTRATION.getFlowName();
+        }
+
+        if (flow.getName() == Flow.Name.REGISTER &&
+                flow.getInitiatingPersona() == Flow.InitiatingPersona.APPLICATION) {
+            return PasswordUpdateFlowType.APPLICATION_INITIATED_REGISTRATION.getFlowName();
+        }
+
+        if (flow.getName() == Flow.Name.REGISTER &&
+                flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
+            return PasswordUpdateFlowType.USER_INITIATED_REGISTRATION.getFlowName();
         }
 
         throw new RuleEvaluationDataProviderException("Unsupported flow type: " + flow.getName() +

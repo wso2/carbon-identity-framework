@@ -153,7 +153,6 @@ public class ApplicationConstants {
     public static final String IMPERSONATE_ROLE_NAME = "Impersonator";
     public static final String IMPERSONATION_API_RESOURCE = "system:impersonation";
     public static final String APPLICATION_ROLE_AUDIENCE = "application";
-    public static final String USER_SESSION_IMPERSONATION_ENABLED = "OAuth.UserSessionImpersonation";
 
     /**
      * Group the constants related to logs.
@@ -179,9 +178,10 @@ public class ApplicationConstants {
         public static final String APP_VERSION_V0 = "v0.0.0";
         public static final String APP_VERSION_V1 = "v1.0.0";
         public static final String APP_VERSION_V2 = "v2.0.0";
+        public static final String APP_VERSION_V3 = "v3.0.0";
 
         // Change the latest version when a new version is introduced.
-        public static final String LATEST_APP_VERSION = APP_VERSION_V2;
+        public static final String LATEST_APP_VERSION = APP_VERSION_V3;
         public static final String BASE_APP_VERSION = APP_VERSION_V0;
 
         /**
@@ -191,7 +191,8 @@ public class ApplicationConstants {
 
             V0(APP_VERSION_V0),
             V1(APP_VERSION_V1),
-            V2(APP_VERSION_V2);
+            V2(APP_VERSION_V2),
+            V3(APP_VERSION_V3);
 
             private final String value;
 

@@ -52,6 +52,8 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
+  "localization.prioritize_param": "true",
+
   "server.internal_hostname": "localhost",
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
@@ -212,7 +214,7 @@
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
-  "oauth.dcrm.return_null_fields_in_response": true,
+  "oauth.dcrm.return_null_fields_in_response": false,
   "oauth.dcr.enable_fapi_enforcement": false,
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
@@ -363,6 +365,7 @@
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
 
   "user_account_association.enable_sha256": true,
+  "federated_user_account_association.max_bulk_operations": 1000,
 
   "entitlement.thrift.enable": false,
   "entitlement.thrift.receiver_port": "${Ports.ThriftEntitlementReceivePort}",
@@ -458,7 +461,7 @@
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
-  "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+  "identity_mgt.login_identifiers.enable_identifier_as_display_username": true,
 
   "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
@@ -1281,9 +1284,11 @@
   "console.ui.isXacmlConnectorEnabled": false,
   "console.ui.routes.organizationEnabledRoutes": [
     "accountSecurity",
+    "actions",
     "admin-forced-password-reset",
     "apiResources",
     "applications",
+    "approvalWorkflows",
     "approvals",
     "attributeDialects",
     "branding",
@@ -1304,7 +1309,8 @@
     "userStores",
     "username-recovery",
     "users",
-    "workflows"
+    "workflowInstanceDetails",
+    "workflowInstances"
   ],
   "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
   "console.theme": "wso2is",
@@ -1331,6 +1337,8 @@
   "console.actions.enabled": true,
   "console.actions.disabled_features": [
     "actions.types.list.preRegistration",
+    "actions.types.list.preUpdatePassword.headersAndParameters",
+    "actions.types.list.preUpdateProfile.headersAndParameters",
     "actions.types.org.list.preIssueAccessToken",
     "actions.types.org.list.preRegistration"
   ],
@@ -1370,8 +1378,7 @@
     "internal_webhook_meta_view"
   ],
   "console.webhooks.scopes.update": [
-    "internal_webhook_mgt_update",
-    "internal_webhook_meta_update"
+    "internal_webhook_mgt_update"
   ],
   "console.webhooks.scopes.delete": ["internal_webhook_mgt_delete"],
   "console.administrators.enabled": false,
@@ -1415,15 +1422,19 @@
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
   "console.approvals.enabled": true,
-  "console.approvals.scopes.feature": ["console:workflows"],
+  "console.approvals.scopes.feature": ["console:users"],
   "console.approvals.scopes.read": ["internal_approval_task_view"],
   "console.approvals.scopes.update": ["internal_approval_task_update"],
-  "console.workflows.enabled": true,
-  "console.workflows.scopes.feature": ["console:workflows"],
-  "console.workflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
-  "console.workflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
-  "console.workflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
-  "console.workflows.scopes.delete": ["internal_workflow_delete", "internal_workflow_association_delete"],
+  "console.approvalWorkflows.enabled": true,
+  "console.approvalWorkflows.scopes.feature": ["console:approvalWorkflows"],
+  "console.approvalWorkflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
+  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
+  "console.approvalWorkflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
+  "console.approvalWorkflows.scopes.delete": ["internal_workflow_delete", "internal_workflow_association_delete"],
+  "console.workflowInstances.enabled": true,
+  "console.workflowInstances.scopes.feature": ["console:workflowInstances"],
+  "console.workflowInstances.scopes.read": ["internal_workflow_instance_view"],
+  "console.workflowInstances.scopes.delete": ["internal_workflow_instance_delete"],
   "console.attribute_dialects.enabled": true,
   "console.attribute_dialects.scopes.feature": ["console:attributes"],
   "console.attribute_dialects.scopes.create": ["internal_claim_meta_create"],
@@ -1665,7 +1676,10 @@
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
-  "console.users.disabled_features": ["users.profile.legacy"],
+  "console.users.disabled_features": [
+    "users.add.legacy",
+    "users.profile.legacy"
+  ],
   "console.users.scopes.feature": ["console:users"],
   "console.users.scopes.create": ["internal_user_mgt_create"],
   "console.users.scopes.read": [
@@ -1853,6 +1867,9 @@
   "myaccount.personal_info.enabled": true,
   "myaccount.personal_info.disabled_features": ["profileInfo.profile.legacy"],
   "myaccount.security.enabled": true,
+  "myaccount.approvals.enabled": false,
+  "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
+  "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
   "myaccount.operations.scopes.create": [],
   "myaccount.operations.scopes.read": ["internal_humantask_view"],
   "myaccount.operations.scopes.update": [],
@@ -1943,7 +1960,7 @@
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
-  "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+  "organization_management.organization_versioning.new_organization_version": "v1.0.0",
   "organization_discovery.default_param": "orgName",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
@@ -1983,7 +2000,6 @@
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
-  "oauth.enable_user_session_impersonation": true,
 
   "system_applications.system_portals": ["Console", "My Account"],
 

@@ -28,8 +28,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
+import org.wso2.carbon.identity.core.ServiceURL;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.AuthenticationExecutor;
@@ -39,6 +41,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -93,12 +96,14 @@ public class AuthenticationAssertionUtilsTest {
 
     @BeforeMethod
     public void setUp() {
+
         mockitoCloseable = MockitoAnnotations.openMocks(this);
         when(mockContext.getTenantDomain()).thenReturn(TEST_TENANT_DOMAIN);
         when(mockContext.getContextIdentifier()).thenReturn(TEST_CONTEXT_IDENTIFIER);
         when(mockContext.getFlowUser()).thenReturn(mockFlowUser);
         when(mockFlowUser.getUsername()).thenReturn(TEST_USERNAME);
         when(mockFlowUser.getUserId()).thenReturn(TEST_USER_ID);
+        when(mockFlowUser.getUserStoreDomain()).thenReturn("PRIMARY");
     }
 
     @AfterMethod
@@ -117,9 +122,10 @@ public class AuthenticationAssertionUtilsTest {
 
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
              MockedStatic<UserAssertionUtils> userAssertionMock = mockStatic(UserAssertionUtils.class);
-             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class)) {
 
-            setupBasicMocks(dataHolderMock, identityUtilMock);
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
             setupExecutorMocks();
 
             userAssertionMock.when(() -> UserAssertionUtils.generateSignedUserAssertion(
@@ -137,9 +143,10 @@ public class AuthenticationAssertionUtilsTest {
 
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
              MockedStatic<UserAssertionUtils> userAssertionMock = mockStatic(UserAssertionUtils.class);
-             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class)) {
 
-            setupBasicMocks(dataHolderMock, identityUtilMock);
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
             setupExecutorMocks();
 
             FrameworkException frameworkException = new FrameworkException("Framework error");
@@ -161,9 +168,10 @@ public class AuthenticationAssertionUtilsTest {
 
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
              MockedStatic<UserAssertionUtils> userAssertionMock = mockStatic(UserAssertionUtils.class);
-             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class)) {
 
-            setupBasicMocks(dataHolderMock, identityUtilMock);
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
             setupExecutorMocks();
 
             FrameworkException wrappedException = new FrameworkException("Wrapped error");
@@ -184,9 +192,12 @@ public class AuthenticationAssertionUtilsTest {
     public void testBuildUserAssertionClaimSetWithAMRValues() throws Exception {
 
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
-             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<UserCoreUtil> userCoreUtilMock = mockStatic(UserCoreUtil.class)) {
 
-            setupBasicMocks(dataHolderMock, identityUtilMock);
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
+            setupUserCoreUtilMocks(userCoreUtilMock);
             setupExecutorMocks();
 
             JWTClaimsSet claimsSet = invokePrivateMethod("buildUserAssertionClaimSet", mockContext);
@@ -200,9 +211,12 @@ public class AuthenticationAssertionUtilsTest {
     public void testBuildUserAssertionClaimSetWithoutAMRValues() throws Exception {
 
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
-             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<UserCoreUtil> userCoreUtilMock = mockStatic(UserCoreUtil.class)) {
 
-            setupBasicMocks(dataHolderMock, identityUtilMock);
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
+            setupUserCoreUtilMocks(userCoreUtilMock);
             setupNonAuthExecutorMocks();
 
             JWTClaimsSet claimsSet = invokePrivateMethod("buildUserAssertionClaimSet", mockContext);
@@ -216,9 +230,12 @@ public class AuthenticationAssertionUtilsTest {
     public void testBuildUserAssertionClaimSetWithNullAMRValue() throws Exception {
 
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
-             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<UserCoreUtil> userCoreUtilMock = mockStatic(UserCoreUtil.class)) {
 
-            setupBasicMocks(dataHolderMock, identityUtilMock);
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
+            setupUserCoreUtilMocks(userCoreUtilMock);
             setupExecutorMocksWithNullAMR();
 
             JWTClaimsSet claimsSet = invokePrivateMethod("buildUserAssertionClaimSet", mockContext);
@@ -254,7 +271,7 @@ public class AuthenticationAssertionUtilsTest {
             long expectedExpiryTime = currentTime + expectedLifetime;
             long actualDifference = Math.abs(result.getTime() - expectedExpiryTime);
             Assert.assertTrue(actualDifference <= 5000,
-                "Expected expiry time difference should be within 5 seconds, but was: " + actualDifference + "ms");
+                    "Expected expiry time difference should be within 5 seconds, but was: " + actualDifference + "ms");
         }
     }
 
@@ -273,9 +290,12 @@ public class AuthenticationAssertionUtilsTest {
 
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
              MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
-             MockedStatic<UserAssertionUtils> userAssertionMock = mockStatic(UserAssertionUtils.class)) {
+             MockedStatic<UserAssertionUtils> userAssertionMock = mockStatic(UserAssertionUtils.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<UserCoreUtil> userCoreUtilMock = mockStatic(UserCoreUtil.class)) {
 
-            setupBasicMocks(dataHolderMock, identityUtilMock);
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
+            setupUserCoreUtilMocks(userCoreUtilMock);
             setupExecutorMocks();
 
             userAssertionMock.when(() -> UserAssertionUtils.generateSignedUserAssertion(
@@ -298,9 +318,12 @@ public class AuthenticationAssertionUtilsTest {
     public void testAssertionGenerationWithMultipleExecutors() throws Exception {
 
         try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock = mockStatic(FlowExecutionEngineDataHolder.class);
-             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilderMock = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<UserCoreUtil> userCoreUtilMock = mockStatic(UserCoreUtil.class)) {
 
-            setupBasicMocks(dataHolderMock, identityUtilMock);
+            setupBasicMocks(dataHolderMock, identityUtilMock, serviceURLBuilderMock);
+            setupUserCoreUtilMocks(userCoreUtilMock);
             setupMultipleExecutorMocks();
 
             JWTClaimsSet claimsSet = invokePrivateMethod("buildUserAssertionClaimSet", mockContext);
@@ -319,13 +342,32 @@ public class AuthenticationAssertionUtilsTest {
     }
 
     private void setupBasicMocks(MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock,
-                                 MockedStatic<IdentityUtil> identityUtilMock) {
+                                 MockedStatic<IdentityUtil> identityUtilMock,
+                                 MockedStatic<ServiceURLBuilder> serviceURLBuilderMock) throws URLBuilderException {
 
         dataHolderMock.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(mockDataHolder);
+
         identityUtilMock.when(() -> IdentityUtil.getServerURL(anyString(), eq(true), eq(true)))
                 .thenReturn(TEST_SERVER_URL);
         identityUtilMock.when(() -> IdentityUtil.getProperty(USER_ASSERTION_EXPIRY_PROPERTY))
                 .thenReturn("5000");
+        identityUtilMock.when(() -> IdentityUtil.getHostName())
+                .thenReturn("localhost");
+
+        ServiceURLBuilder mockServiceURLBuilder = mock(ServiceURLBuilder.class);
+        ServiceURL mockServiceURL = mock(ServiceURL.class);
+
+        serviceURLBuilderMock.when(ServiceURLBuilder::create).thenReturn(mockServiceURLBuilder);
+        when(mockServiceURLBuilder.build(anyString())).thenReturn(mockServiceURL);
+        when(mockServiceURL.getAbsolutePublicURL()).thenReturn(TEST_SERVER_URL);
+    }
+
+    private void setupUserCoreUtilMocks(MockedStatic<UserCoreUtil> userCoreUtilMock) {
+
+        userCoreUtilMock.when(() -> UserCoreUtil.addTenantDomainToEntry(TEST_USERNAME, TEST_TENANT_DOMAIN))
+                .thenReturn(TEST_USERNAME + "@" + TEST_TENANT_DOMAIN);
+        userCoreUtilMock.when(() -> UserCoreUtil.addDomainToName(TEST_USERNAME + "@" + TEST_TENANT_DOMAIN, "PRIMARY"))
+                .thenReturn(TEST_USERNAME + "@" + TEST_TENANT_DOMAIN);
     }
 
     private void setupExecutorMocks() {
@@ -410,72 +452,57 @@ public class AuthenticationAssertionUtilsTest {
         return nodes;
     }
 
-    private List<NodeConfig> createMultipleCompletedNodes() {
+    private void verifyBasicClaims(JWTClaimsSet claimsSet) {
 
-        List<NodeConfig> completedNodes = new ArrayList<>();
-
-        NodeConfig passwordNode = mock(NodeConfig.class);
-        ExecutorDTO passwordExecutorConfig = mock(ExecutorDTO.class);
-        when(passwordNode.getExecutorConfig()).thenReturn(passwordExecutorConfig);
-        when(passwordExecutorConfig.getName()).thenReturn("password-executor");
-        completedNodes.add(passwordNode);
-
-        NodeConfig otpNode = mock(NodeConfig.class);
-        ExecutorDTO otpExecutorConfig = mock(ExecutorDTO.class);
-        when(otpNode.getExecutorConfig()).thenReturn(otpExecutorConfig);
-        when(otpExecutorConfig.getName()).thenReturn("otp-executor");
-        completedNodes.add(otpNode);
-
-        return completedNodes;
-    }
-
-    private void verifyBasicClaims(JWTClaimsSet claimsSet) throws Exception {
-
+        Assert.assertNotNull(claimsSet);
+        Assert.assertEquals(claimsSet.getSubject(), TEST_USERNAME + "@" + TEST_TENANT_DOMAIN);
+        Assert.assertEquals(claimsSet.getClaim(USER_ID_CLAIM), TEST_USER_ID);
         Assert.assertEquals(claimsSet.getIssuer(), TEST_SERVER_URL);
-        Assert.assertEquals(claimsSet.getSubject(), TEST_USERNAME);
-        Assert.assertEquals(claimsSet.getStringClaim(FrameworkConstants.USERNAME_CLAIM), TEST_USERNAME);
-        Assert.assertEquals(claimsSet.getStringClaim(USER_ID_CLAIM), TEST_USER_ID);
         Assert.assertNotNull(claimsSet.getJWTID());
         Assert.assertNotNull(claimsSet.getIssueTime());
-        Assert.assertNotNull(claimsSet.getNotBeforeTime());
         Assert.assertNotNull(claimsSet.getExpirationTime());
     }
 
     private void verifyAMRClaims(JWTClaimsSet claimsSet, List<String> expectedAMRValues) {
 
-        Object amrClaim = claimsSet.getClaim(FrameworkConstants.AMR);
-        Assert.assertNotNull(amrClaim);
-        Assert.assertTrue(amrClaim instanceof List);
-
-        @SuppressWarnings("unchecked")
-        List<String> amrValues = (List<String>) amrClaim;
-
+        List<String> actualAMRValues = (List<String>) claimsSet.getClaim("amr");
         if (expectedAMRValues.isEmpty()) {
-            Assert.assertTrue(amrValues.isEmpty());
+            Assert.assertTrue(actualAMRValues == null || actualAMRValues.isEmpty());
         } else {
-            Assert.assertEquals(amrValues.size(), expectedAMRValues.size());
+            Assert.assertNotNull(actualAMRValues);
+            Assert.assertEquals(actualAMRValues.size(), expectedAMRValues.size());
             for (String expectedValue : expectedAMRValues) {
-                Assert.assertTrue(amrValues.contains(expectedValue));
+                Assert.assertTrue(actualAMRValues.contains(expectedValue));
             }
         }
     }
 
     private void verifyTimingConstraints(JWTClaimsSet claimsSet) {
 
-        long now = System.currentTimeMillis();
-        Assert.assertTrue(claimsSet.getIssueTime().getTime() <= now);
-        Assert.assertTrue(claimsSet.getNotBeforeTime().getTime() <= now);
-        Assert.assertTrue(claimsSet.getExpirationTime().getTime() > now);
+        Date issueTime = claimsSet.getIssueTime();
+        Date expirationTime = claimsSet.getExpirationTime();
+        Assert.assertNotNull(issueTime);
+        Assert.assertNotNull(expirationTime);
+        Assert.assertTrue(expirationTime.after(issueTime));
+
+        long timeDifference = expirationTime.getTime() - issueTime.getTime();
+        Assert.assertTrue(timeDifference > 0);
+        Assert.assertTrue(timeDifference <= 10000);
     }
 
+    @SuppressWarnings("unchecked")
     private <T> T invokePrivateMethod(String methodName, Object... args) throws Exception {
 
-        Class<?>[] parameterTypes = new Class<?>[args.length];
+        Class<?>[] paramTypes = new Class<?>[args.length];
         for (int i = 0; i < args.length; i++) {
-            parameterTypes[i] = args[i] instanceof Long ? long.class : args[i].getClass();
+            if (args[i] instanceof Long) {
+                paramTypes[i] = long.class;
+            } else {
+                paramTypes[i] = args[i].getClass();
+            }
         }
 
-        Method method = AuthenticationAssertionUtils.class.getDeclaredMethod(methodName, parameterTypes);
+        Method method = AuthenticationAssertionUtils.class.getDeclaredMethod(methodName, paramTypes);
         method.setAccessible(true);
         return (T) method.invoke(null, args);
     }

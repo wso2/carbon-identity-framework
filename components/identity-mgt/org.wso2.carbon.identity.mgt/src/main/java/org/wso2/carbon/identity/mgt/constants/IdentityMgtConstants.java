@@ -231,6 +231,45 @@ public class IdentityMgtConstants {
 
     }
 
+    public static class TenantManagement {
+
+        public static final String ACTION_CREATE = "CREATE";
+
+        public static final String ACTION_UPDATE = "UPDATE";
+
+        public static final String ACTION_ACTIVATE = "ACTIVATE";
+
+        public static final String ACTION_DEACTIVATE = "DEACTIVATE";
+
+        public static final String EVENT_CREATE_TENANT_URI =
+                "https://schemas.identity.wso2.org/events/tenant/event-type/tenantCreated";
+
+        public static final String EVENT_UPDATE_TENANT_URI =
+                "https://schemas.identity.wso2.org/events/tenant/event-type/tenantOwnerUpdated";
+
+        public static final String EVENT_ACTIVATE_TENANT_URI =
+                "https://schemas.identity.wso2.org/events/tenant/event-type/tenantActivated";
+
+        public static final String EVENT_INITIATOR = "SYSTEM";
+
+        public static final String HEADER_PROPERTY = "header.";
+
+        public static final String USER_NAME = "username";
+
+        public static final String PASSWORD = "password";
+
+        public static final String NOTIFICATION_ENDPOINT = "notification_endpoint";
+        
+        public static final String AUTHORIZATION_HEADER = "Authorization";
+
+        public static final String BASIC_PREFIX = "Basic ";
+
+        private TenantManagement() {
+
+        }
+
+    }
+    
     public class ErrorHandling {
 
         public static final String NOTIFICATION_FAILURE = "Notification sending failure. Notification address is not " +
