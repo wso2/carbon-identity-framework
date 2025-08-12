@@ -1282,6 +1282,17 @@
                    description="Manage edits of OIDC scopes from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="OIDC Scope Management Feature" identifier="console:org:scopes:oidc"
+                 requiresAuthorization="true"
+                 description="Resource representation of the OIDC Scope Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="OIDC Scope Feature" name="console:org:scopes:oidc"
+                   description="Manage OIDC scopes from the Console"/>
+            <Scope displayName="OIDC Scope View Feature" name="console:org:scopes:oidc_view"
+                   description="Manage views of OIDC scopes from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Login And Registration Management Feature" identifier="console:loginAndRegistration"
                  requiresAuthorization="true"
                  description="Resource representation of the Login And Registration Management Feature"
