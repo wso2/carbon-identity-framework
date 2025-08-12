@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.api.model;
 
+import java.sql.Timestamp;
 import java.util.Arrays;
 
 /**
@@ -133,6 +134,8 @@ public class Action {
     private String name;
     private String description;
     private Status status;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
     private EndpointConfig endpointConfig;
     private ActionRule rule;
 
@@ -143,6 +146,8 @@ public class Action {
         this.name = actionResponseBuilder.name;
         this.description = actionResponseBuilder.description;
         this.status = actionResponseBuilder.status;
+        this.createdAt = actionResponseBuilder.createdAt;
+        this.updatedAt = actionResponseBuilder.updatedAt;
         this.endpointConfig = actionResponseBuilder.endpointConfig;
         this.rule = actionResponseBuilder.rule;
     }
@@ -180,6 +185,16 @@ public class Action {
         return status;
     }
 
+    public Timestamp getCreatedAt() {
+
+        return createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+
+        return updatedAt;
+    }
+
     public EndpointConfig getEndpoint() {
 
         return endpointConfig;
@@ -200,6 +215,8 @@ public class Action {
         private String name;
         private String description;
         private Status status;
+        private Timestamp createdAt;
+        private Timestamp updatedAt;
         private EndpointConfig endpointConfig;
         private ActionRule rule;
 
@@ -230,6 +247,18 @@ public class Action {
         public ActionResponseBuilder status(Status status) {
 
             this.status = status;
+            return this;
+        }
+
+        public ActionResponseBuilder createdAt(Timestamp createdAt) {
+
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public ActionResponseBuilder updatedAt(Timestamp updatedAt) {
+
+            this.updatedAt = updatedAt;
             return this;
         }
 

@@ -67,7 +67,6 @@ public class IdentityEventConstants {
         public static final String SESSION_EXPIRE = "SESSION_EXPIRE";
         public static final String SESSION_EXTEND = "SESSION_EXTEND";
         public static final String VERIFICATION = "VERIFICATION";
-        public static final String USER_SESSION_TERMINATE = "USER_SESSION_TERMINATE";
         public static final String PRE_SET_USER_CLAIMS = "PRE_SET_USER_CLAIMS";
         public static final String POST_SET_USER_CLAIMS = "POST_SET_USER_CLAIMS";
         public static final String PRE_ADD_USER= "PRE_ADD_USER";
@@ -340,6 +339,7 @@ public class IdentityEventConstants {
         public static final String TOKEN_ISSUED = "TOKEN_ISSUED";
         public static final String TOKEN_REVOKED = "TOKEN_REVOKED";
 
+        public static final String POST_ISSUE_ACCESS_TOKEN_V2 = "POST_ISSUE_ACCESS_TOKEN_V2";
     }
 
     /**
@@ -505,6 +505,8 @@ public class IdentityEventConstants {
         public static final String JTI = "JTI";
         public static final String TOKEN_TYPE = "TOKEN_TYPE";
         public static final String GRANT_TYPE = "GRANT_TYPE";
+
+        public static final String CONSUMER_KEYS = "CONSUMER_KEYS";
 
         public class Scenario {
 

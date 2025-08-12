@@ -781,6 +781,21 @@
                         description="Create new SCIM resources in bulk in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="SCIM2 Agents API" identifier="/scim2/Agents" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Agents API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Agent" name="internal_agent_mgt_view"
+                   description="View agent accounts in the organization (root)"/>
+            <Scope displayName="List Agents" name="internal_agent_mgt_list"
+                   description="Search agent accounts in the organization (root)"/>
+            <Scope displayName="Create Agent" name="internal_agent_mgt_create"
+                   description="Create new agent accounts in the organization (root)"/>
+            <Scope displayName="Update Agent" name="internal_agent_mgt_update"
+                   description="Update agent accounts in the organization (root)"/>
+            <Scope displayName="Delete Agent" name="internal_agent_mgt_delete"
+                   description="Delete agent accounts in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
                  requiresAuthorization="true" description="API representation of the User Related Code Management API" type="TENANT">
         <Scopes>
@@ -792,6 +807,20 @@
                     description="Update user related code in the organization (root)"/>
             <Scope displayName="Delete User Code" name="internal_user_code_mgt_delete"
                     description="Delete user related code in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Code Management API" identifier="/o/api/identity/user/v1.0/(.*)-code"
+                 requiresAuthorization="true"
+                 description="API representation of the User Related Code Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View User Code" name="internal_org_user_code_mgt_view"
+                   description="View user related code in the organization"/>
+            <Scope displayName="Create User Code" name="internal_org_user_code_mgt_create"
+                   description="Create user related new code in the organization"/>
+            <Scope displayName="Update User Code" name="internal_org_user_code_mgt_update"
+                   description="Update user related code in the organization"/>
+            <Scope displayName="Delete User Code" name="internal_org_user_code_mgt_delete"
+                   description="Delete user related code in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Personal Identification API"
@@ -1370,6 +1399,19 @@
                    description="Manage edits of users from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Agent Management Feature" identifier="console:agents"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Agent Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="User Feature" name="console:agents"
+                   description="Manage agents from the Console"/>
+            <Scope displayName="User View Feature" name="console:agents_view"
+                   description="Manage views of agents from the Console"/>
+            <Scope displayName="User Edit Feature" name="console:agents_edit"
+                   description="Manage edits of agents from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Management Feature" identifier="console:org:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
@@ -1392,30 +1434,56 @@
                     description="Manage server from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Approval Workflow Management Feature" identifier="console:workflows"
+    <APIResource name="Approval Workflow Management Feature" identifier="console:approvalWorkflows"
                  requiresAuthorization="true"
                  description="Resource representation of the Approval Workflow Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="Approval Workflow Feature" name="console:workflows"
+            <Scope displayName="Approval Workflow Feature" name="console:approvalWorkflows"
                    description="Manage workflows from the Console"/>
-            <Scope displayName="Approval Workflow View Feature" name="console:workflows_view"
+            <Scope displayName="Approval Workflow View Feature" name="console:approvalWorkflows_view"
                    description="Manage views of workflows from the Console"/>
-            <Scope displayName="Approval Workflow Edit Feature" name="console:workflows_edit"
+            <Scope displayName="Approval Workflow Edit Feature" name="console:approvalWorkflows_edit"
                    description="Manage edits of workflows from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:workflows"
+    <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:approvalWorkflows"
                  requiresAuthorization="true"
                  description="Resource representation of the Approval Workflow Management Feature"
                  type="CONSOLE_ORG_FEATURE">
         <Scopes>
-            <Scope displayName="Approval Workflow Feature" name="console:org:workflows"
+            <Scope displayName="Approval Workflow Feature" name="console:org:approvalWorkflows"
                    description="Manage Approval workflows from the Console"/>
-            <Scope displayName="Approval Workflow View Feature" name="console:org:workflows_view"
+            <Scope displayName="Approval Workflow View Feature" name="console:org:approvalWorkflows_view"
                    description="Manage views of approval workflows from the Console"/>
-            <Scope displayName="Approval Workflow Edit Feature" name="console:org:workflows_edit"
+            <Scope displayName="Approval Workflow Edit Feature" name="console:org:approvalWorkflows_edit"
                    description="Manage edits of approval workflows from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Instance Management Feature" identifier="console:workflowInstances"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Workflow Instance Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Workflow Instance Feature" name="console:workflowInstances"
+                   description="Manage workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance View Feature" name="console:workflowInstances_view"
+                   description="Manage views of workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance Edit Feature" name="console:workflowInstances_edit"
+                   description="Manage edits of workflow instances from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Instance Management Feature" identifier="console:org:workflowInstances"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Workflow Instance Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Workflow Instance Feature" name="console:org:workflowInstances"
+                   description="Manage workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance View Feature" name="console:org:workflowInstances_view"
+                   description="Manage views of workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance Edit Feature" name="console:org:workflowInstances_edit"
+                   description="Manage edits of workflow instances in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"

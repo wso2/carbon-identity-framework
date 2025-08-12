@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.ActionRule;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +38,8 @@ public class ActionDTOBuilder {
     private String name;
     private String description;
     private Action.Status status;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
     private EndpointConfig endpoint;
     private ActionRule rule;
     private Map<String, ActionProperty> properties;
@@ -52,6 +55,8 @@ public class ActionDTOBuilder {
         this.name = actionDTO.getName();
         this.description = actionDTO.getDescription();
         this.status = actionDTO.getStatus();
+        this.createdAt = actionDTO.getCreatedAt();
+        this.updatedAt = actionDTO.getUpdatedAt();
         this.endpoint = actionDTO.getEndpoint();
         this.rule = actionDTO.getActionRule();
         this.properties = actionDTO.getProperties();
@@ -64,6 +69,8 @@ public class ActionDTOBuilder {
         this.name = action.getName();
         this.description = action.getDescription();
         this.status = action.getStatus();
+        this.createdAt = action.getCreatedAt();
+        this.updatedAt = action.getUpdatedAt();
         this.endpoint = action.getEndpoint();
         this.rule = action.getActionRule();
     }
@@ -123,6 +130,18 @@ public class ActionDTOBuilder {
         return this.status;
     }
 
+    public ActionDTOBuilder createdAt(Timestamp createdAt) {
+
+        this.createdAt = createdAt;
+        return this;
+    }
+
+    public ActionDTOBuilder updatedAt(Timestamp updatedAt) {
+
+        this.updatedAt = updatedAt;
+        return this;
+    }
+
     public ActionDTOBuilder endpoint(EndpointConfig endpoint) {
 
         this.endpoint = endpoint;
@@ -173,6 +192,8 @@ public class ActionDTOBuilder {
                 .name(this.name)
                 .description(this.description)
                 .status(this.status)
+                .createdAt(this.createdAt)
+                .updatedAt(this.updatedAt)
                 .endpoint(this.endpoint)
                 .rule(this.rule)
                 .build();

@@ -895,6 +895,13 @@
             {% else %}
             <EnableJWTCache>{{oauth.grant_type.jwt.enable_jwt_cache}}</EnableJWTCache>
             {% endif %}
+            <!-- When enabling this configuration, you must enable 'Use user store domain in local subject identifier'.
+            configuration in the SP issuing the id token for exchange. If not, we will not be able to identify the
+            user store domain for the local user.
+             -->
+            {% if oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp is defined %}
+            <EnableTokenExchangeForLocalUsersWithResidentIdP>{{oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp}}</EnableTokenExchangeForLocalUsersWithResidentIdP>
+            {% endif %}
         </JWTGrant>
 
         <SAML2Grant>
@@ -4650,6 +4657,12 @@
             <BrandingAIStatusRequestPath>{{ai_services.branding_ai.status_request_path}}</BrandingAIStatusRequestPath>
             <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
         </BrandingAI>
+        <FlowAI>
+            <Endpoint>{{ai_services.flow_ai.endpoint}}</Endpoint>
+            <GenerateRequestPath>{{ai_services.flow_ai.generate_request_path}}</GenerateRequestPath>
+            <StatusRequestPath>{{ai_services.flow_ai.status_request_path}}</StatusRequestPath>
+            <ResultRequestPath>{{ai_services.flow_ai.result_request_path}}</ResultRequestPath>
+        </FlowAI>
     </AIServices>
 
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->

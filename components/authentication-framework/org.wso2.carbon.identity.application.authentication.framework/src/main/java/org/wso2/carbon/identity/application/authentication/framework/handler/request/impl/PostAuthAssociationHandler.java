@@ -34,11 +34,15 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultSequenceHandlerUtils;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -52,6 +56,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 
@@ -133,6 +139,30 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                                     + "equavlent local user : " + associatedLocalUserName);
                         }
                         setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
+                    } else {
+                        String tenantDomain = context.getTenantDomain();
+                        String spName = context.getServiceProviderName();
+                        try {
+                            ServiceProvider serviceProvider =
+                                    FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
+                                            .getServiceProvider(spName, tenantDomain);
+
+                            if (FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(serviceProvider)) {
+                                ClaimConfig serviceProviderClaimConfig = serviceProvider.getClaimConfig();
+                                UserLinkStrategy userLinkStrategy =
+                                        resolveLocalUserLinkingStrategy(serviceProviderClaimConfig);
+                                if (userLinkStrategy == UserLinkStrategy.MANDATORY) {
+                                    throw new PostAuthenticationFailedException(
+                                            ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getErrorCode(),
+                                            "Federated user is not associated with any local user.");
+                                }
+                            }
+
+                        } catch (IdentityApplicationManagementException e) {
+                            throw new PostAuthenticationFailedException(
+                                    ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS.getErrorCode(),
+                                    "Error while retrieving service provider.", e);
+                        }
                     }
                 }
             }
@@ -299,5 +329,35 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                             ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getMessage(),
                     context.getSequenceConfig().getAuthenticatedUser().getUserName()), e);
         }
+    }
+
+    /**
+     * Method to get the assert local user behaviour based on the service provider claim configuration.
+     *
+     * @param claimConfig Claim configuration of the service provider.
+     * @return Assert local user behaviour.
+     */
+    private static UserLinkStrategy resolveLocalUserLinkingStrategy(
+            ClaimConfig claimConfig) {
+
+        if (claimConfig == null) {
+            return UserLinkStrategy.DISABLED;
+        }
+
+        if (claimConfig.isMappedLocalSubjectMandatory()) {
+            return UserLinkStrategy.MANDATORY;
+        } else if (claimConfig.isAlwaysSendMappedLocalSubjectId()) {
+            return UserLinkStrategy.OPTIONAL;
+        } else {
+            return UserLinkStrategy.DISABLED;
+        }
+    }
+
+    /**
+     * Enum to represent the user link strategy.
+     */
+    public enum UserLinkStrategy {
+
+        DISABLED, OPTIONAL, MANDATORY
     }
 }
