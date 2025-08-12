@@ -108,7 +108,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         }
 
         try {
-            checkClaimUniqueness(userName, claims, profile, userStoreManager, credential);
+            checkClaimUniqueness(userName, claims, profile, userStoreManager, null);
         } catch (UserStoreClientException e) {
             userStoreManager.deleteUser(userName);
         }
@@ -323,9 +323,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         } else {
             if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
                 if (userList.length > 1 && log.isDebugEnabled()) {
-                    log.debug("Multiple users found for claim URI: " + claimUri + " with value: " +
-                            claimValue + ". The current user is the first in the list; skipping uniqueness " +
-                            "check for this claim value.");
+                    log.debug("Multiple users found for claim URI: " + claimUri + ". The current user is " + 
+                    " the first in the list; skipping uniqueness check for this claim value.");
                 }
                 return false;
             }
@@ -499,9 +498,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             if (userList.length > 1) {
                 if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Multiple users found for claim URI: " + claimUri + " with value: " +
-                                claimValuePart + ". The current user is the first in the list; skipping uniqueness " +
-                                "check for this claim value.");
+                        log.debug("Multiple users found for claim URI: " + claimUri + ". The current user is " + 
+                        "the first in the list; skipping uniqueness check for this claim value.");
                     }
                     continue;
                 }
