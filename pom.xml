@@ -1986,7 +1986,7 @@
         <commons.logging.version>1.2</commons.logging.version>
         <kaptcha.wso2.version>2.3.0.wso2v1</kaptcha.wso2.version>
         <json.wso2.version>3.0.0.wso2v7</json.wso2.version>
-        <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
+        <json.wso2.version.range>[3.0.0.wso2v7, 4.0.0)</json.wso2.version.range>
         <com.fasterxml.jackson.version>2.16.1</com.fasterxml.jackson.version>
         <com.fasterxml.jackson.annotation.version>2.16.1</com.fasterxml.jackson.annotation.version>
         <com.fasterxml.jackson.databind.version>2.16.1</com.fasterxml.jackson.databind.version>
