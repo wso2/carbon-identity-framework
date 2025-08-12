@@ -459,7 +459,7 @@
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
-  "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+  "identity_mgt.login_identifiers.enable_identifier_as_display_username": true,
 
   "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
