@@ -42,7 +42,6 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -77,6 +76,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private static final String MULTI_VALUED_CLAIMS_TO_BE_ADDED = "multiValuedClaimsToBeAdded";
     private static final String MULTI_VALUED_CLAIMS_TO_BE_REMOVED = "multiValuedClaimsToBeRemoved";
 
+    private UniqueIDUserStoreManager userStoreManager;
+
     @Override
     public ActionType getSupportedActionType() {
 
@@ -89,6 +90,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throws ActionExecutionResponseProcessorException {
 
         List<PerformableOperation> operationsToPerform = responseContext.getActionInvocationResponse().getOperations();
+        userStoreManager = getUserStoreManager();
+
         Map<String, String> userClaimsToBeAdded = new HashMap<>();
         Map<String, String> userClaimsToBeModified = new HashMap<>();
         Map<String, String> userClaimsToBeRemoved = new HashMap<>();
@@ -158,8 +161,14 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             validateImmutableClaims(claimUri);
             validateFlowInitiatorClaims(claimUri, localClaim);
             if (!isMultiValuedClaim(localClaim)) {
-                validateUserValuesForAddAndModifyOperations(claimValue, claimUri, userId, operation.getOp());
-                userClaimsToBeAdded.put(claimUri, claimValue.trim());
+                Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri);
+                // Validate if the claim value already exists for the user
+                if (operation.getOp() == Operation.ADD && userClaimValues.get(claimUri) != null &&
+                        !claimValue.trim().isEmpty()) {
+                    userClaimsToBeModified.put(claimUri, claimValue.trim());
+                } else {
+                    userClaimsToBeAdded.put(claimUri, claimValue.trim());
+                }
             } else {
                 populateMultivaluedClaimsForAddOperation(localClaim, claimValue, userId, userClaimsToBeModified,
                         simpleMultiValuedClaimsToBeAdded, initiatorType);
@@ -179,7 +188,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         PreUpdateProfileEvent.FlowInitiatorType initiatorType =
                 ((PreUpdateProfileEvent) responseContext.getActionEvent()).getInitiatorType();
         String separator = FrameworkUtils.getMultiAttributeSeparator();
-        UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
         validateReplaceAndRemovePaths(claims, path);
         int claimIndex = getClaimIndex(path);
         int multiValueIndex = getMultiValueindex(path);
@@ -194,8 +202,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             userClaimsToBeModified.put(claim.getUri(), claimValue.trim());
         } else {
             populateMultiValuedClaimsForReplaceOperation(operation, initiatorType, userClaimsToBeModified,
-                    simpleMultiValuedClaimsToBeAdded, simpleMultiValuedClaimsToBeRemoved, userStoreManager, userId,
-                    claim, separator);
+                    simpleMultiValuedClaimsToBeAdded, simpleMultiValuedClaimsToBeRemoved, userId, claim, separator);
         }
     }
 
@@ -218,7 +225,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             userClaimsToBeModified.put(claim.getUri(), "");
         } else {
             populateMultiValuedClaimsForRemoveOperation(initiatorType, claim, operation, userClaimsToBeRemoved,
-                    simpleMultiValuedClaimsToBeRemoved);
+                    multiValueIndex, simpleMultiValuedClaimsToBeRemoved);
         }
     }
 
@@ -231,22 +238,17 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
 
         String claimUri = localClaim.get().getClaimURI();
         String separator = FrameworkUtils.getMultiAttributeSeparator();
-
-        try {
-            Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri);
-            List<String> filteredValues = getFilteredModifyingClaimValues(userClaimValues, claimUri, claimValue,
-                    separator);
-            if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.ADMIN ||
-                    initiatorType == PreUpdateProfileEvent.FlowInitiatorType.APPLICATION) {
-                simpleMultiValuedClaimsToBeAdded.put(claimUri, filteredValues);
-            } else if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.USER) {
-                String addingClaimValue = (userClaimValues.get(claimUri) == null) ?
-                        String.join(separator, filteredValues) :
-                        userClaimValues.get(claimUri) + separator + String.join(separator, filteredValues);
-                userClaimsToBeModified.put(claimUri, addingClaimValue);
-            }
-        } catch (org.wso2.carbon.user.core.UserStoreException e) {
-            throw new ActionExecutionResponseProcessorException("Failed to retrieve user claims from user store.", e);
+        Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri);
+        List<String> filteredValues = getFilteredModifyingClaimValues(userClaimValues, claimUri, claimValue,
+                separator);
+        if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.ADMIN ||
+                initiatorType == PreUpdateProfileEvent.FlowInitiatorType.APPLICATION) {
+            simpleMultiValuedClaimsToBeAdded.put(claimUri, filteredValues);
+        } else if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.USER) {
+            String addingClaimValue = (userClaimValues.get(claimUri) == null) ?
+                    String.join(separator, filteredValues) :
+                    userClaimValues.get(claimUri) + separator + String.join(separator, filteredValues);
+            userClaimsToBeModified.put(claimUri, addingClaimValue);
         }
     }
 
@@ -257,7 +259,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                                                                       simpleMultiValuedClaimsToBeAdded,
                                                               Map<String, List<String>>
                                                                       simpleMultiValuedClaimsToBeRemoved,
-                                                              UniqueIDUserStoreManager userStoreManager,
                                                               String userId, UserClaim claim, String separator)
             throws ActionExecutionResponseProcessorException {
 
@@ -269,55 +270,42 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                                 "claim value in operation"));
         if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.ADMIN ||
                 initiatorType == PreUpdateProfileEvent.FlowInitiatorType.APPLICATION) {
-            try {
-                Map<String, String> userClaimValues = userStoreManager.getUserClaimValuesWithID(userId,
-                        new String[]{claim.getUri()}, UserCoreConstants.DEFAULT_PROFILE);
-                List<String> filteredClaims = getFilteredModifyingClaimValues(userClaimValues, claim.getUri(),
-                        claimValue, FrameworkUtils.getMultiAttributeSeparator());
-                int multiValueIndex = getMultiValueindex(operation.getPath());
+            Map<String, String> userClaimValues = getUserClaimValues(userId, claim.getUri());
+            List<String> filteredClaims = getFilteredModifyingClaimValues(userClaimValues, claim.getUri(),
+                    claimValue, FrameworkUtils.getMultiAttributeSeparator());
+            int multiValueIndex = getMultiValueindex(operation.getPath());
+            if (!filteredClaims.isEmpty()) {
                 simpleMultiValuedClaimsToBeRemoved.put(claim.getUri(),
                         Arrays.asList(((String[]) claim.getValue())[multiValueIndex]));
-                simpleMultiValuedClaimsToBeAdded.put(claim.getUri(),
-                        Arrays.asList(Optional.ofNullable(filteredClaims.get(0)).orElse("").trim()));
-            } catch (org.wso2.carbon.user.core.UserStoreException e) {
-                throw new
-                        ActionExecutionResponseProcessorException("Failed to retrieve user claims from user store.", e);
+                simpleMultiValuedClaimsToBeAdded.put(claim.getUri(), Arrays.asList(filteredClaims.get(0).trim()));
             }
         } else if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.USER) {
-            try {
-                Map<String, String> userClaimValues = userStoreManager.getUserClaimValuesWithID(userId,
-                        new String[] {claim.getUri()}, UserCoreConstants.DEFAULT_PROFILE);
-                List<String> filteredClaims = getFilteredModifyingClaimValues(userClaimValues, claim.getUri(),
-                        claimValue, FrameworkUtils.getMultiAttributeSeparator());
-                String[] claimValues = (String[]) claim.getValue();
-                int multiValueIndex = getMultiValueindex(operation.getPath());
-                List<String> combined = new ArrayList<>();
-                IntStream.range(0, claimValues.length)
-                        .filter(i -> i != multiValueIndex)
-                        .forEach(i -> combined.add(claimValues[i]));
-                combined.addAll(filteredClaims);
-                String modifyingClaimValue = String.join(separator, combined);
-                userClaimsToBeModified.put(claim.getUri(), modifyingClaimValue);
-            } catch (org.wso2.carbon.user.core.UserStoreException e) {
-                throw new
-                        ActionExecutionResponseProcessorException("Failed to retrieve user claims from user store.", e);
-            }
+            Map<String, String> userClaimValues = getUserClaimValues(userId, claim.getUri());
+            List<String> filteredClaims = getFilteredModifyingClaimValues(userClaimValues, claim.getUri(),
+                    claimValue, FrameworkUtils.getMultiAttributeSeparator());
+            String[] claimValues = (String[]) claim.getValue();
+            int multiValueIndex = getMultiValueindex(operation.getPath());
+            List<String> combined = new ArrayList<>();
+            IntStream.range(0, claimValues.length)
+                    .filter(i -> i != multiValueIndex)
+                    .forEach(i -> combined.add(claimValues[i]));
+            combined.addAll(filteredClaims);
+            String modifyingClaimValue = String.join(separator, combined);
+            userClaimsToBeModified.put(claim.getUri(), modifyingClaimValue);
         }
     }
 
     private void populateMultiValuedClaimsForRemoveOperation(PreUpdateProfileEvent.FlowInitiatorType initiatorType,
                                                              UserClaim claim, PerformableOperation operation,
                                                              Map<String, String> userClaimsToBeRemoved,
-                                                             Map<String, List<String>>
+                                                             int multiValueIndex, Map<String, List<String>>
                                                                      simpleMultiValuedClaimsToBeRemoved) {
 
         if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.ADMIN ||
                 initiatorType == PreUpdateProfileEvent.FlowInitiatorType.APPLICATION) {
-            int multiValueIndex = getMultiValueindex(operation.getPath());
             simpleMultiValuedClaimsToBeRemoved.put(claim.getUri(),
                     Arrays.asList(((String[]) claim.getValue())[multiValueIndex]));
         } else if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.USER) {
-            int multiValueIndex = getMultiValueindex(operation.getPath());
             userClaimsToBeRemoved.put(claim.getUri(), ((String[]) claim.getValue())[multiValueIndex]);
         }
     }
@@ -334,7 +322,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             }
             return localClaim;
         } catch (ClaimMetadataException e) {
-            throw new ActionExecutionResponseProcessorException("Error while retrieving localClaim for claim URI: "
+            throw new ActionExecutionResponseProcessorException("Error while retrieving localClaim for claim uri: "
                     + claimUri, e);
         }
     }
@@ -390,12 +378,15 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         }
     }
     
-    private Map<String, String> getUserClaimValues(String userId, String claimUri) throws 
-            ActionExecutionResponseProcessorException, UserStoreException {
-        
-        UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
-        return userStoreManager.getUserClaimValuesWithID(userId, new String[] {claimUri},
-                UserCoreConstants.DEFAULT_PROFILE);
+    private Map<String, String> getUserClaimValues(String userId, String claimUri) throws
+            ActionExecutionResponseProcessorException {
+
+        try {
+            return userStoreManager.getUserClaimValuesWithID(userId, new String[]{claimUri},
+                    UserCoreConstants.DEFAULT_PROFILE);
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new ActionExecutionResponseProcessorException("Failed to retrieve user claims from user store.", e);
+        }
     }
 
     private List<String> getFilteredModifyingClaimValues(Map<String, String> userClaimValues, String claimUri,
@@ -408,7 +399,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
 
         return Arrays.stream(claimValuesList)
                 .filter(value -> !userValues.contains(value))
-                .distinct()
                 .collect(Collectors.toList());
     }
 
@@ -417,6 +407,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         return Arrays.stream(claimValue.split(separator))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
+                .distinct()
                 .toArray(String[]::new);
     }
 
@@ -434,7 +425,12 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             UserClaim claim = claims.get(index);
             if (matcher.group(2) != null) {
                 int valueIndex = Integer.parseInt(matcher.group(3));
-                String[] values = (String[]) claim.getValue();
+                String[] values;
+                if (claim.getValue() instanceof String []) {
+                    values = (String[]) claim.getValue();
+                } else {
+                    throw new ActionExecutionResponseProcessorException("Invalid path for multivalued claim: " + path);
+                }
                 if (valueIndex < 0 || valueIndex >= values.length) {
                     throw new ActionExecutionResponseProcessorException("Invalid index for multivalued claim: "
                             + valueIndex);
@@ -442,24 +438,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             }
         } else {
             throw new ActionExecutionResponseProcessorException("Invalid path format: " + path);
-        }
-    }
-
-    private void validateUserValuesForAddAndModifyOperations(String claimValue, String claimUri, String userId,
-                                                             Operation operation)
-            throws ActionExecutionResponseProcessorException {
-
-        UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
-        try {
-            Map<String, String> userClaimValues = userStoreManager.getUserClaimValuesWithID(userId,
-                    new String[] {claimUri}, UserCoreConstants.DEFAULT_PROFILE);
-            if (operation == Operation.ADD && userClaimValues.get(claimUri) != null && !claimValue.trim().isEmpty()) {
-                throw new ActionExecutionResponseProcessorException(claimUri + " claim value already exists for user.");
-            } else if (operation.equals(Operation.REPLACE) && userClaimValues.get(claimUri) == null) {
-                throw new ActionExecutionResponseProcessorException(claimUri + " claim value does not exist for user.");
-            }
-        } catch (org.wso2.carbon.user.core.UserStoreException e) {
-            throw new ActionExecutionResponseProcessorException("Failed to retrieve user claims from user store.", e);
         }
     }
 
@@ -476,7 +454,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throws ActionExecutionResponseProcessorException {
 
         if (localClaim.get().getFlowInitiator()) {
-            throw new ActionExecutionResponseProcessorException("Flow initiator claims cannot be added: " + claimUri);
+            throw new ActionExecutionResponseProcessorException(claimUri + " is not allowed to be added.");
         }
     }
 
@@ -484,7 +462,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throws ActionExecutionResponseProcessorException {
 
         if (claimUri.equals(GROUP_CLAIM_URI) || claimUri.equals(ROLE_CLAIM_URI)) {
-            throw new ActionExecutionResponseProcessorException("Group/Role claims cannot be added: " + claimUri);
+            throw new ActionExecutionResponseProcessorException("Groups/Roles are not allowed to be added: "
+                    + claimUri);
         }
     }
 }
