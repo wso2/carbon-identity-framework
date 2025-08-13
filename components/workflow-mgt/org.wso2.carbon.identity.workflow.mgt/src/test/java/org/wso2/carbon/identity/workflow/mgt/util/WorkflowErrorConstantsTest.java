@@ -86,6 +86,11 @@ public class WorkflowErrorConstantsTest {
         assertEquals("The role is not found in the system.",
                 WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_ROLE_NOT_FOUND.getMessage());
 
+        assertEquals("WFM-10013",
+                WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode());
+        assertEquals("The user %s is already pending approval for the role.",
+                WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getMessage());
+
         // Test the toString method of the enum.
         assertEquals("WFM-10001 - There is a pending workflow already defined for the user.",
                 WorkflowErrorConstants.ErrorMessages.ERROR_CODE_USER_WF_ALREADY_EXISTS.toString());
