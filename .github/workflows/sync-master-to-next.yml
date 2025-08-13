@@ -1,0 +1,84 @@
+# This workflow automatically syncs merged PRs from master to next branch
+name: Sync master to next
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master, main]
+
+env:
+  TARGET_BRANCH: next
+
+jobs:
+  sync:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Create sync branch and cherry-pick commits
+        run: |
+          SYNC_BRANCH="sync-to-${{ env.TARGET_BRANCH }}-${{ github.run_id }}"
+          PR_NUMBER=${{ github.event.pull_request.number }}
+
+          # Fetch all branches including remote branches
+          git fetch --all
+
+          # Check if target branch exists
+          if ! git ls-remote --exit-code origin "${{ env.TARGET_BRANCH }}" > /dev/null 2>&1; then
+            echo "::error::Target branch '${{ env.TARGET_BRANCH }}' does not exist"
+            exit 1
+          fi
+
+          # Create sync branch from target branch
+          git checkout -b "$SYNC_BRANCH" "origin/${{ env.TARGET_BRANCH }}"
+
+          # Get PR commits (excluding merge commits)
+          COMMITS=$(gh pr view $PR_NUMBER --json commits --jq '.commits[].oid' | tac)
+
+          # Cherry-pick each commit
+          echo "Cherry-picking commits..."
+          for commit in $COMMITS; do
+            if git show --no-patch --format=%p "$commit" | grep -q " "; then
+              echo "Skipping merge commit: $commit"
+              continue
+            fi
+            echo "Cherry-picking: $commit"
+            if ! git cherry-pick "$commit"; then
+              echo "::error::Cherry-pick failed for $commit. Manual intervention required."
+              exit 1
+            fi
+          done
+
+          # Push sync branch
+          git push origin "$SYNC_BRANCH"
+
+          # Create PR
+          gh pr create \
+            --base "${{ env.TARGET_BRANCH }}" \
+            --head "$SYNC_BRANCH" \
+            --title "[Sync][\`${{ env.TARGET_BRANCH }}\` <- \`${{ github.event.pull_request.base.ref }}\`][#${{ github.event.pull_request.number }}]: ${{ github.event.pull_request.title }}" \
+            --body "🤖 **Auto-sync from ${{ github.event.pull_request.base.ref }}**
+          This PR automatically syncs the changes from #${{ github.event.pull_request.number }} to the \`${{ env.TARGET_BRANCH }}\` branch.
+
+          **Original PR:** ${{ github.event.pull_request.html_url }}
+          **Author:** @${{ github.event.pull_request.user.login }}
+          **Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ---
+
+          ${{ github.event.pull_request.body }}" \
+            --reviewer "${{ github.event.pull_request.user.login }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
