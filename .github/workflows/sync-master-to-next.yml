@@ -1,0 +1,153 @@
+# This workflow will automatically sync commits from a merged PR on master to the next branch.
+name: Sync master to next
+
+on:
+  pull_request_target:
+    types:
+      - closed
+    branches:
+      - master
+
+env:
+  REPOSITORY: carbon-identity-framework
+  GIT_USERNAME: jenkins-is-staging
+  PRODUCT_REPOSITORY_FORKED: jenkins-is-staging/carbon-identity-framework
+  PRODUCT_REPOSITORY_PUBLIC: wso2/carbon-identity-framework
+  BUILD_NUMBER: ${{ github.run_id }}
+  SYNCHRONIZE_BRANCH_NAME: next_sync_github_action/${{ github.run_id }}
+  TARGET_BRANCH_NAME: next
+
+jobs:
+  create_pr:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cherry pick commits from merged PR to next branch
+        run: |
+          echo "Clean up any existing files"
+          echo "=========================================================="
+          rm -rf ${{ env.REPOSITORY }}
+          echo ""
+
+          echo "Cloning: https://github.com/${{ env.PRODUCT_REPOSITORY_FORKED }}"
+          echo "=========================================================="
+          git clone "https://github.com/${{ env.PRODUCT_REPOSITORY_FORKED }}.git"
+          cd ${{ env.REPOSITORY }}
+          echo ""
+
+          echo "Add remote: upstream as https://github.com/${{ env.PRODUCT_REPOSITORY_PUBLIC }}"
+          echo "=========================================================="
+          git remote add upstream "https://github.com/${{ env.PRODUCT_REPOSITORY_PUBLIC }}"
+          echo ""
+
+          echo "Fetching: upstream"
+          echo "=========================================================="
+          git fetch upstream
+          echo ""
+
+          echo "Checking out: upstream:master branch"
+          echo "=========================================================="
+          git checkout -b upstream/master remotes/upstream/master
+          echo ""
+
+          echo "Get merged PR details"
+          echo "=========================================================="
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_URL=${{ github.event.pull_request.html_url }}
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_USER=${{ github.event.pull_request.user.login }}
+          echo "Processing PR #$PR_NUMBER: $PR_TITLE"
+          echo ""
+
+          echo "Get commits of the PR"
+          echo "=========================================================="
+          PR_COMMITS=$(curl -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ env.PRODUCT_REPOSITORY_PUBLIC }}/pulls/$PR_NUMBER/commits")
+          PR_COMMITS_SHA=$(echo $PR_COMMITS | jq -r '.[].sha')
+          echo "Commits to cherry-pick: $PR_COMMITS_SHA"
+          echo ""
+
+          echo "Checking out: upstream:${{ env.TARGET_BRANCH_NAME }} branch"
+          echo "=========================================================="
+          git checkout -b ${{ env.SYNCHRONIZE_BRANCH_NAME }} "remotes/upstream/${{ env.TARGET_BRANCH_NAME }}"
+          echo ""
+
+          echo "Cherry-pick Commits"
+          echo "=========================================================="
+          git config --global user.name "${{ env.GIT_USERNAME }}"
+          git config --global user.email "${{ env.GIT_USERNAME }}@users.noreply.github.com"
+          
+          for commit in $PR_COMMITS_SHA
+          do
+            if [[ $(git show --no-patch --format=%p $commit | wc -w) -gt 1 ]]; then
+              echo "Skipping merge commit: $commit"
+              continue
+            fi
+            echo "Cherry-picking commit: $commit"
+            if ! git cherry-pick $commit; then
+              echo "Cherry-pick failed for commit: $commit"
+              echo "This may require manual resolution."
+              git cherry-pick --abort
+              exit 1
+            fi
+          done
+          echo ""
+
+          echo "Push Changes"
+          echo "=========================================================="
+          git remote rm origin
+          git remote add origin "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ env.PRODUCT_REPOSITORY_FORKED }}"
+          git push -u origin ${{ env.SYNCHRONIZE_BRANCH_NAME }}
+          echo ""
+
+          echo "Send Pull Request"
+          echo "=========================================================="
+          TITLE="Sync '${PR_TITLE}' to ${{ env.TARGET_BRANCH_NAME }}"
+          BODY="[Auto generated]\n\nThis PR syncs the changes from ${PR_URL} (merged to master) to the ${{ env.TARGET_BRANCH_NAME }} branch.\n\n**Original PR:** ${PR_URL}\n**Original Author:** @${PR_USER}\n**Workflow Run:** https://github.com/${{ env.PRODUCT_REPOSITORY_PUBLIC }}/actions/runs/${{ github.run_id }}\n\n---\n\n${PR_TITLE}"
+          
+          RESPONSE=$(curl -s -w "%{http_code}" -X POST \
+            "https://api.github.com/repos/${{ env.PRODUCT_REPOSITORY_PUBLIC }}/pulls" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "title": "'"${TITLE}"'",
+              "body": "'"${BODY}"'",
+              "head": "'"${{ env.GIT_USERNAME }}:${{ env.SYNCHRONIZE_BRANCH_NAME }}"'",
+              "base": "'"${{ env.TARGET_BRANCH_NAME }}"'"
+            }')
+          
+          RESPONSE_BODY=${RESPONSE::-3}
+          STATUS=$(printf "%s" "$RESPONSE" | tail -c 3)
+          
+          if [[ $STATUS != "201" ]]; then
+            echo "Error while creating the PR (Status: $STATUS)"
+            echo $RESPONSE_BODY
+            exit 1
+          fi
+          
+          echo "PR created successfully"
+          PR_URL_NEW=$(echo $RESPONSE_BODY | jq -r '.html_url')
+          echo "New PR URL: $PR_URL_NEW"
+          PR_NUMBER_NEW=$(echo "${RESPONSE_BODY}" | jq -r '.number')
+          
+          echo "Add comment to the PR"
+          echo "=========================================================="
+          COMMENT_BODY="Hi @${PR_USER}, this PR automatically syncs your changes from master to the ${{ env.TARGET_BRANCH_NAME }} branch. Please review and merge when ready."
+          
+          COMMENT_RESPONSE=$(curl -s -w "%{http_code}" -X POST \
+            "https://api.github.com/repos/${{ env.PRODUCT_REPOSITORY_PUBLIC }}/issues/${PR_NUMBER_NEW}/comments" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{ "body": "'"${COMMENT_BODY}"'"}')
+          
+          COMMENT_STATUS=$(printf "%s" "$COMMENT_RESPONSE" | tail -c 3)
+          if [[ $COMMENT_STATUS == "201" ]]; then
+            echo "Comment added successfully"
+          else
+            echo "Warning: Failed to add comment (Status: $COMMENT_STATUS)"
+          fi
+          
+          echo "Workflow completed successfully!"
+          echo "Created PR: $PR_URL_NEW"
