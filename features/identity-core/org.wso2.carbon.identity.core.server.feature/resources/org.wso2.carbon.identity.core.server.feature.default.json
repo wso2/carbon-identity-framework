@@ -1299,6 +1299,7 @@
     "groups",
     "identityProviders",
     "loginAndRegistration",
+    "oidcScopes",
     "organizations",
     "password-recovery",
     "roles",
