@@ -2012,7 +2012,7 @@
 
   "agent_identity.enabled": false,
 
-  "session_management.filter_by_unique_session_id_for_user": false,
+  "session_management.filter_by_unique_session_id_for_user": true,
 
   "flow_execution.user_assertion.expiry_time": "2000",
   "flow_execution.default_ttl": "30",
