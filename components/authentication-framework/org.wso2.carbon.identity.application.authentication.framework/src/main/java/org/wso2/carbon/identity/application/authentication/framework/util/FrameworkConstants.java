@@ -140,7 +140,7 @@ public abstract class FrameworkConstants {
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
     public static final String ALLOW_LOGIN_TO_IDP = "JITProvisioning.AllowLoginToIDP";
     public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
-    public static final String USED_TIME_WINDOWS = "http://wso2.org/claims/identity/usedTimeWindows";
+    public static final String USED_TIME_WINDOWS = "http://wso2.org/claims/identity/usedTOTPTimeWindows";
     public static final String ENABLE_ENCRYPTION = "EnableEncryption";
     public static final String TOTP_KEY = "CryptoService.TotpSecret";
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
