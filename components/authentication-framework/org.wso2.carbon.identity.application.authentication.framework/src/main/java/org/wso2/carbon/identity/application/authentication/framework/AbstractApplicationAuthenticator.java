@@ -612,6 +612,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
         if (userAssertion == null) {
             userAssertion = request.getParameter(FrameworkConstants.USER_ASSERTION);
+            if (userAssertion == null) {
+                return false;
+            }
             context.setProperty(FrameworkConstants.USER_ASSERTION, userAssertion);
         }
         try {
