@@ -95,6 +95,8 @@ public class IdentityMgtConstants {
     public static final String EMAIL_TEMPLATE_PATH = "identity/config/emailTemplate";
 
     public static final String LAST_PASSWORD_UPDATE_TIME = "http://wso2.org/claims/identity/lastPasswordUpdateTime";
+    public static final String USER_INFO_RECOVERY_SOAP_ALLOWED_USERS =
+            "AdminServices.UserInformationRecoveryService.AllowedUsers.Usernames";
 
     public static final String ENABLE_ENCRYPTION = "EnableEncryption";
 
