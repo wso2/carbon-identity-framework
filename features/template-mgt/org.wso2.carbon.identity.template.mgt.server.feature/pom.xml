@@ -21,7 +21,7 @@
     <parent>
         <artifactId>template-management-feature</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>7.8.416-next-SNAPSHOT</version>
+        <version>7.9.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
