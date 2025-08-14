@@ -529,7 +529,8 @@
     "http://wso2.org/claims/identity/verifySecretkey",
     "http://wso2.org/claims/identity/backupCodes",
     "http://wso2.org/claims/identity/verifyEmail",
-    "http://wso2.org/claims/identity/verifyMobile"
+    "http://wso2.org/claims/identity/verifyMobile",
+    "http://wso2.org/claims/identity/usedTOTPTimeWindows"
   ],
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",

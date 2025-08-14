@@ -204,6 +204,7 @@
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
   "authentication.authenticator.totp.parameters.EnableAccountLockingForFailedAttempts": true,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
+  "authentication.authenticator.totp.parameters.PreventTOTPCodeReuse": true,
 
   "authentication.authenticator.backup_code.name": "backup-code-authenticator",
   "authentication.authenticator.backup_code.enable": true,

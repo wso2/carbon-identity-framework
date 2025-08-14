@@ -783,6 +783,15 @@
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/usedTOTPTimeWindows</ClaimURI>
+				<DisplayName>Used TOTP Time Windows</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>usedTOTPTimeWindows</AttributeID>
+				<Description>Claim to store the used TOTP time windows</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/emailotp_disabled</ClaimURI>
 				<DisplayName>Disable EmailOTP</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute
