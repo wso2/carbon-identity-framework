@@ -1296,6 +1296,7 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+        <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
 
         {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
         <JWT>

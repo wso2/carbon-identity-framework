@@ -91,6 +91,7 @@
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
   "oauth.introspect.allow_cross_tenant": false,
+  "oauth.introspect.allow_cross_sub_org": false,
 
   "oauth.token.validation.include_validation_context_as_jwt_in_reponse": false,
   "oauth.extensions.token_context_generator": "org.wso2.carbon.identity.oauth2.authcontext.JWTTokenGenerator",
