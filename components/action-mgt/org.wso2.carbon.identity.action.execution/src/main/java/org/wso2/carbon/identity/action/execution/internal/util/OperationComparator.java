@@ -59,6 +59,11 @@ public class OperationComparator {
             }
 
             //Validate if the allowed path contains a wildcard '*'
+            // Example:
+            //   allowedPath: "user/claims/*/value"
+            //       Matches:  "user/claims/0/value"
+            //   allowedPath: "user/claims/*/value/*"
+            //       Matches:  "user/claims/2/value/0"
             if (allowedPath.contains("*")) {
 
                 String regex = allowedPath.replace("*", "\\d+");

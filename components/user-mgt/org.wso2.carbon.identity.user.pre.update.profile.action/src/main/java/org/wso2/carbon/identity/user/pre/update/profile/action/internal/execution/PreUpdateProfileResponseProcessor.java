@@ -76,8 +76,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private static final String MULTI_VALUED_CLAIMS_TO_BE_ADDED = "multiValuedClaimsToBeAdded";
     private static final String MULTI_VALUED_CLAIMS_TO_BE_REMOVED = "multiValuedClaimsToBeRemoved";
 
-    private UniqueIDUserStoreManager userStoreManager;
-
     @Override
     public ActionType getSupportedActionType() {
 
@@ -90,7 +88,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throws ActionExecutionResponseProcessorException {
 
         List<PerformableOperation> operationsToPerform = responseContext.getActionInvocationResponse().getOperations();
-        userStoreManager = getUserStoreManager();
+        UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
 
         Map<String, String> userClaimsToBeAdded = new HashMap<>();
         Map<String, String> userClaimsToBeModified = new HashMap<>();
@@ -103,11 +101,11 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                 switch (operation.getOp()) {
                     case ADD:
                         populateAddOperationResult(operation, responseContext, userClaimsToBeAdded,
-                            userClaimsToBeModified, simpleMultiValuedClaimsToBeAdded);
+                            userClaimsToBeModified, simpleMultiValuedClaimsToBeAdded, userStoreManager);
                         break;
                     case REPLACE:
                         populateModifyOperationResult(operation, responseContext, userClaimsToBeModified,
-                                simpleMultiValuedClaimsToBeRemoved, simpleMultiValuedClaimsToBeAdded);
+                                simpleMultiValuedClaimsToBeRemoved, simpleMultiValuedClaimsToBeAdded, userStoreManager);
                         break;
                     case REMOVE:
                         populateRemoveOperationResult(operation, responseContext, userClaimsToBeModified,
@@ -130,7 +128,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                                             ActionExecutionResponseContext<ActionInvocationSuccessResponse>
                                                     responseContext, Map<String, String> userClaimsToBeAdded,
                                             Map<String, String> userClaimsToBeModified,
-                                            Map<String, List<String>> simpleMultiValuedClaimsToBeAdded)
+                                            Map<String, List<String>> simpleMultiValuedClaimsToBeAdded,
+                                            UniqueIDUserStoreManager userStoreManager)
             throws ActionExecutionResponseProcessorException {
 
             String userId = responseContext.getActionEvent().getUser().getId();
@@ -149,19 +148,20 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                     .orElseThrow(() -> new ActionExecutionResponseProcessorException("Missing or wrong format for " +
                             "claim uri in operation"));
 
-            String claimValue = Optional.ofNullable(valueMap.get(VALUE))
-                    .filter(value -> value instanceof String)
-                    .map(value -> (String) value)
-                    .orElseThrow(() ->
-                            new ActionExecutionResponseProcessorException("Missing or wrong format for " +
-                                    "claim value in operation"));
-
             Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
             validateGroupAndRoleClaims(claimUri);
             validateImmutableClaims(claimUri);
             validateFlowInitiatorClaims(claimUri, localClaim);
+
             if (!isMultiValuedClaim(localClaim)) {
-                Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri);
+                String claimValue = Optional.ofNullable(valueMap.get(VALUE))
+                        .filter(value -> value instanceof String)
+                        .map(value -> (String) value)
+                        .orElseThrow(() ->
+                                new ActionExecutionResponseProcessorException("Missing or wrong format for " +
+                                        "single valued claim in operation"));
+
+                Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri, userStoreManager);
                 // Validate if the claim value already exists for the user
                 if (operation.getOp() == Operation.ADD && userClaimValues.get(claimUri) != null &&
                         !claimValue.trim().isEmpty()) {
@@ -170,8 +170,15 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                     userClaimsToBeAdded.put(claimUri, claimValue.trim());
                 }
             } else {
+                List<String> claimValue = Optional.ofNullable(valueMap.get(VALUE))
+                        .filter(value -> value instanceof List)
+                        .map(value -> (List<?>) value)
+                        .filter(list -> list.stream().allMatch(e -> e instanceof String))
+                        .map(list -> (List<String>) list)
+                        .orElseThrow(() -> new ActionExecutionResponseProcessorException(
+                                "Missing or wrong format for multi valued claim in operation"));
                 populateMultivaluedClaimsForAddOperation(localClaim, claimValue, userId, userClaimsToBeModified,
-                        simpleMultiValuedClaimsToBeAdded, initiatorType);
+                        simpleMultiValuedClaimsToBeAdded, initiatorType, userStoreManager);
             }
     }
 
@@ -179,7 +186,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                                                ActionExecutionResponseContext<ActionInvocationSuccessResponse>
                                                        responseContext, Map<String, String> userClaimsToBeModified,
                                                Map<String, List<String>> simpleMultiValuedClaimsToBeRemoved,
-                                               Map<String, List<String>> simpleMultiValuedClaimsToBeAdded)
+                                               Map<String, List<String>> simpleMultiValuedClaimsToBeAdded,
+                                               UniqueIDUserStoreManager userStoreManager)
             throws ActionExecutionResponseProcessorException {
 
         String path = operation.getPath();
@@ -202,7 +210,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             userClaimsToBeModified.put(claim.getUri(), claimValue.trim());
         } else {
             populateMultiValuedClaimsForReplaceOperation(operation, initiatorType, userClaimsToBeModified,
-                    simpleMultiValuedClaimsToBeAdded, simpleMultiValuedClaimsToBeRemoved, userId, claim, separator);
+                    simpleMultiValuedClaimsToBeAdded, simpleMultiValuedClaimsToBeRemoved, userId, claim, separator,
+                    userStoreManager);
         }
     }
 
@@ -229,16 +238,17 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         }
     }
 
-    private void populateMultivaluedClaimsForAddOperation(Optional<LocalClaim> localClaim, String claimValue,
+    private void populateMultivaluedClaimsForAddOperation(Optional<LocalClaim> localClaim, List<String> claimValue,
                                                           String userId,
                                                           Map<String, String> userClaimsToBeModified,
                                                           Map<String, List<String>> simpleMultiValuedClaimsToBeAdded,
-                                                          PreUpdateProfileEvent.FlowInitiatorType initiatorType)
+                                                          PreUpdateProfileEvent.FlowInitiatorType initiatorType,
+                                                          UniqueIDUserStoreManager userStoreManager)
             throws ActionExecutionResponseProcessorException {
 
         String claimUri = localClaim.get().getClaimURI();
         String separator = FrameworkUtils.getMultiAttributeSeparator();
-        Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri);
+        Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri, userStoreManager);
         List<String> filteredValues = getFilteredModifyingClaimValues(userClaimValues, claimUri, claimValue,
                 separator);
         if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.ADMIN ||
@@ -259,18 +269,20 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                                                                       simpleMultiValuedClaimsToBeAdded,
                                                               Map<String, List<String>>
                                                                       simpleMultiValuedClaimsToBeRemoved,
-                                                              String userId, UserClaim claim, String separator)
+                                                              String userId, UserClaim claim, String separator,
+                                                              UniqueIDUserStoreManager userStoreManager)
             throws ActionExecutionResponseProcessorException {
 
-        String claimValue = Optional.ofNullable(operation.getValue())
-                .filter(value -> value instanceof String)
-                .map(value -> (String) value)
-                .orElseThrow(() ->
-                        new ActionExecutionResponseProcessorException("Missing or wrong format for " +
-                                "claim value in operation"));
+        List<String> claimValue = Optional.ofNullable(operation.getValue())
+                .filter(value -> value instanceof List)
+                .map(value -> (List<?>) value)
+                .filter(list -> list.stream().allMatch(e -> e instanceof String))
+                .map(list -> (List<String>) list)
+                .orElseThrow(() -> new ActionExecutionResponseProcessorException(
+                        "Missing or wrong format for multi valued claim in operation"));
         if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.ADMIN ||
                 initiatorType == PreUpdateProfileEvent.FlowInitiatorType.APPLICATION) {
-            Map<String, String> userClaimValues = getUserClaimValues(userId, claim.getUri());
+            Map<String, String> userClaimValues = getUserClaimValues(userId, claim.getUri(), userStoreManager);
             List<String> filteredClaims = getFilteredModifyingClaimValues(userClaimValues, claim.getUri(),
                     claimValue, FrameworkUtils.getMultiAttributeSeparator());
             int multiValueIndex = getMultiValueindex(operation.getPath());
@@ -280,7 +292,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                 simpleMultiValuedClaimsToBeAdded.put(claim.getUri(), Arrays.asList(filteredClaims.get(0).trim()));
             }
         } else if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.USER) {
-            Map<String, String> userClaimValues = getUserClaimValues(userId, claim.getUri());
+            Map<String, String> userClaimValues = getUserClaimValues(userId, claim.getUri(), userStoreManager);
             List<String> filteredClaims = getFilteredModifyingClaimValues(userClaimValues, claim.getUri(),
                     claimValue, FrameworkUtils.getMultiAttributeSeparator());
             String[] claimValues = (String[]) claim.getValue();
@@ -378,8 +390,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         }
     }
     
-    private Map<String, String> getUserClaimValues(String userId, String claimUri) throws
-            ActionExecutionResponseProcessorException {
+    private Map<String, String> getUserClaimValues(String userId, String claimUri, UniqueIDUserStoreManager
+            userStoreManager) throws ActionExecutionResponseProcessorException {
 
         try {
             return userStoreManager.getUserClaimValuesWithID(userId, new String[]{claimUri},
@@ -390,21 +402,21 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     }
 
     private List<String> getFilteredModifyingClaimValues(Map<String, String> userClaimValues, String claimUri,
-                                                         String claimValue, String separator) {
+                                                         List<String> claimValue, String separator) {
 
         List<String> userValues = Optional.ofNullable(userClaimValues.get(claimUri))
                 .map(value -> Arrays.asList(value.split(separator)))
                 .orElse(Collections.emptyList());
-        String[] claimValuesList = filterDuplicatedValues(claimValue, separator);
+        String[] claimValuesList = filterDuplicatedValues(claimValue);
 
         return Arrays.stream(claimValuesList)
                 .filter(value -> !userValues.contains(value))
                 .collect(Collectors.toList());
     }
 
-    private String[] filterDuplicatedValues(String claimValue, String separator) {
+    private String[] filterDuplicatedValues(List<String> claimValue) {
 
-        return Arrays.stream(claimValue.split(separator))
+        return  claimValue.stream()
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .distinct()
