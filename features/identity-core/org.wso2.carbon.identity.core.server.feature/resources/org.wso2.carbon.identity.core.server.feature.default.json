@@ -813,7 +813,8 @@
     "/lsp/",
     "/emailotpauthenticationendpoint/",
     "/smsotpauthenticationendpoint/",
-    "/totpauthenticationendpoint/"
+    "/totpauthenticationendpoint/",
+    "/accounts/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
