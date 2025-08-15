@@ -53,8 +53,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +130,9 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
                 .id(TEST_ID)
                 .name(TEST_ACTION)
                 .description(TEST_DESCRIPTION)
+                .status(Action.Status.ACTIVE)
+                .createdAt(new Timestamp(new Date().getTime()))
+                .updatedAt(new Timestamp(new Date().getTime() + 5000))
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_URL)
                         .authentication(new Authentication.BasicAuthBuilder(TEST_USERNAME, TEST_PASSWORD).build())
@@ -655,6 +660,9 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
         assertEquals(result.getId(), actionDTO.getId());
         assertEquals(result.getName(), actionDTO.getName());
         assertEquals(result.getDescription(), actionDTO.getDescription());
+        assertEquals(result.getStatus(), actionDTO.getStatus());
+        assertEquals(result.getCreatedAt(), actionDTO.getCreatedAt());
+        assertEquals(result.getUpdatedAt(), actionDTO.getUpdatedAt());
         assertEquals(result.getEndpoint().getUri(), actionDTO.getEndpoint().getUri());
         assertEquals(result.getEndpoint().getAuthentication().getType(),
                 actionDTO.getEndpoint().getAuthentication().getType());

@@ -100,6 +100,23 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     }
 
     @Override
+    public boolean doPostAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
+                                 String profile, UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        try {
+            checkClaimUniqueness(userName, claims, profile, userStoreManager, null);
+        } catch (UserStoreClientException e) {
+            userStoreManager.deleteUser(userName);
+            throw e;
+        }
+        return true;
+    }
+
+    @Override
     public boolean doPreSetUserClaimValue(String userName, String claimURI, String claimValue, String profile,
                                           UserStoreManager userStoreManager) throws UserStoreException {
 
@@ -301,15 +318,19 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             userList = userStoreMgrFromRealm.getUserList(claimUri, claimValue, profile);
         }
 
-        if (userList.length == 1) {
-            String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+        String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+        if (userList.length == 0) {
+            return false;
+        } else {
             if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                if (userList.length > 1 && log.isDebugEnabled()) {
+                    log.debug("Multiple users found for claim URI: " + claimUri + ". The current user is the " +
+                            "first in the list; skipping uniqueness check for this claim value.");
+                }
                 return false;
             }
-        } else if (userList.length == 0) {
-            return false;
+            return true;
         }
-        return true;
     }
 
     /**
@@ -476,6 +497,13 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                 userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
             }
             if (userList.length > 1) {
+                if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Multiple users found for claim URI: " + claimUri + ". The current user is " +
+                                "the first in the list; skipping uniqueness check for this claim value.");
+                    }
+                    continue;
+                }
                 return true;
             }
             if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {

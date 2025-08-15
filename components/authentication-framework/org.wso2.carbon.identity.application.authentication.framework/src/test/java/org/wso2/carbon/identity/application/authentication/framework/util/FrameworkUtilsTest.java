@@ -74,6 +74,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -1380,5 +1381,30 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         for (ApplicationAuthenticator authenticator : authenticatorList) {
             ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
         }
+    }
+
+    @DataProvider(name = "serviceProviderVersionProvider")
+    public Object[][] serviceProviderVersionProvider() {
+
+        return new Object[][]{
+                // appVersion, expectedResult
+                {"v3.0.0", true},           // v3 version should return true
+                {"v4.0.0", true},           // v4+ version should return true
+                {"v2.0.0", false},          // v2.x version should return false
+        };
+    }
+
+    @Test(dataProvider = "serviceProviderVersionProvider")
+    public void testIsLoginFailureWithNoLocalAssociationEnabledForApp(String appVersion, boolean expectedResult) {
+
+        // Create a mock ServiceProvider
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.getApplicationVersion()).thenReturn(appVersion);
+
+        // Call the method under test
+        boolean result = FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(serviceProvider);
+
+        // Assert the result
+        assertEquals(result, expectedResult);
     }
 }

@@ -703,6 +703,28 @@ public class DefaultStepHandler implements StepHandler {
                 doAuthentication(request, response, context, authenticatorConfig);
                 break;
             }
+
+            // If the authenticator can handle the request with user assertion, we can invoke the authenticator.
+            if (authenticator != null && authenticator.canHandleWithUserAssertion(request, response, context)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(authenticator.getName() + " can handle the request with user assertion.");
+                }
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP)
+                            .inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                                    context.getServiceProviderName())
+                            .inputParam(LogConstants.InputKeys.TENANT_DOMAIN,
+                                    context.getTenantDomain())
+                            .inputParam(LogConstants.InputKeys.STEP, currentStep)
+                            .resultMessage("Initializing authentication flow with user assertion.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                }
+                doAuthentication(request, response, context, authenticatorConfig);
+                return;
+            }
         }
         if (isNoneCanHandle) {
             throw new FrameworkException("No authenticator can handle the request in step :  " + currentStep);
@@ -745,7 +767,13 @@ public class DefaultStepHandler implements StepHandler {
 
         try {
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
-            AuthenticatorFlowStatus status = authenticator.process(request, response, context);
+            AuthenticatorFlowStatus status;
+            if (authenticator.isAuthenticationRequired(request, response, context)) {
+                status = authenticator.process(request, response, context);
+            } else {
+                // If the authenticator does not require authentication based on the assertion, we can skip the process.
+                status = AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+            }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
              we need to send the auth initiation data in order to support performing API based authentication.*/

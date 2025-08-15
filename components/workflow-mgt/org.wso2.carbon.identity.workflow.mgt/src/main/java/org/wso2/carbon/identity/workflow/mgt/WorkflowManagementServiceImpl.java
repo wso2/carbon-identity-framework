@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
-import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
@@ -385,10 +384,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         } else {
             workflowDAO.removeWorkflowParams(workflow.getWorkflowId());
             workflowDAO.updateWorkflow(workflow);
-            if (!StringUtils.equals(oldWorkflow.getWorkflowName(), workflow.getWorkflowName())) {
-                WorkflowManagementUtil.updateWorkflowRoleName(oldWorkflow.getWorkflowName(),
-                        workflow.getWorkflowName());
-            }
         }
         workflowDAO.addWorkflowParams(parameterList, workflow.getWorkflowId(), tenantId);
         for (WorkflowListener workflowListener : workflowListenerList) {

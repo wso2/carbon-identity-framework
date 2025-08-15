@@ -64,6 +64,8 @@ public class Constants {
                 "Unexpected server error while retrieving the flow config for tenant, %s"),
         ERROR_CODE_UPDATING_FLOW_CONFIG("65011", "Error while updating the flow config.",
                 "Unexpected server error while updating the flow config for tenant, %s"),
+        ERROR_CODE_INVOKING_AI_SERVICE("65012", "Error while invoking the AI service.",
+                "Unexpected server error while invoking the AI service for tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -229,6 +231,31 @@ public class Constants {
         public static final String IS_AUTO_LOGIN_ENABLED = "isAutoLoginEnabled";
 
         private FlowConfigConstants() {
+
+        }
+    }
+
+    public static class FlowAIConstants {
+
+        public static final String FLOW_AI_ENDPOINT = "AIServices.FlowAI.Endpoint";
+        public static final String FLOW_AI_GENERATE_PATH = "AIServices.FlowAI.GenerateRequestPath";
+        public static final String FLOW_AI_STATUS_PATH = "AIServices.FlowAI.StatusRequestPath";
+        public static final String FLOW_AI_RESULT_PATH = "AIServices.FlowAI.ResultRequestPath";
+
+        public static final String FLOW_TYPE = "flow_type";
+        public static final String USER_QUERY = "user_query";
+        public static final String OPERATION_ID = "operation_id";
+        // Flow generation status constants.
+        public static final String STATUS = "status";
+        public static final String FAILED_STATUS = "FAILED";
+        public static final String OPTIMIZING_QUERY = "optimizing_query";
+        public static final String FETCHING_SAMPLES = "fetching_samples";
+        public static final String GENERATING_FLOW = "generating_flow";
+        public static final String COMPLETED = "completed";
+        // Flow generation response constants.
+        public static final String DATA = "data";
+
+        private FlowAIConstants() {
 
         }
     }

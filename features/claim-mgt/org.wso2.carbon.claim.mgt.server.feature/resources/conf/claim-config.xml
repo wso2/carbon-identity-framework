@@ -783,6 +783,15 @@
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/usedTOTPTimeWindows</ClaimURI>
+				<DisplayName>Used TOTP Time Windows</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>usedTOTPTimeWindows</AttributeID>
+				<Description>Claim to store the used TOTP time windows</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/emailotp_disabled</ClaimURI>
 				<DisplayName>Disable EmailOTP</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute
@@ -1001,6 +1010,58 @@
 				<ReadOnly />
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
+            <!-- Begin Agent specific local claims -->
+<!--            <Claim>-->
+<!--                <ClaimURI>http://wso2.org/claims/agent/Name</ClaimURI>-->
+<!--                <DisplayName>Agent Name</DisplayName>-->
+<!--                <AttributeID>agentName</AttributeID>-->
+<!--                <Description>Agent Name</Description>-->
+<!--                <SupportedByDefault>false</SupportedByDefault>-->
+<!--                <isAgentClaim>true</isAgentClaim>-->
+<!--                <DisplayOrder>30</DisplayOrder>-->
+<!--                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>-->
+<!--            </Claim>-->
+<!--            <Claim>-->
+<!--                <ClaimURI>http://wso2.org/claims/agent/Description</ClaimURI>-->
+<!--                <DisplayName>Agent Description</DisplayName>-->
+<!--                <AttributeID>agentDescription</AttributeID>-->
+<!--                <Description>Agent Description</Description>-->
+<!--                <SupportedByDefault>false</SupportedByDefault>-->
+<!--                <isAgentClaim>true</isAgentClaim>-->
+<!--                <DisplayOrder>31</DisplayOrder>-->
+<!--                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>-->
+<!--            </Claim>-->
+<!--            <Claim>-->
+<!--                <ClaimURI>http://wso2.org/claims/agent/AIModel</ClaimURI>-->
+<!--                <DisplayName>Agent AI Model</DisplayName>-->
+<!--                <AttributeID>agentAIModel</AttributeID>-->
+<!--                <Description>Agent AI Model</Description>-->
+<!--                <SupportedByDefault>false</SupportedByDefault>-->
+<!--                <isAgentClaim>true</isAgentClaim>-->
+<!--                <DisplayOrder>32</DisplayOrder>-->
+<!--                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>-->
+<!--            </Claim>-->
+<!--            <Claim>-->
+<!--                <ClaimURI>http://wso2.org/claims/agent/Owner</ClaimURI>-->
+<!--                <DisplayName>Agent Owner</DisplayName>-->
+<!--                <AttributeID>agentOwner</AttributeID>-->
+<!--                <Description>Agent Owner</Description>-->
+<!--                <SupportedByDefault>false</SupportedByDefault>-->
+<!--                <isAgentClaim>true</isAgentClaim>-->
+<!--                <DisplayOrder>33</DisplayOrder>-->
+<!--                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>-->
+<!--            </Claim>-->
+<!--            <Claim>-->
+<!--                <ClaimURI>http://wso2.org/claims/agent/URL</ClaimURI>-->
+<!--                <DisplayName>Agent URL</DisplayName>-->
+<!--                <AttributeID>agentURL</AttributeID>-->
+<!--                <Description>Agent Discovery URL</Description>-->
+<!--                <SupportedByDefault>false</SupportedByDefault>-->
+<!--                <isAgentClaim>true</isAgentClaim>-->
+<!--                <DisplayOrder>34</DisplayOrder>-->
+<!--                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>-->
+<!--            </Claim>-->
+            <!-- End agent specific local claims -->
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -2899,5 +2960,54 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/sharedType</MappedLocalClaim>
 			</Claim>
 		</Dialect>
+        <!-- begin agent specific scim dialect -->
+<!--        <Dialect dialectURI="urn:scim:wso2:agent:schema">-->
+<!--            <Claim>-->
+<!--                <ClaimURI>urn:scim:wso2:agent:schema:DisplayName</ClaimURI>-->
+<!--                <DisplayName>Display Name</DisplayName>-->
+<!--                <AttributeID>DisplayName</AttributeID>-->
+<!--                <Description>Human readable name for the agent</Description>-->
+<!--                <DisplayOrder>1</DisplayOrder>-->
+<!--                <SupportedByDefault />-->
+<!--                <MappedLocalClaim>http://wso2.org/claims/agent/Name</MappedLocalClaim>-->
+<!--            </Claim>-->
+<!--            <Claim>-->
+<!--                <ClaimURI>urn:scim:wso2:agent:schema:Description</ClaimURI>-->
+<!--                <DisplayName>Description</DisplayName>-->
+<!--                <AttributeID>Description</AttributeID>-->
+<!--                <Description>Agent Description</Description>-->
+<!--                <DisplayOrder>2</DisplayOrder>-->
+<!--                <SupportedByDefault />-->
+<!--                <MappedLocalClaim>http://wso2.org/claims/agent/Description</MappedLocalClaim>-->
+<!--            </Claim>-->
+<!--            <Claim>-->
+<!--                <ClaimURI>urn:scim:wso2:agent:schema:Owner</ClaimURI>-->
+<!--                <DisplayName>Owner</DisplayName>-->
+<!--                <AttributeID>Owner</AttributeID>-->
+<!--                <Description>Owner who is responsible for the Agent</Description>-->
+<!--                <DisplayOrder>3</DisplayOrder>-->
+<!--                <SupportedByDefault />-->
+<!--                <MappedLocalClaim>http://wso2.org/claims/agent/Owner</MappedLocalClaim>-->
+<!--            </Claim>-->
+<!--            <Claim>-->
+<!--                <ClaimURI>urn:scim:wso2:agent:schema:AIModel</ClaimURI>-->
+<!--                <DisplayName>AI Model</DisplayName>-->
+<!--                <AttributeID>AIModel</AttributeID>-->
+<!--                <Description>Agent AI Model</Description>-->
+<!--                <DisplayOrder>4</DisplayOrder>-->
+<!--                <SupportedByDefault />-->
+<!--                <MappedLocalClaim>http://wso2.org/claims/agent/AIModel</MappedLocalClaim>-->
+<!--            </Claim>-->
+<!--            <Claim>-->
+<!--                <ClaimURI>urn:scim:wso2:agent:schema:URL</ClaimURI>-->
+<!--                <DisplayName>URL</DisplayName>-->
+<!--                <AttributeID>URL</AttributeID>-->
+<!--                <Description>Agent Discovery URL</Description>-->
+<!--                <DisplayOrder>5</DisplayOrder>-->
+<!--                <SupportedByDefault />-->
+<!--                <MappedLocalClaim>http://wso2.org/claims/agent/URL</MappedLocalClaim>-->
+<!--            </Claim>-->
+<!--        </Dialect>-->
+        <!-- end Agent specific scim dialect -->
 	</Dialects>
 </ClaimConfig>

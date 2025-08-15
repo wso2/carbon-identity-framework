@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -33,11 +34,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
@@ -63,6 +66,7 @@ import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,6 +77,7 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AMR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_LIST;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
@@ -599,4 +604,78 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         return tagsArray;
     }
+
+    @Override
+    public boolean canHandleWithUserAssertion(HttpServletRequest request,
+                                               HttpServletResponse response, AuthenticationContext context) {
+
+        String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
+        if (userAssertion == null) {
+            userAssertion = request.getParameter(FrameworkConstants.USER_ASSERTION);
+            if (userAssertion == null) {
+                return false;
+            }
+            context.setProperty(FrameworkConstants.USER_ASSERTION, userAssertion);
+        }
+        try {
+            Optional<JWTClaimsSet> optionalClaims = UserAssertionUtils
+                    .retrieveClaimsFromUserAssertion(userAssertion, context.getTenantDomain());
+            if (optionalClaims.isPresent()) {
+                return isAuthenticatorInAMRClaim(optionalClaims.get());
+            }
+        } catch (FrameworkException e) {
+            log.debug("Error while retrieving claims from user assertion.", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isAuthenticationRequired(HttpServletRequest request, HttpServletResponse response,
+                                            AuthenticationContext context) {
+
+        String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
+        if (userAssertion == null) {
+            return true;
+        }
+        try {
+            Optional<JWTClaimsSet> optionalClaims = UserAssertionUtils
+                    .retrieveClaimsFromUserAssertion(userAssertion, context.getTenantDomain());
+            if (optionalClaims.isPresent()) {
+                return !isAuthenticatorInAMRClaim(optionalClaims.get())
+                        || !handleUserClaimsFromAssertion(optionalClaims.get(), context);
+            }
+        } catch (FrameworkException e) {
+            log.debug("Error while retrieving claims from user assertion.", e);
+        }
+
+        return true;
+    }
+
+    private boolean isAuthenticatorInAMRClaim(JWTClaimsSet claimsSet) {
+
+        try {
+            List<String> amrValues = claimsSet.getStringListClaim(AMR);
+            if (amrValues != null && amrValues.contains(this.getName())) {
+                return true;
+            }
+        } catch (ParseException e) {
+            log.debug("Error while parsing AMR claim from user assertion.", e);
+        }
+        return false;
+    }
+
+    private static boolean handleUserClaimsFromAssertion(JWTClaimsSet claimsSet, AuthenticationContext context) {
+
+        String username = claimsSet.getSubject();
+        if (StringUtils.isBlank(username)) {
+            log.debug("Subject claim is not present in the user assertion.");
+            return false;
+        }
+        String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
+        UserCoreUtil.setDomainInThreadLocal(userStoreDomain);
+        context.setSubject(
+                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username));
+        return true;
+    }
+
 }
