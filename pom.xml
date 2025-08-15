@@ -1985,8 +1985,8 @@
         <version.commons.logging>1.1.1</version.commons.logging>
         <commons.logging.version>1.2</commons.logging.version>
         <kaptcha.wso2.version>2.3.0.wso2v1</kaptcha.wso2.version>
-        <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
-        <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
+        <json.wso2.version>3.0.0.wso2v7</json.wso2.version>
+        <json.wso2.version.range>[3.0.0.wso2v7, 4.0.0)</json.wso2.version.range>
         <com.fasterxml.jackson.version>2.16.1</com.fasterxml.jackson.version>
         <com.fasterxml.jackson.annotation.version>2.16.1</com.fasterxml.jackson.annotation.version>
         <com.fasterxml.jackson.databind.version>2.16.1</com.fasterxml.jackson.databind.version>
@@ -1999,7 +1999,7 @@
         <jsr311-api.version>1.1.1</jsr311-api.version>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <tomcat-util.version>3.3.2</tomcat-util.version>
-        <json-smart.version>2.5.2</json-smart.version>
+        <json-smart.version>2.6.0</json-smart.version>
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
         <org.apache.cxf.version>3.6.3</org.apache.cxf.version>
         <opencsv.wso2.version>1.8.wso2v1</opencsv.wso2.version>
