@@ -52,6 +52,8 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
+  "localization.prioritize_param": "true",
+
   "server.internal_hostname": "localhost",
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
@@ -89,6 +91,7 @@
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
   "oauth.introspect.allow_cross_tenant": false,
+  "oauth.introspect.allow_cross_sub_org": false,
 
   "oauth.token.validation.include_validation_context_as_jwt_in_reponse": false,
   "oauth.extensions.token_context_generator": "org.wso2.carbon.identity.oauth2.authcontext.JWTTokenGenerator",
@@ -212,7 +215,7 @@
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
-  "oauth.dcrm.return_null_fields_in_response": true,
+  "oauth.dcrm.return_null_fields_in_response": false,
   "oauth.dcr.enable_fapi_enforcement": false,
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
@@ -363,6 +366,7 @@
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
 
   "user_account_association.enable_sha256": true,
+  "federated_user_account_association.max_bulk_operations": 1000,
 
   "entitlement.thrift.enable": false,
   "entitlement.thrift.receiver_port": "${Ports.ThriftEntitlementReceivePort}",
@@ -392,7 +396,7 @@
   "scim2.consider_total_records_for_total_results_of_ldap": false,
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
-  "scim2.enable_scim2_roles_v3_api": false,
+  "scim2.enable_scim2_roles_v3_api": true,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -458,7 +462,7 @@
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
-  "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+  "identity_mgt.login_identifiers.enable_identifier_as_display_username": true,
 
   "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
@@ -526,7 +530,8 @@
     "http://wso2.org/claims/identity/verifySecretkey",
     "http://wso2.org/claims/identity/backupCodes",
     "http://wso2.org/claims/identity/verifyEmail",
-    "http://wso2.org/claims/identity/verifyMobile"
+    "http://wso2.org/claims/identity/verifyMobile",
+    "http://wso2.org/claims/identity/usedTOTPTimeWindows"
   ],
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
@@ -1179,6 +1184,21 @@
       "description": "This email is resent to request credentials from the user when a new account is created and the registration flow is incomplete",
       "displayName": "Resend New User Credentials Email",
       "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
+    },
+    {
+      "description": "This email OTP is sent to the user to set their password",
+      "displayName": "Invite user to set password via Email OTP",
+      "id": "QXNrUGFzc3dvcmRFbWFpbE9UUA"
+    },
+    {
+      "description": "This email is resent to the user to set their password via Email OTP",
+      "displayName": "Resend invite user to set password via Email OTP",
+      "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA"
+    },
+    {
+      "description": "This email is sent to confirm the user email address via Email OTP",
+      "displayName": "Confirm Email Address via Email OTP",
+      "id": "RW1haWxDb25maXJtV2l0aE9UUA"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1216,6 +1236,21 @@
       "description": "This SMS is sent to verify the user's mobile number after an update.",
       "displayName": "Verify Mobile On Update",
       "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
+    },
+    {
+      "description": "This SMS is sent to send the OTP for setting a password.",
+      "displayName": "Send Password Setup OTP",
+      "id": "YXNrUGFzc3dvcmRTTVNPVFA"
+    },
+    {
+      "description": "This SMS is sent to resend the OTP for setting a password.",
+      "displayName": "Resend Password Setup OTP",
+      "id": "YXNrUGFzc3dvcmRSZXNlbmRTTVNPVFA"
+    },
+    {
+      "description": "This SMS is sent to notify the user that their account is now unlocked.",
+      "displayName": "Password Setup Success",
+      "id": "YXNrUGFzc3dvcmRTZXRTdWNjZXNz"
     }
   ],
   "console.ui.app_copyright": "WSO2 Identity Server",
@@ -1250,8 +1285,13 @@
   "console.ui.administrator_role_display_name": "Administrator",
   "console.ui.isXacmlConnectorEnabled": false,
   "console.ui.routes.organizationEnabledRoutes": [
+    "accountSecurity",
+    "actions",
+    "admin-forced-password-reset",
     "apiResources",
     "applications",
+    "approvalWorkflows",
+    "approvals",
     "attributeDialects",
     "branding",
     "consoleSettings",
@@ -1260,12 +1300,20 @@
     "governanceConnectors",
     "groups",
     "identityProviders",
+    "loginAndRegistration",
+    "oidcScopes",
     "organizations",
+    "password-recovery",
     "roles",
+    "self-registration-connector",
     "smsTemplates",
+    "user-email-verification",
     "userRoles",
     "userStores",
-    "users"
+    "username-recovery",
+    "users",
+    "workflowInstanceDetails",
+    "workflowInstances"
   ],
   "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
   "console.theme": "wso2is",
@@ -1291,7 +1339,11 @@
   "console.account_login.scopes.update": ["internal_config_mgt_update"],
   "console.actions.enabled": true,
   "console.actions.disabled_features": [
-    "actions.types.list.preRegistration"
+    "actions.types.list.preRegistration",
+    "actions.types.list.preUpdatePassword.headersAndParameters",
+    "actions.types.list.preUpdateProfile.headersAndParameters",
+    "actions.types.org.list.preIssueAccessToken",
+    "actions.types.org.list.preRegistration"
   ],
   "console.actions.scopes.feature": ["console:actions"],
   "console.actions.scopes.create": ["internal_action_mgt_create"],
@@ -1304,7 +1356,9 @@
   "console.actions.scopes.update": ["internal_action_mgt_update"],
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
   "console.webhooks.enabled": true,
-  "console.webhooks.disabled_features": [],
+  "console.webhooks.disabled_features": [
+    "webhooks.settings"
+  ],
   "console.agents.enabled": true,
   "console.agents.disabled_features": [],
   "console.agents.scopes.feature": ["console:users"],
@@ -1327,8 +1381,7 @@
     "internal_webhook_meta_view"
   ],
   "console.webhooks.scopes.update": [
-    "internal_webhook_mgt_update",
-    "internal_webhook_meta_update"
+    "internal_webhook_mgt_update"
   ],
   "console.webhooks.scopes.delete": ["internal_webhook_mgt_delete"],
   "console.administrators.enabled": false,
@@ -1371,16 +1424,20 @@
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
-  "console.approvals.enabled": false,
-  "console.approvals.scopes.feature": ["console:workflowApprovals"],
+  "console.approvals.enabled": true,
+  "console.approvals.scopes.feature": ["console:users"],
   "console.approvals.scopes.read": ["internal_approval_task_view"],
   "console.approvals.scopes.update": ["internal_approval_task_update"],
-  "console.workflows.enabled": false,
-  "console.workflows.scopes.feature": ["console:workflowApprovals"],
-  "console.workflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
-  "console.workflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
-  "console.workflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
-  "console.workflows.scopes.delete": ["internal_workflow_delete", "internal_workflow_association_delete"],
+  "console.approvalWorkflows.enabled": true,
+  "console.approvalWorkflows.scopes.feature": ["console:approvalWorkflows"],
+  "console.approvalWorkflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
+  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
+  "console.approvalWorkflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
+  "console.approvalWorkflows.scopes.delete": ["internal_workflow_delete", "internal_workflow_association_delete"],
+  "console.workflowInstances.enabled": true,
+  "console.workflowInstances.scopes.feature": ["console:workflowInstances"],
+  "console.workflowInstances.scopes.read": ["internal_workflow_instance_view"],
+  "console.workflowInstances.scopes.delete": ["internal_workflow_instance_delete"],
   "console.attribute_dialects.enabled": true,
   "console.attribute_dialects.scopes.feature": ["console:attributes"],
   "console.attribute_dialects.scopes.create": ["internal_claim_meta_create"],
@@ -1622,6 +1679,10 @@
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
+  "console.users.disabled_features": [
+    "users.add.legacy",
+    "users.profile.legacy"
+  ],
   "console.users.scopes.feature": ["console:users"],
   "console.users.scopes.create": ["internal_user_mgt_create"],
   "console.users.scopes.read": [
@@ -1634,6 +1695,8 @@
       "internal_user_mgt_list",
       "internal_session_view"
   ],
+  "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
+  "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.secrets_management.enabled": true,
   "console.secrets_management.scopes.feature": [ "console:secretsManagement" ],
   "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
@@ -1657,8 +1720,6 @@
   "console.tenants.scopes.read": ["internal_list_tenants"],
   "console.tenants.scopes.update": ["internal_modify_tenants"],
   "console.tenants.scopes.delete": ["internal_modify_tenants"],
-  "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
-  "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.user_stores.enabled": true,
   "console.user_stores.disabled_features": [
     "userStores.type.remote"
@@ -1807,7 +1868,11 @@
   "myaccount.operations.enabled": true,
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
+  "myaccount.personal_info.disabled_features": ["profileInfo.profile.legacy"],
   "myaccount.security.enabled": true,
+  "myaccount.approvals.enabled": false,
+  "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
+  "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
   "myaccount.operations.scopes.create": [],
   "myaccount.operations.scopes.read": ["internal_humantask_view"],
   "myaccount.operations.scopes.update": [],
@@ -1816,7 +1881,6 @@
   "myaccount.session.params.userIdleWarningTimeOut": 580,
   "myaccount.session.params.sessionRefreshTimeOut": 300,
   "myaccount.session.params.checkSessionInterval": 3,
-  "myaccount.personal_info.disabled_features": [],
   "myaccount.security.disabled_features": ["security.loginVerifyData.typingDNA", "security.mfa.sms"],
   "myaccount.idp_configs.authorizeEndpointURL": "${serverOrigin}/oauth2/authorize",
   "myaccount.idp_configs.logoutEndpointURL": "${serverOrigin}/oidc/logout",
@@ -1899,7 +1963,7 @@
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
-  "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+  "organization_management.organization_versioning.new_organization_version": "v1.0.0",
   "organization_discovery.default_param": "orgName",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
@@ -1924,6 +1988,7 @@
   "actions.types.authentication.enable": true,
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
+  "actions.types.pre_update_password.enable_in_registration_flows": true,
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
@@ -1938,13 +2003,12 @@
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
-  "oauth.enable_user_session_impersonation": true,
 
   "system_applications.system_portals": ["Console", "My Account"],
 
   "notification_templates.sms_templates.apply": true,
 
-  "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+  "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": true,
 
   "attribute.return_previous_additional_properties.enabled": false,
 

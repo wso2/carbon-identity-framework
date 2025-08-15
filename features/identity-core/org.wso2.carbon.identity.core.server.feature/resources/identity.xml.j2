@@ -895,6 +895,13 @@
             {% else %}
             <EnableJWTCache>{{oauth.grant_type.jwt.enable_jwt_cache}}</EnableJWTCache>
             {% endif %}
+            <!-- When enabling this configuration, you must enable 'Use user store domain in local subject identifier'.
+            configuration in the SP issuing the id token for exchange. If not, we will not be able to identify the
+            user store domain for the local user.
+             -->
+            {% if oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp is defined %}
+            <EnableTokenExchangeForLocalUsersWithResidentIdP>{{oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp}}</EnableTokenExchangeForLocalUsersWithResidentIdP>
+            {% endif %}
         </JWTGrant>
 
         <SAML2Grant>
@@ -1289,6 +1296,7 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+        <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
 
         {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
         <JWT>
@@ -1361,7 +1369,6 @@
             Default value : false
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
-        <UserSessionImpersonation>{{oauth.enable_user_session_impersonation}}</UserSessionImpersonation>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1484,6 +1491,10 @@
     <UserAccountAssociation>
             <EnableSHA256Key>{{user_account_association.enable_sha256}}</EnableSHA256Key>
     </UserAccountAssociation>
+
+    <FederatedUserAccountAssociation>
+        <MaxBulkOperations>{{federated_user_account_association.max_bulk_operations}}</MaxBulkOperations>
+    </FederatedUserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
@@ -2190,6 +2201,9 @@
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
             </PreUpdateProfile>
+            <PreUpdatePassword>
+                <EnableInRegistrationFlows>{{actions.types.pre_update_password.enable_in_registration_flows}}</EnableInRegistrationFlows>
+            </PreUpdatePassword>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
                 <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
@@ -4644,6 +4658,12 @@
             <BrandingAIStatusRequestPath>{{ai_services.branding_ai.status_request_path}}</BrandingAIStatusRequestPath>
             <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
         </BrandingAI>
+        <FlowAI>
+            <Endpoint>{{ai_services.flow_ai.endpoint}}</Endpoint>
+            <GenerateRequestPath>{{ai_services.flow_ai.generate_request_path}}</GenerateRequestPath>
+            <StatusRequestPath>{{ai_services.flow_ai.status_request_path}}</StatusRequestPath>
+            <ResultRequestPath>{{ai_services.flow_ai.result_request_path}}</ResultRequestPath>
+        </FlowAI>
     </AIServices>
 
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
@@ -4652,6 +4672,8 @@
     <AgentIdentity>
         <Enabled>{{agent_identity.enabled}}</Enabled>
         <Userstore>{{agent_identity.userstore}}</Userstore>
+        <Datasource>{{agent_identity.datasource}}</Datasource>
+        <UserstoreManagerClass>{{agent_identity.userstore_manager_class}}</UserstoreManagerClass>
     </AgentIdentity>
 
     {% if platform_idp is defined %}

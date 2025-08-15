@@ -791,7 +791,6 @@
         </RestrictedQueryParameters>
 
         <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
-        <UserSessionImpersonation>false</UserSessionImpersonation>
     </OAuth>
 
     <RestApiAuthentication>

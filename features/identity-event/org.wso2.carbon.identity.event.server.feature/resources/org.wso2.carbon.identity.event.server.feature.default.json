@@ -350,9 +350,9 @@
     "USER_REGISTRATION_INVITE_WITH_PASSWORD"
     ],
   "identity_mgt.events.schemes.SessionEventHook.module_index": "53",
-  "identity_mgt.events.schemes.SessionEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.SessionEventHook.properties.enable": true,
   "identity_mgt.events.schemes.SessionEventHook.subscriptions": [
-    "USER_SESSION_TERMINATE",
+    "SESSION_TERMINATE_V2",
     "SESSION_EXPIRE",
     "SESSION_CREATE",
     "SESSION_UPDATE",
@@ -369,5 +369,16 @@
     "PRE_ADD_USER",
     "POST_ADD_USER",
     "PRE_AUTHENTICATION"
+  ],
+  "identity_mgt.events.schemes.OrganizationVersionHandler.module_index": "56",
+  "identity_mgt.events.schemes.OrganizationVersionHandler.subscriptions": [
+    "PRE_UPDATE_ORGANIZATION",
+    "PRE_PATCH_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.TokenEventHook.module_index": "57",
+  "identity_mgt.events.schemes.TokenEventHook.properties.enable": true,
+  "identity_mgt.events.schemes.TokenEventHook.subscriptions": [
+    "POST_ISSUE_ACCESS_TOKEN_V2",
+    "TOKEN_REVOKED"
   ]
 }

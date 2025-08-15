@@ -271,8 +271,34 @@
   },
   "preserve_previous_product_behaviour.version": {
     "IS_7.0.0": {
+      "scim2.enable_group_based_user_filter_improvements": false,
+      "scim2.enable_error_code_for_password_policy_violations": false,
+      "user_store_commons.enable_circuit_breaker_for_user_stores": false,
+      "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": true,
+      "event.default_listener.email_domain_validation_handler.enable": false,
+      "oauth.dcrm.return_null_fields_in_response": true,
+      "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+      "session_management.filter_by_unique_session_id_for_user": false,
+      "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+      "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+      "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
+      "console.identity_providers.disabled_features": [],
+      "scim2.enable_scim2_roles_v3_api": false,
+      "localization.prioritize_param": false,
+      "attribute.return_previous_additional_properties.enable": true
     },
     "IS_7.1.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
+      "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
+      "session_management.filter_by_unique_session_id_for_user": false,
+      "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+      "organization_management.organization_versioning.new_organization_version": "v0.0.0",
+      "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
+      "console.identity_providers.disabled_features": [],
+      "scim2.enable_scim2_roles_v3_api": false,
+      "localization.prioritize_param": false,
+      "attribute.return_previous_additional_properties.enable": true,
+      "actions.types.pre_update_password.enable_in_registration_flows": false
     }
   }
 }

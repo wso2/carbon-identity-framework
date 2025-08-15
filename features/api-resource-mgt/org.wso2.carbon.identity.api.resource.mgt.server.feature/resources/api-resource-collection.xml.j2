@@ -131,25 +131,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="approvals" displayName="Approvals" type="tenant" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:workflowApprovals"/>
-            </Feature>
-            <Update>
-                <Scope name="internal_humantask_view"/>
-            </Update>
-            <Delete>
-                <Scope name="internal_humantask_view"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_humantask_view"/>
-            </Create>
-            <Read>
-                <Scope name="internal_humantask_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
     <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects" type="tenant" version="v0">
        <Scopes>
             <Feature>
@@ -523,6 +504,37 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="agents" displayName="Agents" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:agents"/>
+                <Scope name="console:agents_view"/>
+                <Scope name="console:agents_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_agent_mgt_update"/>
+                <Scope name="internal_session_delete"/>
+                <Scope name="internal_group_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_agent_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_agent_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_login"/>
+                <Scope name="internal_agent_mgt_view"/>
+                <Scope name="internal_agent_mgt_list"/>
+                <Scope name="internal_session_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="userStores" displayName="User Stores" type="tenant" version="v0">
        <Scopes>
             <Feature>
@@ -880,18 +892,43 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="approvals" displayName="Approvals" type="tenant">
+    <APIResourceCollection name="approvalWorkflows" displayName="Approval Workflows" type="tenant">
         <Scopes>
             <Feature>
-                <Scope name="console:workflowApprovals"/>
-                <Scope name="console:workflowApprovals_view"/>
-                <Scope name="console:workflowApprovals_edit"/>
+                <Scope name="console:approvalWorkflows"/>
+                <Scope name="console:approvalWorkflows_view"/>
+                <Scope name="console:approvalWorkflows_edit"/>
             </Feature>
             <Update>
-                <Scope name="internal_approval_task_update"/>
+                <Scope name="internal_workflow_update"/>
+                <Scope name="internal_workflow_association_update"/>
             </Update>
+            <Delete>
+                <Scope name="internal_workflow_delete"/>
+                <Scope name="internal_workflow_association_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_workflow_create"/>
+                <Scope name="internal_workflow_association_create"/>
+            </Create>
             <Read>
-                <Scope name="internal_approval_task_view"/>
+                <Scope name="internal_workflow_view"/>
+                <Scope name="internal_workflow_association_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="workflowInstances" displayName="Workflow Instances" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:workflowInstances"/>
+                <Scope name="console:workflowInstances_view"/>
+                <Scope name="console:workflowInstances_edit"/>
+            </Feature>
+            <Delete>
+                <Scope name="internal_workflow_instance_delete"/>
+            </Delete>
+            <Read>
+                <Scope name="internal_workflow_instance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1200,6 +1237,17 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="oidcScopes" displayName="OIDC Scopes" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:scopes:oidc"/>
+                <Scope name="console:org:scopes:oidc_view"/>
+            </Feature>
+            <Read>
+                <Scope name="internal_org_oidc_scope_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="organizations" displayName="Organizations" type="tenant">
         <Scopes>
             <Feature>
@@ -1370,6 +1418,7 @@
                 <Scope name="internal_user_mgt_update"/>
                 <Scope name="internal_session_delete"/>
                 <Scope name="internal_group_mgt_update"/>
+                <Scope name="internal_user_code_mgt_create"/>
             </Update>
             <Delete>
                 <Scope name="internal_user_mgt_delete"/>
@@ -1446,7 +1495,6 @@
             </Feature>
             <Update>
                 <Scope name="internal_webhook_mgt_update"/>
-                <Scope name="internal_webhook_meta_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_webhook_mgt_delete"/>
@@ -1575,6 +1623,7 @@
             <Update>
                 <Scope name="internal_org_user_mgt_update"/>
                 <Scope name="internal_org_session_delete"/>
+                <Scope name="internal_org_user_code_mgt_create"/>
             </Update>
             <Delete>
                 <Scope name="internal_org_user_mgt_delete"/>
@@ -1779,6 +1828,46 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_approvalWorkflows" displayName="Approval Workflows" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:approvalWorkflows"/>
+                <Scope name="console:org:approvalWorkflows_view"/>
+                <Scope name="console:org:approvalWorkflows_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_workflow_update"/>
+                <Scope name="internal_org_workflow_association_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_workflow_delete"/>
+                <Scope name="internal_org_workflow_association_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_workflow_create"/>
+                <Scope name="internal_org_workflow_association_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_workflow_view"/>
+                <Scope name="internal_org_workflow_association_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_workflowInstances" displayName="Workflow Instances" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:workflowInstances"/>
+                <Scope name="console:org:workflowInstances_view"/>
+                <Scope name="console:org:workflowInstances_edit"/>
+            </Feature>
+            <Delete>
+                <Scope name="internal_org_workflow_instance_delete"/>
+            </Delete>
+            <Read>
+                <Scope name="internal_org_workflow_instance_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="org_emailTemplates" displayName="Email Templates" type="organization">
         <Scopes>
             <Feature>
@@ -1894,6 +1983,30 @@
             </Read>
             <Delete>
             </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_actions" displayName="Actions" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:actions"/>
+                <Scope name="console:org:actions_view"/>
+                <Scope name="console:org:actions_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_action_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_action_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_action_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_action_mgt_view"/>
+                <Scope name="internal_org_rule_metadata_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+            </Read>
         </Scopes>
     </APIResourceCollection>
 </APIResourceCollections>

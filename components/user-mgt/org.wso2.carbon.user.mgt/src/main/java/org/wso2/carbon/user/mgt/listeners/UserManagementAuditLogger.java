@@ -539,7 +539,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
      */
     String getPasswordUpdateAuditMessageAction() {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow == null) {
             LOG.debug("Unable to determine the initiating persona for the password update action.");
             return null;

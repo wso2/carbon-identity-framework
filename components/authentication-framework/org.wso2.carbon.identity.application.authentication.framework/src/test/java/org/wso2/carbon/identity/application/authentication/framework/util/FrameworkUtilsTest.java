@@ -74,6 +74,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
@@ -83,6 +84,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
@@ -114,6 +117,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -1221,9 +1225,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @Test(dataProvider = "dataProviderGetImpersonatedUser")
     public void testGetImpersonatedUser(String tenantDomain, String userAccessingOrg, String userResidentOrg,
                                         boolean isSubOrgUser)
-            throws UserStoreException, FrameworkException {
+            throws UserStoreException, FrameworkException, OrganizationManagementException {
 
         String userId = "user-123";
+        String subOrgHandle = "org1.com";
 
         // User object.
         User user = new User(
@@ -1238,6 +1243,9 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
         RealmService realmService = mock(RealmService.class);
         FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        FrameworkServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        lenient().when(organizationManager.resolveTenantDomain(anyString())).thenReturn(subOrgHandle);
         TenantManager tenantManager = mock(TenantManager.class);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
@@ -1365,7 +1373,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         assertEquals(input.getLoginHint(), "loginHint123");
         assertEquals(input.getOrgDiscoveryType(), "discoveryType123");
     }
- 
+
     private void removeAllSystemDefinedAuthenticators() {
 
         List<ApplicationAuthenticator> authenticatorList = new ArrayList<>(
@@ -1373,5 +1381,30 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         for (ApplicationAuthenticator authenticator : authenticatorList) {
             ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
         }
+    }
+
+    @DataProvider(name = "serviceProviderVersionProvider")
+    public Object[][] serviceProviderVersionProvider() {
+
+        return new Object[][]{
+                // appVersion, expectedResult
+                {"v3.0.0", true},           // v3 version should return true
+                {"v4.0.0", true},           // v4+ version should return true
+                {"v2.0.0", false},          // v2.x version should return false
+        };
+    }
+
+    @Test(dataProvider = "serviceProviderVersionProvider")
+    public void testIsLoginFailureWithNoLocalAssociationEnabledForApp(String appVersion, boolean expectedResult) {
+
+        // Create a mock ServiceProvider
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.getApplicationVersion()).thenReturn(appVersion);
+
+        // Call the method under test
+        boolean result = FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(serviceProvider);
+
+        // Assert the result
+        assertEquals(result, expectedResult);
     }
 }

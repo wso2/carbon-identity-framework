@@ -120,6 +120,40 @@
                    description="Delete actions"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Action Management API" identifier="/o/api/server/v1/actions"
+                 requiresAuthorization="true"
+                 description="API representation of the Action Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Create Action" name="internal_org_action_mgt_create"
+                   description="Create new actions in the organization"/>
+            <Scope displayName="Update Action" name="internal_org_action_mgt_update"
+                   description="Update actions in the organization"/>
+            <Scope displayName="View Action" name="internal_org_action_mgt_view"
+                   description="View actions in the organization"/>
+            <Scope displayName="Delete Action" name="internal_org_action_mgt_delete"
+                   description="Delete actions in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Approval Task API" identifier="/api/users/v1/me/approval-tasks"
+                 requiresAuthorization="false"
+                 description="API representation of the workflow approval task API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Workflow Approval Task" name="internal_approval_task_view"
+                   description="View workflow approvals Tasks"/>
+            <Scope displayName="Update Workflow Approval Task" name="internal_approval_task_update"
+                   description="Update workflow approval Tasks"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Approval Task API" identifier="/o/api/users/v1/me/approval-tasks"
+                 requiresAuthorization="false"
+                 description="API representation of the workflow approval task API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Workflow Approval Task" name="internal_org_approval_task_view"
+                   description="View workflow approvals Tasks"/>
+            <Scope displayName="Update Workflow Approval Task" name="internal_org_approval_task_update"
+                   description="Update workflow approval Tasks"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">
@@ -581,6 +615,22 @@
                    description="Delete the associated local/federated accounts  of a user in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Federated Association Management Bulk API"
+                 identifier="/api/users/v1/federated-associations/bulk" requiresAuthorization="true"
+                 description="Bulk API representation of the Association Management Bulk API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Manage Bulk Federated User Associations" name="internal_fed_user_association_bulk"
+                   description="Create/Delete the associated federated accounts as bulk in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Federated Association Management Bulk API"
+                 identifier="o/api/users/v1/federated-associations/bulk" requiresAuthorization="true"
+                 description="Bulk API representation of the Association Management Bulk API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Manage Bulk Federated User Associations" name="internal_org_fed_user_association_bulk"
+                   description="Create/Delete the associated federated accounts as bulk in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Authorized Application Management V1/V2 API"
                  identifier="/api/users/v(.*)/(.*)/authorized-apps" requiresAuthorization="true"
                  description="API representation of the Authorized Application Management V2 API" type="TENANT">
@@ -731,6 +781,21 @@
                         description="Create new SCIM resources in bulk in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="SCIM2 Agents API" identifier="/scim2/Agents" requiresAuthorization="true"
+                 description="API representation of the SCIM2 Agents API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Agent" name="internal_agent_mgt_view"
+                   description="View agent accounts in the organization (root)"/>
+            <Scope displayName="List Agents" name="internal_agent_mgt_list"
+                   description="Search agent accounts in the organization (root)"/>
+            <Scope displayName="Create Agent" name="internal_agent_mgt_create"
+                   description="Create new agent accounts in the organization (root)"/>
+            <Scope displayName="Update Agent" name="internal_agent_mgt_update"
+                   description="Update agent accounts in the organization (root)"/>
+            <Scope displayName="Delete Agent" name="internal_agent_mgt_delete"
+                   description="Delete agent accounts in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
                  requiresAuthorization="true" description="API representation of the User Related Code Management API" type="TENANT">
         <Scopes>
@@ -742,6 +807,20 @@
                     description="Update user related code in the organization (root)"/>
             <Scope displayName="Delete User Code" name="internal_user_code_mgt_delete"
                     description="Delete user related code in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Code Management API" identifier="/o/api/identity/user/v1.0/(.*)-code"
+                 requiresAuthorization="true"
+                 description="API representation of the User Related Code Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View User Code" name="internal_org_user_code_mgt_view"
+                   description="View user related code in the organization"/>
+            <Scope displayName="Create User Code" name="internal_org_user_code_mgt_create"
+                   description="Create user related new code in the organization"/>
+            <Scope displayName="Update User Code" name="internal_org_user_code_mgt_update"
+                   description="Update user related code in the organization"/>
+            <Scope displayName="Delete User Code" name="internal_org_user_code_mgt_delete"
+                   description="Delete user related code in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Personal Identification API"
@@ -887,8 +966,6 @@
         <Scopes>
             <Scope displayName="View Webhook Metadata" name="internal_webhook_meta_view"
                    description="View webhook metadata in the organization (root)"/>
-            <Scope displayName="Update Webhook Metadata" name="internal_webhook_meta_update"
-                   description="Update webhook metadata in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management API v1/v2"
@@ -1205,6 +1282,17 @@
                    description="Manage edits of OIDC scopes from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="OIDC Scope Management Feature" identifier="console:org:scopes:oidc"
+                 requiresAuthorization="true"
+                 description="Resource representation of the OIDC Scope Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="OIDC Scope Feature" name="console:org:scopes:oidc"
+                   description="Manage OIDC scopes from the Console"/>
+            <Scope displayName="OIDC Scope View Feature" name="console:org:scopes:oidc_view"
+                   description="Manage views of OIDC scopes from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Login And Registration Management Feature" identifier="console:loginAndRegistration"
                  requiresAuthorization="true"
                  description="Resource representation of the Login And Registration Management Feature"
@@ -1322,6 +1410,19 @@
                    description="Manage edits of users from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Agent Management Feature" identifier="console:agents"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Agent Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="User Feature" name="console:agents"
+                   description="Manage agents from the Console"/>
+            <Scope displayName="User View Feature" name="console:agents_view"
+                   description="Manage views of agents from the Console"/>
+            <Scope displayName="User Edit Feature" name="console:agents_edit"
+                   description="Manage edits of agents from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Management Feature" identifier="console:org:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
@@ -1344,17 +1445,56 @@
                     description="Manage server from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Management Feature" identifier="console:workflowApprovals"
+    <APIResource name="Approval Workflow Management Feature" identifier="console:approvalWorkflows"
                  requiresAuthorization="true"
-                 description="Resource representation of the Workflow Approval Management Feature"
+                 description="Resource representation of the Approval Workflow Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="Workflow Approval Feature" name="console:workflowApprovals" 
-                    description="Manage workflow approvals from the Console"/>
-            <Scope displayName="Workflow Approval View Feature" name="console:workflowApprovals_view"
-                   description="Manage views of workflow approvals from the Console"/>
-            <Scope displayName="Workflow Approval Edit Feature" name="console:workflowApprovals_edit"
-                   description="Manage edits of workflow approvals from the Console"/>
+            <Scope displayName="Approval Workflow Feature" name="console:approvalWorkflows"
+                   description="Manage workflows from the Console"/>
+            <Scope displayName="Approval Workflow View Feature" name="console:approvalWorkflows_view"
+                   description="Manage views of workflows from the Console"/>
+            <Scope displayName="Approval Workflow Edit Feature" name="console:approvalWorkflows_edit"
+                   description="Manage edits of workflows from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:approvalWorkflows"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Approval Workflow Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Approval Workflow Feature" name="console:org:approvalWorkflows"
+                   description="Manage Approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow View Feature" name="console:org:approvalWorkflows_view"
+                   description="Manage views of approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow Edit Feature" name="console:org:approvalWorkflows_edit"
+                   description="Manage edits of approval workflows from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Instance Management Feature" identifier="console:workflowInstances"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Workflow Instance Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Workflow Instance Feature" name="console:workflowInstances"
+                   description="Manage workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance View Feature" name="console:workflowInstances_view"
+                   description="Manage views of workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance Edit Feature" name="console:workflowInstances_edit"
+                   description="Manage edits of workflow instances from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Instance Management Feature" identifier="console:org:workflowInstances"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Workflow Instance Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Workflow Instance Feature" name="console:org:workflowInstances"
+                   description="Manage workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance View Feature" name="console:org:workflowInstances_view"
+                   description="Manage views of workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance Edit Feature" name="console:org:workflowInstances_edit"
+                   description="Manage edits of workflow instances in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
@@ -1531,6 +1671,19 @@
                    description="Manage edits of actions from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Action Management Feature" identifier="console:org:actions"
+                requiresAuthorization="true"
+                description="Resource representation of the Action Management Feature"
+                type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Action Feature" name="console:org:actions"
+                description="Manage actions from the Console"/>
+            <Scope displayName="Action View Feature" name="console:org:actions_view"
+                description="Manage views of actions from the Console"/>
+            <Scope displayName="Action Edit Feature" name="console:org:actions_edit"
+                description="Manage edits of actions from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Webhook Management Feature" identifier="console:webhooks"
                  requiresAuthorization="true"
                  description="Resource representation of the Webhook Management Feature"
@@ -1591,6 +1744,14 @@
                  description="API representation of the Rules Metadata API" type="TENANT">
         <Scopes>
             <Scope displayName="View Metadata" name="internal_rule_metadata_view"
+                   description="View metadata for rule configuration"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Rule Metadata API" identifier="/o/api/server/v1/rules/metadata"
+                 requiresAuthorization="true"
+                 description="API representation of the Rules Metadata API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Metadata" name="internal_org_rule_metadata_view"
                    description="View metadata for rule configuration"/>
         </Scopes>
     </APIResource>
@@ -1672,13 +1833,52 @@
                    description="Delete workflow association"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Task API" identifier="/api/users/v1/me/approval-tasks" requiresAuthorization="false"
-                 description="API representation of the workflow approval Task API" type="TENANT">
+    <APIResource name="Workflow Instance Management API" identifier="/api/server/v1/workflow-instances"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Instance Management API" type="TENANT">
         <Scopes>
-            <Scope displayName="View Workflow Approval Task" name="internal_approval_task_view"
-                   description="View workflow approvals Tasks"/>
-            <Scope displayName="Update Workflow Approval Task" name="internal_approval_task_update"
-                   description="Update workflow approval Tasks"/>
+            <Scope displayName="View Workflow Instance" name="internal_workflow_instance_view"
+                   description="View workflow instances"/>
+            <Scope displayName="Delete Workflow Instance" name="internal_workflow_instance_delete"
+                   description="Delete workflow instance"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Management API Organization" identifier="/o/api/server/v1/workflows"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Management API Organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Workflow" name="internal_org_workflow_view"
+                   description="View workflows"/>
+            <Scope displayName="Create Workflow" name="internal_org_workflow_create"
+                   description="Create new workflow"/>
+            <Scope displayName="Update Workflow" name="internal_org_workflow_update"
+                   description="Update workflow"/>
+            <Scope displayName="Delete Workflow" name="internal_org_workflow_delete"
+                   description="Delete workflow"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Association Management API Organization" identifier="/o/api/server/v1/workflow-associations"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Association Management API Organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Workflow Association" name="internal_org_workflow_association_view"
+                   description="View workflow associations"/>
+            <Scope displayName="Create Workflow Association" name="internal_org_workflow_association_create"
+                   description="Create new workflow association"/>
+            <Scope displayName="Update Workflow Association" name="internal_org_workflow_association_update"
+                   description="Update workflow association"/>
+            <Scope displayName="Delete Workflow Association" name="internal_org_workflow_association_delete"
+                   description="Delete workflow association"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Instance Management API Organization" identifier="/o/api/server/v1/workflow-instances"
+                 requiresAuthorization="true"
+                 description="API representation of the Workflow Instance Management API Organization" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Workflow Instance" name="internal_org_workflow_instance_view"
+                   description="View workflow instances"/>
+            <Scope displayName="Delete Workflow Instance" name="internal_org_workflow_instance_delete"
+                   description="Delete workflow instance"/>
         </Scopes>
     </APIResource>
 </APIResources>
