@@ -1817,8 +1817,8 @@
         <carbon.base.imp.pkg.version.range>[1.0.0, 2.0.0)</carbon.base.imp.pkg.version.range>
 
         <!-- Axis2 Version -->
-        <axis2.wso2.version>1.6.1-wso2v40</axis2.wso2.version>
-        <axis2.osgi.version.range>[1.6.1.wso2v38, 2.0.0)</axis2.osgi.version.range>
+        <axis2.wso2.version>1.6.1-wso2v105</axis2.wso2.version>
+        <axis2.osgi.version.range>[1.6.1.wso2v105, 2.0.0)</axis2.osgi.version.range>
         <orbit.version.wsdl4j>1.6.2.wso2v4</orbit.version.wsdl4j>
         <orbit.version.neethi>2.0.4.wso2v5</orbit.version.neethi>
         <axis2-transports.version>2.0.0-wso2v42</axis2-transports.version>
@@ -1826,8 +1826,8 @@
         <org.apache.axis2.transport.mail.version.range>[2.0.0,3.0.0)</org.apache.axis2.transport.mail.version.range>
 
         <!-- Axiom Version -->
-        <axiom.version>1.2.11-wso2v16</axiom.version>
-        <axiom.wso2.version>1.2.11-wso2v16</axiom.wso2.version>
+        <axiom.version>1.2.11-wso2v29</axiom.version>
+        <axiom.wso2.version>1.2.11-wso2v29</axiom.wso2.version>
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <axiom.javax.mail.imp.pkg.version.range>[1.4.0, 2.0.0)</axiom.javax.mail.imp.pkg.version.range>
         <axiom.org.jaxen.imp.pkg.version.range>[1.1.1, 2.0.0)</axiom.org.jaxen.imp.pkg.version.range>
