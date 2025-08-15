@@ -104,24 +104,24 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         return this;
     }
 
-    public WorkflowRequestSQLBuilder filterByCreatedDateRange(Timestamp start, Timestamp end) {
+    public WorkflowRequestSQLBuilder filterByCreatedDateRange(Timestamp startDate, Timestamp endDate) {
 
-        if (start != null) {
-            super.where("CREATED_AT >= ?", start);
+        if (startDate != null) {
+            super.where("CREATED_AT >= ?", startDate);
         }
-        if (end != null) {
-            super.where("CREATED_AT <= ?", end);
+        if (endDate != null) {
+            super.where("CREATED_AT <= ?", endDate);
         }
         return this;
     }
 
-    public WorkflowRequestSQLBuilder filterByUpdatedDateRange(Timestamp start, Timestamp end) {
+    public WorkflowRequestSQLBuilder filterByUpdatedDateRange(Timestamp startDate, Timestamp endDate) {
 
-        if (start != null) {
-            super.where("UPDATED_AT >= ?", start);
+        if (startDate != null) {
+            super.where("UPDATED_AT >= ?", startDate);
         }
-        if (end != null) {
-            super.where("UPDATED_AT <= ?", end);
+        if (endDate != null) {
+            super.where("UPDATED_AT <= ?", endDate);
         }
         return this;
     }
