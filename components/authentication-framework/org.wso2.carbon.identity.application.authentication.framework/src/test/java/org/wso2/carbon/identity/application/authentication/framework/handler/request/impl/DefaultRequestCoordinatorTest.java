@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -198,6 +199,44 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setOrganizationId(null);
         }
     }
+
+    @DataProvider(name = "preserveNestedRedirectParamsProvider")
+    public Object[][] preserveNestedRedirectParamsProvider() {
+        return new Object[][]{
+                { false, "/commonauth", "true",  false }, // 1) Config disabled -> false.
+                { true,  "/oauth2/authorize", "true",  false }, // 2) Config enabled, NOT /commonauth endpoint -> false.
+                { true,  "/commonauth", "false", false }, // 3) Config enabled, /commonauth, logout != true -> false.
+                { true,  "/commonauth", "true",  true }, // 4) Config enabled, /commonauth, logout=true -> true.
+                { true,  null, "true",  false } // 5) Config enabled, null URI (can happen in some mocks) -> false.
+        };
+    }
+
+    @Test(dataProvider = "preserveNestedRedirectParamsProvider")
+    public void testShouldPreserveNestedRedirectParamsInCommonAuthLogout(boolean configEnabled,
+                                                                         String uri,
+                                                                         String logoutParam,
+                                                                         boolean expected) throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            // Stub the new config accessor.
+            frameworkUtils.when(FrameworkUtils::isNestedRedirectParamsInLogoutReturnUrlEnabled)
+                    .thenReturn(configEnabled);
+
+            // Mock request.
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getRequestURI()).thenReturn(uri);
+            when(request.getParameter(LOGOUT)).thenReturn(logoutParam);
+
+            // Invoke the private method via reflection.
+            Method m = DefaultRequestCoordinator.class.getDeclaredMethod(
+                    "shouldPreserveNestedRedirectParamsInCommonAuthLogout", HttpServletRequest.class);
+            m.setAccessible(true);
+            boolean result = (boolean) m.invoke(requestCoordinator, request);
+
+            assertEquals(result, expected);
+        }
+    }
+
 
     @DataProvider(name = "contextDataProvider")
     public Object[][] contextData() {
