@@ -888,13 +888,43 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         String callerPath = request.getParameter(FrameworkConstants.RequestParams.CALLER_PATH);
         try {
-            if (callerPath != null) {
+            if (callerPath != null && !shouldPreserveNestedRedirectParamsInCommonAuthLogout(request)) {
                 callerPath = URLDecoder.decode(callerPath, "UTF-8");
             }
         } catch (UnsupportedEncodingException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
         return callerPath;
+    }
+
+    /**
+     * Determines whether nested redirect parameters in the logout return URL should be preserved
+     * during a CommonAuth logout request.
+     * This method checks if the config for enabling nested redirect parameters in the logout return URL
+     * is enabled, verifies if the request is targeting the CommonAuth endpoint, and ensures that the
+     * request is a logout request.
+     *
+     * @param request The HTTP servlet request to evaluate.
+     * @return true if nested redirect parameters should be preserved; false otherwise.
+     */
+    private boolean shouldPreserveNestedRedirectParamsInCommonAuthLogout(HttpServletRequest request) {
+
+        // Check if the config for nested redirect parameters in logout return URL is enabled
+        if (!FrameworkUtils.isNestedRedirectParamsInLogoutReturnUrlEnabled()) {
+            return false;
+        }
+
+        // Check if the request is targeting the CommonAuth endpoint
+        String uri = request.getRequestURI();
+        String endpointName = (uri != null) ? uri.substring(uri.lastIndexOf('/') + 1) : null;
+        boolean isCommonAuthEndpoint = StringUtils.equals(endpointName, FrameworkConstants.COMMONAUTH);
+        if (!isCommonAuthEndpoint) {
+            return false;
+        }
+
+        // Check if the request is a logout request
+        String logoutParam = request.getParameter(FrameworkConstants.RequestParams.LOGOUT);
+        return StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), logoutParam);
     }
 
     private String getTenantDomain(HttpServletRequest request) throws FrameworkException {
