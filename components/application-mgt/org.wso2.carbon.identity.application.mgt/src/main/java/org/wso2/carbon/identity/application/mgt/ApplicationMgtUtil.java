@@ -1198,7 +1198,8 @@ public class ApplicationMgtUtil {
      * @throws URLBuilderException If any error occurs when building absolute public url without path.
      */
     public static String resolveOriginUrlFromPlaceholders(String absoluteUrl, String appName,
-                                                          boolean subOrgAppWithBaseURLPlaceholder) throws URLBuilderException {
+                                                          boolean subOrgAppWithBaseURLPlaceholder)
+            throws URLBuilderException {
 
         if (StringUtils.isEmpty(appName)) {
             return resolveOriginUrlFromPlaceholders(absoluteUrl);
