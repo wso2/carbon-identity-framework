@@ -119,6 +119,14 @@
             <groupId>org.wso2.orbit.org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.bouncycastle</groupId>
+            <artifactId>bcutil-jdk18on</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.bouncycastle</groupId>
+            <artifactId>bctls-jdk18on</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
