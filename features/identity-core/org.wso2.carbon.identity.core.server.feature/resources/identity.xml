@@ -791,6 +791,7 @@
         </RestrictedQueryParameters>
 
         <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
+        <ReturnSpIdToApps>true</ReturnSpIdToApps>
     </OAuth>
 
     <RestApiAuthentication>
