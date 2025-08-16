@@ -1045,18 +1045,6 @@
                 <artifactId>bcpkix-jdk18on</artifactId>
                 <version>${bcpkix-jdk18.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.org.bouncycastle</groupId>
-                <artifactId>bcutil-jdk18on</artifactId>
-                <scope>test</scope>
-                <version>${bcutil-jdk18.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.org.bouncycastle</groupId>
-                <artifactId>bctls-jdk18on</artifactId>
-                <scope>test</scope>
-                <version>${bctls-jdk18.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -2158,10 +2146,8 @@
         <saml.common.util.version>1.4.1</saml.common.util.version>
         <saml.common.util.version.range>[1.4.0,1.5.0)</saml.common.util.version.range>
 
-        <bcprov-jdk18.version>1.81.0.wso2v1</bcprov-jdk18.version>
-        <bcpkix-jdk18.version>1.81.0.wso2v1</bcpkix-jdk18.version>
-        <bcutil-jdk18.version>1.81.0.wso2v1</bcutil-jdk18.version>
-        <bctls-jdk18.version>1.81.0.wso2v2</bctls-jdk18.version>
+        <bcprov-jdk18.version>1.78.1.wso2v1</bcprov-jdk18.version>
+        <bcpkix-jdk18.version>1.78.1.wso2v1</bcpkix-jdk18.version>
 
         <!-- Commons -->
         <commons-beanutils.version>1.8.0</commons-beanutils.version>
