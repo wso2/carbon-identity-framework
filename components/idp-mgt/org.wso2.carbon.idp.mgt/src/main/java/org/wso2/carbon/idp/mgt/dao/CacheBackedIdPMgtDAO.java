@@ -878,10 +878,13 @@ public class CacheBackedIdPMgtDAO {
                 }
 
                 for (String childOrgId : childOrgIds) {
-                    int tenantId = IdentityTenantUtil.getTenantId(organizationManager.resolveTenantDomain(childOrgId));
-                    Optional<IdentityProvider> identityProvider = this.getCachedIdpByName(idPName, childOrgId);
+                    String childOrgTenantDomain = organizationManager.resolveTenantDomain(childOrgId);
+                    int tenantId = IdentityTenantUtil.getTenantId(childOrgTenantDomain);
+                    Optional<IdentityProvider> identityProvider = this.getCachedIdpByName(idPName,
+                            childOrgTenantDomain);
                     identityProvider.ifPresent(
-                            provider -> clearIdPCacheEntries(provider, idPName, null, childOrgId, tenantId));
+                            provider -> clearIdPCacheEntries(provider, idPName, null,
+                                    childOrgTenantDomain, tenantId));
                 }
             } catch (OrganizationManagementException e) {
                 log.error("Error while asynchronously clearing IDP cache for child organizations of " +
