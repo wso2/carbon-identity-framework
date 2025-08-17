@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
@@ -41,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
@@ -664,7 +666,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return false;
     }
 
-    private static boolean handleUserClaimsFromAssertion(JWTClaimsSet claimsSet, AuthenticationContext context) {
+    private boolean handleUserClaimsFromAssertion(JWTClaimsSet claimsSet, AuthenticationContext context) {
 
         String username = claimsSet.getSubject();
         if (StringUtils.isBlank(username)) {
@@ -675,6 +677,42 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         UserCoreUtil.setDomainInThreadLocal(userStoreDomain);
         context.setSubject(
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username));
+
+        context.setCurrentAuthenticator(this.getName());
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        if (sequenceConfig == null || sequenceConfig.getStepMap() == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Sequence config or step map is null. Cannot set external IdP.");
+            }
+            return false;
+        }
+
+        StepConfig currentStepConfig = sequenceConfig.getStepMap().get(context.getCurrentStep());
+        if (currentStepConfig == null || currentStepConfig.getAuthenticatorList() == null ||
+                currentStepConfig.getAuthenticatorList().isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Current step config or authenticator list is null or empty. Cannot set external IdP.");
+            }
+            return false;
+        }
+
+        currentStepConfig.getAuthenticatorList().forEach(authenticatorConfig -> {
+            if (authenticatorConfig != null && this.getName().equals(authenticatorConfig.getName())) {
+                Map<String, IdentityProvider> idps = authenticatorConfig.getIdps();
+                if (MapUtils.isNotEmpty(idps)) {
+                    IdentityProvider firstIdp = idps.values().iterator().next();
+                    if (firstIdp != null) {
+                        ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(firstIdp);
+                        context.setExternalIdP(externalIdPConfig);
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No IdPs found for authenticator: " + this.getName() +
+                                ". Cannot set external IdP.");
+                    }
+                }
+            }
+        });
         return true;
     }
 
