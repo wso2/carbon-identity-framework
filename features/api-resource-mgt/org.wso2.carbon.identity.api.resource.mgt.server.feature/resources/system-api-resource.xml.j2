@@ -1798,6 +1798,19 @@
                    description="Manage edits of flows from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Flows Feature" identifier="console:org:flows"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Flows Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Flows Feature" name="console:org:flows"
+                   description="Manage flows from the Console"/>
+            <Scope displayName="Flows View Feature" name="console:org:flows_view"
+                   description="Manage views of flows from the Console"/>
+            <Scope displayName="Flows Edit Feature" name="console:org:flows_edit"
+                   description="Manage edits of flows from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="ORGANIZATION">
@@ -1888,6 +1901,16 @@
                    description="View flow in the organization (root)"/>
             <Scope displayName="Update Flow" name="internal_flow_update"
                    description="Update flow in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Management API" identifier="/o/api/server/v1/flow"
+                 requiresAuthorization="true"
+                 description="API representation of the Flow Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Flow" name="internal_org_flow_view"
+                   description="View flow in the organization"/>
+            <Scope displayName="Update Flow" name="internal_org_flow_update"
+                   description="Update flow in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Asynchronous Operation Status API" identifier="/o/api/server/v1/async-operations"
