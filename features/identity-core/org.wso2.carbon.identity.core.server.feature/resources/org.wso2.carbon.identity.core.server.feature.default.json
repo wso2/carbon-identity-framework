@@ -59,8 +59,8 @@
   "authenticationendpoint.path": "/authenticationendpoint",
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
-  "accountsendpoint.hostname": "$ref{server.hostname}",
-  "accountsendpoint.path": "/accounts",
+  "accounts.hostname": "$ref{server.hostname}",
+  "accounts.path": "/accounts",
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 

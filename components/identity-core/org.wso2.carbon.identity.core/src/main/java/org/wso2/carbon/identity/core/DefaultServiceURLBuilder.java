@@ -112,8 +112,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String authenticationEndpointPath = fetchAuthenticationEndpointPath();
         String recoveryEndpointHostName = fetchRecoveryEndpointHostName();
         String recoveryEndpointPath = fetchRecoveryEndpointPath();
-        String accountsEndpointHostName = fetchAccountsEndpointHostName();
-        String accountsEndpointPath = fetchAccountsEndpointPath();
+        String accountsHostName = fetchAccountsHostName();
+        String accountsPath = fetchAccountsPath();
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
         String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
@@ -139,10 +139,10 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         recoveryEndpointHostName, proxyPort);
             }
-            if (accountsEndpointHostName != null && accountsEndpointPath != null &&
-                    urlPathForPublicUrl.contains(accountsEndpointPath)) {
+            if (accountsHostName != null && accountsPath != null &&
+                    urlPathForPublicUrl.contains(accountsPath)) {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
-                        accountsEndpointHostName, proxyPort);
+                        accountsHostName, proxyPort);
             }
         }
         String absolutePublicURL = fetchAbsolutePublicUrl(absolutePublicUrlWithoutURLPath, relativePublicUrl);
@@ -395,18 +395,18 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return preprocessEndpointPath(recoveryEndpointPath);
     }
 
-    protected String fetchAccountsEndpointHostName() throws URLBuilderException {
+    protected String fetchAccountsHostName() throws URLBuilderException {
 
-        String accountsEndpointHostName = IdentityUtil.
-                getProperty(IdentityCoreConstants.ACCOUNTS_ENDPOINT_HOST_NAME);
-        return resolveHostName(accountsEndpointHostName);
+        String accountsHostName = IdentityUtil.
+                getProperty(IdentityCoreConstants.ACCOUNTS_HOST_NAME);
+        return resolveHostName(accountsHostName);
     }
 
-    protected String fetchAccountsEndpointPath() {
+    protected String fetchAccountsPath() {
 
-        String accountsEndpointPath = IdentityUtil
-                .getProperty(IdentityCoreConstants.ACCOUNTS_ENDPOINT_PATH);
-        return preprocessEndpointPath(accountsEndpointPath);
+        String accountsPath = IdentityUtil
+                .getProperty(IdentityCoreConstants.ACCOUNTS_PATH);
+        return preprocessEndpointPath(accountsPath);
     }
 
     protected String preprocessEndpointPath(String endpointPath) {
