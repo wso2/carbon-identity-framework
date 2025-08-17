@@ -745,6 +745,15 @@ public class DefaultStepHandler implements StepHandler {
             return;
         }
 
+        boolean isAuthenticationRequired;
+        try {
+            isAuthenticationRequired = authenticator.isAuthenticationRequired(request, response, context);
+        } catch (AuthenticationFailedException e) {
+            LOG.error("Error while checking if authentication is required for authenticator: " +
+                    authenticator.getName(), e);
+            throw new FrameworkException(e.getErrorCode(), e.getMessage(), e);
+        }
+
         String idpName = FrameworkConstants.LOCAL_IDP_NAME;
         if (context.getExternalIdP() != null && authenticator instanceof FederatedApplicationAuthenticator) {
             idpName = context.getExternalIdP().getIdPName();
@@ -768,7 +777,7 @@ public class DefaultStepHandler implements StepHandler {
         try {
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
             AuthenticatorFlowStatus status;
-            if (authenticator.isAuthenticationRequired(request, response, context)) {
+            if (isAuthenticationRequired) {
                 status = authenticator.process(request, response, context);
             } else {
                 // If the authenticator does not require authentication based on the assertion, we can skip the process.
