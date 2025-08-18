@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
 import org.wso2.carbon.identity.workflow.mgt.dto.Association;
 import org.wso2.carbon.identity.workflow.mgt.dto.Template;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
@@ -35,10 +36,14 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
 import java.util.List;
 
+/**
+ * Abstract Workflow listener class.
+ */
 public abstract class AbstractWorkflowListener implements WorkflowListener {
+    private static final int MAX_LIMIT = 1000;
 
     /**
-     * Trigger Before Listing Workflow Events
+     * Trigger Before Listing Workflow Events.
      *
      * @throws WorkflowException
      */
@@ -48,9 +53,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger After Listing Workflow Events
+     * Trigger After Listing Workflow Events.
      *
-     * @param result Result of the original operation
+     * @param result Result of the original operation.
      */
     @Override
     public void doPostListWorkflowEvents(List<WorkflowEvent> result) {
@@ -58,9 +63,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before delete the request
+     * Trigger before delete the request.
      *
-     * @param workflowRequest Request to delete
+     * @param workflowRequest Request to delete.
      * @throws WorkflowException
      */
     @Override
@@ -69,9 +74,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after deleting the request
+     * Trigger after deleting the request.
      *
-     * @param workflowRequest Request to delete
+     * @param workflowRequest Request to delete.
      * @throws WorkflowException
      */
     @Override
@@ -80,9 +85,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before delete the workflow
+     * Trigger before delete the workflow.
      *
-     * @param workflow Workflow to delete
+     * @param workflow Workflow to delete.
      * @throws WorkflowException
      */
     @Override
@@ -91,9 +96,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after delete the workflow
+     * Trigger after delete the workflow.
      *
-     * @param workflow Workflow to delete
+     * @param workflow Workflow to delete.
      * @throws WorkflowException
      */
     @Override
@@ -113,9 +118,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before listing workflow Impls
+     * Trigger before listing workflow Impls.
      *
-     * @param templateId Template ID to trigger workflow Impls
+     * @param templateId Template ID to trigger workflow Impls.
      * @throws WorkflowException
      */
     @Override
@@ -124,10 +129,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after listing workflow Impls
+     * Trigger after listing workflow Impls.
      *
-     * @param templateId Template ID to trigger workflow Impls
-     * @param result     Result of the original operation
+     * @param templateId Template ID to trigger workflow Impls.
+     * @param result     Result of the original operation.
      * @throws WorkflowException
      */
     @Override
@@ -136,9 +141,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before retrieving event
+     * Trigger before retrieving event.
      *
-     * @param id Event ID
+     * @param id Event ID.
      * @throws WorkflowException
      */
     @Override
@@ -147,10 +152,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after retrieving event
+     * Trigger after retrieving event.
      *
-     * @param id     Event ID
-     * @param result Event returned by original method
+     * @param id     Event ID.
+     * @param result Event returned by original method.
      */
     @Override
     public void doPostGetEvent(String id, WorkflowEvent result) {
@@ -158,7 +163,7 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before retrieving list of workflow templates
+     * Trigger before retrieving list of workflow templates.
      *
      * @throws WorkflowException
      */
@@ -168,9 +173,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after retrieving list of workflow templates
+     * Trigger after retrieving list of workflow templates.
      *
-     * @param result Result returned by original operation
+     * @param result Result returned by original operation.
      * @throws WorkflowException
      */
     @Override
@@ -179,9 +184,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before retrieving workflow template
+     * Trigger before retrieving workflow template.
      *
-     * @param templateId Template ID of template to retrieve
+     * @param templateId Template ID of template to retrieve.
      * @throws WorkflowException
      */
     @Override
@@ -190,10 +195,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after retrieving workflow template
+     * Trigger after retrieving workflow template.
      *
-     * @param templateId Template ID of template to retrieve
-     * @param result     Template object retrieved by original method
+     * @param templateId Template ID of template to retrieve.
+     * @param result     Template object retrieved by original method.
      * @throws WorkflowException
      */
     @Override
@@ -202,10 +207,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before retrieving workflow impl
+     * Trigger before retrieving workflow impl.
      *
-     * @param templateId     Template id
-     * @param workflowImplId Workflow impl id
+     * @param templateId     Template id.
+     * @param workflowImplId Workflow impl id.
      * @throws WorkflowException
      */
     @Override
@@ -214,11 +219,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after retrieving workflow impl
+     * Trigger after retrieving workflow impl.
      *
-     * @param templateId     Template id
-     * @param workflowImplId Workflow impl id
-     * @param result         Result returned by original operation
+     * @param templateId     Template id.
+     * @param workflowImplId Workflow impl id.
+     * @param result         Result returned by original operation.
      * @throws WorkflowException
      */
     @Override
@@ -228,11 +233,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before adding a workflow
+     * Trigger before adding a workflow.
      *
-     * @param workflowDTO   Workflow details
-     * @param parameterList List of parameters
-     * @param tenantId      tenant id
+     * @param workflowDTO   Workflow details.
+     * @param parameterList List of parameters.
+     * @param tenantId      tenant id.
      * @throws WorkflowException
      */
     @Override
@@ -242,11 +247,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after adding a workflow
+     * Trigger after adding a workflow.
      *
-     * @param workflowDTO   Workflow details
-     * @param parameterList List of parameters
-     * @param tenantId      tenant id
+     * @param workflowDTO   Workflow details.
+     * @param parameterList List of parameters.
+     * @param tenantId      tenant id.
      * @throws WorkflowException
      */
     @Override
@@ -256,9 +261,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before retrieving a workflow
+     * Trigger before retrieving a workflow.
      *
-     * @param workflowId Workflow id
+     * @param workflowId Workflow id.
      * @throws WorkflowException
      */
     @Override
@@ -267,9 +272,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after retrieving a workflow
+     * Trigger after retrieving a workflow.
      *
-     * @param workflowId Workflow id
+     * @param workflowId Workflow id.
      * @param result     Workflow returned by original operation.
      * @throws WorkflowException
      */
@@ -279,9 +284,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before retrieving parameters of a workflow
+     * Trigger before retrieving parameters of a workflow.
      *
-     * @param workflowId Workflow id
+     * @param workflowId Workflow id.
      * @throws WorkflowException
      */
     @Override
@@ -290,10 +295,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after retrieving parameters of a workflow
+     * Trigger after retrieving parameters of a workflow.
      *
-     * @param workflowId Workflow id
-     * @param result     Workflow parameter list returned by original method
+     * @param workflowId Workflow id.
+     * @param result     Workflow parameter list returned by original method.
      * @throws WorkflowException
      */
     @Override
@@ -302,12 +307,12 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before adding a association
+     * Trigger before adding a association.
      *
-     * @param associationName Name for the association
-     * @param workflowId      Workflow to associate
-     * @param eventId         Event to associate
-     * @param condition       Condition to check the event for associating
+     * @param associationName Name for the association.
+     * @param workflowId      Workflow to associate.
+     * @param eventId         Event to associate.
+     * @param condition       Condition to check the event for associating.
      * @throws WorkflowException
      */
     @Override
@@ -317,12 +322,12 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after adding a association
+     * Trigger after adding a association.
      *
-     * @param associationName Name for the association
-     * @param workflowId      Workflow to associate
-     * @param eventId         Event to associate
-     * @param condition       Condition to check the event for associating
+     * @param associationName Name for the association.
+     * @param workflowId      Workflow to associate.
+     * @param eventId         Event to associate.
+     * @param condition       Condition to check the event for associating.
      * @throws WorkflowException
      */
     @Override
@@ -334,10 +339,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger before listing workflows of a tenant.
      *
-     * @param tenantId Tenant ID
-     * @param limit    Limit
-     * @param offset   Offset
-     * @param filter   Filter
+     * @param tenantId Tenant ID.
+     * @param limit    Limit.
+     * @param offset   Offset.
+     * @param filter   Filter.
      * @throws WorkflowException
      */
     @Override
@@ -349,10 +354,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger after listing workflows of a tenant.
      *
-     * @param tenantId Tenant ID
-     * @param limit    Limit
-     * @param offset   Offset
-     * @param filter   Filter
+     * @param tenantId Tenant ID.
+     * @param limit    Limit.
+     * @param offset   Offset.
+     * @param filter   Filter.
      * @param result   List of workflows returned by original method.
      * @throws WorkflowException
      */
@@ -363,9 +368,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before listing workflows of a tenant
+     * Trigger before listing workflows of a tenant.
      *
-     * @param tenantId Tenant ID
+     * @param tenantId Tenant ID.
      * @throws WorkflowException
      * @deprecated Use {@link #doPreListPaginatedWorkflows(int, int, int, String)} instead.
      */
@@ -376,9 +381,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after listing workflows of a tenant
+     * Trigger after listing workflows of a tenant.
      *
-     * @param tenantId Tenant ID
+     * @param tenantId Tenant ID.
      * @param result   List of workflows returned by original method.
      * @throws WorkflowException
      * @deprecated Use {@link #doPostListPaginatedWorkflows(int, int, int, String, List)} instead.
@@ -392,7 +397,7 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger before removing an association.
      *
-     * @param associationId ID of association to remove
+     * @param associationId ID of association to remove.
      * @throws WorkflowException
      */
     @Override
@@ -403,7 +408,7 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger after removing an association.
      *
-     * @param associationId ID of association to remove
+     * @param associationId ID of association to remove.
      * @throws WorkflowException
      */
     @Override
@@ -412,9 +417,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before getting associations of a workflow
+     * Trigger before getting associations of a workflow.
      *
-     * @param workflowId Workflow ID
+     * @param workflowId Workflow ID.
      * @throws WorkflowException
      */
     @Override
@@ -423,10 +428,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before getting associations of a workflow
+     * Trigger before getting associations of a workflow.
      *
-     * @param workflowId Workflow ID
-     * @param result     Result of the original operation
+     * @param workflowId Workflow ID.
+     * @param result     Result of the original operation.
      * @throws WorkflowException
      */
     @Override
@@ -437,10 +442,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger before listing associations of a tenant.
      *
-     * @param tenantId Tenant ID
-     * @param limit    Limit
-     * @param offset   Offset
-     * @param filter   Filter
+     * @param tenantId Tenant ID.
+     * @param limit    Limit.
+     * @param offset   Offset.
+     * @param filter   Filter.
      * @throws WorkflowException
      */
     @Override
@@ -451,11 +456,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger after listing associations of a tenant.
      *
-     * @param tenantId Tenant ID
-     * @param limit    Limit
-     * @param offset   Offset
-     * @param filter   Filter
-     * @param result   Result of the original operation
+     * @param tenantId Tenant ID.
+     * @param limit    Limit.
+     * @param offset   Offset.
+     * @param filter   Filter.
+     * @param result   Result of the original operation.
      * @throws WorkflowException
      */
     @Override
@@ -465,9 +470,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before listing all associations
+     * Trigger before listing all associations.
      *
-     * @param tenantId Tenant ID
+     * @param tenantId Tenant ID.
      * @throws WorkflowException
      * @deprecated Use {@link #doPreListPaginatedAssociations(int, int, int, String)} instead.
      */
@@ -478,10 +483,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after listing all associations
+     * Trigger after listing all associations.
      *
-     * @param tenantId Tenant ID
-     * @param result   Result of the original operation
+     * @param tenantId Tenant ID.
+     * @param result   Result of the original operation.
      * @throws WorkflowException
      * @deprecated Use {@link #doPostListPaginatedAssociations(int, int, int, String, List)} instead.
      */
@@ -492,10 +497,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before changing state of an association
+     * Trigger before changing state of an association.
      *
-     * @param associationId Association ID
-     * @param isEnable      New state
+     * @param associationId Association ID.
+     * @param isEnable      New state.
      * @throws WorkflowException
      */
     @Override
@@ -504,10 +509,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after changing state of an association
+     * Trigger after changing state of an association.
      *
-     * @param associationId Association ID
-     * @param isEnable      New state
+     * @param associationId Association ID.
+     * @param isEnable      New state.
      * @throws WorkflowException
      */
     @Override
@@ -516,10 +521,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before addEntityRequestEntityRelationships
+     * Trigger before addEntityRequestEntityRelationships.
      *
-     * @param requestId Request ID
-     * @param entities  Entity list
+     * @param requestId Request ID.
+     * @param entities  Entity list.
      * @throws WorkflowException
      */
     @Override
@@ -528,10 +533,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after addEntityRequestEntityRelationships
+     * Trigger after addEntityRequestEntityRelationships.
      *
-     * @param requestId Request ID
-     * @param entities  Entity list @throws WorkflowException
+     * @param requestId Request ID.
+     * @param entities  Entity list.
+     * @throws WorkflowException
      */
     @Override
     public void doPostAddRequestEntityRelationships(String requestId, Entity[] entities) throws WorkflowException {
@@ -539,9 +545,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before checking if entity has pending workflows
+     * Trigger before checking if entity has pending workflows.
      *
-     * @param entity Entity object to test
+     * @param entity Entity object to test.
      * @throws WorkflowException
      */
     @Override
@@ -550,9 +556,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after checking if entity has pending workflows
+     * Trigger after checking if entity has pending workflows.
      *
-     * @param entity Entity object to test
+     * @param entity Entity object to test.
      * @throws WorkflowException
      */
     @Override
@@ -561,10 +567,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before checking if an entity has pending relationships of a given type
+     * Trigger before checking if an entity has pending relationships of a given type.
      *
-     * @param entity      Entity object to test
-     * @param requestType Type of request, eg:- Add user
+     * @param entity      Entity object to test.
+     * @param requestType Type of request, eg:- Add user.
      * @throws WorkflowException
      */
     @Override
@@ -573,10 +579,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after checking if an entity has pending relationships of a given type
+     * Trigger after checking if an entity has pending relationships of a given type.
      *
-     * @param entity      Entity object to test
-     * @param requestType Type of request, eg:- Add user
+     * @param entity      Entity object to test.
+     * @param requestType Type of request, eg:- Add user.
      * @throws WorkflowException
      */
     @Override
@@ -585,10 +591,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before checking if two entities are related
+     * Trigger before checking if two entities are related.
      *
-     * @param entity1 first entity object to test
-     * @param entity2 second entity object to test
+     * @param entity1 first entity object to test.
+     * @param entity2 second entity object to test.
      * @throws WorkflowException
      */
     @Override
@@ -597,10 +603,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after checking if two entities are related
+     * Trigger after checking if two entities are related.
      *
-     * @param entity1 first entity object to test
-     * @param entity2 second entity object to test
+     * @param entity1 first entity object to test.
+     * @param entity2 second entity object to test.
      * @throws WorkflowException
      */
     @Override
@@ -609,9 +615,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before checking if event is associated with a workflow
+     * Trigger before checking if event is associated with a workflow.
      *
-     * @param eventType event type to check
+     * @param eventType event type to check.
      * @throws WorkflowException
      */
     @Override
@@ -620,9 +626,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after checking if event is associated with a workflow
+     * Trigger after checking if event is associated with a workflow.
      *
-     * @param eventType event type to check
+     * @param eventType event type to check.
      * @throws WorkflowException
      */
     @Override
@@ -631,10 +637,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before retrieving requests created by user
+     * Trigger before retrieving requests created by user.
      *
-     * @param user     User name
-     * @param tenantId tenant ID
+     * @param user     User name.
+     * @param tenantId tenant ID.
      * @throws WorkflowException
      */
     @Override
@@ -643,11 +649,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after retrieving requests created by user
+     * Trigger after retrieving requests created by user.
      *
-     * @param user     User name
-     * @param tenantId tenant ID
-     * @param results  Results returned by original operation
+     * @param user     User name.
+     * @param tenantId tenant ID.
+     * @param results  Results returned by original operation.
      * @throws WorkflowException
      */
     @Override
@@ -657,9 +663,9 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger before retrieving workflows of request
+     * Trigger before retrieving workflows of request.
      *
-     * @param requestId Request ID of request to get workflows of
+     * @param requestId Request ID of request to get workflows of request.
      * @throws WorkflowException
      */
     @Override
@@ -668,10 +674,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * Trigger after retrieving workflows of request
+     * Trigger after retrieving workflows of request.
      *
-     * @param requestId Request ID of request to get workflows of
-     * @param results   Results returned by original request
+     * @param requestId Request ID of request to get workflows of request.
+     * @param results   Results returned by original request.
      * @throws WorkflowException
      */
     @Override
@@ -693,6 +699,8 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     public void doPreGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
             tenantId, String status) throws WorkflowException {
 
+        doPreGetRequestsFromFilter(user, null, beginDate, endDate, dateCategory, tenantId, status, MAX_LIMIT, 0);
+
     }
 
     /**
@@ -708,6 +716,42 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     @Override
     public void doPostGetRequestsFromFilter(String user, String beginDate, String endDate, String dateCategory, int
             tenantId, String status, WorkflowRequest[] result) throws WorkflowException {
+
+        doPostGetRequestsFromFilter(user, null, beginDate, endDate, dateCategory, tenantId, status, MAX_LIMIT, 0,
+                new WorkflowRequestFilterResponse(result, MAX_LIMIT));
+
+    }
+
+    /**
+     * @param user
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @throws WorkflowException
+     */
+    @Override
+    public void doPreGetRequestsFromFilter(String user, String operationType, String beginDate, String endDate,
+                String dateCategory, int tenantId, String status, int limit, int offset) throws WorkflowException {
+
+    }
+
+    /**
+     * @param user
+     * @param operationType
+     * @param beginDate
+     * @param endDate
+     * @param dateCategory
+     * @param tenantId
+     * @param status
+     * @param result
+     * @throws WorkflowException
+     */
+    @Override
+    public void doPostGetRequestsFromFilter(String user, String operationType, String beginDate, String endDate,
+                String dateCategory, int tenantId, String status, int limit, int offset,
+                WorkflowRequestFilterResponse result) throws WorkflowException {
 
     }
 
@@ -762,7 +806,7 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
-     * get order ID (priority of current listener)
+     * get order ID (priority of current listener).
      *
      * @return
      */

@@ -18,32 +18,41 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
@@ -59,6 +68,7 @@ import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,6 +79,7 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AMR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_LIST;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
@@ -130,7 +141,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
-                    publishAuthenticationStepAttemptFailure(request, context, e.getUser(), e.getErrorCode());
+                    publishAuthenticationStepAttemptFailure(request, context, e.getUser(), e);
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect to the login page to retry authentication.
                     boolean sendToMultiOptionPage =
@@ -358,18 +369,35 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     /**
      * Helper delegator to publish the events for Authentication Step Attempt Failure.
      *
-     * @param request   Incoming Http request to framework for authentication
-     * @param context   Authentication Context
-     * @param user      initiated user
-     * @param errorCode of the exception
+     * @param request           Incoming Http request to framework for authentication
+     * @param context           Authentication Context
+     * @param user              initiated user
+     * @param identityException
      */
     private void publishAuthenticationStepAttemptFailure(HttpServletRequest request, AuthenticationContext context,
-                                                         User user, String errorCode) {
+                                                         User user, IdentityException identityException) {
+
+        String errorMessage = identityException.getMessage();
+        String errorCode = identityException.getErrorCode();
+
+        IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
+        if (errorContext != null) {
+            Throwable rootCause = ExceptionUtils.getRootCause(identityException);
+            if (rootCause != null) {
+                errorMessage = rootCause.getMessage();
+                // Not modifying the error code as it is already used in the analytics feature.
+            }
+        }
 
         if (user == null) {
             user = context.getLastAuthenticatedUser();
         }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_CODE, errorCode);
+        /*
+         * CURRENT_AUTHENTICATOR_ERROR_MESSAGE -This error message is utilized only by the webhook feature,
+         * not by the analytics.
+         */
+        context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_MESSAGE, errorMessage);
         publishAuthenticationStepAttempt(request, context, user, false);
     }
 
@@ -578,4 +606,114 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         return tagsArray;
     }
+
+    @Override
+    public boolean canHandleWithUserAssertion(HttpServletRequest request,
+                                               HttpServletResponse response, AuthenticationContext context) {
+
+        String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
+        if (userAssertion == null) {
+            userAssertion = request.getParameter(FrameworkConstants.USER_ASSERTION);
+            if (userAssertion == null) {
+                return false;
+            }
+            context.setProperty(FrameworkConstants.USER_ASSERTION, userAssertion);
+        }
+        try {
+            Optional<JWTClaimsSet> optionalClaims = UserAssertionUtils
+                    .retrieveClaimsFromUserAssertion(userAssertion, context.getTenantDomain());
+            if (optionalClaims.isPresent()) {
+                return isAuthenticatorInAMRClaim(optionalClaims.get());
+            }
+        } catch (FrameworkException e) {
+            log.debug("Error while retrieving claims from user assertion.", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isAuthenticationRequired(HttpServletRequest request, HttpServletResponse response,
+                                            AuthenticationContext context) {
+
+        String userAssertion = (String) context.getProperty(FrameworkConstants.USER_ASSERTION);
+        if (userAssertion == null) {
+            return true;
+        }
+        try {
+            Optional<JWTClaimsSet> optionalClaims = UserAssertionUtils
+                    .retrieveClaimsFromUserAssertion(userAssertion, context.getTenantDomain());
+            if (optionalClaims.isPresent()) {
+                return !isAuthenticatorInAMRClaim(optionalClaims.get())
+                        || !handleUserClaimsFromAssertion(optionalClaims.get(), context);
+            }
+        } catch (FrameworkException e) {
+            log.debug("Error while retrieving claims from user assertion.", e);
+        }
+
+        return true;
+    }
+
+    private boolean isAuthenticatorInAMRClaim(JWTClaimsSet claimsSet) {
+
+        try {
+            List<String> amrValues = claimsSet.getStringListClaim(AMR);
+            if (amrValues != null && amrValues.contains(this.getName())) {
+                return true;
+            }
+        } catch (ParseException e) {
+            log.debug("Error while parsing AMR claim from user assertion.", e);
+        }
+        return false;
+    }
+
+    private boolean handleUserClaimsFromAssertion(JWTClaimsSet claimsSet, AuthenticationContext context) {
+
+        String username = claimsSet.getSubject();
+        if (StringUtils.isBlank(username)) {
+            log.debug("Subject claim is not present in the user assertion.");
+            return false;
+        }
+        String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
+        UserCoreUtil.setDomainInThreadLocal(userStoreDomain);
+        context.setSubject(
+                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username));
+
+        context.setCurrentAuthenticator(this.getName());
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        if (sequenceConfig == null || sequenceConfig.getStepMap() == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Sequence config or step map is null. Cannot set external IdP.");
+            }
+            return false;
+        }
+
+        StepConfig currentStepConfig = sequenceConfig.getStepMap().get(context.getCurrentStep());
+        if (currentStepConfig == null || currentStepConfig.getAuthenticatorList() == null ||
+                currentStepConfig.getAuthenticatorList().isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Current step config or authenticator list is null or empty. Cannot set external IdP.");
+            }
+            return false;
+        }
+
+        currentStepConfig.getAuthenticatorList().forEach(authenticatorConfig -> {
+            if (authenticatorConfig != null && this.getName().equals(authenticatorConfig.getName())) {
+                Map<String, IdentityProvider> idps = authenticatorConfig.getIdps();
+                if (MapUtils.isNotEmpty(idps)) {
+                    IdentityProvider firstIdp = idps.values().iterator().next();
+                    if (firstIdp != null) {
+                        ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(firstIdp);
+                        context.setExternalIdP(externalIdPConfig);
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No IdPs found for authenticator: " + this.getName() +
+                                ". Cannot set external IdP.");
+                    }
+                }
+            }
+        });
+        return true;
+    }
+
 }

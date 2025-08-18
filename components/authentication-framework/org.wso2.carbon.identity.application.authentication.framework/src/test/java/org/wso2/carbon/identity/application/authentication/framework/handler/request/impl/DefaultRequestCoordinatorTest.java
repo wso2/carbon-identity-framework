@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -32,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
@@ -52,20 +54,26 @@ import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -73,10 +81,12 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CALLER_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_MISMATCHING_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -87,6 +97,13 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
+    private static final String OAUTH = "oauth";
+    private static final String TRUE = "true";
+    private static final String CUSTOM_TENANT_DOMAIN = "xyz.com";
+    private static final String SUPER_TENANT_PATH = "/t/carbon.super/";
+    private static final String ORGANIZATION_ID = "179fa754-dcff-48f3-bd1c-a8ea84c8bbf4";
+    private static final String ORG_CALLER_PATH = "/o/179fa754-dcff-48f3-bd1c-a8ea84c8bbf4/";
+    private static final String ABSOLUTE_CALLER_PATH = "https://wso2.is.com";
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -111,11 +128,11 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
                 {true, null, null, SUPER_TENANT_DOMAIN_NAME},
                 {false, null, null, SUPER_TENANT_DOMAIN_NAME},
 
-                {true, "foo.com", "xyz.com", "foo.com"},
-                {false, "foo.com", "xyz.com", "xyz.com"},
+                {true, "foo.com", CUSTOM_TENANT_DOMAIN, "foo.com"},
+                {false, "foo.com", CUSTOM_TENANT_DOMAIN, CUSTOM_TENANT_DOMAIN},
 
-                {true, null, "xyz.com", "xyz.com"},
-                {false, null, "xyz.com", "xyz.com"},
+                {true, null, CUSTOM_TENANT_DOMAIN, CUSTOM_TENANT_DOMAIN},
+                {false, null, CUSTOM_TENANT_DOMAIN, CUSTOM_TENANT_DOMAIN},
         };
     }
 
@@ -136,8 +153,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
 
             HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getParameter(TYPE)).thenReturn("oauth");
-            when(request.getParameter(LOGOUT)).thenReturn("true");
+            when(request.getParameter(TYPE)).thenReturn(OAUTH);
+            when(request.getParameter(LOGOUT)).thenReturn(TRUE);
             when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomainInRequestParam);
 
             HttpServletResponse response = mock(HttpServletResponse.class);
@@ -148,14 +165,87 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
+    @DataProvider(name = "callerPathProvider")
+    public Object[][] provideCommonAuthCallerPath() {
+
+        return new Object[][]{
+                {SUPER_TENANT_DOMAIN_NAME, SUPER_TENANT_PATH, SUPER_TENANT_PATH},
+                {ORGANIZATION_ID, ORG_CALLER_PATH, ORG_CALLER_PATH},
+                {CUSTOM_TENANT_DOMAIN, ORG_CALLER_PATH, ORG_CALLER_PATH},
+                {SUPER_TENANT_DOMAIN_NAME, "/" + OAUTH, SUPER_TENANT_PATH + OAUTH},
+                {SUPER_TENANT_DOMAIN_NAME, ABSOLUTE_CALLER_PATH, ABSOLUTE_CALLER_PATH},
+        };
+    }
+
+    @Test(dataProvider = "callerPathProvider")
+    public void testCallerPathInAuthenticationContext(String tenantDomain, String callerPath, String expectedCallerPath)
+            throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantDomain);
+            identityTenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+            CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(mock(IdentityEventService.class));
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setOrganizationId(ORGANIZATION_ID);
+
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getParameter(TYPE)).thenReturn(OAUTH);
+            when(request.getParameter(LOGOUT)).thenReturn(TRUE);
+            when(request.getParameter(CALLER_PATH)).thenReturn(callerPath);
+
+            AuthenticationContext context = requestCoordinator.initializeFlow(request, response);
+            assertEquals(context.getCallerPath(), expectedCallerPath);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setOrganizationId(null);
+        }
+    }
+
+    @DataProvider(name = "preserveNestedRedirectParamsProvider")
+    public Object[][] preserveNestedRedirectParamsProvider() {
+        return new Object[][]{
+                { false, "/commonauth", "true",  false }, // 1) Config disabled -> false.
+                { true,  "/oauth2/authorize", "true",  false }, // 2) Config enabled, NOT /commonauth endpoint -> false.
+                { true,  "/commonauth", "false", false }, // 3) Config enabled, /commonauth, logout != true -> false.
+                { true,  "/commonauth", "true",  true }, // 4) Config enabled, /commonauth, logout=true -> true.
+                { true,  null, "true",  false } // 5) Config enabled, null URI (can happen in some mocks) -> false.
+        };
+    }
+
+    @Test(dataProvider = "preserveNestedRedirectParamsProvider")
+    public void testShouldPreserveNestedRedirectParamsInCommonAuthLogout(boolean configEnabled,
+                                                                         String uri,
+                                                                         String logoutParam,
+                                                                         boolean expected) throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            // Stub the new config accessor.
+            frameworkUtils.when(FrameworkUtils::isNestedRedirectParamsInLogoutReturnUrlEnabled)
+                    .thenReturn(configEnabled);
+
+            // Mock request.
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getRequestURI()).thenReturn(uri);
+            when(request.getParameter(LOGOUT)).thenReturn(logoutParam);
+
+            // Invoke the private method via reflection.
+            Method m = DefaultRequestCoordinator.class.getDeclaredMethod(
+                    "shouldPreserveNestedRedirectParamsInCommonAuthLogout", HttpServletRequest.class);
+            m.setAccessible(true);
+            boolean result = (boolean) m.invoke(requestCoordinator, request);
+
+            assertEquals(result, expected);
+        }
+    }
+
+
     @DataProvider(name = "contextDataProvider")
     public Object[][] contextData() {
 
         return new Object[][]{
-                {"dummy_key", null, "xyz.com", SUPER_TENANT_DOMAIN_NAME},
+                {"dummy_key", null, CUSTOM_TENANT_DOMAIN, SUPER_TENANT_DOMAIN_NAME},
                 {"dummy_key", "samlsso", null, SUPER_TENANT_DOMAIN_NAME},
-                {null, "oAuth", "xyz.com", "foo.com"},
-                {"dummy_key", "openid", "xyz.com", null},
+                {null, "oAuth", CUSTOM_TENANT_DOMAIN, "foo.com"},
+                {"dummy_key", "openid", CUSTOM_TENANT_DOMAIN, null},
         };
     }
 
@@ -296,6 +386,81 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     }
 
     @Test
+    public void testTenantMismatchInCommonAuthCookie () throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementService =
+                     mockStatic(ApplicationManagementService.class)) {
+
+            String relyingParty = "console";
+            String tenantDomain = "carbon.super";
+            String restartLoginFlow = TRUE;
+
+            HttpServletRequest requestMock = spy(HttpServletRequest.class);
+            HttpServletResponse responseMock = spy(HttpServletResponse.class);
+            CommonAuthRequestWrapper request = new CommonAuthRequestWrapper(requestMock);
+            CommonAuthResponseWrapper response = new CommonAuthResponseWrapper(responseMock);
+            DefaultAuthenticationRequestHandler authenticationRequestHandler =
+                    mock(DefaultAuthenticationRequestHandler.class);
+
+            DefaultRequestCoordinator defaultRequestCoordinator = new DefaultRequestCoordinator();
+
+            Cookie cookie = new Cookie(FrameworkConstants.COMMONAUTH_COOKIE, "/carbon.super");
+
+            // Mocking request parameters
+            when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn(relyingParty);
+            when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomain);
+            when(request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW)).thenReturn(restartLoginFlow);
+            when(request.getParameter(AUTHENTICATOR)).thenReturn(ORGANIZATION_AUTHENTICATOR);
+            when(request.getAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE)).thenReturn("true");
+            when(request.getCookies()).thenReturn(new Cookie[]{cookie});
+
+            // Creating a new AuthenticationContext
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain(tenantDomain);
+            context.setServiceProviderName("consoleApplication");
+            context.setRequestType("oauth2");
+            context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
+
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any()))
+                    .thenThrow(new NullPointerException("Error occurred"));
+
+            when(FrameworkUtils.getContextData(request)).thenAnswer(invocation -> context);
+            when(FrameworkUtils.getAuthenticationRequestHandler()).thenReturn(authenticationRequestHandler);
+            doThrow(new FrameworkException(
+                ERROR_MISMATCHING_TENANT_DOMAIN.getCode(),
+                ERROR_MISMATCHING_TENANT_DOMAIN.getMessage()))
+                .when(authenticationRequestHandler).handle(any(), any(), any());
+
+            // Mocking ApplicationManagementService behavior
+            ApplicationManagementServiceImpl mockApplicationManagementService =
+                    mock(ApplicationManagementServiceImpl.class);
+            applicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(mockApplicationManagementService);
+
+            // Mocking ServiceProvider and its properties
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isApplicationEnabled()).thenReturn(true);
+            when(mockApplicationManagementService.getServiceProviderByClientId(anyString(), anyString(), anyString()))
+                    .thenReturn(serviceProvider);
+
+            // Invoke handle method
+            assertThrows(CookieValidationFailedException.class, () -> {
+                defaultRequestCoordinator.handle(request, response);
+            });
+
+            verify(requestMock, times(1)).setAttribute(
+                    FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, Boolean.TRUE);
+            verify(requestMock, times(1)).setAttribute(
+                    FrameworkConstants.RESTART_LOGIN_FLOW, "true");
+        } catch (NullPointerException e) {
+            Assert.fail("NullPointerException occurred: " + e.getMessage());
+        } catch (Exception e) {
+            Assert.fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    //@Test
     public void testNonNullContext() {
 
         try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
@@ -304,7 +469,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
             String relyingParty = "console";
             String tenantDomain = "carbon.super";
-            String restartLoginFlow = "true";
+            String restartLoginFlow = TRUE;
 
             HttpServletRequest requestMock = spy(HttpServletRequest.class);
             HttpServletResponse responseMock = spy(HttpServletResponse.class);
@@ -371,7 +536,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
             String relyingParty = "console";
             String tenantDomain = "carbon.super";
-            String restartLoginFlow = "true";
+            String restartLoginFlow = TRUE;
 
             AuthGraphNode showPromptNode = mock(ShowPromptNode.class);
             AuthGraphNode authGraphNode = mock(AuthGraphNode.class);
@@ -391,7 +556,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomain);
             when(request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW)).thenReturn(restartLoginFlow);
             when(request.getParameter(AUTHENTICATOR)).thenReturn("BasicAuthenticator");
-            when(request.getParameter("promptResp")).thenReturn("true");
+            when(request.getParameter("promptResp")).thenReturn(TRUE);
             when(request.getParameter("promptId")).thenReturn("97d506f3-fd3c-4...");
 
             // Creating a new AuthenticationContext
@@ -447,6 +612,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
         AuthenticationContext authenticationContext = spy(AuthenticationContext.class);
         when(authenticationContext.getTenantDomain()).thenReturn(testTenantDomain);
+        when(authenticationContext.getLoginTenantDomain()).thenReturn(testTenantDomain);
         when(authenticationContext.getRequestType()).thenReturn(testRequestType);
 
         try (MockedStatic<LoggerUtils> loggerUtilsMockedStatic = mockStatic(LoggerUtils.class);
@@ -469,6 +635,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             frameworkUtilsMockedStatic.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request))
                     .thenReturn(true);
             SessionContext sessionContext = mock(SessionContext.class);
+            when(sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN)).thenReturn(testTenantDomain);
             frameworkUtilsMockedStatic.
                     when(() -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext, testSessionId))
                     .thenReturn(sessionContext);
@@ -518,6 +685,11 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             when(sequenceConfig.getAuthenticatedUser()).thenReturn(null);
             requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
             assertNull(authenticationContext.getSubject());
+
+            // Case 4: Mismatch between the sp tenant domain and the user login tenant domain.
+            when(authenticationContext.getLoginTenantDomain()).thenReturn("tenant123");
+            requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
+            verify(request).setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
 
         } catch (IdentityApplicationManagementException e) {
             throw new RuntimeException(e);

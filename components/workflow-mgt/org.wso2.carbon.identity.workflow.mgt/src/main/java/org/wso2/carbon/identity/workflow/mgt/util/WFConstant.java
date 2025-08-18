@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.workflow.mgt.util;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Workflow Management Constants.
+ */
 public class WFConstant {
 
     public static final String REQUEST_ID = "REQUEST ID";
@@ -54,12 +57,18 @@ public class WFConstant {
         NUMERIC_CLASSES.add(Double.class);
     }
 
+    /**
+     * Workflow template constants.
+     */
     public static class TemplateConstants {
 
         public static final String SERVICE_SUFFIX = "Service";
 
     }
 
+    /**
+     * Workflow parameter names.
+     */
     public static class ParameterName {
 
         //Template specific parameters
@@ -68,12 +77,18 @@ public class WFConstant {
 
     }
 
+    /**
+     * Workflow parameter holder names.
+     */
     public static class ParameterHolder {
 
         public static final String TEMPLATE = "Template";
         public static final String WORKFLOW_IMPL = "WorkflowImpl";
     }
 
+    /**
+     * Workflow management exceptions.
+     */
     public static class Exceptions {
 
         // Association errors.

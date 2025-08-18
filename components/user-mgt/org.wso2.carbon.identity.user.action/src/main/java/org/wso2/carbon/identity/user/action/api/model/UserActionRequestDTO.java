@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.action.api.model;
 
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +37,14 @@ public class UserActionRequestDTO {
     private final List<String> groups;
     private final Map<String, Object> claims;
     private final String userStoreDomain;
+    private final Organization residentOrganization;
+    /**
+     * Represents the user id when the user is shared across sub-organizations.
+     * This field differs from the regular user id ({@link #userId}) in scenarios where a user is accessed in the
+     * context of a sub-organization, and the shared user id is used to identify the user in the shared organization.
+     * If the user is not shared, this value will be null.
+     */
+    private final String sharedUserId;
 
     private UserActionRequestDTO(Builder builder) {
 
@@ -44,6 +54,8 @@ public class UserActionRequestDTO {
         this.claims = builder.claims;
         this.roles = builder.roles;
         this.groups = builder.groups;
+        this.residentOrganization = builder.residentOrganization;
+        this.sharedUserId = builder.sharedUserId;
     }
 
     public String getUserId() {
@@ -76,6 +88,16 @@ public class UserActionRequestDTO {
         return userStoreDomain;
     }
 
+    public Organization getResidentOrganization() {
+
+        return residentOrganization;
+    }
+
+    public String getSharedUserId() {
+
+        return sharedUserId;
+    }
+
     /**
      * Builder for the UserActionRequestDTO.
      */
@@ -87,6 +109,8 @@ public class UserActionRequestDTO {
         private final List<String> groups = new ArrayList<>();
         private final Map<String, Object> claims = new HashMap<>();
         private String userStoreDomain;
+        private Organization residentOrganization;
+        private String sharedUserId;
 
         public Builder userId(String userId) {
 
@@ -127,6 +151,18 @@ public class UserActionRequestDTO {
         public Builder addClaim(String claimURI, String[] claimValue) {
 
             this.claims.put(claimURI, claimValue);
+            return this;
+        }
+
+        public Builder residentOrganization(Organization residentOrganization) {
+
+            this.residentOrganization = residentOrganization;
+            return this;
+        }
+
+        public Builder sharedUserId(String sharedUserId) {
+
+            this.sharedUserId = sharedUserId;
             return this;
         }
 

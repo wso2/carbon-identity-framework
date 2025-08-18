@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.wso2.carbon.identity.configuration.mgt.core.constant;
+
+import java.util.List;
 
 /**
  * Constants related to configuration management.
@@ -70,6 +72,8 @@ public class ConfigurationConstants {
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String PATH_SEPARATOR = "/";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
+    public static final List<String> INHERITED_RESOURCE_TYPES = List.of("input-validation-configurations",
+            "flow-mgt-config");
 
 
     public enum ErrorMessages {

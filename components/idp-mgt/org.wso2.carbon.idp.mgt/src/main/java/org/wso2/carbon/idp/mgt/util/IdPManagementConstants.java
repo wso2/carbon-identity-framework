@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+
+import java.util.List;
+
 /**
  * This class is used to keep the identity provider management related constants.
  */
@@ -26,6 +30,7 @@ public class IdPManagementConstants {
     public static final String SHARED_IDP_PREFIX = "SHARED_";
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
     public static final String IDP_GROUP_LIST_PLACEHOLDER = "_IDP_GROUP_LIST_";
+    public static final String IDP_METADATA_PROPERTY_LIST_PLACEHOLDER = "_IDP_METADATA_PROPERTY_LIST_";
     public static final String MULTI_VALUED_PROPERTY_CHARACTER = ".";
     public static final String IS_TRUE_VALUE = "1";
     public static final String IS_FALSE_VALUE = "0";
@@ -94,6 +99,12 @@ public class IdPManagementConstants {
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
     public static final String ASSOCIATE_LOCAL_USER_ENABLED = "ASSOCIATE_LOCAL_USER_ENABLED";
+    public static final String SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE =
+            "SKIP_JIT_PROVISIONING_ON_ATTR_ACCOUNT_LOOKUP_FAILURE";
+    public static final String ACCOUNT_LOOKUP_ATTR_MAPPING_SEPARATOR = ",,";
+    public static final String PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING = "PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING";
+    public static final String SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING =
+            "SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING";
     public static final String SYNC_ATTRIBUTE_METHOD = "SYNC_ATTRIBUTE_METHOD";
     public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
@@ -138,6 +149,10 @@ public class IdPManagementConstants {
             ".RecoveryLink";
     public static final String ENABLE_ADMIN_PASSWORD_RESET_SMS_OTP_PROPERTY = "Recovery.AdminPasswordReset.SMSOTP";
 
+    // Resident IDP ask password set configs.
+    public static final String ASK_PASSWORD_SEND_EMAIL_OTP = "EmailVerification.AskPassword.EmailOTP";
+    public static final String ASK_PASSWORD_SEND_SMS_OTP = "EmailVerification.AskPassword.SMSOTP";
+
     // User defined federated authenticator related constants.
     public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";
 
@@ -145,6 +160,24 @@ public class IdPManagementConstants {
     public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     public static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
+
+    public static final List<String> INHERITED_FEDERATED_AUTHENTICATORS = List.of(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+
+    // Constants related to inheriting login & registration configurations.
+    public static final String PASSWORD_EXPIRY_RULES_KEY_PREFIX = "passwordExpiry.rule";
+    public static final String PASSWORD_EXPIRY_RULES_GROUPS = "groups";
+    public static final List<String> INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES = List.of(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
+
+    public static final List<String> INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES = List.of(
+            "Organization.SelfService.Enable",
+            "Organization.SelfService.AdminEmailVerification",
+            "Organization.SelfService.OnboardAdminToOrg",
+            "Organization.SelfService.EnableAutoLogin");
+
 
     public static class SQLConstants {
 
@@ -525,6 +558,8 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_METADATA_H2 = "INSERT INTO IDP_METADATA (IDP_ID, NAME, `VALUE`, DISPLAY_NAME, " +
                 "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
         public static final String DELETE_IDP_METADATA = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?";
+        public static final String DELETE_IDP_METADATA_BY_PROPERTY_NAME = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?" +
+                " AND NAME IN (" + IDP_METADATA_PROPERTY_LIST_PLACEHOLDER + ")";
 
         public static final String GET_CONNECTED_APPS_MYSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +

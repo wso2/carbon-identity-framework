@@ -37,14 +37,15 @@ import javax.xml.bind.annotation.XmlRegistry;
 public class ObjectFactory {
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.wso2.carbon.identity.workflow.mgt.bean.metadata
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package.
+     * org.wso2.carbon.identity.workflow.mgt.bean.metadata.
      */
     public ObjectFactory() {
 
     }
 
     /**
-     * Create an instance of {@link MetaData }
+     * Create an instance of {@link MetaData }.
      */
     public MetaData createMetaData() {
 
@@ -52,7 +53,7 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link MetaData.Template }
+     * Create an instance of {@link MetaData.Template }.
      */
     public MetaData.Template createMetaDataTemplate() {
 
@@ -60,7 +61,7 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link MetaData.WorkflowImpl }
+     * Create an instance of {@link MetaData.WorkflowImpl }.
      */
     public MetaData.WorkflowImpl createMetaDataWorkflowImpl() {
 
@@ -68,7 +69,7 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ParametersMetaData }
+     * Create an instance of {@link ParametersMetaData }.
      */
     public ParametersMetaData createParametersMetaData() {
 
@@ -76,7 +77,7 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ParameterMetaData }
+     * Create an instance of {@link ParameterMetaData }.
      */
     public ParameterMetaData createParameterMetaData() {
 
@@ -84,7 +85,7 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link InputData }
+     * Create an instance of {@link InputData }.
      */
     public InputData createInputData() {
 
@@ -92,7 +93,7 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link MapType }
+     * Create an instance of {@link MapType }.
      */
     public MapType createMapType() {
 
@@ -100,7 +101,7 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Item }
+     * Create an instance of {@link Item }.
      */
     public Item createItem() {
 

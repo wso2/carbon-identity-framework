@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.user.action;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.api.model.UserActionRequestDTO;
 
@@ -38,6 +39,13 @@ public class UserActionContextTest {
     public static final String TEST_CLAIM_VALUE_2 = "testClaimValue2";
     public static final String TEST_GROUP = "testGroup";
     public static final String TEST_ROLE = "testRole";
+    public static final Organization ORGANIZATION = new Organization.Builder()
+            .id("184a5362-c3ec-4508-a9fa-bc67087a8dae")
+            .name("wso2")
+            .orgHandle("wso2.com")
+            .depth(1)
+            .build();
+    public static final String SHARED_USER_ID = "a84a536f-c3ec-4508-a9fa-ac67087a8da3";
 
     @Test
     public void testUserActionContext() {
@@ -77,6 +85,8 @@ public class UserActionContextTest {
                 .addClaim(TEST_CLAIM_2, new String[]{TEST_CLAIM_VALUE_1, TEST_CLAIM_VALUE_2})
                 .addGroup(TEST_GROUP)
                 .addRole(TEST_ROLE)
+                .residentOrganization(ORGANIZATION)
+                .sharedUserId(SHARED_USER_ID)
                 .build();
         UserActionContext context = new UserActionContext(userActionRequestDTO);
 
@@ -99,6 +109,8 @@ public class UserActionContextTest {
                         TEST_CLAIM_VALUE_2});
         Assert.assertTrue(context.getUserActionResponseDTO().getGroups().contains(TEST_GROUP));
         Assert.assertTrue(context.getUserActionResponseDTO().getRoles().contains(TEST_ROLE));
+        Assert.assertEquals(context.getUserActionResponseDTO().getResidentOrganization(), ORGANIZATION);
+        Assert.assertEquals(context.getUserActionResponseDTO().getSharedUserId(), SHARED_USER_ID);
     }
 
     @Test
@@ -108,6 +120,8 @@ public class UserActionContextTest {
                 .userId(TEST_USER_ID)
                 .password(PASSWORD.toCharArray())
                 .userStoreDomain(TEST_USER_STORE_DOMAIN)
+                .residentOrganization(ORGANIZATION)
+                .sharedUserId(SHARED_USER_ID)
                 .build();
         UserActionContext context = new UserActionContext(userActionRequestDTO);
 
@@ -115,6 +129,8 @@ public class UserActionContextTest {
         Assert.assertEquals(context.getUserActionResponseDTO().getUserId(), TEST_USER_ID);
         Assert.assertEquals(context.getUserActionResponseDTO().getPassword(), PASSWORD.toCharArray());
         Assert.assertEquals(context.getUserActionResponseDTO().getUserStoreDomain(), TEST_USER_STORE_DOMAIN);
+        Assert.assertEquals(context.getUserActionResponseDTO().getResidentOrganization(), ORGANIZATION);
+        Assert.assertEquals(context.getUserActionResponseDTO().getSharedUserId(), SHARED_USER_ID);
 
         context.getUserActionResponseDTO().addRole(TEST_ROLE);
         context.getUserActionResponseDTO().addGroup(TEST_GROUP);

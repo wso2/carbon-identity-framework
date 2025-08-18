@@ -170,6 +170,8 @@ public class IdentityConstants {
 
     // User account association constants
     public static final String USER_ACCOUNT_ASSOCIATION_ENABLE_SHA256_KEY = "UserAccountAssociation.EnableSHA256Key";
+    public static final String FEDERATED_ASSOCIATION_MAX_BULK_OPERATIONS =
+            "FederatedUserAccountAssociation.MaxBulkOperations";
 
     public static final String IDENTITY_UTIL_ENABLE_SHA256 = "IdentityUtil.EnableSHA256";
     public static final String CERT_THUMBPRINT_ENABLE_SHA256 = "CertThumbprint.EnableSHA256";
@@ -324,6 +326,8 @@ public class IdentityConstants {
         public static final String ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT = "false";
 
         public static final String ADAPTIVE_AUTH_ALLOW_LOOPS = "AdaptiveAuth.AllowLoops";
+
+        public static final String IDENTIFIER_AS_USERNAME = "LoginIdentifiers.enableIdentifierAsDisplayUsername";
     }
 
     /**

@@ -21,12 +21,12 @@ package org.wso2.carbon.identity.topic.management.internal.service.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.topic.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementServerException;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
 import org.wso2.carbon.identity.topic.management.api.service.TopicManager;
 import org.wso2.carbon.identity.topic.management.internal.component.TopicManagementComponentServiceHolder;
+import org.wso2.carbon.identity.topic.management.internal.constant.ErrorMessage;
 import org.wso2.carbon.identity.topic.management.internal.dao.TopicManagementDAO;
 import org.wso2.carbon.identity.topic.management.internal.dao.impl.CacheBackedTopicManagementDAO;
 import org.wso2.carbon.identity.topic.management.internal.dao.impl.TopicManagementDAOImpl;
@@ -43,12 +43,13 @@ public class TopicManagementServiceImpl implements TopicManagementService {
     private static final Log LOG = LogFactory.getLog(TopicManagementServiceImpl.class);
     private static final TopicManagementServiceImpl topicManagementServiceImpl = new TopicManagementServiceImpl();
     private final TopicManagementDAO topicManagementDAO;
-    //TODO: Get the topic manager name from a configuration
-    private static final String ADAPTOR = "webSubHubAdapter";
+    private final String webhookAdapter;
 
     private TopicManagementServiceImpl() {
 
         topicManagementDAO = new CacheBackedTopicManagementDAO(new TopicManagementDAOImpl());
+        webhookAdapter = TopicManagementComponentServiceHolder.getInstance()
+                .getWebhookAdapter().getName();
     }
 
     /**
@@ -61,26 +62,18 @@ public class TopicManagementServiceImpl implements TopicManagementService {
         return topicManagementServiceImpl;
     }
 
-    /**
-     * Registers a topic in the system.
-     *
-     * @param channelUri          The channel URI associated with the topic.
-     * @param eventProfileVersion The version of the event profile.
-     * @param tenantDomain        Tenant domain.
-     * @throws TopicManagementException If an error occurs during topic registration.
-     */
     @Override
-    public void registerTopic(String channelUri, String eventProfileVersion, String tenantDomain)
-            throws TopicManagementException {
+    public void registerTopic(String channelUri, String eventProfileName, String eventProfileVersion,
+                              String tenantDomain) throws TopicManagementException {
 
-        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
-        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
-        if (isTopicExists(channelUri, eventProfileVersion, tenantDomain)) {
+        TopicManager adapterManager = retrieveAdapterManager(webhookAdapter);
+        String topic = adapterManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
+        if (isTopicExists(channelUri, eventProfileName, eventProfileVersion, tenantDomain)) {
             throw TopicManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_TOPIC_ALREADY_EXISTS, topic);
         }
         try {
-            adaptorManager.registerTopic(topic, tenantDomain);
+            adapterManager.registerTopic(topic, tenantDomain);
         } catch (TopicManagementException e) {
             throw TopicManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_TOPIC_REGISTRATION_ERROR, e, topic);
@@ -89,30 +82,22 @@ public class TopicManagementServiceImpl implements TopicManagementService {
         try {
             topicManagementDAO.addTopic(topic, channelUri, eventProfileVersion, tenantId);
         } catch (TopicManagementException e) {
-            adaptorManager.deregisterTopic(topic, tenantDomain);
+            adapterManager.deregisterTopic(topic, tenantDomain);
             throw TopicManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_TOPIC_PERSISTENCE_ERROR, e, topic);
         }
         LOG.debug("Topic registered successfully: " + topic + " for tenant: " + tenantDomain);
     }
 
-    /**
-     * Deregisters a topic from the system.
-     *
-     * @param channelUri          The channel URI associated with the topic.
-     * @param eventProfileVersion The version of the event profile.
-     * @param tenantDomain        Tenant domain.
-     * @throws TopicManagementException If an error occurs during topic deregistration.
-     */
     @Override
-    public void deregisterTopic(String channelUri, String eventProfileVersion, String tenantDomain)
-            throws TopicManagementException {
+    public void deregisterTopic(String channelUri, String eventProfileName, String eventProfileVersion,
+                                String tenantDomain) throws TopicManagementException {
 
-        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
-        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
+        TopicManager adapterManager = retrieveAdapterManager(webhookAdapter);
+        String topic = adapterManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
         LOG.debug("Topic deregistration initiated: " + topic + " for tenant domain: " + tenantDomain);
         try {
-            adaptorManager.deregisterTopic(topic, tenantDomain);
+            adapterManager.deregisterTopic(topic, tenantDomain);
         } catch (TopicManagementException e) {
             throw TopicManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_TOPIC_DEREGISTRATION_ERROR, e, topic);
@@ -121,7 +106,7 @@ public class TopicManagementServiceImpl implements TopicManagementService {
         try {
             topicManagementDAO.deleteTopic(topic, tenantId);
         } catch (TopicManagementException e) {
-            adaptorManager.registerTopic(topic, tenantDomain);
+            adapterManager.registerTopic(topic, tenantDomain);
             throw TopicManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_CODE_TOPIC_DELETION_ERROR, e, topic);
         }
@@ -132,42 +117,38 @@ public class TopicManagementServiceImpl implements TopicManagementService {
      * Check if a topic exists in the system.
      *
      * @param channelUri          The channel URI associated with the topic.
+     * @param eventProfileName    The name of the event profile.
      * @param eventProfileVersion The version of the event profile.
      * @param tenantDomain        Tenant domain.
      * @throws TopicManagementException If an error occurs while checking if the topic exists.
      */
     @Override
-    public boolean isTopicExists(String channelUri, String eventProfileVersion, String tenantDomain)
-            throws TopicManagementException {
+    public boolean isTopicExists(String channelUri, String eventProfileName, String eventProfileVersion,
+                                 String tenantDomain) throws TopicManagementException {
 
-        TopicManager adaptorManager = retrieveAdaptorManager(ADAPTOR);
-        String topic = adaptorManager.constructTopic(channelUri, eventProfileVersion, tenantDomain);
+        TopicManager adapterManager = retrieveAdapterManager(webhookAdapter);
+        String topic = adapterManager.constructTopic(channelUri, eventProfileName, eventProfileVersion, tenantDomain);
         if (topic == null || topic.trim().isEmpty()) {
             throw TopicManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_CODE_INVALID_TOPIC);
         }
 
-        try {
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            boolean exists = topicManagementDAO.isTopicExists(topic, tenantId);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        boolean exists = topicManagementDAO.isTopicExists(topic, tenantId);
 
-            LOG.debug("Checked existence of topic: " + topic + " for tenant domain: " + tenantDomain +
-                    ". Exists: " + exists);
+        LOG.debug("Checked existence of topic: " + topic + " for tenant domain: " + tenantDomain +
+                ". Exists: " + exists);
 
-            return exists;
-        } catch (Exception e) {
-            throw TopicManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_TOPIC_EXISTS_CHECK_ERROR, e, topic);
-        }
+        return exists;
     }
 
-    private TopicManager retrieveAdaptorManager(String adaptor) throws TopicManagementServerException {
+    private TopicManager retrieveAdapterManager(String adapter) throws TopicManagementServerException {
 
         List<TopicManager> managers =
                 TopicManagementComponentServiceHolder.getInstance().getTopicManagers();
 
         for (TopicManager manager : managers) {
-            if (adaptor.equals(manager.getName())) {
+            if (adapter.equals(manager.getAssociatedAdapter())) {
                 return manager;
             }
         }

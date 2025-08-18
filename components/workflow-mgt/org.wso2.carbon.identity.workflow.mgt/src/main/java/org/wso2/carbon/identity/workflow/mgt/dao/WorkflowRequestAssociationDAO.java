@@ -35,12 +35,15 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Workflow Request Association DAO class.
+ */
 public class WorkflowRequestAssociationDAO {
 
     private static final Log log = LogFactory.getLog(WorkflowRequestAssociationDAO.class);
 
     /**
-     * Adds new workflow-request relationship to database
+     * Adds new workflow-request relationship to database.
      *
      * @param relationshipId
      * @param workflowId
@@ -102,7 +105,7 @@ public class WorkflowRequestAssociationDAO {
     }
 
     /**
-     * Update state of workflow of a request
+     * Update state of workflow of a request.
      *
      * @param relationshipId
      * @throws InternalWorkflowException
@@ -129,7 +132,7 @@ public class WorkflowRequestAssociationDAO {
     }
 
     /**
-     * Update state of workflow of a request
+     * Update state of workflow of a request.
      *
      * @param requestId requestId to update relationships of.
      * @throws InternalWorkflowException
@@ -158,7 +161,7 @@ public class WorkflowRequestAssociationDAO {
     }
 
     /**
-     * Get list of states of workflows of a request
+     * Get list of states of workflows of a request.
      *
      * @param requestId
      * @return
@@ -215,7 +218,7 @@ public class WorkflowRequestAssociationDAO {
     }
 
     /**
-     * Get array of Workflows of a request
+     * Get array of Workflows of a request.
      *
      * @param requestId
      * @return

@@ -45,6 +45,9 @@ import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
+/**
+ * Workflow management service component class.
+ */
 @Component(
         name = "org.wso2.carbon.identity.workflow.mgt",
         immediate = true)

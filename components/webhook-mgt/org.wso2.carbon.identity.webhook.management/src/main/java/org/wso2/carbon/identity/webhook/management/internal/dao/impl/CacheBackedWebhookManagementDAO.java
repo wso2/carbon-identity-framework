@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.webhook.management.internal.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCache;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheEntry;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheKey;
@@ -79,7 +80,7 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     }
 
     @Override
-    public List<String> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
+    public List<Subscription> getWebhookEvents(String webhookId, int tenantId) throws WebhookMgtException {
 
         WebhookCacheEntry webhookCacheEntry = webhookCache.getValueFromCache(new WebhookCacheKey(webhookId), tenantId);
         if (webhookCacheEntry != null && webhookCacheEntry.getWebhook() != null &&
@@ -107,8 +108,8 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     @Override
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getUuid()), tenantId);
-        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getUuid() + " for webhook update.");
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook update.");
         webhookManagementDAO.updateWebhook(webhook, tenantId);
     }
 
@@ -133,18 +134,39 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     }
 
     @Override
-    public void activateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        webhookCache.clearCacheEntry(new WebhookCacheKey(webhookId), tenantId);
-        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhookId + " for webhook activate.");
-        webhookManagementDAO.activateWebhook(webhookId, tenantId);
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook activate.");
+        webhookManagementDAO.activateWebhook(webhook, tenantId);
     }
 
     @Override
-    public void deactivateWebhook(String webhookId, int tenantId) throws WebhookMgtException {
+    public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
-        webhookCache.clearCacheEntry(new WebhookCacheKey(webhookId), tenantId);
-        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhookId + " for webhook deactivate.");
-        webhookManagementDAO.deactivateWebhook(webhookId, tenantId);
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook deactivate.");
+        webhookManagementDAO.deactivateWebhook(webhook, tenantId);
+    }
+
+    @Override
+    public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
+
+        webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook retry.");
+        webhookManagementDAO.retryWebhook(webhook, tenantId);
+    }
+
+    @Override
+    public int getWebhooksCount(int tenantId) throws WebhookMgtException {
+        // Count retrieval bypasses cache
+        return webhookManagementDAO.getWebhooksCount(tenantId);
+    }
+
+    @Override
+    public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
+                                           int tenantId) throws WebhookMgtException {
+        // Active webhooks retrieval bypasses cache
+        return webhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
     }
 }

@@ -29,11 +29,15 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import org.wso2.carbon.identity.application.common.processors.RandomPasswordProcessor;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -43,6 +47,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ASK_PASSWORD_SEND_EMAIL_OTP;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ASK_PASSWORD_SEND_SMS_OTP;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
@@ -56,6 +62,8 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SMS_OTP_PASSWO
 public class IdPManagementUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUtil.class);
+    private static final CacheBackedIdPMgtDAO CACHE_BACKED_IDP_MGT_DAO =
+            new CacheBackedIdPMgtDAO(new IdPManagementDAO());
 
     private static String tenantContext;
     private static String tenantParameter;
@@ -185,6 +193,22 @@ public class IdPManagementUtil {
         }
     }
 
+    /**
+     * Utility method to clear the cache for a specific identity provider
+     *
+     * @param idpName      Name of the Identity Provider.
+     * @param tenantDomain Tenant Domain of the Identity Provider.
+     */
+    public static void clearIdPCache(String idpName, String tenantDomain) {
+
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            CACHE_BACKED_IDP_MGT_DAO.clearIdpCache(idpName, tenantId, tenantDomain);
+        } catch (IdentityProviderManagementException | IdentityRuntimeException e) {
+            log.error("Error while clearing the cache for the Identity Provider: " + idpName + " in tenant: "
+                    + tenantDomain, e);
+        }
+    }
 
     /**
      * Set tenantContext and tenantParameter specific to the tenant domain.
@@ -481,13 +505,42 @@ public class IdPManagementUtil {
     }
 
     /**
+     * This method validates the ask password related configs with current and previous configurations.
+     *
+     * @param configurationDetails  Configuration updates for governance configurations.
+     * @param identityMgtProperties Existing identity provider properties.
+     * @throws IdentityProviderManagementClientException When invalid configurations have passed.
+     */
+    public static void validateAskPasswordBasedPasswordSetWithCurrentAndPreviousConfigs(
+            Map<String, String> configurationDetails,
+            IdentityProviderProperty[] identityMgtProperties)
+            throws IdentityProviderManagementClientException {
+
+        if (configurationDetails.containsKey(ASK_PASSWORD_SEND_EMAIL_OTP) ||
+                configurationDetails.containsKey(ASK_PASSWORD_SEND_SMS_OTP)) {
+
+            boolean isAskPasswordEmailOTPEnabled = Boolean.parseBoolean(configurationDetails
+                    .get(ASK_PASSWORD_SEND_EMAIL_OTP));
+            String askPasswordEmailOTPProperty = configurationDetails.get(ASK_PASSWORD_SEND_EMAIL_OTP);
+
+            boolean isAskPasswordSMSOTPEnabled = Boolean.parseBoolean(configurationDetails
+                    .get(ASK_PASSWORD_SEND_SMS_OTP));
+            String askPasswordSMSOTP = configurationDetails.get(ASK_PASSWORD_SEND_SMS_OTP);
+
+            validateAskPasswordCurrentConfigs(isAskPasswordEmailOTPEnabled, isAskPasswordSMSOTPEnabled);
+            validateAskPasswordWithExistingConfigs(identityMgtProperties, askPasswordEmailOTPProperty,
+                    askPasswordSMSOTP);
+        }
+    }
+
+    /**
      * This method is used to validate user enabling multiple admin password reset options at the same time.
      *
      * @param isAdminPasswordResetOfflineEnabled is admin password reset offline enabled.
      * @param isAdminPasswordResetEmailOtpEnabled is admin password reset email OTP enabled.
      * @param isAdminPasswordResetEmailLinkEnabled is admin password reset email link enabled.
      * @param isAdminPasswordResetSmsOtpEnabled is admin password reset sms OTP enabled.
-     * @throws IdentityProviderManagementClientException when more than one admin password reset option is enabled.
+     * @throws IdentityProviderManagementClientException when more than one ask password reset option is enabled.
      */
     private static void validateAdminPasswordResetCurrentConfigs(boolean isAdminPasswordResetOfflineEnabled,
                                                                  boolean isAdminPasswordResetEmailOtpEnabled,
@@ -560,7 +613,7 @@ public class IdPManagementUtil {
 
         long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
 
-        if(enabledConfigCount > 1) {
+        if (enabledConfigCount > 1) {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                     "Enabling admin forced password reset option while other options are enabled is not allowed");
@@ -569,6 +622,60 @@ public class IdPManagementUtil {
             throw IdPManagementUtil.handleClientException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                     "Disabling all admin forced password reset options is not allowed");
+        }
+    }
+
+    /**
+     * This method is used to validate user enabling multiple ask password set options at the same time.
+     *
+     * @param isAskPasswordEmailOTPEnabled is ask password email OTP enabled.
+     * @param isAskPasswordSMSOTPEnabled is ask password SMS OTP enabled.
+     *
+     * @throws IdentityProviderManagementClientException when more than one ask password set option is enabled.
+     */
+    private static void validateAskPasswordCurrentConfigs(boolean isAskPasswordEmailOTPEnabled,
+                                                                 boolean isAskPasswordSMSOTPEnabled)
+            throws IdentityProviderManagementClientException {
+
+        if (isAskPasswordEmailOTPEnabled && isAskPasswordSMSOTPEnabled) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Enabling more than one ask password set option is not allowed.");
+        }
+    }
+
+    private static void validateAskPasswordWithExistingConfigs(IdentityProviderProperty[] identityMgtProperties,
+                                                                      String askPasswordEmailOTP,
+                                                               String askPasswordSMSOTP)
+            throws IdentityProviderManagementClientException {
+
+        boolean isAskPasswordEmailOTPCurrentlyEnabled = false;
+        boolean isAskPasswordSMSOTPCurrentlyEnabled = false;
+
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            if (ASK_PASSWORD_SEND_EMAIL_OTP.equals(identityMgtProperty.getName())) {
+                isAskPasswordEmailOTPCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
+            } else if (ASK_PASSWORD_SEND_SMS_OTP.equals(identityMgtProperty.getName())) {
+                isAskPasswordSMSOTPCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
+            }
+        }
+
+        if (askPasswordEmailOTP != null) {
+            isAskPasswordEmailOTPCurrentlyEnabled = Boolean.parseBoolean(askPasswordEmailOTP);
+        }
+        if (askPasswordSMSOTP != null) {
+            isAskPasswordSMSOTPCurrentlyEnabled = Boolean.parseBoolean(askPasswordSMSOTP);
+        }
+
+        List<Boolean> configs = Arrays.asList(isAskPasswordEmailOTPCurrentlyEnabled,
+                isAskPasswordSMSOTPCurrentlyEnabled);
+
+        long enabledConfigCount = configs.stream().filter(Boolean::booleanValue).count();
+
+        if(enabledConfigCount > 1) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                    "Enabling more than one ask password set option is not allowed.");
         }
     }
 }
