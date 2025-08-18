@@ -1056,6 +1056,15 @@
             Supported versions : IS 7.2.0 onwards
         -->
         <DefaultRoleAPIVersionForRef>v3</DefaultRoleAPIVersionForRef>
+
+        <!--
+            If you want to return a 409 Conflict response (recommended) instead of a 400 Bad Request
+            when duplicate claims (excluding username) are encountered during SCIM2 user operations,
+            then enable this property value.
+            Default value: true
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <ConflictOnClaimUniquenessViolation>true</ConflictOnClaimUniquenessViolation>
     </SCIM2>
 
     <PasswordPolicy>
