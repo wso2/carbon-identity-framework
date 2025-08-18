@@ -1336,6 +1336,8 @@ public class DefaultStepHandler implements StepHandler {
                             loginPage, otp, reCaptchaParamString);
                 } else if (IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE
                         .equals(errorCode)) {
+                    LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP " +
+                            "error.");
                     return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
                             loginPage, otp, reCaptchaParamString);
                 } else {
@@ -1384,6 +1386,9 @@ public class DefaultStepHandler implements StepHandler {
                 return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
                         loginPage, otp, reCaptchaParamString);
             } else if (IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE.equals(errorCode)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP error.");
+                }
                 return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
                         loginPage, otp, reCaptchaParamString);
             } else {
