@@ -67,7 +67,8 @@ public class AssociationDAOTest {
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             Connection mockConnection = mock(Connection.class);
             PreparedStatement mockPreparedStatement = mock(PreparedStatement.class);
-            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(true)).thenReturn(mockConnection);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(true))
+                    .thenReturn(mockConnection);
 
             when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
 
@@ -164,8 +165,8 @@ public class AssociationDAOTest {
     }
 
     @Test(dataProvider = "invalidFilterParsingTestData")
-    public void testListPaginatedAssociationsFilterParsingWithInvalidFilters(String filter, String description, String expectedErrorMessage) 
-            throws SQLException {
+    public void testListPaginatedAssociationsFilterParsingWithInvalidFilters(String filter, String description,
+                                                                             String expectedErrorMessage) {
         
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              MockedStatic<JdbcUtils> jdbcUtils = mockStatic(JdbcUtils.class)) {
