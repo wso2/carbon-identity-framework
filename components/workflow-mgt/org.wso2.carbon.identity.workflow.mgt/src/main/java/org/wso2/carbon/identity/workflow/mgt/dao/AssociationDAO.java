@@ -133,16 +133,21 @@ public class AssociationDAO {
     public List<Association> listPaginatedAssociations(int tenantId, String filter, int offset, int limit)
             throws InternalWorkflowException, WorkflowClientException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Listing paginated associations for tenant: " + tenantId + " with filter: " + filter +
+                    ", offset: " + offset + ", limit: " + limit);
+        }
+
         String sqlQuery;
         List<Association> associations = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterField = null;
-            String filterValue = null;
+            String filterValue = StringUtils.EMPTY;
             if (filter != null && filter.contains(" eq ")) {
                 String[] parts = filter.split(" eq ", 2);
                 filterField = parts[0].trim();
                 filterValue = parts[1].trim();
-            } else if (!Objects.equals(filter, "*")) {
+            } else if (!Objects.equals(filter, "*") && filter != null) {
                 filterField = filter.trim();
             }
             String filterResolvedForSQL = resolveSQLFilter(filterValue);
@@ -227,15 +232,19 @@ public class AssociationDAO {
      */
     public int getAssociationsCount(int tenantId, String filter) throws InternalWorkflowException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Getting associations count for tenant: " + tenantId + " with filter: " + filter);
+        }
+
         int count = 0;
         String filterField = null;
-        String filterValue = null;
+        String filterValue = StringUtils.EMPTY;
         if (filter != null && filter.contains(" eq ")) {
             String[] parts = filter.split(" eq ", 2);
             filterField = parts[0].trim();
             filterValue = parts[1].trim();
-        } else if (!Objects.equals(filter, "*")) {
-            filterField = filter;
+        } else if (!Objects.equals(filter, "*") && filter != null) {
+            filterField = filter.trim();
         }
         String sql = SQLConstants.GET_ASSOCIATIONS_COUNT_QUERY_BY_OPERATION;
         if (SQLConstants.WORKFLOW_ID_FILTER.equals(filterField)) {
