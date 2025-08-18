@@ -300,7 +300,8 @@
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
       "actions.types.pre_update_password.enable_in_registration_flows": false,
-      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
+      "oauth.return_sp_id_to_apps": true
     }
   }
 }
