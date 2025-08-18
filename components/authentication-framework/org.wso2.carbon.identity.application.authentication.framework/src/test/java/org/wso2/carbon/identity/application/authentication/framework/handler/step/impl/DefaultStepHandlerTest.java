@@ -27,11 +27,18 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -40,6 +47,8 @@ import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -54,6 +63,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -242,6 +252,54 @@ public class DefaultStepHandlerTest {
             redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
                     "false", retryParam, "");
             Assert.assertTrue(redirectUrl.contains(URLEncoder.encode(callbackUrl, "UTF-8")));
+        }
+    }
+
+    @Test
+    public void testAskPasswordOTPFailureNotLogged() throws FrameworkException, AuthenticationFailedException,
+            LogoutFailedException {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<LogFactory> logFactory = mockStatic(LogFactory.class)) {
+
+            // Mock the LOG instance
+            Log mockLog = mock(Log.class);
+            when(mockLog.isDebugEnabled()).thenReturn(true);
+            when(mockLog.isErrorEnabled()).thenReturn(true);
+            logFactory.when(() -> LogFactory.getLog(DefaultStepHandler.class)).thenReturn(mockLog);
+
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(context.getCurrentStep()).thenReturn(1);
+            when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+            StepConfig stepConfig = mock(StepConfig.class);
+            Map<Integer, StepConfig> stepMap = new HashMap<>();
+            stepMap.put(1, stepConfig);
+            when(sequenceConfig.getStepMap()).thenReturn(stepMap);
+
+            IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
+            when(errorMsgContext.getErrorCode())
+                    .thenReturn(IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE);
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
+
+            // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
+            // Not relevant to the test flow furthermore.
+            String retryParam = "";
+            doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
+
+            AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
+            ApplicationAuthenticator applicationAuthenticator = mock(ApplicationAuthenticator.class);
+            when(authenticatorConfig.getApplicationAuthenticator()).thenReturn(applicationAuthenticator);
+            when(applicationAuthenticator.isAuthenticationRequired(request, response, context)).thenReturn(true);
+            when(applicationAuthenticator.process(request, response, context))
+                    .thenThrow(new AuthenticationFailedException("ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE"));
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            defaultStepHandler.doAuthentication(request, response, context, authenticatorConfig);
+
+            verify(mockLog, never()).error("Authentication failed exception! " + 
+                    "ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE");
         }
     }
 }
