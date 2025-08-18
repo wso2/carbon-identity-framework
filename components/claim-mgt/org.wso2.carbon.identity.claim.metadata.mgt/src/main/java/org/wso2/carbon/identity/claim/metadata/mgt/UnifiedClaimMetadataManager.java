@@ -1101,12 +1101,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
      */
     public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
 
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (resolveWithHierarchicalMode(tenantDomain, tenantId)) {
-            this.cacheBackedDBBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
-        } else {
-            this.dbBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
-        }
+        this.cacheBackedDBBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
     }
 
     /**
