@@ -285,7 +285,8 @@
       "console.identity_providers.disabled_features": [],
       "scim2.enable_scim2_roles_v3_api": false,
       "localization.prioritize_param": false,
-      "attribute.return_previous_additional_properties.enable": true
+      "attribute.return_previous_additional_properties.enable": true,
+      "scim2.return_conflict_response_for_duplicate_claims": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -298,7 +299,8 @@
       "scim2.enable_scim2_roles_v3_api": false,
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
-      "actions.types.pre_update_password.enable_in_registration_flows": false
+      "actions.types.pre_update_password.enable_in_registration_flows": false,
+      "scim2.return_conflict_response_for_duplicate_claims": false
     }
   }
 }

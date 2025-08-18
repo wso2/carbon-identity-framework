@@ -1661,6 +1661,15 @@
         {% endif %}
 
         <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
+
+        <!--
+            If you want to return a 409 Conflict response (recommended) instead of a 400 Bad Request
+            when duplicate claims are encountered during SCIM2 operations,
+            then enable this property value.
+            Default value: true
+            Supported versions: IS 7.2.0 onwards
+        -->
+        <ReturnConflictResponseForDuplicateClaims>{{scim2.return_conflict_response_for_duplicate_claims}}</ReturnConflictResponseForDuplicateClaims>
     </SCIM2>
 
       <PasswordPolicy>
