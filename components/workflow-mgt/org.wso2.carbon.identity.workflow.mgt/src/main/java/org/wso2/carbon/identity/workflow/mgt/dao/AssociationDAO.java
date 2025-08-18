@@ -105,10 +105,13 @@ public class AssociationDAO {
             } else {
                 prepStmt.setString(5, "0");
             }
-            // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as a int to work with postgre.
+            // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as an int to work with postgres.
             prepStmt.setInt(6, Integer.parseInt(associationDTO.getAssociationId()));
             prepStmt.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(connection);
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully updated association with ID: " + associationDTO.getAssociationId());
+            }
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
