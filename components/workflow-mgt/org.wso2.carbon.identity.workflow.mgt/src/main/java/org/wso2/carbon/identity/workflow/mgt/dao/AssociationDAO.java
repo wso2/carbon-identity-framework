@@ -49,11 +49,13 @@ public class AssociationDAO {
     private static final Log log = LogFactory.getLog(AssociationDAO.class);
 
     /**
-     * @param associationName
-     * @param workflowId
-     * @param eventId
-     * @param condition
-     * @throws InternalWorkflowException
+     * Add a new association between workflow and event.
+     *
+     * @param associationName Name of the association
+     * @param workflowId Workflow identifier
+     * @param eventId Event identifier
+     * @param condition Association condition
+     * @throws InternalWorkflowException If an error occurs during database operations
      */
     public void addAssociation(String associationName, String workflowId, String eventId, String condition)
             throws InternalWorkflowException {
@@ -79,13 +81,16 @@ public class AssociationDAO {
     }
 
     /**
-     * @param associationDTO
-     * @throws InternalWorkflowException WorkflowClientException
+     * Update an existing association.
+     *
+     * @param associationDTO Association data transfer object containing updated information
+     * @throws InternalWorkflowException If an error occurs during database operations
+     * @throws WorkflowClientException If the association data is invalid
      */
     public void updateAssociation(Association associationDTO)
             throws InternalWorkflowException, WorkflowClientException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
 
         String query = SQLConstants.UPDATE_ASSOCIATE_WF_TO_EVENT;
@@ -100,10 +105,13 @@ public class AssociationDAO {
             } else {
                 prepStmt.setString(5, "0");
             }
-            // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as a int to work with postgre
+            // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as an int to work with postgres.
             prepStmt.setInt(6, Integer.parseInt(associationDTO.getAssociationId()));
             prepStmt.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(connection);
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully updated association with ID: " + associationDTO.getAssociationId());
+            }
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
@@ -117,26 +125,32 @@ public class AssociationDAO {
     /**
      * Retrieve associations of a tenant with pagination.
      *
-     * @param tenantId
-     * @param filter
-     * @param offset
-     * @param limit
-     * @return List<Association>
+     * @param tenantId Tenant ID
+     * @param filter Filter string
+     * @param offset Offset for pagination
+     * @param limit Limit for pagination
+     * @return List<Association> List of associations
      * @throws InternalWorkflowException
+     * @throws WorkflowClientException
      */
     public List<Association> listPaginatedAssociations(int tenantId, String filter, int offset, int limit)
-            throws InternalWorkflowException {
+            throws InternalWorkflowException, WorkflowClientException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Listing paginated associations for tenant: " + tenantId + " with filter: " + filter +
+                    ", offset: " + offset + ", limit: " + limit);
+        }
 
         String sqlQuery;
         List<Association> associations = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterField = null;
-            String filterValue = null;
+            String filterValue = StringUtils.EMPTY;
             if (filter != null && filter.contains(" eq ")) {
                 String[] parts = filter.split(" eq ", 2);
                 filterField = parts[0].trim();
                 filterValue = parts[1].trim();
-            } else if (!Objects.equals(filter, "*")) {
+            } else if (!Objects.equals(filter, "*") && filter != null) {
                 filterField = filter.trim();
             }
             String filterResolvedForSQL = resolveSQLFilter(filterValue);
@@ -221,11 +235,28 @@ public class AssociationDAO {
      */
     public int getAssociationsCount(int tenantId, String filter) throws InternalWorkflowException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Getting associations count for tenant: " + tenantId + " with filter: " + filter);
+        }
+
         int count = 0;
+        String filterField = null;
+        String filterValue = StringUtils.EMPTY;
+        if (filter != null && filter.contains(" eq ")) {
+            String[] parts = filter.split(" eq ", 2);
+            filterField = parts[0].trim();
+            filterValue = parts[1].trim();
+        } else if (!Objects.equals(filter, "*") && filter != null) {
+            filterField = filter.trim();
+        }
+        String sql = SQLConstants.GET_ASSOCIATIONS_COUNT_QUERY_BY_OPERATION;
+        if (SQLConstants.WORKFLOW_ID_FILTER.equals(filterField)) {
+            sql = SQLConstants.GET_ASSOCIATIONS_COUNT_QUERY_BY_WORKFLOW_ID;
+        }
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            String filterResolvedForSQL = resolveSQLFilter(filter);
+            String filterResolvedForSQL = resolveSQLFilter(filterValue);
             try (PreparedStatement prepStmt = connection
-                    .prepareStatement(SQLConstants.GET_ASSOCIATIONS_COUNT_QUERY)) {
+                    .prepareStatement(sql)) {
                 prepStmt.setInt(1, tenantId);
                 prepStmt.setString(2, filterResolvedForSQL);
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
@@ -350,13 +381,17 @@ public class AssociationDAO {
     /**
      * Generate an SQL query that allows filtering using either the association name or the workflow ID.
      *
+     * @param filterField The field to filter by
+     * @return The appropriate SQL query string
      * @throws InternalWorkflowException
      * @throws DataAccessException
+     * @throws WorkflowClientException
      */
-    private String getSqlQuery(String filterField) throws InternalWorkflowException, DataAccessException {
+    private String getSqlQuery(String filterField)
+            throws InternalWorkflowException, DataAccessException, WorkflowClientException {
 
         String sqlQuery;
-        if (filterField == null || SQLConstants.ASSOCIATION_NAME_FILTER.equalsIgnoreCase(filterField)) {
+        if (filterField == null || SQLConstants.OPERATION_FILTER.equalsIgnoreCase(filterField)) {
             if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
                 sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
             } else if (JdbcUtils.isOracleDB()) {
@@ -375,7 +410,7 @@ public class AssociationDAO {
         } else if (SQLConstants.WORKFLOW_ID_FILTER.equalsIgnoreCase(filterField)) {
             sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_WORKFLOW;
         } else {
-            throw new InternalWorkflowException("Unsupported filter field: " + filterField);
+            throw new WorkflowClientException("Unsupported filter field: " + filterField);
         }
 
         return sqlQuery;

@@ -286,7 +286,8 @@
       "scim2.enable_scim2_roles_v3_api": false,
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
-      "scim2.return_conflict_response_for_duplicate_claims": false
+      "scim2.return_conflict_response_for_duplicate_claims": false,
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -300,7 +301,9 @@
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
       "actions.types.pre_update_password.enable_in_registration_flows": false,
-      "scim2.return_conflict_response_for_duplicate_claims": false
+      "scim2.return_conflict_response_for_duplicate_claims": false,
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
+      "oauth.return_sp_id_to_apps": true
     }
   }
 }

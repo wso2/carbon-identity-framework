@@ -1186,6 +1186,22 @@ public class ApplicationMgtUtil {
     public static String resolveOriginUrlFromPlaceholders(String absoluteUrl, String appName)
             throws URLBuilderException {
 
+        return resolveOriginUrlFromPlaceholders(absoluteUrl, appName, false);
+    }
+
+    /**
+     * This method is used to replace placeholders with the hostname and port of URLs for the portal apps.
+     *
+     * @param absoluteUrl                       The URL which need to resolve from placeholders.
+     * @param appName                           Application name.
+     * @param subOrgAppWithBaseURLPlaceholder   If provided app is a shared app containing baseURL placeholder.
+     * @return The resolved URL from placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String resolveOriginUrlFromPlaceholders(String absoluteUrl, String appName,
+                                                          boolean subOrgAppWithBaseURLPlaceholder)
+            throws URLBuilderException {
+
         if (StringUtils.isEmpty(appName)) {
             return resolveOriginUrlFromPlaceholders(absoluteUrl);
         }
@@ -1194,6 +1210,10 @@ public class ApplicationMgtUtil {
             basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
         } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(MYACCOUNT_ACCESS_ORIGIN);
+        }
+
+        if (subOrgAppWithBaseURLPlaceholder) {
+            basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
         }
 
         if (StringUtils.isEmpty(basePath)) {

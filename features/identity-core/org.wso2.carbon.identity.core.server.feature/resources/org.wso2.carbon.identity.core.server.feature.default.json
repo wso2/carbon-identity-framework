@@ -59,6 +59,8 @@
   "authenticationendpoint.path": "/authenticationendpoint",
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
+  "accounts.hostname": "$ref{server.hostname}",
+  "accounts.path": "/accounts",
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
@@ -91,6 +93,7 @@
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
   "oauth.introspect.allow_cross_tenant": false,
+  "oauth.introspect.allow_cross_sub_org": false,
 
   "oauth.token.validation.include_validation_context_as_jwt_in_reponse": false,
   "oauth.extensions.token_context_generator": "org.wso2.carbon.identity.oauth2.authcontext.JWTTokenGenerator",
@@ -101,6 +104,7 @@
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
   "oauth.token_persistence.enable": true,
   "oauth.revoked_token_headers_in_response.enable": false,
+  "oauth.return_sp_id_to_apps": false,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
   "oauth.enable_sha256": true,
@@ -813,7 +817,8 @@
     "/lsp/",
     "/emailotpauthenticationendpoint/",
     "/smsotpauthenticationendpoint/",
-    "/totpauthenticationendpoint/"
+    "/totpauthenticationendpoint/",
+    "/accounts/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -1296,6 +1301,7 @@
     "branding",
     "consoleSettings",
     "emailTemplates",
+    "flows",
     "gettingStarted",
     "governanceConnectors",
     "groups",
@@ -1915,6 +1921,7 @@
   "x509.crl_download_timeout": "60000",
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
+  "common_auth_caller_path.enable_nested_redirect_params": false,
   "authentication.skip_local_user_search_for_authentication_flow_handlers": true,
   "axis2.transport_sender.local.name": "local",
   "axis2.transport_sender.local.class": "org.apache.axis2.transport.local.LocalTransportSender",
@@ -2014,7 +2021,7 @@
 
   "agent_identity.enabled": false,
 
-  "session_management.filter_by_unique_session_id_for_user": false,
+  "session_management.filter_by_unique_session_id_for_user": true,
 
   "flow_execution.user_assertion.expiry_time": "2000",
   "flow_execution.default_ttl": "30",

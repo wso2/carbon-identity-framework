@@ -45,7 +45,6 @@ public class ActionMgtSQLConstants {
         public static final String ACTION_PROPERTIES_PROPERTY_NAME = "PROPERTY_NAME";
         public static final String ACTION_PROPERTIES_PROPERTY_TYPE = "PROPERTY_TYPE";
         public static final String ACTION_PROPERTIES_PROPERTY_VALUE = "PROPERTY_VALUE";
-        public static final String ACTION_PROPERTIES_PRIMITIVE_VALUE = "PRIMITIVE_VALUE";
         public static final String ACTION_PROPERTIES_OBJECT_VALUE = "OBJECT_VALUE";
         public static final String TENANT_ID = "TENANT_ID";
 
@@ -86,19 +85,6 @@ public class ActionMgtSQLConstants {
         public static final String UPDATE_ACTION_PROPERTY = "UPDATE IDN_ACTION_PROPERTIES SET " +
                 "PROPERTY_VALUE = :PROPERTY_VALUE;, OBJECT_VALUE = :OBJECT_VALUE; WHERE ACTION_UUID = " +
                 ":ACTION_UUID; AND TENANT_ID = :TENANT_ID; AND PROPERTY_NAME = :PROPERTY_NAME;";
-
-        //TODO: Adding following queries to support existing schema. Should be removed once the PRIMITIVE_TYPE column
-        // name is renamed to PROPERTY_VALUE schema change is deployed.
-        public static final String ADD_ACTION_PROPERTIES_WITH_PRIMITIVE_VALUE_COLUMN = "INSERT INTO " +
-                "IDN_ACTION_PROPERTIES (ACTION_UUID, PROPERTY_NAME, PROPERTY_TYPE, PRIMITIVE_VALUE, OBJECT_VALUE, " +
-                "TENANT_ID) VALUES (:ACTION_UUID;, :PROPERTY_NAME;, :PROPERTY_TYPE;, :PRIMITIVE_VALUE;, " +
-                ":OBJECT_VALUE;, :TENANT_ID;)";
-        public static final String GET_ACTION_PROPERTIES_INFO_BY_ID_WITH_PRIMITIVE_VALUE_COLUMN = "SELECT " +
-                "PROPERTY_NAME, PROPERTY_TYPE, PRIMITIVE_VALUE, OBJECT_VALUE FROM IDN_ACTION_PROPERTIES WHERE " +
-                "ACTION_UUID = :ACTION_UUID; AND TENANT_ID = :TENANT_ID;";
-        public static final String UPDATE_ACTION_PROPERTY_WITH_PRIMITIVE_VALUE_COLUMN = "UPDATE " +
-                "IDN_ACTION_PROPERTIES SET PRIMITIVE_VALUE = :PRIMITIVE_VALUE;, OBJECT_VALUE = :OBJECT_VALUE; " +
-                "WHERE ACTION_UUID = :ACTION_UUID; AND TENANT_ID = :TENANT_ID; AND PROPERTY_NAME = :PROPERTY_NAME;";
 
         private Query() {
 
