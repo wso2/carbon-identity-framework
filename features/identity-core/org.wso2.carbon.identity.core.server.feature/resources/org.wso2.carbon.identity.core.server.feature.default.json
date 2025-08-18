@@ -104,7 +104,7 @@
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
   "oauth.token_persistence.enable": true,
   "oauth.revoked_token_headers_in_response.enable": false,
-  "oauth.return_sp_id_to_apps": true,
+  "oauth.return_sp_id_to_apps": false,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
   "oauth.enable_sha256": true,
