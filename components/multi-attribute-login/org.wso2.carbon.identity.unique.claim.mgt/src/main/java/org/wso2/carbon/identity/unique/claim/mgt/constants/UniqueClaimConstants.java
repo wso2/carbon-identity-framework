@@ -41,14 +41,30 @@ public class UniqueClaimConstants {
             this.message = message;
         }
 
+        /**
+         * To get the code of specific error.
+         *
+         * @return Error code.
+         */
         public String getCode() {
             return UNIQUE_CLAIM_ERROR_CODE_PREFIX + code;
         }
 
+        /**
+         * To get the message of specific error.
+         *
+         * @return Error message.
+         */
         public String getMessage() {
             return message;
         }
 
+        /**
+         * To get the message of specific error with arguments.
+         *
+         * @param args Arguments to be used in the message.
+         * @return Error message.
+         */
         public String getMessage(Object... args) {
             return String.format(message, args);
         }
