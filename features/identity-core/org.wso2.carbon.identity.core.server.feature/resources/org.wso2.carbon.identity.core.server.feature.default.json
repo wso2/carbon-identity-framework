@@ -2025,6 +2025,7 @@
     "REGISTRATION": "30",
     "PASSWORD_RECOVERY": "30",
     "INVITED_USER_REGISTRATION": "30"
-  }
+  },
+  "captcha.enable_captcha_for_local_otp_authenticators": true
 }
 
