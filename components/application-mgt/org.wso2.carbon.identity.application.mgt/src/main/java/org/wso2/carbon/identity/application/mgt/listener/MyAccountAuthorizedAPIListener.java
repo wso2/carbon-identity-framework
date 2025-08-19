@@ -49,24 +49,47 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
             "internal_org_approval_task_view",
             "internal_org_approval_task_update");
 
+    /**
+     * Gets the execution order ID for this listener.
+     *
+     * @return The execution order ID (2).
+     */
     @Override
     public int getExecutionOrderId() {
 
         return 2;
     }
 
+    /**
+     * Gets the default order ID for this listener.
+     *
+     * @return The default order ID (2).
+     */
     @Override
     public int getDefaultOrderId() {
 
         return 2;
     }
 
+    /**
+     * Checks if this listener is enabled.
+     *
+     * @return True indicating this listener is enabled.
+     */
     @Override
     public boolean isEnable() {
 
         return true;
     }
 
+    /**
+     * Post-processes the authorized APIs list for MyAccount application.
+     *
+     * @param authorizedAPIList The list of authorized APIs to be modified.
+     * @param appId The application ID.
+     * @param tenantDomain The tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurs while processing.
+     */
     @Override
     public void postGetAuthorizedAPIs(List<AuthorizedAPI> authorizedAPIList, String appId, String tenantDomain)
             throws IdentityApplicationManagementException {
@@ -95,6 +118,14 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
         }
     }
 
+    /**
+     * Post-processes the authorized scopes list for MyAccount application.
+     *
+     * @param authorizedScopesList The list of authorized scopes to be modified.
+     * @param appId The application ID.
+     * @param tenantDomain The tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurs while processing.
+     */
     @Override
     public void postGetAuthorizedScopes(List<AuthorizedScopes> authorizedScopesList, String appId, String tenantDomain)
             throws IdentityApplicationManagementException {
@@ -106,6 +137,16 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
         }
     }
 
+    /**
+     * Post-processes a specific authorized API for MyAccount application.
+     *
+     * @param authorizedAPI The original authorized API.
+     * @param appId The application ID.
+     * @param apiId The API resource ID.
+     * @param tenantDomain The tenant domain.
+     * @return The modified authorized API or the original if not applicable.
+     * @throws IdentityApplicationManagementException If an error occurs while processing.
+     */
     @Override
     public AuthorizedAPI postGetAuthorizedAPI(AuthorizedAPI authorizedAPI, String appId, String apiId,
                                               String tenantDomain) throws IdentityApplicationManagementException {
