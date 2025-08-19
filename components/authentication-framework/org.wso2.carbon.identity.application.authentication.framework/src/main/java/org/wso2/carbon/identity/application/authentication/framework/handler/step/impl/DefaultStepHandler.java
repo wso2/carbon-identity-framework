@@ -994,8 +994,11 @@ public class DefaultStepHandler implements StepHandler {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
             if (errorContext != null) {
                 Throwable rootCause = ExceptionUtils.getRootCause(e);
-                if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.
-                        equals(errorContext.getErrorCode()) && !(rootCause instanceof UserStoreClientException) &&
+                if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
+                                .equals(errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE
+                                .equals(errorContext.getErrorCode()) &&
+                        !(rootCause instanceof UserStoreClientException) &&
                         !IdentityCoreConstants.USER_ACCOUNT_LOCKED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(
@@ -1331,6 +1334,12 @@ public class DefaultStepHandler implements StepHandler {
                         .equals(errorCode)) {
                     return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
                             loginPage, otp, reCaptchaParamString);
+                } else if (IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE
+                        .equals(errorCode)) {
+                    LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP " +
+                            "error.");
+                    return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                            loginPage, otp, reCaptchaParamString);
                 } else {
                     if (StringUtils.isNotBlank(retryParam) && StringUtils.isNotBlank(reason)) {
                         retryParam = "&authFailure=true&authFailureMsg=" + URLEncoder.encode(reason, "UTF-8");
@@ -1374,6 +1383,12 @@ public class DefaultStepHandler implements StepHandler {
                 return redirectURL;
 
             } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
+                return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                        loginPage, otp, reCaptchaParamString);
+            } else if (IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE.equals(errorCode)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP error.");
+                }
                 return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
                         loginPage, otp, reCaptchaParamString);
             } else {
