@@ -104,6 +104,7 @@
   "oauth.token.validation.validation_response_jwt_validity": "15m",
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
   "oauth.token_persistence.enable": true,
+  "oauth.jwt.return_only_app_associated_roles": true,
   "oauth.revoked_token_headers_in_response.enable": false,
   "oauth.return_sp_id_to_apps": false,
 
@@ -276,7 +277,8 @@
   "oauth.oidc.extensions.user_info_request_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator",
   "oauth.oidc.extensions.user_info_access_token_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator",
   "oauth.oidc.user_info.enable_multi_value_support": true,
-  "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
+  "oauth.oidc.user_info.return_only_app_associated_roles": true,
+  "oauth.oidc.user_info.remove_internal_prefix_from_roles": true,
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
