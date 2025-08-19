@@ -1687,7 +1687,7 @@
     "users.profile.legacy"
   ],
   "console.users.scopes.feature": ["console:users"],
-  "console.users.scopes.create": ["internal_user_mgt_create"],
+  "console.users.scopes.create": ["internal_user_mgt_create", "internal_workflow_association_view"],
   "console.users.scopes.read": [
       "internal_userstore_view",
       "internal_role_mgt_view",
