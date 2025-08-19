@@ -34,4 +34,9 @@ public class WorkflowClientException extends WorkflowException {
 
         super(message, e);
     }
+
+    public WorkflowClientException(String errorCode, String description) {
+
+        super(description, errorCode);
+    }
 }

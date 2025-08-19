@@ -204,6 +204,7 @@
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
   "authentication.authenticator.totp.parameters.EnableAccountLockingForFailedAttempts": true,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
+  "authentication.authenticator.totp.parameters.PreventTOTPCodeReuse": true,
 
   "authentication.authenticator.backup_code.name": "backup-code-authenticator",
   "authentication.authenticator.backup_code.enable": true,
@@ -241,6 +242,7 @@
   "authentication.authenticator.sms_otp_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.sms_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp_local.parameters.enableRetryFromAuthenticator": true,
+  "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": true,
 
   "authentication.authenticator.push_local.name": "push-notification-authenticator",
   "authentication.authenticator.push_local.enable": true,

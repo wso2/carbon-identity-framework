@@ -508,6 +508,9 @@ public class IdentityEventConstants {
 
         public static final String CONSUMER_KEYS = "CONSUMER_KEYS";
 
+        public static final String IS_ORGANIZATION_USER = "IS_ORGANIZATION_USER";
+        public static final String USER_RESIDENT_ORGANIZATION_ID = "USER_RESIDENT_ORGANIZATION_ID";
+
         public class Scenario {
 
             public class ScenarioTypes {

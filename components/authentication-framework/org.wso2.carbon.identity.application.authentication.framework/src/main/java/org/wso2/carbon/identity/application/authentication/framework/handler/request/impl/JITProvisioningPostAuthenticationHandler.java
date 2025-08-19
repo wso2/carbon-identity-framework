@@ -1030,6 +1030,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY.getCode(), e);
         }
 
+        if (context.getProperty(FrameworkConstants.USED_TIME_WINDOWS) != null) {
+            localClaimValues.put(FrameworkConstants.USED_TIME_WINDOWS,
+                    context.getProperty(FrameworkConstants.USED_TIME_WINDOWS).toString());
+        }
+
         // Remove role claim from local claims as roles are specifically handled.
         localClaimValues.remove(FrameworkUtils.getLocalClaimUriMappedForIdPRoleClaim(externalIdPConfig));
         localClaimValues.remove(UserCoreConstants.USER_STORE_GROUPS_CLAIM);
