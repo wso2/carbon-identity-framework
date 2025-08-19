@@ -2028,6 +2028,7 @@
     "REGISTRATION": "30",
     "PASSWORD_RECOVERY": "30",
     "INVITED_USER_REGISTRATION": "30"
-  }
+  },
+  "branding_configuration.custom_content.max_file_size": 1048576
 }
 

@@ -4701,6 +4701,11 @@
         <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
     </AsyncOperationStatus>
 
+    <BrandingConfiguration>
+        <CustomContent>
+            <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
+        </CustomContent>
+    </BrandingConfiguration>
     <FlowExecution>
         {% if flow_execution.excluded_userstores is defined %}
         <ExcludedUserstores>
