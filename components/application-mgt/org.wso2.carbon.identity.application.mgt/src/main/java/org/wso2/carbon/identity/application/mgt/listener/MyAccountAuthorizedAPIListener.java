@@ -196,6 +196,9 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
 
     private String getMyAccountAppId(String tenantDomain) throws IdentityApplicationManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving MyAccount application ID for tenant: " + tenantDomain);
+        }
         ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
         String myAccountInboundKey = buildMyAccountInboundKey(tenantDomain);
         return applicationManagementService.getApplicationResourceIDByInboundKey(myAccountInboundKey,
