@@ -48,6 +48,8 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
+import static org.wso2.carbon.identity.unique.claim.mgt.constants.UniqueClaimConstants.ErrorMessages.ERROR_CODE_DUPLICATE_MULTIPLE_CLAIMS;
+import static org.wso2.carbon.identity.unique.claim.mgt.constants.UniqueClaimConstants.ErrorMessages.ERROR_CODE_DUPLICATE_SINGLE_CLAIM;
 
 /**
  * A userstore operation event listener to keep the uniqueness of a given set of claims.
@@ -284,14 +286,16 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     private void throwDuplicateClaimException(List<String> duplicateClaims) throws UserStoreClientException {
 
         String errorMessage;
+        String errorCode;
         if (duplicateClaims.size() == 1) {
-            errorMessage = "The value defined for " + duplicateClaims.get(0) + " is already in use by a " +
-                    "different user!";
+            errorMessage = ERROR_CODE_DUPLICATE_SINGLE_CLAIM.getMessage(duplicateClaims.get(0));
+            errorCode = ERROR_CODE_DUPLICATE_SINGLE_CLAIM.getCode();
         } else {
             String claimList = String.join(", ", duplicateClaims);
-            errorMessage = "The values defined for " + claimList + " are already in use by different users!";
+            errorMessage = ERROR_CODE_DUPLICATE_MULTIPLE_CLAIMS.getMessage(claimList);
+            errorCode = ERROR_CODE_DUPLICATE_MULTIPLE_CLAIMS.getCode();
         }
-        throw new UserStoreClientException(errorMessage,
+        throw new UserStoreClientException(errorMessage, errorCode,
                 new PolicyViolationException(ERROR_CODE_DUPLICATE_CLAIM_VALUE, errorMessage));
     }
 
