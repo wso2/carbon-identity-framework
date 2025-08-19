@@ -188,6 +188,9 @@ public class Constants {
         ERROR_CODE_FLOW_TYPE_NOT_PROVIDED("60011",
                 "Flow type is not provided.",
                 "Flow type not provided in the request."),
+        ERROR_CODE_PASSWORD_VALIDATION_FAILED("60012",
+                "%s",
+                "%s")
         ;
 
         private static final String ERROR_PREFIX = "FE";
