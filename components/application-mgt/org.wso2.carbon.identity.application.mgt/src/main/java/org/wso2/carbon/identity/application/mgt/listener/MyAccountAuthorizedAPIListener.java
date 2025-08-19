@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
@@ -48,6 +50,8 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
             "internal_approval_task_update",
             "internal_org_approval_task_view",
             "internal_org_approval_task_update");
+
+    private static final Log log = LogFactory.getLog(MyAccountAuthorizedAPIListener.class);
 
     /**
      * Gets the execution order ID for this listener.
@@ -96,10 +100,17 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
 
         try {
             if (appId.equals(getMyAccountAppId(tenantDomain))) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Post-processing authorized APIs for my account application in tenant: " + tenantDomain);
+                }
                 List<APIResource> systemAPIResources = APIResourceManagementUtil.getSystemAPIs(tenantDomain);
                 for (APIResource systemAPIResource : systemAPIResources) {
                     if (!authorizedNoPolicyAPIIdentifiers.contains(systemAPIResource.getIdentifier())) {
                         continue;
+                    }
+                    if (log.isDebugEnabled()) {
+                        log.debug(
+                                "Adding authorized API: " + systemAPIResource.getIdentifier() + " for MyAccount app.");
                     }
                     AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
                             .appId(appId)
@@ -130,10 +141,14 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
     public void postGetAuthorizedScopes(List<AuthorizedScopes> authorizedScopesList, String appId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Post-processing authorized scopes for app: " + appId + " in tenant: " + tenantDomain);
+        }
         if (StringUtils.equals(appId, getMyAccountAppId(tenantDomain))) {
             AuthorizedScopes authorizedScopes =
                     new AuthorizedScopes(APIResourceManagementConstants.NO_POLICY, authorizedNoPolicyScopes);
             authorizedScopesList.add(authorizedScopes);
+            log.debug("Added no-policy scopes for MyAccount application");
         }
     }
 
@@ -151,6 +166,10 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
     public AuthorizedAPI postGetAuthorizedAPI(AuthorizedAPI authorizedAPI, String appId, String apiId,
                                               String tenantDomain) throws IdentityApplicationManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug(
+                    "Post-processing authorized API: " + apiId + " for app: " + appId + " in tenant: " + tenantDomain);
+        }
         if (StringUtils.equals(appId, getMyAccountAppId(tenantDomain))) {
             try {
                 APIResource apiResource = ApplicationManagementServiceComponentHolder.getInstance()
@@ -185,6 +204,9 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
 
     private String buildMyAccountInboundKey(String tenantDomain) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving MyAccount application ID for tenant: " + tenantDomain);
+        }
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() ||
                 ApplicationConstants.SUPER_TENANT.equalsIgnoreCase(tenantDomain)) {
             return ApplicationConstants.MY_ACCOUNT_APPLICATION_CLIENT_ID;
@@ -195,6 +217,9 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
 
     private List<Scope> getScopes(String apiId, String tenantDomain) throws IdentityApplicationManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving scopes for API: " + apiId + " in tenant: " + tenantDomain);
+        }
         try {
             return ApplicationManagementServiceComponentHolder.getInstance().getAPIResourceManager()
                     .getAPIScopesById(apiId, tenantDomain);
