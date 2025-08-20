@@ -33,6 +33,8 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.trigger
 
 /**
  * Webhook management V2 audit logger class.
+ * This class is responsible for logging webhook management operations such as adding, updating, activating,
+ * deactivating and deleting webhooks.
  */
 public class WebhookManagementAuditLogger {
 
@@ -49,7 +51,7 @@ public class WebhookManagementAuditLogger {
     }
 
     /**
-     * Print webhook audit log related to the operation with Webhook ID.
+     * Print webhook audit log related to the operation using webhook ID.
      *
      * @param operation Operation associated with the state change.
      * @param webhookId ID of the webhook to be logged.
@@ -173,6 +175,11 @@ public class WebhookManagementAuditLogger {
             this.logAction = logAction;
         }
 
+        /**
+         * Get the log action associated with the operation.
+         *
+         * @return Log action string.
+         */
         public String getLogAction() {
 
             return this.logAction;
