@@ -130,8 +130,7 @@ public class WebhookManagementAuditLogger {
 
         // Prefer IdentityContext → concrete actor userId if present
         IdentityContext idCtx = IdentityContext.getThreadLocalIdentityContext();
-        if (idCtx.isUserActor() && idCtx.getUserActor() != null &&
-                StringUtils.isNotBlank(idCtx.getUserActor().getUserId())) {
+        if (idCtx.isUserActor() && StringUtils.isNotBlank(idCtx.getUserActor().getUserId())) {
             return idCtx.getUserActor().getUserId();
         }
 
