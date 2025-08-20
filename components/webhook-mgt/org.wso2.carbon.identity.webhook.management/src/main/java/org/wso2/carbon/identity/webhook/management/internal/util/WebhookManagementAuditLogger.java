@@ -191,7 +191,7 @@ public class WebhookManagementAuditLogger {
      */
     private static class LogConstants {
 
-        public static final String UUID_FIELD = "Uuid";
+        public static final String UUID_FIELD = "Id";
         public static final String ENDPOINT_FIELD = "Endpoint";
         public static final String NAME_FIELD = "Name";
         public static final String SECRET_FIELD = "Secret";

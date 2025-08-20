@@ -118,7 +118,7 @@ public class WebhookManagementAuditLoggerTest {
     public void testCreateAuditLogEntryForWebhook() throws WebhookMgtException {
 
         JSONObject data = invokeCreateAuditLogEntry(webhook);
-        Assert.assertEquals(data.get("Uuid"), "webhook-123");
+        Assert.assertEquals(data.get("Id"), "webhook-123");
         Assert.assertEquals(data.get("Name"), "Test Webhook");
         Assert.assertEquals(data.get("Endpoint"), "https://example.com/webhook");
         Assert.assertEquals(data.get("Secret"), "****");
@@ -138,7 +138,7 @@ public class WebhookManagementAuditLoggerTest {
     public void testCreateAuditLogEntryForWebhookId() throws Exception {
 
         JSONObject data = invokeCreateAuditLogEntry();
-        Assert.assertEquals(data.get("Uuid"), "webhook-456");
+        Assert.assertEquals(data.get("Id"), "webhook-456");
     }
 
     /**
