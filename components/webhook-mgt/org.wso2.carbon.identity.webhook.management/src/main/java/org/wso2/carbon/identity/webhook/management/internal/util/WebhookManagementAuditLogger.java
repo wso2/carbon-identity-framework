@@ -91,7 +91,8 @@ public class WebhookManagementAuditLogger {
         JSONObject data = new JSONObject();
         data.put(LogConstants.UUID_FIELD, webhook.getId() != null ? webhook.getId() : JSONObject.NULL);
         data.put(LogConstants.NAME_FIELD, webhook.getName() != null ? webhook.getName() : JSONObject.NULL);
-        data.put(LogConstants.ENDPOINT_FIELD, webhook.getEndpoint() != null ? webhook.getEndpoint() : JSONObject.NULL);
+        data.put(LogConstants.ENDPOINT_URI_FIELD,
+                webhook.getEndpoint() != null ? webhook.getEndpoint() : JSONObject.NULL);
         data.put(LogConstants.SECRET_FIELD,
                 webhook.getSecret() != null ? LoggerUtils.getMaskedContent(webhook.getSecret()) : JSONObject.NULL);
         data.put(LogConstants.EVENT_PROFILE_NAME_FIELD, webhook.getEventProfileName() != null ?
@@ -189,7 +190,7 @@ public class WebhookManagementAuditLogger {
     private static class LogConstants {
 
         public static final String UUID_FIELD = "Id";
-        public static final String ENDPOINT_FIELD = "Endpoint";
+        public static final String ENDPOINT_URI_FIELD = "EndpointUri";
         public static final String NAME_FIELD = "Name";
         public static final String SECRET_FIELD = "Secret";
         public static final String EVENT_PROFILE_NAME_FIELD = "EventProfileName";

@@ -120,7 +120,7 @@ public class WebhookManagementAuditLoggerTest {
         JSONObject data = invokeCreateAuditLogEntry(webhook);
         Assert.assertEquals(data.get("Id"), "webhook-123");
         Assert.assertEquals(data.get("Name"), "Test Webhook");
-        Assert.assertEquals(data.get("Endpoint"), "https://example.com/webhook");
+        Assert.assertEquals(data.get("EndpointUri"), "https://example.com/webhook");
         Assert.assertEquals(data.get("Secret"), "****");
         Assert.assertEquals(data.get("EventProfileName"), "profile");
         Assert.assertEquals(data.get("EventProfileUri"), "uri");
