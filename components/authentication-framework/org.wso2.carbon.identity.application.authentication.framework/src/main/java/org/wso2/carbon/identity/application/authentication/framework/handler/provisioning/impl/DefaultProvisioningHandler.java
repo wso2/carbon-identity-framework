@@ -36,6 +36,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -272,12 +274,21 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     for (Claim claim : toBeDeletedFromExistingUserClaims) {
                         toBeDeletedUserClaims.add(claim.getClaimUri());
                     }
+                    // If claim is not modified, remove it from userClaims to avoid unnecessary updates.
+                    for (Claim claim : existingUserClaimList) {
+                        if (userClaims.containsKey(claim.getClaimUri()) &&
+                                userClaims.get(claim.getClaimUri()).equals(claim.getValue())) {
+                            userClaims.remove(claim.getClaimUri());
+                        }
+                    }
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 userClaims.remove(USERNAME_CLAIM);
                 userClaims.remove(USER_ID_CLAIM);
-                userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                if (!userClaims.isEmpty()) {
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                }
                     /*
                     Since the user is exist following code is get all active claims of user and crosschecking against
                     tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
@@ -300,6 +311,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             }
         } else {
+            IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                    .name(Flow.Name.JUST_IN_TIME_PROVISION)
+                    .initiatingPersona(Flow.InitiatingPersona.USER)
+                    .build());
+
             password = resolvePassword(userClaims);
             // Check for inconsistencies in username attribute and the username claim.
             if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
@@ -323,7 +339,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     setJitProvisionedSource(tenantDomain, idp, userClaims);
                 }
                 userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
+
+                FrameworkUtils.publishEventOnUserRegistrationSuccess(userClaims, userStoreDomain, tenantDomain);
+
             } catch (UserStoreException e) {
+
+                FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getMessage(), userClaims,
+                        tenantDomain, userStoreDomain, idp);
                 // Add user operation will fail if a user operation workflow is already defined for the same user.
                 if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
                     userWorkflowEngaged = true;
@@ -338,6 +360,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
                 UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
                 Arrays.fill(password, '\0');
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
             }
 
             if (userWorkflowEngaged ||

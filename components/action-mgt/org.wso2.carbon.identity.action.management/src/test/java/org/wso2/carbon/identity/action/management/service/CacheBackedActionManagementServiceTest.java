@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,13 +32,15 @@ import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,12 +81,15 @@ public class CacheBackedActionManagementServiceTest {
     public void setUpClass() {
 
         cacheBackedActionManagementService = CacheBackedActionManagementService.getInstance();
+        Timestamp currentTime = new Timestamp(new Date().getTime());
         mockedAction = new Action.ActionResponseBuilder()
                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
                 .name(TEST_ACTION_NAME)
                 .description(TEST_ACTION_DESCRIPTION)
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .status(Action.Status.ACTIVE)
+                .createdAt(currentTime)
+                .updatedAt(currentTime)
                 .endpoint(TestUtil.buildMockEndpointConfig(TEST_ACTION_URI,
                         TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD)))
                 .build();
@@ -277,6 +282,8 @@ public class CacheBackedActionManagementServiceTest {
         Assert.assertEquals(action.getDescription(), mockedAction.getDescription());
         Assert.assertEquals(action.getType(), mockedAction.getType());
         Assert.assertEquals(action.getStatus(), mockedAction.getStatus());
+        Assert.assertEquals(action.getCreatedAt(), mockedAction.getCreatedAt());
+        Assert.assertEquals(action.getUpdatedAt(), mockedAction.getUpdatedAt());
         Assert.assertEquals(action.getEndpoint().getUri(), mockedAction.getEndpoint().getUri());
 
         Authentication actionAuth = action.getEndpoint().getAuthentication();

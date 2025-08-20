@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.8.216-SNAPSHOT</version>
+        <version>7.8.436-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -108,14 +108,14 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.flow.execution.engine.internal,
-                            org.wso2.carbon.identity.flow.execution.engine.util,
+                            org.wso2.carbon.identity.flow.execution.engine.internal
                         </Private-Package>
                         <Import-Package>
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
                             org.xml.sax,
                             org.w3c.dom,
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.apache.axiom.om; version="${axiom.osgi.version.range}",
                             org.apache.xerces.util; resolution:=optional,
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
@@ -128,6 +128,9 @@
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.database.utils.jdbc;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.database.utils.jdbc.exceptions;
+                            version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.application.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt.*; version="${carbon.identity.package.import.version.range}",
@@ -147,13 +150,20 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.input.validation.mgt.services;
                             version="${carbon.identity.package.import.version.range}",
+                            com.nimbusds.jose.*; version="${nimbusds.osgi.version.range}",
+                            com.nimbusds.jwt; version="${nimbusds.osgi.version.range}",
+                            org.wso2.carbon.identity.user.profile.mgt.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.execution.internal,
-                            !org.wso2.carbon.identity.flow.execution.engine.util,
+                            org.wso2.carbon.identity.flow.execution.engine.util,
                             org.wso2.carbon.identity.flow.execution.engine,
                             org.wso2.carbon.identity.flow.execution.engine.core,
                             org.wso2.carbon.identity.flow.execution.engine.cache,
+                            org.wso2.carbon.identity.flow.execution.engine.store,
+                            org.wso2.carbon.identity.flow.execution.engine.dao,
                             org.wso2.carbon.identity.flow.execution.engine.model,
                             org.wso2.carbon.identity.flow.execution.engine.listener,
                             org.wso2.carbon.identity.flow.execution.engine.validation,

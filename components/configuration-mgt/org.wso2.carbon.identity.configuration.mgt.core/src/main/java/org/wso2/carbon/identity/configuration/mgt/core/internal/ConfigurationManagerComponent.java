@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,31 +26,21 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManagerImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.CachedBackedConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MSSQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MYSQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_ORACLE;
-import static org.wso2.carbon.identity.core.util.JdbcUtils.isMSSqlDB;
-import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of configuration management
@@ -81,15 +71,15 @@ public class ConfigurationManagerComponent {
             bundleContext.registerService(ConfigurationDAO.class.getName(),
                     new CachedBackedConfigurationDAO(configurationDAO), null);
 
+            ConfigurationManagerComponentDataHolder.getInstance()
+                    .setConfigurationManagementEnabled(ConfigurationUtils.isConfigurationManagementEnabled());
+            ConfigurationUtils.setUseCreatedTime();
             ConfigurationManagerConfigurationHolder configurationManagerConfigurationHolder =
                     new ConfigurationManagerConfigurationHolder();
             configurationManagerConfigurationHolder.setConfigurationDAOS(configurationDAOs);
 
             bundleContext.registerService(ConfigurationManager.class.getName(),
                     new ConfigurationManagerImpl(configurationManagerConfigurationHolder), null);
-            ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled
-                    (isConfigurationManagementEnabled());
-            setUseCreatedTime();
         } catch (Throwable e) {
             log.error("Error while activating ConfigurationManagerComponent.", e);
         }
@@ -166,47 +156,37 @@ public class ConfigurationManagerComponent {
         ConfigurationManagerComponentDataHolder.getInstance().setRealmService(null);
     }
 
-    private void setUseCreatedTime() throws DataAccessException {
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
 
-        if (ConfigurationManagerComponentDataHolder.getInstance().isConfigurationManagementEnabled() &&
-                isCreatedTimeFieldExists()) {
-            ConfigurationManagerComponentDataHolder.setUseCreatedTime(true);
-        } else {
-            ConfigurationManagerComponentDataHolder.setUseCreatedTime(false);
-        }
+        ConfigurationManagerComponentDataHolder.getInstance().setOrganizationManager(organizationManager);
     }
 
-    private boolean isCreatedTimeFieldExists() {
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-
-            /*
-            DB scripts without CREATED_TIME field can exists for H2 and MYSQL 5.7.
-             */
-            String sql = GET_CREATED_TIME_COLUMN_MYSQL;
-
-            if (isMSSqlDB()) {
-                sql = GET_CREATED_TIME_COLUMN_MSSQL;
-            } else if (isOracleDB()) {
-                sql = GET_CREATED_TIME_COLUMN_ORACLE;
-            }
-            try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
-                 ResultSet resultSet = preparedStatement.executeQuery()) {
-                // Following statement will throw SQLException if the column is not found
-                resultSet.findColumn(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
-                // If we are here then the column exists.
-                return true;
-            } catch (SQLException e) {
-                return false;
-            }
-        } catch (IdentityRuntimeException | SQLException | DataAccessException e) {
-            return false;
-        }
+        ConfigurationManagerComponentDataHolder.getInstance().setOrganizationManager(null);
     }
 
-    private boolean isConfigurationManagementEnabled() {
+    @Reference(
+            name = "org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service",
+            service = OrgResourceResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrgResourceResolverService"
+    )
+    protected void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
 
-        return IdentityDatabaseUtil.isTableExists("IDN_CONFIG_TYPE") && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_RESOURCE")
-                && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_ATTRIBUTE") && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_FILE");
+        ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
+    }
+
+    protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(null);
     }
 }

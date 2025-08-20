@@ -20,12 +20,13 @@ package org.wso2.carbon.identity.webhook.management.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriber;
-import org.wso2.carbon.identity.webhook.management.api.service.EventSubscriberService;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.subscription.management.api.service.SubscriptionManagementService;
+import org.wso2.carbon.identity.topic.management.api.service.TopicManagementService;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
+import org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService;
+import org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService;
 
 /**
  * Webhook Management Component Service Holder.
@@ -36,8 +37,13 @@ public class WebhookManagementComponentServiceHolder {
     private static final Log LOG = LogFactory.getLog(WebhookManagementComponentServiceHolder.class);
     private static final WebhookManagementComponentServiceHolder INSTANCE =
             new WebhookManagementComponentServiceHolder();
-    private List<EventSubscriber> eventSubscribers = new ArrayList<>();
-    private EventSubscriberService eventSubscriberService;
+    private SecretManager secretManager;
+    private SecretResolveManager secretResolveManager;
+    private TopicManagementService topicManagementService;
+    private SubscriptionManagementService subscriptionManagementService;
+    private WebhookMetadataService webhookMetadataService;
+    private EventAdapterMetadataService eventAdapterMetadataService;
+    private Adapter webhookAdapter;
 
     private WebhookManagementComponentServiceHolder() {
 
@@ -49,54 +55,143 @@ public class WebhookManagementComponentServiceHolder {
     }
 
     /**
-     * Get all registered webhook subscribers.
+     * Get the SecretManager.
      *
-     * @return List of WebhookSubscriber instances.
+     * @return SecretManager instance.
      */
-    public List<EventSubscriber> getEventSubscribers() {
+    public SecretManager getSecretManager() {
 
-        return Collections.unmodifiableList(eventSubscribers);
+        return secretManager;
     }
 
     /**
-     * Add an event subscriber.
+     * Set the SecretManager.
      *
-     * @param eventSubscriber EventSubscriber instance to add.
+     * @param secretManager SecretManager instance.
      */
-    public void addEventSubscriber(EventSubscriber eventSubscriber) {
+    public void setSecretManager(SecretManager secretManager) {
 
-        LOG.debug("Adding webhook subscriber: " + eventSubscriber.getName());
-        eventSubscribers.add(eventSubscriber);
+        this.secretManager = secretManager;
     }
 
     /**
-     * Remove an event subscriber.
+     * Get the SecretResolveManager.
      *
-     * @param eventSubscriber EventSubscriber instance to remove.
+     * @return SecretResolveManager instance.
      */
-    public void removeEventSubscriber(EventSubscriber eventSubscriber) {
+    public SecretResolveManager getSecretResolveManager() {
 
-        LOG.debug("Removing event subscriber: " + eventSubscriber.getName());
-        eventSubscribers.remove(eventSubscriber);
+        return secretResolveManager;
     }
 
     /**
-     * Get the EventSubscriberService.
+     * Set the SecretResolveManager.
      *
-     * @return EventSubscriberService instance.
+     * @param secretResolveManager SecretResolveManager instance.
      */
-    public EventSubscriberService getEventSubscriberService() {
+    public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
 
-        return eventSubscriberService;
+        this.secretResolveManager = secretResolveManager;
     }
 
     /**
-     * Set the EventSubscriberService.
+     * Get the TopicManagementService.
      *
-     * @param eventSubscriberService EventSubscriberService instance.
+     * @return TopicManagementService instance.
      */
-    public void setEventSubscriberService(EventSubscriberService eventSubscriberService) {
+    public TopicManagementService getTopicManagementService() {
 
-        this.eventSubscriberService = eventSubscriberService;
+        return topicManagementService;
+    }
+
+    /**
+     * Set the TopicManagementService.
+     *
+     * @param topicManagementService TopicManagementService instance.
+     */
+    public void setTopicManagementService(TopicManagementService topicManagementService) {
+
+        this.topicManagementService = topicManagementService;
+    }
+
+    /**
+     * Get the SubscriptionManagementService.
+     *
+     * @return SubscriptionManagementService instance.
+     */
+    public SubscriptionManagementService getSubscriptionManagementService() {
+
+        return subscriptionManagementService;
+    }
+
+    /**
+     * Set the SubscriptionManagementService.
+     *
+     * @param subscriptionManagementService SubscriptionManagementService instance.
+     */
+    public void setSubscriptionManagementService(SubscriptionManagementService subscriptionManagementService) {
+
+        this.subscriptionManagementService = subscriptionManagementService;
+    }
+
+    /**
+     * Get the webhook metadata service.
+     *
+     * @return Webhook metadata service.
+     */
+    public WebhookMetadataService getWebhookMetadataService() {
+
+        return webhookMetadataService;
+    }
+
+    /**
+     * Set the webhook metadata service.
+     *
+     * @param webhookMetadataService Webhook metadata service.
+     */
+    public void setWebhookMetadataService(WebhookMetadataService webhookMetadataService) {
+
+        this.webhookMetadataService = webhookMetadataService;
+    }
+
+    /**
+     * Get the event adapter metadata service.
+     *
+     * @return EventAdapterMetadataService instance.
+     */
+    public EventAdapterMetadataService getEventAdapterMetadataService() {
+
+        return eventAdapterMetadataService;
+    }
+
+    /**
+     * Set the event adapter metadata service.
+     *
+     * @param eventAdapterMetadataService EventAdapterMetadataService instance.
+     */
+    public void setEventAdapterMetadataService(EventAdapterMetadataService eventAdapterMetadataService) {
+
+        this.eventAdapterMetadataService = eventAdapterMetadataService;
+    }
+
+    /**
+     * Get the webhook adapter.
+     *
+     * @return WebhookAdapter instance.
+     */
+    public Adapter getWebhookAdapter() {
+
+        return webhookAdapter;
+    }
+
+    /**
+     * Set the webhook adapter.
+     *
+     * @param webhookAdapter WebhookAdapter instance.
+     */
+    public void setWebhookAdapter(Adapter webhookAdapter) {
+
+        this.webhookAdapter = webhookAdapter;
+        LOG.debug("Webhook adapter set to type " + webhookAdapter.getType());
     }
 }

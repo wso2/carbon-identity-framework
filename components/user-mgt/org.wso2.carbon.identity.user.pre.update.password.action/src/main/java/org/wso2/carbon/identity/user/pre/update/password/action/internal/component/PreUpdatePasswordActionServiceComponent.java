@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorServi
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionExecutor;
@@ -42,6 +44,7 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.executi
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionConverter;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionDTOModelResolver;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * Service component for the Pre Update Password Action.
@@ -131,5 +134,60 @@ public class PreUpdatePasswordActionServiceComponent {
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setActionExecutorService(null);
         LOG.debug("ActionExecutorService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "realm.service",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
+    protected void setRealmService(RealmService realmService) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
+        LOG.debug("RealmService set in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(null);
+        LOG.debug("RealmService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "claim.metadata.management.service",
+            service = org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService")
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setClaimManagementService(claimManagementService);
+        LOG.debug("ClaimMetadataManagementService set in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setClaimManagementService(null);
+        LOG.debug("ClaimMetadataManagementService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "organization.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("Organization management service set in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("Organization management service unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
     }
 }

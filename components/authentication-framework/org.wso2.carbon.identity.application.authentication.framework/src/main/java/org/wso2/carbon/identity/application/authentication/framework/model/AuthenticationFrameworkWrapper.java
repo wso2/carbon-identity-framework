@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
@@ -155,5 +157,29 @@ public class AuthenticationFrameworkWrapper extends HttpServletRequestWrapper {
      */
     public void addHeader(String key, String values) {
         modifiableHeaders.put(key, values);
+    }
+
+    /**
+     * Modified cookies from the request wrapper. Exclude and return the commonAuthId cookie,
+     * if the request attribute "removeCommonAuthCookie" is set to true.
+     */
+    @Override
+    public Cookie[] getCookies() {
+
+        // Exclude and return the commonAuthId cookie, if the request attribute "removeCommonAuthCookie" is set to true.
+        Cookie[] cookies = super.getCookies();
+
+        if (cookies == null || !Boolean.TRUE.equals(super.getAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE))) {
+            return cookies;
+        }
+
+        List<Cookie> filteredCookies = new ArrayList<>();
+        for (Cookie cookie : cookies) {
+            if (!FrameworkConstants.COMMONAUTH_COOKIE.equals(cookie.getName())) {
+                filteredCookies.add(cookie);
+            }
+        }
+
+        return filteredCookies.toArray(new Cookie[0]);
     }
 }

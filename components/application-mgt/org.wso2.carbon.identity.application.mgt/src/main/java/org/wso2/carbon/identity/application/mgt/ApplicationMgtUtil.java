@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -105,7 +106,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_A
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TENANT_DOMAIN_PLACEHOLDER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Few common utility functions related to Application (aka. Service Provider) Management.
@@ -1113,7 +1113,7 @@ public class ApplicationMgtUtil {
     public static boolean isLegacyAuditLogsDisabledInAppMgt() {
 
         return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
-                || isLegacyAuditLogsDisabled();
+                || isEnableV2AuditLogs();
     }
 
     /**
@@ -1186,6 +1186,22 @@ public class ApplicationMgtUtil {
     public static String resolveOriginUrlFromPlaceholders(String absoluteUrl, String appName)
             throws URLBuilderException {
 
+        return resolveOriginUrlFromPlaceholders(absoluteUrl, appName, false);
+    }
+
+    /**
+     * This method is used to replace placeholders with the hostname and port of URLs for the portal apps.
+     *
+     * @param absoluteUrl                       The URL which need to resolve from placeholders.
+     * @param appName                           Application name.
+     * @param subOrgAppWithBaseURLPlaceholder   If provided app is a shared app containing baseURL placeholder.
+     * @return The resolved URL from placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String resolveOriginUrlFromPlaceholders(String absoluteUrl, String appName,
+                                                          boolean subOrgAppWithBaseURLPlaceholder)
+            throws URLBuilderException {
+
         if (StringUtils.isEmpty(appName)) {
             return resolveOriginUrlFromPlaceholders(absoluteUrl);
         }
@@ -1194,6 +1210,10 @@ public class ApplicationMgtUtil {
             basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
         } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(MYACCOUNT_ACCESS_ORIGIN);
+        }
+
+        if (subOrgAppWithBaseURLPlaceholder) {
+            basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
         }
 
         if (StringUtils.isEmpty(basePath)) {
@@ -1335,6 +1355,7 @@ public class ApplicationMgtUtil {
                 }
                 break;
             case ApplicationConstants.ApplicationVersion.APP_VERSION_V2:
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V3:
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + currentVersion);
@@ -1465,5 +1486,24 @@ public class ApplicationMgtUtil {
         } catch (UserStoreException e) {
             log.warn("Error while retrieving group name for group ID: " + groupID, e);
         }
+    }
+
+    /**
+     * Check if a Service Provider property should be updated.
+     *
+     * @param expectedValue Expected value for the property.
+     * @param propertyName  Name of the SP property.
+     * @param application   The application that will be updated.
+     * @return true if the property should be updated, false otherwise.
+     */
+    public static boolean shouldUpdateSpProperty(String expectedValue, String propertyName,
+                                                 ServiceProvider application) {
+
+        Optional<String> existingValue = Arrays.stream(application.getSpProperties())
+                .filter(p -> propertyName.equals(p.getName()))
+                .map(ServiceProviderProperty::getValue)
+                .findFirst();
+
+        return !existingValue.isPresent() || !Objects.equals(expectedValue, existingValue.get());
     }
 }

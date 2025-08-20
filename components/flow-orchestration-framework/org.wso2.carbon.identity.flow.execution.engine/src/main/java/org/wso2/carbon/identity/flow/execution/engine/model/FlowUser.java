@@ -18,10 +18,39 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.core.util.CryptoException;
+import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 
 /**
@@ -30,18 +59,36 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_
 public class FlowUser implements Serializable {
 
     private static final long serialVersionUID = -1873658743998134877L;
+    private static final Log LOG = LogFactory.getLog(FlowUser.class);
+
     private final Map<String, String> claims = new HashMap<>();
+
+    @JsonProperty("userCredentials")
+    @JsonSerialize(using = UserCredentialsSerializer.class)
+    @JsonDeserialize(using = UserCredentialsDeserializer.class)
     private final Map<String, char[]> userCredentials = new HashMap<>();
+
+    private final Map<String, String> federatedAssociations = new HashMap<>();
+
+    @JsonProperty("username")
     private String username;
 
+    private String userId;
+    private String userStoreDomain;
+
+    @JsonIgnore
     public String getUsername() {
 
-        if (username == null) {
+        if (StringUtils.isBlank(username)) {
             username = claims.get(USERNAME_CLAIM_URI);
+        }
+        if (StringUtils.isBlank(username)) {
+            return resolveUsername(this, IdentityTenantUtil.getTenantDomainFromContext());
         }
         return username;
     }
 
+    @JsonIgnore
     public void setUsername(String username) {
 
         this.username = username;
@@ -75,6 +122,138 @@ public class FlowUser implements Serializable {
 
     public void setUserCredentials(Map<String, char[]> credentials) {
 
+        this.userCredentials.clear();
         this.userCredentials.putAll(credentials);
+    }
+
+    public String getUserId() {
+
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+
+        this.userId = userId;
+    }
+
+    public String getUserStoreDomain() {
+
+        return userStoreDomain;
+    }
+
+    public void setUserStoreDomain(String userStoreDomain) {
+
+        this.userStoreDomain = userStoreDomain;
+    }
+
+    public Map<String, String> getFederatedAssociations() {
+
+        return federatedAssociations;
+    }
+
+    public void addFederatedAssociation(String idpName, String idpSubject) {
+
+        this.federatedAssociations.put(idpName, idpSubject);
+    }
+
+    private String resolveUsername(FlowUser user, String tenantDomain) {
+
+        String username = Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse("");
+        if (StringUtils.isNotBlank(username)) {
+            return username;
+        }
+        try {
+            if ((FlowExecutionEngineUtils.isEmailUsernameValidator(tenantDomain) ||
+                    IdentityUtil.isEmailUsernameEnabled())
+                    && StringUtils.isNotBlank((String) user.getClaim(EMAIL_ADDRESS_CLAIM))) {
+                return (String) user.getClaim(EMAIL_ADDRESS_CLAIM);
+            }
+        } catch (FlowEngineException e) {
+            LOG.error("Error while resolving username for the user in the flow.", e);
+        }
+        username = UUID.randomUUID().toString();
+        UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+        return username;
+    }
+
+    /**
+     * Custom serializer for user credentials.
+     * This is used to encrypt the user credentials before serializing to JSON.
+     */
+    public static class UserCredentialsSerializer extends JsonSerializer<Map<String, char[]>> {
+
+        @Override
+        public void serialize(Map<String, char[]> value, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
+
+            Map<String, String> encrypted = new HashMap<>();
+            for (Map.Entry<String, char[]> entry : value.entrySet()) {
+                char[] chars = entry.getValue();
+                byte[] bytes = null;
+                try {
+                    // Encode char[] directly to byte[] using UTF-8.
+                    bytes = StandardCharsets.UTF_8.encode(CharBuffer.wrap(chars)).array();
+                    String encryptedVal = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(bytes);
+                    encrypted.put(entry.getKey(), encryptedVal);
+                } catch (CryptoException e) {
+                    throw new IOException("Error while encrypting user credentials.", e);
+                } finally {
+                    // Wipe the byte array to prevent credential leakage.
+                    if (bytes != null) {
+                        java.util.Arrays.fill(bytes, (byte) 0);
+                    }
+                }
+            }
+            gen.writeObject(encrypted);
+        }
+
+    }
+
+    /**
+     * Custom deserializer for user credentials.
+     * This is used to decrypt the user credentials from the JSON representation.
+     */
+    public static class UserCredentialsDeserializer extends JsonDeserializer<Map<String, char[]>> {
+
+        @Override
+        public Map<String, char[]> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+
+            Map<String, char[]> decrypted = new HashMap<>();
+            try {
+                Map<String, String> encrypted = p.readValueAs(new StringMapTypeReference());
+                for (Map.Entry<String, String> entry : encrypted.entrySet()) {
+                    byte[] decoded = null;
+                    CharBuffer charBuffer = null;
+                    try {
+                        decoded = CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(entry.getValue());
+                        // Decode byte[] directly to CharBuffer and then to char[].
+                        charBuffer = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(decoded));
+                        char[] chars = new char[charBuffer.remaining()];
+                        charBuffer.get(chars);
+                        decrypted.put(entry.getKey(), chars);
+                    } catch (CryptoException e) {
+                        throw new IOException("Error while decrypting user credentials.", e);
+                    } finally {
+                        // Wipe sensitive data.
+                        if (decoded != null) {
+                            java.util.Arrays.fill(decoded, (byte) 0);
+                        }
+                        if (charBuffer != null) {
+                            charBuffer.clear();
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                throw e;
+            }
+            return decrypted;
+        }
+    }
+
+    /**
+     * Static type reference to avoid anonymous inner class.
+     */
+    private static final class StringMapTypeReference extends TypeReference<Map<String, String>> {
+
     }
 }

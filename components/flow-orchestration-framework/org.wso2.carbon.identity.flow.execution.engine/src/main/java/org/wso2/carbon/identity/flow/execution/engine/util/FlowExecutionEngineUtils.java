@@ -30,8 +30,6 @@ import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
@@ -43,22 +41,29 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.store.FlowContextStore;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 
 /**
  * Utility class for flow engine.
@@ -67,16 +72,21 @@ public class FlowExecutionEngineUtils {
 
     private static final Log LOG = LogFactory.getLog(FlowExecutionEngineUtils.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String USERNAME = "username";
+
 
     /**
      * Add flow context to cache.
      *
      * @param context Flow context.
      */
-    public static void addFlowContextToCache(FlowExecutionContext context) {
+    public static void addFlowContextToCache(FlowExecutionContext context) throws FlowEngineException {
 
+        // Persist an optimized version of the context in the cache and flow context store.
+        optimizeContext(context);
         FlowExecCtxCacheEntry cacheEntry = new FlowExecCtxCacheEntry(context);
         FlowExecCtxCacheKey cacheKey = new FlowExecCtxCacheKey(context.getContextIdentifier());
+        FlowExecCtxCache.getInstance().clearCacheEntry(cacheKey);
         FlowExecCtxCache.getInstance().addToCache(cacheKey, cacheEntry);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow context added to cache for context id: " + context.getContextIdentifier());
@@ -86,22 +96,22 @@ public class FlowExecutionEngineUtils {
     /**
      * Retrieve flow context from cache.
      *
-     * @param flowType Type of the flow.
      * @param contextId Context identifier.
      * @return Flow context.
      * @throws FlowEngineException Flow engined exception.
      */
-    public static FlowExecutionContext retrieveFlowContextFromCache(String flowType, String contextId) throws FlowEngineException {
+    public static FlowExecutionContext retrieveFlowContextFromCache(String contextId)
+            throws FlowEngineException {
 
         if (contextId == null) {
-            throw handleClientException(ERROR_CODE_UNDEFINED_FLOW_ID, flowType);
+            throw handleClientException(ERROR_CODE_UNDEFINED_FLOW_ID);
         }
         FlowExecCtxCacheEntry entry =
                 FlowExecCtxCache.getInstance().getValueFromCache(new FlowExecCtxCacheKey(contextId));
         if (entry == null) {
             throw handleClientException(ERROR_CODE_INVALID_FLOW_ID, contextId);
         }
-        return entry.getContext();
+        return populateOptimizedContext(entry);
     }
 
     /**
@@ -109,7 +119,7 @@ public class FlowExecutionEngineUtils {
      *
      * @param contextId Context identifier.
      */
-    public static void removeFlowContextFromCache(String contextId) {
+    public static void removeFlowContextFromCache(String contextId) throws FlowEngineException {
 
         if (contextId == null) {
             if (LOG.isDebugEnabled()) {
@@ -121,6 +131,28 @@ public class FlowExecutionEngineUtils {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow context removed from cache for context id: " + contextId + ".");
         }
+    }
+
+    private static void optimizeContext(FlowExecutionContext context) {
+
+        context.setGraphConfig(null);
+    }
+
+    private static FlowExecutionContext populateOptimizedContext(FlowExecCtxCacheEntry entry)
+            throws FlowEngineServerException {
+
+        FlowExecutionContext context = entry.getContext();
+        if (context != null) {
+            String flowType = context.getFlowType();
+            try {
+                context.setGraphConfig(
+                        FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
+                                .getGraphConfig(flowType, IdentityTenantUtil.getTenantId(context.getTenantDomain())));
+            } catch (FlowMgtFrameworkException e) {
+                throw handleServerException(ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType, context.getTenantDomain(), e);
+            }
+        }
+        return context;
     }
 
     /**
@@ -135,6 +167,9 @@ public class FlowExecutionEngineUtils {
             throws FlowEngineException {
 
         try {
+            if (StringUtils.isBlank(flowType)) {
+                throw handleClientException(ERROR_CODE_FLOW_TYPE_NOT_PROVIDED);
+            }
             FlowExecutionContext context = new FlowExecutionContext();
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             GraphConfig graphConfig =
@@ -149,11 +184,14 @@ public class FlowExecutionEngineUtils {
             context.setContextIdentifier(UUID.randomUUID().toString());
             context.setApplicationId(applicationId);
             context.setFlowType(flowType);
-            context.setCallbackUrl(ServiceURLBuilder.create().addPath(DEFAULT_REGISTRATION_CALLBACK).build()
-                    .getAbsolutePublicURL());
+
+            FlowConfigDTO flowConfigDTO = FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
+                    .getFlowConfig(flowType, IdentityTenantUtil.getTenantId(tenantDomain));
+            if (flowConfigDTO != null) {
+                context.setGenerateAuthenticationAssertion(flowConfigDTO.getIsAutoLoginEnabled());
+            }
+
             return context;
-        } catch (URLBuilderException e) {
-            throw handleServerException(ERROR_CODE_RESOLVE_DEFAULT_CALLBACK_FAILURE, flowType, tenantDomain);
         } catch (IdentityRuntimeException e) {
             throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         } catch (FlowMgtFrameworkException e) {
@@ -164,7 +202,6 @@ public class FlowExecutionEngineUtils {
     /**
      * Rollback the flow context.
      *
-     * @param flowType Type of the flow.
      * @param contextId Context identifier.
      */
     public static void rollbackContext(String flowType, String contextId) {
@@ -174,7 +211,7 @@ public class FlowExecutionEngineUtils {
             return;
         }
         try {
-            FlowExecutionContext context = retrieveFlowContextFromCache(flowType, contextId);
+            FlowExecutionContext context = retrieveFlowContextFromCache(contextId);
             if (context != null) {
                 context.getCompletedNodes().forEach((config) -> {
                     if (Constants.NodeTypes.TASK_EXECUTION.equals(config.getType())) {
@@ -342,12 +379,44 @@ public class FlowExecutionEngineUtils {
     }
 
     public static Map<String, Object> getMapFromJSONString(String json) throws FlowEngineServerException {
+
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            });
         } catch (JsonProcessingException e) {
             throw handleServerException(
                     ErrorMessages.ERROR_CODE_NODE_RESPONSE_PROCESSING_FAILURE, e,
                     "JSON String to Map conversion failed.");
         }
+    }
+
+    public static boolean isEmailUsernameValidator(String tenantDomain) throws FlowEngineServerException {
+
+        List<String> usernameValidators = getUsernameValidators(tenantDomain);
+        return usernameValidators.contains(EMAIL_FORMAT_VALIDATOR);
+    }
+
+    private static List<String> getUsernameValidators(String tenantDomain) throws FlowEngineServerException {
+
+        List<String> usernameValidators = new ArrayList<>();
+        try {
+            List<ValidationConfiguration> validationConfigurations = FlowExecutionEngineDataHolder.getInstance()
+                    .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
+            for (ValidationConfiguration config : validationConfigurations) {
+                if (!USERNAME.equals(config.getField())) {
+                    continue;
+                }
+
+                if (config.getRules() != null && !config.getRules().isEmpty()) {
+                    config.getRules().forEach(rule -> {
+                        usernameValidators.add(rule.getValidatorName());
+                    });
+                }
+            }
+        } catch (InputValidationMgtException e) {
+            LOG.error("Error while retrieving input validation configurations for tenant: " + tenantDomain, e);
+            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, tenantDomain);
+        }
+        return usernameValidators;
     }
 }

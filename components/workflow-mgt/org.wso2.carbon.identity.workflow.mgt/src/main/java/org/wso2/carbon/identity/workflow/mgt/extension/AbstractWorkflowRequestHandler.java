@@ -40,6 +40,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Abstract class for workflow request handler.
+ */
 public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestHandler {
 
     private static final Log log = LogFactory.getLog(AbstractWorkflowRequestHandler.class);
@@ -66,8 +69,8 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
     /**
      * Start a new workflow.
      *
-     * @param wfParams    Parameters related to workflow
-     * @param nonWfParams Other parameters
+     * @param wfParams    Parameters related to workflow.
+     * @param nonWfParams Other parameters.
      * @return
      * @throws WorkflowException
      */
@@ -80,9 +83,9 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
     /**
      * Start a new workflow.
      *
-     * @param wfParams    Parameters related to workflow
-     * @param nonWfParams Other parameters
-     * @param uuid        Unique ID of request
+     * @param wfParams    Parameters related to workflow.
+     * @param nonWfParams Other parameters.
+     * @param uuid        Unique ID of request.
      * @return
      * @throws WorkflowException
      */
@@ -92,9 +95,6 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
 
         if (isWorkflowCompleted()) {
             return new WorkflowExecutorResult(ExecutorResultState.COMPLETED);
-        }
-        if (!isAssociated()) {
-            return new WorkflowExecutorResult(ExecutorResultState.NO_ASSOCIATION);
         }
 
         WorkflowRequest workFlowRequest = new WorkflowRequest();
@@ -151,11 +151,11 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
     }
 
     /**
-     * Wraps the parameters to the WorkflowParameter
+     * Wraps the parameters to the WorkflowParameter.
      *
-     * @param name     Name of the parameter
-     * @param value    Value of the parameter
-     * @param required Whether it is required to sent to the workflow executor
+     * @param name     Name of the parameter.
+     * @param value    Value of the parameter.
+     * @param required Whether it is required to sent to the workflow executor.
      * @return
      */
     protected RequestParameter getParameter(String name, Object value, boolean required)
@@ -206,11 +206,11 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
     }
 
     /**
-     * Callback method from the executor
+     * Callback method from the executor.
      *
-     * @param status                   The return status from the workflow executor
-     * @param requestParams            The params that were in the original request
-     * @param responseAdditionalParams The params sent from the workflow executor
+     * @param status                   The return status from the workflow executor.
+     * @param requestParams            The params that were in the original request.
+     * @param responseAdditionalParams The params sent from the workflow executor.
      * @param tenantId
      */
     public abstract void onWorkflowCompletion(String status, Map<String, Object> requestParams, Map<String, Object>
@@ -219,16 +219,16 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
     /**
      * Whether the same request is initiated at the callback. If set to <code>true</code>, this will take actions to
      * skip the request initiated at the callback.
-     * <b>Note:</b> Do not set this to true unless necessary, It will lead to memory leaks
+     * <b>Note:</b> Do not set this to true unless necessary, It will lead to memory leaks.
      *
      * @return
      */
     public abstract boolean retryNeedAtCallback();
 
     /**
-     * Check if an operation engaged with a workflow valid to execute
+     * Check if an operation engaged with a workflow valid to execute.
      *
-     * @param entities Array of entities involved in operation
+     * @param entities Array of entities involved in operation.
      * @return
      */
     public boolean isValidOperation(Entity[] entities) throws WorkflowException {
@@ -245,7 +245,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
      * We can check whether the current event type is already associated with
      * at-least one association or not by using isAssociated method.
      *
-     * @return Boolean value for result of isAssociated
+     * @return Boolean value for result of isAssociated.
      * @throws WorkflowException
      */
     public boolean isAssociated() throws WorkflowException {

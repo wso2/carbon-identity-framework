@@ -95,11 +95,11 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME = "SELECT ID, APP_NAME, VERSION, " +
             "DESCRIPTION FROM SP_APP WHERE TENANT_ID = ? AND APP_NAME != ? AND (%s) ORDER BY ID DESC";
 
-    public static final String LOAD_APP_IDS_BY_SP_PROPERTY_H2 = "SELECT SP_APP.UUID FROM SP_APP JOIN " +
+    public static final String LOAD_APP_IDS_BY_SP_PROPERTY_H2 = "SELECT SP_APP.UUID, SP_APP.ID FROM SP_APP JOIN " +
             "SP_METADATA ON SP_APP.ID = SP_METADATA.SP_ID WHERE SP_METADATA.NAME=? and " +
             "SP_METADATA.`VALUE`=? AND SP_METADATA.TENANT_ID = ?";
 
-    public static final String LOAD_APP_IDS_BY_SP_PROPERTY = "SELECT SP_APP.UUID FROM SP_APP JOIN " +
+    public static final String LOAD_APP_IDS_BY_SP_PROPERTY = "SELECT SP_APP.UUID, SP_APP.ID FROM SP_APP JOIN " +
             "SP_METADATA ON SP_APP.ID = SP_METADATA.SP_ID WHERE SP_METADATA.NAME=? and " +
             "SP_METADATA.VALUE=? AND SP_METADATA.TENANT_ID = ?";
 
@@ -551,6 +551,12 @@ public class ApplicationMgtDBQueries {
             "SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID WHERE SP_FEDERATED_IDP.AUTHENTICATOR_ID = ? AND SP_APP.AUTH_TYPE = ?";
 
     public static final String GET_MAIN_APP_ID = "SELECT MAIN_APP_ID FROM SP_SHARED_APP WHERE SHARED_APP_ID = ?";
+
+    public static final String GET_SHARED_APP_ID_BY_MAIN_APP_ID =
+            "SELECT SHARED_APP_ID FROM SP_SHARED_APP WHERE MAIN_APP_ID = :" +
+                    SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID + "; AND OWNER_ORG_ID = :" +
+                    SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID + "; AND SHARED_ORG_ID = :" +
+                    SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SHARED_ORG_ID + ";";
 
     public static final String GET_OWNER_ORG_ID_BY_SHARED_APP_ID =
             "SELECT OWNER_ORG_ID FROM SP_SHARED_APP WHERE SHARED_APP_ID = :" +

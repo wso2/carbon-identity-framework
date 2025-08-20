@@ -158,6 +158,10 @@
         <HostName>{{recoveryendpoint.hostname}}</HostName>
         <Path>{{recoveryendpoint.path}}</Path>
     </RecoveryEndpoint>
+    <Accounts>
+        <HostName>{{accounts.hostname}}</HostName>
+        <Path>{{accounts.path}}</Path>
+    </Accounts>
 
     <Identity>
         <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
@@ -895,6 +899,13 @@
             {% else %}
             <EnableJWTCache>{{oauth.grant_type.jwt.enable_jwt_cache}}</EnableJWTCache>
             {% endif %}
+            <!-- When enabling this configuration, you must enable 'Use user store domain in local subject identifier'.
+            configuration in the SP issuing the id token for exchange. If not, we will not be able to identify the
+            user store domain for the local user.
+             -->
+            {% if oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp is defined %}
+            <EnableTokenExchangeForLocalUsersWithResidentIdP>{{oauth.grant_type.jwt.enable_token_exchange_for_local_users_with_resident_idp}}</EnableTokenExchangeForLocalUsersWithResidentIdP>
+            {% endif %}
         </JWTGrant>
 
         <SAML2Grant>
@@ -1205,6 +1216,7 @@
             {% endif %}
             <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_enforcement}}</EnableFAPIEnforcement>
             <EnableSectorIdentifierURIValidation>{{oauth.dcr.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
+            <ReturnNullFieldsInResponse>{{oauth.dcrm.return_null_fields_in_response}}</ReturnNullFieldsInResponse>
         </DCRM>
 
         <!--
@@ -1288,6 +1300,7 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+        <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
 
         {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
         <JWT>
@@ -1360,7 +1373,7 @@
             Default value : false
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
-        <UserSessionImpersonation>{{oauth.enable_user_session_impersonation}}</UserSessionImpersonation>
+        <ReturnSpIdToApplication>{{oauth.return_sp_id_to_apps}}</ReturnSpIdToApplication>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1483,6 +1496,10 @@
     <UserAccountAssociation>
             <EnableSHA256Key>{{user_account_association.enable_sha256}}</EnableSHA256Key>
     </UserAccountAssociation>
+
+    <FederatedUserAccountAssociation>
+        <MaxBulkOperations>{{federated_user_account_association.max_bulk_operations}}</MaxBulkOperations>
+    </FederatedUserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
@@ -1648,7 +1665,13 @@
         {% if scim2.enable_error_code_for_password_policy_violations is defined %}
             <EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>
         {% endif %}
+
+        <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
     </SCIM2>
+
+    <Captcha>
+        <EnableCaptchaForLocalOTPAuthenticators>{{captcha.enable_captcha_for_local_otp_authenticators}}</EnableCaptchaForLocalOTPAuthenticators>
+    </Captcha>
 
       <PasswordPolicy>
           <MaxPasswordAllowedLength>{{identity_mgt.password_policy.max_password_allowed_length}}</MaxPasswordAllowedLength>
@@ -1770,6 +1793,12 @@
             <Enable>{{identity_mgt.recovery.enable_auto_login}}</Enable>
         </AutoLogin>
     </Recovery>
+
+    <AccountLock>
+        <EmailTemplate>
+            <AdminUnlockForFailedAttempts>{{account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts}}</AdminUnlockForFailedAttempts>
+        </EmailTemplate>
+    </AccountLock>
 
     <Notification>
         <DefaultNotificationChannel>{{identity_mgt.notification.default_notification_channel}}</DefaultNotificationChannel>
@@ -1898,6 +1927,7 @@
     <LoginIdentifiers>
         <Enable>{{identity_mgt.login_identifiers.enable}}</Enable>
         <PrimaryLoginIdentifier>{{identity_mgt.login_identifiers.primary_claim}}</PrimaryLoginIdentifier>
+        <enableIdentifierAsDisplayUsername>{{identity_mgt.login_identifiers.enable_identifier_as_display_username}}</enableIdentifierAsDisplayUsername>
     </LoginIdentifiers>
 
     <UserClaimUpdate>
@@ -2180,6 +2210,9 @@
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
             </PreUpdateProfile>
+            <PreUpdatePassword>
+                <EnableInRegistrationFlows>{{actions.types.pre_update_password.enable_in_registration_flows}}</EnableInRegistrationFlows>
+            </PreUpdatePassword>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
                 <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
@@ -2187,12 +2220,21 @@
         </Types>
     </Actions>
 
+    <Webhooks>
+        <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
+    </Webhooks>
+
     <EventListeners>
         <EventListener id="input_validation"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener"
                        orderId="{{event.default_listener.validation.priority}}"
                        enable="{{event.default_listener.validation.enable}}"/>
+        <EventListener id="data_type_validation"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.input.validation.mgt.listener.DataTypeValidationListener"
+                       orderId="{{event.default_listener.data_type_validation.priority}}"
+                       enable="{{event.default_listener.data_type_validation.enable}}"/>
         <EventListener id="identity_mgt"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.IdentityMgtEventListener"
@@ -2475,6 +2517,18 @@
                        name="org.wso2.carbon.extension.identity.verification.mgt.listeners.IdVUserOperationEventListener"
                        orderId="{{event.default_listener.identity_verification_event_listener.priority}}"
                        enable="{{event.default_listener.identity_verification_event_listener.enable}}"/>
+
+       <!-- Workflow event listeners -->
+       <EventListener id="identity_user_workflow_operation"
+                      type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
+                      orderId="{{event.default_listener.identity_user_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_user_workflow_operation.enable}}"/>
+       <EventListener id="identity_role_workflow_operation"
+                      type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
+                      name="org.wso2.carbon.user.mgt.workflow.userstore.RoleManagementActionListener"
+                      orderId="{{event.default_listener.identity_role_workflow_operation.priority}}"
+                      enable="{{event.default_listener.identity_role_workflow_operation.enable}}"/>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
@@ -3941,6 +3995,7 @@
                     <Path>/api/users/v1/offline-invite-link</Path>
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/me/push/devices</Path>
+                    <Path>/api/server/v1/flow/execute</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3951,6 +4006,9 @@
             </Context>
             <Context>
                 <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accounts/</BasePath>
             </Context>
         </WebApp>
         <Servlet>
@@ -4367,6 +4425,7 @@
 
     <CommonAuthCallerPath>
         <EnableValidation>{{common_auth_caller_path.enable_common_auth_caller_path_validation}}</EnableValidation>
+        <EnableNestedRedirectParams>{{common_auth_caller_path.enable_nested_redirect_params}}</EnableNestedRedirectParams>
         {% if common_auth_caller_path.default_url is defined %}
         <DefaultUrl>{{common_auth_caller_path.default_url}}</DefaultUrl>
         {% endif %}
@@ -4613,7 +4672,23 @@
             <BrandingAIStatusRequestPath>{{ai_services.branding_ai.status_request_path}}</BrandingAIStatusRequestPath>
             <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
         </BrandingAI>
+        <FlowAI>
+            <Endpoint>{{ai_services.flow_ai.endpoint}}</Endpoint>
+            <GenerateRequestPath>{{ai_services.flow_ai.generate_request_path}}</GenerateRequestPath>
+            <StatusRequestPath>{{ai_services.flow_ai.status_request_path}}</StatusRequestPath>
+            <ResultRequestPath>{{ai_services.flow_ai.result_request_path}}</ResultRequestPath>
+        </FlowAI>
     </AIServices>
+
+    <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
+    <FilterByUniqueSessionIdForUser>{{session_management.filter_by_unique_session_id_for_user}}</FilterByUniqueSessionIdForUser>
+
+    <AgentIdentity>
+        <Enabled>{{agent_identity.enabled}}</Enabled>
+        <Userstore>{{agent_identity.userstore}}</Userstore>
+        <Datasource>{{agent_identity.datasource}}</Datasource>
+        <UserstoreManagerClass>{{agent_identity.userstore_manager_class}}</UserstoreManagerClass>
+    </AgentIdentity>
 
     {% if platform_idp is defined %}
     <PlatformIdp>
@@ -4629,5 +4704,29 @@
     <AsyncOperationStatus>
         <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
     </AsyncOperationStatus>
+
+    <BrandingConfiguration>
+        <CustomContent>
+            <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
+        </CustomContent>
+    </BrandingConfiguration>
+    <FlowExecution>
+        {% if flow_execution.excluded_userstores is defined %}
+        <ExcludedUserstores>
+            {% for userstore in flow_execution.excluded_userstores %}
+            <Userstore>{{userstore}}</Userstore>
+            {% endfor %}
+        </ExcludedUserstores>
+        {% endif %}
+        <UserAssertion>
+            <ExpiryTime>{{flow_execution.user_assertion.expiry_time}}</ExpiryTime>
+        </UserAssertion>
+        <DefaultTTL>{{flow_execution.default_ttl}}</DefaultTTL>
+        <FlowTypeTTLs>
+            {% for flow_type, ttl in flow_execution.flow_type_ttl.items() %}
+            <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
+            {% endfor %}
+        </FlowTypeTTLs>
+    </FlowExecution>
 
 </Server>

@@ -50,7 +50,10 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
         ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD("adminInitiatedUserInviteToSetPassword"),
         APPLICATION_INITIATED_PASSWORD_UPDATE("applicationInitiatedPasswordUpdate"),
         USER_INITIATED_PASSWORD_UPDATE("userInitiatedPasswordUpdate"),
-        USER_INITIATED_PASSWORD_RESET("userInitiatedPasswordReset");
+        USER_INITIATED_PASSWORD_RESET("userInitiatedPasswordReset"),
+        ADMIN_INITIATED_REGISTRATION("adminInitiatedRegistration"),
+        APPLICATION_INITIATED_REGISTRATION("applicationInitiatedRegistration"),
+        USER_INITIATED_REGISTRATION("userInitiatedRegistration");
 
         final String flowName;
 
@@ -91,7 +94,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
 
     private String getFlowFromContext() throws RuleEvaluationDataProviderException {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow.getName() == Flow.Name.PROFILE_UPDATE &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             // Password update is a sub-flow of profile update.
@@ -110,19 +113,34 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
             return PasswordUpdateFlowType.USER_INITIATED_PASSWORD_UPDATE.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.PASSWORD_RESET &&
+        if (flow.getName() == Flow.Name.CREDENTIAL_RESET &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             return PasswordUpdateFlowType.ADMIN_INITIATED_PASSWORD_RESET.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.PASSWORD_RESET &&
+        if (flow.getName() == Flow.Name.CREDENTIAL_RESET &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
             return PasswordUpdateFlowType.USER_INITIATED_PASSWORD_RESET.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD &&
-                flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
+        if ((flow.getName() == Flow.Name.INVITE || flow.getName() ==
+                Flow.Name.INVITED_USER_REGISTRATION) && flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             return PasswordUpdateFlowType.ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD.getFlowName();
+        }
+
+        if (flow.getName() == Flow.Name.REGISTER &&
+                flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
+            return PasswordUpdateFlowType.ADMIN_INITIATED_REGISTRATION.getFlowName();
+        }
+
+        if (flow.getName() == Flow.Name.REGISTER &&
+                flow.getInitiatingPersona() == Flow.InitiatingPersona.APPLICATION) {
+            return PasswordUpdateFlowType.APPLICATION_INITIATED_REGISTRATION.getFlowName();
+        }
+
+        if (flow.getName() == Flow.Name.REGISTER &&
+                flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
+            return PasswordUpdateFlowType.USER_INITIATED_REGISTRATION.getFlowName();
         }
 
         throw new RuleEvaluationDataProviderException("Unsupported flow type: " + flow.getName() +

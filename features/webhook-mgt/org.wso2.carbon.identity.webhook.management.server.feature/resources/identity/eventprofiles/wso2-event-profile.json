@@ -1,38 +1,131 @@
 {
   "profile": "WSO2",
-  "uri": "https://schemas.identity.wso2.org",
+  "uri": "https://schemas.identity.wso2.org/events",
   "channels": [
     {
-      "name": "Login Channel",
-      "description": "This is the login channel",
+      "name": "Logins",
+      "description": "Login success or failed",
       "uri": "https://schemas.identity.wso2.org/events/login",
       "events": [
         {
-          "eventName": "Login Success Event",
-          "eventDescription": "This is the login success event",
+          "eventName": "Login success",
+          "eventDescription": "Notify if login is successful",
           "eventUri": "https://schemas.identity.wso2.org/events/login/event-type/loginSuccess"
         },
         {
-          "eventName": "Login Failure Event",
-          "eventDescription": "This is the login failure event",
+          "eventName": "Login failed",
+          "eventDescription": "Notify if login failed",
           "eventUri": "https://schemas.identity.wso2.org/events/login/event-type/loginFailed"
         }
       ]
     },
     {
-      "name": "Registration Channel",
-      "description": "This is the registration channel",
+      "name": "Sessions",
+      "description": "Sessions established, presented or revoked",
+      "uri": "https://schemas.identity.wso2.org/events/session",
+      "events": [
+        {
+          "eventName": "Session established",
+          "eventDescription": "Notify if session is established",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionEstablished"
+        },
+        {
+          "eventName": "Session presented",
+          "eventDescription": "Notify if session is presented",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionPresented"
+        },
+        {
+          "eventName": "Session revoked",
+          "eventDescription": "Notify if session is revoked",
+          "eventUri": "https://schemas.identity.wso2.org/events/session/event-type/sessionRevoked"
+        }
+      ]
+    },
+    {
+      "name": "User account management",
+      "description": "User created, profile updated, user account enabled or disabled, user account locked or unlocked, or user deleted",
+      "uri": "https://schemas.identity.wso2.org/events/user",
+      "events": [
+        {
+          "eventName": "User created",
+          "eventDescription": "Notify if user is created",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userCreated"
+        },
+        {
+          "eventName": "User profile updated",
+          "eventDescription": "Notify if user profile is updated",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userProfileUpdated"
+        },
+        {
+          "eventName": "User account disabled",
+          "eventDescription": "Notify if user account is disabled",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userDisabled"
+        },
+        {
+          "eventName": "User account enabled",
+          "eventDescription": "Notify if user account is enabled",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userEnabled"
+        },
+        {
+          "eventName": "User account locked",
+          "eventDescription": "Notify if user account is locked",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userAccountLocked"
+        },
+        {
+          "eventName": "User account unlocked",
+          "eventDescription": "Notify if user account is unlocked",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userAccountUnlocked"
+        },
+        {
+          "eventName": "User account deleted",
+          "eventDescription": "Notify if user account is deleted",
+          "eventUri": "https://schemas.identity.wso2.org/events/user/event-type/userDeleted"
+        }
+      ]
+    },
+    {
+      "name": "Registrations",
+      "description": "Registration success or failed",
       "uri": "https://schemas.identity.wso2.org/events/registration",
       "events": [
         {
-          "eventName": "Registration Success Event",
-          "eventDescription": "This is the registration success event",
+          "eventName": "Registration success",
+          "eventDescription": "Notify if user registration is successful",
           "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationSuccess"
         },
         {
-          "eventName": "Registration Failure Event",
-          "eventDescription": "This is the registration failure event",
+          "eventName": "Registration failed",
+          "eventDescription": "Notify if user registration failed",
           "eventUri": "https://schemas.identity.wso2.org/events/registration/event-type/registrationFailed"
+        }
+      ]
+    },
+    {
+      "name": "Tokens",
+      "description": "Access token issued or revoked",
+      "uri": "https://schemas.identity.wso2.org/events/token",
+      "events": [
+        {
+          "eventName": "Access token issued",
+          "eventDescription": "Notify if access token is issued",
+          "eventUri": "https://schemas.identity.wso2.org/events/token/event-type/accessTokenIssued"
+        },
+        {
+          "eventName": "Access token revoked",
+          "eventDescription": "Notify if access token is revoked",
+          "eventUri": "https://schemas.identity.wso2.org/events/token/event-type/accessTokenRevoked"
+        }
+      ]
+    },
+    {
+      "name": "Credential updates",
+      "description": "Password created or updated",
+      "uri": "https://schemas.identity.wso2.org/events/credential",
+      "events": [
+        {
+          "eventName": "Credential updated",
+          "eventDescription": "Notify if password is created or updated",
+          "eventUri": "https://schemas.identity.wso2.org/events/credential/event-type/credentialUpdated"
         }
       ]
     }

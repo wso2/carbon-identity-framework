@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.workflow.mgt.bean;
 
 import java.io.Serializable;
 
+/**
+ * Request Parameter class.
+ */
 public class RequestParameter implements Serializable {
 
     private static final long serialVersionUID = -8564170214424881696L;

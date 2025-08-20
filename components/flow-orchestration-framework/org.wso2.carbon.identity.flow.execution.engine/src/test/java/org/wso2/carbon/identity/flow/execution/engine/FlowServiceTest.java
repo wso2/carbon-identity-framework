@@ -25,8 +25,13 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
 import org.wso2.carbon.identity.core.ServiceURL;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -46,12 +51,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
@@ -70,21 +75,26 @@ public class FlowServiceTest {
     @Mock
     private FlowExecutionEngine engineMock;
 
-    private MockedStatic<ServiceURLBuilder> serviceURLBuilderMockedStatic;
-
+    private MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolderMockedStatic;
     @BeforeClass
-    public void setup() throws Exception{
+    public void setup() throws Exception {
 
         MockitoAnnotations.openMocks(this);
         testFlowContext = initTestContext();
 
-        ServiceURLBuilder serviceURLBuilder = mock(ServiceURLBuilder.class);
         ServiceURL serviceURL = mock(ServiceURL.class);
-        serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
-        serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(DEFAULT_REGISTRATION_CALLBACK)).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.build()).thenReturn(serviceURL);
         when(serviceURL.getAbsolutePublicURL()).thenReturn(DEFAULT_MY_ACCOUNT_URL);
+        frameworkServiceDataHolderMockedStatic = mockStatic(FrameworkServiceDataHolder.class);
+
+        IdentityEventService mockIdentityEventService = mock(IdentityEventService.class);
+        FrameworkServiceDataHolder mockFrameworkServiceDataHolder = mock(FrameworkServiceDataHolder.class);
+        frameworkServiceDataHolderMockedStatic.when(FrameworkServiceDataHolder::getInstance)
+                .thenReturn(mockFrameworkServiceDataHolder);
+        when(mockFrameworkServiceDataHolder.getIdentityEventService()).thenReturn(mockIdentityEventService);
+
+        System.setProperty(CarbonBaseConstants.CARBON_HOME, this.getClass().getResource("/").getFile());
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(-1234);
     }
 
     private FlowExecutionContext initTestContext() {
@@ -122,7 +132,7 @@ public class FlowServiceTest {
             engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
             when(engineMock.execute(testFlowContext)).thenThrow(FlowEngineException.class);
             FlowExecutionService.getInstance().executeFlow(TENANT_DOMAIN,
-                    TEST_APPLICATION_ID,null, null, FLOW_TYPE, null);
+                    TEST_APPLICATION_ID, null, null, FLOW_TYPE, null);
         }
     }
 
@@ -245,8 +255,7 @@ public class FlowServiceTest {
                 MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class)
         ) {
             engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
-            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(testFlowContext.getFlowType(),
-                            flowId))
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId))
                     .thenReturn(testFlowContext);
             when(engineMock.execute(testFlowContext)).thenReturn(expectedStep);
 
@@ -264,6 +273,7 @@ public class FlowServiceTest {
 
         FlowExecutionStep expectedStep = new FlowExecutionStep.Builder()
                 .flowId(testFlowContext.getContextIdentifier())
+                .data(new DataDTO.Builder().additionalData(new HashMap<>()).build())
                 .flowStatus("COMPLETE")
                 .build();
 
@@ -272,14 +282,19 @@ public class FlowServiceTest {
         try (
                 MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
                         FlowExecutionEngineUtils.class);
-                MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class)
+                MockedStatic<FlowExecutionEngine> engineMockedStatic = mockStatic(FlowExecutionEngine.class);
+                MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+                MockedStatic<UserAssertionUtils> autoLoginAssertionUtilsMockedStatic = mockStatic(
+                        UserAssertionUtils.class);
         ) {
             engineMockedStatic.when(FlowExecutionEngine::getInstance).thenReturn(engineMock);
-            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(testFlowContext.getFlowType(),
-                            flowId))
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId))
                     .thenReturn(testFlowContext);
+            identityUtilMockedStatic.when(() -> IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean()))
+                    .thenReturn(StringUtils.EMPTY);
+            autoLoginAssertionUtilsMockedStatic.when(() -> UserAssertionUtils.
+                            generateSignedUserAssertion(any(), anyString())).thenReturn("signedAssertion");
             when(engineMock.execute(testFlowContext)).thenReturn(expectedStep);
-
             FlowExecutionService service = FlowExecutionService.getInstance();
             FlowExecutionStep result = service.executeFlow(null, null, flowId, null,
                     FLOW_TYPE, new HashMap<>());
@@ -298,7 +313,7 @@ public class FlowServiceTest {
         try (MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
                 FlowExecutionEngineUtils.class)
         ) {
-            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, flowId))
+            utilsMockedStatic.when(() -> FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId))
                     .thenThrow(new FlowEngineException("Failed"));
             FlowExecutionService.getInstance().executeFlow(null, null,
                     flowId, "actionId", FLOW_TYPE, inputMap);
@@ -308,8 +323,8 @@ public class FlowServiceTest {
     @AfterClass
     public void teardown() {
 
-        if (serviceURLBuilderMockedStatic != null) {
-            serviceURLBuilderMockedStatic.close();
+        if (frameworkServiceDataHolderMockedStatic != null) {
+            frameworkServiceDataHolderMockedStatic.close();
         }
     }
 }

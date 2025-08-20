@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dto;
 
+
+/**
+ * Association class is a DTO that represents the association between an event and a workflow.
+ */
 public class Association {
 
     private String associationId;

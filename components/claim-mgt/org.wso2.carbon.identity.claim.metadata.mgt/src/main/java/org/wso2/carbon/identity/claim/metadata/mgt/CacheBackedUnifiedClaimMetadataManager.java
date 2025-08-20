@@ -25,10 +25,16 @@ import org.wso2.carbon.identity.claim.metadata.mgt.cache.ExternalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.ExternalClaimCacheKey;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.model.BasicOrganization;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +83,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void addClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         super.addClaimDialect(claimDialect, tenantId);
-        claimDialectCache.clearClaimDialects(tenantId);
+        removeClaimDialectCache(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim dialect: " + claimDialect.getClaimDialectURI() + " is added for tenant: " + tenantId +
                     ". Invalidated ClaimDialectCache.");
@@ -89,7 +95,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
             throws ClaimMetadataException {
 
         super.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
-        claimDialectCache.clearClaimDialects(tenantId);
+        removeClaimDialectCache(tenantId);
         removeExternalClaimCache(oldClaimDialect.getClaimDialectURI(), tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim dialect: " + oldClaimDialect.getClaimDialectURI() + " is renamed to new claim dialect: "
@@ -103,7 +109,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void removeClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         super.removeClaimDialect(claimDialect, tenantId);
-        claimDialectCache.clearClaimDialects(tenantId);
+        removeClaimDialectCache(tenantId);
         removeExternalClaimCache(claimDialect.getClaimDialectURI(), tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim dialect: " + claimDialect.getClaimDialectURI() + " is removed for tenant: " + tenantId +
@@ -143,7 +149,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         super.addLocalClaim(localClaim, tenantId);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        removeLocalClaimCache(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Local claim: " + localClaim.getClaimURI() + " is added for tenant: " + tenantId +
                     ". Invalidated LocalClaimCache.");
@@ -154,8 +160,11 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         super.updateLocalClaim(localClaim, tenantId);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
-        associatedClaimCache.clearCacheEntry(localClaim.getClaimURI(), tenantId);
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            localClaimCache.clearCacheEntry(tenantIdToBeInvalidated, tenantIdToBeInvalidated);
+            associatedClaimCache.clearCacheEntry(localClaim.getClaimURI(), tenantIdToBeInvalidated);
+        }
         if (log.isDebugEnabled()) {
             log.debug("Local claim: " + localClaim.getClaimURI() + " is updated in tenant: " + tenantId +
                     ". Invalidated LocalClaimCache.");
@@ -167,7 +176,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
             throws ClaimMetadataException {
 
         super.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        removeLocalClaimCache(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim mappings for user-store domain: " + userStoreDomain + " is updated in tenant: " +
                     tenantId + ". Invalidated LocalClaimCache.");
@@ -178,8 +187,11 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         super.removeLocalClaim(localClaimURI, tenantId);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
-        associatedClaimCache.clearCacheEntry(localClaimURI, tenantId);
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            localClaimCache.clearCacheEntry(tenantIdToBeInvalidated, tenantIdToBeInvalidated);
+            associatedClaimCache.clearCacheEntry(localClaimURI, tenantIdToBeInvalidated);
+        }
         if (log.isDebugEnabled()) {
             log.debug("Local claim: " + localClaimURI + " is deleted in tenant: " + tenantId +
                     ". Invalidated LocalClaimCache.");
@@ -225,8 +237,11 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
 
         super.addExternalClaim(externalClaim, tenantId);
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaim.getClaimDialectURI());
-        externalClaimCache.clearCacheEntry(cacheKey, tenantId);
-        associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantId);
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            externalClaimCache.clearCacheEntry(cacheKey, tenantIdToBeInvalidated);
+            associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantIdToBeInvalidated);
+        }
         if (log.isDebugEnabled()) {
             log.debug("External claim: " + externalClaim.getClaimDialectURI() + ":" + externalClaim.getClaimURI() +
                     " is added for tenant: " + tenantId + ". Invalidated ExternalClaimCache.");
@@ -239,8 +254,11 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
 
         super.updateExternalClaim(externalClaim, tenantId);
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaim.getClaimDialectURI());
-        externalClaimCache.clearCacheEntry(cacheKey, tenantId);
-        associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantId);
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            externalClaimCache.clearCacheEntry(cacheKey, tenantIdToBeInvalidated);
+            associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantIdToBeInvalidated);
+        }
         if (log.isDebugEnabled()) {
             log.debug("External claim: " + externalClaim.getClaimDialectURI() + ":" + externalClaim.getClaimURI() +
                     " is updated in tenant: " + tenantId + ". Invalidated ExternalClaimCache.");
@@ -262,9 +280,12 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
         }
         super.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
-        externalClaimCache.clearCacheEntry(cacheKey, tenantId);
-        if (StringUtils.isNotBlank(mappedLocalClaim)) {
-            associatedClaimCache.clearCacheEntry(mappedLocalClaim, tenantId);
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            externalClaimCache.clearCacheEntry(cacheKey, tenantIdToBeInvalidated);
+            if (StringUtils.isNotBlank(mappedLocalClaim)) {
+                associatedClaimCache.clearCacheEntry(mappedLocalClaim, tenantIdToBeInvalidated);
+            }
         }
         if (log.isDebugEnabled()) {
             log.debug("External claim: " + externalClaimDialectURI + ":" + externalClaimURI +
@@ -276,7 +297,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
         super.removeClaimMappingAttributes(tenantId, userstoreDomain);
-        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        removeLocalClaimCache(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("Claim mappings for user-store domain: " + userstoreDomain + " is removed in tenant: " +
                     tenantId + ". Invalidated LocalClaimCache.");
@@ -287,10 +308,13 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
 
         super.removeAllClaimDialects(tenantId);
-        claimDialectCache.clearClaimDialects(tenantId);
-        localClaimCache.clear(tenantId);
-        externalClaimCache.clear(tenantId);
-        associatedClaimCache.clear(tenantId);
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            claimDialectCache.clearClaimDialects(tenantIdToBeInvalidated);
+            localClaimCache.clear(tenantIdToBeInvalidated);
+            externalClaimCache.clear(tenantIdToBeInvalidated);
+            associatedClaimCache.clear(tenantIdToBeInvalidated);
+        }
         if (log.isDebugEnabled()) {
             log.debug("All claim dialects are removed for tenant: " + tenantId +
                     ". Invalidated ClaimDialectCache, LocalClaimCache and ExternalClaimCache.");
@@ -319,18 +343,78 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
 
     private void removeExternalClaimCache(String externalClaimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        List<ExternalClaim> externalClaimsList;
-        List<String> mappedLocalClaim = new ArrayList<>();
-        externalClaimsList = getExternalClaims(externalClaimDialectURI, tenantId);
-        if (externalClaimsList != null) {
-            for (ExternalClaim externalClaim : externalClaimsList) {
-                mappedLocalClaim.add(externalClaim.getMappedLocalClaim());
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            List<ExternalClaim> externalClaimsList;
+            List<String> mappedLocalClaim = new ArrayList<>();
+            externalClaimsList = getExternalClaims(externalClaimDialectURI, tenantIdToBeInvalidated);
+            if (externalClaimsList != null) {
+                for (ExternalClaim externalClaim : externalClaimsList) {
+                    mappedLocalClaim.add(externalClaim.getMappedLocalClaim());
+                }
+            }
+            ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
+            externalClaimCache.clearCacheEntry(cacheKey, tenantIdToBeInvalidated);
+            for (String localClaim : mappedLocalClaim) {
+                associatedClaimCache.clearCacheEntry(localClaim, tenantIdToBeInvalidated);
             }
         }
-        ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
-        externalClaimCache.clearCacheEntry(cacheKey, tenantId);
-        for (String localClaim : mappedLocalClaim) {
-            associatedClaimCache.clearCacheEntry(localClaim, tenantId);
+    }
+
+    /**
+     * Removes the local claim cache of the given tenant and its child organizations.
+     *
+     * @param tenantId The id of the tenant for which the cache needs to be cleared.
+     */
+    private void removeLocalClaimCache(int tenantId) {
+
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            localClaimCache.clearCacheEntry(tenantIdToBeInvalidated, tenantIdToBeInvalidated);
         }
+    }
+
+    /**
+     * Removes the claim dialect cache of the given tenant and its child organizations.
+     *
+     * @param tenantId The id of the tenant for which the cache needs to be cleared.
+     */
+    private void removeClaimDialectCache(int tenantId) {
+
+        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
+        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
+            claimDialectCache.clearClaimDialects(tenantIdToBeInvalidated);
+        }
+    }
+
+    /**
+     * Gets a list of tenants for which the cache needs to be invalidated. If claim inheritance is enabled, this is
+     * the current claim and its child organizations. If it is not enabled, this is only the current tenant.
+     *
+     * @param tenantId The id of the current tenant.
+     * @return The list of tenants for which the t=cache needs to be invalidated.
+     */
+    private List<Integer> getOrganizationsToBeInvalidated(int tenantId) {
+
+        List<Integer> tenantIdsToBeInvalidated = new ArrayList<>();
+        tenantIdsToBeInvalidated.add(tenantId);
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        try {
+             if (Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain)) {
+                String organizationId = IdentityClaimManagementServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveOrganizationId(tenantDomain);
+                List<BasicOrganization> childOrganizations = IdentityClaimManagementServiceDataHolder.getInstance()
+                        .getOrganizationManager()
+                        .getChildOrganizations(organizationId, true);
+                for (BasicOrganization childOrg : childOrganizations) {
+                    int childTenantId = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService().
+                            getTenantManager().getTenantId(childOrg.getOrganizationHandle());
+                    tenantIdsToBeInvalidated.add(childTenantId);
+                }
+             }
+        } catch (OrganizationManagementException | UserStoreException e) {
+            log.error("Error occurred while obtaining the child organizations for tenant id: " + tenantId, e);
+        }
+        return tenantIdsToBeInvalidated;
     }
 }

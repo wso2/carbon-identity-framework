@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.workflow.mgt.exception;
 
 import org.wso2.carbon.identity.base.IdentityException;
 
+/**
+ * Workflow exception class.
+ */
 public class WorkflowException extends IdentityException {
 
     private static final long serialVersionUID = 737141405805528549L;

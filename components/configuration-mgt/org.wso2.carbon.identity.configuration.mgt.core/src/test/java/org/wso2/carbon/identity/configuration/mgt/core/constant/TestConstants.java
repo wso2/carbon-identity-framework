@@ -20,8 +20,10 @@ public class TestConstants {
 
     public static final int SAMPLE_TENANT_ID_ABC = 1;
     public static final String SAMPLE_TENANT_DOMAIN_ABC = "abc.com";
+    public static final String TEST_ORG_ID = "24584a8d-163f-4g11-hjd5-efedfgu82211";
     public static final String SAMPLE_RESOURCE_TYPE_NAME1 = "email";
     public static final String SAMPLE_RESOURCE_TYPE_NAME2 = "publisher";
+    public static final String INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME = "input-validation-configurations";
     public static final String SAMPLE_RESOURCE_TYPE_DESCRIPTION = "Sample resource type description";
     public static final String SAMPLE_RESOURCE_NAME1 = "email-resource";
     public static final String SAMPLE_RESOURCE_NAME2 = "publisher-resource";

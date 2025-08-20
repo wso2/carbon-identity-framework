@@ -50,6 +50,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Workflow Executor Manager class.
+ */
 public class WorkFlowExecutorManager {
 
     private static final Log log = LogFactory.getLog(WorkFlowExecutorManager.class);

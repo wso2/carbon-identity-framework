@@ -120,7 +120,7 @@ public class PreUpdateProfileActionRuleEvaluationDataProvider implements RuleEva
 
     private String getFlowFromContext() throws RuleEvaluationDataProviderException {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
 
         if (flow == null || flow.getName() == null || flow.getInitiatingPersona() == null) {
             throw new RuleEvaluationDataProviderException("Flow or required attributes are null.");

@@ -92,6 +92,7 @@ import javax.servlet.http.HttpServletResponse;
 import static java.util.Objects.nonNull;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_SESSION_CREATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_USER_PROPERTIES;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_MISMATCHING_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
@@ -393,8 +394,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 if (StringUtils.isNotEmpty(userTenantDomain)) {
                     if (StringUtils.isNotEmpty(spTenantDomain) && !spTenantDomain.equals
                             (userTenantDomain)) {
-                        throw new FrameworkException("Service Provider tenant domain must be equal to user tenant " +
-                                "domain for non-SaaS applications");
+                        throw new FrameworkException(ERROR_MISMATCHING_TENANT_DOMAIN.getCode(),
+                                ERROR_MISMATCHING_TENANT_DOMAIN.getMessage());
                     }
                 }
             }
@@ -1058,7 +1059,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String path = null;
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             if (FrameworkUtils.isOrganizationQualifiedRequest()) {
-                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+                // Handling the cookie path for requests coming with the path `/o/<org-id>`.
+                String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
             } else {
                 if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getLoginTenantDomain())) {
@@ -1232,6 +1235,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void addAuditLogs(String sessionAction, AuthenticatedUser authenticatedUser, String sessionKey,
                               String traceId, Long lastAccessedTimestamp, boolean isRememberMe) {
 
+        if (LoggerUtils.isEnableV2AuditLogs()) {
+            return;
+        }
         String userTenantDomain = authenticatedUser.getTenantDomain();
         boolean isFederated = authenticatedUser.isFederatedUser();
         String username = authenticatedUser.getUserName();

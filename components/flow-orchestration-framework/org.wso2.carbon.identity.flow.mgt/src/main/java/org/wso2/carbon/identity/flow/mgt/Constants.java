@@ -25,6 +25,9 @@ public class Constants {
 
     public static final String COMPLETE = "COMPLETE";
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
+    public static final String END_NODE_ID = "END";
+
+    public static final String IDP_NAME = "idpName";
 
     private Constants() {
 
@@ -53,6 +56,16 @@ public class Constants {
                         "%s"),
         ERROR_CODE_GET_FIRST_STEP_ID("65007", "Error while retrieving the first step id.",
                 "Unexpected server error while retrieving the first step id for tenant, %s"),
+        ERROR_CODE_CLEAR_CACHE_FAILED("65008", "Error while clearing the cache.",
+                "Unexpected server error while clearing the cache for tenant, %s"),
+        ERROR_CODE_ADDING_FLOW_CONFIG("65009", "Error while adding the flow config.",
+                "Unexpected server error while adding the flow config for tenant, %s"),
+        ERROR_CODE_GETTING_FLOW_CONFIG("65010", "Error while retrieving the flow config.",
+                "Unexpected server error while retrieving the flow config for tenant, %s"),
+        ERROR_CODE_UPDATING_FLOW_CONFIG("65011", "Error while updating the flow config.",
+                "Unexpected server error while updating the flow config for tenant, %s"),
+        ERROR_CODE_INVOKING_AI_SERVICE("65012", "Error while invoking the AI service.",
+                "Unexpected server error while invoking the AI service for tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -80,7 +93,9 @@ public class Constants {
                 "The action type, %s is not supported for step, %s of type %s."),
         ERROR_CODE_INVALID_FIRST_NODE("60012", "Invalid first node.",
                 "Invalid first node configuration: either no first node is defined or multiple " +
-                        "first nodes are present.")
+                        "first nodes are present."),
+        ERROR_CODE_UNSUPPORTED_NODE_ID("60013", "Node id is not supported.", "%s cannot be " +
+                "used as a Node ID."),
         ;
 
         private static final String ERROR_PREFIX = "RFM";
@@ -117,6 +132,25 @@ public class Constants {
         }
     }
 
+    public enum FlowTypes {
+
+        REGISTRATION("REGISTRATION"),
+        PASSWORD_RECOVERY("PASSWORD_RECOVERY"),
+        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION");
+
+        private final String type;
+
+        FlowTypes(String type) {
+
+            this.type = type;
+        }
+
+        public String getType() {
+
+            return type;
+        }
+    }
+
     /**
      * Constants for the node types.
      */
@@ -139,6 +173,7 @@ public class Constants {
         public static final String VIEW = "VIEW";
         public static final String REDIRECTION = "REDIRECTION";
         public static final String INTERNAL_PROMPT = "INTERNAL_PROMPT";
+        public static final String EXECUTION = "EXECUTION";
         public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
 
@@ -180,6 +215,47 @@ public class Constants {
         public static final String USER_ONBOARDING = "UserOnboardingExecutor";
 
         private ExecutorTypes() {
+
+        }
+    }
+
+    /**
+     * Constants for the flow configurations.
+     */
+    public static class FlowConfigConstants {
+
+        public static final String RESOURCE_TYPE = "flow-mgt-config";
+        public static final String RESOURCE_NAME_PREFIX = "flow-mgt-config-";
+        public static final String FLOW_TYPE = "flowType";
+        public static final String IS_ENABLED = "isEnabled";
+        public static final String IS_AUTO_LOGIN_ENABLED = "isAutoLoginEnabled";
+
+        private FlowConfigConstants() {
+
+        }
+    }
+
+    public static class FlowAIConstants {
+
+        public static final String FLOW_AI_ENDPOINT = "AIServices.FlowAI.Endpoint";
+        public static final String FLOW_AI_GENERATE_PATH = "AIServices.FlowAI.GenerateRequestPath";
+        public static final String FLOW_AI_STATUS_PATH = "AIServices.FlowAI.StatusRequestPath";
+        public static final String FLOW_AI_RESULT_PATH = "AIServices.FlowAI.ResultRequestPath";
+
+        public static final String FLOW_TYPE = "flow_type";
+        public static final String USER_QUERY = "user_query";
+        public static final String OPERATION_ID = "operation_id";
+        // Flow generation status constants.
+        public static final String STATUS = "status";
+        public static final String FAILED_STATUS = "FAILED";
+        public static final String OPTIMIZING_QUERY = "optimizing_query";
+        public static final String FETCHING_SAMPLES = "fetching_samples";
+        public static final String GENERATING_FLOW = "generating_flow";
+        public static final String COMPLETED = "completed";
+        // Flow generation response constants.
+        public static final String DATA = "data";
+
+        private FlowAIConstants() {
 
         }
     }

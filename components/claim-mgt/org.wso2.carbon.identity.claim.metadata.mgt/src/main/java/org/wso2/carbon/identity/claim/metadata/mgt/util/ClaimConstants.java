@@ -39,6 +39,7 @@ public class ClaimConstants {
     public static final String DISPLAY_ORDER_PROPERTY = "DisplayOrder";
     public static final String SUPPORTED_BY_DEFAULT_PROPERTY = "SupportedByDefault";
     public static final String CANONICAL_VALUES_PROPERTY = "canonicalValues";
+    public static final String INPUT_FORMAT_PROPERTY = "inputFormat";
     public static final String REGULAR_EXPRESSION_PROPERTY = "RegEx";
     public static final String READ_ONLY_PROPERTY = "ReadOnly";
     public static final String CLAIM_URI_PROPERTY = "ClaimURI";
@@ -60,6 +61,7 @@ public class ClaimConstants {
     public static final String FLOW_INITIATOR = "FlowInitiator";
     public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT =
             "ExternalClaimAdditionNotAllowedForDialect";
+    public static final String DATA_TYPE_PROPERTY = "dataType";
     public static final String MULTI_VALUED_PROPERTY = "multiValued";
     public static final String SUB_ATTRIBUTES_PROPERTY = "subAttributes";
     public static final String SUB_ATTRIBUTE_PREFIX = "subAttribute.";
@@ -130,7 +132,15 @@ public class ClaimConstants {
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
                 "mapped attributes for domain : %s with tenant Id : %s from table : IDN_CLAIM_MAPPED_ATTRIBUTE"),
         ERROR_CODE_SERVER_ERROR_DELETING_CLAIM_MAPPINGS("65001", "Error occurred while deleting the " +
-                "claim mapping for the tenant : %s with domain : %s");
+                "claim mapping for the tenant : %s with domain : %s"),
+        ERROR_CODE_FAILED_TO_RESOLVE_ORGANIZATION_ID("65003", "Error occurred while resolving the " +
+                "organization id of tenant: %s with domain : %s"),
+        ERROR_CODE_FAILED_TO_RESOLVE_TENANT_ID_DURING_HIERARCHICAL_AGGREGATION("65004", "Error " +
+                "occurred while resolving the tenant id for organization: %s during hierarchical aggregation"),
+        ERROR_CODE_FAILURE_IN_CHECKING_IS_TENANT_AN_ORGANIZATION("65005", "Error occurred " +
+                "while checking whether the tenant: %s is an organization"),
+        ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY("65006", "Error occurred while traversing the " +
+                "organization hierarchy of tenant: %s with domain: %s");
 
         private final String code;
         private final String message;
@@ -148,6 +158,18 @@ public class ClaimConstants {
         public String getMessage() {
             return message;
         }
+    }
+
+    /**
+     * Enum for data types of claims.
+     */
+    public enum ClaimDataType {
+        STRING,
+        INTEGER,
+        DECIMAL,
+        BOOLEAN,
+        DATE_TIME,
+        COMPLEX
     }
 
     /**

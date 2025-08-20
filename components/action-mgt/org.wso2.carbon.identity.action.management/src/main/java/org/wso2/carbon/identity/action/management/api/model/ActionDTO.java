@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.api.model;
 
+import java.sql.Timestamp;
 import java.util.Map;
 
 /**
@@ -30,6 +31,8 @@ public class ActionDTO {
     private final String name;
     private final String description;
     private final Action.Status status;
+    private final Timestamp createdAt;
+    private final Timestamp updatedAt;
     private final EndpointConfig endpoint;
     private final ActionRule rule;
     private final Map<String, ActionProperty> properties;
@@ -41,6 +44,8 @@ public class ActionDTO {
         this.name = builder.name;
         this.description = builder.description;
         this.status = builder.status;
+        this.createdAt = builder.createdAt;
+        this.updatedAt = builder.updatedAt;
         this.endpoint = builder.endpoint;
         this.rule = builder.rule;
         this.properties = builder.properties;
@@ -69,6 +74,16 @@ public class ActionDTO {
     public Action.Status getStatus() {
 
         return status;
+    }
+
+    public Timestamp getCreatedAt() {
+
+        return createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+
+        return updatedAt;
     }
 
     public EndpointConfig getEndpoint() {
@@ -105,6 +120,8 @@ public class ActionDTO {
         private final String name;
         private final String description;
         private final Action.Status status;
+        private final Timestamp createdAt;
+        private final Timestamp updatedAt;
         private final EndpointConfig endpoint;
         private final ActionRule rule;
         private Map<String, ActionProperty> properties;
@@ -116,6 +133,8 @@ public class ActionDTO {
             this.name = actionDTO.getName();
             this.description = actionDTO.getDescription();
             this.status = actionDTO.getStatus();
+            this.createdAt = actionDTO.getCreatedAt();
+            this.updatedAt = actionDTO.getUpdatedAt();
             this.endpoint = actionDTO.getEndpoint();
             this.rule = actionDTO.getActionRule();
             this.properties = actionDTO.getProperties();
@@ -128,6 +147,8 @@ public class ActionDTO {
             this.name = action.getName();
             this.description = action.getDescription();
             this.status = action.getStatus();
+            this.createdAt = action.getCreatedAt();
+            this.updatedAt = action.getUpdatedAt();
             this.endpoint = action.getEndpoint();
             this.rule = action.getActionRule();
         }

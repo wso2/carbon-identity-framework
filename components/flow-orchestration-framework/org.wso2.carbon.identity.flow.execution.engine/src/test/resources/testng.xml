@@ -25,6 +25,8 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.util.FlowEngineUtilsTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.util.FlowEngineTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNodeTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtilsTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.dao.FlowContextStoreDAOImplTest"/>
         </classes>
     </test>
 </suite>

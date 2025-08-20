@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.216-SNAPSHOT</version>
+    <version>7.8.436-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -79,7 +79,6 @@
         <module>components/certificate-mgt</module>
         <module>components/servlet-mgt</module>
         <module>components/system-config-mgt</module>
-        <module>components/registration-framework</module>
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
         <module>features/extension-mgt</module>
@@ -124,7 +123,6 @@
         <module>features/certificate-mgt</module>
         <module>features/servlet-mgt</module>
         <module>features/system-config-mgt</module>
-        <module>features/registration-framework</module>
         <module>features/flow-orchestration-framework</module>
         <module>features/async-operation-status-mgt</module>
         <module>features/workflow-mgt</module>
@@ -349,6 +347,16 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.webhook.metadata</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.subscription.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.event.publisher</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -795,12 +803,6 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.registration.mgt.server.feature</artifactId>
-                <type>zip</type>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.flow.mgt.server.feature</artifactId>
                 <type>zip</type>
                 <version>${project.version}</version>
@@ -808,12 +810,6 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.flow.orchestration.framework.feature</artifactId>
-                <type>zip</type>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.registration.engine.server.feature</artifactId>
                 <type>zip</type>
                 <version>${project.version}</version>
             </dependency>
@@ -1271,6 +1267,11 @@
                 <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
                 <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
                 <version>${org.wso2.carbon.identity.organization.management.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.resource.sharing.policy.management</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
             </dependency>
 
             <dependency>
@@ -1881,22 +1882,12 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.registration.mgt</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.flow.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.flow.execution.engine</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.user.registration.engine</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1919,7 +1910,6 @@
                 <groupId>org.wso2.carbon.multitenancy</groupId>
                 <artifactId>org.wso2.carbon.tenant.mgt</artifactId>
                 <version>${org.wso2.carbon.multitenancy.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.wiremock</groupId>
@@ -2015,7 +2005,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.53</carbon.kernel.version>
+        <carbon.kernel.version>4.10.80</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -2041,11 +2031,13 @@
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
 
         <org.bouncycastle.imp.pkg.version.range>[0.0.0,2.0.0)</org.bouncycastle.imp.pkg.version.range>
-        <org.wso2.carbon.identity.organization.management.core.version>1.1.29
+        <org.wso2.carbon.identity.organization.management.core.version>1.1.48
         </org.wso2.carbon.identity.organization.management.core.version>
+        <org.wso2.carbon.identity.organization.management.version>2.0.8</org.wso2.carbon.identity.organization.management.version>
+        <org.wso2.carbon.identity.organization.management.version.range>[2.0.0, 3.0.0)</org.wso2.carbon.identity.organization.management.version.range>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
-        <identity.organization.management.version>1.4.132</identity.organization.management.version>
+        <identity.organization.management.version>2.0.7</identity.organization.management.version>
         <org.wso2.identity.organization.mgt.imp.pkg.version.range>[1.0.0, 3.0.0)</org.wso2.identity.organization.mgt.imp.pkg.version.range>
 
         <!--Carbon registry version-->
@@ -2122,7 +2114,7 @@
         <orbit.version.infinispan>5.1.2.wso2v1</orbit.version.infinispan>
         <version.org.wso2.orbit.javax.xml.bind>2.3.1.wso2v1</version.org.wso2.orbit.javax.xml.bind>
         <version.org.wso2.orbit.javax.activation>1.1.1.wso2v1</version.org.wso2.orbit.javax.activation>
-        <ua_parser.version>1.5.4.wso2v2</ua_parser.version>
+        <ua_parser.version>1.6.1.wso2v2</ua_parser.version>
         <ua_parser.version.range>[1.3.0, 2.0.0)</ua_parser.version.range>
         <apache.common.collection.version>3.2.0.wso2v1</apache.common.collection.version>
         <apache.common.collections4.version>4.4.wso2v1</apache.common.collections4.version>
@@ -2185,7 +2177,7 @@
         <orbit.version.commons.fileuploader>1.2.0.wso2v1</orbit.version.commons.fileuploader>
         <opensaml.version>3.3.1</opensaml.version>
         <shibboleth.version>7.3.0</shibboleth.version>
-        <opensaml2.wso2.version>3.3.1.wso2v14</opensaml2.wso2.version>
+        <opensaml2.wso2.version>3.3.1.wso2v15</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[3.3.1,3.4.0)</opensaml2.wso2.osgi.version.range>
         <joda.version>2.9.4</joda.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
@@ -2311,6 +2303,7 @@
         <account.lock.service.imp.pkg.version.range>[1.4.23, 2.0.0)</account.lock.service.imp.pkg.version.range>
         <openjdk.nashorn.version>15.3</openjdk.nashorn.version>
         <org.wso2.carbon.multitenancy.version>4.11.37</org.wso2.carbon.multitenancy.version>
+        <carbon.multitenancy.imp.pkg.version.range>[4.11.0, 5.0.0)</carbon.multitenancy.imp.pkg.version.range>
 
         <com.google.api.playintegrity.version>1.0.0.wso2v1</com.google.api.playintegrity.version>
         <com.google.auth.version>1.20.0</com.google.auth.version>

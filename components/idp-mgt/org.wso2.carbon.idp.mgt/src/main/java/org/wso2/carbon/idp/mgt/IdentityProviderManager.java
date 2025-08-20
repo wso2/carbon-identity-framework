@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -50,6 +50,8 @@ import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -242,61 +244,73 @@ public class IdentityProviderManager implements IdpManager {
         samlAuthnRequestSigningProperty.setValue(samlAuthnRequestSigningEnabled);
         List<Property> propertyList =
                 new ArrayList<>(Arrays.asList(saml2SSOResidentAuthenticatorConfig.getProperties()));
-        propertyList.add(samlMetadataValidityPeriodProperty);
-        propertyList.add(samlMetadataSigningEnabledProperty);
-        propertyList.add(samlAuthnRequestSigningProperty);
-        Property[] properties = new Property[propertyList.size()];
-        properties = propertyList.toArray(properties);
-        saml2SSOResidentAuthenticatorConfig.setProperties(properties);
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                propertyList.add(samlMetadataValidityPeriodProperty);
+                propertyList.add(samlMetadataSigningEnabledProperty);
+                propertyList.add(samlAuthnRequestSigningProperty);
+            }
 
-        Property oidcProperty = new Property();
-        oidcProperty.setName(OPENID_IDP_ENTITY_ID);
-        oidcProperty.setValue(getOIDCResidentIdPEntityId());
+            Property[] properties = new Property[propertyList.size()];
+            properties = propertyList.toArray(properties);
+            saml2SSOResidentAuthenticatorConfig.setProperties(properties);
 
-        FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
-        oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
-        oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
-        oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
+            Property oidcProperty = new Property();
+            oidcProperty.setName(OPENID_IDP_ENTITY_ID);
+            oidcProperty.setValue(getOIDCResidentIdPEntityId());
 
-        Property passiveStsProperty = new Property();
-        passiveStsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-        passiveStsProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
+            FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
+            oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
+            oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+            oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
 
-        FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
-        passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
-        passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        passiveStsAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
+            Property passiveStsProperty = new Property();
+            passiveStsProperty.setName(
+                    IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
+            passiveStsProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
 
-        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
-                passiveStsAuthenticationConfig, oidcAuthenticationConfig};
-        identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
-                .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
+            FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
+            passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
+            passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+            passiveStsAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
+            FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
+                    passiveStsAuthenticationConfig, oidcAuthenticationConfig};
+            identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
+                    .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 
-        IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
-        String rememberMeTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
-        if (StringUtils.isBlank(rememberMeTimeout) || !StringUtils.isNumeric(rememberMeTimeout) ||
-                Integer.parseInt(rememberMeTimeout) <= 0) {
-            log.warn("RememberMeTimeout in identity.xml should be a numeric value");
-            rememberMeTimeout = IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
+
+                IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
+                String rememberMeTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
+                if (StringUtils.isBlank(rememberMeTimeout) || !StringUtils.isNumeric(rememberMeTimeout) ||
+                        Integer.parseInt(rememberMeTimeout) <= 0) {
+                    log.warn("RememberMeTimeout in identity.xml should be a numeric value");
+                    rememberMeTimeout = IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+                }
+                rememberMeTimeoutProperty.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
+                rememberMeTimeoutProperty.setValue(rememberMeTimeout);
+
+                IdentityProviderProperty sessionIdletimeOutProperty = new IdentityProviderProperty();
+                String idleTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT);
+                if (StringUtils.isBlank(idleTimeout) || !StringUtils.isNumeric(idleTimeout) ||
+                        Integer.parseInt(idleTimeout) <= 0) {
+                    log.warn("SessionIdleTimeout in identity.xml should be a numeric value");
+                    idleTimeout = IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
+                }
+                sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+                sessionIdletimeOutProperty.setValue(idleTimeout);
+
+                idpProperties[0] = rememberMeTimeoutProperty;
+                idpProperties[1] = sessionIdletimeOutProperty;
+                identityProvider.setIdpProperties(idpProperties);
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementServerException("Error while checking if tenant " + tenantDomain +
+                    " is an organization.", e);
         }
-        rememberMeTimeoutProperty.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
-        rememberMeTimeoutProperty.setValue(rememberMeTimeout);
-
-        IdentityProviderProperty sessionIdletimeOutProperty = new IdentityProviderProperty();
-        String idleTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT);
-        if (StringUtils.isBlank(idleTimeout) || !StringUtils.isNumeric(idleTimeout) ||
-                Integer.parseInt(idleTimeout) <= 0) {
-            log.warn("SessionIdleTimeout in identity.xml should be a numeric value");
-            idleTimeout = IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
-        }
-        sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
-        sessionIdletimeOutProperty.setValue(idleTimeout);
-
-        idpProperties[0] = rememberMeTimeoutProperty;
-        idpProperties[1] = sessionIdletimeOutProperty;
-        identityProvider.setIdpProperties(idpProperties);
 
         dao.addIdP(identityProvider, IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
 
@@ -333,19 +347,26 @@ public class IdentityProviderManager implements IdpManager {
         IdPManagementUtil.validatePasswordRecoveryPropertyValues(configurationDetails);
         IdPManagementUtil.validateUsernameRecoveryPropertyValues(configurationDetails);
 
-        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
-            IdentityProviderProperty prop = new IdentityProviderProperty();
-            String key = identityMgtProperty.getName();
-            prop.setName(key);
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+                    IdentityProviderProperty prop = new IdentityProviderProperty();
+                    String key = identityMgtProperty.getName();
+                    prop.setName(key);
 
-            if (configurationDetails.containsKey(key)) {
-                prop.setValue(configurationDetails.get(key));
-            } else {
-                prop.setValue(identityMgtProperty.getValue());
+                    if (configurationDetails.containsKey(key)) {
+                        prop.setValue(configurationDetails.get(key));
+                    } else {
+                        prop.setValue(identityMgtProperty.getValue());
+                    }
+
+                    newProperties.add(prop);
+                    configurationDetails.remove(key);
+                }
             }
-
-            newProperties.add(prop);
-            configurationDetails.remove(key);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityProviderManagementException(String.format(
+                    "Error while checking if tenant %s is an organization.", tenantDomain), e);
         }
 
         for (Map.Entry<String, String> entry : configurationDetails.entrySet()) {
@@ -424,6 +445,35 @@ public class IdentityProviderManager implements IdpManager {
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostUpdateResidentIdP(identityProvider, tenantDomain)) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * Delete properties of the resident IDP in the given tenant.
+     *
+     * @param propertyNames List of property names to be deleted.
+     * @param tenantDomain Tenant domain whose resident IdP properties should be deleted.
+     * @throws IdentityProviderManagementException Error when deleting properties of the resident Identity Provider
+     */
+    @Override
+    public void deleteResidentIdpProperties(List<String> propertyNames, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        IdentityProvider residentIdp = dao.getIdPByName(null, IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
+                IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
+
+        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteResidentIdpProperties(propertyNames, tenantDomain)) {
+                return;
+            }
+        }
+
+        dao.deleteIdpProperties(residentIdp, propertyNames, tenantDomain);
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteResidentIdpProperties(propertyNames, tenantDomain)) {
                 return;
             }
         }

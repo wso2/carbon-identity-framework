@@ -37,17 +37,19 @@ public final class WebhookSQLConstants {
         public static final String UUID = "UUID";
         public static final String ENDPOINT = "ENDPOINT";
         public static final String NAME = "NAME";
-        public static final String SECRET = "SECRET";
+        public static final String SECRET_ALIAS = "SECRET_ALIAS";
         public static final String VERSION = "VERSION";
-        public static final String EVENT_SCHEMA_NAME = "EVENT_SCHEMA_NAME";
-        public static final String EVENT_SCHEMA_URI = "EVENT_SCHEMA_URI";
-        public static final String EVENT_SCHEMA_VERSION = "EVENT_SCHEMA_VERSION";
+        public static final String EVENT_PROFILE_NAME = "EVENT_PROFILE_NAME";
+        public static final String EVENT_PROFILE_URI = "EVENT_PROFILE_URI";
+        public static final String EVENT_PROFILE_VERSION = "EVENT_PROFILE_VERSION";
         public static final String STATUS = "STATUS";
         public static final String TENANT_ID = "TENANT_ID";
         public static final String CREATED_AT = "CREATED_AT";
         public static final String UPDATED_AT = "UPDATED_AT";
-        public static final String EVENT_NAME = "EVENT_NAME";
+        public static final String CHANNEL_URI = "CHANNEL_URI";
+        public static final String CHANNEL_SUBSCRIPTION_STATUS = "CHANNEL_SUBSCRIPTION_STATUS";
         public static final String WEBHOOK_ID = "WEBHOOK_ID";
+        public static final String WEBHOOK_COUNT = "WEBHOOK_COUNT";
 
         private Column() {
 
@@ -60,17 +62,21 @@ public final class WebhookSQLConstants {
     public static final class Query {
 
         public static final String CREATE_WEBHOOK =
-                "INSERT INTO IDN_WEBHOOK (UUID, ENDPOINT, NAME, SECRET, VERSION, EVENT_SCHEMA_NAME, " +
-                        "EVENT_SCHEMA_URI, EVENT_SCHEMA_VERSION, STATUS, TENANT_ID, CREATED_AT, UPDATED_AT) " +
-                        "VALUES (:UUID;, :ENDPOINT;, :NAME;, :SECRET;, :VERSION;, :EVENT_SCHEMA_NAME;, " +
-                        ":EVENT_SCHEMA_URI;, :EVENT_SCHEMA_VERSION;, :STATUS;, :TENANT_ID;, CURRENT_TIMESTAMP, " +
+                "INSERT INTO IDN_WEBHOOK (UUID, ENDPOINT, NAME, SECRET_ALIAS, VERSION, EVENT_PROFILE_NAME, " +
+                        "EVENT_PROFILE_URI, EVENT_PROFILE_VERSION, STATUS, TENANT_ID, CREATED_AT, UPDATED_AT) " +
+                        "VALUES (:UUID;, :ENDPOINT;, :NAME;, :SECRET_ALIAS;, :VERSION;, :EVENT_PROFILE_NAME;, " +
+                        ":EVENT_PROFILE_URI;, :EVENT_PROFILE_VERSION;, :STATUS;, :TENANT_ID;, CURRENT_TIMESTAMP, " +
                         "CURRENT_TIMESTAMP)";
 
+        public static final String UPDATE_WEBHOOK_STATUS =
+                "UPDATE IDN_WEBHOOK SET STATUS = :STATUS;, UPDATED_AT = CURRENT_TIMESTAMP " +
+                        "WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
+
         public static final String UPDATE_WEBHOOK =
-                "UPDATE IDN_WEBHOOK SET ENDPOINT = :ENDPOINT;, NAME = :NAME;, SECRET = :SECRET;, " +
-                        "VERSION = :VERSION;, EVENT_SCHEMA_NAME = :EVENT_SCHEMA_NAME;, " +
-                        "EVENT_SCHEMA_URI = :EVENT_SCHEMA_URI;, " +
-                        "EVENT_SCHEMA_VERSION = :EVENT_SCHEMA_VERSION;, STATUS = :STATUS;," +
+                "UPDATE IDN_WEBHOOK SET ENDPOINT = :ENDPOINT;, NAME = :NAME;, SECRET_ALIAS = :SECRET_ALIAS;, " +
+                        "VERSION = :VERSION;, EVENT_PROFILE_NAME = :EVENT_PROFILE_NAME;, " +
+                        "EVENT_PROFILE_URI = :EVENT_PROFILE_URI;, " +
+                        "EVENT_PROFILE_VERSION = :EVENT_PROFILE_VERSION;, STATUS = :STATUS;," +
                         " UPDATED_AT = CURRENT_TIMESTAMP " +
                         "WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
 
@@ -89,21 +95,33 @@ public final class WebhookSQLConstants {
         public static final String CHECK_WEBHOOK_ENDPOINT_EXISTS =
                 "SELECT 1 FROM IDN_WEBHOOK WHERE ENDPOINT = :ENDPOINT; AND TENANT_ID = :TENANT_ID;";
 
-        public static final String ACTIVATE_WEBHOOK =
-                "UPDATE IDN_WEBHOOK SET STATUS = 'ACTIVE' WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
-
-        public static final String DEACTIVATE_WEBHOOK =
-                "UPDATE IDN_WEBHOOK SET STATUS = 'INACTIVE' WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
-
         public static final String ADD_WEBHOOK_EVENT =
-                "INSERT INTO IDN_WEBHOOK_EVENTS (WEBHOOK_ID, EVENT_NAME) VALUES (:WEBHOOK_ID;, :EVENT_NAME;)";
+                "INSERT INTO IDN_WEBHOOK_CHANNELS (WEBHOOK_ID, CHANNEL_URI, CHANNEL_SUBSCRIPTION_STATUS) VALUES " +
+                        "(:WEBHOOK_ID;, :CHANNEL_URI;, :CHANNEL_SUBSCRIPTION_STATUS;)";
 
-        public static final String LIST_WEBHOOK_EVENTS_BY_UUID = "SELECT E.EVENT_NAME FROM IDN_WEBHOOK_EVENTS E " +
+        public static final String UPDATE_WEBHOOK_EVENT_STATUS =
+                "UPDATE IDN_WEBHOOK_CHANNELS SET CHANNEL_SUBSCRIPTION_STATUS = :CHANNEL_SUBSCRIPTION_STATUS; " +
+                        "WHERE WEBHOOK_ID = :WEBHOOK_ID; AND CHANNEL_URI = :CHANNEL_URI;";
+
+        public static final String LIST_WEBHOOK_EVENTS_BY_UUID = "SELECT E.CHANNEL_URI, " +
+                "E.CHANNEL_SUBSCRIPTION_STATUS FROM IDN_WEBHOOK_CHANNELS E " +
                 "INNER JOIN IDN_WEBHOOK W ON E.WEBHOOK_ID = W.ID " +
                 "WHERE W.UUID = :UUID; AND W.TENANT_ID = :TENANT_ID;";
 
         public static final String DELETE_WEBHOOK_EVENTS =
-                "DELETE FROM IDN_WEBHOOK_EVENTS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
+                "DELETE FROM IDN_WEBHOOK_CHANNELS WHERE WEBHOOK_ID = :WEBHOOK_ID;";
+
+        public static final String COUNT_WEBHOOKS_BY_TENANT =
+                "SELECT COUNT(*) AS WEBHOOK_COUNT FROM IDN_WEBHOOK WHERE TENANT_ID = :TENANT_ID;";
+
+        public static final String GET_ACTIVE_WEBHOOKS_BY_PROFILE_CHANNEL =
+                "SELECT WEBHOOK.* FROM IDN_WEBHOOK WEBHOOK " +
+                        "INNER JOIN IDN_WEBHOOK_CHANNELS CHANNEL ON WEBHOOK.ID = CHANNEL.WEBHOOK_ID " +
+                        "WHERE CHANNEL.CHANNEL_URI = :CHANNEL_URI; " +
+                        "AND WEBHOOK.TENANT_ID = :TENANT_ID; " +
+                        "AND WEBHOOK.STATUS = :STATUS; " +
+                        "AND WEBHOOK.EVENT_PROFILE_NAME = :EVENT_PROFILE_NAME; " +
+                        "AND WEBHOOK.EVENT_PROFILE_VERSION = :EVENT_PROFILE_VERSION;";
 
         private Query() {
 

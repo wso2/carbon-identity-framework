@@ -22,7 +22,6 @@
     <test name="webhook-management-service-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.management.service.WebhookManagementServiceImplTest"/>
-            <class name="org.wso2.carbon.identity.webhook.management.service.EventSubscriberServiceTest"/>
         </classes>
     </test>
     <test name="webhook-management-dao-test">
@@ -30,11 +29,20 @@
             <class name="org.wso2.carbon.identity.webhook.management.dao.WebhookManagementDAOImplTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.dao.CacheBackedWebhookManagementDAOTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.dao.WebhookManagementDAOFacadeTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.dao.PublisherAdapterTypeHandlerTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.dao.WebhookAdapterTypeHandlerFactoryTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.dao.PublisherSubscriberAdapterTypeHandlerTest"/>
         </classes>
     </test>
     <test name="webhook-management-internal-test">
         <classes>
             <class name="org.wso2.carbon.identity.webhook.management.internal.WebhookManagementComponentServiceHolderTest"/>
+        </classes>
+    </test>
+    <test name="webhook-management-util-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.webhook.management.util.WebhookValidatorTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.util.WebhookSecretProcessorTest"/>
         </classes>
     </test>
 </suite>

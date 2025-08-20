@@ -30,6 +30,7 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -918,8 +919,10 @@ public class UserProfileAdmin extends AbstractAdmin {
 
     private void audit(String action, String target, String data, String result) {
 
-        audit_log.info(String.format(AUDIT_MESSAGE, getUsername() + UserCoreConstants.TENANT_DOMAIN_COMBINER +
-                getTenantDomain(), action, target, data, result));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            audit_log.info(String.format(AUDIT_MESSAGE, getUsername() + UserCoreConstants.TENANT_DOMAIN_COMBINER +
+                    getTenantDomain(), action, target, data, result));
+        }
     }
 
     private String getAuditData(String username, String idpID, String federatedUserID) {

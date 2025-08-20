@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -27,10 +27,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.application.common.model.AccountLookupAttributeMappingConfig;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
@@ -62,6 +63,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -84,7 +86,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
@@ -114,6 +118,7 @@ public class IdPManagementDAOTest {
 
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
     MockedStatic<CryptoUtil> cryptoUtil;
+    MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
     private SecretManagerImpl secretManager;
     private CryptoUtil mockCryptoUtil;
 
@@ -169,10 +174,12 @@ public class IdPManagementDAOTest {
 
         cryptoUtil = mockStatic(CryptoUtil.class);
         mockCryptoUtil = mock(CryptoUtil.class);
+        organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
         cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
         when(mockCryptoUtil.encryptAndBase64Encode(any())).thenReturn("ENCRYPTED_VALUE2");
         when(mockCryptoUtil.base64DecodeAndDecrypt(anyString())).thenReturn("ENCRYPTED_VALUE2".getBytes());
-
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN))
+                .thenReturn(false);
         endpointConfig = ActionMgtTestUtil.createEndpointConfig("http://localhost", "admin", "admin");
         endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig("http://localhost1", "admin1", "admin1");
         userDefinedIdP = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, endpointConfig);
@@ -184,6 +191,7 @@ public class IdPManagementDAOTest {
     public void tearDownClass() {
 
         cryptoUtil.close();
+        organizationManagementUtilMockedStatic.close();
     }
 
     @BeforeMethod
@@ -952,6 +960,44 @@ public class IdPManagementDAOTest {
 
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
             assertIdPResult(idpResult, idpName, isExist);
+        }
+    }
+
+    @Test
+    public void testDeleteIdpProperties() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            IdentityProvider addedIdp = idPManagementDAO.getIdPByName(
+                    connection, "testIdP1", SAMPLE_TENANT_ID, TENANT_DOMAIN);
+            List<String> propertiesToDelete = new ArrayList<>();
+            propertiesToDelete.add(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+
+            idPManagementDAO.deleteIdpProperties(Integer.parseInt(addedIdp.getId()), propertiesToDelete, TENANT_DOMAIN);
+        }
+
+        assertDeletedIdpProperties();
+    }
+
+    private void assertDeletedIdpProperties() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+            IdentityProvider updatedIdp = idPManagementDAO.getIdPByName(
+                    connection, "testIdP1", SAMPLE_TENANT_ID, TENANT_DOMAIN);
+            assertEquals(updatedIdp.getIdpProperties().length, 3);
+            assertFalse(Arrays.stream(updatedIdp.getIdpProperties()).anyMatch( prop ->
+                            IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY.equals(prop.getName())),
+                    "Property deletion failed for: " + IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
         }
     }
 
@@ -1832,6 +1878,59 @@ public class IdPManagementDAOTest {
         }
     }
 
+    @Test
+    public void testPopulateAccountLookupAttributes_validProperties() throws Exception {
+
+        JustInTimeProvisioningConfig config = new JustInTimeProvisioningConfig();
+        IdentityProviderProperty local = new IdentityProviderProperty();
+        local.setName(IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        local.setValue("email,,http://wso2.org/claims/emailaddress");
+        IdentityProviderProperty federated = new IdentityProviderProperty();
+        federated.setName(IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING);
+        federated.setValue("username,,http://wso2.org/claims/username");
+        IdentityProviderProperty[] properties = new IdentityProviderProperty[]{local, federated};
+
+        IdPManagementDAO dao = new IdPManagementDAO();
+        // Use reflection to access private method
+        Method method = IdPManagementDAO.class.getDeclaredMethod("populateAccountLookupAttributes",
+                JustInTimeProvisioningConfig.class, IdentityProviderProperty[].class);
+        method.setAccessible(true);
+        method.invoke(dao, config, properties);
+
+        AccountLookupAttributeMappingConfig[] mappings = config.getAccountLookupAttributeMappings();
+        assertNotNull(mappings);
+        assertEquals(2, mappings.length);
+        assertEquals("http://wso2.org/claims/emailaddress", mappings[0].getLocalAttribute());
+        assertEquals("email", mappings[0].getFederatedAttribute());
+        assertEquals("http://wso2.org/claims/username", mappings[1].getLocalAttribute());
+        assertEquals("username", mappings[1].getFederatedAttribute());
+    }
+
+    @Test
+    public void testFillAccountLookUpAttributesIdpProperties_validMappings() throws Exception {
+
+        JustInTimeProvisioningConfig config = new JustInTimeProvisioningConfig();
+        AccountLookupAttributeMappingConfig mapping1 = new AccountLookupAttributeMappingConfig();
+        mapping1.setLocalAttribute("http://wso2.org/claims/emailaddress");
+        mapping1.setFederatedAttribute("email");
+        AccountLookupAttributeMappingConfig mapping2 = new AccountLookupAttributeMappingConfig();
+        mapping2.setLocalAttribute("http://wso2.org/claims/username");
+        mapping2.setFederatedAttribute("username");
+        config.setAccountLookupAttributeMappings(new AccountLookupAttributeMappingConfig[]{mapping1, mapping2});
+
+        IdentityProviderProperty primary = new IdentityProviderProperty();
+        IdentityProviderProperty secondary = new IdentityProviderProperty();
+
+        IdPManagementDAO dao = new IdPManagementDAO();
+        Method method = IdPManagementDAO.class.getDeclaredMethod("fillAccountLookUpAttributesIdpProperties",
+                JustInTimeProvisioningConfig.class, IdentityProviderProperty.class, IdentityProviderProperty.class);
+        method.setAccessible(true);
+        method.invoke(dao, config, primary, secondary);
+
+        assertEquals("email,,http://wso2.org/claims/emailaddress", primary.getValue());
+        assertEquals("username,,http://wso2.org/claims/username", secondary.getValue());
+    }
+
     private void addTestIdps() throws IdentityProviderManagementException {
 
         // Initialize Test Identity Provider 1.
@@ -1863,11 +1962,9 @@ public class IdPManagementDAOTest {
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
-        property1.setConfidential(true);
         Property property2 = new Property();
         property2.setName("Property2");
         property2.setValue("value2");
-        property2.setConfidential(false);
         federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
         idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
 
@@ -2001,11 +2098,9 @@ public class IdPManagementDAOTest {
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
-        property1.setConfidential(true);
         Property property2 = new Property();
         property2.setName("Property2");
         property2.setValue("value2");
-        property2.setConfidential(false);
         federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
         idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
 

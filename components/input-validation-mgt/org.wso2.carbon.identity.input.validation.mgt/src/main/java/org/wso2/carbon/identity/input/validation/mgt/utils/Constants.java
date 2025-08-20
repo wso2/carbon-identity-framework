@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -192,6 +192,10 @@ public class Constants {
         ERROR_INVALID_VALIDATORS_COMBINATION("60027",
                 "INVALID VALIDATOR COMBINATION",
                 "Invalid validators combination is provided for field %s."),
+        ERROR_INVALID_ATTRIBUTE_VALUE_TYPE("60028", "INVALID VALUE FOR ATTRIBUTE",
+                "Attribute '%s' expects a value of type '%s'."),
+        ERROR_NOT_ALLOWED_ATTRIBUTE_VALUE("60029", "NOT ALLOWED VALUE FOR ATTRIBUTE",
+                "Invalid value '%s' for claim '%s'. Allowed values are: %s"),
 
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
@@ -202,7 +206,10 @@ public class Constants {
                 "Error occurred while adding the input validation configurations for the tenant: %s"),
         ERROR_WHILE_UPDATING_CONFIGURATIONS("65003",
                 "Unable to update configurations.",
-                "Error occurred while updating the input validation configurations for the tenant: %s");
+                "Error occurred while updating the input validation configurations for the tenant: %s"),
+        ERROR_WHILE_DELETING_CONFIGURATIONS("65004",
+                "Unable to delete configurations.",
+                "Error occurred while deleting the input validation configurations for the tenant: %s");
 
 
         private final String code;

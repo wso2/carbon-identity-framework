@@ -60,9 +60,9 @@ public enum ExecutorResultState {
     };
 
     /**
-     * Defautl State of Result
+     * Defautl State of Result.
      *
-     * @return boolean
+     * @return boolean.
      */
     public boolean state() {
 

@@ -25,10 +25,9 @@ package org.wso2.carbon.identity.action.execution.api.model;
 public class Organization {
 
     private final String id;
-
     private final String name;
-
     private String orgHandle;
+    private int depth;
 
     public Organization(String id, String name) {
 
@@ -41,6 +40,14 @@ public class Organization {
         this.id = id;
         this.name = name;
         this.orgHandle = orgHandle;
+    }
+
+    private Organization(Builder builder) {
+
+        this.id = builder.id;
+        this.name = builder.name;
+        this.orgHandle = builder.orgHandle;
+        this.depth = builder.depth;
     }
 
     public String getId() {
@@ -56,5 +63,50 @@ public class Organization {
     public String getOrgHandle() {
 
         return orgHandle;
+    }
+
+    public int getDepth() {
+
+        return depth;
+    }
+
+    /**
+     * Builder class for Organization.
+     */
+    public static class Builder {
+
+        private String id;
+        private String name;
+        private String orgHandle;
+        private int depth;
+
+        public Builder id(String id) {
+
+            this.id = id;
+            return this;
+        }
+
+        public Builder name(String name) {
+
+            this.name = name;
+            return this;
+        }
+
+        public Builder orgHandle(String orgHandle) {
+
+            this.orgHandle = orgHandle;
+            return this;
+        }
+
+        public Builder depth(int depth) {
+
+            this.depth = depth;
+            return this;
+        }
+
+        public Organization build() {
+
+            return new Organization(this);
+        }
     }
 }

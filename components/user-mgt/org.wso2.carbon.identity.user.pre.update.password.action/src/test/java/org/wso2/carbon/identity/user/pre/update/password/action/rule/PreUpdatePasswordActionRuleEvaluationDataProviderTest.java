@@ -85,10 +85,18 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
                 {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordUpdate"},
                 {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER, "userInitiatedPasswordUpdate"},
                 {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION, "applicationInitiatedPasswordUpdate"},
-                {Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordReset"},
-                {Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER, "userInitiatedPasswordReset"},
-                {Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD, Flow.InitiatingPersona.ADMIN,
-                        "adminInitiatedUserInviteToSetPassword"}
+                {Flow.Name.CREDENTIAL_RESET, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordReset"},
+                {Flow.Name.CREDENTIAL_RESET, Flow.InitiatingPersona.USER, "userInitiatedPasswordReset"},
+                {Flow.Name.INVITE, Flow.InitiatingPersona.ADMIN,
+                        "adminInitiatedUserInviteToSetPassword"},
+                {Flow.Name.INVITED_USER_REGISTRATION, Flow.InitiatingPersona.ADMIN,
+                        "adminInitiatedUserInviteToSetPassword"},
+                {Flow.Name.REGISTER, Flow.InitiatingPersona.ADMIN,
+                        "adminInitiatedRegistration"},
+                {Flow.Name.REGISTER, Flow.InitiatingPersona.APPLICATION,
+                        "applicationInitiatedRegistration"},
+                {Flow.Name.REGISTER, Flow.InitiatingPersona.USER,
+                        "userInitiatedRegistration"}
         };
     }
 
@@ -98,7 +106,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
 
         doReturn(flowName).when(flow).getName();
         doReturn(initiatingPersona).when(flow).getInitiatingPersona();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
 
         List<FieldValue> fieldValues = dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
         assertEquals(fieldValues.size(), 1);
@@ -116,9 +124,9 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
     @Test(expectedExceptions = RuleEvaluationDataProviderException.class)
     public void testGetEvaluationDataWithUnsupportedFlow() throws RuleEvaluationDataProviderException {
 
-        doReturn(Flow.Name.PASSWORD_RESET).when(flow).getName();
+        doReturn(Flow.Name.CREDENTIAL_RESET).when(flow).getName();
         doReturn(Flow.InitiatingPersona.APPLICATION).when(flow).getInitiatingPersona();
-        IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
     }
 }

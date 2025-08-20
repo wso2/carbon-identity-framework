@@ -53,9 +53,6 @@ public class ActionManagementAuditLogger {
      */
     public void printAuditLog(Operation operation, ActionDTO actionDTO) throws ActionMgtException {
 
-        if (!LoggerUtils.isEnableV2AuditLogs()) {
-            return;
-        }
         JSONObject data = createAuditLogEntry(actionDTO);
         buildAuditLog(operation, data);
     }
@@ -69,9 +66,6 @@ public class ActionManagementAuditLogger {
      */
     public void printAuditLog(Operation operation, String actionType, String actionId) {
 
-        if (!LoggerUtils.isEnableV2AuditLogs()) {
-            return;
-        }
         JSONObject data = createAuditLogEntry(actionType, actionId);
         buildAuditLog(operation, data);
     }

@@ -131,25 +131,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="approvals" displayName="Approvals" type="tenant" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:workflowApprovals"/>
-            </Feature>
-            <Update>
-                <Scope name="internal_humantask_view"/>
-            </Update>
-            <Delete>
-                <Scope name="internal_humantask_view"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_humantask_view"/>
-            </Create>
-            <Read>
-                <Scope name="internal_humantask_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
     <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects" type="tenant" version="v0">
        <Scopes>
             <Feature>
@@ -523,6 +504,37 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="agents" displayName="Agents" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:agents"/>
+                <Scope name="console:agents_view"/>
+                <Scope name="console:agents_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_agent_mgt_update"/>
+                <Scope name="internal_session_delete"/>
+                <Scope name="internal_group_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_agent_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_agent_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_login"/>
+                <Scope name="internal_agent_mgt_view"/>
+                <Scope name="internal_agent_mgt_list"/>
+                <Scope name="internal_session_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="userStores" displayName="User Stores" type="tenant" version="v0">
        <Scopes>
             <Feature>
@@ -880,24 +892,43 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="approvals" displayName="Approvals" type="tenant">
+    <APIResourceCollection name="approvalWorkflows" displayName="Approval Workflows" type="tenant">
         <Scopes>
             <Feature>
-                <Scope name="console:workflowApprovals"/>
-                <Scope name="console:workflowApprovals_view"/>
-                <Scope name="console:workflowApprovals_edit"/>
+                <Scope name="console:approvalWorkflows"/>
+                <Scope name="console:approvalWorkflows_view"/>
+                <Scope name="console:approvalWorkflows_edit"/>
             </Feature>
             <Update>
-                <Scope name="internal_humantask_view"/>
+                <Scope name="internal_workflow_update"/>
+                <Scope name="internal_workflow_association_update"/>
             </Update>
             <Delete>
-                <Scope name="internal_humantask_view"/>
+                <Scope name="internal_workflow_delete"/>
+                <Scope name="internal_workflow_association_delete"/>
             </Delete>
             <Create>
-                <Scope name="internal_humantask_view"/>
+                <Scope name="internal_workflow_create"/>
+                <Scope name="internal_workflow_association_create"/>
             </Create>
             <Read>
-                <Scope name="internal_humantask_view"/>
+                <Scope name="internal_workflow_view"/>
+                <Scope name="internal_workflow_association_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="workflowInstances" displayName="Workflow Instances" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:workflowInstances"/>
+                <Scope name="console:workflowInstances_view"/>
+                <Scope name="console:workflowInstances_edit"/>
+            </Feature>
+            <Delete>
+                <Scope name="internal_workflow_instance_delete"/>
+            </Delete>
+            <Read>
+                <Scope name="internal_workflow_instance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -960,7 +991,11 @@
             <Delete>
             </Delete>
             <Create>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_create"/>
+                {% else %}
+                <Scope name="internal_role_mgt_meta_create"/>
+                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_application_mgt_view"/>
@@ -1138,6 +1173,27 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_loginAndRegistration" displayName="Login And Registration" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:loginAndRegistration"/>
+                <Scope name="console:org:loginAndRegistration_view"/>
+                <Scope name="console:org:loginAndRegistration_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_governance_update"/>
+                <Scope name="internal_org_validation_rule_mgt_update"/>
+                <Scope name="internal_org_config_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_org_governance_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="notificationChannels" displayName="Notification Channels" type="tenant">
         <Scopes>
             <Feature>
@@ -1178,6 +1234,17 @@
             <Read>
                 <Scope name="internal_oidc_scope_mgt_view"/>
                 <Scope name="internal_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="oidcScopes" displayName="OIDC Scopes" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:scopes:oidc"/>
+                <Scope name="console:org:scopes:oidc_view"/>
+            </Feature>
+            <Read>
+                <Scope name="internal_org_oidc_scope_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1258,13 +1325,21 @@
                 <Scope name="console:roles_edit"/>
             </Feature>
             <Update>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_update"/>
+                {% else %}
+                <Scope name="internal_role_mgt_meta_update"/>
+                {% endif %}
             </Update>
             <Delete>
                 <Scope name="internal_role_mgt_delete"/>
             </Delete>
             <Create>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_create"/>
+                {% else %}
+                <Scope name="internal_role_mgt_meta_create"/>
+                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_user_mgt_view"/>
@@ -1278,6 +1353,34 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
+    <APIResourceCollection name="roleAssignments" displayName="Role Assignments" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:roles"/>
+                <Scope name="console:role_assignments"/>
+                <Scope name="console:role_assignments_view"/>
+                <Scope name="console:role_assignments_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_role_mgt_users_update"/>
+                <Scope name="internal_role_mgt_groups_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    {% endif %}
     <APIResourceCollection name="rolesV1" displayName="Roles" type="tenant">
         <Scopes>
             <Feature>
@@ -1315,6 +1418,7 @@
                 <Scope name="internal_user_mgt_update"/>
                 <Scope name="internal_session_delete"/>
                 <Scope name="internal_group_mgt_update"/>
+                <Scope name="internal_user_code_mgt_create"/>
             </Update>
             <Delete>
                 <Scope name="internal_user_mgt_delete"/>
@@ -1323,6 +1427,7 @@
                 <Scope name="internal_user_mgt_create"/>
                 <Scope name="internal_bulk_resource_create"/>
                 <Scope name="internal_offline_invite"/>
+                <Scope name="internal_workflow_association_view"/>
             </Create>
             <Read>
                 <Scope name="internal_userstore_view"/>
@@ -1425,6 +1530,23 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="flows" displayName="Flows" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:flows"/>
+                <Scope name="console:flows_view"/>
+                <Scope name="console:flows_edit"/>
+            </Feature>
+            <Update>
+            </Update>
+            <Delete>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
 <!--    New Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>
@@ -1441,7 +1563,11 @@
                 <Scope name="internal_org_guest_mgt_invite_delete"/>
             </Delete>
             <Create>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_create"/>
+                {% else %}
+                <Scope name="internal_org_role_mgt_meta_create"/>
+                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
@@ -1498,6 +1624,7 @@
             <Update>
                 <Scope name="internal_org_user_mgt_update"/>
                 <Scope name="internal_org_session_delete"/>
+                <Scope name="internal_org_user_code_mgt_create"/>
             </Update>
             <Delete>
                 <Scope name="internal_org_user_mgt_delete"/>
@@ -1507,6 +1634,7 @@
                 <Scope name="internal_org_user_mgt_create"/>
                 <Scope name="internal_org_guest_mgt_invite_add"/>
                 <Scope name="internal_org_bulk_resource_create"/>
+                <Scope name="internal_org_workflow_association_view"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>
@@ -1578,13 +1706,21 @@
                 <Scope name="console:org:roles_edit"/>
             </Feature>
             <Update>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_update"/>
+                {% else %}
+                <Scope name="internal_org_role_mgt_meta_update"/>
+                {% endif %}
             </Update>
             <Delete>
                 <Scope name="internal_org_role_mgt_delete"/>
             </Delete>
             <Create>
+                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_create"/>
+                {% else %}
+                <Scope name="internal_org_role_mgt_meta_create"/>
+                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_org_user_mgt_view"/>
@@ -1597,6 +1733,32 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
+    <APIResourceCollection name="org_roleAssignments" displayName="Role Assignments" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:roles"/>
+                <Scope name="console:org:role_assignments"/>
+                <Scope name="console:org:role_assignments_view"/>
+                <Scope name="console:org:role_assignments_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_role_mgt_users_update"/>
+                <Scope name="internal_org_role_mgt_groups_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    {% endif %}
     <APIResourceCollection name="org_rolesV1" displayName="Roles" type="organization">
         <Scopes>
             <Feature>
@@ -1665,6 +1827,46 @@
             </Create>
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_approvalWorkflows" displayName="Approval Workflows" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:approvalWorkflows"/>
+                <Scope name="console:org:approvalWorkflows_view"/>
+                <Scope name="console:org:approvalWorkflows_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_workflow_update"/>
+                <Scope name="internal_org_workflow_association_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_workflow_delete"/>
+                <Scope name="internal_org_workflow_association_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_workflow_create"/>
+                <Scope name="internal_org_workflow_association_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_workflow_view"/>
+                <Scope name="internal_org_workflow_association_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_workflowInstances" displayName="Workflow Instances" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:workflowInstances"/>
+                <Scope name="console:org:workflowInstances_view"/>
+                <Scope name="console:org:workflowInstances_edit"/>
+            </Feature>
+            <Delete>
+                <Scope name="internal_org_workflow_instance_delete"/>
+            </Delete>
+            <Read>
+                <Scope name="internal_org_workflow_instance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1783,6 +1985,47 @@
             </Read>
             <Delete>
             </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_actions" displayName="Actions" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:actions"/>
+                <Scope name="console:org:actions_view"/>
+                <Scope name="console:org:actions_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_action_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_action_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_action_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_action_mgt_view"/>
+                <Scope name="internal_org_rule_metadata_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="flows" displayName="Flows" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:flows"/>
+                <Scope name="console:org:flows_view"/>
+                <Scope name="console:org:flows_edit"/>
+            </Feature>
+            <Update>
+            </Update>
+            <Delete>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+            </Read>
         </Scopes>
     </APIResourceCollection>
 </APIResourceCollections>

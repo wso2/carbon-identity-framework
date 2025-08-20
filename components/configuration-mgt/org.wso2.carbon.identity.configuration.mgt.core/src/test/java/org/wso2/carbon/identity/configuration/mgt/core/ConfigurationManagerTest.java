@@ -44,6 +44,10 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.apache.commons.io.FileUtils;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
 import java.io.File;
 import java.io.InputStream;
@@ -60,19 +64,27 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE3_UPDATED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_DOMAIN_ABC;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_ID_ABC;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.TEST_ORG_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestSQLConstants.REMOVE_CREATED_TIME_COLUMN_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.closeH2Base;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getInheritableSampleResourceTypeAdd;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleAttribute1;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleAttribute3;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResource1Add;
@@ -88,11 +100,16 @@ public class ConfigurationManagerTest {
 
     private ConfigurationManager configurationManager;
     private Connection connection;
+    private OrganizationManager organizationManager;
+    private OrgResourceResolverService orgResourceResolverService;
 
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private MockedStatic<IdentityUtil> identityUtil;
+    private MockedStatic<OrganizationManagementUtil> organizationManagementUtilMockedStatic;
+    private MockedStatic<Utils> utilsMockedStatic;
+
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -116,6 +133,14 @@ public class ConfigurationManagerTest {
         identityUtil = mockStatic(IdentityUtil.class);
         prepareConfigs(privilegedCarbonContext, identityTenantUtil, identityUtil);
 
+        organizationManager = mock(OrganizationManager.class);
+        ConfigurationManagerComponentDataHolder.getInstance().setOrganizationManager(organizationManager);
+        organizationManagementUtilMockedStatic = mockStatic(OrganizationManagementUtil.class);
+        utilsMockedStatic = mockStatic(Utils.class);
+
+        orgResourceResolverService = mock(OrgResourceResolverService.class);
+        ConfigurationManagerComponentDataHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
+
         ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled(true);
     }
 
@@ -129,6 +154,8 @@ public class ConfigurationManagerTest {
         privilegedCarbonContext.close();
         identityTenantUtil.close();
         identityUtil.close();
+        organizationManagementUtilMockedStatic.close();
+        utilsMockedStatic.close();
     }
 
     @Test(priority = 1)
@@ -609,6 +636,64 @@ public class ConfigurationManagerTest {
         resourcesByType = configurationManager.getResourcesByType(resourceType.getName());
         Assert.assertTrue("Retrieved resource count should be equal to the 0",
                 resourcesByType.getResources().size() == 0);
+    }
+
+    @Test (priority = 35)
+    public void testGetInheritedResourcesByType() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
+        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
+
+        ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(List.of(resource1));
+
+        Resources returnedResources = configurationManager.getResourcesByType(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME);
+        verify(orgResourceResolverService, times(1)).getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any());
+        org.testng.Assert.assertFalse(returnedResources.getResources().isEmpty());
+    }
+
+    @Test (priority = 34)
+    public void testGetInheritedResourcesByTypeInheritanceDisabled() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(false);
+        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
+
+        ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(List.of(resource1));
+
+        Resources returnedResources = configurationManager.getResourcesByType(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME);
+        verify(orgResourceResolverService, times(0)).getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any());
+        org.testng.Assert.assertFalse(returnedResources.getResources().isEmpty());
+    }
+
+    @Test (priority = 36)
+    public void testGetInheritedResource() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
+        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
+
+        ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(resource1);
+
+        Resource returnedResource = configurationManager.getResource(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME,
+                SAMPLE_RESOURCE_NAME1, true);
+        verify(orgResourceResolverService, times(1)).getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any());
+        Assert.assertNotNull(returnedResource);
     }
 
     private void removeCreatedTimeColumn() throws DataAccessException {

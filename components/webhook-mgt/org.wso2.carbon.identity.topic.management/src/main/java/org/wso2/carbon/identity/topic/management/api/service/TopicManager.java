@@ -31,18 +31,20 @@ public interface TopicManager {
      *
      * @return Name of the topic manager.
      */
-    String getName();
+    String getAssociatedAdapter();
 
     /**
      * Constructs a topic from the channel URI.
      *
-     * @param channelUri   The channel URI for the topic.
-     * @param tenantDomain Tenant domain.
+     * @param channelUri          The channel URI for the topic.
+     * @param eventProfileName    Name of the event profile.
+     * @param eventProfileVersion Version of the event profile.
+     * @param tenantDomain        Tenant domain.
      * @return Constructed topic string.
      * @throws TopicManagementException If an error occurs during topic construction.
      */
-    public String constructTopic(String channelUri, String eventProfileVersion, String tenantDomain)
-            throws TopicManagementException;
+    String constructTopic(String channelUri, String eventProfileName, String eventProfileVersion,
+                                 String tenantDomain) throws TopicManagementException;
 
     /**
      * Registers a topic in the system.
@@ -51,7 +53,7 @@ public interface TopicManager {
      * @param tenantDomain Tenant domain.
      * @throws TopicManagementException If an error occurs during topic registration.
      */
-    public void registerTopic(String topic, String tenantDomain) throws TopicManagementException;
+    void registerTopic(String topic, String tenantDomain) throws TopicManagementException;
 
     /**
      * Deregisters a topic from the system and removes it from the database on success.
@@ -60,5 +62,5 @@ public interface TopicManager {
      * @param tenantDomain Tenant domain.
      * @throws TopicManagementException If an error occurs during topic deregistration.
      */
-    public void deregisterTopic(String topic, String tenantDomain) throws TopicManagementException;
+    void deregisterTopic(String topic, String tenantDomain) throws TopicManagementException;
 }

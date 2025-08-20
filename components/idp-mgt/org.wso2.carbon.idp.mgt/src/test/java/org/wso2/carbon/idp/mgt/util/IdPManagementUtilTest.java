@@ -29,21 +29,30 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -54,6 +63,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ASK_PASSWORD_SEND_EMAIL_OTP;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ASK_PASSWORD_SEND_SMS_OTP;
 
 /**
  * Unit tests for IdPManagementUtil.
@@ -70,7 +81,9 @@ public class IdPManagementUtilTest {
     private static final String PASSWORD_RECOVERY_EMAIL_OTP_ENABLE =
             "Recovery.Notification.Password.OTP.SendOTPInEmail";
     private static final String PASSWORD_RECOVERY_SMS_OTP_ENABLE = "Recovery.Notification.Password.smsOtp.Enable";
-
+    private static final String IDP_NAME = "testIdP";
+    private static final int TENANT_ID = 1;
+    private static final String TENANT_DOMAIN = "test.com";
 
     @Mock
     private IdentityProviderManager mockedIdentityProviderManager;
@@ -82,6 +95,8 @@ public class IdPManagementUtilTest {
     private TenantManager mockedTenantManager;
     @Mock
     private RealmService mockedRealmService;
+    @Mock
+    private CacheBackedIdPMgtDAO mockDao;
 
     @DataProvider
     public Object[][] getTenantIdOfDomainData() {
@@ -237,6 +252,33 @@ public class IdPManagementUtilTest {
     }
 
     @Test
+    public void testClearIdPCache() throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN))
+                    .thenReturn(TENANT_ID);
+
+            // Since the dao is a private final field, using reflection to change the access modifier and
+            // replace it with a mock object. Since this is a simple test, this won't introduce any complexities.
+            Field daoField = IdPManagementUtil.class.getDeclaredField("CACHE_BACKED_IDP_MGT_DAO");
+            daoField.setAccessible(true);
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(daoField, daoField.getModifiers() & ~Modifier.FINAL);
+            daoField.set(null, mockDao);
+
+            IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
+            verify(mockDao, times(1)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+
+            doThrow(new IdentityProviderManagementException("Test exception")).when(mockDao)
+                    .clearIdpCache(anyString(), anyInt(), anyString());
+            // Checking if the exception is handled gracefully.
+            IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
+            verify(mockDao, times(2)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+        }
+    }
+
+    @Test
     public void testHandleClientException() {
 
         IdentityProviderManagementClientException exception1 =
@@ -337,6 +379,42 @@ public class IdPManagementUtilTest {
         }
     }
 
+    @Test(dataProvider = "askPasswordConfigs")
+    public void testValidateAskPasswordBasedPasswordSetWithCurrentAndPreviousConfigs(HashMap<String, String> configs, IdentityProviderProperty[] identityProviderProperties, boolean isValid) {
+
+        try {
+            IdPManagementUtil.validateAskPasswordBasedPasswordSetWithCurrentAndPreviousConfigs(configs,
+                    identityProviderProperties);
+
+            if (!isValid) {
+                Assert.fail("Expected an  IdentityProviderManagementClientException but no exception was thrown.");
+            }
+        } catch (IdentityProviderManagementClientException e) {
+            if (isValid) {
+                Assert.fail("Did not expect IdentityProviderManagementClientException.", e);
+            }
+        }
+    }
+
+    @Test
+    public void testValidateAskPasswordBasedPasswordSetWithNonAskPasswordConfigs() {
+
+        // Test with configurations that don't contain ask password keys
+        HashMap<String, String> nonAskPasswordConfigs = new HashMap<>();
+        nonAskPasswordConfigs.put("SomeOtherProperty", "true");
+        nonAskPasswordConfigs.put("AnotherProperty", "false");
+
+        IdentityProviderProperty[] emptyProps = new IdentityProviderProperty[0];
+
+        try {
+            // This should not throw any exception as no ask password keys are present
+            IdPManagementUtil.validateAskPasswordBasedPasswordSetWithCurrentAndPreviousConfigs(
+                    nonAskPasswordConfigs, emptyProps);
+        } catch (IdentityProviderManagementClientException e) {
+            Assert.fail("Did not expect IdentityProviderManagementClientException for non-ask password configs.", e);
+        }
+    }
+
     @Test(dataProvider = "passwordRecoveryConfigsWithIdpMgtProps")
     public void testValidatePasswordRecoveryWithCurrentAndPreviousConfigs(HashMap<String, String> configs,
                                                                           IdentityProviderProperty[] identityProviderProperties,
@@ -414,6 +492,51 @@ public class IdPManagementUtilTest {
         };
     }
 
+    @DataProvider(name = "askPasswordConfigs")
+    public Object[][] setAskPasswordConfigs() {
+
+        IdentityProviderProperty[] askPasswordIdentityPropsAllFalse =
+                getAskPasswordIdentityProviderProperties(false, false);
+
+        IdentityProviderProperty[] askPasswordIdentityPropsEmailOtpEnabled =
+                getAskPasswordIdentityProviderProperties(true, false);
+
+        IdentityProviderProperty[] askPasswordIdentityPropsSmsOtpEnabled =
+                getAskPasswordIdentityProviderProperties(false, true);
+
+        HashMap<String, String> askPasswordConfig1 = getAskPasswordConfigs(true, null);
+
+        HashMap<String, String> askPasswordConfig2 = getAskPasswordConfigs(null, true);
+
+        HashMap<String, String> askPasswordConfig3 = getAskPasswordConfigs(null, null);
+
+        HashMap<String, String> askPasswordConfig4 = getAskPasswordConfigs(true, true);
+
+        HashMap<String, String> askPasswordConfig5 = getAskPasswordConfigs(false, true);
+
+        HashMap<String, String> askPasswordConfig6 = getAskPasswordConfigs(true, false);
+
+        HashMap<String, String> askPasswordConfig7 = getAskPasswordConfigs(false, null);
+
+        HashMap<String, String> askPasswordConfig8 = getAskPasswordConfigs(null, false);
+
+        HashMap<String, String> askPasswordConfig9 = getAskPasswordConfigs(false, false);
+
+        return new Object[][]{
+                // configs, identityProviderProperties, isValid
+                {askPasswordConfig1, askPasswordIdentityPropsAllFalse, true},
+                {askPasswordConfig2, askPasswordIdentityPropsAllFalse, true},
+                {askPasswordConfig3, askPasswordIdentityPropsAllFalse, true},
+                {askPasswordConfig4, askPasswordIdentityPropsAllFalse, false},
+                {askPasswordConfig5, askPasswordIdentityPropsEmailOtpEnabled, true},
+                {askPasswordConfig6, askPasswordIdentityPropsSmsOtpEnabled, true},
+                {askPasswordConfig7, askPasswordIdentityPropsAllFalse, true},
+                {askPasswordConfig8, askPasswordIdentityPropsAllFalse, true},
+                {askPasswordConfig9, askPasswordIdentityPropsAllFalse, true},
+                {askPasswordConfig1, askPasswordIdentityPropsSmsOtpEnabled, false},
+                {askPasswordConfig2, askPasswordIdentityPropsEmailOtpEnabled, false}
+        };
+    }
 
     @DataProvider(name = "passwordRecoveryConfigsWithIdpMgtProps")
     public Object[][] setPasswordRecoveryConfigsWithIpdMgtProps() {
@@ -598,6 +721,37 @@ public class IdPManagementUtilTest {
                 identityProviderProperty2,
                 identityProviderProperty3,
                 identityProviderProperty4
+        };
+    }
+
+    private HashMap<String, String> getAskPasswordConfigs(Boolean isEmailOtpEnabled, Boolean isSmsOtpEnabled) {
+
+        HashMap<String, String> configs = new HashMap<>();
+        if (isEmailOtpEnabled != null) {
+            configs.put(ASK_PASSWORD_SEND_EMAIL_OTP,
+                    isEmailOtpEnabled ? TRUE_STRING : FALSE_STRING);
+        }
+        if (isSmsOtpEnabled != null) {
+            configs.put(ASK_PASSWORD_SEND_SMS_OTP,
+                    isSmsOtpEnabled ? TRUE_STRING : FALSE_STRING);
+        }
+        return configs;
+    }
+
+    private IdentityProviderProperty[] getAskPasswordIdentityProviderProperties(
+            boolean isEmailOtpEnabled, boolean isSmsOtpEnabled) {
+
+        IdentityProviderProperty identityProviderProperty1 = new IdentityProviderProperty();
+        identityProviderProperty1.setName(ASK_PASSWORD_SEND_EMAIL_OTP);
+        identityProviderProperty1.setValue(isEmailOtpEnabled ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty2 = new IdentityProviderProperty();
+        identityProviderProperty2.setName(ASK_PASSWORD_SEND_SMS_OTP);
+        identityProviderProperty2.setValue(isSmsOtpEnabled ? TRUE_STRING : FALSE_STRING);
+
+        return new IdentityProviderProperty[]{
+                identityProviderProperty1,
+                identityProviderProperty2
         };
     }
 

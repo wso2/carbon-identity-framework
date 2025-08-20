@@ -53,7 +53,6 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserMa
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_ROLE_NAME_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.USERS_FIELD;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.role.v2.mgt.core.listener.utils.ListenerUtils.getInitiatorId;
@@ -72,7 +71,7 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     @Override
     public boolean isEnable() {
 
-        return isEnableV2AuditLogs();
+        return true;
     }
 
     @Override

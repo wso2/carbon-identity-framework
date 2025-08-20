@@ -43,7 +43,6 @@ import java.util.Map;
 
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiator;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getTargetForAuditLog;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This audit logger logs the User Management success activities.
@@ -68,7 +67,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            return !isLegacyAuditLogsDisabled();
+            return !LoggerUtils.isEnableV2AuditLogs();
         }
         return false;
     }
@@ -540,7 +539,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
      */
     String getPasswordUpdateAuditMessageAction() {
 
-        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
         if (flow == null) {
             LOG.debug("Unable to determine the initiating persona for the password update action.");
             return null;

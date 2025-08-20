@@ -70,6 +70,7 @@ public class InputValidationService {
 
     private static final Log LOG = LogFactory.getLog(InputValidationService.class);
     private static final InputValidationService instance = new InputValidationService();
+    public static final String CONFIRMATION_CODE = "confirmationCode";
 
     private InputValidationService() {
 
@@ -90,7 +91,7 @@ public class InputValidationService {
 
         // Check if the actionId is empty and set it to default action.
         String actionId = context.getCurrentActionId();
-        actionId = StringUtils.EMPTY.equals(actionId) ? DEFAULT_ACTION : actionId;
+        actionId = StringUtils.isBlank(actionId) ? DEFAULT_ACTION : actionId;
         if (context.getCurrentStepInputs() == null || context.getCurrentStepInputs().isEmpty()) {
             return;
         }
@@ -227,16 +228,35 @@ public class InputValidationService {
         // If the dataDTO has required params, add them to the current step inputs and required inputs.
         if ((dataDTO.getComponents() == null || dataDTO.getComponents().isEmpty()) &&
                 dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) {
-            context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
-            context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+            handleRequiredInputs(dataDTO, context);
         }
+
+        // If there are no action components, set the required params as the step inputs with the default action.
+        // This is to handle cases where the flow temporarily ends with static view and expects inputs when the flow
+        // resumes.
+        if ((dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) &&
+                context.getCurrentStepInputs().isEmpty()) {
+            handleRequiredInputs(dataDTO, context);
+        }
+    }
+
+    /**
+     * Handle required inputs by adding them to the current step inputs and required inputs in the context.
+     *
+     * @param dataDTO Data transfer object containing components and required parameters.
+     * @param context Flow context.
+     */
+    private static void handleRequiredInputs(DataDTO dataDTO, FlowExecutionContext context) {
+
+        context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+        context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
     }
 
 
     /**
      * Handle OTP field lengths. If the nodeResponse contains the OTP length, set the length for the OTP fields.
      *
-     * @param dataDTO  DataDTO.
+     * @param dataDTO      DataDTO.
      * @param nodeResponse NodeResponse.
      */
     private void processFieldLengths(DataDTO dataDTO, NodeResponse nodeResponse) {

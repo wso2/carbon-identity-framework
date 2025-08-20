@@ -32,7 +32,9 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
 import java.lang.reflect.Field;
@@ -69,6 +71,8 @@ public class UnifiedClaimMetadataManagerTest {
     private DBBasedClaimMetadataManager dbBasedClaimMetadataManager;
     private MockedStatic<IdentityClaimManagementServiceDataHolder> dataHolderStaticMock;
     private MockedStatic<IdentityUtil> identityUtilStaticMock;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilStaticMock;
+    private MockedStatic<Utils> utilsStaticMock;
     private final String LOCAL_CLAIM_DIALECT = "http://wso2.org/claims";
     private final String EXT_CLAIM_DIALECT_1 = "http://abc.org";
     private final String EXT_CLAIM_DIALECT_2 = "http://def.org";
@@ -83,12 +87,19 @@ public class UnifiedClaimMetadataManagerTest {
     private final String EXT_CLAIM_DIALECT_1_CLAIM_3 = "http://abc.org/claim3";
     private final String EXT_CLAIM_DIALECT_2_CLAIM_1 = "http://def.org/claim1";
     private final String EXT_CLAIM_DIALECT_2_CLAIM_2 = "http://def.org/claim2";
+    private final String FOO_TENANT_DOMAIN = "foo.com";
+    private final int FOO_TENANT_ID = 1;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
         dataHolderStaticMock = mockStatic(IdentityClaimManagementServiceDataHolder.class);
         identityUtilStaticMock = mockStatic(IdentityUtil.class);
+        identityTenantUtilStaticMock = mockStatic(IdentityTenantUtil.class);
+        utilsStaticMock = mockStatic(Utils.class);
+        identityTenantUtilStaticMock.when(() -> IdentityTenantUtil.getTenantDomain(1)).thenReturn(FOO_TENANT_DOMAIN);
+        identityTenantUtilStaticMock.when(() -> IdentityTenantUtil.getTenantId(FOO_TENANT_DOMAIN)).thenReturn(1);
+        utilsStaticMock.when(() -> Utils.isClaimAndOIDCScopeInheritanceEnabled(FOO_TENANT_DOMAIN)).thenReturn(false);
         IdentityClaimManagementServiceDataHolder dataHolder = mock(IdentityClaimManagementServiceDataHolder.class);
         dataHolderStaticMock.when(IdentityClaimManagementServiceDataHolder::getInstance).thenReturn(dataHolder);
         ClaimConfig claimConfig = new ClaimConfig();
@@ -307,7 +318,7 @@ public class UnifiedClaimMetadataManagerTest {
                 ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
 
         localClaim = new LocalClaim(LOCAL_CLAIM_2, new ArrayList<>(), claimProperties);
-        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(null);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(Optional.empty());
         when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0))
                 .thenReturn(Optional.of(localClaim));
         result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0);
@@ -784,5 +795,7 @@ public class UnifiedClaimMetadataManagerTest {
 
         dataHolderStaticMock.close();
         identityUtilStaticMock.close();
+        identityTenantUtilStaticMock.close();
+        utilsStaticMock.close();
     }
 }

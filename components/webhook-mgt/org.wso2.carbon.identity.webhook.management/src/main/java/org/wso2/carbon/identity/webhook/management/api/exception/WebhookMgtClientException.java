@@ -23,6 +23,13 @@ package org.wso2.carbon.identity.webhook.management.api.exception;
  */
 public class WebhookMgtClientException extends WebhookMgtException {
 
+    /**
+     * Constructs a new WebhookMgtClientException with the specified detail message.
+     *
+     * @param message     The detail message.
+     * @param description The description of the error.
+     * @param errorCode   The error code.
+     */
     public WebhookMgtClientException(String message, String description, String errorCode) {
 
         super(message, description, errorCode);

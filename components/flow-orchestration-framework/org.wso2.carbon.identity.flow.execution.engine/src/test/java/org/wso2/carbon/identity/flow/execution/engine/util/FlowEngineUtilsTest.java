@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
-import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
@@ -35,7 +34,6 @@ import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.ServiceURL;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheEntry;
@@ -43,9 +41,12 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineExcept
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -55,7 +56,6 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.AssertJUnit.fail;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_REGISTRATION_CALLBACK;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
@@ -87,21 +87,15 @@ public class FlowEngineUtilsTest {
     private FlowExecCtxCache flowContextCacheMock;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
-    private MockedStatic<ServiceURLBuilder> serviceURLBuilderMockedStatic;
 
     @BeforeClass
-    public void setup() throws Exception{
+    public void setup() throws Exception {
 
         MockitoAnnotations.openMocks(this);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
 
-        ServiceURLBuilder serviceURLBuilder = mock(ServiceURLBuilder.class);
         ServiceURL serviceURL = mock(ServiceURL.class);
-        serviceURLBuilderMockedStatic = mockStatic(ServiceURLBuilder.class);
-        serviceURLBuilderMockedStatic.when(ServiceURLBuilder::create).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(DEFAULT_REGISTRATION_CALLBACK)).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.build()).thenReturn(serviceURL);
         when(serviceURL.getAbsolutePublicURL()).thenReturn(DEFAULT_MY_ACCOUNT_URL);
     }
 
@@ -152,7 +146,7 @@ public class FlowEngineUtilsTest {
     public void testContextRetrievalWithEmptyId() {
 
         try {
-            FlowExecutionEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, null);
+            FlowExecutionEngineUtils.retrieveFlowContextFromCache(null);
         } catch (FlowEngineException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_UNDEFINED_FLOW_ID.getCode());
         }
@@ -165,7 +159,7 @@ public class FlowEngineUtilsTest {
                 FlowExecCtxCache.class)) {
             flowContextCacheMockedStatic.when(FlowExecCtxCache::getInstance).thenReturn(flowContextCacheMock);
             lenient().when(flowContextCacheMock.getValueFromCache(any())).thenReturn(null);
-            FlowExecutionEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, "invalidFlowId");
+            FlowExecutionEngineUtils.retrieveFlowContextFromCache("invalidFlowId");
         } catch (FlowEngineException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_INVALID_FLOW_ID.getCode());
         }
@@ -173,8 +167,9 @@ public class FlowEngineUtilsTest {
 
     @DataProvider(name = "initiateContextScenarios")
     public Object[][] initiateContextScenarios() {
+
         return new Object[][]{
-                // applicationId, callbackUrl
+
                 {"test-app-id-1"},
                 {null},
         };
@@ -221,12 +216,16 @@ public class FlowEngineUtilsTest {
 
         FlowExecCtxCacheEntry entry = new FlowExecCtxCacheEntry(testContext);
 
-        try (MockedStatic<FlowExecCtxCache> flowContextCacheMockedStatic = mockStatic(
-                FlowExecCtxCache.class)) {
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        try (MockedStatic<FlowExecCtxCache> flowContextCacheMockedStatic = mockStatic(FlowExecCtxCache.class);
+             MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                     FlowExecutionEngineDataHolder.class)) {
             flowContextCacheMockedStatic.when(FlowExecCtxCache::getInstance).thenReturn(flowContextCacheMock);
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getFlowMgtService()).thenReturn(mgtServiceMock);
             lenient().when(flowContextCacheMock.getValueFromCache(any())).thenReturn(entry);
             FlowExecutionContext context =
-                    FlowExecutionEngineUtils.retrieveFlowContextFromCache(FLOW_TYPE, testContext.getContextIdentifier());
+                    FlowExecutionEngineUtils.retrieveFlowContextFromCache(testContext.getContextIdentifier());
             assertNotNull(context);
             assertEquals(context, testContext);
         } catch (Exception e) {
@@ -238,7 +237,6 @@ public class FlowEngineUtilsTest {
     public Object[][] redirectionUrlScenarios() {
 
         return new Object[][]{
-                // appAccessUrl, appFound, expectedUrl
                 {TEST_APP_URL, true, TEST_APP_URL}, // App URL found, use app URL.
                 {null, true, DEFAULT_MY_ACCOUNT_URL}, // No app URL, use myaccount URL.
                 {null, false, DEFAULT_MY_ACCOUNT_URL}, // App not found, use myaccount URL.
@@ -262,7 +260,6 @@ public class FlowEngineUtilsTest {
             dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
             when(dataHolderMock.getApplicationManagementService()).thenReturn(appMgmtService);
 
-            // Create applicationBasicInfo based on whether app should be found.
             if (appFound) {
                 ApplicationBasicInfo appInfo = new ApplicationBasicInfo();
                 appInfo.setApplicationResourceId("test-app-id");
@@ -306,14 +303,71 @@ public class FlowEngineUtilsTest {
         }
     }
 
+    @Test
+    public void testAssertionGenerationIntegration() throws Exception {
+
+        String testUsername = "testuser";
+        String testUserId = "user123";
+        String testContextId = "context123";
+        String expectedAssertion = "signed.jwt.token";
+
+        FlowExecutionContext mockContext = new FlowExecutionContext();
+        mockContext.setTenantDomain(TENANT_DOMAIN);
+        mockContext.setContextIdentifier(testContextId);
+
+        FlowUser flowUser = new FlowUser();
+        flowUser.setUsername(testUsername);
+        flowUser.setUserId(testUserId);
+        mockContext.setFlowUser(flowUser);
+
+
+        NodeConfig authNode = new NodeConfig.Builder()
+                .id("auth-node-1")
+                .type("AUTHENTICATION")
+                .executorConfig(new ExecutorDTO("password-authenticator"))
+                .build();
+        mockContext.getCompletedNodes().add(authNode);
+
+        try (MockedStatic<AuthenticationAssertionUtils> assertionUtilsMock =
+                     mockStatic(AuthenticationAssertionUtils.class)) {
+
+            assertionUtilsMock.when(() -> AuthenticationAssertionUtils.getSignedUserAssertion(any()))
+                    .thenReturn(expectedAssertion);
+            String generatedAssertion = AuthenticationAssertionUtils.getSignedUserAssertion(mockContext);
+            assertNotNull(generatedAssertion, "Generated assertion should not be null");
+            assertEquals(generatedAssertion, expectedAssertion, "Generated assertion should match expected value");
+            assertionUtilsMock.verify(() -> AuthenticationAssertionUtils.getSignedUserAssertion(mockContext));
+        }
+    }
+
+    @Test
+    public void testAssertionGenerationWithEmptyCompletedNodes() throws Exception {
+
+        FlowExecutionContext mockContext = new FlowExecutionContext();
+        mockContext.setTenantDomain(TENANT_DOMAIN);
+        mockContext.setContextIdentifier("empty-context");
+
+        FlowUser flowUser = new FlowUser();
+        flowUser.setUsername("testuser");
+        flowUser.setUserId("user123");
+        mockContext.setFlowUser(flowUser);
+        String expectedAssertion = "minimal.jwt.token";
+
+        try (MockedStatic<AuthenticationAssertionUtils> assertionUtilsMock =
+                     mockStatic(AuthenticationAssertionUtils.class)) {
+            assertionUtilsMock.when(() -> AuthenticationAssertionUtils.getSignedUserAssertion(any()))
+                    .thenReturn(expectedAssertion);
+            String generatedAssertion = AuthenticationAssertionUtils.getSignedUserAssertion(mockContext);
+            assertNotNull(generatedAssertion, "Assertion should be generated even with empty nodes");
+            assertEquals(generatedAssertion, expectedAssertion);
+        }
+    }
+
     @AfterClass
     public void teardown() {
 
         if (identityTenantUtil != null) {
             identityTenantUtil.close();
-        }
-        if (serviceURLBuilderMockedStatic != null) {
-            serviceURLBuilderMockedStatic.close();
         }
     }
 }

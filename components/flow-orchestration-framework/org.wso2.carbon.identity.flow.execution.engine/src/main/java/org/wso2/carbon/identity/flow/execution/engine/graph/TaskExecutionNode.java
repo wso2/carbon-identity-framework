@@ -60,6 +60,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_CO
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
+import static org.wso2.carbon.identity.flow.mgt.Constants.IDP_NAME;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
@@ -87,7 +88,6 @@ public class TaskExecutionNode implements Node {
             throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
                     context.getGraphConfig().getId(), context.getTenantDomain());
         }
-        addIdpConfigsToContext(context, configs.getExecutorConfig());
         return triggerExecutor(context, configs);
     }
 
@@ -123,6 +123,13 @@ public class TaskExecutionNode implements Node {
 
         Executor mappedFlowExecutor = resolveExecutor(context.getFlowType(), configs, context.getGraphConfig().getId(),
                 context.getTenantDomain());
+
+        if (mappedFlowExecutor instanceof AuthenticationExecutor) {
+            ((AuthenticationExecutor) mappedFlowExecutor).addIdpConfigsToContext(context, configs.getExecutorConfig());
+        } else {
+            addIdpConfigsToContext(context, configs.getExecutorConfig());
+        }
+
         ExecutorResponse response = mappedFlowExecutor.execute(context);
         if (response == null) {
             throw handleServerException(ERROR_CODE_EXECUTOR_FAILURE, "Executor response is null for executor: "
@@ -181,11 +188,9 @@ public class TaskExecutionNode implements Node {
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_USER_ERROR:
-                throw handleClientException(ERROR_CODE_FLOW_FAILURE, context.getFlowType(),
-                        response.getErrorMessage());
+                throw handleClientException(ERROR_CODE_FLOW_FAILURE, response.getErrorMessage());
             case STATUS_ERROR:
-                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, context.getFlowType(),
-                        response.getErrorMessage());
+                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, response.getErrorMessage());
             default:
                 throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
         }
@@ -220,14 +225,16 @@ public class TaskExecutionNode implements Node {
 
         String tenantDomain = context.getTenantDomain();
         Map<String, String> propertyMap = new HashMap<>();
-        if (StringUtils.isBlank(executorDTO.getIdpName())) {
+        Map<String, String> metadata = executorDTO.getMetadata();
+        if (metadata == null || !metadata.containsKey(IDP_NAME)) {
             return;
         }
+        String idpName = metadata.get(IDP_NAME);
         try {
             IdentityProvider idp =
-                    IdentityProviderManager.getInstance().getIdPByName(executorDTO.getIdpName(), tenantDomain);
+                    IdentityProviderManager.getInstance().getIdPByName(idpName, tenantDomain);
             if (idp == null || idp.getId() == null || idp.getDefaultAuthenticatorConfig() == null) {
-                throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain);
+                throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, idpName, tenantDomain);
             }
             FederatedAuthenticatorConfig authenticatorConfig = idp.getDefaultAuthenticatorConfig();
             for (Property property : authenticatorConfig.getProperties()) {
@@ -236,7 +243,7 @@ public class TaskExecutionNode implements Node {
             context.setAuthenticatorProperties(propertyMap);
             context.setExternalIdPConfig(new ExternalIdPConfig(idp));
         } catch (IdentityProviderManagementException e) {
-            throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain, e);
+            throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, e, idpName, tenantDomain);
         }
     }
 }

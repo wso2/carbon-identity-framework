@@ -32,6 +32,9 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
 
+/**
+ * WorkflowAuditLogger is a listener that logs audit information for workflow management operations.
+ */
 public class WorkflowAuditLogger extends AbstractWorkflowListener {
 
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -39,7 +42,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     private static final String AUDIT_SUCCESS = "Success";
 
     /**
-     * Trigger after deleting the request
+     * Trigger after deleting the request.
      *
      * @param workflowRequest
      * @throws WorkflowException
@@ -61,7 +64,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     }
 
     /**
-     * Trigger after delete the workflow
+     * Trigger after delete the workflow.
      *
      * @param workflow
      * @throws WorkflowException
@@ -104,7 +107,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     }
 
     /**
-     * Trigger after adding a workflow
+     * Trigger after adding a workflow.
      *
      * @param workflowDTO
      * @param parameterList
@@ -132,7 +135,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     }
 
     /**
-     * Trigger after adding a association
+     * Trigger after adding a association.
      *
      * @param associationName
      * @param workflowId
@@ -181,7 +184,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     }
 
     /**
-     * Trigger after changing state of an association
+     * Trigger after changing state of an association.
      *
      * @param associationId
      * @param isEnable
