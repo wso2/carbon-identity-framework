@@ -140,8 +140,8 @@ public class UserOnboardingExecutor implements Executor {
             while (cause != null) {
                 if (cause instanceof UserActionExecutionClientException) {
                     throw new FlowEngineClientException(Constants.ErrorMessages.
-                            ERROR_CODE_PASSWORD_VALIDATION_FAILED.getCode(),
-                            ((UserActionExecutionClientException) cause).getErrorCode(),
+                            ERROR_CODE_PRE_UPDATE_PASSWORD_ACTION_VALIDATION_FAILURE.getCode(),
+                            ((UserActionExecutionClientException) cause).getError(),
                             ((UserActionExecutionClientException) cause).getDescription(), cause);
                 }
                 cause = cause.getCause();
