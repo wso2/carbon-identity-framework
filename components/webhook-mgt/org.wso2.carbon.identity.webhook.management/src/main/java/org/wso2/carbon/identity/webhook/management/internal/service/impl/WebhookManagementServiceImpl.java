@@ -221,7 +221,6 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
         daoFACADE.retryWebhook(existingWebhook, tenantId);
-        auditLogger.printAuditLog(WebhookManagementAuditLogger.Operation.RETRY, webhookId);
         return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
