@@ -132,8 +132,7 @@ public class WebhookManagementAuditLogger {
 
         // Prefer IdentityContext → concrete actor userId if present
         IdentityContext idCtx = IdentityContext.getThreadLocalIdentityContext();
-        if (idCtx.isUserActor() && idCtx.getUserActor() != null &&
-                StringUtils.isNotBlank(idCtx.getUserActor().getUserId())) {
+        if (idCtx.isUserActor() && StringUtils.isNotBlank(idCtx.getUserActor().getUserId())) {
             return idCtx.getUserActor().getUserId();
         }
 
@@ -146,7 +145,6 @@ public class WebhookManagementAuditLogger {
         if (StringUtils.isBlank(username)) {
             return LoggerUtils.Initiator.System.name();
         }
-
 
         String initiator = null;
         if (StringUtils.isNotBlank(tenantDomain)) {
@@ -165,8 +163,7 @@ public class WebhookManagementAuditLogger {
         UPDATE("update-webhook"),
         DELETE("delete-webhook"),
         ACTIVATE("activate-webhook"),
-        DEACTIVATE("deactivate-webhook"),
-        RETRY("retry-webhook");
+        DEACTIVATE("deactivate-webhook");
 
         private final String logAction;
 
