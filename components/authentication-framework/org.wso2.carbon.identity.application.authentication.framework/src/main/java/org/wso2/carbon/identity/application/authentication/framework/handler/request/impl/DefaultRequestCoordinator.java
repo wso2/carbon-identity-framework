@@ -1502,18 +1502,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private boolean enterFlow(Flow.Name flowName) {
 
-        if (flowName == null) {
-            log.debug("Flow name is null, cannot enter to an authentication flow.");
-            return false;
-        }
-
-        Flow currentFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
-        if (currentFlow != null && currentFlow.getName() != null &&
-                (Flow.Name.LOGIN.equals(currentFlow.getName()) || Flow.Name.LOGOUT.equals(currentFlow.getName()))) {
-            log.debug("Already in an authentication flow: " + flowName.name());
-            return false;
-        }
-
         Flow authenticationFlow = new Flow.Builder()
                 .name(flowName)
                 .initiatingPersona(Flow.InitiatingPersona.USER)
