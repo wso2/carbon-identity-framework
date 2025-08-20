@@ -78,6 +78,14 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.json.wso2</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+        </dependency>
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -142,7 +150,10 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.secret.mgt.core.model;
                             version="${carbon.identity.package.import.version.range}",
+                            org.json.*; version="${json.wso2.version.range}",
                             org.wso2.carbon.identity.topic.management.api.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.subscription.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
