@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.authorization.common;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.OperationScopeValidationContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.authorization.common.exception.ForbiddenException;
@@ -30,6 +32,8 @@ import java.util.Map;
  */
 public class AuthorizationUtil {
 
+    private static final Log log = LogFactory.getLog(AuthorizationUtil.class);
+
     /**
      * Validates the operation scopes for the given operation name.
      *
@@ -37,6 +41,8 @@ public class AuthorizationUtil {
      * @throws ForbiddenException If the operation is not permitted.
      */
     public static void validateOperationScopes(String operationName) throws ForbiddenException {
+
+        log.debug("Validating operation scopes for operation: " + operationName);
 
         OperationScopeValidationContext operationScopeValidationContext =
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getOperationScopeValidationContext();
