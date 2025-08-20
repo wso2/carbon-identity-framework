@@ -1873,7 +1873,7 @@
   "myaccount.personal_info.enabled": true,
   "myaccount.personal_info.disabled_features": ["profileInfo.profile.legacy"],
   "myaccount.security.enabled": true,
-  "myaccount.approvals.enabled": false,
+  "myaccount.approvals.enabled": true,
   "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
   "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
   "myaccount.operations.scopes.create": [],
