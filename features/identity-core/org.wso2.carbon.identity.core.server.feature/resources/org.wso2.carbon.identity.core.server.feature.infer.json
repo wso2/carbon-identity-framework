@@ -287,7 +287,8 @@
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
-      "captcha.enable_captcha_for_local_otp_authenticators": false
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "server.disable_admin_services": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -303,7 +304,8 @@
       "actions.types.pre_update_password.enable_in_registration_flows": false,
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
       "oauth.return_sp_id_to_apps": true,
-      "captcha.enable_captcha_for_local_otp_authenticators": false
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "server.disable_admin_services": false
     }
   }
 }
