@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class AuthorizationUtil {
 
-    private static final Log log = LogFactory.getLog(AuthorizationUtil.class);
+    private static final Log LOG = LogFactory.getLog(AuthorizationUtil.class);
 
     /**
      * Validates the operation scopes for the given operation name.
@@ -42,7 +42,7 @@ public class AuthorizationUtil {
      */
     public static void validateOperationScopes(String operationName) throws ForbiddenException {
 
-        log.debug("Validating operation scopes for operation: " + operationName);
+        LOG.debug("Validating operation scopes for operation: " + operationName);
 
         OperationScopeValidationContext operationScopeValidationContext =
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getOperationScopeValidationContext();
