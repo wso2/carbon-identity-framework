@@ -291,9 +291,9 @@ public class RequestFilterTest {
     public void testGetFilteredHeadersWhenNeitherAllowedOrExcludedHeadersAreConfigured() {
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        Mockito.when(config.getAllowedHeadersForActionType(ActionType.PRE_UPDATE_PASSWORD))
                 .thenReturn(Collections.emptySet());
-        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_UPDATE_PASSWORD))
                 .thenReturn(Collections.emptySet());
 
         List<Header> requestHeaders = new ArrayList<>();
@@ -302,7 +302,7 @@ public class RequestFilterTest {
         requestHeaders.add(new Header("X-Header-3", new String[]{"X-header-3-value"}));
 
         List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders, Collections.emptyList(),
-                ActionType.PRE_ISSUE_ACCESS_TOKEN);
+                ActionType.PRE_UPDATE_PASSWORD);
         assertEquals(filteredHeaders.size(), 0);
     }
 
@@ -310,9 +310,9 @@ public class RequestFilterTest {
     public void testGetFilteredHeadersWhenNeitherAllowedOrExcludedParamsAreConfigured() {
 
         ActionExecutorConfig config = ActionExecutorConfig.getInstance();
-        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_UPDATE_PASSWORD))
                 .thenReturn(Collections.emptySet());
-        Mockito.when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+        Mockito.when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_UPDATE_PASSWORD))
                 .thenReturn(Collections.emptySet());
 
         List<Header> requestParams = new ArrayList<>();
@@ -321,7 +321,7 @@ public class RequestFilterTest {
         requestParams.add(new Header("X-Param-3", new String[]{"X-param-3-value"}));
 
         List<Header> filteredParams = RequestFilter.getFilteredHeaders(requestParams, Collections.emptyList(),
-                ActionType.PRE_ISSUE_ACCESS_TOKEN);
+                ActionType.PRE_UPDATE_PASSWORD);
         assertEquals(filteredParams.size(), 0);
     }
 }
