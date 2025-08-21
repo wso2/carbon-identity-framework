@@ -88,16 +88,31 @@ public class Constants {
         public static final String ALPHANUMERIC_REGEX_PATTERN_WITH_SPECIAL_CHARACTERS =
                 "^(?=.*[a-zA-Z])[a-zA-Z0-9!@#$&'+\\\\=^_.{|}~-]+$";
         public static final String DEFAULT_EMAIL_JAVA_REGEX_PATTERN =
-                "(^[\\u00C0-\\u00FFa-zA-Z0-9](?:(?!\\.{2})[\\u00C0-\\u00FF\\w!#$'+=^_.{|}~\\-&]" +
-                    "){0,63}(?<=[\\u00C0-\\u00FFa-zA-Z0-9]|(?<=[\\u00C0-\\u00FFa-zA-Z0-9]_))@" +
-                    "(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}" +
-                    "(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10})";
+                "^" +
+                // Local-part: dot-atom format with restricted special characters including accented letters.
+                "(?=.{1,64}@)" +  // Local-part length limit check.
+                "[\\u00C0-\\u00FFa-zA-Z0-9!#$'+=^_{|}~&-]+" +  // Start with non-dot character
+                // (including accented letters).
+                "(?:\\.[\\u00C0-\\u00FFa-zA-Z0-9!#$'+=^_{|}~&-]+)*" +  // Additional dot-separated atoms.
+                // (including accented letters).
+                "@" +
+                // Domain: using original EmailValidator pattern for consistency.
+                "(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}" +  // Domain body.
+                "(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10}" +  // Domain ending.
+                "$";
         public static final String DEFAULT_EMAIL_JS_REGEX_PATTERN =
-                "(^[\\u00C0-\\u00FFa-zA-Z0-9](?:(?!\\.{2})[\\u00C0-\\u00FF\\w!#$'+=^_.{|}~\\-&]" +
-                    "){0,63}(?<=[\\u00C0-\\u00FFa-zA-Z0-9]|(?<=[\\u00C0-\\u00FFa-zA-Z0-9]_))@(?!" +
-                    "[+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}" +
-                    "(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10})";
-
+                "^" +
+                // Local-part: dot-atom format with restricted special characters including accented letters.
+                "(?=.{1,64}@)" +  // Local-part length limit check.
+                "[\\u00C0-\\u00FFa-zA-Z0-9!#$'+=^_{|}~&-]+" +  // Start with non-dot character
+                // (including accented letters).
+                "(?:\\.[\\u00C0-\\u00FFa-zA-Z0-9!#$'+=^_{|}~&-]+)*" +  // Additional dot-separated atoms
+                // (including accented letters).
+                "@" +
+                // Domain: using original EmailValidator pattern for consistency.
+                "(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}" +  // Domain body.
+                "(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10}" +  // Domain ending.
+                "$";
         public static final String INPUT_VALIDATION_DEFAULT_VALIDATOR = "InputValidation.DefaultUserNameValidator";
 
         public static final String ALPHA_NUMERIC = "alphaNumeric";
