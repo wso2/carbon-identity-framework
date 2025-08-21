@@ -118,7 +118,7 @@ public class RequestFilter {
             allAllowedParamsSet.addAll(allowedParamsInAction);
         } else if (hasServerAllowedParams) {
             allAllowedParamsSet.addAll(allowedParamsInServer);
-        } else {
+        } else if (ActionType.PRE_ISSUE_ACCESS_TOKEN.equals(actionType)) {
             // This is to preserve backward compatibility.
             allAllowedParamsSet.addAll(requestParameters.stream()
                     .map(Param::getName)
