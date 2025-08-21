@@ -47,12 +47,12 @@ public class AuthorizationUtil {
         OperationScopeValidationContext operationScopeValidationContext =
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getOperationScopeValidationContext();
 
-        if (operationScopeValidationContext.isValidationRequired()) {
+        if (operationScopeValidationContext != null && operationScopeValidationContext.isValidationRequired()) {
             List<String> allowedScopes = operationScopeValidationContext.getValidatedScopes();
             Map<String, String> operationScopeMap = operationScopeValidationContext.getOperationScopeMap();
-            String operationScope = operationScopeMap.get(operationName);
 
-            if (!allowedScopes.contains(operationScope)) {
+            if (allowedScopes != null && operationScopeMap != null
+                    && !allowedScopes.contains(operationScopeMap.get(operationName))) {
                 throw new ForbiddenException("Operation is not permitted. You do not have permissions to make " +
                         "this request.");
             }
