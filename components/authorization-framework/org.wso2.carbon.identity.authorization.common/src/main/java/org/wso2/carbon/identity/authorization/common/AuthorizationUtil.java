@@ -48,11 +48,20 @@ public class AuthorizationUtil {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getOperationScopeValidationContext();
 
         if (operationScopeValidationContext != null && operationScopeValidationContext.isValidationRequired()) {
+            LOG.debug("Operation scope validation is required for operation: " + operationName);
             List<String> allowedScopes = operationScopeValidationContext.getValidatedScopes();
             Map<String, String> operationScopeMap = operationScopeValidationContext.getOperationScopeMap();
+            String operationScope = operationScopeMap.get(operationName);
 
-            if (allowedScopes != null && operationScopeMap != null
-                    && !allowedScopes.contains(operationScopeMap.get(operationName))) {
+            if (operationScope == null) {
+                LOG.error("Operation '" + operationName + "' does not have a defined scope. Please check the " +
+                        " server configuration for operation scope mapping.");
+                throw new ForbiddenException("Operation is not permitted.");
+            }
+
+            if (!allowedScopes.contains(operationScope)) {
+                LOG.warn("Operation '" + operationName + "' requires scope '" + operationScope +
+                        "' which is not in allowed scopes.");
                 throw new ForbiddenException("Operation is not permitted. You do not have permissions to make " +
                         "this request.");
             }

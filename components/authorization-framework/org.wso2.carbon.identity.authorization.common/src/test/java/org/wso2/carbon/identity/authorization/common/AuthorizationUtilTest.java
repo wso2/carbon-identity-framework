@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.authorization.common;
 
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.OperationScopeValidationContext;
@@ -63,9 +64,19 @@ public class AuthorizationUtilTest {
         PrivilegedCarbonContext.endTenantFlow();
     }
 
+    @DataProvider
+    public static Object[][] operationScopesNegativeTestDataProvider() {
+
+        return new Object[][]{
+                {"operation2"}, // Not in validatedScopes.
+                {"operation3"}  // Not in operationScopeMap.
+        };
+    }
+
     @Test(expectedExceptions = ForbiddenException.class,
-            description = "Validated Scopes will not contain the scope mapped to the operation.")
-    public void testValidateOperationScopesNegativeTest() throws Exception {
+            description = "Validated Scopes will not contain the scope mapped to the operation.",
+            dataProvider = "operationScopesNegativeTestDataProvider")
+    public void testValidateOperationScopesNegativeTest(String operation) throws Exception {
 
         boolean validationRequired = true;
         List<String> validatedScopes = List.of("scope1");
@@ -82,7 +93,7 @@ public class AuthorizationUtilTest {
         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .setOperationScopeValidationContext(operationScopeValidationContext);
 
-        AuthorizationUtil.validateOperationScopes("operation2");
+        AuthorizationUtil.validateOperationScopes(operation);
 
         PrivilegedCarbonContext.endTenantFlow();
     }
