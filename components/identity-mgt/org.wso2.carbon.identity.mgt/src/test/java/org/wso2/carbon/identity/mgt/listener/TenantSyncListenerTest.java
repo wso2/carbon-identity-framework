@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants.TenantManagem
 import org.wso2.carbon.identity.mgt.dto.TenantManagementEventDTO;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 
+import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -34,10 +35,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.testng.annotations.Test;
+import org.wso2.securevault.SecretResolver;
+import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
+
+import java.util.Properties;
 
 public class TenantSyncListenerTest extends TenantSyncListener {
 
     private TenantInfoBean mockTenantInfo;
+    private SecretResolver mockSecretResolver;
 
     private final String serverUrl = "https://localhost:9443";
 
@@ -53,6 +60,8 @@ public class TenantSyncListenerTest extends TenantSyncListener {
         when(mockTenantInfo.getEmail()).thenReturn("kim@wso2.com");
         when(mockTenantInfo.getFirstname()).thenReturn("kim");
         when(mockTenantInfo.getLastname()).thenReturn("kim");
+
+        mockSecretResolver = mock(SecretResolver.class);
     }
 
     /**
@@ -193,5 +202,48 @@ public class TenantSyncListenerTest extends TenantSyncListener {
 
         // Owners list should not be present for deactivation event
         assertNull(tenant.getOwners());
+    }
+
+    @Test
+    void testResolveSecrets() {
+
+        // Create test properties with an encrypted value and a plain text value.
+        Properties properties = new Properties();
+        properties.put("password", "ENC(mySecretPassword)");
+        properties.put("username", "admin");
+
+        // We need to mock the static factory and utility methods.
+        try (MockedStatic<SecretResolverFactory> mockedFactory = Mockito.mockStatic(SecretResolverFactory.class);
+             MockedStatic<MiscellaneousUtil> mockedUtil = Mockito.mockStatic(MiscellaneousUtil.class)) {
+
+            // Configure the SecretResolverFactory mock
+            // When SecretResolverFactory.create() is called, return our mock resolver.
+            mockedFactory.when(() -> SecretResolverFactory.create(properties)).thenReturn(mockSecretResolver);
+
+            // The resolver should report that it's initialized.
+            when(mockSecretResolver.isInitialized()).thenReturn(true);
+
+            // 3. Configure the MiscellaneousUtil mock
+            // When MiscellaneousUtil.resolve is called with the encrypted value, return the decrypted value.
+            mockedUtil.when(() -> MiscellaneousUtil.resolve("ENC(mySecretPassword)", mockSecretResolver))
+                    .thenReturn("decryptedPassword123");
+            // When called with a non-encrypted value, it should return the original value.
+            mockedUtil.when(() -> MiscellaneousUtil.resolve("admin", mockSecretResolver))
+                    .thenReturn("admin");
+
+            // Execute the method under test.
+            resolveSecrets(properties);
+
+            // Verify that the password property was updated to the decrypted value.
+            assertEquals("decryptedPassword123", properties.getProperty("password"));
+            // Verify that the other properties remain unchanged.
+            assertEquals("admin", properties.getProperty("username"));
+
+            // Verify that the resolve method was called for all three properties.
+            mockedUtil.verify(() -> MiscellaneousUtil
+                    .resolve("ENC(mySecretPassword)", mockSecretResolver), times(1));
+            mockedUtil.verify(() -> MiscellaneousUtil
+                    .resolve("admin", mockSecretResolver), times(1));
+        }
     }
 }

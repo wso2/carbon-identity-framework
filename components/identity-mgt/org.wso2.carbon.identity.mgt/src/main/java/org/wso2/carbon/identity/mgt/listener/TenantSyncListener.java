@@ -275,7 +275,7 @@ public class TenantSyncListener implements TenantMgtListener {
      *
      * @param properties listener properties.
      */
-    private void resolveSecrets(Properties properties) {
+    protected void resolveSecrets(Properties properties) {
 
         SecretResolver secretResolver = SecretResolverFactory.create(properties);
         Enumeration propertyNames = properties.propertyNames();
