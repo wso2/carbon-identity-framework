@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.UserActor;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
@@ -109,11 +111,13 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     public void setUp() throws Exception {
 
         requestCoordinator = new DefaultRequestCoordinator();
+        addActorToIdentityContext();
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        IdentityContext.destroyCurrentContext();
     }
 
     @AfterClass
@@ -708,5 +712,14 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             queryPairs.put(key, value);
         }
         return queryPairs;
+    }
+
+
+    private void addActorToIdentityContext() {
+
+        UserActor userActor = new UserActor.Builder()
+                .username("username")
+                .build();
+        IdentityContext.getThreadLocalIdentityContext().setActor(userActor);
     }
 }
