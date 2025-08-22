@@ -288,7 +288,7 @@ public class TenantSyncListener implements TenantMgtListener {
                 properties.put(key, value);
             }
         } else if (LOG.isDebugEnabled()) {
-            LOG.debug("Secret Resolver is not present. Will not resolve encryptions in config file");
+            LOG.debug("Secret Resolver is not present. Will not resolve encryptions in config file.");
         }
     }
 
