@@ -410,8 +410,10 @@ public class TenantSyncListener implements TenantMgtListener {
                         .build()) {
 
                     boolean success = httpClient.execute(httpPost, response -> {
-
                         int responseCode = response.getCode();
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Received HTTP response code: " + responseCode);
+                        }
                         if (responseCode >= 400 && responseCode < 500) {
                             // Client errors — unauthorized, forbidden, bad request, etc.
                             LOG.warn("Client error: Unauthorized or invalid request. No retry will be attempted.");
