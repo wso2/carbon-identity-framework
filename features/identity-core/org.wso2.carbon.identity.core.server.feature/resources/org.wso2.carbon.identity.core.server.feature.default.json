@@ -1203,6 +1203,21 @@
       "description": "This email is sent to confirm the user email address via Email OTP",
       "displayName": "Confirm Email Address via Email OTP",
       "id": "RW1haWxDb25maXJtV2l0aE9UUA"
+    },
+    {
+      "description": "This email is sent to the user to set their password using a magic link",
+      "displayName": "Magic Link Password Recovery",
+      "id": "bWFnaWNMaW5rUGFzc3dvcmRSZWNvdmVyeQ"
+    },
+    {
+      "description": "This email is sent to the user during signing up using magic link",
+      "displayName": "Magic Link Sign Up",
+      "id": "bWFnaWNMaW5rU2lnblVw"
+    },
+    {
+      "description": "This email is sent to the user for Email OTP based verification",
+      "displayName": "Email OTP Verification",
+      "id": "RW1haWxPVFBWZXJpZmljYXRpb24"
     }
   ],
   "console.extensions.smsTemplates": [
