@@ -21,8 +21,10 @@ package org.wso2.carbon.identity.mgt.listener;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,6 +57,9 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import com.google.gson.Gson;
+import org.wso2.securevault.SecretResolver;
+import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 
 /**
  * Listener class to create, update, activate and deactivate tenants when tenant related task is
@@ -244,17 +249,16 @@ public class TenantSyncListener implements TenantMgtListener {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
                 UserOperationEventListener.class.getName(), TenantSyncListener.class.getName());
-        char[] password = Utils.replaceSystemProperty(
-                identityEventListenerConfig.getProperties().getProperty(TenantManagement.PASSWORD)).toCharArray();
-        String username = Utils.replaceSystemProperty(
-                identityEventListenerConfig.getProperties().getProperty(TenantManagement.USER_NAME));
+        Properties properties = identityEventListenerConfig.getProperties();
+        resolveSecrets(properties);
+        char[] password = Utils.replaceSystemProperty(properties.getProperty(TenantManagement.PASSWORD)).toCharArray();
+        String username = Utils.replaceSystemProperty(properties.getProperty(TenantManagement.USER_NAME));
 
-        String notificationEndpoint = identityEventListenerConfig.getProperties()
-                .getProperty(TenantManagement.NOTIFICATION_ENDPOINT);
+        String notificationEndpoint = properties.getProperty(TenantManagement.NOTIFICATION_ENDPOINT);
 
         // Any headers will be defined in the config as header. prefex
         HashMap<String, String> headers = new HashMap<String, String>();
-        for (Map.Entry<Object, Object> propertiesEntry : identityEventListenerConfig.getProperties().entrySet()) {
+        for (Map.Entry<Object, Object> propertiesEntry : properties.entrySet()) {
             String key = (String) propertiesEntry.getKey();
             String value = (String) propertiesEntry.getValue();
             if (key.startsWith(TenantManagement.HEADER_PROPERTY)) {
@@ -263,6 +267,30 @@ public class TenantSyncListener implements TenantMgtListener {
         }
         EventRunner eventRunner = new EventRunner(notificationEndpoint, username, password, headers, eventDTO);
         EXECUTOR.execute(eventRunner);
+    }
+
+    /**
+     * There can be sensitive information like passwords in configuration file. If they are encrypted using secure
+     * vault, this method will resolve them and replace with original values.
+     *
+     * @param properties listener properties.
+     */
+    private void resolveSecrets(Properties properties) {
+
+        SecretResolver secretResolver = SecretResolverFactory.create(properties);
+        Enumeration propertyNames = properties.propertyNames();
+        if (secretResolver != null && secretResolver.isInitialized()) {
+            for(Map.Entry<Object, Object> entry : properties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                if (value != null) {
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
+                }
+                properties.put(key, value);
+            }
+        } else if (LOG.isDebugEnabled()) {
+            LOG.debug("Secret Resolver is not present. Will not resolve encryptions in config file");
+        }
     }
 
     protected TenantManagementEventDTO buildPayload(TenantInfoBean tenantInfo, String type, String eventURI,
@@ -382,7 +410,7 @@ public class TenantSyncListener implements TenantMgtListener {
                         .build()) {
 
                     boolean success = httpClient.execute(httpPost, response -> {
-                        
+
                         int responseCode = response.getCode();
                         if (responseCode >= 400 && responseCode < 500) {
                             // Client errors — unauthorized, forbidden, bad request, etc.
