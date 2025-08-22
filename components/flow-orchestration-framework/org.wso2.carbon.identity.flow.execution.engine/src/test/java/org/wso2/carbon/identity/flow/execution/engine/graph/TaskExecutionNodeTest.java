@@ -23,6 +23,7 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -49,6 +50,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -82,7 +85,7 @@ public class TaskExecutionNodeTest {
     private FlowExecutionContext context;
     private NodeConfig nodeConfig;
     @Mock
-    private Executor executor;
+    private AuthenticationExecutor executor;
 
     @BeforeClass
     public void setUp() {
@@ -380,6 +383,7 @@ public class TaskExecutionNodeTest {
 
         when(executor.execute(any())).thenReturn(executorResponse);
         when(executor.getName()).thenReturn(TEST_EXECUTOR);
+        doCallRealMethod().when(executor).addIdpConfigsToContext(any(), any());
 
         MockedStatic<FlowExecutionEngineDataHolder> mocked = mockStatic(FlowExecutionEngineDataHolder.class);
         FlowExecutionEngineDataHolder dataHolder = mock(FlowExecutionEngineDataHolder.class);
