@@ -216,14 +216,14 @@ public class TenantSyncListenerTest extends TenantSyncListener {
         try (MockedStatic<SecretResolverFactory> mockedFactory = Mockito.mockStatic(SecretResolverFactory.class);
              MockedStatic<MiscellaneousUtil> mockedUtil = Mockito.mockStatic(MiscellaneousUtil.class)) {
 
-            // Configure the SecretResolverFactory mock
+            // Configure the SecretResolverFactory mock.
             // When SecretResolverFactory.create() is called, return our mock resolver.
             mockedFactory.when(() -> SecretResolverFactory.create(properties)).thenReturn(mockSecretResolver);
 
             // The resolver should report that it's initialized.
             when(mockSecretResolver.isInitialized()).thenReturn(true);
 
-            // 3. Configure the MiscellaneousUtil mock
+            // Configure the MiscellaneousUtil mock.
             // When MiscellaneousUtil.resolve is called with the encrypted value, return the decrypted value.
             mockedUtil.when(() -> MiscellaneousUtil.resolve("ENC(mySecretPassword)", mockSecretResolver))
                     .thenReturn("decryptedPassword123");
