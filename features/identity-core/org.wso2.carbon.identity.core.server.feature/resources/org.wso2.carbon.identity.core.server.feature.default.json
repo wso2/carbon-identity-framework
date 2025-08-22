@@ -314,6 +314,8 @@
 
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
 
+  "oauth.use_absolute_public_url_for_auth_request": true,
+
   "rest_api_authentication.add_realm_user_to_error": false,
 
   "saml.entity_id": "${carbon.host}",
