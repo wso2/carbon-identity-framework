@@ -235,9 +235,9 @@ public class TenantSyncListenerTest extends TenantSyncListener {
             resolveSecrets(properties);
 
             // Verify that the password property was updated to the decrypted value.
-            assertEquals("decryptedPassword123", properties.getProperty("password"));
+            assertEquals(properties.getProperty("password"), "decryptedPassword123");
             // Verify that the other properties remain unchanged.
-            assertEquals("admin", properties.getProperty("username"));
+            assertEquals(properties.getProperty("username"), "admin");
 
             // Verify that the resolve method was called for all three properties.
             mockedUtil.verify(() -> MiscellaneousUtil

@@ -278,7 +278,6 @@ public class TenantSyncListener implements TenantMgtListener {
     protected void resolveSecrets(Properties properties) {
 
         SecretResolver secretResolver = SecretResolverFactory.create(properties);
-        Enumeration propertyNames = properties.propertyNames();
         if (secretResolver != null && secretResolver.isInitialized()) {
             for(Map.Entry<Object, Object> entry : properties.entrySet()) {
                 String key = entry.getKey().toString();
