@@ -1547,9 +1547,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             return existingFlow.getInitiatingPersona();
         } else if (IdentityContext.getThreadLocalIdentityContext().isApplicationActor()) {
             return Flow.InitiatingPersona.APPLICATION;
-        } else if (IdentityContext.getThreadLocalIdentityContext().isUserActor()) {
+        } else {
             return Flow.InitiatingPersona.USER;
         }
-        return null;
     }
 }
