@@ -101,8 +101,7 @@ public class Flow {
         // -----------------------------------------------------------------------------------------------
 
         // ------------------------------------- Token flows --------------------------------------------
-        FLOW_DEFINITIONS.put(Name.TOKEN_ISSUE,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.TOKEN_ISSUE, EnumSet.of(InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.TOKEN_REVOKE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
                         InitiatingPersona.SYSTEM));
