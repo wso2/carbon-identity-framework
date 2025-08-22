@@ -66,6 +66,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
@@ -177,6 +179,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             responseWrapper = new CommonAuthResponseWrapper(response);
             responseWrapper.setWrappedByFramework(true);
         }
+        boolean enteredFlow = false;
         AuthenticationContext context = null;
         String sessionDataKey = request.getParameter("sessionDataKey");
         try {
@@ -423,6 +426,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 context.setReturning(returning);
 
                 if (!context.isLogoutRequest()) {
+                    enteredFlow = enterFlow(Flow.Name.LOGIN);
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
 
                     // Adding spId param to the redirect URL if it is not an external system call.
@@ -432,6 +436,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         addServiceProviderIdToRedirectUrl(responseWrapper, context);
                     }
                 } else {
+                    enteredFlow = enterFlow(Flow.Name.LOGOUT);
                     FrameworkUtils.getLogoutRequestHandler().handle(request, responseWrapper, context);
                 }
             } else {
@@ -531,6 +536,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (!context.isPassiveAuthenticate()) {
                     FrameworkUtils.removeALORCookie(request, response);
                 }
+            }
+            if (enteredFlow) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
             }
         }
     }
@@ -1490,5 +1498,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         cookieBuilder.setMaxAge(0);
         response.addCookie(cookieBuilder.build());
+    }
+
+    private boolean enterFlow(Flow.Name flowName) {
+
+        Flow authenticationFlow = new Flow.Builder()
+                .name(flowName)
+                .initiatingPersona(Flow.InitiatingPersona.USER)
+                .build();
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(authenticationFlow);
+        return true;
     }
 }
