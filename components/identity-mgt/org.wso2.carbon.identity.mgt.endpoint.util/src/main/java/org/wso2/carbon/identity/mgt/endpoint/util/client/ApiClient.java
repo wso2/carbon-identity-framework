@@ -584,7 +584,9 @@ public class ApiClient {
         responseHeaders = response.getHeaders();
 
         if (response.getStatusInfo().getStatusCode() == ClientResponse.Status.NO_CONTENT.getStatusCode()) {
+
             throw new ApiException(204, "No content Found");
+
         } else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
             if (returnType != null) {
                 if (response.hasEntity()) {
