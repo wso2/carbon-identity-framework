@@ -1504,9 +1504,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         Flow authenticationFlow = new Flow.Builder()
                 .name(flowName)
-                .initiatingPersona(Flow.InitiatingPersona.USER)
+                .initiatingPersona(getFlowInitiatingPersona())
                 .build();
         IdentityContext.getThreadLocalIdentityContext().enterFlow(authenticationFlow);
         return true;
+    }
+
+    private Flow.InitiatingPersona getFlowInitiatingPersona() {
+
+        Flow existingFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+        if (existingFlow != null) {
+            return existingFlow.getInitiatingPersona();
+        } else if (IdentityContext.getThreadLocalIdentityContext().isApplicationActor()) {
+            return Flow.InitiatingPersona.APPLICATION;
+        } else {
+            return Flow.InitiatingPersona.USER;
+        }
     }
 }

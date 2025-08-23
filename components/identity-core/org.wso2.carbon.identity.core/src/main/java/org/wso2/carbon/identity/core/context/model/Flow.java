@@ -100,6 +100,13 @@ public class Flow {
                         InitiatingPersona.SYSTEM));
         // -----------------------------------------------------------------------------------------------
 
+        // ------------------------------------- Token flows --------------------------------------------
+        FLOW_DEFINITIONS.put(Name.TOKEN_ISSUE, EnumSet.of(InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.TOKEN_REVOKE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
+                        InitiatingPersona.SYSTEM));
+        // -----------------------------------------------------------------------------------------------
+
         // -------------------------- Bulk resource management flows -------------------------------------
         FLOW_DEFINITIONS.put(Name.BULK_RESOURCE_UPDATE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
@@ -162,6 +169,11 @@ public class Flow {
 
         // ---------Session management flows-----------------
         SESSION_REVOKE,
+        // --------------------------------------------------
+
+        // ---------Token flows-----------------
+        TOKEN_ISSUE,
+        TOKEN_REVOKE,
         // --------------------------------------------------
 
         // ---------Bulk resource management flows-----------
