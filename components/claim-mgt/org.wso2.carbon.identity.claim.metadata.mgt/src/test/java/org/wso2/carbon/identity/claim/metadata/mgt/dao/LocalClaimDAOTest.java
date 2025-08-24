@@ -79,6 +79,7 @@ public class LocalClaimDAOTest {
         claimProperties2 = new HashMap<>();
         claimProperties2.put("Description", "TestDescription2");
         claimProperties2.put("FriendlyName", "Nick Name");
+        // There can be canonical values without label value pairs. Those values should be safely ignored.
         claimProperties2.put("canonicalValues", "NORTHERN, WEST");
 
         claimProperties3 = new HashMap<>();
