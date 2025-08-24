@@ -243,6 +243,8 @@ public class ClaimMetadataManagementServiceImplTest {
                 "http://wso2.org/claims/testclaim6 http://wso2.org/claims/testclaim7 http://wso2.org/claims/testclaim8 " +
                 "http://wso2.org/claims/testclaim9 http://wso2.org/claims/testclaim10 http://wso2.org/claims/testclaim11" +
                 " http://wso2.org/claims/testclaim12");
+        claimProperties.put("canonicalValues", "Current Account http://wso2.org/claims/testclaim2 " +
+                "http://wso2.org/claims/testclaim3");
         localClaimToBeAdded.setClaimProperties(claimProperties);
 
         when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
