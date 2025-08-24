@@ -217,6 +217,11 @@ public class FlowExecutionEngine {
         // When the END node is reached, mark the flow status as COMPLETE, set the step type to REDIRECTION,
         // and assign the redirect URL. Note: all END nodes are expected to be of type PROMPT_ONLY.
         if (END_NODE_ID.equals(currentNode.getId())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Flow: " + context.getContextIdentifier() + " has reached the explicitly defined " +
+                        "end node. Changing the flow status to COMPLETE, step type to REDIRECTION and setting " +
+                        "the redirect URL.");
+            }
             if (finalDataDTO != null ) {
                 finalDataDTO.setRedirectURL(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context));
             }
