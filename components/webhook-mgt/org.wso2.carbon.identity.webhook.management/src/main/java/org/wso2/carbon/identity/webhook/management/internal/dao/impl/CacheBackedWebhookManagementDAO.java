@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.webhook.management.internal.dao.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.core.cache.ActiveWebhooksCache;
+import org.wso2.carbon.identity.webhook.management.api.core.cache.ActiveWebhooksCacheEntry;
+import org.wso2.carbon.identity.webhook.management.api.core.cache.ActiveWebhooksCacheKey;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCache;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheEntry;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheKey;
@@ -40,6 +43,7 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     private static final Log LOG = LogFactory.getLog(CacheBackedWebhookManagementDAO.class);
     private final WebhookManagementDAO webhookManagementDAO;
     private final WebhookCache webhookCache;
+    private final ActiveWebhooksCache activeWebhooksCache;
 
     /**
      * Constructor.
@@ -50,11 +54,13 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
 
         this.webhookManagementDAO = webhookManagementDAO;
         this.webhookCache = WebhookCache.getInstance();
+        this.activeWebhooksCache = ActiveWebhooksCache.getInstance();
     }
 
     @Override
     public void createWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
+        activeWebhooksCache.clear(tenantId);
         webhookManagementDAO.createWebhook(webhook, tenantId);
     }
 
@@ -109,7 +115,9 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     public void updateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        activeWebhooksCache.clear(tenantId);
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook update.");
+        LOG.debug("Active webhooks cache is cleared for tenant ID: " + tenantId + " for webhook update.");
         webhookManagementDAO.updateWebhook(webhook, tenantId);
     }
 
@@ -117,7 +125,9 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     public void deleteWebhook(String webhookId, int tenantId) throws WebhookMgtException {
 
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhookId), tenantId);
+        activeWebhooksCache.clear(tenantId);
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhookId + " for webhook deletion.");
+        LOG.debug("Active webhooks cache is cleared for tenant ID: " + tenantId + " for webhook deletion.");
         webhookManagementDAO.deleteWebhook(webhookId, tenantId);
     }
 
@@ -137,7 +147,9 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     public void activateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        activeWebhooksCache.clear(tenantId);
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook activate.");
+        LOG.debug("Active webhooks cache is cleared for tenant ID: " + tenantId + " for webhook activate.");
         webhookManagementDAO.activateWebhook(webhook, tenantId);
     }
 
@@ -145,7 +157,9 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     public void deactivateWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        activeWebhooksCache.clear(tenantId);
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook deactivate.");
+        LOG.debug("Active webhooks cache is cleared for tenant ID: " + tenantId + " for webhook deactivate.");
         webhookManagementDAO.deactivateWebhook(webhook, tenantId);
     }
 
@@ -153,7 +167,9 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     public void retryWebhook(Webhook webhook, int tenantId) throws WebhookMgtException {
 
         webhookCache.clearCacheEntry(new WebhookCacheKey(webhook.getId()), tenantId);
+        activeWebhooksCache.clear(tenantId);
         LOG.debug("Webhook cache entry is cleared for webhook ID: " + webhook.getId() + " for webhook retry.");
+        LOG.debug("Active webhooks cache is cleared for tenant ID: " + tenantId + " for webhook retry.");
         webhookManagementDAO.retryWebhook(webhook, tenantId);
     }
 
@@ -166,7 +182,32 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     @Override
     public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
                                            int tenantId) throws WebhookMgtException {
-        // Active webhooks retrieval bypasses cache
-        return webhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+
+        ActiveWebhooksCacheEntry cacheEntry = ActiveWebhooksCache.getInstance().getValueFromCache(
+                new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId), tenantId);
+
+        if (cacheEntry != null && cacheEntry.getWebhooks() != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Active webhooks cache hit for channel URI: " + channelUri + ", event profile: " +
+                        eventProfileName + ", version: " + eventProfileVersion + ", tenant ID: " + tenantId +
+                        ". Returning from cache.");
+            }
+            return cacheEntry.getWebhooks();
+        }
+
+        // Cache miss: retrieve from database and update the cache.
+        List<Webhook> webhooks =
+                webhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+        if (webhooks != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Active webhooks cache miss for channel URI: " + channelUri + ", event profile: " +
+                        eventProfileName + ", version: " + eventProfileVersion + ", tenant ID: " + tenantId +
+                        ". Adding to cache.");
+            }
+            activeWebhooksCache.addToCache(
+                    new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId),
+                    new ActiveWebhooksCacheEntry(webhooks), tenantId);
+        }
+        return webhooks;
     }
 }
