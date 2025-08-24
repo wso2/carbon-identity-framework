@@ -39,7 +39,6 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_WEBAUTHN;
@@ -122,7 +121,7 @@ public class TaskExecutionNode implements Node {
         if (response.getContextProperties() != null && !response.getContextProperties().isEmpty()) {
             context.addProperties(response.getContextProperties());
         }
-        if (STATUS_COMPLETE.equals(response.getResult()) || STATUS_USER_CREATED.equals(response.getResult())) {
+        if (STATUS_COMPLETE.equals(response.getResult())) {
             context.addCompletedNode(configs);
             return handleCompleteStatus(context, response, mappedFlowExecutor.getName(), configs);
         }

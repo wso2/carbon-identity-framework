@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
@@ -345,6 +346,19 @@ public class FlowDAOImpl implements FlowDAO {
         })), preparedStatement -> {
             preparedStatement.setString(1, flowId);
             preparedStatement.setString(2, EXECUTION);
+        });
+
+        jdbcTemplate.executeQuery(GET_VIEW_PAGES_IN_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
+            StepDTO stepDTO = new StepDTO.Builder()
+                    .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
+                    .type(END)
+                    .build();
+            resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+            nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
+            return null;
+        })), preparedStatement -> {
+            preparedStatement.setString(1, flowId);
+            preparedStatement.setString(2, END);
         });
         return nodePageMappings;
     }
