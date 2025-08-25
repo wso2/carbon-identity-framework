@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -89,7 +90,7 @@ public class FlowMgtConfigUtilsTest {
         FlowConfigDTO flowConfigDTO = createSampleFlowConfig();
         Resource newResource = createSampleResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(null);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
         when(configurationManager.addResource(eq(RESOURCE_TYPE), any(Resource.class))).thenReturn(newResource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.addFlowConfig(flowConfigDTO, TENANT_DOMAIN);
@@ -108,7 +109,7 @@ public class FlowMgtConfigUtilsTest {
         Resource existingResource = createSampleResource();
         Resource updatedResource = createSampleResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(existingResource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(existingResource);
         when(configurationManager.replaceResource(eq(RESOURCE_TYPE), any(Resource.class))).thenReturn(updatedResource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.addFlowConfig(flowConfigDTO, TENANT_DOMAIN);
@@ -123,7 +124,7 @@ public class FlowMgtConfigUtilsTest {
         FlowConfigDTO flowConfigDTO = createSampleFlowConfig();
         Resource newResource = createSampleResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(null);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
         when(configurationManager.addResource(eq(RESOURCE_TYPE), any(Resource.class)))
                 .thenThrow(new ConfigurationManagementException("Resource type does not exist",
                         ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode()))
@@ -142,7 +143,7 @@ public class FlowMgtConfigUtilsTest {
 
         Resource resource = createSampleResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(resource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
@@ -155,7 +156,7 @@ public class FlowMgtConfigUtilsTest {
     @Test
     public void testGetFlowConfigReturnsDefault() throws Exception {
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(null);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
@@ -233,7 +234,7 @@ public class FlowMgtConfigUtilsTest {
     @Test
     public void testGetFlowConfigHandlesException() throws Exception {
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString()))
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean()))
                 .thenThrow(new ConfigurationManagementException("Resource type does not exist",
                         ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode()));
 
@@ -250,7 +251,7 @@ public class FlowMgtConfigUtilsTest {
 
         FlowConfigDTO flowConfigDTO = createSampleFlowConfig();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(null);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
         when(configurationManager.addResource(eq(RESOURCE_TYPE), any(Resource.class)))
                 .thenThrow(new ConfigurationManagementException("Resource type does not exist",
                         ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode()));
@@ -275,7 +276,7 @@ public class FlowMgtConfigUtilsTest {
         resource.setResourceType(RESOURCE_TYPE);
         resource.setAttributes(Collections.emptyList());
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(resource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
@@ -293,7 +294,7 @@ public class FlowMgtConfigUtilsTest {
         resource.setResourceType(RESOURCE_TYPE);
         resource.setAttributes(null);
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(resource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
@@ -308,7 +309,7 @@ public class FlowMgtConfigUtilsTest {
 
         Resource resource = createCompleteResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(resource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
@@ -387,6 +388,7 @@ public class FlowMgtConfigUtilsTest {
         Resource resource = new Resource();
         resource.setResourceName(RESOURCE_NAME_PREFIX + flowType);
         resource.setResourceType(RESOURCE_TYPE);
+        resource.setTenantDomain(TENANT_DOMAIN);
 
         List<Attribute> attributes = new ArrayList<>();
         attributes.add(new Attribute(FLOW_TYPE, flowType));

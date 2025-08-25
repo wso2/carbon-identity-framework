@@ -40,6 +40,7 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REGISTRATION_FLOW_TYPE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 
 /**
  * Service class to handle the user flow.
@@ -118,7 +119,9 @@ public class FlowExecutionService {
                 if (step.getData() == null) {
                     step.setData(new DataDTO.Builder().additionalData(new HashMap<>()).build());
                 }
-                if (context.isGenerateAuthenticationAssertion()) {
+                // Generate authentication assertion only if the last step is a redirection. This prevents
+                // unnecessary generation of assertions when the last step is a VIEW step.
+                if (context.isGenerateAuthenticationAssertion() && REDIRECTION.equals(step.getStepType())) {
                     step.getData().addAdditionalData(FrameworkConstants.USER_ASSERTION,
                             AuthenticationAssertionUtils.getSignedUserAssertion(context));
                 }

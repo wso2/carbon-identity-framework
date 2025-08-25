@@ -76,7 +76,8 @@ public class FlowMgtConfigUtils {
         Resource newResource = buildResourceFromFlowConfig(flowConfigDTO);
 
         Resource updatedResource;
-        if (existingResource == null) {
+        if (existingResource == null ||
+                (tenantDomain != null && !tenantDomain.equals(existingResource.getTenantDomain()))) {
             LOG.debug("Adding new flow configuration for flow type: " + flowConfigDTO.getFlowType());
             updatedResource = addResource(newResource, tenantDomain);
         } else {
@@ -250,7 +251,7 @@ public class FlowMgtConfigUtils {
 
         Resource resource = null;
         try {
-            resource = getConfigurationManager().getResource(RESOURCE_TYPE, resourceName);
+            resource = getConfigurationManager().getResource(RESOURCE_TYPE, resourceName, true);
         } catch (ConfigurationManagementException e) {
             if (!ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) &&
                     !ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
