@@ -49,6 +49,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_IN
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.WEBAUTHN_DATA;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
+import static org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
@@ -122,6 +123,12 @@ public class FlowExecutionEngine {
             }
 
             FlowExecutionStep step = resolveStepForPrompt(graph, currentNode, context, nodeResponse);
+
+            // If the flow status is complete because the END node was reached, return the step.
+            if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
+                return step;
+            }
+
             if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) && VIEW.equals(nodeResponse.getType())) {
                 return step;
             }
@@ -161,8 +168,10 @@ public class FlowExecutionEngine {
         }
         if (Constants.NodeTypes.DECISION.equals(currentNode.getType())) {
             // If the current node is a decision node, reset the next node ID to null.
-            LOG.debug("Current node " + currentNode.getId() + " is a decision node. " +
-                    "Resetting the next node ID to null.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Current node " + currentNode.getId() + " is a decision node. " +
+                        "Resetting the next node ID to null.");
+            }
             currentNode.setNextNodeId(null);
         }
         return nextNode;
@@ -193,7 +202,7 @@ public class FlowExecutionEngine {
     }
 
     private FlowExecutionStep resolveStepForPrompt(GraphConfig graph, NodeConfig currentNode,
-                                                   FlowExecutionContext context, NodeResponse nodeResponse) {
+                                                   FlowExecutionContext context, NodeResponse nodeResponse) throws FlowEngineServerException {
 
         DataDTO dataDTO = graph.getNodePageMappings().get(currentNode.getId()).getData();
 
@@ -205,6 +214,25 @@ public class FlowExecutionEngine {
                     .additionalData(dataDTO.getAdditionalData())
                     .build();
             handleError(finalDataDTO, nodeResponse);
+        }
+
+        // When the END node is reached, mark the flow status as COMPLETE, set the step type to REDIRECTION,
+        // and assign the redirect URL. Note: all END nodes are expected to be of type PROMPT_ONLY.
+        if (END_NODE_ID.equals(currentNode.getId())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Flow: " + context.getContextIdentifier() + " has reached the explicitly defined " +
+                        "end node. Changing the flow status to COMPLETE, step type to REDIRECTION and setting " +
+                        "the redirect URL.");
+            }
+            if (finalDataDTO != null ) {
+                finalDataDTO.setRedirectURL(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context));
+            }
+            return new FlowExecutionStep.Builder()
+                    .flowId(context.getContextIdentifier())
+                    .flowStatus(STATUS_COMPLETE)
+                    .stepType(REDIRECTION)
+                    .data(finalDataDTO)
+                    .build();
         }
 
         return new FlowExecutionStep.Builder()

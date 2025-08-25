@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +59,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONB
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.TASK_EXECUTION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.USER_ONBOARD;
@@ -97,9 +99,6 @@ public class GraphBuilder {
     public GraphBuilder withSteps(List<StepDTO> steps) throws FlowMgtFrameworkException {
 
         for (StepDTO step : steps) {
-            if (END_NODE_ID.equalsIgnoreCase(step.getId())) {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE_ID, step.getId());
-            }
             switch (step.getType()) {
                 case VIEW:
                     processViewStep(step);
@@ -111,6 +110,10 @@ public class GraphBuilder {
                     break;
                 case USER_ONBOARD:
                     processUserOnboardStep(step);
+                    break;
+                case END:
+                    // Handle the explicitly defined end step.
+                    processEndStep(step);
                     break;
                 default:
                     throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
@@ -268,7 +271,10 @@ public class GraphBuilder {
                     .type(tempNode.getType())
                     .executorConfig(tempNode.getExecutorConfig())
                     .build();
-            this.nodeEdges.add(new NodeEdge(stepNode.getId(), tempNode.getNextNodeId(), tempNode.getId()));
+            if (!END_NODE_ID.equalsIgnoreCase(step.getId())) {
+                // If the step is not an end step, add an edge to the next node.
+                this.nodeEdges.add(new NodeEdge(stepNode.getId(), tempNode.getNextNodeId(), tempNode.getId()));
+            }
         }
         nodeMap.put(step.getId(), stepNode);
     }
@@ -284,11 +290,13 @@ public class GraphBuilder {
             }
             if (StringUtils.isNotBlank(targetNodeId)) {
                 if (END_NODE_ID.equalsIgnoreCase(targetNodeId)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format("Edge with target node %s found for source node: %s. "
-                                + "This is considered the last node in the flow.", END_NODE_ID, edge.getSourceNodeId()));
+                    if (!nodeMap.containsKey(targetNodeId)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(String.format("Edge with target node %s found for source node: %s. "
+                                    + "This is considered the last node in the flow.", END_NODE_ID, edge.getSourceNodeId()));
+                        }
+                        continue;
                     }
-                    continue;
                 }
 
                 if (!nodeMap.containsKey(targetNodeId)) {
@@ -360,5 +368,11 @@ public class GraphBuilder {
             LOG.debug("Created a node with id " + nodeConfig.getId() + " to prompt a page.");
         }
         return nodeConfig;
+    }
+
+    private void processEndStep(StepDTO step) {
+
+        NodeConfig endNode = createPagePromptNode(step.getId());
+        handleTempNodesInStep(Collections.singletonList(endNode), step);
     }
 }
