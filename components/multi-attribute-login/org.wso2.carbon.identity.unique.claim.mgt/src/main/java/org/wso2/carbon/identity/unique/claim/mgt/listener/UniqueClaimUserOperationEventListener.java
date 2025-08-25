@@ -110,6 +110,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         try {
             checkClaimUniqueness(userName, claims, profile, userStoreManager, null);
         } catch (UserStoreClientException e) {
+            log.warn("Rolling back user creation: " + e.getMessage());
             userStoreManager.deleteUser(userName);
             throw e;
         }
@@ -323,11 +324,19 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             return false;
         } else {
             if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-                if (userList.length > 1 && log.isDebugEnabled()) {
-                    log.debug("Multiple users found for claim URI: " + claimUri + ". The current user is the " +
-                            "first in the list; skipping uniqueness check for this claim value.");
+                if (log.isDebugEnabled()) {
+                    if (userList.length > 1) {
+                        log.debug("Multiple users found for claim URI: " + claimUri + ". The current user is the " +
+                                "first in the list; skipping uniqueness check for this claim value.");
+                    } else {
+                        log.debug("Single user found for claim URI: " + claimUri + ". The user is the same as the " +
+                                "current user; skipping uniqueness check for this claim value.");
+                    }
                 }
                 return false;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Multiple users found for claim URI: " + claimUri);
             }
             return true;
         }

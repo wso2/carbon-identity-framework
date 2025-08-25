@@ -48,6 +48,10 @@
             <artifactId>org.wso2.carbon.identity.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
         </dependency>
@@ -80,6 +84,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>org.wso2.carbon.identity.unique.claim.mgt.internal</Private-Package>
                         <Import-Package>
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
