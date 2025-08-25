@@ -43,6 +43,9 @@ import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.FirstFoundAggregationStrategy;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -718,6 +721,10 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         validateNonModifiableClaimProperties(localClaim);
+
+        // Set excluded user stores property if not set.
+        setExcludedUserStoresProperty(localClaim, tenantId);
+
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         if (isLocalClaimInDB(localClaim.getClaimURI(), tenantId, tenantDomain)) {
             if (resolveWithHierarchicalMode(tenantDomain, tenantId)) {
@@ -1263,6 +1270,44 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         claim.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
     }
 
+    private void setExcludedUserStoresProperty(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
+
+        /* If isUserStorePersistenceEnabled is not true, then we do not set the excluded user stores property.
+        * If isUserStorePersistenceEnabled is true and excluded user stores property is not null, then we do not
+        * set the excluded user stores property again.
+        */
+        if (!Boolean.parseBoolean(localClaim.getClaimProperty(ClaimConstants.ENABLE_USER_STORE_PERSISTENCE))
+        || localClaim.getClaimProperty(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY) != null) {
+            return;
+        }
+
+        // Retrieve the user store manager for the tenant.
+        AbstractUserStoreManager userStoreManager = null;
+        UserRealm userRealm;
+        try {
+            userRealm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId);
+            if (userRealm != null) {
+                userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager();
+            }
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw new ClaimMetadataException("Error while retrieving user realm for tenant: " + tenantId, e);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        while (userStoreManager != null) {
+            if (Boolean.parseBoolean(userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_READ_ONLY))) {
+                String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                sb.append(domainName).append(",");
+            }
+            userStoreManager = (AbstractUserStoreManager) userStoreManager.getSecondaryUserStoreManager();
+        }
+        if (sb.length() > 0) {
+            // Remove the last comma.
+            sb.setLength(sb.length() - 1);
+        }
+        localClaim.setClaimProperty(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY, sb.toString());
+    }
+
     /**
      * Gets the tenant id corresponding to a given organization id.
      *
@@ -1325,7 +1370,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
      * @return true if hierarchical inheritance is enabled, false otherwise.
      */
     private boolean resolveWithHierarchicalMode(String tenantDomain, int tenantId) throws ClaimMetadataException {
-        
+
         try {
             return Utils.isClaimAndOIDCScopeInheritanceEnabled(tenantDomain);
         } catch (OrganizationManagementException e) {
