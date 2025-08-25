@@ -219,6 +219,10 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
                 } else {
                     authorizedScopes = new ArrayList<>(getScopesExcludingInternalScopes(authorizedScopesMap));
+                    List<AuthorizedScopes> appAuthorisedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
+                            IdentityTenantUtil.getTenantId(tenantDomain));
+                    // Get the scopes authorised in the application and add them too.
+                    authorizedScopes.addAll(appAuthorisedScopes);
                 }
             } else {
                 authorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
@@ -236,15 +240,14 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
 
     private List<AuthorizedScopes> getScopesExcludingInternalScopes(Map<String, AuthorizedScopes> authorizedScopesMap) {
 
-        // Iterate through the map and filter scopes that do not start with "internal_".
+        // Iterate and filter scopes that do not start with "internal_" and "console" scopes.
         return authorizedScopesMap.values().stream()
                 .map(authorizedScopes -> {
-                    // Filter scopes that do not start with "internal_".
+                    // Filter scopes that do not start with "internal_" and "console".
                     List<String> filteredScopes = authorizedScopes.getScopes().stream()
                             .filter(scope -> !scope.startsWith(INTERNAL_SCOPE_PREFIX))
                             .filter(scope -> !scope.startsWith(CONSOLE_SCOPE_PREFIX))
                             .collect(Collectors.toList());
-                    // Create a new AuthorizedScopes object with the filtered scopes.
                     return new AuthorizedScopes(authorizedScopes.getPolicyId(), filteredScopes);
                 })
                 .collect(Collectors.toList());
