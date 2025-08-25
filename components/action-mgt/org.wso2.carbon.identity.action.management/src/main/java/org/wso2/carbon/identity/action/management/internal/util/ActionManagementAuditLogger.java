@@ -104,6 +104,10 @@ public class ActionManagementAuditLogger {
                 actionDTO.getDescription() != null ? actionDTO.getDescription() : JSONObject.NULL);
         data.put(LogConstants.ACTION_STATUS_FIELD, actionDTO.getStatus() != null ? actionDTO.getStatus()
                 : JSONObject.NULL);
+        data.put(LogConstants.CREATED_AT_FIELD, actionDTO.getCreatedAt() != null ?
+                actionDTO.getCreatedAt() : JSONObject.NULL);
+        data.put(LogConstants.UPDATED_AT_FIELD, actionDTO.getUpdatedAt() != null ?
+                actionDTO.getUpdatedAt() : JSONObject.NULL);
         if (actionDTO.getEndpoint() != null) {
             data.put(LogConstants.ENDPOINT_CONFIG_FIELD, getEndpointData(actionDTO.getEndpoint()));
         }
@@ -169,6 +173,10 @@ public class ActionManagementAuditLogger {
         JSONObject endpointData = new JSONObject();
         endpointData.put(LogConstants.ENDPOINT_URI_FIELD, endpointConfig.getUri() != null ? endpointConfig.getUri() :
                 JSONObject.NULL);
+        endpointData.put(LogConstants.ALLOWED_HEADERS_FIELD, endpointConfig.getAllowedHeaders() != null ?
+                endpointConfig.getAllowedHeaders() : JSONObject.NULL);
+        endpointData.put(LogConstants.ALLOWED_PARAMETERS_FIELD, endpointConfig.getAllowedParameters() != null ?
+                endpointConfig.getAllowedParameters() : JSONObject.NULL);
         if (endpointConfig.getAuthentication() != null) {
             Authentication authentication = endpointConfig.getAuthentication();
             endpointData.put(LogConstants.AUTHENTICATION_SCHEME_FIELD, authentication.getType());
@@ -277,6 +285,10 @@ public class ActionManagementAuditLogger {
         public static final String API_KEY_HEADER_FIELD = "ApiKeyHeader";
         public static final String API_KEY_VALUE_FIELD = "ApiKeyValue";
         public static final String ACTION_RULE = "Rule";
+        public static final String ALLOWED_HEADERS_FIELD = "AllowedHeaders";
+        public static final String ALLOWED_PARAMETERS_FIELD = "AllowedParameters";
+        public static final String CREATED_AT_FIELD = "CreatedAt";
+        public static final String UPDATED_AT_FIELD = "UpdatedAt";
     }
 }
 

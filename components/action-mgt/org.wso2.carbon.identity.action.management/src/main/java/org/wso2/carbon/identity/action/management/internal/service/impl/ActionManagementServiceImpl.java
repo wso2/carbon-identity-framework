@@ -79,7 +79,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
         DAO_FACADE.addAction(creatingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         Action createdAction = getActionByActionId(actionType, generatedActionId, tenantDomain);
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, creatingActionDTO);
+        ActionDTO auditActionDTO = buildAuditActionDTO(createdAction);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, auditActionDTO);
 
         return createdAction;
     }
@@ -156,8 +157,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, updatingActionDTO);
-        return getActionByActionId(actionType, actionId, tenantDomain);
+        Action updatedAction = getActionByActionId(actionType, actionId, tenantDomain);
+        ActionDTO auditActionDTO = buildAuditActionDTO(updatedAction);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, auditActionDTO);
+        return updatedAction;
     }
 
     /**
@@ -403,5 +406,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .endpoint(actionDTO.getEndpoint())
                 .rule(actionDTO.getActionRule())
                 .build();
+    }
+
+
+    /**
+     * Build ActionDTO from Action object for audit logging purposes.
+     *
+     * @param action The Action object containing all fields including timestamps from database.
+     * @return ActionDTO object with timestamp fields populated for audit logging.
+     */
+    private ActionDTO buildAuditActionDTO(Action action) {
+
+        return new ActionDTOBuilder(action).build();
     }
 }
