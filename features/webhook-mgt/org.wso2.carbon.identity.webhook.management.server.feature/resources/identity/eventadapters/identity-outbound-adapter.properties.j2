@@ -32,6 +32,10 @@ adapter.websubhub.topicDeletionDisabled={{outbound_adapters.websubhub.topicDelet
 adapter.websubhub.sslCertificateAlias={{outbound_adapters.websubhub.ssl_certificate_alias}}
 adapter.websubhub.mtlsEnabled={{outbound_adapters.websubhub.mtlsEnabled}}
 adapter.websubhub.type={{outbound_adapters.websubhub.type}}
+adapter.websubhub.maxRetries={{outbound_adapters.websubhub.maxRetries}}
+adapter.websubhub.ioThreadCount={{outbound_adapters.websubhub.ioThreadCount}}
+adapter.websubhub.asyncCallbackPoolSize={{outbound_adapters.websubhub.asyncCallbackPoolSize}}
+adapter.websubhub.asyncCallbackQueueCapacity={{outbound_adapters.websubhub.asyncCallbackQueueCapacity}}
 {% endif %}
 
 {% if outbound_adapters.httppublisher.enabled is sameas true %}
@@ -43,4 +47,8 @@ adapter.httppublisher.connectionHandshakeTimeout={{outbound_adapters.httppublish
 adapter.httppublisher.defaultMaxConnections={{outbound_adapters.httppublisher.defaultMaxConnections}}
 adapter.httppublisher.defaultMaxConnectionsPerRoute={{outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute}}
 adapter.httppublisher.type={{outbound_adapters.httppublisher.type}}
+adapter.httppublisher.maxRetries={{outbound_adapters.httppublisher.maxRetries}}
+adapter.httppublisher.ioThreadCount={{outbound_adapters.httppublisher.ioThreadCount}}
+adapter.httppublisher.asyncCallbackPoolSize={{outbound_adapters.httppublisher.asyncCallbackPoolSize}}
+adapter.httppublisher.asyncCallbackQueueCapacity={{outbound_adapters.httppublisher.asyncCallbackQueueCapacity}}
 {% endif %}
