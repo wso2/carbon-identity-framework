@@ -1369,7 +1369,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResourceCollection name="roleAssignments" displayName="Role Assignments" type="tenant">
         <Scopes>
             <Feature>
@@ -1396,7 +1395,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% endif %}
     <APIResourceCollection name="rolesV1" displayName="Roles" type="tenant">
         <Scopes>
             <Feature>
@@ -1765,7 +1763,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResourceCollection name="org_roleAssignments" displayName="Role Assignments" type="organization">
         <Scopes>
             <Feature>
@@ -1790,7 +1787,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% endif %}
     <APIResourceCollection name="org_rolesV1" displayName="Roles" type="organization">
         <Scopes>
             <Feature>
