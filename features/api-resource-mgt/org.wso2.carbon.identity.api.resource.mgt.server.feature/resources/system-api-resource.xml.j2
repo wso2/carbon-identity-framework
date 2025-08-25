@@ -1444,7 +1444,6 @@
                    description="Manage edits of roles in the organization from the Console"/>
         </Scopes>
     </APIResource>
-    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResource name="Role Assignments Feature" identifier="console:role_assignments"
                 requiresAuthorization="true"
                 description="Resource representation of the Role Assignments Management Feature"
@@ -1471,7 +1470,6 @@
                 description="Manage edits of Role Assignments from the Console"/>
         </Scopes>
     </APIResource>
-    {% endif %}
     <APIResource name="User Management Feature" identifier="console:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
