@@ -1356,9 +1356,9 @@ public class DefaultStepHandler implements StepHandler {
                         .equals(errorCode)) {
                     LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP " +
                             "error.");
-                    String recoverEndpoint = resolveInvitedUserRegistrationEndpoint(context.getTenantDomain());
+                    String recoveryEndpoint = resolveInvitedUserRegistrationEndpoint(context.getTenantDomain());
                     return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
-                            loginPage, otp, reCaptchaParamString, recoverEndpoint);
+                            loginPage, otp, reCaptchaParamString, recoveryEndpoint);
                 } else {
                     if (StringUtils.isNotBlank(retryParam) && StringUtils.isNotBlank(reason)) {
                         retryParam = "&authFailure=true&authFailureMsg=" + URLEncoder.encode(reason, "UTF-8");
@@ -1408,9 +1408,9 @@ public class DefaultStepHandler implements StepHandler {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP error.");
                 }
-                String recoverEndpoint = resolveInvitedUserRegistrationEndpoint(context.getTenantDomain());
+                String recoveryEndpoint = resolveInvitedUserRegistrationEndpoint(context.getTenantDomain());
                 return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
-                        loginPage, otp, reCaptchaParamString, recoverEndpoint);
+                        loginPage, otp, reCaptchaParamString, recoveryEndpoint);
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
                         "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
@@ -1480,7 +1480,7 @@ public class DefaultStepHandler implements StepHandler {
     private String getRedirectURLForcedPasswordResetOTP(HttpServletRequest request, HttpServletResponse response,
                                                         AuthenticationContext context, String authenticatorNames,
                                                         String loginPage, String otp,
-                                                        StringBuilder reCaptchaParamString, String recoverPage)
+                                                        StringBuilder reCaptchaParamString, String recoveryPage)
             throws IOException {
 
         String username = request.getParameter("username");
@@ -1496,15 +1496,15 @@ public class DefaultStepHandler implements StepHandler {
         callback = callback + ("?" + context.getContextIdIncludedQueryParams())
                 + "&authenticators=" + authenticatorNames;
 
-        if (recoverPage == null) {
-            recoverPage = FrameworkConstants.DefaultUrlContexts.ACCOUNT_RECOVERY_CONFIRM_RECOVERY_ENDPOINT + "?";
+        if (recoveryPage == null) {
+            recoveryPage = FrameworkConstants.DefaultUrlContexts.ACCOUNT_RECOVERY_CONFIRM_RECOVERY_ENDPOINT + "?";
         }
         if (username == null) {
-            return response.encodeRedirectURL((recoverPage + context.getContextIdIncludedQueryParams()))
+            return response.encodeRedirectURL((recoveryPage + context.getContextIdIncludedQueryParams()))
                     + "&confirmation=" + otp + "&callback=" + URLEncoder.encode(callback, "UTF-8")
                     + reCaptchaParamString.toString();
         }
-        return response.encodeRedirectURL((recoverPage + context.getContextIdIncludedQueryParams()))
+        return response.encodeRedirectURL((recoveryPage + context.getContextIdIncludedQueryParams()))
                 + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp
                 + "&callback=" + URLEncoder.encode(callback, "UTF-8") + reCaptchaParamString.toString();
     }
@@ -1655,7 +1655,6 @@ public class DefaultStepHandler implements StepHandler {
                         .build().getAbsolutePublicURL();
                 endpoint += "?flowType=" + Constants.FlowTypes.INVITED_USER_REGISTRATION.getType() + "&";
                 return endpoint;
-
             }
         } catch (FlowMgtServerException | URLBuilderException e) {
             LOG.warn("Error while checking the invited user registration flow status. Falling back to " +
