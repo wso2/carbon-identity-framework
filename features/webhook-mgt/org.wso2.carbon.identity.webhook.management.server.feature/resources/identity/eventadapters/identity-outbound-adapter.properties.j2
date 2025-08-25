@@ -34,8 +34,8 @@ adapter.websubhub.mtlsEnabled={{outbound_adapters.websubhub.mtlsEnabled}}
 adapter.websubhub.type={{outbound_adapters.websubhub.type}}
 adapter.websubhub.maxRetries={{outbound_adapters.websubhub.maxRetries}}
 adapter.websubhub.ioThreadCount={{outbound_adapters.websubhub.ioThreadCount}}
-adapter.websubhub.asyncCallbackPoolSize={{outbound_adapters.websubhub.asyncCallbackPoolSize}}
-adapter.websubhub.asyncCallbackQueueCapacity={{outbound_adapters.websubhub.asyncCallbackQueueCapacity}}
+adapter.websubhub.executorPoolSize={{outbound_adapters.websubhub.executorPoolSize}}
+adapter.websubhub.executorQueueCapacity={{outbound_adapters.websubhub.executorQueueCapacity}}
 {% endif %}
 
 {% if outbound_adapters.httppublisher.enabled is sameas true %}
@@ -49,6 +49,6 @@ adapter.httppublisher.defaultMaxConnectionsPerRoute={{outbound_adapters.httppubl
 adapter.httppublisher.type={{outbound_adapters.httppublisher.type}}
 adapter.httppublisher.maxRetries={{outbound_adapters.httppublisher.maxRetries}}
 adapter.httppublisher.ioThreadCount={{outbound_adapters.httppublisher.ioThreadCount}}
-adapter.httppublisher.asyncCallbackPoolSize={{outbound_adapters.httppublisher.asyncCallbackPoolSize}}
-adapter.httppublisher.asyncCallbackQueueCapacity={{outbound_adapters.httppublisher.asyncCallbackQueueCapacity}}
+adapter.httppublisher.executorPoolSize={{outbound_adapters.httppublisher.executorPoolSize}}
+adapter.httppublisher.executorQueueCapacity={{outbound_adapters.httppublisher.executorQueueCapacity}}
 {% endif %}
