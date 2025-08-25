@@ -183,8 +183,9 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
     public List<Webhook> getActiveWebhooks(String eventProfileName, String eventProfileVersion, String channelUri,
                                            int tenantId) throws WebhookMgtException {
 
-        ActiveWebhooksCacheEntry cacheEntry = ActiveWebhooksCache.getInstance().getValueFromCache(
-                new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId), tenantId);
+        ActiveWebhooksCacheKey cacheKey =
+                new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId);
+        ActiveWebhooksCacheEntry cacheEntry = activeWebhooksCache.getValueFromCache(cacheKey, tenantId);
 
         if (cacheEntry != null && cacheEntry.getWebhooks() != null) {
             if (LOG.isDebugEnabled()) {
@@ -204,9 +205,7 @@ public class CacheBackedWebhookManagementDAO implements WebhookManagementDAO {
                         eventProfileName + ", version: " + eventProfileVersion + ", tenant ID: " + tenantId +
                         ". Adding to cache.");
             }
-            activeWebhooksCache.addToCache(
-                    new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId),
-                    new ActiveWebhooksCacheEntry(webhooks), tenantId);
+            activeWebhooksCache.addToCache(cacheKey, new ActiveWebhooksCacheEntry(webhooks), tenantId);
         }
         return webhooks;
     }

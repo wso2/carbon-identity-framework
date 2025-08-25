@@ -27,6 +27,7 @@ import java.util.Objects;
  */
 public class ActiveWebhooksCacheKey extends CacheKey {
 
+    private static final long serialVersionUID = 202506120153L;
     private final String eventProfileName;
     private final String eventProfileVersion;
     private final String channelUri;

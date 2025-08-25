@@ -28,6 +28,7 @@ import java.util.List;
  */
 public class ActiveWebhooksCacheEntry extends CacheEntry {
 
+    private static final long serialVersionUID = 202506120001L;
     private final List<Webhook> webhooks;
 
     /**
