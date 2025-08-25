@@ -604,7 +604,7 @@
             provide 'A:foo.com', foo.com should be the user store domain name and 'A'
             represent the relavant mapping of token store table, i.e. tokens will be
             added to a table called IDN_OAUTH2_ACCESS_TOKEN_A. -->
-        <AccessTokenPartitioningDomains><!-- A:foo.com, B:bar.com --></AccessTokenPartitioningDomains>
+        <!--<AccessTokenPartitioningDomains><!-- A:foo.com, B:bar.com --></AccessTokenPartitioningDomains>-->
         <AuthorizationContextTokenGeneration>
             <Enabled>{{oauth.token.validation.include_validation_context_as_jwt_in_reponse}}</Enabled>
             <TokenGeneratorImplClass>{{oauth.extensions.token_context_generator}}</TokenGeneratorImplClass>
