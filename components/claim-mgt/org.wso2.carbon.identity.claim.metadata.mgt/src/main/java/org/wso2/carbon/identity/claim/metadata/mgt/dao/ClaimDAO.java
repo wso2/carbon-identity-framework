@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
@@ -34,8 +37,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUES_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUE_PREFIX;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTE_PREFIX;
@@ -188,6 +194,7 @@ public class ClaimDAO {
 
         try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
             ArrayList<String> subAttributes = new ArrayList<>();
+            List<String> canonicalValues = new ArrayList<>();
             prepStmt.setInt(1, claimId);
             prepStmt.setInt(2, tenantId);
 
@@ -200,6 +207,11 @@ public class ClaimDAO {
                     if (claimPropertyName.startsWith(SUB_ATTRIBUTE_PREFIX)) {
                         subAttributes.add(claimPropertyValue);
                         continue;
+                    } else if (claimPropertyName.startsWith(CANONICAL_VALUE_PREFIX)) {
+                        /* Check if the property is a canonical value. If so, add it to the canonical value list and
+                           skip adding the single property to the map. */
+                        canonicalValues.add(claimPropertyValue);
+                        continue;
                     }
 
                     claimProperties.put(claimPropertyName, claimPropertyValue);
@@ -208,6 +220,10 @@ public class ClaimDAO {
                 // a space.
                 if (!subAttributes.isEmpty()) {
                     claimProperties.put(SUB_ATTRIBUTES_PROPERTY, StringUtils.join(subAttributes, " "));
+                }
+                // If there are canonical values, add them as a single property.
+                if (!canonicalValues.isEmpty()) {
+                    claimProperties.put(CANONICAL_VALUES_PROPERTY, canonicalValues.toString());
                 }
             }
         } catch (SQLException e) {
@@ -234,6 +250,22 @@ public class ClaimDAO {
                             prepStmt.setString(2, SUB_ATTRIBUTE_PREFIX + subAttributeIndex);
                             prepStmt.setString(3, subAttribute);
                             prepStmt.addBatch();
+                        }
+                        continue;
+                    } else if (StringUtils.equals(property.getKey(), CANONICAL_VALUES_PROPERTY)) {
+                        try {
+                            JSONArray canonicalValues = new JSONArray(property.getValue());
+                            int canonicalValueIndex = 0;
+                            for (int i = 0; i < canonicalValues.length(); i++) {
+                                canonicalValueIndex++;
+                                JSONObject canonicalValue = canonicalValues.getJSONObject(i);
+                                prepStmt.setString(2, CANONICAL_VALUE_PREFIX + canonicalValueIndex);
+                                prepStmt.setString(3, canonicalValue.toString());
+                                prepStmt.addBatch();
+                            }
+                        } catch (JSONException e) {
+                            log.warn("Error while parsing the canonical values JSON array. Hence, skipping "
+                                    + "adding canonical values to the claim.", e);
                         }
                         continue;
                     }
