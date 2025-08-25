@@ -36,6 +36,7 @@
 
     <modules>
         <module>org.wso2.carbon.identity.authorization.framework</module>
+        <module>org.wso2.carbon.identity.authorization.common</module>
     </modules>
 
 </project>
