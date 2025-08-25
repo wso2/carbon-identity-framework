@@ -37,6 +37,11 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_ORG_SCOPE_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_SCOPE_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATION_API_RESOURCE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATION_ORG_API_RESOURCE;
+
 /**
  * MyAccount authorized API listener.
  */
@@ -44,12 +49,14 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
 
     private static final List<String> authorizedNoPolicyAPIIdentifiers = Arrays.asList(
             "/api/users/v1/me/approval-tasks",
-            "/o/api/users/v1/me/approval-tasks");
+            "/o/api/users/v1/me/approval-tasks",
+            IMPERSONATION_API_RESOURCE, IMPERSONATION_ORG_API_RESOURCE);
     private static final List<String> authorizedNoPolicyScopes = Arrays.asList(
             "internal_approval_task_view",
             "internal_approval_task_update",
             "internal_org_approval_task_view",
-            "internal_org_approval_task_update");
+            "internal_org_approval_task_update",
+            IMPERSONATE_SCOPE_NAME, IMPERSONATE_ORG_SCOPE_NAME);
 
     private static final Log log = LogFactory.getLog(MyAccountAuthorizedAPIListener.class);
 
