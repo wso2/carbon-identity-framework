@@ -235,7 +235,6 @@ public class Constants {
         public static final String STATUS_USER_INPUT_REQUIRED = "USER_INPUT_REQUIRED";
         public static final String STATUS_EXTERNAL_REDIRECTION = "EXTERNAL_REDIRECTION";
         public static final String STATUS_WEBAUTHN = "WEBAUTHN";
-        public static final String STATUS_USER_CREATED = "USER_CREATED";
         public static final String STATUS_COMPLETE = "COMPLETE";
         public static final String STATUS_RETRY = "RETRY";
         public static final String STATUS_ERROR = "ERROR";
