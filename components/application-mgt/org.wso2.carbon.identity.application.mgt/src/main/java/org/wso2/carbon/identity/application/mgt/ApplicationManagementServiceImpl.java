@@ -249,6 +249,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // Set default application version.
         serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+        if (isFragmentApp(serviceProvider)) {
+            serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
+        }
 
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
@@ -1750,6 +1753,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (StringUtils.isBlank(serviceProvider.getApplicationVersion())) {
                 serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
             }
+            if (isFragmentApp(serviceProvider)) {
+                serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
+            }
             validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
             applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
@@ -2604,6 +2610,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // Set default application version.
         application.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+        if (isFragmentApp(application)) {
+            application.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
+        }
 
         doPreAddApplicationChecks(application, tenantDomain, username);
         ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
@@ -3570,5 +3579,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return !isFragmentApp;
         }
         return false;
+    }
+
+    /**
+     * Check whether the service provider is a fragment application.
+     *
+     * @param serviceProvider Service provider.
+     * @return True if the service provider is a fragment application.
+     */
+    private static boolean isFragmentApp(ServiceProvider serviceProvider) {
+
+        return Arrays.stream(serviceProvider.getSpProperties())
+                .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 }
