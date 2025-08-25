@@ -546,7 +546,9 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT = "/authenticationendpoint/dynamic_prompt.do";
         public static final String AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT = "/authenticationendpoint/claims.do";
         public static final String ACCOUNT_RECOVERY_ENDPOINT_PATH = "/accountrecoveryendpoint";
-
+        public static final String ACCOUNT_RECOVERY_CONFIRM_RECOVERY_ENDPOINT =
+                "accountrecoveryendpoint/confirmrecovery.do";
+        public static final String ORCHESTRATED_ACCOUNTS_RECOVERY_ENDPOINT = "/accounts/recovery";
     }
 
     /**
