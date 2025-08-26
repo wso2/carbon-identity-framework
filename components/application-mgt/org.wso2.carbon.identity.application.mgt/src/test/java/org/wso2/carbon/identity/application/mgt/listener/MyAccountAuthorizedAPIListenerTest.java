@@ -48,6 +48,8 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_ORG_SCOPE_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_SCOPE_NAME;
 
 /**
  * Test class for MyAccountAuthorizedAPIListener.
@@ -191,13 +193,20 @@ public class MyAccountAuthorizedAPIListenerTest {
 
         myAccountAuthorizedAPIListener.postGetAuthorizedScopes(authorizedScopesList, MY_ACCOUNT_APP_ID, tenantDomain);
 
-        assertEquals(authorizedScopesList.size(), 1);
-        AuthorizedScopes authorizedScopes = authorizedScopesList.get(0);
-        assertEquals(authorizedScopes.getPolicyId(), APIResourceManagementConstants.NO_POLICY);
-        assertTrue(authorizedScopes.getScopes().contains("internal_approval_task_view"));
-        assertTrue(authorizedScopes.getScopes().contains("internal_approval_task_update"));
-        assertTrue(authorizedScopes.getScopes().contains("internal_org_approval_task_view"));
-        assertTrue(authorizedScopes.getScopes().contains("internal_org_approval_task_update"));
+        assertEquals(authorizedScopesList.size(), 2);
+        authorizedScopesList.forEach(authorizedScopes -> {
+            if (APIResourceManagementConstants.NO_POLICY.equals(authorizedScopes.getPolicyId())) {
+                assertTrue(authorizedScopes.getScopes().contains("internal_approval_task_view"));
+                assertTrue(authorizedScopes.getScopes().contains("internal_approval_task_update"));
+                assertTrue(authorizedScopes.getScopes().contains("internal_org_approval_task_view"));
+                assertTrue(authorizedScopes.getScopes().contains("internal_org_approval_task_update"));
+            }
+
+            if (APIResourceManagementConstants.RBAC_AUTHORIZATION.equals(authorizedScopes.getPolicyId())) {
+                assertTrue(authorizedScopes.getScopes().contains(IMPERSONATE_SCOPE_NAME));
+                assertTrue(authorizedScopes.getScopes().contains(IMPERSONATE_ORG_SCOPE_NAME));
+            }
+        });
     }
 
     @Test
