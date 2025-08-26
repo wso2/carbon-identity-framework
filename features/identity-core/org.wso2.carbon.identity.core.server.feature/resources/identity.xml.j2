@@ -1907,6 +1907,9 @@
             <Enable>{{identity_mgt.user_self_registration.auto_login.enable}}</Enable>
             <AliasName>{{identity_mgt.user_self_registration.auto_login.alias_name}}</AliasName>
         </AutoLogin>
+        {% if identity_mgt.user_self_registration.enable_username_regex_violation_error_msg is defined %}
+        <EnableUsernameRegexViolationErrorMsg>{{identity_mgt.user_self_registration.enable_username_regex_violation_error_msg}}</EnableUsernameRegexViolationErrorMsg>
+        {% endif %}
     </SelfRegistration>
 
     <LiteRegistration>
