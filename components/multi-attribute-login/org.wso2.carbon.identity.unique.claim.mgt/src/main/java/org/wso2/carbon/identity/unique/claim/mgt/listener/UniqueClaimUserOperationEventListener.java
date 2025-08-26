@@ -330,6 +330,9 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             }
             return false;
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Multiple users found for claim URI: " + claimUri);
+            }
             return true;
         }
     }
@@ -498,9 +501,16 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                 userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
             }
             if (userList.length > 1) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Multiple users found for claim URI: " + claimUri);
+                }
                 return true;
             }
             if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Single user found for claim URI: " + claimUri + ". The user is different from the " +
+                            "current user.");
+                }
                 return true;
             }
             if (log.isDebugEnabled() && userList.length == 1) {
