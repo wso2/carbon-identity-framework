@@ -548,7 +548,7 @@ public abstract class FrameworkConstants {
         public static final String ACCOUNT_RECOVERY_ENDPOINT_PATH = "/accountrecoveryendpoint";
         public static final String ACCOUNT_RECOVERY_CONFIRM_RECOVERY_ENDPOINT =
                 "accountrecoveryendpoint/confirmrecovery.do";
-        public static final String ORCHESTRATED_ACCOUNTS_RECOVERY_ENDPOINT = "/accounts/recovery";
+        public static final String ORCHESTRATED_INVITED_USER_REGISTRATION_ENDPOINT = "/accounts/register";
     }
 
     /**
