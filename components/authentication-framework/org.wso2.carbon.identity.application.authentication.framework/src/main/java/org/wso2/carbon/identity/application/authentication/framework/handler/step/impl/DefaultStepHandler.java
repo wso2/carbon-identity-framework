@@ -1632,6 +1632,9 @@ public class DefaultStepHandler implements StepHandler {
 
     private String resolveInvitedUserRegistrationEndpoint(String tenantDomain) {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Resolving invited user registration endpoint for tenant: " + tenantDomain);
+        }
         try {
             if (FlowMgtConfigUtils.getFlowConfig(Constants.FlowTypes.INVITED_USER_REGISTRATION.getType(),
                     tenantDomain).getIsEnabled()) {
@@ -1639,6 +1642,9 @@ public class DefaultStepHandler implements StepHandler {
                         .addPath(FrameworkConstants.DefaultUrlContexts.ORCHESTRATED_INVITED_USER_REGISTRATION_ENDPOINT)
                         .build().getAbsolutePublicURL();
                 endpoint += "?flowType=" + Constants.FlowTypes.INVITED_USER_REGISTRATION.getType() + "&";
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Invited user registration flow is enabled. Using endpoint: " + endpoint);
+                }
                 return endpoint;
             }
         } catch (FlowMgtServerException | URLBuilderException e) {
