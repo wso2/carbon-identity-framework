@@ -294,7 +294,8 @@
       "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
       "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
         "POST_ADD_ORGANIZATION"
-      ]
+      ],
+      "flow_execution.enable_legacy_flows": true
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -318,7 +319,8 @@
       "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
       "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
         "POST_ADD_ORGANIZATION"
-      ]
+      ],
+      "flow_execution.enable_legacy_flows": true
     }
   }
 }
