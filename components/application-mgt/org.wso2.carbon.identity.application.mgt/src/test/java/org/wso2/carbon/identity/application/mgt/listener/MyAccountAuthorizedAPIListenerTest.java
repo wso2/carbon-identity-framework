@@ -209,6 +209,28 @@ public class MyAccountAuthorizedAPIListenerTest {
         });
     }
 
+    @Test(dataProvider = "tenantDomainProvider")
+    public void testPostGetAuthorizedScopesForMyAccountAppRBAC(String tenantDomain, boolean tenantQualifiedUrlsEnabled)
+            throws Exception {
+
+        setupMockDependencies(tenantDomain, tenantQualifiedUrlsEnabled);
+
+        AuthorizedScopes rbacAuthorizedScopes = new AuthorizedScopes(
+                APIResourceManagementConstants.RBAC_AUTHORIZATION,
+                List.of(IMPERSONATE_SCOPE_NAME, IMPERSONATE_ORG_SCOPE_NAME));
+        List<AuthorizedScopes> authorizedScopesList = new ArrayList<>();
+        authorizedScopesList.add(rbacAuthorizedScopes);
+
+        myAccountAuthorizedAPIListener.postGetAuthorizedScopes(authorizedScopesList, MY_ACCOUNT_APP_ID, tenantDomain);
+
+        authorizedScopesList.forEach(authorizedScopes -> {
+            if (APIResourceManagementConstants.RBAC_AUTHORIZATION.equals(authorizedScopes.getPolicyId())) {
+                assertTrue(authorizedScopes.getScopes().contains(IMPERSONATE_SCOPE_NAME));
+                assertTrue(authorizedScopes.getScopes().contains(IMPERSONATE_ORG_SCOPE_NAME));
+            }
+        });
+    }
+
     @Test
     public void testPostGetAuthorizedScopesForNonMyAccountApp() throws Exception {
         
