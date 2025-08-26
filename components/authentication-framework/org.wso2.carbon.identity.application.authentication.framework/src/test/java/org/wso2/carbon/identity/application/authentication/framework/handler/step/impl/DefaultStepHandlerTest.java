@@ -49,6 +49,10 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
+import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.IOException;
@@ -63,6 +67,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -210,19 +215,29 @@ public class DefaultStepHandlerTest {
         }
     }
 
-    @Test
-    public void testGetRedirectURLWhenAskPasswordOTPAuthenticationFail() throws URISyntaxException, IOException,
-            URLBuilderException {
+    @DataProvider
+    public Object[] getOTPBasedFailedLoginScenarios() {
+
+        return new Object[]{
+                IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE,
+                IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
+        };
+    }
+
+    @Test(dataProvider = "getOTPBasedFailedLoginScenarios")
+    public void testGetRedirectURLWhenAuthenticationFail(String errorCode)
+            throws URISyntaxException, IOException, URLBuilderException {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
-             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
+             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<FlowMgtConfigUtils> flowMgtConfigUtil = mockStatic(FlowMgtConfigUtils.class)) {
 
             String callbackUrl = "http://localhost:8080/callback";
 
             AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain("carbon.super");
             IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
-            when(errorMsgContext.getErrorCode())
-                    .thenReturn(IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE);
+            when(errorMsgContext.getErrorCode()).thenReturn(errorCode);
             identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
 
             // Mock ServiceURLBuilder chain
@@ -234,6 +249,11 @@ public class DefaultStepHandlerTest {
             when(mockServiceURLBuilder.build(any(String.class))).thenReturn(mockServiceURL);  // Non-deprecated method
             when(mockServiceURL.getAbsolutePublicURL()).thenReturn(callbackUrl);
 
+            FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
+            flowConfigDTO.setIsEnabled(true);
+            flowMgtConfigUtil.when(() -> FlowMgtConfigUtils.getFlowConfig(
+                    Constants.FlowTypes.INVITED_USER_REGISTRATION.getType(), "carbon.super"))
+                    .thenReturn(flowConfigDTO);
             // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
             // Not relevant to the test flow furthermore.
             String retryParam = "";
@@ -252,6 +272,7 @@ public class DefaultStepHandlerTest {
                     "true", retryParam, "");
             Assert.assertTrue(redirectUrl.contains(URLEncoder.encode(callbackUrl, "UTF-8")));
 
+            when(request.getParameter("username")).thenReturn("testUser");
             redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
                     "false", retryParam, "");
             Assert.assertTrue(redirectUrl.contains(URLEncoder.encode(callbackUrl, "UTF-8")));
