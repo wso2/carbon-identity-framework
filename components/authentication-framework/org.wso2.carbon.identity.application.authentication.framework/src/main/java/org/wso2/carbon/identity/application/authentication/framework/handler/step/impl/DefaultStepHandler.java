@@ -1651,7 +1651,7 @@ public class DefaultStepHandler implements StepHandler {
             if (FlowMgtConfigUtils.getFlowConfig(Constants.FlowTypes.INVITED_USER_REGISTRATION.getType(),
                     tenantDomain).getIsEnabled()) {
                 String endpoint = ServiceURLBuilder.create()
-                        .addPath(FrameworkConstants.DefaultUrlContexts.ORCHESTRATED_ACCOUNTS_RECOVERY_ENDPOINT)
+                        .addPath(FrameworkConstants.DefaultUrlContexts.ORCHESTRATED_INVITED_USER_REGISTRATION_ENDPOINT)
                         .build().getAbsolutePublicURL();
                 endpoint += "?flowType=" + Constants.FlowTypes.INVITED_USER_REGISTRATION.getType() + "&";
                 return endpoint;
