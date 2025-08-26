@@ -2041,6 +2041,7 @@
     "PASSWORD_RECOVERY": "30",
     "INVITED_USER_REGISTRATION": "30"
   },
+  "flow_execution.enable_legacy_flows": false,
   "captcha.enable_captcha_for_local_otp_authenticators": true
 }
 
