@@ -36,11 +36,21 @@ public class CookieValidationFailedException extends IOException {
 
     }
 
+    /**
+     * Get the error code.
+     *
+     * @return Error code.
+     */
     public String getErrorCode() {
 
         return errorCode;
     }
 
+    /**
+     * Get the error message.
+     *
+     * @return Error message.
+     */
     public String getErrorMessage() {
 
         return errorMessage;
