@@ -322,22 +322,14 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
         if (userList.length == 0) {
             return false;
-        } else {
-            if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-                if (log.isDebugEnabled()) {
-                    if (userList.length > 1) {
-                        log.debug("Multiple users found for claim URI: " + claimUri + ". The current user is the " +
-                                "first in the list; skipping uniqueness check for this claim value.");
-                    } else {
-                        log.debug("Single user found for claim URI: " + claimUri + ". The user is the same as the " +
-                                "current user; skipping uniqueness check for this claim value.");
-                    }
-                }
-                return false;
-            }
+        }
+        if (userList.length == 1 && usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
             if (log.isDebugEnabled()) {
-                log.debug("Multiple users found for claim URI: " + claimUri);
+                log.debug("Single user found for claim URI: " + claimUri + ". The user is the same as the " +
+                        "current user; skipping uniqueness check for this claim value.");
             }
+            return false;
+        } else {
             return true;
         }
     }
@@ -506,17 +498,14 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                 userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
             }
             if (userList.length > 1) {
-                if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Multiple users found for claim URI: " + claimUri + ". The current user is " +
-                                "the first in the list; skipping uniqueness check for this claim value.");
-                    }
-                    continue;
-                }
                 return true;
             }
             if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-                    return true;
+                return true;
+            }
+            if (log.isDebugEnabled() && userList.length == 1) {
+                log.debug("Single user found for claim URI: " + claimUri + ". The user is the same as the " +
+                        "current user; skipping uniqueness check for this claim value.");
             }
         }
         return false;
