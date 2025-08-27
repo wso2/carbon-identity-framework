@@ -94,6 +94,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
 /**
@@ -727,6 +728,10 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
         if (isNoneCanHandle) {
+            if (FrameworkUtils.contextHasUserAssertion(request, context)) {
+                throw new FrameworkException(ERROR_INVALID_USER_ASSERTION.getCode(),
+                        ERROR_INVALID_USER_ASSERTION.getMessage());
+            }
             throw new FrameworkException("No authenticator can handle the request in step :  " + currentStep);
         }
     }
