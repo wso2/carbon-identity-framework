@@ -140,6 +140,13 @@ public class FlowExecutionService {
 
     private boolean enterFlowInIdentityContext(String flowType) {
 
+        if (StringUtils.isBlank(flowType) ||
+                Arrays.stream(org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.values())
+                        .noneMatch(type -> type.name().equals(flowType))) {
+            LOG.warn("Invalid flow type: " + flowType + " provided. Hence not entering the flow in IdentityContext.");
+            return false;
+        }
+        
         switch (org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.valueOf(flowType)) {
             case REGISTRATION:
                 IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
