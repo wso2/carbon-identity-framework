@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.flow.execution.engine;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -36,7 +37,6 @@ import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUt
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -142,8 +142,7 @@ public class FlowExecutionService {
 
     private boolean enterFlowInIdentityContext(String flowType) {
 
-        if (StringUtils.isBlank(flowType) || Arrays.stream(FlowTypes.values())
-                .noneMatch(type -> type.name().equals(flowType))) {
+        if (!EnumUtils.isValidEnum(FlowTypes.class, flowType)) {
             LOG.warn("Invalid flow type: " + flowType + " provided. Hence not entering the flow in IdentityContext.");
             return false;
         }
