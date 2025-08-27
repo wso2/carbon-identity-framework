@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -64,6 +65,10 @@ public class CommonAuthenticationHandler {
                         + request.getParameter("sessionDataKey") + ". Hence, restarting the login flow.");
             }
             FrameworkUtils.getRequestCoordinator().handle(request, response);
+        } catch (UserAssertionFailedException e){
+
+            FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
+
     }
 }
