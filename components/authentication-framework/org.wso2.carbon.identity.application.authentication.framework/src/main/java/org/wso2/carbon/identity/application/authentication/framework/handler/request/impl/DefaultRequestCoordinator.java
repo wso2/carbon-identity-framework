@@ -501,10 +501,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
                     throw new CookieValidationFailedException(((FrameworkException) e).getErrorCode(), e.getMessage());
                 }
-            } else {
-                log.error("Exception in Authentication Framework", e);
-                FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
+            log.error("Exception in Authentication Framework", e);
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
             UserCoreUtil.setDomainInThreadLocal(null);
