@@ -1,84 +1,174 @@
-# This workflow automatically syncs merged PRs from master to next branch
-name: Sync master to next
+# This workflow will sync PRs from the master branch to the next branch.
+
+name: 🔄 Sync PRs from master to next
 
 on:
-  pull_request:
-    types: [closed]
-    branches: [master, main]
+  workflow_run:
+    workflows: ["💡 PR Merged"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 env:
+  BASE_BRANCH: main
   TARGET_BRANCH: next
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   sync:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
+    if: >
+      github.repository == 'wso2/carbon-identity-framework' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
     steps:
+      - name: 📥 Download PR Number Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-number
+          github-token: ${{ env.GH_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Get merged PR information
+        id: trigger_info
+        run: |
+          # Get the PR number from the artifact
+          PR_NUMBER=$(cat ./PR_NUMBER)
+          echo "PR Number from artifact: $PR_NUMBER"
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          echo "SYNC_MODE=pr" >> $GITHUB_ENV
+
+          # Create unique sync branch name for this PR
+          SYNC_BRANCH="sync-pr-${PR_NUMBER}-to-next"
+          echo "SYNC_BRANCH=$SYNC_BRANCH" >> $GITHUB_ENV
+          echo "Sync branch for PR #$PR_NUMBER: $SYNC_BRANCH"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-tags: true
 
-      - name: Configure Git
+      - name: Set up Git
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-      - name: Create sync branch and cherry-pick commits
+          git config user.name "wso2-iam-bot"
+          git config user.email "wso2-iam-bot@users.noreply.github.com"
+
+      - name: Get PR commits
         run: |
-          SYNC_BRANCH="sync-to-${{ env.TARGET_BRANCH }}-${{ github.run_id }}"
-          PR_NUMBER=${{ github.event.pull_request.number }}
+          # Get all commits from this specific PR
+          COMMITS=$(gh pr view $PR_NUMBER --json commits -q '.commits[].oid' | tr '\n' ' ')
+          echo "COMMITS_TO_SYNC=$COMMITS" >> $GITHUB_ENV
+          echo "Commits from PR #$PR_NUMBER: $COMMITS"
 
-          # Fetch all branches including remote branches
-          git fetch --all
-
-          # Check if target branch exists
-          if ! git ls-remote --exit-code origin "${{ env.TARGET_BRANCH }}" > /dev/null 2>&1; then
-            echo "::error::Target branch '${{ env.TARGET_BRANCH }}' does not exist"
+      - name: Create sync branch
+        run: |
+          # Validate that SYNC_BRANCH is set
+          if [ -z "$SYNC_BRANCH" ]; then
+            echo "Error: SYNC_BRANCH is not set"
             exit 1
           fi
 
-          # Create sync branch from target branch
-          git checkout -b "$SYNC_BRANCH" "origin/${{ env.TARGET_BRANCH }}"
+          echo "Creating sync branch: $SYNC_BRANCH"
 
-          # Get PR commits (excluding merge commits)
-          COMMITS=$(gh pr view $PR_NUMBER --json commits --jq '.commits[].oid' | tac)
+          # Fetch latest from target branch
+          git fetch origin $TARGET_BRANCH
 
-          # Cherry-pick each commit
-          echo "Cherry-picking commits..."
-          for commit in $COMMITS; do
-            if git show --no-patch --format=%p "$commit" | grep -q " "; then
-              echo "Skipping merge commit: $commit"
+          # Create new sync branch from target
+          git checkout $TARGET_BRANCH
+          git checkout -b "$SYNC_BRANCH"
+
+      - name: Cherry-pick commits (skip [skip ci], workflow files, pom.xml only)
+        run: |
+          if [ -z "$COMMITS_TO_SYNC" ]; then
+            echo "No commits to sync."
+            exit 0
+          fi
+
+          for commit in $COMMITS_TO_SYNC; do
+            if [ -z "$commit" ]; then
               continue
             fi
-            echo "Cherry-picking: $commit"
-            if ! git cherry-pick "$commit"; then
-              echo "::error::Cherry-pick failed for $commit. Manual intervention required."
-              exit 1
+
+            MESSAGE=$(git log -1 --pretty=%B $commit)
+            FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r $commit)
+
+            if [[ "$MESSAGE" =~ \[skip\ ci\] ]]; then
+              echo "Skipping $commit because of [skip ci]"
+              continue
             fi
+
+            if echo "$FILES_CHANGED" | grep -q "^.github/workflows/"; then
+              echo "Skipping $commit because it modifies a workflow"
+              continue
+            fi
+
+            if ! echo "$FILES_CHANGED" | grep -v -E "pom\.xml" | grep -q '.'; then
+              echo "Skipping $commit because it only modifies pom.xml files"
+              continue
+            fi
+
+            echo "Cherry-picking commit $commit: $(git log -1 --oneline $commit)"
+            git cherry-pick $commit || {
+              echo "Cherry-pick failed for $commit. Attempting to skip..."
+              git cherry-pick --skip
+            }
           done
 
-          # Push sync branch
-          git push origin "$SYNC_BRANCH"
+      - name: Push sync branch (force update)
+        run: git push origin HEAD:"$SYNC_BRANCH" --force
 
-          # Create PR
-          gh pr create \
+      - name: Fetch target branch
+        run: git fetch origin $TARGET_BRANCH:$TARGET_BRANCH || true
+
+      - name: Create or update pull request
+        run: |
+          COMMITS_ON_BRANCH=$(git log ${{ env.TARGET_BRANCH }}..HEAD --oneline || true)
+          if [ -z "$COMMITS_ON_BRANCH" ]; then
+            echo "No commits to sync. Skipping PR creation."
+            exit 0
+          fi
+
+          # Check for existing open PR for this sync branch
+          EXISTING_PR=$(gh pr list \
             --base "${{ env.TARGET_BRANCH }}" \
             --head "$SYNC_BRANCH" \
-            --title "[Sync][\`${{ env.TARGET_BRANCH }}\` <- \`${{ github.event.pull_request.base.ref }}\`][#${{ github.event.pull_request.number }}]: ${{ github.event.pull_request.title }}" \
-            --body "🤖 **Auto-sync from ${{ github.event.pull_request.base.ref }}**
-          This PR automatically syncs the changes from #${{ github.event.pull_request.number }} to the \`${{ env.TARGET_BRANCH }}\` branch.
+            --state open \
+            --json number \
+            -q '.[0].number')
 
-          **Original PR:** ${{ github.event.pull_request.html_url }}
-          **Author:** @${{ github.event.pull_request.user.login }}
-          **Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # Get PR details for the merged PR
+          PR_TITLE=$(gh pr view $PR_NUMBER --json title -q '.title')
+          PR_AUTHOR=$(gh pr view $PR_NUMBER --json author -q '.author.login')
+          TOTAL_COMMITS=$(echo "$COMMITS_ON_BRANCH" | wc -l | tr -d ' ')
 
-          ---
+          SYNC_TITLE="[Sync][${{ env.BASE_BRANCH }} -> ${{ env.TARGET_BRANCH }}][#${PR_NUMBER}]: $PR_TITLE"
+          PR_BODY="🤖 **Auto-sync from ${{ env.BASE_BRANCH }}**
 
-          ${{ github.event.pull_request.body }}" \
-            --reviewer "${{ github.event.pull_request.user.login }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          This PR automatically syncs the changes from #${PR_NUMBER} to the \`${{ env.TARGET_BRANCH }}\` branch.
+
+          **Original PR:** https://github.com/${{ github.repository }}/pull/${PR_NUMBER}
+          **Author:** @${PR_AUTHOR}
+          **Total commits:** $TOTAL_COMMITS
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          **Commits:**
+          \`\`\`
+          $(git log ${{ env.TARGET_BRANCH }}..HEAD --oneline)
+          \`\`\`"
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR #$EXISTING_PR already exists for sync branch. Updating with new commits."
+            gh pr edit $EXISTING_PR --title "$SYNC_TITLE" --body "$PR_BODY"
+            echo "Updated existing PR #$EXISTING_PR with $TOTAL_COMMITS total commits"
+          else
+            NEW_PR=$(gh pr create \
+              --base "${{ env.TARGET_BRANCH }}" \
+              --head "$SYNC_BRANCH" \
+              --title "$SYNC_TITLE" \
+              --body "$PR_BODY")
+            echo "Created new PR: $NEW_PR"
+          fi
