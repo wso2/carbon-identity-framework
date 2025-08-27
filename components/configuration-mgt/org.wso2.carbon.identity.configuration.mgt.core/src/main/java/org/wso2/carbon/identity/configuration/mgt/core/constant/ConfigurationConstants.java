@@ -72,8 +72,10 @@ public class ConfigurationConstants {
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String PATH_SEPARATOR = "/";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
-    public static final List<String> INHERITED_RESOURCE_TYPES = List.of("input-validation-configurations",
-            "flow-mgt-config");
+    public static final List<String> INHERITED_RESOURCE_TYPES = List.of(
+            "input-validation-configurations",
+            "flow-mgt-config",
+            "IMPERSONATION_CONFIGURATION");
 
 
     public enum ErrorMessages {
