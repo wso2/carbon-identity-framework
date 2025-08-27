@@ -144,7 +144,6 @@ public class WebhookManagementAuditLogger {
             return LoggerUtils.Initiator.System.name();
         }
 
-
         String initiator = null;
         if (StringUtils.isNotBlank(tenantDomain)) {
             initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
@@ -162,8 +161,7 @@ public class WebhookManagementAuditLogger {
         UPDATE("update-webhook"),
         DELETE("delete-webhook"),
         ACTIVATE("activate-webhook"),
-        DEACTIVATE("deactivate-webhook"),
-        RETRY("retry-webhook");
+        DEACTIVATE("deactivate-webhook");
 
         private final String logAction;
 
@@ -183,8 +181,8 @@ public class WebhookManagementAuditLogger {
      */
     private static class LogConstants {
 
-        public static final String UUID_FIELD = "Uuid";
-        public static final String ENDPOINT_FIELD = "Endpoint";
+        public static final String UUID_FIELD = "Id";
+        public static final String ENDPOINT_FIELD = "EndpointUri";
         public static final String NAME_FIELD = "Name";
         public static final String SECRET_FIELD = "Secret";
         public static final String EVENT_PROFILE_NAME_FIELD = "EventProfileName";
