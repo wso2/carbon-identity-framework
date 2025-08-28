@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -306,7 +307,7 @@ public class DefaultStepHandlerTest {
     }
 
     @Test(expectedExceptions = FrameworkException.class,
-            expectedExceptionsMessageRegExp = "No authenticator can handle the request in step.*")
+            expectedExceptionsMessageRegExp = "Invalid user assertion.")
     public void testHandleResponseNoneCanHandle() throws Exception {
 
         // Arrange
@@ -332,7 +333,12 @@ public class DefaultStepHandlerTest {
         when(authenticator.canHandleWithUserAssertion(request, response, context)).thenReturn(false);
         when(authenticator.getName()).thenReturn("TestAuthenticator");
 
-        // Act & Assert
-        handler.handleResponse(request, response, context);
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            frameworkUtils.when(() ->
+                    FrameworkUtils.contextHasUserAssertion(any(), any())
+            ).thenReturn(true);
+            // Should throw FrameworkException
+            handler.handleResponse(request, response, context);
+        }
     }
 }
