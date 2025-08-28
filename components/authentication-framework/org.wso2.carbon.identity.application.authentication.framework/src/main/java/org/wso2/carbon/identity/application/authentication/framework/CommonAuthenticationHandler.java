@@ -65,7 +65,7 @@ public class CommonAuthenticationHandler {
                         + request.getParameter("sessionDataKey") + ". Hence, restarting the login flow.");
             }
             FrameworkUtils.getRequestCoordinator().handle(request, response);
-        } catch (UserAssertionFailedException e){
+        } catch (UserAssertionFailedException e) {
 
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }

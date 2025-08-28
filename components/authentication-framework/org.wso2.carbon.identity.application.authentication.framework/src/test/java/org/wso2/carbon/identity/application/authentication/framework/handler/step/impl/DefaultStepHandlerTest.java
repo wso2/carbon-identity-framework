@@ -53,7 +53,9 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -301,5 +303,36 @@ public class DefaultStepHandlerTest {
             verify(mockLog, never()).error("Authentication failed exception! " + 
                     "ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE");
         }
+    }
+
+    @Test(expectedExceptions = FrameworkException.class,
+            expectedExceptionsMessageRegExp = "No authenticator can handle the request in step.*")
+    public void testHandleResponseNoneCanHandle() throws Exception {
+
+        // Arrange
+        DefaultStepHandler handler = spy(DefaultStepHandler.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        AuthenticationContext context = mock(AuthenticationContext.class);
+        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+        StepConfig stepConfig = mock(StepConfig.class);
+        AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
+        ApplicationAuthenticator authenticator = mock(ApplicationAuthenticator.class);
+
+        Map<Integer, StepConfig> stepMap = new HashMap<>();
+        stepMap.put(1, stepConfig);
+        List<AuthenticatorConfig> authenticatorList = Collections.singletonList(authenticatorConfig);
+
+        when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+        when(context.getCurrentStep()).thenReturn(1);
+        when(sequenceConfig.getStepMap()).thenReturn(stepMap);
+        when(stepConfig.getAuthenticatorList()).thenReturn(authenticatorList);
+        when(authenticatorConfig.getApplicationAuthenticator()).thenReturn(authenticator);
+        when(authenticator.canHandleRequestFromMultiOptionStep(request, context)).thenReturn(false);
+        when(authenticator.canHandleWithUserAssertion(request, response, context)).thenReturn(false);
+        when(authenticator.getName()).thenReturn("TestAuthenticator");
+
+        // Act & Assert
+        handler.handleResponse(request, response, context);
     }
 }
