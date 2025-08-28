@@ -1,0 +1,75 @@
+[
+  {
+    "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9jdXN0b21FbXBsb3llZVR5cGVz",
+    "claimURI": "http://wso2.org/claims/customEmployeeTypes",
+    "dialectURI": "http://wso2.org/claims",
+    "description": "Custom employee types",
+    "displayOrder": 20,
+    "displayName": "Employee Type",
+    "readOnly": false,
+    "regEx": "",
+    "required": false,
+    "supportedByDefault": false,
+    "dataType": "string",
+    "multiValued": false,
+    "canonicalValues": [
+      {
+        "label": "Manager",
+        "value": "manager"
+      },
+      {
+        "label": "Cashier",
+        "value": "cashier"
+      }
+    ],
+    "properties": [
+      {
+        "key": "USER_CUSTOM_ATTRIBUTE",
+        "value": "TRUE"
+      }
+    ],
+    "inputFormat": {
+      "inputType": "radio_group"
+    }
+  },
+  {
+    "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9pZGVudGl0eS9zbXNvdHBfZGlzYWJsZWQ",
+    "claimURI": "http://wso2.org/claims/identity/smsotp_disabled",
+    "dialectURI": "http://wso2.org/claims",
+    "description": "Claim to disable SMSOTP",
+    "displayOrder": 0,
+    "displayName": "Disable SMSOTP",
+    "readOnly": false,
+    "regEx": "",
+    "required": false,
+    "supportedByDefault": false,
+    "dataType": "boolean",
+    "multiValued": false,
+    "canonicalValues": [],
+    "properties": [
+      {
+        "key": "isSystemClaim",
+        "value": "true"
+      }
+    ],
+    "inputFormat": {
+      "inputType": "checkbox"
+    }
+  },
+  {
+    "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy90ZXN0Q2xhaW0",
+    "claimURI": "http://wso2.org/claims/testClaim",
+    "dialectURI": "http://wso2.org/claims",
+    "description": "Test claim without properties",
+    "displayOrder": 5,
+    "displayName": "Test Claim",
+    "readOnly": false,
+    "regEx": "",
+    "required": false,
+    "supportedByDefault": false,
+    "dataType": "string",
+    "multiValued": false,
+    "canonicalValues": [],
+    "properties": []
+  }
+]
