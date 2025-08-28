@@ -16,7 +16,8 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.constant;
 
-import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Constants related to configuration management.
@@ -72,9 +73,56 @@ public class ConfigurationConstants {
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String PATH_SEPARATOR = "/";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
-    public static final List<String> INHERITED_RESOURCE_TYPES = List.of("input-validation-configurations",
-            "flow-mgt-config");
 
+    // An enum representing the types of resources that can be inherited.
+    public enum InheritedResourceType {
+        INPUT_VALIDATION_CONFIGURATIONS("input-validation-configurations", true),
+        FLOW_MGT_CONFIG("flow-mgt-config", true),
+        IMPERSONATION_CONFIGURATION("IMPERSONATION_CONFIGURATION", true);
+
+        private final String resourceTypeName;
+        private final boolean checkOrgVersionWhenInheriting;
+
+        InheritedResourceType(String resourceTypeName, boolean checkOrgVersionWhenInheriting) {
+
+            this.resourceTypeName = resourceTypeName;
+            this.checkOrgVersionWhenInheriting = checkOrgVersionWhenInheriting;
+        }
+
+        /**
+         * Get the resource type name.
+         *
+         * @return The resource type name.
+         */
+        public String getResourceTypeName() {
+
+            return resourceTypeName;
+        }
+
+        /**
+         * Check if organization version should be checked when inheriting.
+         *
+         * @return True if organization version should be checked when inheriting.
+         */
+        public boolean shouldCheckOrgVersionWhenInheriting() {
+
+            return checkOrgVersionWhenInheriting;
+        }
+
+        /**
+         * Get the inherited resource type by resource type name.
+         *
+         * @param resourceTypeName The resource type name.
+         * @return An Optional containing the inherited resource type if found, empty otherwise.
+         */
+        public static Optional<InheritedResourceType> getByResourceTypeName(String resourceTypeName) {
+
+            return Stream.of(InheritedResourceType.values())
+                    .filter(inheritedResourceType -> inheritedResourceType.getResourceTypeName()
+                            .equals(resourceTypeName))
+                    .findFirst();
+        }
+    }
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),
