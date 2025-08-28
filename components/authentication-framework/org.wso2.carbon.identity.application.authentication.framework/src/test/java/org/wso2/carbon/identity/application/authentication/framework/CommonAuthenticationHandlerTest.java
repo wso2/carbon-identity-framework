@@ -22,6 +22,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.when;
 public class CommonAuthenticationHandlerTest {
 
     @Test(description = "test doPost when cooke validation fails with a non-mismatching tenant error code")
-    public void test_doPost_WarnBranchAndRestart() throws Exception {
+    public void testdoPostCookieValidationFailedWithNonTenantError() throws Exception {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -60,6 +61,34 @@ public class CommonAuthenticationHandlerTest {
             frameworkUtilsMockedStatic.when(FrameworkUtils::getRequestCoordinator).thenReturn(coordinator);
 
             doThrow(cookieValidationFailedException).doNothing()
+                    .when(coordinator).handle(any(HttpServletRequest.class), any(HttpServletResponse.class));
+
+            new CommonAuthenticationHandler().doPost(request, response);
+
+            frameworkUtilsMockedStatic.verify(FrameworkUtils::getMaxInactiveInterval);
+            frameworkUtilsMockedStatic.verify(() -> FrameworkUtils.setMaxInactiveInterval(1800));
+            verify(coordinator, times(2)).handle(request, response);
+        }
+    }
+
+    @Test(description = "test doPost when user assertion fails")
+    public void testdoPostUserAssertionFailed() throws Exception {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
+        when(request.getSession()).thenReturn(session);
+        when(session.getMaxInactiveInterval()).thenReturn(1800);
+        when(request.getParameter("sessionDataKey")).thenReturn("sdkey-123");
+
+        RequestCoordinator coordinator = mock(RequestCoordinator.class);
+        UserAssertionFailedException userAssertionFailedException = mock(UserAssertionFailedException.class);
+
+        try (MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = Mockito.mockStatic(FrameworkUtils.class)) {
+            frameworkUtilsMockedStatic.when(FrameworkUtils::getMaxInactiveInterval).thenReturn(0);
+            frameworkUtilsMockedStatic.when(FrameworkUtils::getRequestCoordinator).thenReturn(coordinator);
+
+            doThrow(userAssertionFailedException).doNothing()
                     .when(coordinator).handle(any(HttpServletRequest.class), any(HttpServletResponse.class));
 
             new CommonAuthenticationHandler().doPost(request, response);

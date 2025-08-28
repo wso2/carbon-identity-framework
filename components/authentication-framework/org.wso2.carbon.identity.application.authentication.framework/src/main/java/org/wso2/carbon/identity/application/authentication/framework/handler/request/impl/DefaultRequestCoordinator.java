@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.I
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -508,7 +509,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION.getCode()
                         .equals(((FrameworkException) e).getErrorCode())) {
                     request.setAttribute(FrameworkConstants.RESTART_LOGIN_FLOW, "true");
-
                     throw new UserAssertionFailedException(((FrameworkException) e).getErrorCode(), e.getMessage());
                 }
             }
