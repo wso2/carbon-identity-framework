@@ -2041,7 +2041,10 @@
 
   "attribute.return_previous_additional_properties.enabled": false,
 
-  "agent_identity.enabled": false,
+  "agent_identity.enabled": true,
+  "agent_identity.userstore": "AGENT",
+  "agent_identity.datasource": "jdbc/AgentIdentity",
+  "agent_identity.userstore_manager_class": "org.wso2.carbon.identity.agent.manager.AgentUserStoreManager",
 
   "session_management.filter_by_unique_session_id_for_user": true,
 
