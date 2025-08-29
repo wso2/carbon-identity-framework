@@ -69,6 +69,5 @@ public class CommonAuthenticationHandler {
 
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
-
     }
 }
