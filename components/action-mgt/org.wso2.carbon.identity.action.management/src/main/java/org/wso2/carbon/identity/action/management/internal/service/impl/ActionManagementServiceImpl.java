@@ -409,16 +409,4 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .rule(actionDTO.getActionRule())
                 .build();
     }
-
-
-    /**
-     * Build ActionDTO from Action object for audit logging purposes.
-     *
-     * @param action The Action object containing all fields including timestamps from database.
-     * @return ActionDTO object with timestamp fields populated for audit logging.
-     */
-    private ActionDTO buildAuditActionDTO(Action action) {
-
-        return new ActionDTOBuilder(action).build();
-    }
 }
