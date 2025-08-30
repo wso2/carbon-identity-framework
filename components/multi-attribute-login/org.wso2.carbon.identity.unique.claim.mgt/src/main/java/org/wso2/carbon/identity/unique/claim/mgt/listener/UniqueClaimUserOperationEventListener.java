@@ -39,6 +39,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -59,6 +60,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     private static final String IS_UNIQUE_CLAIM = "isUnique";
     private static final String SCOPE_WITHIN_USERSTORE = "ScopeWithinUserstore";
     private static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    private static final String CREATED_TIME_CLAIM = "http://wso2.org/claims/created";
 
     @Override
     public int getExecutionOrderId() {
@@ -322,18 +324,36 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
         if (userList.length == 0) {
             return false;
-        }
-        if (userList.length == 1 && usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-            if (log.isDebugEnabled()) {
-                log.debug("Single user found for claim URI: " + claimUri + ". The user is the same as the " +
-                        "current user; skipping uniqueness check for this claim value.");
+        } else if (userList.length == 1) {
+            if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Single user found for claim URI: " + claimUri + ". The user is the same as the " +
+                            "current user; skipping uniqueness check for this claim value.");
+                }
+                return false;
+            } else {
+                // Used in pre-add user and pre-update scenarios where the current user is not yet created.
+                if (log.isDebugEnabled()) {
+                    log.debug("Single user found for claim URI: " + claimUri + ". The user is different from " +
+                            "the current user.");
+                }
+                return true;
             }
-            return false;
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Multiple users found for claim URI: " + claimUri);
+            String earliestCreatedUser = getEarliestCreatedUser(userList, userStoreMgrFromRealm);
+            if (usernameWithUserStoreDomain.equalsIgnoreCase(earliestCreatedUser)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Multiple users found for claim URI: " + claimUri + ". The earliest created user is " +
+                            "the same as the current user; skipping uniqueness check for this claim value.");
+                }
+                return false;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Multiple users found for claim URI: " + claimUri + ". The earliest created user is " +
+                            "different from the current user.");
+                }
+                return true;
             }
-            return true;
         }
     }
 
@@ -500,24 +520,71 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             } else {
                 userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
             }
+            if (userList.length == 1) {
+                if (!usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Single user found for claim URI: " + claimUri + ". The user is different from " +
+                                "the current user.");
+                    }
+                    return true;
+                } else if (log.isDebugEnabled()) {
+                    log.debug("Single user found for claim URI: " + claimUri + ". The user is the same as the " +
+                            "current user; skipping uniqueness check for this claim value.");
+                }
+            }
             if (userList.length > 1) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Multiple users found for claim URI: " + claimUri);
+                String earliestCreatedUser = getEarliestCreatedUser(userList, userStoreManager);
+                if (usernameWithUserStoreDomain.equalsIgnoreCase(earliestCreatedUser)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Multiple users found for claim URI: " + claimUri + ". The earliest created user " +
+                                "is the same as the current user; skipping uniqueness check for this claim value.");
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Multiple users found for claim URI: " + claimUri + ". The earliest created user " +
+                                "is different from the current user.");
+                    }
+                    return true;
                 }
-                return true;
-            }
-            if (userList.length == 1 && !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Single user found for claim URI: " + claimUri + ". The user is different from the " +
-                            "current user.");
-                }
-                return true;
-            }
-            if (log.isDebugEnabled() && userList.length == 1) {
-                log.debug("Single user found for claim URI: " + claimUri + ". The user is the same as the " +
-                        "current user; skipping uniqueness check for this claim value.");
             }
         }
         return false;
+    }
+
+    /**
+     * Get the earliest created user from a list of users.
+     * This is used to determine if the current user is the earliest created user when multiple users
+     * have the same claim value.
+     *
+     * @param userList List of users to check
+     * @param userStoreMgrFromRealm UserStoreManager to retrieve user claim values
+     * @return The username of the earliest created user, or null if the list is empty
+     */
+    private String getEarliestCreatedUser(String[] userList, UserStoreManager userStoreMgrFromRealm) {
+
+        Map<String, Long> userCreationTimeMap = new HashMap<>();
+        for (String user : userList) {
+            try {
+                String createdTime = userStoreMgrFromRealm.getUserClaimValue(user,
+                        UniqueClaimUserOperationEventListener.CREATED_TIME_CLAIM, null);
+                if (StringUtils.isNotBlank(createdTime)) {
+                    long createdTimeEpochMillis = Instant.parse(createdTime).toEpochMilli();
+                    userCreationTimeMap.put(user, createdTimeEpochMillis);
+                } else {
+                    log.warn("Created time claim is blank for user. Using a high value for timestamp.");
+                    userCreationTimeMap.put(user, Long.MAX_VALUE);
+                }
+            } catch (org.wso2.carbon.user.api.UserStoreException | NumberFormatException e) {
+                log.warn("Error retrieving user creation time. Using a high value for timestamp.", e);
+                // If there is an error retrieving the creation time, add the user with a high value to avoid
+                // selecting it as the earliest created user.
+                userCreationTimeMap.put(user, Long.MAX_VALUE);
+            }
+        }
+        // Return the user with the minimum creation time.
+        return userCreationTimeMap.entrySet().stream()
+                .min(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
     }
 }
