@@ -571,6 +571,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                     long createdTimeEpochMillis = Instant.parse(createdTime).toEpochMilli();
                     userCreationTimeMap.put(user, createdTimeEpochMillis);
                 } else {
+                    log.warn("Created time claim is blank for user. Using a high value for timestamp.");
                     userCreationTimeMap.put(user, Long.MAX_VALUE);
                 }
             } catch (org.wso2.carbon.user.api.UserStoreException | NumberFormatException e) {
