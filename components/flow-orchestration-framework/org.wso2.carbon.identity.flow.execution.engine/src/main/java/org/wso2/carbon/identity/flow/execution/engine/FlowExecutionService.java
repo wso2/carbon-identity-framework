@@ -119,6 +119,7 @@ public class FlowExecutionService {
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);
             }
+            step.setStepType(context.getFlowType());
             return step;
         } catch (FlowEngineException e) {
 
