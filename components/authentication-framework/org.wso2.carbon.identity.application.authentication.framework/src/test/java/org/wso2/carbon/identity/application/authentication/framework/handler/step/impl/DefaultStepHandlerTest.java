@@ -211,8 +211,8 @@ public class DefaultStepHandlerTest {
     }
 
     @Test
-    public void testGetRedirectURLWhenAuthenticationFail()
-            throws URISyntaxException, IOException, URLBuilderException {
+    public void testGetRedirectURLWhenAskPasswordOTPAuthenticationFail() throws URISyntaxException, IOException,
+            URLBuilderException {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
              MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
@@ -255,6 +255,39 @@ public class DefaultStepHandlerTest {
             redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
                     "false", retryParam, "");
             Assert.assertTrue(redirectUrl.contains(URLEncoder.encode(callbackUrl, "UTF-8")));
+        }
+    }
+
+    @Test
+    public void testGetRedirectURLWhenEmailOTPVerificationAuthenticationFail() throws URISyntaxException, IOException {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+            AuthenticationContext context = new AuthenticationContext();
+            IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
+            when(errorMsgContext.getErrorCode())
+                    .thenReturn(IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE);
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
+
+            // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
+            // Not relevant to the test flow furthermore.
+            String retryParam = "";
+            doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
+
+            // The basicAuthRedirectUrl should contain the error code for the user locked state as query parameters
+            URIBuilder basicAuthRedirectUrlBuilder = new URIBuilder("http://example.com/");
+            basicAuthRedirectUrlBuilder.addParameter(
+                    FrameworkConstants.ERROR_CODE,
+                    UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+            String basicAuthRedirectUrl = basicAuthRedirectUrlBuilder.build().toString();
+            response = spy(new CommonAuthResponseWrapper(response));
+            when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn(basicAuthRedirectUrl);
+
+            String redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
+                    "true", retryParam, "");
+            Assert.assertTrue(redirectUrl.contains(IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE));
+            Assert.assertTrue(redirectUrl.contains("authFailureMsg=email.otp.verification.pending"));
+
         }
     }
 
