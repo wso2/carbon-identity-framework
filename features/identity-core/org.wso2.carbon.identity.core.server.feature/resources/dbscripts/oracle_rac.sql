@@ -1675,6 +1675,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('32360745-9c3e-4391-b563-66f17f0eb93a', 'ADMIN_ADVISORY_BANNER', 'A resource type to store admin advisory banner configurations.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('82ab7001-fb0e-44da-9169-1f63e4964d9b', 'REMOTE_LOGGING_CONFIG', 'A resource type to store remote server logger configurations.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('c2f2f3f0-6f8d-4f4d-9bca-1c7b18b4a1b5', 'compatibility-settings', 'A resource type to store the backward compatibility configurations.')
 SELECT 1 FROM dual
 /
 CREATE TABLE IDN_CONFIG_RESOURCE (
