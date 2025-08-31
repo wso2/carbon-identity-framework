@@ -1311,6 +1311,10 @@ public class DefaultStepHandler implements StepHandler {
                             reCaptchaParamString.toString();
                 } else if (IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(errorCode)
                             || IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Redirecting to login page with email verification pending message for error: "
+                                + errorCode);
+                    }
                     retryParam = "&authFailure=true&authFailureMsg=email.verification.pending";
                     if (IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
                         retryParam = "&authFailure=true&authFailureMsg=email.otp.verification.pending";
