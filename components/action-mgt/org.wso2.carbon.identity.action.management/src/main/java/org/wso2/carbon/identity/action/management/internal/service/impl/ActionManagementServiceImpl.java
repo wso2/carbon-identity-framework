@@ -159,7 +159,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         ActionDTO updatedActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, updatedActionDTO);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, existingActionDTO);
 
         return buildAction(resolvedActionType, updatedActionDTO);
     }
@@ -205,7 +205,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         ActionDTO activatedActionDTO = DAO_FACADE.activateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, actionType, actionId);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, activatedActionDTO);
         return buildBasicAction(activatedActionDTO);
     }
 
@@ -229,7 +229,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         ActionDTO deactivatedActionDTO = DAO_FACADE.deactivateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, actionType, actionId);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, deactivatedActionDTO);
         return buildBasicAction(deactivatedActionDTO);
     }
 
