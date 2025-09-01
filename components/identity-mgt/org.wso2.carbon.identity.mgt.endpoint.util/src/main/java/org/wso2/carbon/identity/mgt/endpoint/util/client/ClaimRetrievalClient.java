@@ -66,6 +66,7 @@ public class ClaimRetrievalClient {
             throws ClaimRetrievalClientException {
 
         if (claimURIs == null || claimURIs.isEmpty()) {
+            LOG.debug("No claim URIs provided for retrieval.");
             return new HashMap<>();
         }
 
@@ -79,6 +80,9 @@ public class ClaimRetrievalClient {
             }
 
             String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Successfully retrieved local claims for tenant: " + tenantDomain);
+            }
             if (StringUtils.isEmpty(responseString)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Empty response received from claims API for tenant: " + tenantDomain);
@@ -105,6 +109,9 @@ public class ClaimRetrievalClient {
     private Map<String, LocalClaim> parseClaimsResponse(String responseString, List<String> claimURIs)
             throws ClaimRetrievalClientException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Parsing claims response.");
+        }
         try {
             List<LocalClaim> allClaims = objectMapper.readValue(responseString, new TypeReference<List<LocalClaim>>() {});
             Map<String, LocalClaim> claimsMap = new HashMap<>();
@@ -112,6 +119,9 @@ public class ClaimRetrievalClient {
                 if (claimURIs.contains(claim.getClaimURI())) {
                     claimsMap.put(claim.getClaimURI(), claim);
                 }
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Retrieved " + claimsMap.size() + " claims out of " + claimURIs.size() + " requested.");
             }
             return claimsMap;
         } catch (Exception e) {
