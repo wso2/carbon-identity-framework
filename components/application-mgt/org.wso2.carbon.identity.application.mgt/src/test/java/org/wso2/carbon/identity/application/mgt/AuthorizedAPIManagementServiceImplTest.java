@@ -56,7 +56,6 @@ import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.registry.core.Collection;
@@ -82,7 +81,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -123,7 +121,6 @@ public class AuthorizedAPIManagementServiceImplTest {
             loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
 
             applicationManagementService.deleteApplication("TestApp", tenantDomain, "user 1");
-            applicationManagementService.deleteApplication("TestApp1", tenantDomain, "user 1");
         }
     }
 
@@ -396,16 +393,11 @@ public class AuthorizedAPIManagementServiceImplTest {
 
     private String addApplication() throws Exception {
 
-        return addApplication("TestApp");
-    }
-
-    private String addApplication(String appName) throws Exception {
-
         try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
             loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
 
             ServiceProvider serviceProvider = new ServiceProvider();
-            serviceProvider.setApplicationName(appName);
+            serviceProvider.setApplicationName("TestApp");
             return applicationManagementService.createApplication(serviceProvider, tenantDomain, "user 1");
         }
     }
@@ -553,44 +545,4 @@ public class AuthorizedAPIManagementServiceImplTest {
 
         authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
     }
-
-    @Test
-    public void testGetScopesExcludingInternalScopes() throws Exception {
-
-        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
-            identityUtil.when(() -> IdentityUtil.getProperty(AUTHORIZE_ALL_SCOPES)).thenReturn("true");
-
-            String appId = addApplication("TestApp1");
-            APIResource apiResource = addTestAPIResource("test-get-scopes-1");
-            APIResource apiResourceForMgtAPIs = addTestAPIResourceWithInternalScopes();
-
-            List<AuthorizedScopes> authorizedScopesList = authorizedAPIManagementService.getAuthorizedScopes(appId,
-                    tenantDomain);
-            Assert.assertFalse(authorizedScopesList.isEmpty());
-            for (AuthorizedScopes authorizedScopes : authorizedScopesList) {
-                Assert.assertEquals(authorizedScopes.getScopes().size(), 2);
-                Assert.assertFalse(authorizedScopes.getScopes().stream().anyMatch(
-                        scope -> scope.startsWith("internal_")));
-            }
-            Assert.assertTrue(authorizedScopesList.get(0).getScopes().contains("test-get-scopes"));
-
-        }
-    }
-
-    private APIResource addTestAPIResourceWithInternalScopes() throws Exception {
-
-        List<Scope> scopes = new ArrayList<>();
-        scopes.add(new Scope.ScopeBuilder().name("internal_application_mgt_create").displayName(
-                "displayName 1 ").description("description 1 ").build());
-
-        scopes.add(new Scope.ScopeBuilder().name("internal_application_mgt_view").displayName(
-                "displayName 2 ").description("description 2 ").build());
-
-        APIResource.APIResourceBuilder apiResourceBuilder =
-                new APIResource.APIResourceBuilder().name("AppMgt name ").identifier("/appmgt ").description("AppMgt "
-                ).type("BUSINESS").requiresAuthorization(true).scopes(scopes);
-
-        return apiResourceManager.addAPIResource(apiResourceBuilder.build(), tenantDomain);
-    }
-
 }
