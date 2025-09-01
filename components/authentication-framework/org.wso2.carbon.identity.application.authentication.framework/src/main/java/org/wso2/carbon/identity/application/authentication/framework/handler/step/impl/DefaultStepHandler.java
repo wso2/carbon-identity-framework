@@ -1009,6 +1009,8 @@ public class DefaultStepHandler implements StepHandler {
                         !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(
                                 errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(
+                                errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(
                                 errorContext.getErrorCode())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Authentication failed exception!", e);
@@ -1307,8 +1309,16 @@ public class DefaultStepHandler implements StepHandler {
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
-                } else if (IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                } else if (IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(errorCode)
+                            || IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Redirecting to login page with email verification pending message for error: "
+                                + errorCode);
+                    }
                     retryParam = "&authFailure=true&authFailureMsg=email.verification.pending";
+                    if (IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                        retryParam = "&authFailure=true&authFailureMsg=email.otp.verification.pending";
+                    }
                     Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
                     if (domain != null) {
                         username = IdentityUtil.addDomainToName(username, domain.toString());
