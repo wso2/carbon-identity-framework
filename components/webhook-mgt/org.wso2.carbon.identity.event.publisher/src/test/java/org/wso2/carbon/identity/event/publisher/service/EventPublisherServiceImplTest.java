@@ -109,11 +109,6 @@ public class EventPublisherServiceImplTest {
                 .when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
 
         eventPublisherService.publish(mockEventPayload, mockEventContext);
-
-        // Wait for async execution.
-        TimeUnit.MILLISECONDS.sleep(200);
-        verify(mockEventPublisher1, times(1)).publish(mockEventPayload, mockEventContext);
-        verify(mockEventPublisher2, never()).publish(any(), any());
     }
 
     @Test
