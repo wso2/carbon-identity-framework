@@ -35,6 +35,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.sql.Timestamp;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
@@ -69,6 +70,39 @@ public class ActionManagementAuditLogger {
         JSONObject data = createAuditLogEntry(actionType, actionId);
         buildAuditLog(operation, data);
     }
+
+    /**
+     * Print action audit log related to the operation by the action type and action ID with updated time.
+     *
+     * @param operation  Operation associated with the state change.
+     * @param actionType Type of the action to be logged.
+     * @param actionId   ID of the action to be logged.
+     * @param updatedAt  Time of the update.
+     */
+    public void printAuditLog(Operation operation, String actionType, String actionId, Timestamp updatedAt) {
+        JSONObject data = createAuditLogEntry(actionType, actionId);
+        data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
+        buildAuditLog(operation, data);
+    }
+
+    /**
+     * Print action audit log related to the operation by the action DTO with updated time.
+     *
+     * @param operation         Operation associated with the state change.
+     * @param updatingActionDTO Action object to be logged.
+     * @param updatedAt         Time of the update.
+     */
+    public void printAuditLog(Operation operation, ActionDTO updatingActionDTO, Timestamp updatedAt) {
+        JSONObject data = null;
+        try {
+            data = createAuditLogEntry(updatingActionDTO);
+        } catch (ActionMgtException e) {
+            data = createAuditLogEntry(String.valueOf(updatingActionDTO.getType()), updatingActionDTO.getId());
+        }
+        data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
+        buildAuditLog(operation, data);
+    }
+
 
     /**
      * Build audit log using the provided data.
