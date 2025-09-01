@@ -55,11 +55,11 @@ public class ClaimRetrievalClient {
     }
 
     /**
-     * Retrieves claims with properties for the given list of claim URIs.
+     * Retrieves local claims for the given list of claim URIs.
      *
      * @param tenantDomain The tenant domain.
      * @param claimURIs    The list of claim URIs to retrieve.
-     * @return A map of claim URIs to LocalClaim objects that have properties defined.
+     * @return A map of claim URIs to LocalClaim objects.
      * @throws ClaimRetrievalClientException If an error occurs during claim retrieval.
      */
     public Map<String, LocalClaim> getLocalClaimsByURIs(String tenantDomain, List<String> claimURIs)
@@ -74,10 +74,15 @@ public class ClaimRetrievalClient {
             // filtering by claim URIs.
             HttpGet request = new HttpGet(getClaimsEndpoint(tenantDomain));
             ClientUtils.setAuthorizationHeader(request);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Retrieving local claims for tenant: " + tenantDomain);
+            }
 
             String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
             if (StringUtils.isEmpty(responseString)) {
-                LOG.debug("Empty response received from claims API for tenant: " + tenantDomain);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Empty response received from claims API for tenant: " + tenantDomain);
+                }
                 return new HashMap<>();
             }
 
@@ -128,6 +133,9 @@ public class ClaimRetrievalClient {
         try {
             return IdentityManagementEndpointUtil.getBasePath(tenantDomain, LOCAL_CLAIM_API_RELATIVE_PATH);
         } catch (ApiException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while building claims endpoint for tenant: " + tenantDomain);
+            }
             throw new ClaimRetrievalClientException("Error while building url for: " + LOCAL_CLAIM_API_RELATIVE_PATH,
                     e);
         }
