@@ -1035,10 +1035,22 @@
         <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="POST">
             <Scopes>internal_shared_application_create</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/share-with-all" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_create</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/applications/(.*)/shared-apps" secured="true" http-method="DELETE">
             <Scopes>internal_shared_application_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications/(.*)/share/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_shared_application_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/unshare" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/unshare-with-all" secured="true" http-method="POST">
             <Scopes>internal_shared_application_delete</Scopes>
         </Resource>
 
