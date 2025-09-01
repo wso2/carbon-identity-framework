@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -30,6 +32,7 @@ import java.nio.charset.Charset;
  */
 public class ClientUtils {
 
+    private static final Log LOG = LogFactory.getLog(ClientUtils.class);
     private static final String CLIENT = "Client ";
 
     /**
@@ -39,10 +42,12 @@ public class ClientUtils {
      */
     public static void setAuthorizationHeader(HttpUriRequestBase httpMethod) {
 
+        LOG.debug("Setting authorization header for HTTP request");
         String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
                 + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
+        LOG.debug("Authorization header added successfully");
     }
 }
