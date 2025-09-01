@@ -67,6 +67,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
 import static org.wso2.carbon.user.core.UserCoreConstants.APPLICATION_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
@@ -107,7 +108,7 @@ public class UserOnboardingExecutor implements Executor {
         Map<String, char[]> credentials = user.getUserCredentials();
         char[] password =
                 credentials.getOrDefault(PASSWORD_KEY, new DefaultPasswordGenerator().generatePassword());
-
+        String flowType = context.getFlowType();
         try {
             String userStoreDomainName = resolveUserStoreDomain(user.getUsername());
             UserStoreManager userStoreManager = getUserStoreManager(context.getTenantDomain(), userStoreDomainName,
@@ -120,18 +121,19 @@ public class UserOnboardingExecutor implements Executor {
             createFederatedAssociations(user, context.getTenantDomain());
             return new ExecutorResponse(STATUS_COMPLETE);
         } catch (UserStoreException e) {
-            handleAndThrowClientExceptionForActionFailure(e);
+            handleAndThrowClientExceptionForActionFailure(flowType, e);
             if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
-                throw handleClientException(ERROR_CODE_USERNAME_ALREADY_EXISTS, context.getTenantDomain());
+                throw handleClientException(flowType, ERROR_CODE_USERNAME_ALREADY_EXISTS, context.getTenantDomain());
             }
-            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, user.getUsername(),
+            throw handleServerException(flowType, ERROR_CODE_USER_ONBOARD_FAILURE, e, user.getUsername(),
                     context.getContextIdentifier());
         } finally {
             Arrays.fill(password, '\0');
         }
     }
 
-    private void handleAndThrowClientExceptionForActionFailure(UserStoreException e) throws FlowEngineException {
+    private void handleAndThrowClientExceptionForActionFailure(String flowType, UserStoreException e)
+            throws FlowEngineException {
 
         if (e instanceof UserStoreClientException &&
                 UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED
@@ -139,7 +141,7 @@ public class UserOnboardingExecutor implements Executor {
             Throwable cause = e.getCause();
             while (cause != null) {
                 if (cause instanceof UserActionExecutionClientException) {
-                    throw new FlowEngineClientException(Constants.ErrorMessages.
+                    throw new FlowEngineClientException(flowType, Constants.ErrorMessages.
                             ERROR_CODE_PRE_UPDATE_PASSWORD_ACTION_VALIDATION_FAILURE.getCode(),
                             ((UserActionExecutionClientException) cause).getError(),
                             ((UserActionExecutionClientException) cause).getDescription(), cause);
@@ -187,11 +189,13 @@ public class UserOnboardingExecutor implements Executor {
                         ((UserStoreManager) tenantUserRealm.getUserStoreManager()).getSecondaryUserStoreManager(userdomain);
             }
             if (userStoreManager == null) {
-                throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, tenantDomain, flowType, flowId);
+                throw handleServerException(flowType, ERROR_CODE_USERSTORE_MANAGER_FAILURE, tenantDomain, flowType,
+                        flowId);
             }
             return userStoreManager;
         } catch (UserStoreException e) {
-            throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, e, tenantDomain, flowType, flowId);
+            throw handleServerException(flowType, ERROR_CODE_USERSTORE_MANAGER_FAILURE, e, tenantDomain, flowType,
+                    flowId);
         }
     }
 
@@ -227,7 +231,8 @@ public class UserOnboardingExecutor implements Executor {
             UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
             return username;
         } else if (IdentityUtil.isEmailUsernameEnabled() && !username.contains("@")) {
-            throw handleClientException(ERROR_CODE_INVALID_USERNAME, username);
+            // Assuming the flow is REGISTRATION, as this is user onboarding executor.
+            throw handleClientException(REGISTRATION.getType(), ERROR_CODE_INVALID_USERNAME, username);
         }
         return username;
     }
@@ -250,8 +255,9 @@ public class UserOnboardingExecutor implements Executor {
                 } catch (FederatedAssociationManagerException e) {
                     LOG.error("Error while creating federated association for user: " + user.getUsername()
                             + " with IdP: " + idpName + " and subject ID: " + idpSubjectId, e);
-                    throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, user.getUsername(),
-                            user.getUserStoreDomain(), tenantDomain);
+                    // Assuming the flow is REGISTRATION, as this is user onboarding executor.
+                    throw handleServerException(REGISTRATION.getType(), ERROR_CODE_USER_ONBOARD_FAILURE, e,
+                            user.getUsername(), user.getUserStoreDomain(), tenantDomain);
                 }
             }
         }));
