@@ -293,6 +293,7 @@ public class UniqueClaimUserOperationEventListenerTest {
         return new Object[][]{
                 {"testUser", new String[]{"testUser", "testUser2"}, false},
                 {"testUser2", new String[]{"testUser2", "testUser"}, true},
+                {"testUser", new String[]{"testUser0", "testUser"}, true},
                 {"testUser", new String[]{"testUser"}, false},
                 {"testUser2", new String[]{"testUser2"}, false},
                 {"testUser", new String[]{"testUser3"}, true},
