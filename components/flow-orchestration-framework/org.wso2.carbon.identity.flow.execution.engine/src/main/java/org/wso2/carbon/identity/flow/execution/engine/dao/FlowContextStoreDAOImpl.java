@@ -77,7 +77,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
                         });
             }
         } catch (IOException | DataAccessException e) {
-            throw FlowExecutionEngineUtils.handleServerException(
+            throw FlowExecutionEngineUtils.handleServerException(context.getFlowType(),
                     Constants.ErrorMessages.ERROR_CODE_FLOW_CONTEXT_STORE_FAILURE,
                     e,
                     context.getContextIdentifier());

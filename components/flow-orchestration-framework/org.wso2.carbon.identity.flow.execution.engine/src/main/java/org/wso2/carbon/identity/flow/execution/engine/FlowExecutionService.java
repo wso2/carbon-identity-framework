@@ -120,7 +120,7 @@ public class FlowExecutionService {
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);
             }
-            step.setStepType(context.getFlowType());
+            step.setFlowType(context.getFlowType());
             return step;
         } catch (FlowEngineException e) {
 

@@ -59,6 +59,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
@@ -149,7 +150,9 @@ public class FlowExecutionEngineUtils {
                         FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
                                 .getGraphConfig(flowType, IdentityTenantUtil.getTenantId(context.getTenantDomain())));
             } catch (FlowMgtFrameworkException e) {
-                throw handleServerException(ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType, context.getTenantDomain(), e);
+                throw handleServerException(flowType, ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType,
+                        context.getTenantDomain()
+                        , e);
             }
         }
         return context;
@@ -168,7 +171,7 @@ public class FlowExecutionEngineUtils {
 
         try {
             if (StringUtils.isBlank(flowType)) {
-                throw handleClientException(ERROR_CODE_FLOW_TYPE_NOT_PROVIDED);
+                throw handleClientException(flowType, ERROR_CODE_FLOW_TYPE_NOT_PROVIDED);
             }
             FlowExecutionContext context = new FlowExecutionContext();
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -177,7 +180,7 @@ public class FlowExecutionEngineUtils {
                             .getGraphConfig(flowType, tenantId);
 
             if (graphConfig == null) {
-                throw handleServerException(ERROR_CODE_FLOW_NOT_FOUND, flowType, tenantDomain);
+                throw handleServerException(flowType, ERROR_CODE_FLOW_NOT_FOUND, flowType, tenantDomain);
             }
             context.setTenantDomain(tenantDomain);
             context.setGraphConfig(graphConfig);
@@ -193,9 +196,9 @@ public class FlowExecutionEngineUtils {
 
             return context;
         } catch (IdentityRuntimeException e) {
-            throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
+            throw handleServerException(flowType, ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         } catch (FlowMgtFrameworkException e) {
-            throw handleServerException(ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType, tenantDomain);
+            throw handleServerException(flowType, ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType, tenantDomain);
         }
     }
 
@@ -248,7 +251,7 @@ public class FlowExecutionEngineUtils {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowEngineServerException(error.getCode(), error.getMessage(), description, e);
+        return new FlowEngineServerException(null, error.getCode(), error.getMessage(), description, e);
     }
 
     /**
@@ -264,7 +267,44 @@ public class FlowExecutionEngineUtils {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowEngineServerException(error.getCode(), error.getMessage(), description);
+        return new FlowEngineServerException(null, error.getCode(), error.getMessage(), description);
+    }
+
+    /**
+     * Handle the flow engine server exceptions.
+     *
+     * @param flowType Flow type.
+     * @param error Error message.
+     * @param e     Throwable.
+     * @param data  The error message data.
+     * @return FlowEngineServerException.
+     */
+    public static FlowEngineServerException handleServerException(String flowType, ErrorMessages error, Throwable e,
+                                                                  Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new FlowEngineServerException(flowType, error.getCode(), error.getMessage(), description, e);
+    }
+
+    /**
+     * Handle the flow engine server exceptions.
+     *
+     * @param flowType Flow type.
+     * @param error Error message.
+     * @param data  The error message data.
+     * @return FlowEngineServerException.
+     */
+    public static FlowEngineServerException handleServerException(String flowType, ErrorMessages error,
+                                                                  Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new FlowEngineServerException(flowType, error.getCode(), error.getMessage(), description);
     }
 
     /**
@@ -281,7 +321,7 @@ public class FlowExecutionEngineUtils {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowEngineClientException(error.getCode(), error.getMessage(), description, e);
+        return new FlowEngineClientException(null, error.getCode(), error.getMessage(), description, e);
     }
 
     /**
@@ -297,7 +337,44 @@ public class FlowExecutionEngineUtils {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowEngineClientException(error.getCode(), error.getMessage(), description);
+        return new FlowEngineClientException(null, error.getCode(), error.getMessage(), description);
+    }
+
+    /**
+     * Handle the flow engine client exceptions.
+     *
+     * @param flowType Flow type.
+     * @param error Error message.
+     * @param e     Throwable.
+     * @param data  The error message data.
+     * @return FlowEngineClientException.
+     */
+    public static FlowEngineClientException handleClientException(String flowType, ErrorMessages error, Throwable e,
+                                                                  Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new FlowEngineClientException(flowType, error.getCode(), error.getMessage(), description, e);
+    }
+
+    /**
+     * Handle the flow engine client exceptions.
+     *
+     * @param flowType Flow type.
+     * @param error Error message.
+     * @param data  The error message data.
+     * @return FlowEngineClientException.
+     */
+    public static FlowEngineClientException handleClientException(String flowType, ErrorMessages error,
+                                                                  Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new FlowEngineClientException(flowType, error.getCode(), error.getMessage(), description);
     }
 
     /**
@@ -421,7 +498,7 @@ public class FlowExecutionEngineUtils {
             }
         } catch (InputValidationMgtException e) {
             LOG.error("Error while retrieving input validation configurations for tenant: " + tenantDomain, e);
-            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, tenantDomain);
+            throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, e, tenantDomain);
         }
         return usernameValidators;
     }

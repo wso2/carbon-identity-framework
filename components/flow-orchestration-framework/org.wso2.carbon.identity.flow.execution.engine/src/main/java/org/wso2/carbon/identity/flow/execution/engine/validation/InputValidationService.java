@@ -96,8 +96,9 @@ public class InputValidationService {
             return;
         }
 
+        String flowType = context.getFlowType();
         if (context.getCurrentStepInputs().get(actionId) == null) {
-            throw FlowExecutionEngineUtils.handleClientException(ERROR_CODE_INVALID_ACTION_ID, actionId);
+            throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_ACTION_ID, actionId);
         }
 
         // Fail if required inputs are not there.
@@ -105,7 +106,8 @@ public class InputValidationService {
             for (String requiredInput : context.getCurrentRequiredInputs().get(actionId)) {
                 if (context.getUserInputData().get(requiredInput) == null ||
                         context.getUserInputData().get(requiredInput).isEmpty()) {
-                    throw FlowExecutionEngineUtils.handleClientException(ERROR_CODE_INVALID_USER_INPUT, context.getFlowType());
+                    throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_USER_INPUT,
+                            context.getFlowType());
                 }
             }
         }
@@ -113,7 +115,8 @@ public class InputValidationService {
         // Fail if extra inputs are there.
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
             if (!context.getCurrentStepInputs().get(actionId).contains(userInput.getKey())) {
-                throw FlowExecutionEngineUtils.handleClientException(ERROR_CODE_INVALID_USER_INPUT, context.getFlowType());
+                throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_USER_INPUT,
+                        context.getFlowType());
             }
         }
     }
