@@ -27,6 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,7 +104,7 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         return this;
     }
 
-    public WorkflowRequestSQLBuilder filterByCreatedDateRange(String startDate, String endDate) {
+    public WorkflowRequestSQLBuilder filterByCreatedDateRange(Timestamp startDate, Timestamp endDate) {
 
         if (startDate != null) {
             super.where("CREATED_AT >= ?", startDate);
@@ -114,7 +115,7 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         return this;
     }
 
-    public WorkflowRequestSQLBuilder filterByUpdatedDateRange(String startDate, String endDate) {
+    public WorkflowRequestSQLBuilder filterByUpdatedDateRange(Timestamp startDate, Timestamp endDate) {
 
         if (startDate != null) {
             super.where("UPDATED_AT >= ?", startDate);
@@ -339,11 +340,11 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
 
         if ("CREATED".equalsIgnoreCase(category)) {
             if (startDate != null && endDate != null) {
-                builder = builder.filterByCreatedDateRange(startDate, endDate);
+                builder = builder.filterByCreatedDateRange(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate));
             }
         } else if ("UPDATED".equalsIgnoreCase(category)) {
             if (startDate != null && endDate != null) {
-                builder = builder.filterByUpdatedDateRange(startDate, endDate);
+                builder = builder.filterByUpdatedDateRange(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate));
             }
         }
 

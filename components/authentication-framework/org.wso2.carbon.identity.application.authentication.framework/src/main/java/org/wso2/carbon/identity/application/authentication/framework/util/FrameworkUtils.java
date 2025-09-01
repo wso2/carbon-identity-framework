@@ -275,6 +275,8 @@ public class FrameworkUtils {
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
+    private static final String ENABLE_NESTED_REDIRECT_PARAMS_IN_LOGOUT_RETURN_URL =
+            "CommonAuthCallerPath.EnableNestedRedirectParams";
 
     private FrameworkUtils() {
     }
@@ -4857,5 +4859,33 @@ public class FrameworkUtils {
 
         String appVersion = serviceProvider.getApplicationVersion();
         return isAppVersionAllowed(appVersion, APP_VERSION_V3);
+    }
+
+    /**
+     * Checks whether nested redirect parameters in the logout return URL are enabled.
+     * This method retrieves the configuration value for enabling nested redirect parameters
+     * in the logout return URL from the identity framework's configuration.
+     *
+     * @return true if nested redirect parameters in the logout return URL are enabled; false otherwise.
+     */
+    public static boolean isNestedRedirectParamsInLogoutReturnUrlEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_NESTED_REDIRECT_PARAMS_IN_LOGOUT_RETURN_URL));
+    }
+
+    /**
+     * Check whether the request or the context has a user assertion. This indicates that the request is initiated
+     * after a flow completion.
+     *
+     * @param request HttpServletRequest
+     * @param context AuthenticationContext
+     * @return true if the request or the context has a user assertion, false otherwise.
+     */
+    public static boolean contextHasUserAssertion(HttpServletRequest request, AuthenticationContext context) {
+
+        Object contextUserAssertion = context.getProperty(FrameworkConstants.USER_ASSERTION);
+        String userAssertion = contextUserAssertion != null ? contextUserAssertion.toString()
+                : request.getParameter(FrameworkConstants.USER_ASSERTION);
+        return StringUtils.isNotEmpty(userAssertion);
     }
 }

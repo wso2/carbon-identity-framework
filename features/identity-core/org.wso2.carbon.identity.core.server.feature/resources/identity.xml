@@ -791,6 +791,7 @@
         </RestrictedQueryParameters>
 
         <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
+        <ReturnSpIdToApplication>true</ReturnSpIdToApplication>
     </OAuth>
 
     <RestApiAuthentication>
@@ -2840,6 +2841,11 @@
         </OnInitialUse>
     </OnDemandConfig>
 
+    <BrandingConfiguration>
+        <CustomContent>
+            <MaxFileSize>1048576</MaxFileSize>
+        </CustomContent>
+    </BrandingConfiguration>
     <AgentIdentity>
         <Enabled>true</Enabled>
     </AgentIdentity>

@@ -94,6 +94,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
 /**
@@ -727,6 +728,10 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
         if (isNoneCanHandle) {
+            if (FrameworkUtils.contextHasUserAssertion(request, context)) {
+                throw new FrameworkException(ERROR_INVALID_USER_ASSERTION.getCode(),
+                        ERROR_INVALID_USER_ASSERTION.getMessage());
+            }
             throw new FrameworkException("No authenticator can handle the request in step :  " + currentStep);
         }
     }
@@ -743,6 +748,15 @@ public class DefaultStepHandler implements StepHandler {
         if (authenticator == null) {
             LOG.error("Authenticator is null for AuthenticatorConfig: " + authenticatorConfig.getName());
             return;
+        }
+
+        boolean isAuthenticationRequired;
+        try {
+            isAuthenticationRequired = authenticator.isAuthenticationRequired(request, response, context);
+        } catch (AuthenticationFailedException e) {
+            LOG.error("Error while checking if authentication is required for authenticator: " +
+                    authenticator.getName(), e);
+            throw new FrameworkException(e.getErrorCode(), e.getMessage(), e);
         }
 
         String idpName = FrameworkConstants.LOCAL_IDP_NAME;
@@ -768,7 +782,7 @@ public class DefaultStepHandler implements StepHandler {
         try {
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
             AuthenticatorFlowStatus status;
-            if (authenticator.isAuthenticationRequired(request, response, context)) {
+            if (isAuthenticationRequired) {
                 status = authenticator.process(request, response, context);
             } else {
                 // If the authenticator does not require authentication based on the assertion, we can skip the process.
@@ -985,13 +999,18 @@ public class DefaultStepHandler implements StepHandler {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
             if (errorContext != null) {
                 Throwable rootCause = ExceptionUtils.getRootCause(e);
-                if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.
-                        equals(errorContext.getErrorCode()) && !(rootCause instanceof UserStoreClientException) &&
+                if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
+                                .equals(errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE
+                                .equals(errorContext.getErrorCode()) &&
+                        !(rootCause instanceof UserStoreClientException) &&
                         !IdentityCoreConstants.USER_ACCOUNT_LOCKED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(
                                 errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(
+                                errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(
                                 errorContext.getErrorCode())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Authentication failed exception!", e);
@@ -1290,8 +1309,16 @@ public class DefaultStepHandler implements StepHandler {
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
-                } else if (IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                } else if (IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(errorCode)
+                            || IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Redirecting to login page with email verification pending message for error: "
+                                + errorCode);
+                    }
                     retryParam = "&authFailure=true&authFailureMsg=email.verification.pending";
+                    if (IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                        retryParam = "&authFailure=true&authFailureMsg=email.otp.verification.pending";
+                    }
                     Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
                     if (domain != null) {
                         username = IdentityUtil.addDomainToName(username, domain.toString());
@@ -1320,6 +1347,12 @@ public class DefaultStepHandler implements StepHandler {
                             reCaptchaParamString.toString();
                 } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
                         .equals(errorCode)) {
+                    return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                            loginPage, otp, reCaptchaParamString);
+                } else if (IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE
+                        .equals(errorCode)) {
+                    LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP " +
+                            "error.");
                     return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
                             loginPage, otp, reCaptchaParamString);
                 } else {
@@ -1365,6 +1398,12 @@ public class DefaultStepHandler implements StepHandler {
                 return redirectURL;
 
             } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
+                return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                        loginPage, otp, reCaptchaParamString);
+            } else if (IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE.equals(errorCode)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP error.");
+                }
                 return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
                         loginPage, otp, reCaptchaParamString);
             } else {

@@ -158,6 +158,10 @@
         <HostName>{{recoveryendpoint.hostname}}</HostName>
         <Path>{{recoveryendpoint.path}}</Path>
     </RecoveryEndpoint>
+    <Accounts>
+        <HostName>{{accounts.hostname}}</HostName>
+        <Path>{{accounts.path}}</Path>
+    </Accounts>
 
     <Identity>
         <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
@@ -973,6 +977,7 @@
             <UserInfoEndpointAccessTokenValidator>{{oauth.oidc.extensions.user_info_access_token_validator}}</UserInfoEndpointAccessTokenValidator>
             <UserInfoMultiValueSupportEnabled>{{oauth.oidc.user_info.enable_multi_value_support}}</UserInfoMultiValueSupportEnabled>
             <UserInfoRemoveInternalPrefixFromRoles>{{oauth.oidc.user_info.remove_internal_prefix_from_roles}}</UserInfoRemoveInternalPrefixFromRoles>
+            <ReturnOnlyAppAssociatedRolesInUserInfo>{{oauth.oidc.user_info.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInUserInfo>
             {% if oauth.oidc.extensions.user_info_response_builder is defined %}
             <UserInfoEndpointResponseBuilder>{{oauth.oidc.extensions.user_info_response_builder}}</UserInfoEndpointResponseBuilder>
             {% else %}
@@ -1369,6 +1374,8 @@
             Default value : false
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
+        <ReturnSpIdToApplication>{{oauth.return_sp_id_to_apps}}</ReturnSpIdToApplication>
+        <ReturnOnlyAppAssociatedRolesInJWTToken>{{oauth.jwt.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInJWTToken>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1663,6 +1670,10 @@
 
         <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
     </SCIM2>
+
+    <Captcha>
+        <EnableCaptchaForLocalOTPAuthenticators>{{captcha.enable_captcha_for_local_otp_authenticators}}</EnableCaptchaForLocalOTPAuthenticators>
+    </Captcha>
 
       <PasswordPolicy>
           <MaxPasswordAllowedLength>{{identity_mgt.password_policy.max_password_allowed_length}}</MaxPasswordAllowedLength>
@@ -1960,9 +1971,9 @@
         <!-- Enable support for storing multiple email addresses and mobile numbers per user. -->
         <EnableMultipleEmailsAndMobileNumbers>{{identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers}}</EnableMultipleEmailsAndMobileNumbers>
 
-        <!-- 
+        <!--
             Defines the scope for which claim uniqueness validation should happen, this can be either within userstore
-            or across userstore. This config is already defined in the EventListener with 
+            or across userstore. This config is already defined in the EventListener with
             id="unique_claim_user_operation_event_listener" of type "UserOperationEventListener".
         -->
         <UniquenessValidation>
@@ -3986,6 +3997,7 @@
                     <Path>/api/users/v1/offline-invite-link</Path>
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/me/push/devices</Path>
+                    <Path>/api/server/v1/flow/execute</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3996,6 +4008,9 @@
             </Context>
             <Context>
                 <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accounts/</BasePath>
             </Context>
         </WebApp>
         <Servlet>
@@ -4412,6 +4427,7 @@
 
     <CommonAuthCallerPath>
         <EnableValidation>{{common_auth_caller_path.enable_common_auth_caller_path_validation}}</EnableValidation>
+        <EnableNestedRedirectParams>{{common_auth_caller_path.enable_nested_redirect_params}}</EnableNestedRedirectParams>
         {% if common_auth_caller_path.default_url is defined %}
         <DefaultUrl>{{common_auth_caller_path.default_url}}</DefaultUrl>
         {% endif %}
@@ -4691,6 +4707,11 @@
         <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
     </AsyncOperationStatus>
 
+    <BrandingConfiguration>
+        <CustomContent>
+            <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
+        </CustomContent>
+    </BrandingConfiguration>
     <FlowExecution>
         {% if flow_execution.excluded_userstores is defined %}
         <ExcludedUserstores>
@@ -4708,6 +4729,7 @@
             <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
             {% endfor %}
         </FlowTypeTTLs>
+        <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
     </FlowExecution>
 
 </Server>

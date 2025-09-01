@@ -224,7 +224,13 @@ public class FlowExecutionEngineUtils {
                 });
             }
         } catch (FlowEngineException e) {
-            LOG.error("Error occurred while retrieving the flow context with flow id: " + contextId, e);
+            if (e instanceof FlowEngineClientException) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Client error occurred while retrieving the flow context with flow id: " + contextId, e);
+                }
+            } else {
+                LOG.error("Server error occurred while retrieving the flow context with flow id: " + contextId, e);
+            }
         }
     }
 

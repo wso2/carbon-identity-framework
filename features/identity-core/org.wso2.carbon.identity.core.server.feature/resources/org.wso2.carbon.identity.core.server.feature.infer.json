@@ -271,12 +271,14 @@
   },
   "preserve_previous_product_behaviour.version": {
     "IS_7.0.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
+      "oauth.oidc.user_info.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
       "scim2.enable_group_based_user_filter_improvements": false,
       "scim2.enable_error_code_for_password_policy_violations": false,
       "user_store_commons.enable_circuit_breaker_for_user_stores": false,
       "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": true,
       "event.default_listener.email_domain_validation_handler.enable": false,
-      "oauth.dcrm.return_null_fields_in_response": true,
       "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
       "session_management.filter_by_unique_session_id_for_user": false,
       "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
@@ -287,9 +289,17 @@
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
       "oauth.introspect.allow_cross_sub_org": true
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "server.disable_admin_services": false,
+      "flow_execution.enable_legacy_flows": true
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
+      "oauth.return_sp_id_to_apps": true,
+      "oauth.jwt.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
       "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
       "session_management.filter_by_unique_session_id_for_user": false,
       "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
@@ -301,6 +311,10 @@
       "attribute.return_previous_additional_properties.enable": true,
       "actions.types.pre_update_password.enable_in_registration_flows": false,
       "oauth.introspect.allow_cross_sub_org": true
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "server.disable_admin_services": false,
+      "flow_execution.enable_legacy_flows": true
     }
   }
 }

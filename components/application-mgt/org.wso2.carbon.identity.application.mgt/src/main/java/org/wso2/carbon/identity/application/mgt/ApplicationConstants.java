@@ -152,6 +152,7 @@ public class ApplicationConstants {
             IMPERSONATE_SCOPE_NAME, IMPERSONATE_ORG_SCOPE_NAME));
     public static final String IMPERSONATE_ROLE_NAME = "Impersonator";
     public static final String IMPERSONATION_API_RESOURCE = "system:impersonation";
+    public static final String IMPERSONATION_ORG_API_RESOURCE = "org:impersonation";
     public static final String APPLICATION_ROLE_AUDIENCE = "application";
 
     /**

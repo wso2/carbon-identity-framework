@@ -51,6 +51,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -124,7 +125,7 @@ public class UserSessionManagementServiceImplTest {
     }
 
     @Test
-    public void testAddAssociatedFedUserIdSessionsWithFilterDisabled() throws Exception {
+    public void testAddAssociatedAssociatedLocalUserIdSessionsWithFilterDisabled() throws Exception {
 
         identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))
                 .thenReturn("false");
@@ -132,15 +133,15 @@ public class UserSessionManagementServiceImplTest {
         userSessions.add(createTestUserSession(TEST_SESSION_ID_1, TEST_USER_ID));
         setupFederatedUserSessionMocks(TEST_SESSION_ID_2, TEST_FED_USER_ID);
 
-        Method method = getAddAssociatedFedUserIdSessionsMethod();
-        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, authSessionUserMap, TEST_SESSION_ID_2);
+        Method method = getAddAssociatedAssociatedLocalUserIdSessionsMethod();
+        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, TEST_SESSION_ID_2);
 
         assertEquals(userSessions.size(), 2);
         assertTrue(userSessions.stream().anyMatch(session -> TEST_SESSION_ID_2.equals(session.getSessionId())));
     }
 
     @Test
-    public void testAddAssociatedFedUserIdSessionsWithFilterEnabled() throws Exception {
+    public void testAddAssociatedAssociatedLocalUserIdSessionsWithFilterEnabled() throws Exception {
 
         identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))
                 .thenReturn("true");
@@ -148,15 +149,20 @@ public class UserSessionManagementServiceImplTest {
         userSessions.add(createTestUserSession(TEST_SESSION_ID_1, TEST_USER_ID));
         setupFederatedUserSessionMocks(TEST_SESSION_ID_2, TEST_FED_USER_ID);
 
-        Method method = getAddAssociatedFedUserIdSessionsMethod();
-        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, authSessionUserMap, TEST_SESSION_ID_2);
+        Method method = getAddAssociatedAssociatedLocalUserIdSessionsMethod();
+        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, TEST_SESSION_ID_2);
 
         assertEquals(userSessions.size(), 2);
-        assertTrue(userSessions.stream().anyMatch(session -> TEST_SESSION_ID_2.equals(session.getSessionId())));
+        UserSession actualSession = userSessions.stream()
+                .filter(session -> TEST_SESSION_ID_2.equals(session.getSessionId()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(actualSession);
     }
 
     @Test
-    public void testAddAssociatedFedUserIdSessionsWithDuplicateSessionIdsWithFilterDisabled() throws Exception {
+    public void testAddAssociatedAssociatedLocalUserIdSessionsWithDuplicateSessionIdsWithFilterDisabled()
+            throws Exception {
 
         identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))
                 .thenReturn("false");
@@ -164,14 +170,15 @@ public class UserSessionManagementServiceImplTest {
         userSessions.add(createTestUserSession(TEST_SESSION_ID_1, TEST_USER_ID));
         setupFederatedUserSessionMocks(TEST_SESSION_ID_1, TEST_FED_USER_ID);
 
-        Method method = getAddAssociatedFedUserIdSessionsMethod();
-        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, authSessionUserMap, TEST_SESSION_ID_1);
+        Method method = getAddAssociatedAssociatedLocalUserIdSessionsMethod();
+        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, TEST_SESSION_ID_1);
 
         assertEquals(userSessions.size(), 2);
     }
 
     @Test
-    public void testAddAssociatedFedUserIdSessionsWithDuplicateSessionIdsWithFilterEnabled() throws Exception {
+    public void testAddAssociatedAssociatedLocalUserIdSessionsWithDuplicateSessionIdsWithFilterEnabled()
+            throws Exception {
 
         identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))
                 .thenReturn("true");
@@ -179,15 +186,15 @@ public class UserSessionManagementServiceImplTest {
         userSessions.add(createTestUserSession(TEST_SESSION_ID_1, TEST_USER_ID));
         setupFederatedUserSessionMocks(TEST_SESSION_ID_1, TEST_FED_USER_ID);
 
-        Method method = getAddAssociatedFedUserIdSessionsMethod();
-        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, authSessionUserMap, TEST_SESSION_ID_1);
+        Method method = getAddAssociatedAssociatedLocalUserIdSessionsMethod();
+        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, TEST_SESSION_ID_1);
 
         assertEquals(userSessions.size(), 1);
         assertEquals(userSessions.get(0).getSessionId(), TEST_SESSION_ID_1);
     }
 
     @Test
-    public void testAddAssociatedFedUserIdSessionsWithEmptyAuthSessionUserMap() throws Exception {
+    public void testAddAssociatedAssociatedLocalUserIdSessionsWithEmptyAuthSessionUserMap() throws Exception {
 
         identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))
                 .thenReturn("false");
@@ -196,8 +203,8 @@ public class UserSessionManagementServiceImplTest {
         setupFederatedUserSessionMocks(TEST_SESSION_ID_2, TEST_FED_USER_ID);
         authSessionUserMap = new HashMap<>();
 
-        Method method = getAddAssociatedFedUserIdSessionsMethod();
-        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, authSessionUserMap, TEST_SESSION_ID_2);
+        Method method = getAddAssociatedAssociatedLocalUserIdSessionsMethod();
+        executeWithCommonMocks(method, userSessions, TEST_FED_USER_ID, TEST_SESSION_ID_2);
 
         assertEquals(userSessions.size(), 2);
         assertTrue(userSessions.stream().anyMatch(session -> TEST_SESSION_ID_2.equals(session.getSessionId())));
@@ -224,16 +231,15 @@ public class UserSessionManagementServiceImplTest {
         when(userSessionStore.getSessionId(userId)).thenReturn(fedUserSessionIds);
     }
 
-    private Method getAddAssociatedFedUserIdSessionsMethod() throws Exception {
+    private Method getAddAssociatedAssociatedLocalUserIdSessionsMethod() throws Exception {
 
         Method method = UserSessionManagementServiceImpl.class.getDeclaredMethod(
-                "addAssociatedFedUserIdSessions", List.class, String.class, Map.class);
+                "addAssociatedAssociatedLocalUserIdSessions", List.class, String.class);
         method.setAccessible(true);
         return method;
     }
 
     private void executeWithCommonMocks(Method method, List<UserSession> userSessions, String fedUserId,
-                                        Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap,
                                         String sessionId) throws Exception {
 
         UserSession fedUserSession = createTestUserSession(sessionId, fedUserId);
@@ -250,7 +256,7 @@ public class UserSessionManagementServiceImplTest {
             frameworkUtilsMockedStatic.when(() -> FrameworkUtils.getSessionContextFromCache(sessionId,
                     "carbon.super")).thenReturn(mockedSessionContext);
             frameworkUtilsMockedStatic.when(FrameworkUtils::getLoginTenantDomainFromContext).thenReturn("carbon.super");
-            method.invoke(userSessionManagementService, userSessions, fedUserId, authSessionUserMap);
+            method.invoke(userSessionManagementService, userSessions, fedUserId);
         }
     }
 }

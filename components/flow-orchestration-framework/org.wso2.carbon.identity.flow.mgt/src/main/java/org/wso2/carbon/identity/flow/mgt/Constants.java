@@ -176,6 +176,7 @@ public class Constants {
         public static final String EXECUTION = "EXECUTION";
         public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
+        public static final String END = "END";
 
         private StepTypes() {
 

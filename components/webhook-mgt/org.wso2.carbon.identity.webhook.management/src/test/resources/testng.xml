@@ -43,6 +43,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.webhook.management.util.WebhookValidatorTest"/>
             <class name="org.wso2.carbon.identity.webhook.management.util.WebhookSecretProcessorTest"/>
+            <class name="org.wso2.carbon.identity.webhook.management.util.WebhookManagementAuditLoggerTest"/>
         </classes>
     </test>
 </suite>

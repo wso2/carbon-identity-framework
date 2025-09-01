@@ -55,10 +55,13 @@
   "localization.prioritize_param": "true",
 
   "server.internal_hostname": "localhost",
+  "server.disable_admin_services": true,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
+  "accounts.hostname": "$ref{server.hostname}",
+  "accounts.path": "/accounts",
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
@@ -101,7 +104,9 @@
   "oauth.token.validation.validation_response_jwt_validity": "15m",
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
   "oauth.token_persistence.enable": true,
+  "oauth.jwt.return_only_app_associated_roles": true,
   "oauth.revoked_token_headers_in_response.enable": false,
+  "oauth.return_sp_id_to_apps": false,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
   "oauth.enable_sha256": true,
@@ -272,7 +277,8 @@
   "oauth.oidc.extensions.user_info_request_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator",
   "oauth.oidc.extensions.user_info_access_token_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator",
   "oauth.oidc.user_info.enable_multi_value_support": true,
-  "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
+  "oauth.oidc.user_info.return_only_app_associated_roles": true,
+  "oauth.oidc.user_info.remove_internal_prefix_from_roles": true,
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
@@ -813,7 +819,8 @@
     "/lsp/",
     "/emailotpauthenticationendpoint/",
     "/smsotpauthenticationendpoint/",
-    "/totpauthenticationendpoint/"
+    "/totpauthenticationendpoint/",
+    "/accounts/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -1199,6 +1206,21 @@
       "description": "This email is sent to confirm the user email address via Email OTP",
       "displayName": "Confirm Email Address via Email OTP",
       "id": "RW1haWxDb25maXJtV2l0aE9UUA"
+    },
+    {
+      "description": "This email is sent to the user to set their password using a magic link",
+      "displayName": "Magic Link Password Recovery",
+      "id": "bWFnaWNMaW5rUGFzc3dvcmRSZWNvdmVyeQ"
+    },
+    {
+      "description": "This email is sent to the user during signing up using magic link",
+      "displayName": "Magic Link Sign Up",
+      "id": "bWFnaWNMaW5rU2lnblVw"
+    },
+    {
+      "description": "This email is sent to the user for Email OTP based verification",
+      "displayName": "Email OTP Verification",
+      "id": "RW1haWxPVFBWZXJpZmljYXRpb24"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1296,6 +1318,7 @@
     "branding",
     "consoleSettings",
     "emailTemplates",
+    "flows",
     "gettingStarted",
     "governanceConnectors",
     "groups",
@@ -1684,7 +1707,7 @@
     "users.profile.legacy"
   ],
   "console.users.scopes.feature": ["console:users"],
-  "console.users.scopes.create": ["internal_user_mgt_create"],
+  "console.users.scopes.create": ["internal_user_mgt_create", "internal_workflow_association_view"],
   "console.users.scopes.read": [
       "internal_userstore_view",
       "internal_role_mgt_view",
@@ -1870,7 +1893,7 @@
   "myaccount.personal_info.enabled": true,
   "myaccount.personal_info.disabled_features": ["profileInfo.profile.legacy"],
   "myaccount.security.enabled": true,
-  "myaccount.approvals.enabled": false,
+  "myaccount.approvals.enabled": true,
   "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
   "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
   "myaccount.operations.scopes.create": [],
@@ -1915,6 +1938,7 @@
   "x509.crl_download_timeout": "60000",
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
+  "common_auth_caller_path.enable_nested_redirect_params": false,
   "authentication.skip_local_user_search_for_authentication_flow_handlers": true,
   "axis2.transport_sender.local.name": "local",
   "axis2.transport_sender.local.class": "org.apache.axis2.transport.local.LocalTransportSender",
@@ -1997,6 +2021,11 @@
   "outbound_adapters.httppublisher.connectionHandshakeTimeout": "5000",
   "outbound_adapters.httppublisher.defaultMaxConnections": "20",
   "outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute": "20",
+  "outbound_adapters.httppublisher.maxRetries": "2",
+  "outbound_adapters.httppublisher.ioThreadCount": "5",
+  "outbound_adapters.httppublisher.executorCorePoolSize": "5",
+  "outbound_adapters.httppublisher.executorMaxPoolSize": "15",
+  "outbound_adapters.httppublisher.executorQueueCapacity": "150",
   "outbound_adapters.httppublisher.type": "Publisher",
 
   "webhooks.maximum_webhooks_per_tenant": "10",
@@ -2014,7 +2043,7 @@
 
   "agent_identity.enabled": false,
 
-  "session_management.filter_by_unique_session_id_for_user": false,
+  "session_management.filter_by_unique_session_id_for_user": true,
 
   "flow_execution.user_assertion.expiry_time": "2000",
   "flow_execution.default_ttl": "30",
@@ -2022,6 +2051,9 @@
     "REGISTRATION": "30",
     "PASSWORD_RECOVERY": "30",
     "INVITED_USER_REGISTRATION": "30"
-  }
+  },
+  "flow_execution.enable_legacy_flows": false,
+  "branding_configuration.custom_content.max_file_size": 1048576,
+  "captcha.enable_captcha_for_local_otp_authenticators": true
 }
 

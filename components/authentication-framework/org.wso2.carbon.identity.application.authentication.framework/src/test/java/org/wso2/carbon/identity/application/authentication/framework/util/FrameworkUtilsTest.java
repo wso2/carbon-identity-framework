@@ -1407,4 +1407,33 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         // Assert the result
         assertEquals(result, expectedResult);
     }
+
+    @DataProvider(name = "userAssertionCases")
+    public Object[][] userAssertionCases() {
+        return new Object[][]{
+
+                {"ctx-jwt", "req-jwt", true, "Context non-null -> true; request ignored"},
+                {null, "req-jwt", true, "Context null -> use request non-empty"},
+                {null, null, false, "Both null -> false"},
+                {"", "req-jwt", false, "Context empty string -> dominates -> false"},
+                {" ", null, true, "Whitespace is NOT empty -> true with isNotEmpty"},
+                {null, "", false, "Request empty string -> false"},
+        };
+    }
+
+    @Test(dataProvider = "userAssertionCases",
+            description = "Verifies precedence (context over request), null/empty handling, and toString() conversion.")
+    public void testContextHasUserAssertion(Object contextProp, String requestParam, boolean expected, String note) {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        AuthenticationContext context = mock(AuthenticationContext.class);
+
+        when(context.getProperty(FrameworkConstants.USER_ASSERTION)).thenReturn(contextProp);
+        if (contextProp == null) {
+            when(request.getParameter(FrameworkConstants.USER_ASSERTION)).thenReturn(requestParam);
+        }
+
+        boolean actual = FrameworkUtils.contextHasUserAssertion(request, context);
+        assertEquals(actual, expected, note);
+    }
 }
