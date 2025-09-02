@@ -1051,7 +1051,8 @@
         <!--
             This configuration is used to mention the preferred role api version for 'ref'
             attribute of the 'roles' attribute in the SCIM 2.0 User resource and Group resource.
-            Default value : false
+            Default value : v3
+            Applicable values : v1, v2, v3
             Supported versions : IS 7.2.0 onwards
         -->
         <DefaultRoleAPIVersionForRef>v3</DefaultRoleAPIVersionForRef>
