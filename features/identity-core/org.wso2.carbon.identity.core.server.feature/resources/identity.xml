@@ -1053,6 +1053,7 @@
             when duplicate claims (excluding username) are encountered during SCIM2 user operations,
             then enable this property value.
             Default value: true
+            Supported versions: IS 7.2.0 onwards
         -->
         <ConflictOnClaimUniquenessViolation>true</ConflictOnClaimUniquenessViolation>
     </SCIM2>
