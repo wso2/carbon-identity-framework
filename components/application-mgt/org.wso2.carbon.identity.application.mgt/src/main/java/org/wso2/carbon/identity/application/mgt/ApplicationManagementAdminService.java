@@ -68,7 +68,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     private List<InboundAuthenticationRequestConfig> customInboundAuthenticatorConfigs;
 
     private static final String DEFAULT_IDP_SECRETS_RETRIEVAL_PERMISSION = "/permission/admin/manage/identity/" +
-            "applicationmgt/view";
+            "idpmgt/view";
     private static final String IDP_SECRETS_RETRIEVAL_PERMISSION = "AdminServices.ApplicationMgtAdminService." +
             "IdpSecretsRetrievalPermission";
     private static final List<String> secretConfigKeys = Arrays.asList(
