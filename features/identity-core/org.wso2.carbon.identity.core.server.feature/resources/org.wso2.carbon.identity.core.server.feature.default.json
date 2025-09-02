@@ -2059,6 +2059,5 @@
 
   "console.ui.organizations.organization_display_name.enable": true,
   "console.ui.organizations.organization_handle.enable": true,
-  "notification_templates.super_organization_display_name.enable": true,
-  "multi_tenancy.stratos.public_cloud_setup": false
+  "notification_templates.super_organization_display_name.enable": true
 }
