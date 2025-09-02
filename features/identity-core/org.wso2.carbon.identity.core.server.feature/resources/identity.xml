@@ -1047,7 +1047,14 @@
         -->
         <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
 
-        <EnableScim2RolesV3Api>false</EnableScim2RolesV3Api>
+        <EnableScim2RolesV3Api>true</EnableScim2RolesV3Api>
+        <!--
+            This configuration is used to mention the preferred role api version for 'ref'
+            attribute of the 'roles' attribute in the SCIM 2.0 User resource and Group resource.
+            Default value : false
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <DefaultRoleAPIVersionForRef>v3</DefaultRoleAPIVersionForRef>
     </SCIM2>
 
     <PasswordPolicy>

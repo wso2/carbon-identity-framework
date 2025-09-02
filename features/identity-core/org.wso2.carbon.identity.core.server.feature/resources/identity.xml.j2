@@ -1670,6 +1670,13 @@
         {% endif %}
 
         <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
+        <!--
+            This configuration is used to mention the preferred role api version for 'ref'
+            attribute of the 'roles' attribute in the SCIM 2.0 User resource and Group resource.
+            Default value : false
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <DefaultRoleAPIVersionForRef>{{scim2.default_role_api_version_for_ref}}</DefaultRoleAPIVersionForRef>
     </SCIM2>
 
     <Captcha>
