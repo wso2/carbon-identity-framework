@@ -151,8 +151,7 @@ public class FlowExecutionEngineUtils {
                                 .getGraphConfig(flowType, IdentityTenantUtil.getTenantId(context.getTenantDomain())));
             } catch (FlowMgtFrameworkException e) {
                 throw handleServerException(flowType, ERROR_CODE_GET_DEFAULT_FLOW_FAILURE, flowType,
-                        context.getTenantDomain()
-                        , e);
+                        context.getTenantDomain(), e);
             }
         }
         return context;

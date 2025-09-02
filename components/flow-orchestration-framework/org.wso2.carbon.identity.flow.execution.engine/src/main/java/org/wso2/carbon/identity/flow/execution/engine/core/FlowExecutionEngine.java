@@ -85,6 +85,9 @@ public class FlowExecutionEngine {
 
         GraphConfig graph = context.getGraphConfig();
         String tenantDomain = context.getTenantDomain();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Starting the " + context.getFlowType() + " flow for the tenant: " + tenantDomain);
+        }
         if (graph.getFirstNodeId() == null) {
             throw handleServerException(context.getFlowType(), ERROR_CODE_FIRST_NODE_NOT_FOUND, context.getFlowType(),
                     graph.getId(), tenantDomain);

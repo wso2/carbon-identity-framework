@@ -119,6 +119,10 @@ public class UserOnboardingExecutor implements Executor {
             user.setUserStoreDomain(userStoreDomainName);
             user.setUserId(userid);
             createFederatedAssociations(user, context.getTenantDomain());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("User: " + user.getUsername() + " successfully onboarded in user store: " +
+                        userStoreDomainName + " of tenant: " + context.getTenantDomain());
+            }
             return new ExecutorResponse(STATUS_COMPLETE);
         } catch (UserStoreException e) {
             handleAndThrowClientExceptionForActionFailure(flowType, e);
