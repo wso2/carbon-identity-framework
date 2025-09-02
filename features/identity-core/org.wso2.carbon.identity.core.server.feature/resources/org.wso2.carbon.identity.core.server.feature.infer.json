@@ -302,7 +302,8 @@
       "console.ui.organizations.organization_display_name.enable": false,
       "console.ui.organizations.organization_handle.enable": false,
       "notification_templates.super_organization_display_name.enable": false,
-      "multi_tenancy.stratos.public_cloud_setup": true
+      "multi_tenancy.stratos.public_cloud_setup": true,
+      "token_exchange.implicit_association.include_primary_when_secondary_present": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -334,7 +335,8 @@
       "console.ui.organizations.organization_display_name.enable": false,
       "console.ui.organizations.organization_handle.enable": false,
       "notification_templates.super_organization_display_name.enable": false,
-      "multi_tenancy.stratos.public_cloud_setup": true
+      "multi_tenancy.stratos.public_cloud_setup": true,
+      "token_exchange.implicit_association.include_primary_when_secondary_present": false
     }
   }
 }
