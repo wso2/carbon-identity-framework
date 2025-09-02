@@ -1169,6 +1169,18 @@
         <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="PATCH">
             <Scopes>internal_shared_application_create</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/share-with-all" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/unshare" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/unshare-with-all" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="GET">
             <Scopes>internal_shared_application_view</Scopes>
         </Resource>
@@ -1468,6 +1480,9 @@
         </Resource>
         <Resource context="(.*)/o/api/server/v1/configs/authentication/inbound/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_config_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/configs/impersonation(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_config_delete</Scopes>
         </Resource>
         <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="PATCH">
             <Scopes>internal_org_config_update</Scopes>

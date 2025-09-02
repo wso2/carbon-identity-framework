@@ -641,7 +641,7 @@ public class ConfigurationManagerTest {
     @Test (priority = 35)
     public void testGetInheritedResourcesByType() throws Exception {
 
-        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
                 .thenReturn(true);
         utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
         when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
@@ -660,7 +660,7 @@ public class ConfigurationManagerTest {
     @Test (priority = 34)
     public void testGetInheritedResourcesByTypeInheritanceDisabled() throws Exception {
 
-        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
                 .thenReturn(true);
         utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(false);
         when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
@@ -679,7 +679,7 @@ public class ConfigurationManagerTest {
     @Test (priority = 36)
     public void testGetInheritedResource() throws Exception {
 
-        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
                 .thenReturn(true);
         utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
         when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);

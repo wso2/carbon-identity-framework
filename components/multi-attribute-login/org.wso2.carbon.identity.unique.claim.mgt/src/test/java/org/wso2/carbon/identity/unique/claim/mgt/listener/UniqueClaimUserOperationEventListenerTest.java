@@ -73,6 +73,7 @@ public class UniqueClaimUserOperationEventListenerTest {
 
     private static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
     private static final String EMAIL_ADDRESSES_CLAIM_URI = "http://wso2.org/claims/emailaddresses";
+    private static final String CREATED_TIME_CLAIM = "http://wso2.org/claims/created";
 
     private UniqueClaimUserOperationEventListener uniqueClaimUserOperationEventListener;
 
@@ -290,22 +291,24 @@ public class UniqueClaimUserOperationEventListenerTest {
     public Object[][] duplicateClaimedUserProvider() {
 
         return new Object[][]{
-                {new String[]{"testUser", "testUser2"}, false},
-                {new String[]{"testUser2", "testUser"}, true},
-                {new String[]{"testUser"}, false},
-                {new String[]{"testUser2"}, false},
-                {new String[]{"testUser", "testUser2", "testUser3"}, false},
-                {new String[]{"testUser3", "testUser2", "testUser"}, true},
-                {new String[]{"testUser3", "testUser", "testUser2"}, true},
+                {"testUser", new String[]{"testUser", "testUser2"}, false},
+                {"testUser2", new String[]{"testUser2", "testUser"}, true},
+                {"testUser", new String[]{"testUser0", "testUser"}, false},
+                {"testUser0", new String[]{"testUser0", "testUser"}, false},
+                {"testUser", new String[]{"testUser"}, false},
+                {"testUser2", new String[]{"testUser2"}, false},
+                {"testUser", new String[]{"testUser3"}, true},
+                {"testUser", new String[]{"testUser", "testUser2", "testUser3"}, false},
+                {"testUser2", new String[]{"testUser3", "testUser2", "testUser"}, true},
+                {"testUser3", new String[]{"testUser3", "testUser", "testUser2"}, true},
         };
     }
 
     @Test(dataProvider = "duplicateClaimedUserProvider")
-    public void testDoPostAddUserWithDuplicateClaims(String[] userList, boolean isUserDeleted)
+    public void testDoPostAddUserWithDuplicateClaims(String userName, String[] userList, boolean isUserDeleted)
             throws UserStoreException, ClaimMetadataException {
 
         mockInitForCheckClaimUniqueness();
-        String userName = "testUser";
         Map<String, String> claims = new HashMap<>();
         claims.put(EMAIL_CLAIM_URI, "test@example.com");
         String profile = "default";
@@ -331,6 +334,14 @@ public class UniqueClaimUserOperationEventListenerTest {
         when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
         when(userStoreManager.getUserList(EMAIL_CLAIM_URI, "PRIMARY/test@example.com", profile))
                 .thenReturn(userList);
+        when(userStoreManager.getUserClaimValue("testUser", CREATED_TIME_CLAIM, null))
+                .thenReturn("2025-06-30T10:15:32.701Z");
+        when(userStoreManager.getUserClaimValue("testUser2", CREATED_TIME_CLAIM, null))
+                .thenReturn("2025-07-03T10:15:33.701Z");
+        when(userStoreManager.getUserClaimValue("testUser3", CREATED_TIME_CLAIM, null))
+                .thenReturn("2025-08-30T10:34:01.696Z");
+        when(userStoreManager.getUserClaimValue("testUser0", CREATED_TIME_CLAIM, null))
+                .thenReturn(null);
         doNothing().when(userStoreManager).deleteUser(userName);
 
         try {
@@ -349,11 +360,11 @@ public class UniqueClaimUserOperationEventListenerTest {
     }
 
     @Test(dataProvider = "duplicateClaimedUserProvider")
-    public void testDoPostAddUserWithMultiValuedDuplicateClaims(String[] userList, boolean isUserDeleted)
+    public void testDoPostAddUserWithMultiValuedDuplicateClaims(String userName, String[] userList,
+                                                                boolean isUserDeleted)
             throws UserStoreException, ClaimMetadataException {
 
         mockInitForCheckClaimUniqueness();
-        String userName = "testUser";
         Map<String, String> claims = new HashMap<>();
         claims.put(EMAIL_ADDRESSES_CLAIM_URI, "test@example.com,test2@example.com");
         String profile = "default";
@@ -385,6 +396,12 @@ public class UniqueClaimUserOperationEventListenerTest {
                 .thenReturn(new String[]{});
         when(userStoreManager.getUserList(EMAIL_ADDRESSES_CLAIM_URI, "PRIMARY/test2@example.com", profile))
                 .thenReturn(userList);
+        when(userStoreManager.getUserClaimValue("testUser", CREATED_TIME_CLAIM, null))
+                .thenReturn("2025-06-30T10:15:32.701Z");
+        when(userStoreManager.getUserClaimValue("testUser2", CREATED_TIME_CLAIM, null))
+                .thenReturn("2025-07-03T10:15:33.701Z");
+        when(userStoreManager.getUserClaimValue("testUser3", CREATED_TIME_CLAIM, null))
+                .thenReturn("2025-08-30T10:34:01.696Z");
         doNothing().when(userStoreManager).deleteUser(userName);
 
         try {
