@@ -22,6 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
@@ -57,8 +59,14 @@ public class CommonAuthenticationHandler {
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (CookieValidationFailedException e) {
 
-            log.warn("Session nonce cookie validation has failed for the sessionDataKey: "
+            if (!FrameworkErrorConstants.ErrorMessages.ERROR_MISMATCHING_TENANT_DOMAIN.getCode()
+                    .equals(e.getErrorCode())) {
+                log.warn("Session nonce cookie validation has failed for the sessionDataKey: "
                         + request.getParameter("sessionDataKey") + ". Hence, restarting the login flow.");
+            }
+            FrameworkUtils.getRequestCoordinator().handle(request, response);
+        } catch (UserAssertionFailedException e) {
+
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
     }

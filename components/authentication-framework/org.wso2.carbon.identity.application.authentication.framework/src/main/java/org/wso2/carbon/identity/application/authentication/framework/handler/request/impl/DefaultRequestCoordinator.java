@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.I
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -260,11 +261,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 context = FrameworkUtils.getContextData(request);
                 if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) != null &&
                         request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("true")) {
+                    boolean contextHasUserAssertion = FrameworkUtils.contextHasUserAssertion(request, context);
                     context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
                     context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
                     context.initializeAnalyticsData();
                     String contextIdIncludedQueryParams = context.getContextIdIncludedQueryParams();
-                    contextIdIncludedQueryParams += FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS;
+                    if (!contextHasUserAssertion) {
+                        // If the context has user assertion, this error is not required to be shown to the user.
+                        contextIdIncludedQueryParams += FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS;
+                    }
                     context.setContextIdIncludedQueryParams(contextIdIncludedQueryParams);
                 } else {
                     returning = true;
@@ -501,10 +506,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
                     throw new CookieValidationFailedException(((FrameworkException) e).getErrorCode(), e.getMessage());
                 }
-            } else {
-                log.error("Exception in Authentication Framework", e);
-                FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
+                if (FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION.getCode()
+                        .equals(((FrameworkException) e).getErrorCode())) {
+                    request.setAttribute(FrameworkConstants.RESTART_LOGIN_FLOW, "true");
+                    throw new UserAssertionFailedException(((FrameworkException) e).getErrorCode(), e.getMessage());
+                }
             }
+            log.error("Exception in Authentication Framework", e);
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
             UserCoreUtil.setDomainInThreadLocal(null);

@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.UserActor;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
@@ -69,6 +70,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -118,6 +120,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     public void tearDown() throws Exception {
 
         IdentityContext.destroyCurrentContext();
+        IdentityUtil.threadLocalProperties.remove();
     }
 
     @AfterClass
@@ -311,6 +314,26 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
+    @Test(description = "Test for generic exception in handle method")
+    public void testHandleWithGenericException() throws FrameworkException, IOException {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getParameter("sessionDataKey")).thenReturn("sdKey");
+            when(request.getParameter("type")).thenReturn("sso");
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any()))
+                    .thenAnswer(invocation -> {
+                        ((HttpServletResponse) invocation.getArgument(1)).sendRedirect("dummyUrl");
+                        return null;
+                    });
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticationRequestFromCache(anyString()))
+                    .thenReturn(null);
+            DefaultRequestCoordinator coordinator = new DefaultRequestCoordinator();
+            coordinator.handle(request, response);
+            verify(response, atLeastOnce()).sendRedirect(anyString());
+        }
+    }
     @Test
     public void testApplicationDisabled() {
 

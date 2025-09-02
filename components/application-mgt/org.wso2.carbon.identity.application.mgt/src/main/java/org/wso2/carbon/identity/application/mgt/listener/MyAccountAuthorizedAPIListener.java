@@ -37,6 +37,11 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_ORG_SCOPE_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_SCOPE_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATION_API_RESOURCE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATION_ORG_API_RESOURCE;
+
 /**
  * MyAccount authorized API listener.
  */
@@ -50,6 +55,10 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
             "internal_approval_task_update",
             "internal_org_approval_task_view",
             "internal_org_approval_task_update");
+    private static final List<String> authorizedRBACAPIIdentifiers = Arrays.asList(
+            IMPERSONATION_API_RESOURCE, IMPERSONATION_ORG_API_RESOURCE);
+    private static final List<String> authorizedRBACScopes = Arrays.asList(
+            IMPERSONATE_SCOPE_NAME, IMPERSONATE_ORG_SCOPE_NAME);
 
     private static final Log log = LogFactory.getLog(MyAccountAuthorizedAPIListener.class);
 
@@ -105,18 +114,23 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
                 }
                 List<APIResource> systemAPIResources = APIResourceManagementUtil.getSystemAPIs(tenantDomain);
                 for (APIResource systemAPIResource : systemAPIResources) {
-                    if (!authorizedNoPolicyAPIIdentifiers.contains(systemAPIResource.getIdentifier())) {
+                    if (!authorizedNoPolicyAPIIdentifiers.contains(systemAPIResource.getIdentifier())
+                            && !authorizedRBACAPIIdentifiers.contains(systemAPIResource.getIdentifier())) {
                         continue;
                     }
                     if (log.isDebugEnabled()) {
                         log.debug(
                                 "Adding authorized API: " + systemAPIResource.getIdentifier() + " for MyAccount app.");
                     }
+                    String policyId = APIResourceManagementConstants.NO_POLICY;
+                    if (authorizedRBACAPIIdentifiers.contains(systemAPIResource.getIdentifier())) {
+                        policyId = APIResourceManagementConstants.RBAC_AUTHORIZATION;
+                    }
                     AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
                             .appId(appId)
                             .apiId(systemAPIResource.getId())
                             .scopes(getScopes(systemAPIResource.getId(), tenantDomain))
-                            .policyId(APIResourceManagementConstants.NO_POLICY)
+                            .policyId(policyId)
                             .type(systemAPIResource.getType())
                             .build();
                     authorizedAPI.setAPIName(systemAPIResource.getName());
@@ -145,10 +159,14 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
             log.debug("Post-processing authorized scopes for app: " + appId + " in tenant: " + tenantDomain);
         }
         if (StringUtils.equals(appId, getMyAccountAppId(tenantDomain))) {
-            AuthorizedScopes authorizedScopes =
+            AuthorizedScopes noPolicyScopes =
                     new AuthorizedScopes(APIResourceManagementConstants.NO_POLICY, authorizedNoPolicyScopes);
-            authorizedScopesList.add(authorizedScopes);
+            AuthorizedScopes rbacAuthorizedScopes =
+                    new AuthorizedScopes(APIResourceManagementConstants.RBAC_AUTHORIZATION, authorizedRBACScopes);
+            authorizedScopesList.add(noPolicyScopes);
             log.debug("Added no-policy scopes for MyAccount application");
+            authorizedScopesList.add(rbacAuthorizedScopes);
+            log.debug("Added RBAC scopes for MyAccount application");
         }
     }
 
@@ -174,14 +192,22 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
             try {
                 APIResource apiResource = ApplicationManagementServiceComponentHolder.getInstance()
                         .getAPIResourceManager().getAPIResourceById(apiId, tenantDomain);
-                if (apiResource == null || !authorizedNoPolicyAPIIdentifiers.contains(apiResource.getIdentifier())) {
+                if (apiResource == null || (!authorizedNoPolicyAPIIdentifiers.contains(apiResource.getIdentifier())
+                        && !authorizedRBACAPIIdentifiers.contains(apiResource.getIdentifier()))) {
                     return authorizedAPI;
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Adding authorized API: " + apiResource.getIdentifier() + " for MyAccount app.");
+                }
+                String policyId = APIResourceManagementConstants.NO_POLICY;
+                if (authorizedRBACAPIIdentifiers.contains(apiResource.getIdentifier())) {
+                    policyId = APIResourceManagementConstants.RBAC_AUTHORIZATION;
                 }
                 AuthorizedAPI authorizedAPI1 = new AuthorizedAPI.AuthorizedAPIBuilder()
                         .appId(appId)
                         .apiId(apiResource.getId())
                         .scopes(apiResource.getScopes())
-                        .policyId(APIResourceManagementConstants.NO_POLICY)
+                        .policyId(policyId)
                         .type(apiResource.getType())
                         .build();
                 authorizedAPI1.setAPIName(apiResource.getName());

@@ -2021,6 +2021,11 @@
   "outbound_adapters.httppublisher.connectionHandshakeTimeout": "5000",
   "outbound_adapters.httppublisher.defaultMaxConnections": "20",
   "outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute": "20",
+  "outbound_adapters.httppublisher.maxRetries": "2",
+  "outbound_adapters.httppublisher.ioThreadCount": "5",
+  "outbound_adapters.httppublisher.executorCorePoolSize": "5",
+  "outbound_adapters.httppublisher.executorMaxPoolSize": "15",
+  "outbound_adapters.httppublisher.executorQueueCapacity": "150",
   "outbound_adapters.httppublisher.type": "Publisher",
 
   "webhooks.maximum_webhooks_per_tenant": "10",
@@ -2049,6 +2054,10 @@
   },
   "flow_execution.enable_legacy_flows": false,
   "branding_configuration.custom_content.max_file_size": 1048576,
-  "captcha.enable_captcha_for_local_otp_authenticators": true
-}
+  "captcha.enable_captcha_for_local_otp_authenticators": true,
 
+  "console.ui.organizations.organization_display_name.enable": true,
+  "console.ui.organizations.organization_handle.enable": true,
+  "notification_templates.super_organization_display_name.enable": true,
+  "multi_tenancy.stratos.public_cloud_setup": false
+}
