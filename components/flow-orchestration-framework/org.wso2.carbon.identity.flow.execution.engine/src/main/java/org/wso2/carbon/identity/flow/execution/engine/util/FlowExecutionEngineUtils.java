@@ -250,7 +250,7 @@ public class FlowExecutionEngineUtils {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowEngineServerException(null, error.getCode(), error.getMessage(), description, e);
+        return new FlowEngineServerException(error.getCode(), error.getMessage(), description, e);
     }
 
     /**
@@ -266,7 +266,7 @@ public class FlowExecutionEngineUtils {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowEngineServerException(null, error.getCode(), error.getMessage(), description);
+        return new FlowEngineServerException(error.getCode(), error.getMessage(), description);
     }
 
     /**
@@ -320,7 +320,7 @@ public class FlowExecutionEngineUtils {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowEngineClientException(null, error.getCode(), error.getMessage(), description, e);
+        return new FlowEngineClientException(error.getCode(), error.getMessage(), description, e);
     }
 
     /**
@@ -336,7 +336,7 @@ public class FlowExecutionEngineUtils {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new FlowEngineClientException(null, error.getCode(), error.getMessage(), description);
+        return new FlowEngineClientException(error.getCode(), error.getMessage(), description);
     }
 
     /**
