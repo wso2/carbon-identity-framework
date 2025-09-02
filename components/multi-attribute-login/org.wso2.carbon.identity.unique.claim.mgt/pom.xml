@@ -56,6 +56,10 @@
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
@@ -90,6 +94,8 @@
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
                             org.wso2.carbon.identity.claim.metadata.mgt.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.mgt.*; version="${carbon.identity.package.import.version.range}",

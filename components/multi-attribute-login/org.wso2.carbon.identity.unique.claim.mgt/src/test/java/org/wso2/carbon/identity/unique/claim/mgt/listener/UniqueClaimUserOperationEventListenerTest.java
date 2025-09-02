@@ -293,6 +293,8 @@ public class UniqueClaimUserOperationEventListenerTest {
         return new Object[][]{
                 {"testUser", new String[]{"testUser", "testUser2"}, false},
                 {"testUser2", new String[]{"testUser2", "testUser"}, true},
+                {"testUser", new String[]{"testUser0", "testUser"}, false},
+                {"testUser0", new String[]{"testUser0", "testUser"}, false},
                 {"testUser", new String[]{"testUser"}, false},
                 {"testUser2", new String[]{"testUser2"}, false},
                 {"testUser", new String[]{"testUser3"}, true},
@@ -338,6 +340,8 @@ public class UniqueClaimUserOperationEventListenerTest {
                 .thenReturn("2025-07-03T10:15:33.701Z");
         when(userStoreManager.getUserClaimValue("testUser3", CREATED_TIME_CLAIM, null))
                 .thenReturn("2025-08-30T10:34:01.696Z");
+        when(userStoreManager.getUserClaimValue("testUser0", CREATED_TIME_CLAIM, null))
+                .thenReturn(null);
         doNothing().when(userStoreManager).deleteUser(userName);
 
         try {

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.unique.claim.mgt.listener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
@@ -40,6 +41,7 @@ import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -430,7 +432,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             if (shouldValidateUniqueness(uniquenessScope) &&
                     isClaimDuplicated(username, USERNAME_CLAIM, username, null, userStoreManager, uniquenessScope)) {
 
-                errorMessage = "Username " + username + " is already in use by a different user!";
+                errorMessage = "Username " + LoggerUtils.getMaskedContent(username) +
+                        " is already in use by a different user!";
                 throw new UserStoreException(errorMessage, new PolicyViolationException(errorMessage));
             }
         } catch (ClaimMetadataException e) {
@@ -571,11 +574,15 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                     long createdTimeEpochMillis = Instant.parse(createdTime).toEpochMilli();
                     userCreationTimeMap.put(user, createdTimeEpochMillis);
                 } else {
-                    log.warn("Created time claim is blank for user. Using a high value for timestamp.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Created time claim is blank for user: " + LoggerUtils.getMaskedContent(user) +
+                                ". Using a high value for timestamp.");
+                    }
                     userCreationTimeMap.put(user, Long.MAX_VALUE);
                 }
-            } catch (org.wso2.carbon.user.api.UserStoreException | NumberFormatException e) {
-                log.warn("Error retrieving user creation time. Using a high value for timestamp.", e);
+            } catch (org.wso2.carbon.user.api.UserStoreException | DateTimeParseException e) {
+                log.warn("Error retrieving user creation time for user: " +
+                        LoggerUtils.getMaskedContent(user) + ". Using a high value for timestamp.", e);
                 // If there is an error retrieving the creation time, add the user with a high value to avoid
                 // selecting it as the earliest created user.
                 userCreationTimeMap.put(user, Long.MAX_VALUE);
