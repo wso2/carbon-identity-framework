@@ -234,6 +234,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationVersion.APP_VERSION_V3;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_PRESERVE_BACKWARD_COMPATIBILITY_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_NAME;
@@ -2466,7 +2467,25 @@ public class FrameworkUtils {
         cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 
+    /**
+     * @deprecated Use {@link #getMultiAttributeSeparator(String)} instead.
+     * Get the multi attribute separator.
+     *
+     * @return Multi attribute separator.
+     */
+    @Deprecated
     public static String getMultiAttributeSeparator() {
+
+        return getMultiAttributeSeparator(null);
+    }
+
+    /**
+     * Get the multi attribute separator.
+     *
+     * @param userStoreDomain Optional user store domain.
+     * @return Multi attribute separator.
+     */
+    public static String getMultiAttributeSeparator(String userStoreDomain) {
 
         String multiAttributeSeparator = null;
         if (Boolean.parseBoolean(IdentityUtil.getProperty(ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED))) {
@@ -2490,26 +2509,69 @@ public class FrameworkUtils {
             }
         }
 
-        if (StringUtils.isBlank(multiAttributeSeparator)) {
+        if (StringUtils.isNotBlank(multiAttributeSeparator)) {
+            return multiAttributeSeparator;
+        }
+
+        try {
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext
+                    .getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            if (StringUtils.isNotBlank(userStoreDomain)) {
+                userStoreManager = (AbstractUserStoreManager) userStoreManager
+                        .getSecondaryUserStoreManager(userStoreDomain);
+            }
+            multiAttributeSeparator = userStoreManager.getRealmConfiguration().getUserStoreProperty(
+                    IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+        } catch (UserStoreException e) {
+            log.error("Error while retrieving MultiAttributeSeparator from UserRealm.");
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
+            }
+        }
+
+        if (StringUtils.isNotBlank(multiAttributeSeparator)) {
+            return multiAttributeSeparator;
+        }
+
+        multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+        if (log.isDebugEnabled()) {
+            log.debug("Multi Attribute Separator is defaulting to " + multiAttributeSeparator);
+        }
+
+        return multiAttributeSeparator;
+    }
+
+    /**
+     * Check whether the multi attribute separator existing behaviour is enabled.
+     * This configuration is added to keep the existing behaviour of the multi attribute separator
+     * for backward compatibility.
+     *
+     * @return true if the existing behaviour is enabled, false otherwise.
+     */
+    public static boolean isMultiAttributeSeparatorExistingBehaviourEnabled() {
+
+        boolean isExistingBehaviourEnabled = false;
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED))) {
             try {
-                multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
-                        getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-            } catch (UserStoreException e) {
-                log.error("Error while retrieving MultiAttributeSeparator from UserRealm.");
-                if (log.isDebugEnabled()) {
-                    log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
+                Attribute configAttribute = FrameworkServiceDataHolder.getInstance().getConfigurationManager()
+                        .getAttribute(ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_TYPE,
+                                ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_NAME,
+                                MULTI_ATTRIBUTE_SEPARATOR_PRESERVE_BACKWARD_COMPATIBILITY_ATTRIBUTE_NAME);
+                if (configAttribute != null) {
+                    isExistingBehaviourEnabled = Boolean.parseBoolean(configAttribute.getValue());
+                }
+            } catch (ConfigurationManagementException e) {
+                if (!ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) &&
+                        !ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
+                    log.error(String.format("Error while retrieving the  multi attribute separator backward " +
+                                    "compatibility config for the tenant: %s. Error code: %s, Error message: %s",
+                            CarbonContext.getThreadLocalCarbonContext().getTenantDomain(), e.getErrorCode(),
+                            e.getMessage()));
                 }
             }
         }
 
-        if (StringUtils.isBlank(multiAttributeSeparator)) {
-            multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
-            if (log.isDebugEnabled()) {
-                log.debug("Multi Attribute Separator is defaulting to " + multiAttributeSeparator);
-            }
-        }
-
-        return multiAttributeSeparator;
+        return isExistingBehaviourEnabled;
     }
 
     public static String getPASTRCookieName (String sessionDataKey) {
