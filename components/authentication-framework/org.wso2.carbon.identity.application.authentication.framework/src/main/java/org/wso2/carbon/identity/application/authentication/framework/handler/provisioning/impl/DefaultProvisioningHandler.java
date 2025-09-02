@@ -186,25 +186,28 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                  */
                 IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
                 if (!userClaims.isEmpty()) {
-                    /*
-                    In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned user,
-                    To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
-                     */
                     List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
-                    Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
-                            UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
-                    if (existingUserClaimList != null) {
-                        List<Claim> toBeDeletedFromExistingUserClaims = new ArrayList<>(
-                                Arrays.asList(existingUserClaimList));
+                    if (!FrameworkUtils.isPreserveLocallyAddedClaims()) {
+                        /*
+                        In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned
+                        user, To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
+                        */
+                        Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
+                                UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
+                        if (existingUserClaimList != null) {
+                            List<Claim> toBeDeletedFromExistingUserClaims = new ArrayList<>(
+                                    Arrays.asList(existingUserClaimList));
 
-                        // Claim mappings which do not come with the IDP claim mapping set but must not delete.
-                        Set<String> indelibleClaimSet = getIndelibleClaims();
-                        toBeDeletedFromExistingUserClaims.removeIf(claim -> claim.getClaimUri().contains("/identity/")
-                                || indelibleClaimSet.contains(claim.getClaimUri()) ||
-                                userClaims.containsKey(claim.getClaimUri()));
+                            // Claim mappings which do not come with the IDP claim mapping set but must not delete.
+                            Set<String> indelibleClaimSet = getIndelibleClaims();
+                            toBeDeletedFromExistingUserClaims.removeIf(claim ->
+                                    claim.getClaimUri().contains("/identity/") ||
+                                            indelibleClaimSet.contains(claim.getClaimUri()) ||
+                                            userClaims.containsKey(claim.getClaimUri()));
 
-                        for (Claim claim : toBeDeletedFromExistingUserClaims) {
-                            toBeDeletedUserClaims.add(claim.getClaimUri());
+                            for (Claim claim : toBeDeletedFromExistingUserClaims) {
+                                toBeDeletedUserClaims.add(claim.getClaimUri());
+                            }
                         }
                     }
 
