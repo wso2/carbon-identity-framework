@@ -972,7 +972,6 @@
         <Scopes>internal_shared_application_delete</Scopes>
     </Resource>
 
-
     <!-- [Organization] Application Management API -->
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_create</Scopes>
