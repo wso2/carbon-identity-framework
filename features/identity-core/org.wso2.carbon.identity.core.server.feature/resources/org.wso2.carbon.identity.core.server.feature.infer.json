@@ -292,6 +292,10 @@
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
       "captcha.enable_captcha_for_local_otp_authenticators": false,
       "server.disable_admin_services": false,
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
+        "POST_ADD_ORGANIZATION"
+      ],
       "flow_execution.enable_legacy_flows": true,
       "organization_discovery.default_param": "orgName",
       "console.ui.organizations.organization_display_name.enable": false,
@@ -319,6 +323,10 @@
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
       "captcha.enable_captcha_for_local_otp_authenticators": false,
       "server.disable_admin_services": false,
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
+        "POST_ADD_ORGANIZATION"
+      ],
       "flow_execution.enable_legacy_flows": true,
       "organization_discovery.default_param": "orgName",
       "console.ui.organizations.organization_display_name.enable": false,
