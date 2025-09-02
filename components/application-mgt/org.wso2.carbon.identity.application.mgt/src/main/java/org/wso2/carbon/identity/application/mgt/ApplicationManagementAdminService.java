@@ -25,20 +25,33 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.api.AuthorizationManager;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.service.RealmService;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -53,6 +66,16 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     private static final String APPLICATION_ROLE_PREFIX = "Application/";
     private ApplicationManagementService applicationMgtService;
     private List<InboundAuthenticationRequestConfig> customInboundAuthenticatorConfigs;
+
+    private static final String DEFAULT_IDP_SECRETS_RETRIEVAL_PERMISSION = "/permission/admin/manage/identity/" +
+            "applicationmgt/view";
+    private static final String IDP_SECRETS_RETRIEVAL_PERMISSION = "AdminServices.ApplicationMgtAdminService." +
+            "IdpSecretsRetrievalPermission";
+    private static final List<String> secretConfigKeys = Arrays.asList(
+            IdentityApplicationConstants.OAuth2.CLIENT_SECRET,
+            IdentityApplicationConstants.OAuth2.CLIENT_ID,
+            "APIKey", "APISecret", "SPNName", "SPNPassword"
+    );
 
     /**
      * Creates a service provider with basic information.First we need to create
@@ -469,7 +492,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            return applicationMgtService.getIdentityProvider(federatedIdPName, getTenantDomain());
+            IdentityProvider idp = applicationMgtService.getIdentityProvider(federatedIdPName, getTenantDomain());
+            return removeSecrets(idp);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while retrieving identity provider: " + federatedIdPName + " for tenant: " +
                     getTenantDomain(), idpException);
@@ -489,7 +513,14 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            return applicationMgtService.getAllIdentityProviders(getTenantDomain());
+            IdentityProvider[] allIdPs = applicationMgtService.getAllIdentityProviders(getTenantDomain());
+            List<IdentityProvider> idpList = new ArrayList<>();
+            if (allIdPs != null) {
+                for (IdentityProvider idp : allIdPs) {
+                    idpList.add(removeSecrets(idp));
+                }
+            }
+            return idpList.toArray(new IdentityProvider[0]);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while retrieving all identity providers for tenant: " + getTenantDomain(), idpException);
             throw idpException;
@@ -932,5 +963,108 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         }
 
         return filter;
+    }
+
+    /**
+     * Remove sensitive information from the federated authenticator configs if the user is not authorized to view them.
+     *
+     * @param idp Identity provider to remove secrets from
+     * @return Identity provider with secrets removed if the user is not authorized to view them
+     * @throws IdentityApplicationManagementException if an error occurred while checking the authorization
+     */
+    private IdentityProvider removeSecrets(IdentityProvider idp) throws IdentityApplicationManagementException {
+
+        if (isAuthorized()) {
+            return idp;
+        }
+
+        if (secretConfigKeys.isEmpty() || idp == null || idp.getFederatedAuthenticatorConfigs() == null) {
+            return idp;
+        }
+
+        IdentityProvider idpDeepCopy = createIdPClone(idp);
+        for (FederatedAuthenticatorConfig config : idpDeepCopy.getFederatedAuthenticatorConfigs()) {
+            if (config == null || config.getProperties() == null) {
+                continue;
+            }
+
+            Property[] props = config.getProperties();
+            List<Property> filtered = new ArrayList<>(props.length);
+
+            for (Property prop : props) {
+                if (prop == null) {
+                    continue;
+                }
+                if (!secretConfigKeys.contains(prop.getName())) {
+                    filtered.add(prop);
+                }
+            }
+
+            config.setProperties(filtered.toArray(new Property[0]));
+        }
+        return idpDeepCopy;
+    }
+
+    /**
+     * Check whether the authenticated user is authorized to perform the operation.
+     * Authorization is successful if the authenticated user has the required permission.
+     *
+     * @return true if authorized, false otherwise
+     * @throws IdentityApplicationManagementException if an error occurred while checking the authorization
+     */
+    private boolean isAuthorized() throws IdentityApplicationManagementException {
+
+        String authenticatedUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        int authenticatedTenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        RealmService realmService = ApplicationManagementServiceComponentHolder.getInstance().getRealmService();
+        try {
+            UserRealm userRealm = realmService.getTenantUserRealm(authenticatedTenantId);
+            return isUserAuthorizedToPerformOperation(userRealm, authenticatedUsername);
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error while checking the authorization to perform " +
+                    "the operation.", e);
+        }
+    }
+
+    private static boolean isUserAuthorizedToPerformOperation(UserRealm realm, String currentUserName)
+            throws UserStoreException {
+
+        String permission = (String) IdentityConfigParser.getInstance().getConfiguration().
+                get(IDP_SECRETS_RETRIEVAL_PERMISSION);
+
+        if (StringUtils.isEmpty(permission)) {
+            permission = DEFAULT_IDP_SECRETS_RETRIEVAL_PERMISSION;
+            if (log.isDebugEnabled()) {
+                log.debug("Permission is not configured. Hence using the default permission: " + permission);
+            }
+        }
+        AuthorizationManager authorizer = realm.getAuthorizationManager();
+        return authorizer.isUserAuthorized(currentUserName, permission, "ui.execute");
+    }
+
+    /**
+     * Create a deep clone of the given IdentityProvider object.
+     *
+     * @param idP IdentityProvider object to clone
+     * @return Deep clone of the given IdentityProvider object
+     * @throws IdentityApplicationManagementException if an error occurred while cloning
+     */
+    public static IdentityProvider createIdPClone(IdentityProvider idP) throws IdentityApplicationManagementException {
+
+        ObjectOutputStream objOutPutStream;
+        ObjectInputStream objInputStream;
+        IdentityProvider newObject;
+        try {
+            ByteArrayOutputStream byteArrayOutPutStream = new ByteArrayOutputStream();
+            objOutPutStream = new ObjectOutputStream(byteArrayOutPutStream);
+            objOutPutStream.writeObject(idP);
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutPutStream.toByteArray());
+            objInputStream = new ObjectInputStream(byteArrayInputStream);
+            newObject = (IdentityProvider) objInputStream.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            throw new IdentityApplicationManagementException("Error deep cloning IDP object.", e);
+        }
+        return newObject;
     }
 }
