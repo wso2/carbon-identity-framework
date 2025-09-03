@@ -619,69 +619,11 @@
     <!-- [Organization] SCIM2 Bulk API -->
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_bulk_resource_create</Scopes>
-        <Operations>
-            <Operation name="createRole">
-                <scope>internal_org_bulk_role_create</scope>
-            </Operation>
-            <Operation name="updateRole">
-                <scope>internal_org_bulk_role_update</scope>
-            </Operation>
-            <Operation name="deleteRole">
-                <scope>internal_org_bulk_role_delete</scope>
-            </Operation>
-            <Operation name="createUser">
-                <scope>internal_org_bulk_user_create</scope>
-            </Operation>
-            <Operation name="updateUser">
-                <scope>internal_org_bulk_user_update</scope>
-            </Operation>
-            <Operation name="deleteUser">
-                <scope>internal_org_bulk_user_delete</scope>
-            </Operation>
-            <Operation name="createGroup">
-                <scope>internal_org_bulk_group_create</scope>
-            </Operation>
-            <Operation name="updateGroup">
-                <scope>internal_org_bulk_group_update</scope>
-            </Operation>
-            <Operation name="deleteGroup">
-                <scope>internal_org_bulk_group_delete</scope>
-            </Operation>
-        </Operations>
     </Resource>
 
     <!-- SCIM2 Bulk API -->
     <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
         <Scopes>internal_bulk_resource_create</Scopes>
-        <Operations>
-            <Operation name="createRole">
-                <scope>internal_bulk_role_create</scope>
-            </Operation>
-            <Operation name="updateRole">
-                <scope>internal_bulk_role_update</scope>
-            </Operation>
-            <Operation name="deleteRole">
-                <scope>internal_bulk_role_delete</scope>
-            </Operation>
-            <Operation name="createUser">
-                <scope>internal_bulk_user_create</scope>
-            </Operation>
-            <Operation name="updateUser">
-                <scope>internal_bulk_user_update</scope>
-            </Operation>
-            <Operation name="deleteUser">
-                <scope>internal_bulk_user_delete</scope>
-            </Operation>
-            <Operation name="createGroup">
-                <scope>internal_bulk_group_create</scope>
-            </Operation>
-            <Operation name="updateGroup">
-                <scope>internal_bulk_group_update</scope>
-            </Operation>
-            <Operation name="deleteGroup">
-                <scope>internal_bulk_group_delete</scope>
-            </Operation>
-        </Operations>
     </Resource>
 
     <!-- [Organization] Authentication Data APIs -->

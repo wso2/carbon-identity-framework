@@ -770,25 +770,7 @@
                  description="API representation of the SCIM2 Bulk API" type="TENANT">
         <Scopes>
             <Scope displayName="Create Bulk Resource" name="internal_bulk_resource_create"
-                   description="Create new SCIM resources in bulk in the organization (root)"/>
-            <Scope displayName="Create Bulk User" name="internal_bulk_user_create"
-                   description="Fine-grained scope for user create in bulk"/>
-            <Scope displayName="Update Bulk User" name="internal_bulk_user_update"
-                   description="Fine-grained scope for user update in bulk"/>
-            <Scope displayName="Delete Bulk User" name="internal_bulk_user_delete"
-                   description="Fine-grained scope for user delete in bulk"/>
-            <Scope displayName="Create Bulk Group" name="internal_bulk_group_create"
-                   description="Fine-grained scope for group create in bulk"/>
-            <Scope displayName="Update Bulk Group" name="internal_bulk_group_update"
-                   description="Fine-grained scope for group update in bulk"/>
-            <Scope displayName="Delete Bulk Group" name="internal_bulk_group_delete"
-                   description="Fine-grained scope for group delete in bulk"/>
-            <Scope displayName="Create Bulk Role" name="internal_bulk_role_create"
-                   description="Fine-grained scope for role create in bulk"/>
-            <Scope displayName="Update Bulk Role" name="internal_bulk_role_update"
-                   description="Fine-grained scope for role update in bulk"/>
-            <Scope displayName="Delete Bulk Role" name="internal_bulk_role_delete"
-                   description="Fine-grained scope for role delete in bulk"/>
+                    description="Create new SCIM resources in bulk in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/o/scim2/Bulk"
@@ -796,25 +778,7 @@
                  description="API representation of the SCIM2 Bulk API" type="ORGANIZATION">
         <Scopes>
             <Scope displayName="Create Bulk Resource" name="internal_org_bulk_resource_create"
-                   description="Create new SCIM resources in bulk in the organization"/>
-            <Scope displayName="Create Bulk User" name="internal_org_bulk_user_create"
-                   description="Fine-grained scope for user create in bulk in the organization"/>
-            <Scope displayName="Update Bulk User" name="internal_org_bulk_user_update"
-                   description="Fine-grained scope for user update in bulk in the organization"/>
-            <Scope displayName="Delete Bulk User" name="internal_org_bulk_user_delete"
-                   description="Fine-grained scope for user delete in bulk in the organization"/>
-            <Scope displayName="Create Bulk Group" name="internal_org_bulk_group_create"
-                   description="Fine-grained scope for group create in bulk in the organization"/>
-            <Scope displayName="Update Bulk Group" name="internal_org_bulk_group_update"
-                   description="Fine-grained scope for group update in bulk in the organization"/>
-            <Scope displayName="Delete Bulk Group" name="internal_org_bulk_group_delete"
-                   description="Fine-grained scope for group delete in bulk in the organization"/>
-            <Scope displayName="Create Bulk Role" name="internal_org_bulk_role_create"
-                   description="Fine-grained scope for role create in bulk in the organization"/>
-            <Scope displayName="Update Bulk Role" name="internal_org_bulk_role_update"
-                   description="Fine-grained scope for role update in bulk in the organization"/>
-            <Scope displayName="Delete Bulk Role" name="internal_org_bulk_role_delete"
-                   description="Fine-grained scope for role delete in bulk in the organization"/>
+                        description="Create new SCIM resources in bulk in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Agents API" identifier="/scim2/Agents" requiresAuthorization="true"
