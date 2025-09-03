@@ -2512,6 +2512,30 @@ public class FrameworkUtils {
         return multiAttributeSeparator;
     }
 
+    public static String getMultiAttributeSeparator(String userStoreDomain) {
+
+        try {
+            // Retrieve the user store manager of the user store domain.
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) ((AbstractUserStoreManager)
+                    CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager())
+                    .getSecondaryUserStoreManager(userStoreDomain);
+            // Retrieve the multi attribute separator configured for the user store.
+            String multiAttributeSeparator = userStoreManager.getRealmConfiguration()
+                    .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+            // If multi attribute separator is not configured for the user store, use the higher level configuration.
+            if (StringUtils.isBlank(multiAttributeSeparator)) {
+                multiAttributeSeparator = getMultiAttributeSeparator();
+            }
+            return multiAttributeSeparator;
+        } catch (UserStoreException e) {
+            // If an error occurred while retrieving the user store manager,
+            // log and return the higher level configuration.
+            log.error("Error while retrieving UserStoreManager for user store domain: " + userStoreDomain +
+                    ". Hence defaulting to the multi attribute separator.");
+            return getMultiAttributeSeparator();
+        }
+    }
+
     public static String getPASTRCookieName (String sessionDataKey) {
         return FrameworkConstants.PASTR_COOKIE + "-" + sessionDataKey;
     }
