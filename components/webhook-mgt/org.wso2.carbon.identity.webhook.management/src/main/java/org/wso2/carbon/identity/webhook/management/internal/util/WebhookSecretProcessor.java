@@ -22,7 +22,9 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementExcept
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
+import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtServerException;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
+import org.wso2.carbon.identity.webhook.management.internal.constant.ErrorMessage;
 
 /**
  * Webhook secrets processor service implementation.
@@ -39,10 +41,14 @@ public class WebhookSecretProcessor {
         return encryptProperty(webhookId, secret);
     }
 
-    public String decryptAssociatedSecrets(String webhookId)
-            throws SecretManagementException {
+    public String decryptAssociatedSecrets(String webhookId) throws WebhookMgtServerException {
 
-        return decryptProperty(webhookId);
+        try {
+            return decryptProperty(webhookId);
+        } catch (SecretManagementException e) {
+            throw WebhookManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR, e, webhookId);
+        }
     }
 
     public void deleteAssociatedSecrets(String webhookId)
