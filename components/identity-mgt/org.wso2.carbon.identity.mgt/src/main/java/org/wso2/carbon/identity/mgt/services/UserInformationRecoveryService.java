@@ -63,12 +63,9 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants.USER_INFO_RECOVERY_SOAP_ALLOWED_USERS;
 
 /**
  * This service provides the services needed to recover user password and user
@@ -81,7 +78,6 @@ import static org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants.USER_I
 public class UserInformationRecoveryService {
 
     private static final Log log = LogFactory.getLog(UserInformationRecoveryService.class);
-    private static List<String> allowedUserList;
 
     public CaptchaInfoBean getCaptcha() throws IdentityMgtServiceException {
 
@@ -986,11 +982,6 @@ public class UserInformationRecoveryService {
                                          UserIdentityClaimDTO[] claims, String profileName, String tenantDomain)
             throws IdentityMgtServiceException {
 
-        defineAllowedUsernameList();
-        String authenticatedUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (allowedUserList.isEmpty() || !allowedUserList.contains(authenticatedUser)) {
-            throw new IdentityMgtServiceException("Authenticated user is not allowed to register users.");
-        }
         VerificationBean vBean = new VerificationBean();
 
         org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
@@ -1399,15 +1390,4 @@ public class UserInformationRecoveryService {
         return bean;
     }
 
-    private static void defineAllowedUsernameList() {
-
-        if (allowedUserList == null) {
-            String allowedUsernames = IdentityUtil.getProperty(USER_INFO_RECOVERY_SOAP_ALLOWED_USERS);
-            if (StringUtils.isBlank(allowedUsernames)) {
-                allowedUserList = new ArrayList<>();
-            } else {
-                allowedUserList = Arrays.asList(allowedUsernames.split(","));
-            }
-        }
-    }
 }
