@@ -304,7 +304,7 @@
       "notification_templates.super_organization_display_name.enable": false,
       "multi_tenancy.stratos.public_cloud_setup": true,
       "token_exchange.implicit_association.include_primary_when_secondary_present": false,
-      "scim2.conflict_on_claim_uniqueness_violation": false
+      "scim2.return_conflict_on_claim_uniqueness_violation": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -338,7 +338,7 @@
       "notification_templates.super_organization_display_name.enable": false,
       "multi_tenancy.stratos.public_cloud_setup": true,
       "token_exchange.implicit_association.include_primary_when_secondary_present": false,
-      "scim2.conflict_on_claim_uniqueness_violation": false
+      "scim2.return_conflict_on_claim_uniqueness_violation": false
     }
   }
 }
