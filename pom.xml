@@ -1278,6 +1278,11 @@
                 <artifactId>org.wso2.carbon.identity.organization.resource.sharing.policy.management</artifactId>
                 <version>${org.wso2.carbon.identity.organization.management.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.management.organization.user.sharing</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.organization.management</groupId>
