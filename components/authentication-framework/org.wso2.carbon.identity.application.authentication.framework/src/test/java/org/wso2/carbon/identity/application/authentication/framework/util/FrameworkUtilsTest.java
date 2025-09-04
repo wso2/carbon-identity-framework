@@ -1482,7 +1482,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             when(carbonContext.getUserRealm()).thenReturn(userRealm);
             try {
                 when(userRealm.getUserStoreManager()).thenReturn(primaryUserStoreManager);
-                when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
+                lenient().when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
             } catch (UserStoreException e) {
                 throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
             }
