@@ -70,7 +70,7 @@ public class AuthenticationAssertionUtils {
             JWTClaimsSet claims = buildUserAssertionClaimSet(context);
             return UserAssertionUtils.generateSignedUserAssertion(claims, context.getTenantDomain());
         } catch (FrameworkException e) {
-            throw FlowExecutionEngineUtils.handleServerException(
+            throw FlowExecutionEngineUtils.handleServerException(context.getFlowType(),
                     ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE, e, context.getContextIdentifier());
         }
     }
@@ -80,8 +80,8 @@ public class AuthenticationAssertionUtils {
 
         try {
             if (context.getFlowUser() == null) {
-                throw FlowExecutionEngineUtils.handleServerException(ERROR_CODE_FLOW_USER_NOT_FOUND,
-                        context.getContextIdentifier());
+                throw FlowExecutionEngineUtils.handleServerException(context.getFlowType(),
+                        ERROR_CODE_FLOW_USER_NOT_FOUND, context.getContextIdentifier());
             }
             long now = System.currentTimeMillis();
             Date issueTime = new Date(now);

@@ -68,7 +68,8 @@ public abstract class AuthenticationExecutor implements Executor {
             IdentityProvider idp =
                     IdentityProviderManager.getInstance().getIdPByName(idpName, tenantDomain);
             if (idp == null || idp.getId() == null || idp.getDefaultAuthenticatorConfig() == null) {
-                throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, idpName, tenantDomain);
+                throw handleServerException(context.getFlowType(), ERROR_CODE_GET_IDP_CONFIG_FAILURE, idpName,
+                        tenantDomain);
             }
             FederatedAuthenticatorConfig authenticatorConfig = idp.getDefaultAuthenticatorConfig();
             for (Property property : authenticatorConfig.getProperties()) {
@@ -77,7 +78,8 @@ public abstract class AuthenticationExecutor implements Executor {
             context.setAuthenticatorProperties(propertyMap);
             context.setExternalIdPConfig(new ExternalIdPConfig(idp));
         } catch (IdentityProviderManagementException e) {
-            throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, e, idpName, tenantDomain);
+            throw handleServerException(context.getFlowType(), ERROR_CODE_GET_IDP_CONFIG_FAILURE, e, idpName,
+                    tenantDomain);
         }
     }
 }

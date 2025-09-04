@@ -70,7 +70,7 @@ public class TaskExecutionNode implements Node {
             throws FlowEngineException {
 
         if (configs.getExecutorConfig() == null) {
-            throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
+            throw handleServerException(context.getFlowType(), ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
                     context.getGraphConfig().getId(), context.getTenantDomain());
         }
         return triggerExecutor(context, configs);
@@ -83,7 +83,8 @@ public class TaskExecutionNode implements Node {
 
         Executor mappedFlowExecutor = FlowExecutionEngineDataHolder.getInstance().getExecutors().get(executorName);
         if (mappedFlowExecutor == null) {
-            throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR, executorName, flowType, graphId, tenantDomain);
+            throw handleServerException(flowType, ERROR_CODE_UNSUPPORTED_EXECUTOR, executorName, flowType, graphId,
+                    tenantDomain);
         }
         return mappedFlowExecutor;
     }
@@ -92,7 +93,7 @@ public class TaskExecutionNode implements Node {
     public NodeResponse rollback(FlowExecutionContext context, NodeConfig config) throws FlowEngineException {
 
         if (config.getExecutorConfig() == null) {
-            throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
+            throw handleServerException(context.getFlowType(), ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
                     context.getGraphConfig().getId(), context.getTenantDomain());
         }
         Executor mappedFlowExecutor = resolveExecutor(context.getFlowType(), config, context.getGraphConfig().getId(),
@@ -115,8 +116,8 @@ public class TaskExecutionNode implements Node {
 
         ExecutorResponse response = mappedFlowExecutor.execute(context);
         if (response == null) {
-            throw handleServerException(ERROR_CODE_EXECUTOR_FAILURE, "Executor response is null for executor: "
-                    + mappedFlowExecutor.getName());
+            throw handleServerException(context.getFlowType(), ERROR_CODE_EXECUTOR_FAILURE,
+                    "Executor response is null for executor: " + mappedFlowExecutor.getName());
         }
         if (response.getContextProperties() != null && !response.getContextProperties().isEmpty()) {
             context.addProperties(response.getContextProperties());
@@ -134,6 +135,7 @@ public class TaskExecutionNode implements Node {
         if (response.getContextProperties() != null && !response.getContextProperties().isEmpty()) {
             context.addProperties(response.getContextProperties());
         }
+        String flowType = context != null ? context.getFlowType() : null;
         switch (response.getResult()) {
             case STATUS_RETRY:
                 return new NodeResponse.Builder()
@@ -171,11 +173,12 @@ public class TaskExecutionNode implements Node {
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_USER_ERROR:
-                throw handleClientException(ERROR_CODE_FLOW_FAILURE, response.getErrorMessage());
+                throw handleClientException(flowType, ERROR_CODE_FLOW_FAILURE, response.getErrorMessage());
             case STATUS_ERROR:
-                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, response.getErrorMessage());
+                throw handleClientException(flowType, ERROR_CODE_REQUEST_PROCESSING_FAILURE,
+                        response.getErrorMessage());
             default:
-                throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
+                throw handleServerException(flowType, ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
         }
     }
 

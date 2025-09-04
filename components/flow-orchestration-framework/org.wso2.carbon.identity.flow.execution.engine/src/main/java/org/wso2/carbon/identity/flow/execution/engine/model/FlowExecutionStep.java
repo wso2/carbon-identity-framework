@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 public class FlowExecutionStep {
 
     private String flowId;
+    private String flowType;
     private String flowStatus;
     private String stepType;
     private DataDTO data;
@@ -37,6 +38,7 @@ public class FlowExecutionStep {
     private FlowExecutionStep(Builder builder) {
 
         this.flowId = builder.flowId;
+        this.flowType = builder.flowType;
         this.flowStatus = builder.flowStatus;
         this.stepType = builder.stepType;
         this.data = builder.data;
@@ -50,6 +52,16 @@ public class FlowExecutionStep {
     public void setFlowId(String flowId) {
 
         this.flowId = flowId;
+    }
+
+    public String getFlowType() {
+
+        return flowType;
+    }
+
+    public void setFlowType(String flowType) {
+
+        this.flowType = flowType;
     }
 
     public String getFlowStatus() {
@@ -88,6 +100,7 @@ public class FlowExecutionStep {
     public static class Builder {
 
         private String flowId;
+        private String flowType;
         private String flowStatus;
         private String stepType;
         private DataDTO data;
@@ -95,6 +108,12 @@ public class FlowExecutionStep {
         public Builder flowId(String flowId) {
 
             this.flowId = flowId;
+            return this;
+        }
+
+        public Builder flowType(String flowType) {
+
+            this.flowType = flowType;
             return this;
         }
 

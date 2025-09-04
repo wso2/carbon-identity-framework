@@ -37,4 +37,20 @@ public class FlowEngineServerException extends FlowEngineException {
 
         super(errorCode, message, description);
     }
+
+    public FlowEngineServerException(String flowType, String message) {
+
+        super(flowType, message);
+    }
+
+    public FlowEngineServerException(String flowType, String errorCode, String message, String description,
+                                     Throwable cause) {
+
+        super(flowType, errorCode, message, description, cause);
+    }
+
+    public FlowEngineServerException(String flowType, String errorCode, String message, String description) {
+
+        super(flowType, errorCode, message, description);
+    }
 }
