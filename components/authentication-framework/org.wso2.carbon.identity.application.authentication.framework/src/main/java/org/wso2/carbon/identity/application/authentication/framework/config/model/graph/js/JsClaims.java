@@ -483,7 +483,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
     private boolean isAuthenticatedUserInCurrentTenant() {
 
-        return authenticatedUser != null && Objects.equals(PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .getTenantDomain(), authenticatedUser.getTenantDomain());
+        return authenticatedUser != null && StringUtils.equalsIgnoreCase(authenticatedUser.getTenantDomain(),
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 }
