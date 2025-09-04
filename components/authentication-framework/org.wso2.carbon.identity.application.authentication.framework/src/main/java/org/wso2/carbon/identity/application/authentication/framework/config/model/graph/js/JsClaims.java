@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -51,6 +52,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -160,7 +162,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
     public Object getMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 return getFederatedClaim(claimUri);
             } else {
@@ -172,7 +174,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
     public boolean hasMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 return hasFederatedClaim(claimUri);
             } else {
@@ -184,7 +186,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
     public boolean setMemberObject(String claimUri, Object claimValue) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 setFederatedClaim(claimUri, String.valueOf(claimValue));
             } else {
@@ -477,5 +479,11 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
             claimValue = StringUtils.EMPTY;
         }
         getContext().addRuntimeClaim(claimUri, String.valueOf(claimValue));
+    }
+
+    private boolean isAuthenticatedUserInCurrentTenant() {
+
+        return authenticatedUser != null && Objects.equals(PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getTenantDomain(), authenticatedUser.getTenantDomain());
     }
 }
