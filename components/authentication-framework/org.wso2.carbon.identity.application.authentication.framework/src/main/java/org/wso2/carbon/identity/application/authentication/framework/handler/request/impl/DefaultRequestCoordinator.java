@@ -1620,8 +1620,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             context.setProperty(FrameworkConstants.DFDP_TEST_CLAIMS, testClaims);
             context.setProperty(FrameworkConstants.DFDP_REQUEST_ID, requestId);
 
-            // TODO: Part 3 will implement the DFDP orchestrator and authenticator setup
-            // For now, send a placeholder response indicating DFDP flow is detected
             sendDFDPSuccessResponse(response, "DFDP flow detected and parameters validated", requestId);
 
         } catch (Exception e) {

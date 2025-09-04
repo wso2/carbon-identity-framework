@@ -299,6 +299,10 @@ public abstract class FrameworkConstants {
     public static final String DFDP_CLAIM_MAPPING_STATUS = "dfdpClaimMappingStatus";
     public static final String DFDP_VALIDATION_ERRORS = "dfdpValidationErrors";
     public static final String DFDP_RESPONSE_STATUS = "dfdpResponseStatus";
+    public static final String DFDP_STEP_CONFIG = "dfdpStepConfig";
+    public static final String DFDP_IDENTITY_PROVIDER = "dfdpIdentityProvider";
+    public static final String DFDP_AUTHENTICATOR_INSTANCE = "dfdpAuthenticatorInstance";
+    public static final String DFDP_AUTHENTICATOR_SETUP_COMPLETE = "dfdpAuthenticatorSetupComplete";
 
     private FrameworkConstants() {
 
