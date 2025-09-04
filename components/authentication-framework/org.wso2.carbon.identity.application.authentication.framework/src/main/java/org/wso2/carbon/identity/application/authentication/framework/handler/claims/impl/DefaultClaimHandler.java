@@ -78,7 +78,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ALLOW_AUTHENTICATED_SUB_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
@@ -1154,6 +1156,15 @@ public class DefaultClaimHandler implements ClaimHandler {
                     log.debug("Subject claim for " + authenticatedUser.getLoggableUserId()
                             + " not found in user store");
                 }
+            }
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(ALLOW_AUTHENTICATED_SUB_UPDATE)) &&
+                    Boolean.parseBoolean((String) context.getProperty(PROP_USERNAME_UPDATED_EXTERNALLY))) {
+                /*
+                 If the username is updated externally, we will update the authenticated user identifier with the
+                 username. This support is provided initially for adaptive scripts. If any other places needs to
+                 update the subject identifier externally from username, we can use the same property.
+                */
+                context.setProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE, authenticatedUser.getUserName());
             }
         } catch (UserStoreException e) {
             log.error("Error occurred while retrieving " + subjectURI + " claim value for user "
