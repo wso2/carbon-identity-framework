@@ -430,6 +430,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
 
+                // DFDP (Debug Flow Data Provider) Early Detection and Routing
+                if (isDFDPRequest(request)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("DFDP request detected. Processing DFDP flow for context: " + 
+                                context.getContextIdentifier());
+                    }
+                    handleDFDPRequest(request, responseWrapper, context);
+                    return;
+                }
+
                 if (!context.isLogoutRequest()) {
                     enteredFlow = enterFlow(Flow.Name.LOGIN);
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
@@ -1549,6 +1559,145 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         return true;
     }
 
+    /**
+     * Checks if the incoming request is a DFDP (Debug Flow Data Provider) request.
+     * 
+     * @param request HTTP servlet request
+     * @return true if this is a DFDP request, false otherwise
+     */
+    private boolean isDFDPRequest(HttpServletRequest request) {
+
+        String dfdpParam = request.getParameter(FrameworkConstants.DFDP_PARAM);
+        if (log.isDebugEnabled()) {
+            log.debug("Checking DFDP parameter: " + dfdpParam);
+        }
+        return "true".equalsIgnoreCase(dfdpParam);
+    }
+
+    /**
+     * Handles DFDP (Debug Flow Data Provider) request processing.
+     * This method implements the DFDP flow that bypasses normal authentication
+     * and directly tests external IdP claim mappings.
+     * 
+     * @param request HTTP servlet request
+     * @param response HTTP servlet response wrapper
+     * @param context Authentication context
+     * @throws IOException if an error occurs during response handling
+     */
+    private void handleDFDPRequest(HttpServletRequest request, CommonAuthResponseWrapper response, 
+                                  AuthenticationContext context) throws IOException {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Processing DFDP request for context: " + context.getContextIdentifier());
+            }
+
+            // Mark this as a DFDP flow
+            context.setProperty(FrameworkConstants.DFDP_ENABLED, true);
+
+            // Extract DFDP parameters
+            String targetIdP = request.getParameter(FrameworkConstants.DFDP_TARGET_IDP);
+            String targetAuthenticator = request.getParameter(FrameworkConstants.DFDP_TARGET_AUTHENTICATOR);
+            String testClaims = request.getParameter(FrameworkConstants.DFDP_TEST_CLAIMS);
+            String requestId = request.getParameter(FrameworkConstants.DFDP_REQUEST_ID);
+
+            if (log.isDebugEnabled()) {
+                log.debug("DFDP Parameters - TargetIdP: " + targetIdP + 
+                         ", TargetAuthenticator: " + targetAuthenticator + 
+                         ", RequestId: " + requestId);
+            }
+
+            // Validate required DFDP parameters
+            if (StringUtils.isBlank(targetIdP)) {
+                sendDFDPErrorResponse(response, FrameworkConstants.DFDPErrorDetails.INVALID_REQUEST, 
+                                    "Target Identity Provider is required for DFDP testing", requestId);
+                return;
+            }
+
+            // Store DFDP parameters in context
+            context.setProperty(FrameworkConstants.DFDP_TARGET_IDP, targetIdP);
+            context.setProperty(FrameworkConstants.DFDP_TARGET_AUTHENTICATOR, targetAuthenticator);
+            context.setProperty(FrameworkConstants.DFDP_TEST_CLAIMS, testClaims);
+            context.setProperty(FrameworkConstants.DFDP_REQUEST_ID, requestId);
+
+            // TODO: Part 3 will implement the DFDP orchestrator and authenticator setup
+            // For now, send a placeholder response indicating DFDP flow is detected
+            sendDFDPSuccessResponse(response, "DFDP flow detected and parameters validated", requestId);
+
+        } catch (Exception e) {
+            log.error("Error processing DFDP request", e);
+            sendDFDPErrorResponse(response, FrameworkConstants.DFDPErrorDetails.INTERNAL_ERROR, 
+                                "Internal error occurred: " + e.getMessage(), 
+                                request.getParameter(FrameworkConstants.DFDP_REQUEST_ID));
+        }
+    }
+
+    /**
+     * Sends DFDP error response.
+     * 
+     * @param response HTTP response
+     * @param errorDetails DFDP error details
+     * @param message Error message
+     * @param requestId DFDP request ID
+     * @throws IOException if an error occurs during response writing
+     */
+    private void sendDFDPErrorResponse(CommonAuthResponseWrapper response, 
+                                      FrameworkConstants.DFDPErrorDetails errorDetails,
+                                      String message, String requestId) throws IOException {
+
+        response.setContentType(FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON);
+        response.setStatus(400); // Bad Request
+
+        String jsonResponse = String.format(
+            "{"
+            + "\"" + FrameworkConstants.DFDP.FIELD_STATUS + "\": \"%s\","
+            + "\"" + FrameworkConstants.DFDP.FIELD_REQUEST_ID + "\": \"%s\","
+            + "\"errorCode\": \"%s\","
+            + "\"errorMessage\": \"%s\","
+            + "\"" + FrameworkConstants.DFDP.FIELD_TIMESTAMP + "\": %d"
+            + "}",
+            FrameworkConstants.DFDP.STATUS_ERROR,
+            requestId != null ? requestId : "unknown",
+            errorDetails.getCode(),
+            message,
+            System.currentTimeMillis()
+        );
+
+        response.getWriter().write(jsonResponse);
+        response.getWriter().flush();
+    }
+
+    /**
+     * Sends DFDP success response.
+     * 
+     * @param response HTTP response
+     * @param message Success message
+     * @param requestId DFDP request ID
+     * @throws IOException if an error occurs during response writing
+     */
+    private void sendDFDPSuccessResponse(CommonAuthResponseWrapper response, String message, String requestId) 
+            throws IOException {
+
+        response.setContentType(FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON);
+        response.setStatus(200); // OK
+
+        String jsonResponse = String.format(
+            "{"
+            + "\"" + FrameworkConstants.DFDP.FIELD_STATUS + "\": \"%s\","
+            + "\"" + FrameworkConstants.DFDP.FIELD_REQUEST_ID + "\": \"%s\","
+            + "\"message\": \"%s\","
+            + "\"" + FrameworkConstants.DFDP.FIELD_TIMESTAMP + "\": %d"
+            + "}",
+            FrameworkConstants.DFDP.STATUS_SUCCESS,
+            requestId != null ? requestId : UUID.randomUUID().toString(),
+            message,
+            System.currentTimeMillis()
+        );
+
+        response.getWriter().write(jsonResponse);
+        response.getWriter().flush();
+    }
+
     private Flow.InitiatingPersona getFlowInitiatingPersona() {
 
         Flow existingFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
@@ -1561,3 +1710,4 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 }
+
