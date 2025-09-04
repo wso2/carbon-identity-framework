@@ -22,6 +22,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.internal.service.impl.WebhookManagementServiceImpl;
+import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretProcessor;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -45,6 +46,7 @@ public class Webhook {
     private final Timestamp updatedAt;
     private List<Subscription> eventsSubscribed;
     private static final String EVENT_PROFILE_VERSION = "v1";
+    private final WebhookSecretProcessor webhookSecretProcessor = new WebhookSecretProcessor();
 
     private Webhook(Builder builder) {
 
@@ -80,6 +82,11 @@ public class Webhook {
     public String getSecret() {
 
         return secret;
+    }
+
+    public String getDecryptedSecret() throws WebhookMgtException {
+
+        return webhookSecretProcessor.decryptAssociatedSecrets(getId());
     }
 
     public String getEventProfileName() {
