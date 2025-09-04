@@ -2466,7 +2466,13 @@ public class FrameworkUtils {
         cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 
+    @Deprecated
     public static String getMultiAttributeSeparator() {
+
+        return getMultiAttributeSeparator(null);
+    }
+
+    public static String getMultiAttributeSeparator(String userStoreDomain) {
 
         String multiAttributeSeparator = null;
         if (Boolean.parseBoolean(IdentityUtil.getProperty(ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED))) {
@@ -2492,8 +2498,21 @@ public class FrameworkUtils {
 
         if (StringUtils.isBlank(multiAttributeSeparator)) {
             try {
-                multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
-                        getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+                if (userStoreDomain != null) {
+                    // Retrieve the user store manager of the user store domain.
+                    AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) ((AbstractUserStoreManager)
+                            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager())
+                            .getSecondaryUserStoreManager(userStoreDomain);
+                    // Retrieve the multi attribute separator configured for the user store.
+                    multiAttributeSeparator = userStoreManager.getRealmConfiguration()
+                            .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+
+                } else {
+                    multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                            .getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants
+                                    .MULTI_ATTRIBUTE_SEPARATOR);
+
+                }
             } catch (UserStoreException e) {
                 log.error("Error while retrieving MultiAttributeSeparator from UserRealm.");
                 if (log.isDebugEnabled()) {
@@ -2508,7 +2527,6 @@ public class FrameworkUtils {
                 log.debug("Multi Attribute Separator is defaulting to " + multiAttributeSeparator);
             }
         }
-
         return multiAttributeSeparator;
     }
 
