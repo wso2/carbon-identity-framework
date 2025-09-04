@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
@@ -88,6 +89,7 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -147,124 +149,6 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithCarbonHome
 @Listeners(MockitoTestNGListener.class)
 public class FrameworkUtilsTest extends IdentityBaseTest {
-    @Test
-    public void testGetMultiAttributeSeparator_Default() {
-        // Should return the default separator if no config is set.
-        try (MockedStatic<org.wso2.carbon.identity.core.util.IdentityUtil> identityUtilMock =
-                     Mockito.mockStatic(org.wso2.carbon.identity.core.util.IdentityUtil.class)) {
-            identityUtilMock.when(() -> org.wso2.carbon.identity.core.util.IdentityUtil
-                            .getProperty(Mockito.anyString())).thenReturn(null);
-            String separator = FrameworkUtils.getMultiAttributeSeparator();
-            assertEquals(separator, org.wso2.carbon.identity.core.util.IdentityCoreConstants
-                    .MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
-        }
-    }
-
-    @Test
-    public void testGetMultiAttributeSeparator_WithConfig() throws Exception {
-        // Should return the configured separator if set.
-        try (MockedStatic<org.wso2.carbon.identity.core.util.IdentityUtil> identityUtilMock =
-                     Mockito.mockStatic(org.wso2.carbon.identity.core.util.IdentityUtil.class)) {
-            identityUtilMock.when(() -> org.wso2.carbon.identity.core.util.IdentityUtil
-                            .getProperty(Mockito.anyString())).thenReturn(",");
-            String separator = FrameworkUtils.getMultiAttributeSeparator();
-            assertEquals(separator, ",");
-        }
-    }
-
-    @Test
-    public void testGetMultiAttributeSeparator_UserStoreDomain_Configured() throws Exception {
-        // Should return the separator configured in the user store domain.
-        String userStoreDomain = "PRIMARY";
-        String expectedSeparator = "|";
-
-        AbstractUserStoreManager mockUserStoreManager =
-                Mockito.mock(AbstractUserStoreManager.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockUserStoreManager.getRealmConfiguration().getUserStoreProperty(
-                org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
-                .thenReturn(expectedSeparator);
-        Mockito.when(mockUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
-                .thenReturn(mockUserStoreManager);
-
-        org.wso2.carbon.context.PrivilegedCarbonContext mockCarbonContext =
-                Mockito.mock(org.wso2.carbon.context.PrivilegedCarbonContext.class, Mockito.RETURNS_DEEP_STUBS);
-        org.wso2.carbon.user.api.UserRealm mockUserRealm = Mockito.mock(org.wso2.carbon.user.api.UserRealm.class);
-        Mockito.when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
-        Mockito.when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
-
-        try (MockedStatic<org.wso2.carbon.context.CarbonContext> carbonContextMock =
-                     Mockito.mockStatic(org.wso2.carbon.context.CarbonContext.class)) {
-            carbonContextMock.when(org.wso2.carbon.context.CarbonContext::getThreadLocalCarbonContext)
-                    .thenReturn(mockCarbonContext);
-            String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
-            assertEquals(separator, expectedSeparator);
-        }
-    }
-
-    @Test
-    public void testGetMultiAttributeSeparator_UserStoreDomain_FallbackToDefault() throws Exception {
-        // Should fallback to the default separator if user store config is blank.
-        String userStoreDomain = "PRIMARY";
-
-        AbstractUserStoreManager mockUserStoreManager =
-                Mockito.mock(AbstractUserStoreManager.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockUserStoreManager.getRealmConfiguration().getUserStoreProperty(
-                org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
-                .thenReturn("");
-        Mockito.when(mockUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
-                .thenReturn(mockUserStoreManager);
-
-        org.wso2.carbon.context.PrivilegedCarbonContext mockCarbonContext =
-                Mockito.mock(org.wso2.carbon.context.PrivilegedCarbonContext.class, Mockito.RETURNS_DEEP_STUBS);
-        org.wso2.carbon.user.api.UserRealm mockUserRealm = Mockito.mock(org.wso2.carbon.user.api.UserRealm.class);
-        Mockito.when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
-        Mockito.when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
-
-        try (MockedStatic<org.wso2.carbon.context.CarbonContext> carbonContextMock =
-                     Mockito.mockStatic(org.wso2.carbon.context.CarbonContext.class)) {
-            carbonContextMock.when(org.wso2.carbon.context.CarbonContext::getThreadLocalCarbonContext)
-                    .thenReturn(mockCarbonContext);
-            try (MockedStatic<FrameworkUtils> frameworkUtilsMock =
-                         Mockito.mockStatic(FrameworkUtils.class, Mockito.CALLS_REAL_METHODS)) {
-                frameworkUtilsMock.when(FrameworkUtils::getMultiAttributeSeparator).thenReturn(
-                        org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
-                String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
-                assertEquals(separator, org.wso2.carbon.identity.core.util.IdentityCoreConstants
-                        .MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
-            }
-        }
-    }
-
-    @Test
-    public void testGetMultiAttributeSeparator_UserStoreDomain_UserStoreException() throws Exception {
-        // Should fallback to the default separator if UserStoreException is thrown.
-        String userStoreDomain = "PRIMARY";
-
-        AbstractUserStoreManager mockUserStoreManager =
-                Mockito.mock(AbstractUserStoreManager.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
-                .thenThrow(new org.wso2.carbon.user.api.UserStoreException("Test Exception"));
-
-        org.wso2.carbon.context.PrivilegedCarbonContext mockCarbonContext =
-                Mockito.mock(org.wso2.carbon.context.PrivilegedCarbonContext.class, Mockito.RETURNS_DEEP_STUBS);
-        org.wso2.carbon.user.api.UserRealm mockUserRealm = Mockito.mock(org.wso2.carbon.user.api.UserRealm.class);
-        Mockito.when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
-        Mockito.when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
-
-        try (MockedStatic<org.wso2.carbon.context.CarbonContext> carbonContextMock =
-                     Mockito.mockStatic(org.wso2.carbon.context.CarbonContext.class)) {
-            carbonContextMock.when(org.wso2.carbon.context.CarbonContext::getThreadLocalCarbonContext)
-                    .thenReturn(mockCarbonContext);
-            try (MockedStatic<FrameworkUtils> frameworkUtilsMock =
-                         Mockito.mockStatic(FrameworkUtils.class, Mockito.CALLS_REAL_METHODS)) {
-                frameworkUtilsMock.when(FrameworkUtils::getMultiAttributeSeparator).thenReturn(
-                        org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
-                String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
-                assertEquals(separator, org.wso2.carbon.identity.core.util.IdentityCoreConstants
-                        .MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
-            }
-        }
-    }
 
     private static final String ROOT_DOMAIN = "/";
     private static final String DUMMY_TENANT_DOMAIN = "ABC";
@@ -333,7 +217,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 new MockAuthenticator("HwkMockAuthenticator"));
         ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
                 new MockAuthenticator("FederatedAuthenticator", null, "sampleClaimDialectURI"));
-           
+
         authenticationContext.setTenantDomain("abc");
     }
 
@@ -529,7 +413,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void getAddAuthenticationContextToCache() {
 
         try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
-                mockStatic(AuthenticationContextCache.class)) {
+                     mockStatic(AuthenticationContextCache.class)) {
             authenticationContextCache.when(
                     AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
             String contextId = "CONTEXT-ID";
@@ -699,11 +583,11 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetAuthenticationResultFromSessionDataStoreExpired() {
 
         try (MockedStatic<SessionDataStore> sessionDataStore = mockStatic(SessionDataStore.class);
-            MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
 
-                sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
-                identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
-                        .thenReturn("true");
+            sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
+            identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
+                    .thenReturn("true");
 
             AuthenticationResultCache authenticationCacheSpy = spy(AuthenticationResultCache.getInstance());
 
@@ -1350,13 +1234,13 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
         // User object.
         User user = new User(
-        "user-123",
-        "dummyUser",
-        "dummyUser",
-        "dummyUser",
-        "dummyTenantDomain",
-        "DUMMYDOMAIN",
-        null
+                "user-123",
+                "dummyUser",
+                "dummyUser",
+                "dummyUser",
+                "dummyTenantDomain",
+                "DUMMYDOMAIN",
+                null
         );
 
         RealmService realmService = mock(RealmService.class);
@@ -1429,7 +1313,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 useTenantDomainInLocalSubjectIdentifier);
 
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
-            MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+             MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
 
             // Mock IdentityUtil methods.
             identityUtilMockedStatic.when(() -> IdentityUtil.addDomainToName(subjectClaimUriValue, userDomain))
@@ -1553,5 +1437,62 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
         boolean actual = FrameworkUtils.contextHasUserAssertion(request, context);
         assertEquals(actual, expected, note);
+    }
+
+    // Java
+    /**
+     * Test multi attribute separator retrieval from user realm configuration.
+     */
+    @Test
+    public void testGetMultiAttributeSeparatorFromUserRealmConfig() {
+        try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
+            CarbonContext carbonContext = mock(CarbonContext.class);
+            UserRealm userRealm = mock(UserRealm.class);
+            RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
+
+            carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
+            when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            try {
+                when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
+            } catch (UserStoreException e) {
+                throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
+            }
+            when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+                    .thenReturn("|");
+
+            String separator = FrameworkUtils.getMultiAttributeSeparator();
+            assertEquals(separator, "|");
+        }
+    }
+
+    /**
+     * Test multi attribute separator retrieval for a specific user store domain.
+     */
+    @Test
+    public void testGetMultiAttributeSeparatorWithUserStoreDomain() {
+        String userStoreDomain = "SECONDARY";
+        try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
+            CarbonContext carbonContext = mock(CarbonContext.class);
+            UserRealm userRealm = mock(UserRealm.class);
+            AbstractUserStoreManager primaryUserStoreManager = mock(AbstractUserStoreManager.class);
+            AbstractUserStoreManager secondaryUserStoreManager = mock(AbstractUserStoreManager.class);
+            RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
+
+            carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
+            when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            try {
+                when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
+            } catch (UserStoreException e) {
+                throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
+            }
+            when(primaryUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
+                    .thenReturn(secondaryUserStoreManager);
+            when(secondaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
+            when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+                    .thenReturn(";");
+
+            String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
+            assertEquals(separator, ";");
+        }
     }
 }
