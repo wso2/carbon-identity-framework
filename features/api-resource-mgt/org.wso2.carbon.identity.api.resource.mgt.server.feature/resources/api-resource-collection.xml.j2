@@ -1325,21 +1325,15 @@
                 <Scope name="console:roles_edit"/>
             </Feature>
             <Update>
-                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_update"/>
-                {% else %}
                 <Scope name="internal_role_mgt_meta_update"/>
-                {% endif %}
             </Update>
             <Delete>
                 <Scope name="internal_role_mgt_delete"/>
             </Delete>
             <Create>
-                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_role_mgt_create"/>
-                {% else %}
                 <Scope name="internal_role_mgt_meta_create"/>
-                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_user_mgt_view"/>
@@ -1704,21 +1698,15 @@
                 <Scope name="console:org:roles_edit"/>
             </Feature>
             <Update>
-                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_update"/>
-                {% else %}
                 <Scope name="internal_org_role_mgt_meta_update"/>
-                {% endif %}
             </Update>
             <Delete>
                 <Scope name="internal_org_role_mgt_delete"/>
             </Delete>
             <Create>
-                {% if scim2.enable_scim2_roles_v3_api is sameas false %}
                 <Scope name="internal_org_role_mgt_create"/>
-                {% else %}
                 <Scope name="internal_org_role_mgt_meta_create"/>
-                {% endif %}
             </Create>
             <Read>
                 <Scope name="internal_org_user_mgt_view"/>
