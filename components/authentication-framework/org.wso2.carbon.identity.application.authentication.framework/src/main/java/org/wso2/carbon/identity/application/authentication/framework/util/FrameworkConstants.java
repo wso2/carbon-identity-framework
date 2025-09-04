@@ -282,6 +282,24 @@ public abstract class FrameworkConstants {
     public static final String AMR = "amr";
     public static final String USER_ASSERTION = "userAssertion";
 
+    // DFDP (Debug Flow Data Provider) related constants
+    public static final String DFDP_PARAM = "dfdp";
+    public static final String DFDP_TARGET_IDP = "dfdpTargetIdp";
+    public static final String DFDP_TARGET_AUTHENTICATOR = "dfdpTargetAuthenticator";
+    public static final String DFDP_TEST_CLAIMS = "dfdpTestClaims";
+    public static final String DFDP_REQUEST_ID = "dfdpRequestId";
+    public static final String DFDP_SESSION_KEY = "dfdpSessionKey";
+    public static final String DFDP_ENABLED = "dfdpEnabled";
+    public static final String DFDP_FLOW_CONTEXT = "dfdpFlowContext";
+    public static final String DFDP_ANALYSIS_RESULT = "dfdpAnalysisResult";
+    public static final String DFDP_ORIGINAL_CLAIMS = "dfdpOriginalClaims";
+    public static final String DFDP_MAPPED_CLAIMS = "dfdpMappedClaims";
+    public static final String DFDP_FILTERED_CLAIMS = "dfdpFilteredClaims";
+    public static final String DFDP_SYSTEM_CLAIMS = "dfdpSystemClaims";
+    public static final String DFDP_CLAIM_MAPPING_STATUS = "dfdpClaimMappingStatus";
+    public static final String DFDP_VALIDATION_ERRORS = "dfdpValidationErrors";
+    public static final String DFDP_RESPONSE_STATUS = "dfdpResponseStatus";
+
     private FrameworkConstants() {
 
     }
@@ -877,6 +895,83 @@ public abstract class FrameworkConstants {
 
         private OrgDiscoveryInputParameters() {
 
+        }
+    }
+
+    /**
+     * Constants related to DFDP (Debug Flow Data Provider).
+     */
+    public static class DFDP {
+
+        // DFDP Status constants
+        public static final String STATUS_SUCCESS = "SUCCESS";
+        public static final String STATUS_FAILED = "FAILED";
+        public static final String STATUS_PARTIAL = "PARTIAL";
+        public static final String STATUS_ERROR = "ERROR";
+
+        // DFDP Response fields
+        public static final String FIELD_REQUEST_ID = "requestId";
+        public static final String FIELD_TARGET_IDP = "targetIdP";
+        public static final String FIELD_TARGET_AUTHENTICATOR = "targetAuthenticator";
+        public static final String FIELD_STATUS = "status";
+        public static final String FIELD_CLAIMS_ANALYSIS = "claimsAnalysis";
+        public static final String FIELD_ORIGINAL_CLAIMS = "originalClaims";
+        public static final String FIELD_MAPPED_CLAIMS = "mappedClaims";
+        public static final String FIELD_FILTERED_CLAIMS = "filteredClaims";
+        public static final String FIELD_SYSTEM_CLAIMS = "systemClaims";
+        public static final String FIELD_VALIDATION_ERRORS = "validationErrors";
+        public static final String FIELD_RECOMMENDATIONS = "recommendations";
+        public static final String FIELD_TIMESTAMP = "timestamp";
+        public static final String FIELD_PROCESSING_TIME = "processingTimeMs";
+
+        // DFDP Error messages
+        public static final String ERROR_INVALID_IDP = "Invalid or non-existent Identity Provider specified";
+        public static final String ERROR_INVALID_AUTHENTICATOR = "Invalid or unsupported authenticator specified";
+        public static final String ERROR_IDP_NOT_CONFIGURED = "Identity Provider is not properly configured";
+        public static final String ERROR_AUTHENTICATOR_NOT_AVAILABLE = "Specified authenticator is not available";
+        public static final String ERROR_CLAIM_MAPPING_FAILED = "Claim mapping process failed";
+        public static final String ERROR_AUTHENTICATION_FAILED = "Authentication with external IdP failed";
+        public static final String ERROR_INVALID_REQUEST = "Invalid DFDP request parameters";
+        public static final String ERROR_INTERNAL_ERROR = "Internal error occurred during DFDP processing";
+
+        private DFDP() {
+            // Prevent instantiation
+        }
+    }
+
+    /**
+     * Enum for DFDP Error Details.
+     */
+    public enum DFDPErrorDetails {
+
+        INVALID_REQUEST("DFDP-70001", "Invalid DFDP request parameters provided."),
+        TARGET_IDP_NOT_FOUND("DFDP-70002", "Specified target Identity Provider not found."),
+        TARGET_AUTHENTICATOR_NOT_FOUND("DFDP-70003", "Specified target authenticator not found."),
+        IDP_NOT_CONFIGURED("DFDP-70004", "Target Identity Provider is not properly configured."),
+        AUTHENTICATOR_NOT_AVAILABLE("DFDP-70005", "Target authenticator is not available or enabled."),
+        AUTHENTICATION_FAILED("DFDP-70006", "Authentication with external Identity Provider failed."),
+        CLAIM_MAPPING_FAILED("DFDP-70007", "Claim mapping process encountered errors."),
+        INVALID_CLAIMS_FILTER("DFDP-70008", "Invalid claims filter parameters provided."),
+        PROCESSING_TIMEOUT("DFDP-70009", "DFDP processing timed out."),
+        INTERNAL_ERROR("DFDP-70010", "Internal server error occurred during DFDP processing.");
+
+        private final String code;
+        private final String message;
+
+        DFDPErrorDetails(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+
+            return this.code;
+        }
+
+        public String getMessage() {
+
+            return this.message;
         }
     }
 
