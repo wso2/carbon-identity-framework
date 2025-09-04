@@ -18,6 +18,7 @@
 
 <serviceGroup>
     <service name="IdentityProviderMgtService" scope="transportsession">
+        <AuthenticationEnabled>true</AuthenticationEnabled>
         <transports>
             <transport>https</transport>
         </transports>

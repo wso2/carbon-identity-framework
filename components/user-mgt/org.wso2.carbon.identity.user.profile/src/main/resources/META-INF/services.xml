@@ -20,6 +20,7 @@
 <serviceGroup>
 
     <service name="UserProfileMgtService" scope="transportsession">
+        <AuthenticationEnabled>true</AuthenticationEnabled>
         <transports>
             <transport>https</transport>
         </transports>

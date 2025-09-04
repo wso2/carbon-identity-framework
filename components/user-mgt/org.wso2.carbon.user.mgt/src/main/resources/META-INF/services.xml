@@ -114,6 +114,7 @@
 
 
     <service name="UserAdmin" scope="transportsession">
+        <AuthenticationEnabled>true</AuthenticationEnabled>
         <transports>
             <transport>https</transport>
         </transports>
@@ -128,6 +129,7 @@
 
         <operation name="changePasswordByUser">
             <parameter name="DoAuthentication" locked="true">false</parameter>
+            <AuthenticationEnabled>false</AuthenticationEnabled>
         </operation>
 
         <operation name="getRolesOfCurrentUser">
