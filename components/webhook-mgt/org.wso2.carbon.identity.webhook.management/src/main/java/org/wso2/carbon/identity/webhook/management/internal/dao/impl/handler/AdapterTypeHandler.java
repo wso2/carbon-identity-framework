@@ -92,12 +92,7 @@ public abstract class AdapterTypeHandler implements WebhookManagementDAO {
 
     protected String getWebhookDecryptedSecretValue(String webhookId) throws WebhookMgtException {
 
-        try {
-            return webhookSecretProcessor.decryptAssociatedSecrets(webhookId);
-        } catch (SecretManagementException e) {
-            throw WebhookManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_CODE_WEBHOOK_ENDPOINT_SECRET_DECRYPTION_ERROR, e, webhookId);
-        }
+        return webhookSecretProcessor.decryptAssociatedSecrets(webhookId);
     }
 
     private Webhook addSecretOrAliasToBuilder(Webhook webhook, String secretAlias) throws WebhookMgtException {

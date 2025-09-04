@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementExcept
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
+import org.wso2.carbon.identity.webhook.management.api.exception.WebhookMgtException;
 import org.wso2.carbon.identity.webhook.management.internal.component.WebhookManagementComponentServiceHolder;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookSecretProcessor;
 
@@ -114,7 +115,7 @@ public class WebhookSecretProcessorTest {
     }
 
     @Test
-    public void testDecryptAssociatedSecrets() throws SecretManagementException {
+    public void testDecryptAssociatedSecrets() throws SecretManagementException, WebhookMgtException {
 
         when(secretManager.isSecretExist(TEST_SECRET_TYPE_ID, SECRET_NAME)).thenReturn(true);
 
@@ -127,8 +128,8 @@ public class WebhookSecretProcessorTest {
         Assert.assertEquals(decrypted, TEST_SECRET);
     }
 
-    @Test(expectedExceptions = SecretManagementException.class)
-    public void testDecryptAssociatedSecrets_SecretNotExist() throws SecretManagementException {
+    @Test(expectedExceptions = WebhookMgtException.class)
+    public void testDecryptAssociatedSecrets_SecretNotExist() throws SecretManagementException, WebhookMgtException {
 
         when(secretManager.isSecretExist(TEST_SECRET_TYPE_ID, SECRET_NAME)).thenReturn(false);
 
