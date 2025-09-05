@@ -121,6 +121,7 @@ public abstract class FrameworkConstants {
     public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
     public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
+    public static final String PRESERVE_LOCALLY_ADDED_CLAIMS = "JITProvisioning.PreserveLocallyAddedClaims";
     public static final String ALLOW_ASSOCIATING_TO_EXISTING_USER = "JITProvisioning.AllowAssociatingToExistingUser";
     public static final String RETAIN_EMAIL_DOMAIN_ON_PROVISIONING = "JITProvisioning.RetainEmailDomainOnProvisioning";
     public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";

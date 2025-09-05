@@ -1517,6 +1517,9 @@
         </IndelibleClaims>
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user | default(true)}}</AllowAssociatingToExistingUser>
         <RetainEmailDomainOnProvisioning>{{authentication.jit_provisioning.retain_email_domain_on_provisioning}}</RetainEmailDomainOnProvisioning>
+        {% if authentication.jit_provisioning.preserve_locally_added_claims is defined %}
+        <PreserveLocallyAddedClaims>{{authentication.jit_provisioning.preserve_locally_added_claims}}</PreserveLocallyAddedClaims>
+        {% endif %}
     </JITProvisioning>
 
     <!--Application management service configurations-->
