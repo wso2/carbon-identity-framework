@@ -1302,9 +1302,7 @@
   "console.ui.hiddenConnectionTemplates": [
     "swe-idp"
   ],
-  "console.ui.hiddenApplicationTemplates": [
-    "microsoft-365"
-  ],
+  "console.ui.hiddenApplicationTemplates": [],
   "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
