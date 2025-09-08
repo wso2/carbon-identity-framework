@@ -305,7 +305,7 @@ public abstract class FrameworkConstants {
     public static final String DFDP_AUTHENTICATOR_SETUP_COMPLETE = "dfdpAuthenticatorSetupComplete";
     public static final String DFDP_EXECUTION_MODE = "dfdpExecutionMode";
     public static final String DFDP_RETRIEVED_CLAIMS = "dfdpRetrievedClaims";
-
+            
     private FrameworkConstants() {
 
     }

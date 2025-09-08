@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.flow.data.provider.dfdp.integration.DFDPClaimProcessingIntegration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,9 +44,11 @@ public class DFDPOrchestrator implements DFDPService {
     private static final Log log = LogFactory.getLog(DFDPOrchestrator.class);
     
     private DFDPAuthenticatorSetup authenticatorSetup;
+    private DFDPAuthenticatorExecutor authenticatorExecutor;
 
     public DFDPOrchestrator() {
         this.authenticatorSetup = new DFDPAuthenticatorSetup();
+        this.authenticatorExecutor = new DFDPAuthenticatorExecutor();
     }
 
     /**
@@ -64,6 +67,7 @@ public class DFDPOrchestrator implements DFDPService {
 
         String requestId = generateRequestId();
         context.setProperty(FrameworkConstants.DFDP_REQUEST_ID, requestId);
+        long startTime = System.currentTimeMillis();
 
         try {
             if (log.isDebugEnabled()) {
@@ -73,23 +77,35 @@ public class DFDPOrchestrator implements DFDPService {
             // Step 1: Validate DFDP parameters
             validateDFDPParameters(request, context);
 
-            // Step 2: Setup authenticator configuration
+            // Step 2: Setup DFDP integration for claim processing
+            DFDPClaimProcessingIntegration.setupDFDPContext(context, requestId);
+
+            // Step 3: Setup authenticator configuration
             authenticatorSetup.setupAuthenticatorForDFDP(context);
 
-            // Step 3: Execute the authenticator flow directly
-            executeDFDPAuthenticatorFlow(context);
+            // Step 4: Execute the authenticator flow directly
+            DFDPExecutionResult executionResult = authenticatorExecutor.executeAuthenticator(context, request, response);
+            
+            // Calculate execution time
+            long executionTime = System.currentTimeMillis() - startTime;
+            executionResult.setExecutionTimeMs(executionTime);
 
-            // Step 4: Send success response with claim data
-            sendDFDPResponse(response, context, requestId);
+            // Step 5: Send response with execution results
+            sendDFDPResponseWithResults(response, context, executionResult);
 
             if (log.isDebugEnabled()) {
-                log.debug("DFDP request processing completed successfully for ID: " + requestId);
+                log.debug("DFDP request processing completed successfully for ID: " + requestId + 
+                         " in " + executionTime + "ms");
             }
 
         } catch (Exception e) {
-            log.error("Error processing DFDP request with ID: " + requestId, e);
+            long executionTime = System.currentTimeMillis() - startTime;
+            log.error("Error processing DFDP request with ID: " + requestId + " after " + executionTime + "ms", e);
             sendDFDPErrorResponse(response, context, requestId, e.getMessage());
             throw new FrameworkException("DFDP processing failed: " + e.getMessage(), e);
+        } finally {
+            // Cleanup DFDP integration context
+            DFDPClaimProcessingIntegration.cleanupDFDPContext(context);
         }
     }
 
@@ -132,149 +148,36 @@ public class DFDPOrchestrator implements DFDPService {
     }
 
     /**
-     * Executes the DFDP authenticator flow directly without going through normal authentication sequence.
-     * This method simulates the authentication process to test claim mappings.
-     * 
-     * @param context Authentication context containing DFDP configuration
-     * @throws FrameworkException if execution fails
-     */
-    private void executeDFDPAuthenticatorFlow(AuthenticationContext context) throws FrameworkException {
-
-        StepConfig stepConfig = (StepConfig) context.getProperty(FrameworkConstants.DFDP_STEP_CONFIG);
-        IdentityProvider identityProvider = (IdentityProvider) context.getProperty(FrameworkConstants.DFDP_IDENTITY_PROVIDER);
-
-        if (stepConfig == null || identityProvider == null) {
-            throw new FrameworkException("DFDP configuration not properly setup");
-        }
-
-        try {
-            if (log.isDebugEnabled()) {
-                log.debug("Executing DFDP authenticator flow for IdP: " + identityProvider.getIdentityProviderName());
-            }
-
-            // Simulate authentication execution and claim retrieval
-            // In a real implementation, this would:
-            // 1. Execute the configured authenticator
-            // 2. Retrieve claims from the external IdP
-            // 3. Apply claim mappings
-            // 4. Store results for response
-
-            // For now, we'll prepare mock data to demonstrate the concept
-            Map<String, String> retrievedClaims = simulateClaimRetrieval(context);
-            Map<String, String> mappedClaims = simulateClaimMapping(retrievedClaims, identityProvider);
-
-            // Store results in context
-            context.setProperty(FrameworkConstants.DFDP_RETRIEVED_CLAIMS, retrievedClaims);
-            context.setProperty(FrameworkConstants.DFDP_MAPPED_CLAIMS, mappedClaims);
-            context.setProperty(FrameworkConstants.DFDP_EXECUTION_STATUS, FrameworkConstants.DFDPStatus.SUCCESS);
-
-            if (log.isDebugEnabled()) {
-                log.debug("DFDP authenticator flow executed successfully. Retrieved " + 
-                         retrievedClaims.size() + " claims, mapped to " + mappedClaims.size() + " claims");
-            }
-
-        } catch (Exception e) {
-            context.setProperty(FrameworkConstants.DFDP_EXECUTION_STATUS, FrameworkConstants.DFDPStatus.FAILED);
-            context.setProperty(FrameworkConstants.DFDP_ERROR_MESSAGE, e.getMessage());
-            throw new FrameworkException("Failed to execute DFDP authenticator flow: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Simulates claim retrieval from external IdP.
-     * In a real implementation, this would interact with the actual authenticator.
-     * 
-     * @param context Authentication context
-     * @return Map of retrieved claims
-     */
-    private Map<String, String> simulateClaimRetrieval(AuthenticationContext context) {
-
-        Map<String, String> claims = new HashMap<>();
-        
-        // Simulate some common claims that would be retrieved from external IdP
-        claims.put("http://wso2.org/claims/emailaddress", "test.user@example.com");
-        claims.put("http://wso2.org/claims/fullname", "Test User");
-        claims.put("http://wso2.org/claims/givenname", "Test");
-        claims.put("http://wso2.org/claims/lastname", "User");
-        claims.put("http://wso2.org/claims/organization", "WSO2");
-
-        // Add any test claims specified in the request
-        String testClaims = (String) context.getProperty(FrameworkConstants.DFDP_TEST_CLAIMS);
-        if (testClaims != null) {
-            // Parse test claims format: "claim1=value1,claim2=value2"
-            String[] claimPairs = testClaims.split(",");
-            for (String claimPair : claimPairs) {
-                String[] parts = claimPair.split("=", 2);
-                if (parts.length == 2) {
-                    claims.put(parts[0].trim(), parts[1].trim());
-                }
-            }
-        }
-
-        return claims;
-    }
-
-    /**
-     * Simulates claim mapping process.
-     * In a real implementation, this would use the actual claim mapping configuration.
-     * 
-     * @param retrievedClaims Claims retrieved from external IdP
-     * @param identityProvider Identity Provider configuration
-     * @return Map of mapped claims
-     */
-    private Map<String, String> simulateClaimMapping(Map<String, String> retrievedClaims, 
-                                                    IdentityProvider identityProvider) {
-
-        Map<String, String> mappedClaims = new HashMap<>();
-
-        // Simulate claim mapping logic
-        // In reality, this would use the IdP's claim mapping configuration
-        for (Map.Entry<String, String> entry : retrievedClaims.entrySet()) {
-            String claimUri = entry.getKey();
-            String claimValue = entry.getValue();
-            
-            // Simple mapping simulation - in reality this would be configurable
-            String mappedUri = claimUri; // Default to same URI
-            if (claimUri.contains("emailaddress")) {
-                mappedUri = "http://wso2.org/claims/username";
-            }
-            
-            mappedClaims.put(mappedUri, claimValue);
-        }
-
-        return mappedClaims;
-    }
-
-    /**
-     * Sends successful DFDP response with claim data.
+     * Sends successful DFDP response with execution results.
      * 
      * @param response HTTP servlet response
      * @param context Authentication context containing results
-     * @param requestId DFDP request ID
+     * @param executionResult DFDP execution result
      * @throws IOException if response writing fails
      */
-    private void sendDFDPResponse(HttpServletResponse response, AuthenticationContext context, 
-                                 String requestId) throws IOException {
-
-        Map<String, String> retrievedClaims = (Map<String, String>) context.getProperty(FrameworkConstants.DFDP_RETRIEVED_CLAIMS);
-        Map<String, String> mappedClaims = (Map<String, String>) context.getProperty(FrameworkConstants.DFDP_MAPPED_CLAIMS);
+    private void sendDFDPResponseWithResults(HttpServletResponse response, AuthenticationContext context, 
+                                           DFDPExecutionResult executionResult) throws IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         StringBuilder jsonResponse = new StringBuilder();
         jsonResponse.append("{");
-        jsonResponse.append("\"requestId\":\"").append(requestId).append("\",");
-        jsonResponse.append("\"status\":\"").append(FrameworkConstants.DFDPStatus.SUCCESS).append("\",");
-        jsonResponse.append("\"targetIdP\":\"").append(context.getProperty(FrameworkConstants.DFDP_TARGET_IDP)).append("\",");
+        jsonResponse.append("\"requestId\":\"").append(executionResult.getRequestId()).append("\",");
+        jsonResponse.append("\"status\":\"").append(executionResult.getStatus()).append("\",");
+        jsonResponse.append("\"targetIdP\":\"").append(executionResult.getTargetIdP()).append("\",");
+        jsonResponse.append("\"authenticatorName\":\"").append(executionResult.getAuthenticatorName()).append("\",");
+        jsonResponse.append("\"executionTimeMs\":").append(executionResult.getExecutionTimeMs()).append(",");
         
         // Add retrieved claims
         jsonResponse.append("\"retrievedClaims\":{");
+        Map<String, String> retrievedClaims = executionResult.getRetrievedClaims();
         if (retrievedClaims != null) {
             boolean first = true;
             for (Map.Entry<String, String> entry : retrievedClaims.entrySet()) {
                 if (!first) jsonResponse.append(",");
-                jsonResponse.append("\"").append(entry.getKey()).append("\":\"").append(entry.getValue()).append("\"");
+                jsonResponse.append("\"").append(escapeJson(entry.getKey())).append("\":\"")
+                          .append(escapeJson(entry.getValue())).append("\"");
                 first = false;
             }
         }
@@ -282,22 +185,70 @@ public class DFDPOrchestrator implements DFDPService {
 
         // Add mapped claims
         jsonResponse.append("\"mappedClaims\":{");
+        Map<String, String> mappedClaims = executionResult.getMappedClaims();
         if (mappedClaims != null) {
             boolean first = true;
             for (Map.Entry<String, String> entry : mappedClaims.entrySet()) {
                 if (!first) jsonResponse.append(",");
-                jsonResponse.append("\"").append(entry.getKey()).append("\":\"").append(entry.getValue()).append("\"");
+                jsonResponse.append("\"").append(escapeJson(entry.getKey())).append("\":\"")
+                          .append(escapeJson(entry.getValue())).append("\"");
                 first = false;
             }
         }
+        jsonResponse.append("},");
+
+        // Add authenticator properties
+        jsonResponse.append("\"authenticatorProperties\":{");
+        Map<String, String> authenticatorProperties = executionResult.getAuthenticatorProperties();
+        if (authenticatorProperties != null) {
+            boolean first = true;
+            for (Map.Entry<String, String> entry : authenticatorProperties.entrySet()) {
+                if (!first) jsonResponse.append(",");
+                jsonResponse.append("\"").append(escapeJson(entry.getKey())).append("\":\"")
+                          .append(escapeJson(entry.getValue())).append("\"");
+                first = false;
+            }
+        }
+        jsonResponse.append("},");
+
+        // Add summary information
+        jsonResponse.append("\"summary\":{");
+        jsonResponse.append("\"retrievedClaimsCount\":").append(executionResult.getRetrievedClaimsCount()).append(",");
+        jsonResponse.append("\"mappedClaimsCount\":").append(executionResult.getMappedClaimsCount()).append(",");
+        jsonResponse.append("\"successful\":").append(executionResult.isSuccessful());
+        
+        // Add claim analysis summary if available
+        DFDPClaimAnalysis claimAnalysis = executionResult.getClaimAnalysis();
+        if (claimAnalysis != null) {
+            jsonResponse.append(",\"claimAnalysis\":{");
+            jsonResponse.append("\"processingStatus\":\"").append(escapeJson(claimAnalysis.getProcessingStatus())).append("\",");
+            jsonResponse.append("\"totalValidations\":").append(claimAnalysis.getTotalValidations()).append(",");
+            jsonResponse.append("\"errorValidations\":").append(claimAnalysis.getErrorValidations()).append(",");
+            jsonResponse.append("\"warningValidations\":").append(claimAnalysis.getWarningValidations());
+            
+            if (claimAnalysis.getCoverage() != null) {
+                jsonResponse.append(",\"coverage\":{");
+                jsonResponse.append("\"percentage\":").append(claimAnalysis.getCoverage().getCoveragePercentage()).append(",");
+                jsonResponse.append("\"level\":\"").append(escapeJson(claimAnalysis.getCoverage().getCoverageLevel())).append("\"");
+                jsonResponse.append("}");
+            }
+            
+            if (claimAnalysis.getCategories() != null) {
+                jsonResponse.append(",\"categories\":\"").append(escapeJson(claimAnalysis.getCategories().getCategorySummary())).append("\"");
+            }
+            
+            jsonResponse.append("}");
+        }
+        
         jsonResponse.append("}");
+        
         jsonResponse.append("}");
 
         response.getWriter().write(jsonResponse.toString());
         response.getWriter().flush();
 
         if (log.isDebugEnabled()) {
-            log.debug("DFDP success response sent for request ID: " + requestId);
+            log.debug("DFDP success response sent for request ID: " + executionResult.getRequestId());
         }
     }
 
@@ -321,7 +272,7 @@ public class DFDPOrchestrator implements DFDPService {
         jsonResponse.append("{");
         jsonResponse.append("\"requestId\":\"").append(requestId).append("\",");
         jsonResponse.append("\"status\":\"").append(FrameworkConstants.DFDPStatus.FAILED).append("\",");
-        jsonResponse.append("\"error\":\"").append(errorMessage.replace("\"", "\\\"")).append("\"");
+        jsonResponse.append("\"error\":\"").append(escapeJson(errorMessage)).append("\"");
         jsonResponse.append("}");
 
         response.getWriter().write(jsonResponse.toString());
@@ -330,6 +281,23 @@ public class DFDPOrchestrator implements DFDPService {
         if (log.isDebugEnabled()) {
             log.debug("DFDP error response sent for request ID: " + requestId + ", error: " + errorMessage);
         }
+    }
+
+    /**
+     * Escapes special characters in JSON strings.
+     * 
+     * @param input Input string
+     * @return Escaped string
+     */
+    private String escapeJson(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replace("\\", "\\\\")
+                   .replace("\"", "\\\"")
+                   .replace("\n", "\\n")
+                   .replace("\r", "\\r")
+                   .replace("\t", "\\t");
     }
 
     /**
