@@ -1051,6 +1051,11 @@
                 <artifactId>org.wso2.carbon.identity.authorization.framework</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.authorization.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!--OpenSAML3 dependencies-->
             <dependency>
