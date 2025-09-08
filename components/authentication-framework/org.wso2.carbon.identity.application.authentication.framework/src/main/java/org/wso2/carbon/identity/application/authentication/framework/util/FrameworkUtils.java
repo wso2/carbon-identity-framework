@@ -2464,15 +2464,28 @@ public class FrameworkUtils {
         cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 
+    /**
+     * Get the multi attribute separator.
+     *
+     * @return Multi attribute separator.
+     * @deprecated This method is deprecated and may be removed in future releases.
+     */
     @Deprecated
     public static String getMultiAttributeSeparator() {
 
         return getMultiAttributeSeparator(null);
     }
 
+    /**
+     * Retrieves the multi-attribute separator for a given user store domain.
+     *
+     * @param userStoreDomain The user store domain.
+     * @return The multi-attribute separator.
+     */
     public static String getMultiAttributeSeparator(String userStoreDomain) {
 
         String multiAttributeSeparator = null;
+        // Check if org-wise multi attribute separator is enabled.
         if (Boolean.parseBoolean(IdentityUtil.getProperty(ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED))) {
             try {
                 Attribute configAttribute = FrameworkServiceDataHolder.getInstance().getConfigurationManager()
@@ -2494,31 +2507,20 @@ public class FrameworkUtils {
             }
         }
 
+        // Retrieve the multi-attribute separator from the user store configuration if not found in the org config.
         if (StringUtils.isBlank(multiAttributeSeparator)) {
             try {
-                if (userStoreDomain != null) {
-                    // Retrieve the user store manager of the user store domain.
-                    AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) ((AbstractUserStoreManager)
-                            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager())
-                            .getSecondaryUserStoreManager(userStoreDomain);
-                    // Retrieve the multi attribute separator configured for the user store.
+                AbstractUserStoreManager userStoreManager = getUserStoreManager(userStoreDomain);
+                if (userStoreManager != null) {
                     multiAttributeSeparator = userStoreManager.getRealmConfiguration()
                             .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-
-                } else {
-                    multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
-                            .getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants
-                                    .MULTI_ATTRIBUTE_SEPARATOR);
-
                 }
             } catch (UserStoreException e) {
-                log.error("Error while retrieving MultiAttributeSeparator from UserRealm.");
-                if (log.isDebugEnabled()) {
-                    log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
-                }
+                log.error("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
             }
         }
 
+        // If multi-attribute separator is not found through the above methods, use the default value.
         if (StringUtils.isBlank(multiAttributeSeparator)) {
             multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
             if (log.isDebugEnabled()) {
@@ -2526,6 +2528,23 @@ public class FrameworkUtils {
             }
         }
         return multiAttributeSeparator;
+    }
+
+    /**
+     * Retrieves the user store manager for the given user store domain.
+     *
+     * @param userStoreDomain The user store domain.
+     * @return The user store manager, or null if not found.
+     * @throws UserStoreException If an error occurs while retrieving the user store manager.
+     */
+    private static AbstractUserStoreManager getUserStoreManager(String userStoreDomain) throws UserStoreException {
+        if (userStoreDomain != null) {
+            return (AbstractUserStoreManager) ((AbstractUserStoreManager)
+                    CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager())
+                    .getSecondaryUserStoreManager(userStoreDomain);
+        }
+        return (AbstractUserStoreManager) CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                .getUserStoreManager();
     }
 
     public static String getPASTRCookieName (String sessionDataKey) {
