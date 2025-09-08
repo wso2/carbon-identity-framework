@@ -191,7 +191,7 @@ public class MyAccountAuthorizedAPIListenerTest {
 
         myAccountAuthorizedAPIListener.postGetAuthorizedScopes(authorizedScopesList, MY_ACCOUNT_APP_ID, tenantDomain);
 
-        assertEquals(authorizedScopesList.size(), 1);
+        assertEquals(authorizedScopesList.size(), 2);
         AuthorizedScopes authorizedScopes = authorizedScopesList.get(0);
         assertEquals(authorizedScopes.getPolicyId(), APIResourceManagementConstants.NO_POLICY);
         assertTrue(authorizedScopes.getScopes().contains("internal_approval_task_view"));
