@@ -41,7 +41,7 @@ public class LocalClaim {
     private String dataType = null;
     private Boolean multiValued = null;
     private List<Property> properties = null;
-    private List<CanonicalValue> canonicalValues = null;
+    private List<LabelValue> canonicalValues = null;
     private InputFormat inputFormat = null;
 
     /**
@@ -323,7 +323,7 @@ public class LocalClaim {
      * @return The list of canonical values.
      */
     @JsonProperty("canonicalValues")
-    public List<CanonicalValue> getCanonicalValues() {
+    public List<LabelValue> getCanonicalValues() {
 
         return canonicalValues;
     }
@@ -333,7 +333,7 @@ public class LocalClaim {
      *
      * @param canonicalValues The list of canonical values.
      */
-    public void setCanonicalValues(List<CanonicalValue> canonicalValues) {
+    public void setCanonicalValues(List<LabelValue> canonicalValues) {
 
         this.canonicalValues = canonicalValues;
     }
@@ -388,11 +388,14 @@ public class LocalClaim {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, claimURI, dialectURI, description, displayOrder, displayName, required, readOnly, regEx, supportedByDefault, dataType, multiValued, properties, canonicalValues, inputFormat);
+
+        return Objects.hash(id, claimURI, dialectURI, description, displayOrder, displayName, required, readOnly, regEx,
+                supportedByDefault, dataType, multiValued, properties, canonicalValues, inputFormat);
     }
 
     @Override
     public String toString() {
+
         return "LocalClaim{" +
                 "id='" + id + '\'' +
                 ", claimURI='" + claimURI + '\'' +
