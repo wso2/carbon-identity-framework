@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * Represents a canonical value for a claim with label and value.
  */
-public class CanonicalValue {
+public class LabelValue {
 
     private String label = null;
     private String value = null;
@@ -80,7 +80,7 @@ public class CanonicalValue {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        CanonicalValue that = (CanonicalValue) o;
+        LabelValue that = (LabelValue) o;
         return Objects.equals(this.label, that.label) &&
                 Objects.equals(this.value, that.value);
     }
