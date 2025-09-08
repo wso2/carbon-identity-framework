@@ -37,16 +37,177 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DFDP Authenticator Setup.
- * This class handles the direct configuration and setup of authenticators for DFDP flows,
- * bypassing the normal authentication sequence to directly test external IdP interactions.
+ * DFDP Authenticator Setup and Configuration Manager.
+ * This class handles comprehensive authenticator configuration, validation, and setup for DFDP flows.
+ * Part 4: Authenticator Configuration - Focuses on authenticator discovery, validation, and configuration setup.
  */
 public class DFDPAuthenticatorSetup {
 
     private static final Log log = LogFactory.getLog(DFDPAuthenticatorSetup.class);
 
     /**
-     * Sets up the target authenticator for DFDP processing.
+     * Validates authenticator configuration for DFDP compatibility.
+     * 
+     * @param identityProvider Identity Provider to validate
+     * @param targetAuthenticator Target authenticator name
+     * @return DFDPAuthenticatorValidationResult validation result
+     * @throws FrameworkException if validation fails
+     */
+    public DFDPAuthenticatorValidationResult validateAuthenticatorConfiguration(IdentityProvider identityProvider,
+                                                                               String targetAuthenticator) 
+                                                                               throws FrameworkException {
+
+        DFDPAuthenticatorValidationResult result = new DFDPAuthenticatorValidationResult();
+        result.setValid(true);
+        result.setIdentityProviderName(identityProvider.getIdentityProviderName());
+        result.setTargetAuthenticator(targetAuthenticator);
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating authenticator configuration for IdP: " + 
+                         identityProvider.getIdentityProviderName() + ", Authenticator: " + targetAuthenticator);
+            }
+
+            // Validate Identity Provider
+            validateIdentityProvider(identityProvider, result);
+
+            // Validate Authenticator Configuration
+            validateAuthenticatorExists(identityProvider, targetAuthenticator, result);
+
+            // Validate Authenticator Properties
+            validateAuthenticatorProperties(identityProvider, targetAuthenticator, result);
+
+            // Validate Claim Configuration
+            validateClaimConfiguration(identityProvider, result);
+
+            // Validate Role Configuration
+            validateRoleConfiguration(identityProvider, result);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticator validation completed. Valid: " + result.isValid() + 
+                         ", Issues: " + result.getValidationIssues().size());
+            }
+
+        } catch (Exception e) {
+            log.error("Error validating authenticator configuration", e);
+            result.setValid(false);
+            result.addValidationIssue("VALIDATION_ERROR", "Critical", 
+                                     "Error during validation: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
+     * Discovers available authenticators for an Identity Provider.
+     * 
+     * @param identityProvider Identity Provider
+     * @return List of available authenticator configurations
+     * @throws FrameworkException if discovery fails
+     */
+    public List<DFDPAuthenticatorInfo> discoverAvailableAuthenticators(IdentityProvider identityProvider) 
+                                                                       throws FrameworkException {
+
+        List<DFDPAuthenticatorInfo> authenticators = new ArrayList<>();
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Discovering authenticators for IdP: " + identityProvider.getIdentityProviderName());
+            }
+
+            // Get federated authenticator configurations
+            FederatedAuthenticatorConfig[] federatedConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+            if (federatedConfigs != null) {
+                for (FederatedAuthenticatorConfig config : federatedConfigs) {
+                    DFDPAuthenticatorInfo info = createAuthenticatorInfo(config, "FEDERATED");
+                    authenticators.add(info);
+                }
+            }
+
+            // Add default authenticator if available
+            FederatedAuthenticatorConfig defaultConfig = identityProvider.getDefaultAuthenticatorConfig();
+            if (defaultConfig != null) {
+                // Mark as default
+                for (DFDPAuthenticatorInfo info : authenticators) {
+                    if (defaultConfig.getName().equals(info.getName())) {
+                        info.setDefaultAuthenticator(true);
+                        break;
+                    }
+                }
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Discovered " + authenticators.size() + " authenticators for IdP: " + 
+                         identityProvider.getIdentityProviderName());
+            }
+
+        } catch (Exception e) {
+            log.error("Error discovering authenticators", e);
+            throw new FrameworkException("Failed to discover authenticators: " + e.getMessage(), e);
+        }
+
+        return authenticators;
+    }
+
+    /**
+     * Gets detailed authenticator configuration.
+     * 
+     * @param identityProvider Identity Provider
+     * @param authenticatorName Authenticator name
+     * @return Detailed authenticator configuration
+     * @throws FrameworkException if configuration retrieval fails
+     */
+    public DFDPAuthenticatorConfiguration getAuthenticatorConfiguration(IdentityProvider identityProvider,
+                                                                        String authenticatorName) 
+                                                                        throws FrameworkException {
+
+        DFDPAuthenticatorConfiguration config = new DFDPAuthenticatorConfiguration();
+        config.setAuthenticatorName(authenticatorName);
+        config.setIdentityProviderName(identityProvider.getIdentityProviderName());
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Getting configuration for authenticator: " + authenticatorName + 
+                         " in IdP: " + identityProvider.getIdentityProviderName());
+            }
+
+            // Find the authenticator config
+            FederatedAuthenticatorConfig authenticatorConfig = findAuthenticatorConfig(identityProvider, authenticatorName);
+            if (authenticatorConfig != null) {
+                config.setEnabled(authenticatorConfig.isEnabled());
+                config.setDisplayName(authenticatorConfig.getDisplayName());
+                
+                // Extract properties
+                Map<String, String> properties = extractAuthenticatorProperties(authenticatorConfig);
+                config.setProperties(properties);
+                
+                // Determine authenticator type
+                String authenticatorType = determineAuthenticatorType(authenticatorConfig);
+                config.setAuthenticatorType(authenticatorType);
+                
+                // Get supported features
+                List<String> supportedFeatures = getSupportedFeatures(authenticatorConfig);
+                config.setSupportedFeatures(supportedFeatures);
+                
+                config.setConfigured(true);
+                
+                if (log.isDebugEnabled()) {
+                    log.debug("Retrieved configuration for authenticator: " + authenticatorName + 
+                             ", Type: " + authenticatorType + ", Properties: " + properties.size());
+                }
+            } else {
+                config.setConfigured(false);
+                log.warn("Authenticator not found: " + authenticatorName + " in IdP: " + 
+                        identityProvider.getIdentityProviderName());
+            }
+
+        } catch (Exception e) {
+            log.error("Error getting authenticator configuration", e);
+            throw new FrameworkException("Failed to get authenticator configuration: " + e.getMessage(), e);
+        }
+
+        return config;
+    }
      * This method creates a minimal StepConfig and configures the specific authenticator
      * needed to interact with the target external IdP.
      * 
