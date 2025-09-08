@@ -1451,13 +1451,13 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
 
             carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
-            when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            lenient().when(carbonContext.getUserRealm()).thenReturn(userRealm);
             try {
                 lenient().when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
             } catch (UserStoreException e) {
                 throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
             }
-            when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+            lenient().when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
                     .thenReturn(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
 
             String separator = FrameworkUtils.getMultiAttributeSeparator();
@@ -1479,17 +1479,17 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
 
             carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
-            when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            lenient().when(carbonContext.getUserRealm()).thenReturn(userRealm);
             try {
-                when(userRealm.getUserStoreManager()).thenReturn(primaryUserStoreManager);
+                lenient().when(userRealm.getUserStoreManager()).thenReturn(primaryUserStoreManager);
                 lenient().when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
             } catch (UserStoreException e) {
                 throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
             }
-            when(primaryUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
+            lenient().when(primaryUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
                     .thenReturn(secondaryUserStoreManager);
-            when(secondaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
-            when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+            lenient().when(secondaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
+            lenient().when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
                     .thenReturn(";");
 
             String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
