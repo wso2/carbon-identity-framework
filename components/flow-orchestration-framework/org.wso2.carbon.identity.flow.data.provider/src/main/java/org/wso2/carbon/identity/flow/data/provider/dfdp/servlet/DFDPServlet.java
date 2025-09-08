@@ -134,11 +134,17 @@ public class DFDPServlet extends HttpServlet {
             context.setContextId(requestId);
             context.setProperty(FrameworkConstants.DFDP_REQUEST_ID, requestId);
 
-            // Add DFDP parameter to mark this as a DFDP request
-            request.setAttribute(FrameworkConstants.DFDP_PARAM, "true");
+            context.setProperty(FrameworkConstants.DFDP_ENABLED, true);
 
-            // Process DFDP request using orchestrator
-            dfdpOrchestrator.processDFDPRequest(request, response, context);
+            // Execute authentication flow with external IdP
+            DFDPExecutionResult executionResult = dfdpOrchestrator.executeRealIdPAuthentication(request, response, context);
+
+            // Build comprehensive DFDP response
+            DFDPResponse dfdpResponse = DFDPResponseBuilder.buildResponse(executionResult, context, 
+                    "DFDP REAL IdP authentication flow completed successfully");
+
+            // Format and send response
+            DFDPResponseFormatter.formatResponse(response, dfdpResponse, getResponseFormat(request));
 
         } catch (FrameworkException e) {
             log.error("DFDP test request failed for ID: " + requestId, e);
@@ -285,6 +291,56 @@ public class DFDPServlet extends HttpServlet {
             response.getWriter().write(fallbackResponse);
             response.getWriter().flush();
         }
+    }
+
+    /**
+     * Determines the response format based on request parameters.
+     * 
+     * @param request HTTP request
+     * @return Response format (json, html, text, summary)
+     */
+    private String getResponseFormat(HttpServletRequest request) {
+        String format = request.getParameter("format");
+        if (format == null || format.trim().isEmpty()) {
+            // Default to JSON format
+            format = "json";
+        }
+        
+        // Validate format
+        switch (format.toLowerCase()) {
+            case "json":
+            case "html":
+            case "text":
+            case "summary":
+                return format.toLowerCase();
+            default:
+                log.warn("Invalid response format requested: " + format + ". Defaulting to JSON.");
+                return "json";
+        }
+    }
+
+    /**
+     * Sends standardized error response.
+     * 
+     * @param response HTTP response
+     * @param requestId Request ID
+     * @param errorCode Error code
+     * @param message Error message
+     * @throws IOException if response writing fails
+     */
+    private void sendStandardizedErrorResponse(HttpServletResponse response, String requestId, 
+                                             String errorCode, String message) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+        String jsonResponse = "{\"requestId\":\"" + requestId + "\"," +
+                              "\"status\":\"ERROR\"," +
+                              "\"errorCode\":\"" + errorCode + "\"," +
+                              "\"message\":\"" + escapeJson(message) + "\"}";
+
+        response.getWriter().write(jsonResponse);
+        response.getWriter().flush();
     }
 
     /**
