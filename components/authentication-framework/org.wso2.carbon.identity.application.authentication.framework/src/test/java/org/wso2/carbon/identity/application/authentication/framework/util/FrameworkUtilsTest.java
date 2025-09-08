@@ -1453,15 +1453,15 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
             when(carbonContext.getUserRealm()).thenReturn(userRealm);
             try {
-                when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
+                lenient().when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
             } catch (UserStoreException e) {
                 throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
             }
             when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
-                    .thenReturn("|");
+                    .thenReturn(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
 
             String separator = FrameworkUtils.getMultiAttributeSeparator();
-            assertEquals(separator, "|");
+            assertEquals(separator, IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
         }
     }
 
