@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "The requested DFDP debug endpoint was not found",
+    "timestamp": "{{timestamp}}",
+    "status": 404,
+    "details": "Use /debug endpoint with appropriate parameters. See GET /debug for API documentation."
+  }
+}

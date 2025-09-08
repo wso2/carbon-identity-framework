@@ -41,6 +41,7 @@ public class FrameworkConstants {
         public static final String TARGET_AUTHENTICATOR = "dfdpTargetAuthenticator";
         public static final String TEST_CLAIMS = "dfdpTestClaims";
         public static final String EXPECTED_RESULTS = "dfdpExpectedResults";
+        public static final String OUTPUT_FORMAT = "dfdpOutputFormat";
 
         // Claim event types
         public static final String CLAIM_EVENT_REMOTE_RECEIVED = "REMOTE_CLAIMS_RECEIVED";

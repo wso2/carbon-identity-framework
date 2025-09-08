@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.flow.data.provider.dfdp.integration.DFDPClaimProcessingIntegration;
+import org.wso2.carbon.identity.flow.data.provider.dfdp.response.DFDPResponse;
+import org.wso2.carbon.identity.flow.data.provider.dfdp.response.DFDPResponseBuilder;
+import org.wso2.carbon.identity.flow.data.provider.dfdp.response.DFDPResponseFormatter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -131,6 +134,9 @@ public class DFDPOrchestrator implements DFDPService {
         // Extract optional test claims
         String testClaims = request.getParameter(FrameworkConstants.DFDP_TEST_CLAIMS);
 
+        // Extract optional output format
+        String outputFormat = request.getParameter(org.wso2.carbon.identity.flow.data.provider.dfdp.util.FrameworkConstants.DFDP.OUTPUT_FORMAT);
+
         // Store validated parameters in context
         context.setProperty(FrameworkConstants.DFDP_TARGET_IDP, targetIdP.trim());
         if (targetAuthenticator != null && !targetAuthenticator.trim().isEmpty()) {
@@ -139,11 +145,15 @@ public class DFDPOrchestrator implements DFDPService {
         if (testClaims != null && !testClaims.trim().isEmpty()) {
             context.setProperty(FrameworkConstants.DFDP_TEST_CLAIMS, testClaims.trim());
         }
+        if (outputFormat != null && !outputFormat.trim().isEmpty()) {
+            context.setProperty(org.wso2.carbon.identity.flow.data.provider.dfdp.util.FrameworkConstants.DFDP.OUTPUT_FORMAT, outputFormat.trim().toLowerCase());
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("DFDP parameters validated - Target IdP: " + targetIdP + 
                      ", Target Authenticator: " + targetAuthenticator + 
-                     ", Test Claims: " + testClaims);
+                     ", Test Claims: " + testClaims + 
+                     ", Output Format: " + outputFormat);
         }
     }
 
@@ -158,97 +168,34 @@ public class DFDPOrchestrator implements DFDPService {
     private void sendDFDPResponseWithResults(HttpServletResponse response, AuthenticationContext context, 
                                            DFDPExecutionResult executionResult) throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        StringBuilder jsonResponse = new StringBuilder();
-        jsonResponse.append("{");
-        jsonResponse.append("\"requestId\":\"").append(executionResult.getRequestId()).append("\",");
-        jsonResponse.append("\"status\":\"").append(executionResult.getStatus()).append("\",");
-        jsonResponse.append("\"targetIdP\":\"").append(executionResult.getTargetIdP()).append("\",");
-        jsonResponse.append("\"authenticatorName\":\"").append(executionResult.getAuthenticatorName()).append("\",");
-        jsonResponse.append("\"executionTimeMs\":").append(executionResult.getExecutionTimeMs()).append(",");
-        
-        // Add retrieved claims
-        jsonResponse.append("\"retrievedClaims\":{");
-        Map<String, String> retrievedClaims = executionResult.getRetrievedClaims();
-        if (retrievedClaims != null) {
-            boolean first = true;
-            for (Map.Entry<String, String> entry : retrievedClaims.entrySet()) {
-                if (!first) jsonResponse.append(",");
-                jsonResponse.append("\"").append(escapeJson(entry.getKey())).append("\":\"")
-                          .append(escapeJson(entry.getValue())).append("\"");
-                first = false;
+        try {
+            // Get output format from request or default to JSON
+            String format = (String) context.getProperty(org.wso2.carbon.identity.flow.data.provider.dfdp.util.FrameworkConstants.DFDP.OUTPUT_FORMAT);
+            if (format == null) {
+                format = "json";
             }
-        }
-        jsonResponse.append("},");
 
-        // Add mapped claims
-        jsonResponse.append("\"mappedClaims\":{");
-        Map<String, String> mappedClaims = executionResult.getMappedClaims();
-        if (mappedClaims != null) {
-            boolean first = true;
-            for (Map.Entry<String, String> entry : mappedClaims.entrySet()) {
-                if (!first) jsonResponse.append(",");
-                jsonResponse.append("\"").append(escapeJson(entry.getKey())).append("\":\"")
-                          .append(escapeJson(entry.getValue())).append("\"");
-                first = false;
+            // Build comprehensive DFDP response using the response builder
+            DFDPResponse dfdpResponse = DFDPResponseBuilder.buildResponse(
+                executionResult, 
+                context,
+                "DFDP execution completed successfully"
+            );
+
+            // Use response formatter to write the response
+            DFDPResponseFormatter.writeResponse(dfdpResponse, response, format);
+
+            if (log.isDebugEnabled()) {
+                log.debug("DFDP success response sent for request ID: " + executionResult.getRequestId() +
+                         " in format: " + format);
             }
-        }
-        jsonResponse.append("},");
 
-        // Add authenticator properties
-        jsonResponse.append("\"authenticatorProperties\":{");
-        Map<String, String> authenticatorProperties = executionResult.getAuthenticatorProperties();
-        if (authenticatorProperties != null) {
-            boolean first = true;
-            for (Map.Entry<String, String> entry : authenticatorProperties.entrySet()) {
-                if (!first) jsonResponse.append(",");
-                jsonResponse.append("\"").append(escapeJson(entry.getKey())).append("\":\"")
-                          .append(escapeJson(entry.getValue())).append("\"");
-                first = false;
-            }
-        }
-        jsonResponse.append("},");
-
-        // Add summary information
-        jsonResponse.append("\"summary\":{");
-        jsonResponse.append("\"retrievedClaimsCount\":").append(executionResult.getRetrievedClaimsCount()).append(",");
-        jsonResponse.append("\"mappedClaimsCount\":").append(executionResult.getMappedClaimsCount()).append(",");
-        jsonResponse.append("\"successful\":").append(executionResult.isSuccessful());
-        
-        // Add claim analysis summary if available
-        DFDPClaimAnalysis claimAnalysis = executionResult.getClaimAnalysis();
-        if (claimAnalysis != null) {
-            jsonResponse.append(",\"claimAnalysis\":{");
-            jsonResponse.append("\"processingStatus\":\"").append(escapeJson(claimAnalysis.getProcessingStatus())).append("\",");
-            jsonResponse.append("\"totalValidations\":").append(claimAnalysis.getTotalValidations()).append(",");
-            jsonResponse.append("\"errorValidations\":").append(claimAnalysis.getErrorValidations()).append(",");
-            jsonResponse.append("\"warningValidations\":").append(claimAnalysis.getWarningValidations());
+        } catch (Exception e) {
+            log.error("Error sending DFDP response for request: " + executionResult.getRequestId(), e);
             
-            if (claimAnalysis.getCoverage() != null) {
-                jsonResponse.append(",\"coverage\":{");
-                jsonResponse.append("\"percentage\":").append(claimAnalysis.getCoverage().getCoveragePercentage()).append(",");
-                jsonResponse.append("\"level\":\"").append(escapeJson(claimAnalysis.getCoverage().getCoverageLevel())).append("\"");
-                jsonResponse.append("}");
-            }
-            
-            if (claimAnalysis.getCategories() != null) {
-                jsonResponse.append(",\"categories\":\"").append(escapeJson(claimAnalysis.getCategories().getCategorySummary())).append("\"");
-            }
-            
-            jsonResponse.append("}");
-        }
-        
-        jsonResponse.append("}");
-        
-        jsonResponse.append("}");
-
-        response.getWriter().write(jsonResponse.toString());
-        response.getWriter().flush();
-
-        if (log.isDebugEnabled()) {
-            log.debug("DFDP success response sent for request ID: " + executionResult.getRequestId());
+            // Fallback to simple error response
+            sendDFDPErrorResponse(response, context, executionResult.getRequestId(), 
+                                "Error generating response: " + e.getMessage());
         }
     }
 
@@ -264,22 +211,42 @@ public class DFDPOrchestrator implements DFDPService {
     private void sendDFDPErrorResponse(HttpServletResponse response, AuthenticationContext context, 
                                       String requestId, String errorMessage) throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        try {
+            // Get output format from request or default to JSON
+            String format = (String) context.getProperty(org.wso2.carbon.identity.flow.data.provider.dfdp.util.FrameworkConstants.DFDP.OUTPUT_FORMAT);
+            if (format == null) {
+                format = "json";
+            }
 
-        StringBuilder jsonResponse = new StringBuilder();
-        jsonResponse.append("{");
-        jsonResponse.append("\"requestId\":\"").append(requestId).append("\",");
-        jsonResponse.append("\"status\":\"").append(FrameworkConstants.DFDPStatus.FAILED).append("\",");
-        jsonResponse.append("\"error\":\"").append(escapeJson(errorMessage)).append("\"");
-        jsonResponse.append("}");
+            // Build error response using the response builder
+            DFDPResponse dfdpResponse = DFDPResponseBuilder.buildErrorResponse(
+                requestId, 
+                "DFDP_EXECUTION_ERROR",
+                errorMessage,
+                context
+            );
 
-        response.getWriter().write(jsonResponse.toString());
-        response.getWriter().flush();
+            // Use response formatter to write the error response
+            DFDPResponseFormatter.writeResponse(dfdpResponse, response, format);
 
-        if (log.isDebugEnabled()) {
-            log.debug("DFDP error response sent for request ID: " + requestId + ", error: " + errorMessage);
+            if (log.isDebugEnabled()) {
+                log.debug("DFDP error response sent for request ID: " + requestId + 
+                         ", error: " + errorMessage + ", format: " + format);
+            }
+
+        } catch (Exception e) {
+            log.error("Error sending DFDP error response for request: " + requestId, e);
+            
+            // Ultimate fallback to simple JSON error
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
+            String fallbackResponse = "{\"requestId\":\"" + requestId + "\"," +
+                                    "\"status\":\"FAILED\"," +
+                                    "\"error\":\"Internal error generating response\"}";
+            response.getWriter().write(fallbackResponse);
+            response.getWriter().flush();
         }
     }
 
