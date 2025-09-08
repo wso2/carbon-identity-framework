@@ -44,12 +44,12 @@
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
 
-        <Resource context="(.*)/o/api/server/v1/configs/authentication/inbound/passivests(.*)"
-            secured="true" http-method="PATCH">
+        <Resource context="(.*)/o/api/server/v1/configs/authentication/inbound/passivests(.*)" secured="true"
+        http-method="PATCH">
             <Scopes>internal_org_config_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/configs/authentication/inbound/passivests(.*)"
-                        secured="true" http-method="PATCH">
+        <Resource context="(.*)/api/server/v1/configs/authentication/inbound/passivests(.*)" secured="true"
+        http-method="PATCH">
            <Scopes>internal_config_update</Scopes>
         </Resource>
 
