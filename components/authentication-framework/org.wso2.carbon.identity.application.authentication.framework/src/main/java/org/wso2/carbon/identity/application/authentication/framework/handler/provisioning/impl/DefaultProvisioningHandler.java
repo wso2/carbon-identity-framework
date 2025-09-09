@@ -116,7 +116,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
-        char[] password = new char[0];
 
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
@@ -163,137 +162,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
-                String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
-                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
-
-                if (StringUtils.isBlank(associatedUserName)) {
-                    /*
-                     * If a local user is using the same username, association is not allowed unless
-                     * enabled through config.
-                     */
-                    if (isAssociationToExistingUserAllowed()) {
-                        // Associate User
-                        associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
-                    } else {
-                        throw new FrameworkException(
-                                FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
-                                FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode(), null);
-                    }
-                }
-                /*
-                Set PROVISIONED_USER thread local property to true, to identify already provisioned
-                user claim update scenario.
-                 */
-                IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
-                if (!userClaims.isEmpty()) {
-                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
-                    if (!FrameworkUtils.isPreserveLocallyAddedClaims()) {
-                        /*
-                        In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned
-                        user, To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
-                        */
-                        Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
-                                UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
-                        if (existingUserClaimList != null) {
-                            List<Claim> toBeDeletedFromExistingUserClaims = new ArrayList<>(
-                                    Arrays.asList(existingUserClaimList));
-
-                            // Claim mappings which do not come with the IDP claim mapping set but must not delete.
-                            Set<String> indelibleClaimSet = getIndelibleClaims();
-                            toBeDeletedFromExistingUserClaims.removeIf(claim ->
-                                    claim.getClaimUri().contains("/identity/") ||
-                                            indelibleClaimSet.contains(claim.getClaimUri()) ||
-                                            userClaims.containsKey(claim.getClaimUri()));
-
-                            for (Claim claim : toBeDeletedFromExistingUserClaims) {
-                                toBeDeletedUserClaims.add(claim.getClaimUri());
-                            }
-                        }
-                    }
-
-                    userClaims.remove(FrameworkConstants.PASSWORD);
-                    userClaims.remove(USERNAME_CLAIM);
-                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
-                    /*
-                    Since the user is exist following code is get all active claims of user and crosschecking against
-                    tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
-                    will be deleted.
-                    */
-                    if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
-                        Claim[] userActiveClaims =
-                                userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
-                        for (Claim claim : userActiveClaims) {
-                            if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Claim from external attributes " + claim.getClaimUri() +
-                                            " has null value But user has not null claim value for Claim " +
-                                            claim.getClaimUri() + ". Hence user claim value will be deleted.");
-                                }
-                                userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
-                                        claim.getClaimUri(), null);
-                            }
-                        }
-                    }
-                }
+                handleExistingUser(username, userStoreDomain, tenantDomain, idp, subjectVal, userClaims, attributes, userStoreManager);
             } else {
-                password = generatePassword();
-                char[] passwordFromUser = (userClaims.get(FrameworkConstants.PASSWORD) != null)
-                        ? userClaims.get(FrameworkConstants.PASSWORD).toCharArray() : null;
-                if (passwordFromUser != null && passwordFromUser.length > 0) {
-                    password = passwordFromUser;
-                }
-
-                // Check for inconsistencies in username attribute and the username claim.
-                if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
-                    // If so update the username claim with the username attribute.
-                    userClaims.put(USERNAME_CLAIM, username);
-                }
-
-                userClaims.remove(FrameworkConstants.PASSWORD);
-                boolean userWorkflowEngaged = false;
-                try {
-                    /*
-                    This thread local is set to skip the username and password pattern validation even if the password
-                    is generated, or user entered one. If it is required to check password pattern validation,
-                    need to write a provisioning handler extending the "DefaultProvisioningHandler".
-                     */
-                    UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
-                    UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
-                    if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
-                        setJitProvisionedSource(tenantDomain, idp, userClaims);
-                    }
-                    userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
-                } catch (UserStoreException e) {
-                    // Add user operation will fail if a user operation workflow is already defined for the same user.
-                    if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
-                        userWorkflowEngaged = true;
-                        if (log.isDebugEnabled()) {
-                            log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
-                                    " and there is a workflow already defined for the same user");
-                        }
-                    } else {
-                        throw e;
-                    }
-                } finally {
-                    UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
-                    UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
-                }
-
-                if (userWorkflowEngaged ||
-                        !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("User is not found in the userstore. Most probably the local user creation is not " +
-                                "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
-                                " the user account association and role and permission update are skipped.");
-                    }
-                    return;
-                }
-
-                // Associate user only if the user is existing in the userstore.
-                associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Federated user: " + username + " is provisioned by authentication framework.");
+                boolean userCreated = handleNewUserCreation(username, userStoreDomain, tenantDomain, idp, subjectVal, userClaims, userStoreManager);
+                if (!userCreated) {
+                    return; // User creation incomplete due to workflow
                 }
             }
 
@@ -357,12 +230,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException |
-                FederatedAssociationManagerException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
-            Arrays.fill(password, '\0');
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
         }
     }
@@ -732,5 +603,177 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             allowAssociationToExistingUser = StringUtils.isBlank(configValue) || Boolean.parseBoolean(configValue);
         }
         return allowAssociationToExistingUser;
+    }
+
+    /**
+     * Handle provisioning for existing users.
+     */
+    private void handleExistingUser(String username, String userStoreDomain, String tenantDomain, String idp,
+                                   String subjectVal, Map<String, String> userClaims, Map<String, String> attributes,
+                                   UserStoreManager userStoreManager) throws FrameworkException {
+        try {
+            String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
+                    .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
+
+            if (StringUtils.isBlank(associatedUserName)) {
+                /*
+                 * If a local user is using the same username, association is not allowed unless
+                 * enabled through config.
+                 */
+                if (isAssociationToExistingUserAllowed()) {
+                    // Associate User
+                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                } else {
+                    throw new FrameworkException(
+                            FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
+                            FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode(), null);
+                }
+            }
+            /*
+            Set PROVISIONED_USER thread local property to true, to identify already provisioned
+            user claim update scenario.
+             */
+            IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
+            
+            if (!userClaims.isEmpty()) {
+                updateExistingUserClaims(username, userClaims, attributes, userStoreManager);
+            }
+        } catch (org.wso2.carbon.user.api.UserStoreException | FederatedAssociationManagerException e) {
+            throw new FrameworkException("Error while handling existing user: " + username, e);
+        }
+    }
+
+    /**
+     * Update claims for existing users.
+     */
+    private void updateExistingUserClaims(String username, Map<String, String> userClaims,
+                                         Map<String, String> attributes, UserStoreManager userStoreManager)
+            throws org.wso2.carbon.user.api.UserStoreException, FrameworkException {
+        
+        List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
+        if (!FrameworkUtils.isPreserveLocallyAddedClaims()) {
+            /*
+            In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned
+            user, To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
+            */
+            Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
+                    UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
+            if (existingUserClaimList != null) {
+                List<Claim> toBeDeletedFromExistingUserClaims = new ArrayList<>(
+                        Arrays.asList(existingUserClaimList));
+
+                // Claim mappings which do not come with the IDP claim mapping set but must not delete.
+                Set<String> indelibleClaimSet = getIndelibleClaims();
+                toBeDeletedFromExistingUserClaims.removeIf(claim ->
+                        claim.getClaimUri().contains("/identity/") ||
+                                indelibleClaimSet.contains(claim.getClaimUri()) ||
+                                userClaims.containsKey(claim.getClaimUri()));
+
+                for (Claim claim : toBeDeletedFromExistingUserClaims) {
+                    toBeDeletedUserClaims.add(claim.getClaimUri());
+                }
+            }
+        }
+
+        userClaims.remove(FrameworkConstants.PASSWORD);
+        userClaims.remove(USERNAME_CLAIM);
+        userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+        /*
+        Since the user is exist following code is get all active claims of user and crosschecking against
+        tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
+        will be deleted.
+        */
+        if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
+            Claim[] userActiveClaims =
+                    userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
+            for (Claim claim : userActiveClaims) {
+                if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Claim from external attributes " + claim.getClaimUri() +
+                                " has null value But user has not null claim value for Claim " +
+                                claim.getClaimUri() + ". Hence user claim value will be deleted.");
+                    }
+                    userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
+                            claim.getClaimUri(), null);
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle new user creation.
+     * @return true if user was created successfully, false if creation incomplete due to workflow
+     */
+    private boolean handleNewUserCreation(String username, String userStoreDomain, String tenantDomain, String idp,
+                                         String subjectVal, Map<String, String> userClaims, UserStoreManager userStoreManager)
+            throws FrameworkException {
+        
+        char[] password = generatePassword();
+        char[] passwordFromUser = (userClaims.get(FrameworkConstants.PASSWORD) != null)
+                ? userClaims.get(FrameworkConstants.PASSWORD).toCharArray() : null;
+        if (passwordFromUser != null && passwordFromUser.length > 0) {
+            password = passwordFromUser;
+        }
+
+        // Check for inconsistencies in username attribute and the username claim.
+        if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
+            // If so update the username claim with the username attribute.
+            userClaims.put(USERNAME_CLAIM, username);
+        }
+
+        userClaims.remove(FrameworkConstants.PASSWORD);
+        boolean userWorkflowEngaged = false;
+        
+        try {
+            /*
+            This thread local is set to skip the username and password pattern validation even if the password
+            is generated, or user entered one. If it is required to check password pattern validation,
+            need to write a provisioning handler extending the "DefaultProvisioningHandler".
+             */
+            UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+            UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+            if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
+                setJitProvisionedSource(tenantDomain, idp, userClaims);
+            }
+            userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
+        } catch (UserStoreException e) {
+            // Add user operation will fail if a user operation workflow is already defined for the same user.
+            if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
+                userWorkflowEngaged = true;
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
+                            " and there is a workflow already defined for the same user");
+                }
+            } else {
+                throw new FrameworkException("Error while creating user: " + username, e);
+            }
+        } finally {
+            UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
+            UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
+            Arrays.fill(password, '\0');
+        }
+
+        try {
+            if (userWorkflowEngaged ||
+                    !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User is not found in the userstore. Most probably the local user creation is not " +
+                            "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
+                            " the user account association and role and permission update are skipped.");
+                }
+                return false;
+            }
+        } catch (UserStoreException e) {
+            throw new FrameworkException("Error while checking user existence: " + username, e);
+        }
+
+        // Associate user only if the user is existing in the userstore.
+        associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Federated user: " + username + " is provisioned by authentication framework.");
+        }
+        
+        return true;
     }
 }
