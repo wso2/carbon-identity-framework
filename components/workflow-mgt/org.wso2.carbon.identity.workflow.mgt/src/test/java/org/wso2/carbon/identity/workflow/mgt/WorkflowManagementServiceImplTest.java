@@ -24,11 +24,14 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.metadata.ParametersMetaData;
 import org.wso2.carbon.identity.workflow.mgt.dao.AssociationDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.RequestEntityRelationshipDAO;
@@ -48,6 +51,7 @@ import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
+import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
 import java.lang.reflect.Field;
@@ -1005,6 +1009,215 @@ public class WorkflowManagementServiceImplTest {
         assertThrows(WorkflowRuntimeException.class, () ->
                 workflowManagementService.updateAssociation(ASSOCIATION_ID, null, null, null, "invalid condition",
                         true));
+    }
+
+    @Test
+    public void testAddRequestEntityRelationships() throws WorkflowException {
+
+        Entity[] entities = {createTestEntity()};
+
+        workflowManagementService.addRequestEntityRelationships(REQUEST_ID, entities);
+
+        verify(mockRequestEntityRelationshipDAO).addRelationship(entities[0], REQUEST_ID);
+        verify(mockWorkflowListener).doPreAddRequestEntityRelationships(REQUEST_ID, entities);
+        verify(mockWorkflowListener).doPostAddRequestEntityRelationships(REQUEST_ID, entities);
+    }
+
+    @Test
+    public void testEntityHasPendingWorkflows() throws WorkflowException {
+
+        Entity entity = createTestEntity();
+        when(mockRequestEntityRelationshipDAO.entityHasPendingWorkflows(entity)).thenReturn(true);
+
+        boolean result = workflowManagementService.entityHasPendingWorkflows(entity);
+
+        assertTrue(result);
+        verify(mockWorkflowListener).doPreEntityHasPendingWorkflows(entity);
+        verify(mockWorkflowListener).doPostEntityHasPendingWorkflows(entity);
+    }
+
+    @Test
+    public void testEntityHasPendingWorkflowsOfType() throws WorkflowException {
+
+        Entity entity = createTestEntity();
+        String requestType = "ADD_USER";
+        when(mockRequestEntityRelationshipDAO.entityHasPendingWorkflowsOfType(entity, requestType)).thenReturn(true);
+
+        boolean result = workflowManagementService.entityHasPendingWorkflowsOfType(entity, requestType);
+
+        assertTrue(result);
+        verify(mockWorkflowListener).doPreEntityHasPendingWorkflowsOfType(entity, requestType);
+        verify(mockWorkflowListener).doPostEntityHasPendingWorkflowsOfType(entity, requestType);
+    }
+
+    @Test
+    public void testAreTwoEntitiesRelated() throws WorkflowException {
+
+        Entity entity1 = createTestEntity();
+        Entity entity2 = createTestEntity();
+        when(mockRequestEntityRelationshipDAO.twoEntitiesAreRelated(entity1, entity2)).thenReturn(true);
+        boolean result = workflowManagementService.areTwoEntitiesRelated(entity1, entity2);
+        assertTrue(result);
+        verify(mockWorkflowListener).doPreAreTwoEntitiesRelated(entity1, entity2);
+        verify(mockWorkflowListener).doPostAreTwoEntitiesRelated(entity1, entity2);
+    }
+
+    @Test
+    public void testIsEventAssociated() throws WorkflowException {
+
+        List<WorkflowAssociation> associations = Arrays.asList(new WorkflowAssociation());
+        when(mockWorkflowRequestAssociationDAO.getWorkflowAssociationsForRequest(EVENT_ID, TENANT_ID))
+                .thenReturn(associations);
+
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getTenantId()).thenReturn(TENANT_ID);
+
+            boolean result = workflowManagementService.isEventAssociated(EVENT_ID);
+            assertTrue(result);
+            verify(mockWorkflowListener, times(2)).doPreIsEventAssociated(EVENT_ID);
+        }
+    }
+
+    @Test
+    public void testIsEventAssociatedEmpty() throws WorkflowException {
+
+        when(mockWorkflowRequestAssociationDAO.getWorkflowAssociationsForRequest(EVENT_ID, TENANT_ID))
+                .thenReturn(Collections.emptyList());
+
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getTenantId()).thenReturn(TENANT_ID);
+
+            boolean result = workflowManagementService.isEventAssociated(EVENT_ID);
+            assertFalse(result);
+        }
+    }
+
+    @Test
+    public void testGetRequestsCreatedByUser() throws WorkflowException {
+
+        WorkflowRequest[] expectedRequests = {createTestWorkflowRequest()};
+        when(mockWorkflowRequestDAO.getRequestsOfUser(USER_NAME, TENANT_ID)).thenReturn(expectedRequests);
+
+        WorkflowRequest[] result = workflowManagementService.getRequestsCreatedByUser(USER_NAME, TENANT_ID);
+
+        assertNotNull(result);
+        assertEquals(result.length, 1);
+        verify(mockWorkflowListener).doPreGetRequestsCreatedByUser(USER_NAME, TENANT_ID);
+        verify(mockWorkflowListener).doPostGetRequestsCreatedByUser(USER_NAME, TENANT_ID, expectedRequests);
+    }
+
+    @Test
+    public void testGetWorkflowsOfRequest() throws WorkflowException {
+
+        WorkflowRequestAssociation[] expectedAssociations = {new WorkflowRequestAssociation()};
+        when(mockWorkflowRequestAssociationDAO.getWorkflowsOfRequest(REQUEST_ID)).thenReturn(expectedAssociations);
+
+        WorkflowRequestAssociation[] result = workflowManagementService.getWorkflowsOfRequest(REQUEST_ID);
+
+        assertNotNull(result);
+        assertEquals(result.length, 1);
+        verify(mockWorkflowListener).doPreGetWorkflowsOfRequest(REQUEST_ID);
+        verify(mockWorkflowListener).doPostGetWorkflowsOfRequest(REQUEST_ID, expectedAssociations);
+    }
+
+    @Test
+    public void testDeleteWorkflowRequest() throws WorkflowException {
+
+        when(mockWorkflowRequestDAO.retrieveCreatedUserOfRequest(REQUEST_ID)).thenReturn(USER_NAME);
+
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUsername()).thenReturn(USER_NAME);
+
+            workflowManagementService.deleteWorkflowRequest(REQUEST_ID);
+
+            verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.DELETED.toString());
+            verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
+                    WFConstant.HT_STATE_SKIPPED);
+            verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);
+            verify(mockWorkflowListener).doPreDeleteWorkflowRequest(any(WorkflowRequest.class));
+            verify(mockWorkflowListener).doPostDeleteWorkflowRequest(any(WorkflowRequest.class));
+        }
+    }
+
+    @Test
+    public void testDeleteWorkflowRequestUnauthorized() throws WorkflowException {
+
+        when(mockWorkflowRequestDAO.retrieveCreatedUserOfRequest(REQUEST_ID)).thenReturn("different-user");
+
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUsername()).thenReturn(USER_NAME);
+
+            assertThrows(WorkflowException.class, () ->
+                    workflowManagementService.deleteWorkflowRequest(REQUEST_ID));
+        }
+    }
+
+    @Test
+    public void testDeleteWorkflowRequestCreatedByAnyUser() throws WorkflowException {
+
+        when(mockWorkflowRequestDAO.retrieveCreatedUserOfRequest(REQUEST_ID)).thenReturn("any-user");
+
+        workflowManagementService.deleteWorkflowRequestCreatedByAnyUser(REQUEST_ID);
+
+        verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.DELETED.toString());
+        verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
+                WFConstant.HT_STATE_SKIPPED);
+        verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);
+    }
+
+    @Test
+    public void testGetRequestsFromFilter() throws WorkflowException {
+
+        String beginDate = "2025-01-01:00:00:00.000";
+        String endDate = "2025-01-31:23:59:59.999";
+        String dateCategory = "created";
+        String status = "PENDING";
+        WorkflowRequest[] expectedRequests = {createTestWorkflowRequest()};
+        org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse expectedResponse =
+                new org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse(expectedRequests, 1);
+        when(mockWorkflowRequestDAO.getFilteredRequests(eq(USER_NAME), eq((String) null), any(String.class),
+                any(String.class), eq(dateCategory), eq(TENANT_ID), eq(status), eq(1000), eq(0)))
+                .thenReturn(expectedResponse);
+
+        WorkflowRequest[] result = workflowManagementService.getRequestsFromFilter(USER_NAME, beginDate, endDate,
+                dateCategory, TENANT_ID, status);
+
+        assertNotNull(result);
+        assertEquals(result.length, 1);
+        verify(mockWorkflowListener).doPreGetRequestsFromFilter(USER_NAME, null, beginDate, endDate, dateCategory,
+                TENANT_ID, status, 1000, 0);
+        verify(mockWorkflowListener).doPostGetRequestsFromFilter(USER_NAME, null, beginDate, endDate, dateCategory,
+                TENANT_ID, status, 1000, 0, expectedResponse);
+    }
+
+    @Test
+    public void testListEntityNames() throws WorkflowException {
+
+        String operationType = "ADD_USER";
+        String status = "PENDING";
+        String entityType = "USER";
+        String idFilter = "test";
+        List<String> expectedEntityNames = Arrays.asList("entity1", "entity2");
+        when(mockRequestEntityRelationshipDAO.getEntityNamesOfRequest(operationType, status, entityType, idFilter,
+                TENANT_ID))
+                .thenReturn(expectedEntityNames);
+
+        List<String> result =
+                workflowManagementService.listEntityNames(operationType, status, entityType, TENANT_ID, idFilter);
+
+        assertNotNull(result);
+        assertEquals(result.size(), 2);
+        verify(mockWorkflowListener).doPreListEntityNames(operationType, status, entityType, TENANT_ID, idFilter);
+        verify(mockWorkflowListener).doPostListEntityNames(operationType, status, entityType, TENANT_ID, idFilter,
+                result);
     }
 
     @Test
