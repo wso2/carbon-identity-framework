@@ -1445,7 +1445,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @Test
     public void testGetMultiAttributeSeparatorFromUserRealmConfig() {
 
-        final String MULTI_ATTRIBUTE_SEPARATOR = ",";
+        final String multiAttributeSeparator = ",";
         try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
             CarbonContext carbonContext = mock(CarbonContext.class);
             UserRealm userRealm = mock(UserRealm.class);
@@ -1461,10 +1461,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             }
             when(primaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
             when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
-                    .thenReturn(MULTI_ATTRIBUTE_SEPARATOR);
+                    .thenReturn(multiAttributeSeparator);
 
             String separator = FrameworkUtils.getMultiAttributeSeparator();
-            assertEquals(separator, MULTI_ATTRIBUTE_SEPARATOR);
+            assertEquals(separator, multiAttributeSeparator);
         }
     }
 
@@ -1475,7 +1475,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetMultiAttributeSeparatorWithUserStoreDomain() {
 
         String userStoreDomain = "SECONDARY";
-        final String MULTI_ATTRIBUTE_SEPARATOR = ";";
+        final String multiAttributeSeparator = ";";
 
         try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
             CarbonContext carbonContext = mock(CarbonContext.class);
@@ -1495,10 +1495,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                     .thenReturn(secondaryUserStoreManager);
             when(secondaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
             when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
-                    .thenReturn(MULTI_ATTRIBUTE_SEPARATOR);
+                    .thenReturn(multiAttributeSeparator);
 
             String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
-            assertEquals(separator, MULTI_ATTRIBUTE_SEPARATOR);
+            assertEquals(separator, multiAttributeSeparator);
         }
     }
 }
