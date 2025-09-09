@@ -18,19 +18,17 @@ package org.wso2.carbon.identity.cors.mgt.core.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.Template;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceServerException;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,48 +60,31 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
 
     private static final Log log = LogFactory.getLog(CORSOriginDAOImpl.class);
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getPriority() {
 
         return 10;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<CORSOrigin> getCORSOriginsByTenantId(int tenantId) throws CORSManagementServiceServerException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(connection,
-                     GET_CORS_ORIGINS_BY_TENANT_ID)) {
-            namedPreparedStatement.setInt(1, tenantId);
-
-            try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
-                List<CORSOrigin> corsOrigins = new ArrayList<>();
-                while (resultSet.next()) {
-                    CORSOrigin corsOrigin = new CORSOrigin();
-                    corsOrigin.setOrigin(resultSet.getString(ORIGIN));
-                    corsOrigin.setId(resultSet.getString(UNIQUE_ID));
-
-                    corsOrigins.add(corsOrigin);
-                }
-
-                return corsOrigins;
-            }
-        } catch (SQLException e) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_CORS_ORIGINS_BY_TENANT_ID,
+                    (resultSet, rowNumber) -> {
+                        CORSOrigin corsOrigin = new CORSOrigin();
+                        corsOrigin.setOrigin(resultSet.getString(ORIGIN));
+                        corsOrigin.setId(resultSet.getString(UNIQUE_ID));
+                        return corsOrigin;
+                    },
+                    preparedStatement -> preparedStatement.setInt(1, tenantId));
+        } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_CORS_RETRIEVE, e, tenantDomain);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<CORSOrigin> getCORSOriginsByTenantDomain(String tenantDomain)
             throws CORSManagementServiceServerException {
@@ -112,298 +93,190 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
         return getCORSOriginsByTenantId(tenantId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<CORSOrigin> getCORSOriginsByApplicationId(int applicationId, int tenantId)
             throws CORSManagementServiceServerException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(connection,
-                     GET_CORS_ORIGINS_BY_APPLICATION_ID)) {
-            namedPreparedStatement.setInt(1, tenantId);
-            namedPreparedStatement.setInt(2, applicationId);
-
-            try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
-                List<CORSOrigin> corsOrigins = new ArrayList<>();
-                while (resultSet.next()) {
-                    CORSOrigin corsOrigin = new CORSOrigin();
-                    corsOrigin.setOrigin(resultSet.getString(ORIGIN));
-                    corsOrigin.setId(resultSet.getString(UNIQUE_ID));
-
-                    corsOrigins.add(corsOrigin);
-                }
-
-                return corsOrigins;
-            }
-        } catch (SQLException e) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_CORS_ORIGINS_BY_APPLICATION_ID,
+                    (resultSet, rowNumber) -> {
+                        CORSOrigin corsOrigin = new CORSOrigin();
+                        corsOrigin.setOrigin(resultSet.getString(ORIGIN));
+                        corsOrigin.setId(resultSet.getString(UNIQUE_ID));
+                        return corsOrigin;
+                    },
+                    preparedStatement -> {
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setInt(2, applicationId);
+                    });
+        } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_CORS_RETRIEVE, e, tenantDomain);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setCORSOrigins(int applicationId, List<CORSOrigin> corsOrigins, int tenantId)
             throws CORSManagementServiceServerException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try (NamedPreparedStatement namedPreparedStatement1 = new NamedPreparedStatement(connection,
-                    GET_CORS_ORIGINS_BY_TENANT_ID)) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
                 // Delete existing application associations.
-                namedPreparedStatement1.setInt(1, tenantId);
-                try (ResultSet resultSet = namedPreparedStatement1.executeQuery()) {
-                    while (resultSet.next()) {
-                        try (PreparedStatement preparedStatement =
-                                     connection.prepareStatement(DELETE_CORS_APPLICATION_ASSOCIATION)) {
-                            preparedStatement.setInt(1, resultSet.getInt("ID"));
-                            preparedStatement.setInt(2, applicationId);
-                            preparedStatement.executeUpdate();
-                        }
-                    }
+                List<Integer> originIds = template.executeQuery(GET_CORS_ORIGINS_BY_TENANT_ID,
+                        (rs, row) -> rs.getInt(ID),
+                        ps -> ps.setInt(1, tenantId));
+                for (Integer originId : originIds) {
+                    template.executeUpdate(DELETE_CORS_APPLICATION_ASSOCIATION,
+                            ps -> {
+                                ps.setInt(1, originId);
+                                ps.setInt(2, applicationId);
+                            });
                 }
-
-                // Cleanup dangling origins (origins without any association to an application) is disabled temporary.
-                // Even the CORS Origins are stored for each application separately, the CORS valve filters them
-                // based on the tenant level. Because of that there might be other applications which are not configured
-                // allowed origins but still working as another application has already set is as an allowed origin.
-                // Related issue: https://github.com/wso2/product-is/issues/11241
-
-                // cleanupDanglingOrigins(connection, tenantId);
 
                 for (CORSOrigin corsOrigin : corsOrigins) {
-                    // Check if the origins is there.
-                    try (NamedPreparedStatement namedPreparedStatement2 =
-                                 new NamedPreparedStatement(connection, GET_CORS_ORIGIN_ID)) {
-                        namedPreparedStatement2.setInt(TENANT_ID, tenantId);
-                        namedPreparedStatement2.setString(ORIGIN, corsOrigin.getOrigin());
-                        try (ResultSet resultSet1 = namedPreparedStatement2.executeQuery()) {
-                            int corsOriginId = -1;
-                            if (!resultSet1.next()) {
-                                try (NamedPreparedStatement namedPreparedStatement3 =
-                                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN, ID)) {
-                                    // Origin is not present. Therefore add an origin.
-                                    namedPreparedStatement3.setInt(TENANT_ID, tenantId);
-                                    namedPreparedStatement3.setString(ORIGIN, corsOrigin.getOrigin());
-                                    namedPreparedStatement3.setString(UNIQUE_ID, UUID.randomUUID().toString());
-                                    namedPreparedStatement3.executeUpdate();
-
-                                    // Get origin id.
-                                    try (ResultSet resultSet2 = namedPreparedStatement3.getGeneratedKeys()) {
-                                        if (resultSet2.next()) {
-                                            corsOriginId = resultSet2.getInt(1);
-                                        }
-                                    }
-                                }
-                            } else {
-                                // Get origin id.
-                                corsOriginId = resultSet1.getInt(CORSOriginTableColumns.ID);
-                            }
-
-                            // Add application associations.
-                            try (PreparedStatement preparedStatement4 =
-                                         connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
-                                preparedStatement4.setInt(1, corsOriginId);
-                                preparedStatement4.setInt(2, applicationId);
-                                preparedStatement4.executeUpdate();
-                            }
-                        }
+                    Integer corsOriginId = template.fetchSingleRecord(GET_CORS_ORIGIN_ID,
+                            (rs, row) -> rs.getInt(CORSOriginTableColumns.ID),
+                            ps -> {
+                                ps.setInt(1, tenantId);
+                                ps.setString(2, corsOrigin.getOrigin());
+                            });
+                    if (corsOriginId == null) {
+                        corsOriginId = template.executeInsert(INSERT_CORS_ORIGIN, ps -> {
+                            ps.setInt(1, tenantId);
+                            ps.setString(2, corsOrigin.getOrigin());
+                            ps.setString(3, UUID.randomUUID().toString());
+                        }, corsOrigin, true);
                     }
-                }
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw handleServerException(ERROR_CODE_CORS_ADD, e, tenantDomain);
-            }
 
-            // Commit the transaction as no errors were thrown.
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException e) {
+                    final int finalCorsOriginId = corsOriginId;
+                    template.executeUpdate(INSERT_CORS_ASSOCIATION,
+                            ps -> {
+                                ps.setInt(1, finalCorsOriginId);
+                                ps.setInt(2, applicationId);
+                            });
+                }
+
+                // cleanupDanglingOrigins(template, tenantId); // Disabled temporarily.
+                return null;
+            });
+        } catch (TransactionException | DataAccessException e) {
             throw handleServerException(ERROR_CODE_CORS_ADD, e, tenantDomain);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void addCORSOrigins(int applicationId, List<CORSOrigin> corsOrigins, int tenantId)
             throws CORSManagementServiceServerException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
                 for (CORSOrigin corsOrigin : corsOrigins) {
-                    // Check if the origins is there.
-                    try (NamedPreparedStatement namedPreparedStatement1 = new NamedPreparedStatement(connection,
-                            GET_CORS_ORIGIN_ID)) {
-                        namedPreparedStatement1.setInt(1, tenantId);
-                        namedPreparedStatement1.setString(2, corsOrigin.getOrigin());
-                        try (ResultSet resultSet1 = namedPreparedStatement1.executeQuery()) {
-                            if (!resultSet1.next()) {
-                                // Origin is not present. Therefore add an origin without the tenant association.
-                                try (NamedPreparedStatement namedPreparedStatement2 =
-                                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
-                                    namedPreparedStatement2.setInt(TENANT_ID, tenantId);
-                                    namedPreparedStatement2.setString(ORIGIN, corsOrigin.getOrigin());
-                                    namedPreparedStatement2.setString(UNIQUE_ID, UUID.randomUUID().toString());
-                                    namedPreparedStatement2.executeUpdate();
-                                }
-                            }
+                    Integer corsOriginId = template.fetchSingleRecord(GET_CORS_ORIGIN_ID,
+                            (rs, row) -> rs.getInt(CORSOriginTableColumns.ID),
+                            ps -> {
+                                ps.setInt(1, tenantId);
+                                ps.setString(2, corsOrigin.getOrigin());
+                            });
+                    if (corsOriginId == null) {
+                        template.executeInsert(INSERT_CORS_ORIGIN, ps -> {
+                            ps.setInt(1, tenantId);
+                            ps.setString(2, corsOrigin.getOrigin());
+                            ps.setString(3, UUID.randomUUID().toString());
+                        }, corsOrigin, false);
+
+                        corsOriginId = template.fetchSingleRecord(GET_CORS_ORIGIN_ID,
+                                (rs, row) -> rs.getInt(CORSOriginTableColumns.ID),
+                                ps -> {
+                                    ps.setInt(1, tenantId);
+                                    ps.setString(2, corsOrigin.getOrigin());
+                                });
+                        if (corsOriginId == null) {
+                            throw handleServerException(ERROR_CODE_CORS_ADD, tenantDomain);
                         }
                     }
 
-                    try (NamedPreparedStatement namedPreparedStatement3 = new NamedPreparedStatement(connection,
-                            GET_CORS_ORIGIN_ID)) {
-                        // Get origin id.
-                        namedPreparedStatement3.setInt(TENANT_ID, tenantId);
-                        namedPreparedStatement3.setString(ORIGIN, corsOrigin.getOrigin());
-                        try (ResultSet resultSet2 = namedPreparedStatement3.executeQuery()) {
-                            if (resultSet2.next()) {
-                                int corsOriginId = resultSet2.getInt("ID");
-
-                                // Add application associations.
-                                try (PreparedStatement preparedStatement4 =
-                                             connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
-                                    preparedStatement4.setInt(1, corsOriginId);
-                                    preparedStatement4.setInt(2, applicationId);
-                                    preparedStatement4.executeUpdate();
-                                }
-                            } else {
-                                IdentityDatabaseUtil.rollbackTransaction(connection);
-                                throw handleServerException(ERROR_CODE_CORS_ADD, tenantDomain);
-                            }
-                        }
-                    }
+                    final int finalCorsOriginId = corsOriginId;
+                    template.executeUpdate(INSERT_CORS_ASSOCIATION,
+                            ps -> {
+                                ps.setInt(1, finalCorsOriginId);
+                                ps.setInt(2, applicationId);
+                            });
                 }
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw handleServerException(ERROR_CODE_CORS_ADD, e, tenantDomain);
-            }
-
-            // Commit the transaction as no errors were thrown.
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException e) {
+                return null;
+            });
+        } catch (TransactionException | DataAccessException e) {
             throw handleServerException(ERROR_CODE_CORS_ADD, e, tenantDomain);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void deleteCORSOrigins(int applicationId, List<String> corsOriginIds, int tenantId)
             throws CORSManagementServiceServerException {
 
-        String currentId = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        final String[] currentId = new String[1];
+        try {
+            jdbcTemplate.withTransaction(template -> {
                 for (String corsOriginId : corsOriginIds) {
-                    currentId = corsOriginId;
-
-                    try (NamedPreparedStatement namedPreparedStatement1 =
-                                 new NamedPreparedStatement(connection, GET_CORS_ORIGIN_ID_BY_UUID)) {
-                        namedPreparedStatement1.setString(1, corsOriginId);
-                        try (ResultSet resultSet = namedPreparedStatement1.executeQuery()) {
-                            if (resultSet.next()) {
-                                int corsOriginDbId = resultSet.getInt(CORSOriginTableColumns.ID);
-
-                                // Delete application association.
-                                try (PreparedStatement preparedStatement2 =
-                                             connection.prepareStatement(DELETE_CORS_APPLICATION_ASSOCIATION)) {
-                                    preparedStatement2.setInt(1, corsOriginDbId);
-                                    preparedStatement2.setInt(2, applicationId);
-                                    preparedStatement2.executeUpdate();
-                                }
-                            } else {
-                                IdentityDatabaseUtil.rollbackTransaction(connection);
-                                throw handleServerException(ERROR_CODE_CORS_DELETE, currentId);
-                            }
-                        }
+                    currentId[0] = corsOriginId;
+                    Integer corsOriginDbId = template.fetchSingleRecord(GET_CORS_ORIGIN_ID_BY_UUID,
+                            (rs, row) -> rs.getInt(CORSOriginTableColumns.ID),
+                            ps -> ps.setString(1, corsOriginId));
+                    if (corsOriginDbId == null) {
+                        throw handleServerException(ERROR_CODE_CORS_DELETE, corsOriginId);
                     }
+                    final int originDbId = corsOriginDbId;
+                    template.executeUpdate(DELETE_CORS_APPLICATION_ASSOCIATION,
+                            ps -> {
+                                ps.setInt(1, originDbId);
+                                ps.setInt(2, applicationId);
+                            });
                 }
 
-                // Cleanup dangling origins (origins without any association to an application) is disabled temporary.
-                // Even the CORS Origins are stored for each application separately, the CORS valve filters them
-                // based on the tenant level. Because of that there might be other applications which are not configured
-                // allowed origins but still working as another application has already set is as an allowed origin.
-                // Related issue: https://github.com/wso2/product-is/issues/11241
-
-                // cleanupDanglingOrigins(connection, tenantId);
-
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw handleServerException(ERROR_CODE_CORS_DELETE, e, currentId);
-            }
-
-            // Commit the transaction as no errors were thrown.
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException e) {
-            throw handleServerException(ERROR_CODE_CORS_DELETE, e, currentId);
+                // cleanupDanglingOrigins(template, tenantId); // Disabled temporarily.
+                return null;
+            });
+        } catch (CORSManagementServiceServerException e) {
+            throw e;
+        } catch (TransactionException | DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CORS_DELETE, e, currentId[0]);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<CORSApplication> getCORSOriginApplications(String corsOriginId)
             throws CORSManagementServiceServerException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement namedPreparedStatement =
-                     new NamedPreparedStatement(connection, GET_CORS_APPLICATIONS_BY_CORS_ORIGIN_ID)) {
-            namedPreparedStatement.setString(1, corsOriginId);
-            try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
-                List<CORSApplication> corsApplications = new ArrayList<>();
-                while (resultSet.next()) {
-                    CORSApplication corsApplication = new CORSApplication(resultSet.getString(UNIQUE_ID),
-                            resultSet.getString("APP_NAME"));
-                    corsApplications.add(corsApplication);
-                }
-                return corsApplications;
-            }
-        } catch (SQLException e) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_CORS_APPLICATIONS_BY_CORS_ORIGIN_ID,
+                    (resultSet, rowNumber) -> new CORSApplication(resultSet.getString(UNIQUE_ID),
+                            resultSet.getString("APP_NAME")),
+                    preparedStatement -> preparedStatement.setString(1, corsOriginId));
+        } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_CORS_APPLICATIONS_RETRIEVE, e, String.valueOf(corsOriginId));
         }
     }
 
-    private void cleanupDanglingOrigins(Connection connection, int tenantId) throws SQLException {
+    private void cleanupDanglingOrigins(Template<?> template, int tenantId) throws DataAccessException {
 
-        // Get tenant CORS origins.
-        try (NamedPreparedStatement namedPreparedStatement1 = new NamedPreparedStatement(connection,
-                GET_CORS_ORIGINS_BY_TENANT_ID)) {
-            namedPreparedStatement1.setInt(1, tenantId);
+        List<Integer> originIds = template.executeQuery(GET_CORS_ORIGINS_BY_TENANT_ID,
+                (rs, row) -> rs.getInt(ID),
+                ps -> ps.setInt(1, tenantId));
 
-            try (ResultSet resultSet1 = namedPreparedStatement1.executeQuery()) {
-                while (resultSet1.next()) {
-                    int corsOriginId = resultSet1.getInt("ID");
-
-                    try (NamedPreparedStatement namedPreparedStatement2 = new NamedPreparedStatement(connection,
-                            GET_CORS_APPLICATION_IDS_BY_CORS_ORIGIN_ID)) {
-                        namedPreparedStatement2.setInt(1, corsOriginId);
-                        try (ResultSet resultSet2 = namedPreparedStatement2.executeQuery()) {
-                            // Get the associated applications.
-                            if (!resultSet2.next()) {
-                                try (NamedPreparedStatement namedPreparedStatement3 =
-                                             new NamedPreparedStatement(connection, DELETE_ORIGIN)) {
-                                    namedPreparedStatement3.setInt(1, corsOriginId);
-                                    namedPreparedStatement3.executeUpdate();
-                                }
-                            }
-                        }
-                    }
-                }
+        for (Integer corsOriginId : originIds) {
+            Integer associatedId = template.fetchSingleRecord(GET_CORS_APPLICATION_IDS_BY_CORS_ORIGIN_ID,
+                    (rs, row) -> rs.getInt(1),
+                    ps -> ps.setInt(1, corsOriginId));
+            if (associatedId == null) {
+                template.executeUpdate(DELETE_ORIGIN, ps -> ps.setInt(1, corsOriginId));
             }
-        } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw e;
         }
     }
 }
+
