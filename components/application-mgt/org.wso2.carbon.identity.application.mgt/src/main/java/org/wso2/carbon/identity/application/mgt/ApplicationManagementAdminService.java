@@ -1021,6 +1021,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             UserRealm userRealm = realmService.getTenantUserRealm(authenticatedTenantId);
             return isUserAuthorizedToPerformOperation(userRealm, authenticatedUsername);
         } catch (UserStoreException e) {
+            log.error("Error while checking the authorization to perform the operation.");
             throw new IdentityApplicationManagementException("Error while checking the authorization to perform " +
                     "the operation.", e);
         }
@@ -1074,6 +1075,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             objInputStream = new ObjectInputStream(byteArrayInputStream);
             newObject = (IdentityProvider) objInputStream.readObject();
         } catch (ClassNotFoundException | IOException e) {
+            log.error("Error occurred while deep cloning IDP object", e.getMessage());
             throw new IdentityApplicationManagementException("Error deep cloning IDP object.", e);
         }
         return newObject;
