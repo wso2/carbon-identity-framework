@@ -217,7 +217,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 new MockAuthenticator("HwkMockAuthenticator"));
         ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
                 new MockAuthenticator("FederatedAuthenticator", null, "sampleClaimDialectURI"));
-
+           
         authenticationContext.setTenantDomain("abc");
     }
 
@@ -413,7 +413,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void getAddAuthenticationContextToCache() {
 
         try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
-                     mockStatic(AuthenticationContextCache.class)) {
+                mockStatic(AuthenticationContextCache.class)) {
             authenticationContextCache.when(
                     AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
             String contextId = "CONTEXT-ID";
@@ -583,11 +583,11 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetAuthenticationResultFromSessionDataStoreExpired() {
 
         try (MockedStatic<SessionDataStore> sessionDataStore = mockStatic(SessionDataStore.class);
-             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
 
-            sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
-            identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
-                    .thenReturn("true");
+                sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
+                identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
+                        .thenReturn("true");
 
             AuthenticationResultCache authenticationCacheSpy = spy(AuthenticationResultCache.getInstance());
 
@@ -1234,13 +1234,13 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
         // User object.
         User user = new User(
-                "user-123",
-                "dummyUser",
-                "dummyUser",
-                "dummyUser",
-                "dummyTenantDomain",
-                "DUMMYDOMAIN",
-                null
+        "user-123",
+        "dummyUser",
+        "dummyUser",
+        "dummyUser",
+        "dummyTenantDomain",
+        "DUMMYDOMAIN",
+        null
         );
 
         RealmService realmService = mock(RealmService.class);
@@ -1313,7 +1313,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 useTenantDomainInLocalSubjectIdentifier);
 
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
-             MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+            MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
 
             // Mock IdentityUtil methods.
             identityUtilMockedStatic.when(() -> IdentityUtil.addDomainToName(subjectClaimUriValue, userDomain))
@@ -1449,10 +1449,17 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
             CarbonContext carbonContext = mock(CarbonContext.class);
             UserRealm userRealm = mock(UserRealm.class);
+            AbstractUserStoreManager primaryUserStoreManager = mock(AbstractUserStoreManager.class);
             RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
 
             carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
             when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            try {
+                when(userRealm.getUserStoreManager()).thenReturn(primaryUserStoreManager);
+            } catch (UserStoreException e) {
+                throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
+            }
+            when(primaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
             when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
                     .thenReturn(MULTI_ATTRIBUTE_SEPARATOR);
 
@@ -1486,6 +1493,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             }
             when(primaryUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
                     .thenReturn(secondaryUserStoreManager);
+            when(secondaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
             when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
                     .thenReturn(MULTI_ATTRIBUTE_SEPARATOR);
 
