@@ -523,15 +523,15 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             throws IdentityRoleManagementException {
 
         try {
-            ServiceProvider app = ApplicationManagementService.getInstance()
-                    .getApplicationByResourceId(applicationId, tenantDomain);
+            ApplicationBasicInfo app = ApplicationManagementService.getInstance()
+                    .getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
             if (app == null) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Invalid audience. No application found with application id: " + applicationId +
                                 " and tenant domain : " + tenantDomain);
             }
             String allowedAudienceForRoleAssociation = ApplicationManagementService.getInstance()
-                    .getAllowedAudienceForRoleAssociation(app.getApplicationResourceId(), tenantDomain);
+                    .getAllowedAudienceForRoleAssociation(applicationId, tenantDomain);
             if (!APPLICATION.equalsIgnoreCase(allowedAudienceForRoleAssociation.toLowerCase())) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Application: " + applicationId + " does not have Application role audience type");
@@ -542,9 +542,9 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             if (IdentityUtil.threadLocalProperties.get().get(ApplicationConstants.IS_FRAGMENT_APP) != null) {
                 IdentityUtil.threadLocalProperties.get().remove(ApplicationConstants.IS_FRAGMENT_APP);
             }
-            if (app.getSpProperties() != null && Arrays.stream(app.getSpProperties())
-                    .anyMatch(property -> ApplicationConstants.IS_FRAGMENT_APP.equals(property.getName())
-                            && Boolean.parseBoolean(property.getValue()))) {
+            // If the mainAppId is not null, the passed applicationId is a fragment application.
+            String mainAppId = ApplicationManagementService.getInstance().getMainAppId(applicationId);
+            if (mainAppId != null) {
                 IdentityUtil.threadLocalProperties.get().put(ApplicationConstants.IS_FRAGMENT_APP, Boolean.TRUE);
             }
         } catch (IdentityApplicationManagementException e) {
