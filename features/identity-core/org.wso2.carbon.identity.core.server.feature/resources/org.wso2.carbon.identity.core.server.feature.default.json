@@ -399,6 +399,7 @@
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
   "scim2.enable_scim2_roles_v3_api": true,
+  "scim2.return_conflict_on_claim_uniqueness_violation": true,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -1201,6 +1202,21 @@
       "description": "This email is sent to confirm the user email address via Email OTP",
       "displayName": "Confirm Email Address via Email OTP",
       "id": "RW1haWxDb25maXJtV2l0aE9UUA"
+    },
+    {
+      "description": "This email is sent to the user to set their password using a magic link",
+      "displayName": "Magic Link Password Recovery",
+      "id": "bWFnaWNMaW5rUGFzc3dvcmRSZWNvdmVyeQ"
+    },
+    {
+      "description": "This email is sent to the user during signing up using magic link",
+      "displayName": "Magic Link Sign Up",
+      "id": "bWFnaWNMaW5rU2lnblVw"
+    },
+    {
+      "description": "This email is sent to the user for Email OTP based verification",
+      "displayName": "Email OTP Verification",
+      "id": "RW1haWxPVFBWZXJpZmljYXRpb24"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1873,7 +1889,7 @@
   "myaccount.personal_info.enabled": true,
   "myaccount.personal_info.disabled_features": ["profileInfo.profile.legacy"],
   "myaccount.security.enabled": true,
-  "myaccount.approvals.enabled": false,
+  "myaccount.approvals.enabled": true,
   "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
   "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
   "myaccount.operations.scopes.create": [],
@@ -2000,6 +2016,11 @@
   "outbound_adapters.httppublisher.connectionHandshakeTimeout": "5000",
   "outbound_adapters.httppublisher.defaultMaxConnections": "20",
   "outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute": "20",
+  "outbound_adapters.httppublisher.maxRetries": "2",
+  "outbound_adapters.httppublisher.ioThreadCount": "5",
+  "outbound_adapters.httppublisher.executorCorePoolSize": "5",
+  "outbound_adapters.httppublisher.executorMaxPoolSize": "15",
+  "outbound_adapters.httppublisher.executorQueueCapacity": "150",
   "outbound_adapters.httppublisher.type": "Publisher",
 
   "webhooks.maximum_webhooks_per_tenant": "10",
@@ -2026,6 +2047,7 @@
     "PASSWORD_RECOVERY": "30",
     "INVITED_USER_REGISTRATION": "30"
   },
+  "flow_execution.enable_legacy_flows": false,
   "captcha.enable_captcha_for_local_otp_authenticators": true
 }
 

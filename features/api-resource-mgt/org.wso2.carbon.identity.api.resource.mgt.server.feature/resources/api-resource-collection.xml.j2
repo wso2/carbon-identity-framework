@@ -488,7 +488,15 @@
             </Delete>
             <Create>
                 <Scope name="internal_user_mgt_create"/>
-                <Scope name="internal_bulk_resource_create"/>
+                <Scope name="internal_bulk_user_create"/>
+                <Scope name="internal_bulk_user_update"/>
+                <Scope name="internal_bulk_user_delete"/>
+                <Scope name="internal_bulk_group_create"/>
+                <Scope name="internal_bulk_group_update"/>
+                <Scope name="internal_bulk_group_delete"/>
+                <Scope name="internal_bulk_role_create"/>
+                <Scope name="internal_bulk_role_update"/>
+                <Scope name="internal_bulk_role_delete"/>
                 <Scope name="internal_offline_invite"/>
             </Create>
             <Read>
@@ -625,7 +633,15 @@
             <Create>
                 <Scope name="internal_org_user_mgt_create"/>
                 <Scope name="internal_org_guest_mgt_invite_add"/>
-                <Scope name="internal_org_bulk_resource_create"/>
+                <Scope name="internal_org_bulk_user_create"/>
+                <Scope name="internal_org_bulk_user_update"/>
+                <Scope name="internal_org_bulk_user_delete"/>
+                <Scope name="internal_org_bulk_group_create"/>
+                <Scope name="internal_org_bulk_group_update"/>
+                <Scope name="internal_org_bulk_group_delete"/>
+                <Scope name="internal_org_bulk_role_create"/>
+                <Scope name="internal_org_bulk_role_update"/>
+                <Scope name="internal_org_bulk_role_delete"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>
@@ -1353,7 +1369,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResourceCollection name="roleAssignments" displayName="Role Assignments" type="tenant">
         <Scopes>
             <Feature>
@@ -1380,7 +1395,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% endif %}
     <APIResourceCollection name="rolesV1" displayName="Roles" type="tenant">
         <Scopes>
             <Feature>
@@ -1425,7 +1439,15 @@
             </Delete>
             <Create>
                 <Scope name="internal_user_mgt_create"/>
-                <Scope name="internal_bulk_resource_create"/>
+                <Scope name="internal_bulk_user_create"/>
+                <Scope name="internal_bulk_user_update"/>
+                <Scope name="internal_bulk_user_delete"/>
+                <Scope name="internal_bulk_group_create"/>
+                <Scope name="internal_bulk_group_update"/>
+                <Scope name="internal_bulk_group_delete"/>
+                <Scope name="internal_bulk_role_create"/>
+                <Scope name="internal_bulk_role_update"/>
+                <Scope name="internal_bulk_role_delete"/>
                 <Scope name="internal_offline_invite"/>
                 <Scope name="internal_workflow_association_view"/>
             </Create>
@@ -1633,7 +1655,15 @@
             <Create>
                 <Scope name="internal_org_user_mgt_create"/>
                 <Scope name="internal_org_guest_mgt_invite_add"/>
-                <Scope name="internal_org_bulk_resource_create"/>
+                <Scope name="internal_org_bulk_user_create"/>
+                <Scope name="internal_org_bulk_user_update"/>
+                <Scope name="internal_org_bulk_user_delete"/>
+                <Scope name="internal_org_bulk_group_create"/>
+                <Scope name="internal_org_bulk_group_update"/>
+                <Scope name="internal_org_bulk_group_delete"/>
+                <Scope name="internal_org_bulk_role_create"/>
+                <Scope name="internal_org_bulk_role_update"/>
+                <Scope name="internal_org_bulk_role_delete"/>
                 <Scope name="internal_org_workflow_association_view"/>
             </Create>
             <Read>
@@ -1733,7 +1763,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResourceCollection name="org_roleAssignments" displayName="Role Assignments" type="organization">
         <Scopes>
             <Feature>
@@ -1758,7 +1787,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    {% endif %}
     <APIResourceCollection name="org_rolesV1" displayName="Roles" type="organization">
         <Scopes>
             <Feature>

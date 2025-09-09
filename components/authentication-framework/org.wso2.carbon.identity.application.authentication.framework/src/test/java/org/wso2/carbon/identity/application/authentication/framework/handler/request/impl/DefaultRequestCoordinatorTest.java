@@ -48,7 +48,10 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.UserActor;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
@@ -66,6 +69,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -108,11 +112,14 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     public void setUp() throws Exception {
 
         requestCoordinator = new DefaultRequestCoordinator();
+        addActorToIdentityContext();
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        IdentityContext.destroyCurrentContext();
+        IdentityUtil.threadLocalProperties.remove();
     }
 
     @AfterClass
@@ -268,6 +275,26 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
+    @Test(description = "Test for generic exception in handle method")
+    public void testHandleWithGenericException() throws FrameworkException, IOException {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getParameter("sessionDataKey")).thenReturn("sdKey");
+            when(request.getParameter("type")).thenReturn("sso");
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any()))
+                    .thenAnswer(invocation -> {
+                        ((HttpServletResponse) invocation.getArgument(1)).sendRedirect("dummyUrl");
+                        return null;
+                    });
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticationRequestFromCache(anyString()))
+                    .thenReturn(null);
+            DefaultRequestCoordinator coordinator = new DefaultRequestCoordinator();
+            coordinator.handle(request, response);
+            verify(response, atLeastOnce()).sendRedirect(anyString());
+        }
+    }
     @Test
     public void testApplicationDisabled() {
 
@@ -669,5 +696,14 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             queryPairs.put(key, value);
         }
         return queryPairs;
+    }
+
+
+    private void addActorToIdentityContext() {
+
+        UserActor userActor = new UserActor.Builder()
+                .username("username")
+                .build();
+        IdentityContext.getThreadLocalIdentityContext().setActor(userActor);
     }
 }

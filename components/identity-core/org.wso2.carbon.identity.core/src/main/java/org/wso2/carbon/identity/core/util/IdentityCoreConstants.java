@@ -91,6 +91,7 @@ public class IdentityCoreConstants {
     public static final String USER_EMAIL_NOT_VERIFIED_ERROR_CODE = "17012";
     public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE = "17013";
     public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_MISMATCHED_ERROR_CODE = "17014";
+    public static final String USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE = "17015";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 

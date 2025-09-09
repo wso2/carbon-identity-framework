@@ -1006,7 +1006,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('91116e95-ca63-4787-be2d-de13d04d1b55', 'CERTIFICATE_VALIDATOR', 'A resource type to keep the certificate validators.'),
 ('a17952b9-0942-4669-8529-479ca481146b', 'CERTIFICATE_REVOCATION_VALIDATION_CA', 'A resource type to keep the certificate revocation validation related certificate authorities.'),
 ('32360745-9c3e-4391-b563-66f17f0eb93a', 'ADMIN_ADVISORY_BANNER', 'A resource type to store admin advisory banner configurations.'),
-('82ab7001-fb0e-44da-9169-1f63e4964d9b', 'REMOTE_LOGGING_CONFIG', 'A resource type to store remote server logger configurations.');
+('82ab7001-fb0e-44da-9169-1f63e4964d9b', 'REMOTE_LOGGING_CONFIG', 'A resource type to store remote server logger configurations.'),
+('c2f2f3f0-6f8d-4f4d-9bca-1c7b18b4a1b5', 'compatibility-settings', 'A resource type to store the backward compatibility configurations.');
 
 CREATE TABLE IF NOT EXISTS IDN_CONFIG_RESOURCE (
     ID VARCHAR(255) NOT NULL,
@@ -1674,7 +1675,6 @@ CREATE TABLE IF NOT EXISTS IDN_FLOW_NODE_EXECUTOR (
     ID INT PRIMARY KEY AUTO_INCREMENT,
     FLOW_NODE_ID INT,
     EXECUTOR_NAME VARCHAR(255),
-    IDP_NAME VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (FLOW_NODE_ID) REFERENCES IDN_FLOW_NODE(ID) ON DELETE CASCADE
 );
 

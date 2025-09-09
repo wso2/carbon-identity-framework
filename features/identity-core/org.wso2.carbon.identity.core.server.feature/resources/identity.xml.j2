@@ -1666,6 +1666,15 @@
         {% endif %}
 
         <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
+
+        <!--
+            If you want to return a 409 Conflict response (recommended) instead of a 400 Bad Request
+            when duplicate claims (excluding username) are encountered during SCIM2 user operations,
+            then enable this property value.
+            Default value: true
+            Supported versions: IS 7.2.0 onwards
+        -->
+        <ReturnConflictOnClaimUniquenessViolation>{{scim2.return_conflict_on_claim_uniqueness_violation}}</ReturnConflictOnClaimUniquenessViolation>
     </SCIM2>
 
     <Captcha>
@@ -4720,6 +4729,7 @@
             <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
             {% endfor %}
         </FlowTypeTTLs>
+        <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
     </FlowExecution>
 
 </Server>

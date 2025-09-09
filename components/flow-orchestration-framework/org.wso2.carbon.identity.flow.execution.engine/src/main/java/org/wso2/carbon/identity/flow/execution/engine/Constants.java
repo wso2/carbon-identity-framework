@@ -51,8 +51,6 @@ public class Constants {
 
     public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
 
-    public static final String REGISTRATION_FLOW_TYPE = "REGISTRATION";
-
     private Constants() {
 
     }
@@ -188,6 +186,9 @@ public class Constants {
         ERROR_CODE_FLOW_TYPE_NOT_PROVIDED("60011",
                 "Flow type is not provided.",
                 "Flow type not provided in the request."),
+        ERROR_CODE_PRE_UPDATE_PASSWORD_ACTION_VALIDATION_FAILURE("60012",
+                "%s",
+                "%s")
         ;
 
         private static final String ERROR_PREFIX = "FE";
@@ -232,7 +233,6 @@ public class Constants {
         public static final String STATUS_USER_INPUT_REQUIRED = "USER_INPUT_REQUIRED";
         public static final String STATUS_EXTERNAL_REDIRECTION = "EXTERNAL_REDIRECTION";
         public static final String STATUS_WEBAUTHN = "WEBAUTHN";
-        public static final String STATUS_USER_CREATED = "USER_CREATED";
         public static final String STATUS_COMPLETE = "COMPLETE";
         public static final String STATUS_RETRY = "RETRY";
         public static final String STATUS_ERROR = "ERROR";

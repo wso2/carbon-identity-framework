@@ -286,7 +286,9 @@
       "scim2.enable_scim2_roles_v3_api": false,
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
-      "captcha.enable_captcha_for_local_otp_authenticators": false
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "flow_execution.enable_legacy_flows": true,
+      "scim2.return_conflict_on_claim_uniqueness_violation": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -300,7 +302,9 @@
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
       "actions.types.pre_update_password.enable_in_registration_flows": false,
-      "captcha.enable_captcha_for_local_otp_authenticators": false
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "flow_execution.enable_legacy_flows": true,
+      "scim2.return_conflict_on_claim_uniqueness_violation": false
     }
   }
 }
