@@ -194,10 +194,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         ResourceType resourceType = getResourceType(resourceTypeName);
         List<Resource> resourceList;
         try {
-            if (OrganizationManagementUtil.isOrganization(tenantId) &&
-                    Utils.isLoginAndRegistrationConfigInheritanceEnabled(
-                            IdentityTenantUtil.getTenantDomain(tenantId)) &&
-                    ConfigurationConstants.INHERITED_RESOURCE_TYPES.contains(resourceType.getName())) {
+            if (isInheritanceEnabled(resourceTypeName, IdentityTenantUtil.getTenantDomain(tenantId))) {
                     resourceList = getInheritedResourcesByType(tenantId, resourceType.getId());
             } else {
                 resourceList = this.getConfigurationDAO().getResourcesByType(tenantId, resourceType.getId());
@@ -300,10 +297,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         Resource resource;
         try {
             if (getInheritedResource &&
-                    OrganizationManagementUtil.isOrganization(tenantId) &&
-                    Utils.isLoginAndRegistrationConfigInheritanceEnabled(
-                            IdentityTenantUtil.getTenantDomain(tenantId)) &&
-                    ConfigurationConstants.INHERITED_RESOURCE_TYPES.contains(resourceType.getName())) {
+                    isInheritanceEnabled(resourceTypeName, IdentityTenantUtil.getTenantDomain(tenantId))) {
                 resource = getInheritedResourceByName(tenantId, resourceType.getId(), resourceName);
             } else {
                 resource = this.getConfigurationDAO().getResourceByName(tenantId, resourceType.getId(), resourceName);
@@ -1245,5 +1239,32 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         } else {
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
         }
+    }
+
+    /**
+     * Check whether inheritance is enabled for the given resource type in the given tenant domain.
+     *
+     * @param resourceTypeName Resource type name.
+     * @param tenantDomain     Tenant domain.
+     * @return True if inheritance is enabled, false otherwise.
+     * @throws OrganizationManagementException If an error occurs while checking inheritance status.
+     */
+    private boolean isInheritanceEnabled(String resourceTypeName, String tenantDomain) throws OrganizationManagementException {
+
+        if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+            return false;
+        }
+
+        Optional<ConfigurationConstants.InheritedResourceType> matchingResourceType =
+                ConfigurationConstants.InheritedResourceType.getByResourceTypeName(resourceTypeName);
+        if (!matchingResourceType.isPresent()) {
+            return false;
+        }
+
+        if (!matchingResourceType.get().shouldCheckOrgVersionWhenInheriting()) {
+            return true;
+        }
+
+        return Utils.isLoginAndRegistrationConfigInheritanceEnabled(tenantDomain);
     }
 }

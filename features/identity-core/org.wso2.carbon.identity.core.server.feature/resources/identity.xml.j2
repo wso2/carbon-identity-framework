@@ -977,6 +977,7 @@
             <UserInfoEndpointAccessTokenValidator>{{oauth.oidc.extensions.user_info_access_token_validator}}</UserInfoEndpointAccessTokenValidator>
             <UserInfoMultiValueSupportEnabled>{{oauth.oidc.user_info.enable_multi_value_support}}</UserInfoMultiValueSupportEnabled>
             <UserInfoRemoveInternalPrefixFromRoles>{{oauth.oidc.user_info.remove_internal_prefix_from_roles}}</UserInfoRemoveInternalPrefixFromRoles>
+            <ReturnOnlyAppAssociatedRolesInUserInfo>{{oauth.oidc.user_info.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInUserInfo>
             {% if oauth.oidc.extensions.user_info_response_builder is defined %}
             <UserInfoEndpointResponseBuilder>{{oauth.oidc.extensions.user_info_response_builder}}</UserInfoEndpointResponseBuilder>
             {% else %}
@@ -1366,6 +1367,7 @@
         </RestrictedQueryParameters>
 
         <AuthorizeAllScopes>{{oauth.authorize_all_scopes}}</AuthorizeAllScopes>
+        <AuthorizeInternalScopes>{{oauth.authorize_internal_scopes}}</AuthorizeInternalScopes>
 
         <!--
             When this configuration is enabled, the system supports the features defined in RFC9396,
@@ -1374,6 +1376,7 @@
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
         <ReturnSpIdToApplication>{{oauth.return_sp_id_to_apps}}</ReturnSpIdToApplication>
+        <ReturnOnlyAppAssociatedRolesInJWTToken>{{oauth.jwt.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInJWTToken>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1667,6 +1670,23 @@
         {% endif %}
 
         <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
+        <!--
+            This configuration is used to mention the preferred role api version for 'ref'
+            attribute of the 'roles' attribute in the SCIM 2.0 User resource and Group resource.
+            Default value : v3
+            Applicable values : v1, v2, v3
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <DefaultRoleAPIVersionForRef>{{scim2.default_role_api_version_for_ref}}</DefaultRoleAPIVersionForRef>
+
+        <!--
+            If you want to return a 409 Conflict response (recommended) instead of a 400 Bad Request
+            when duplicate claims (excluding username) are encountered during SCIM2 user operations,
+            then enable this property value.
+            Default value: true
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <ReturnConflictOnClaimUniquenessViolation>{{scim2.return_conflict_on_claim_uniqueness_violation}}</ReturnConflictOnClaimUniquenessViolation>
     </SCIM2>
 
     <Captcha>
@@ -1969,9 +1989,9 @@
         <!-- Enable support for storing multiple email addresses and mobile numbers per user. -->
         <EnableMultipleEmailsAndMobileNumbers>{{identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers}}</EnableMultipleEmailsAndMobileNumbers>
 
-        <!-- 
+        <!--
             Defines the scope for which claim uniqueness validation should happen, this can be either within userstore
-            or across userstore. This config is already defined in the EventListener with 
+            or across userstore. This config is already defined in the EventListener with
             id="unique_claim_user_operation_event_listener" of type "UserOperationEventListener".
         -->
         <UniquenessValidation>
@@ -4160,6 +4180,41 @@
         </ExemptContext>
     </IntermediateCertValidation>
 
+    {% set cfg = client_certificate_based_authentication or {} %}
+        <ClientCertBasedAuthentication enable="{{ cfg.enable | default(false) | string | lower }}">
+
+        {% if cfg.user_thumbprint_mapping %}
+        <UserThumbprintMappings>
+            {% for m in cfg.user_thumbprint_mapping %}
+            <Mapping>
+            <TrustedIssuer>{{ m.trusted_issuer }}</TrustedIssuer>
+            <CertThumbprint>{{ m.cert_thumbprint }}</CertThumbprint>
+            {% if m.allowed_username is string %}
+                <AllowedUsername>{{ m.allowed_username }}</AllowedUsername>
+            {% elif m.allowed_username is sequence %}
+                {% for u in m.allowed_username %}
+                <AllowedUsername>{{ u }}</AllowedUsername>
+                {% endfor %}
+            {% else %}
+            {% endif %}
+            </Mapping>
+            {% endfor %}
+        </UserThumbprintMappings>
+        {% endif %}
+
+        {% if cfg.system_thumbprint_mapping %}
+        <SystemThumbprintMappings>
+            {% for m in cfg.system_thumbprint_mapping %}
+            <Mapping>
+            <TrustedIssuer>{{ m.trusted_issuer }}</TrustedIssuer>
+            <CertThumbprint>{{ m.cert_thumbprint }}</CertThumbprint>
+            <AllowedSystemUser>{{ m.allowed_system_user }}</AllowedSystemUser>
+            </Mapping>
+            {% endfor %}
+        </SystemThumbprintMappings>
+        {% endif %}
+        </ClientCertBasedAuthentication>
+
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
 
@@ -4680,6 +4735,12 @@
         </FlowAI>
     </AIServices>
 
+    <TokenExchange>
+        <ImplicitAssociation>
+            <IncludePrimaryWhenSecondaryPresent>{{token_exchange.implicit_association.include_primary_when_secondary_present}}</IncludePrimaryWhenSecondaryPresent>
+        </ImplicitAssociation>
+    </TokenExchange>
+
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
     <FilterByUniqueSessionIdForUser>{{session_management.filter_by_unique_session_id_for_user}}</FilterByUniqueSessionIdForUser>
 
@@ -4727,6 +4788,7 @@
             <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
             {% endfor %}
         </FlowTypeTTLs>
+        <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
     </FlowExecution>
 
 </Server>

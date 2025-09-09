@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.8.436-SNAPSHOT</version>
+        <version>7.8.482-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,5 +33,6 @@
 
     <modules>
         <module>org.wso2.carbon.identity.authorization.framework.server.feature</module>
+        <module>org.wso2.carbon.identity.authorization.common.server.feature</module>
     </modules>
 </project>

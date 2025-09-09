@@ -55,8 +55,11 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_INTERNAL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_SCOPE_PREFIX;
 
 /**
  * Authorized API management service implementation.
@@ -207,7 +210,20 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                                         .map(Scope::getName)
                                         .collect(Collectors.toCollection(ArrayList::new)));
                 authorizedScopesMap.put(RBAC, authorizedScopesBuilder.build());
-                authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
+
+                // Exclude internal scopes that start with "internal_", If this configuration is not enabled,
+                // IS will not authorise internal scopes.
+                boolean authoriseInternalScopes = Boolean.parseBoolean(IdentityUtil.getProperty(
+                        AUTHORIZE_INTERNAL_SCOPES));
+                if (authoriseInternalScopes) {
+                    authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
+                } else {
+                    authorizedScopes = new ArrayList<>(getScopesExcludingInternalScopes(authorizedScopesMap));
+                    List<AuthorizedScopes> appAuthorisedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
+                            IdentityTenantUtil.getTenantId(tenantDomain));
+                    // Get the scopes authorised in the application and add them too.
+                    authorizedScopes.addAll(appAuthorisedScopes);
+                }
             } else {
                 authorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
                         IdentityTenantUtil.getTenantId(tenantDomain));
@@ -220,6 +236,21 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         } catch (APIResourceMgtException e) {
             throw buildServerException("Error while retrieving scopes for tenant domain : " + tenantDomain, e);
         }
+    }
+
+    private List<AuthorizedScopes> getScopesExcludingInternalScopes(Map<String, AuthorizedScopes> authorizedScopesMap) {
+
+        // Iterate and filter scopes that do not start with "internal_" and "console" scopes.
+        return authorizedScopesMap.values().stream()
+                .map(authorizedScopes -> {
+                    // Filter scopes that do not start with "internal_" and "console".
+                    List<String> filteredScopes = authorizedScopes.getScopes().stream()
+                            .filter(scope -> !scope.startsWith(INTERNAL_SCOPE_PREFIX))
+                            .filter(scope -> !scope.startsWith(CONSOLE_SCOPE_PREFIX))
+                            .collect(Collectors.toList());
+                    return new AuthorizedScopes(authorizedScopes.getPolicyId(), filteredScopes);
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
