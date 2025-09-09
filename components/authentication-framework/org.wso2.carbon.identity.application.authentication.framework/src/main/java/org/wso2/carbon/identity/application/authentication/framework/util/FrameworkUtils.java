@@ -4872,4 +4872,20 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_NESTED_REDIRECT_PARAMS_IN_LOGOUT_RETURN_URL));
     }
+
+    /**
+     * Check whether the request or the context has a user assertion. This indicates that the request is initiated
+     * after a flow completion.
+     *
+     * @param request HttpServletRequest
+     * @param context AuthenticationContext
+     * @return true if the request or the context has a user assertion, false otherwise.
+     */
+    public static boolean contextHasUserAssertion(HttpServletRequest request, AuthenticationContext context) {
+
+        Object contextUserAssertion = context.getProperty(FrameworkConstants.USER_ASSERTION);
+        String userAssertion = contextUserAssertion != null ? contextUserAssertion.toString()
+                : request.getParameter(FrameworkConstants.USER_ASSERTION);
+        return StringUtils.isNotEmpty(userAssertion);
+    }
 }

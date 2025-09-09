@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.flow.execution.engine;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -33,13 +34,15 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
+import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.REGISTRATION_FLOW_TYPE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
 
 /**
  * Service class to handle the user flow.
@@ -74,7 +77,7 @@ public class FlowExecutionService {
 
         FlowExecutionStep step;
         FlowExecutionContext context = null;
-        boolean isRegistrationFlow = false;
+        boolean isFlowEnteredInIdentityContext = false;
         try {
             if (StringUtils.isBlank(flowId)) {
                 // No flowId present hence initiate the flow.
@@ -83,17 +86,7 @@ public class FlowExecutionService {
                 context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId);
             }
 
-            /*
-             Ideally this should be done for any defined flow.
-             For the moment we are doing this only for the registration flow.
-             */
-            isRegistrationFlow = REGISTRATION_FLOW_TYPE.equals(context.getFlowType());
-            if (isRegistrationFlow) {
-                IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
-                        .name(Flow.Name.REGISTER)
-                        .initiatingPersona(Flow.InitiatingPersona.USER)
-                        .build());
-            }
+            isFlowEnteredInIdentityContext = enterFlowInIdentityContext(context.getFlowType());
 
             if (inputs != null) {
                 context.getUserInputData().putAll(inputs);
@@ -118,17 +111,20 @@ public class FlowExecutionService {
                 if (step.getData() == null) {
                     step.setData(new DataDTO.Builder().additionalData(new HashMap<>()).build());
                 }
-                if (context.isGenerateAuthenticationAssertion()) {
+                // Generate authentication assertion only if the last step is a redirection. This prevents
+                // unnecessary generation of assertions when the last step is a VIEW step.
+                if (context.isGenerateAuthenticationAssertion() && REDIRECTION.equals(step.getStepType())) {
                     step.getData().addAdditionalData(FrameworkConstants.USER_ASSERTION,
                             AuthenticationAssertionUtils.getSignedUserAssertion(context));
                 }
             } else {
                 FlowExecutionEngineUtils.addFlowContextToCache(context);
             }
+            step.setFlowType(context.getFlowType());
             return step;
         } catch (FlowEngineException e) {
 
-            if (context != null && REGISTRATION_FLOW_TYPE.equals(context.getFlowType())) {
+            if (context != null && REGISTRATION.getType().equals(context.getFlowType())) {
                 Map<String, String> userClaims =
                         context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;
                 FrameworkUtils.publishEventOnUserRegistrationFailure(e.getErrorCode(), e.getDescription(),
@@ -139,9 +135,41 @@ public class FlowExecutionService {
             FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
             throw e;
         } finally {
-            if (isRegistrationFlow) {
+            if (isFlowEnteredInIdentityContext) {
                 IdentityContext.getThreadLocalIdentityContext().exitFlow();
             }
+        }
+    }
+
+    private boolean enterFlowInIdentityContext(String flowType) {
+
+        if (!EnumUtils.isValidEnum(FlowTypes.class, flowType)) {
+            LOG.warn("Invalid flow type: " + flowType + " provided. Hence not entering the flow in IdentityContext.");
+            return false;
+        }
+
+        switch (FlowTypes.valueOf(flowType)) {
+            case REGISTRATION:
+                IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                        .name(Flow.Name.REGISTER)
+                        .initiatingPersona(Flow.InitiatingPersona.USER)
+                        .build());
+                return true;
+            case PASSWORD_RECOVERY:
+                IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.CredentialFlowBuilder()
+                        .name(Flow.Name.CREDENTIAL_RESET)
+                        .credentialType(Flow.CredentialType.PASSWORD)
+                        .initiatingPersona(Flow.InitiatingPersona.USER)
+                        .build());
+                return true;
+            case INVITED_USER_REGISTRATION:
+                IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                        .name(Flow.Name.INVITE)
+                        .initiatingPersona(Flow.InitiatingPersona.ADMIN)
+                        .build());
+                return true;
+            default:
+                return false;
         }
     }
 }

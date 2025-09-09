@@ -69,6 +69,7 @@ public class UnifiedClaimMetadataManagerTest {
     private UnifiedClaimMetadataManager claimMetadataManager;
     private SystemDefaultClaimMetadataManager systemDefaultClaimMetadataManager;
     private DBBasedClaimMetadataManager dbBasedClaimMetadataManager;
+    private CacheBackedDBBasedClaimMetadataManager cacheBackedDBBasedClaimMetadataManager;
     private MockedStatic<IdentityClaimManagementServiceDataHolder> dataHolderStaticMock;
     private MockedStatic<IdentityUtil> identityUtilStaticMock;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilStaticMock;
@@ -106,10 +107,13 @@ public class UnifiedClaimMetadataManagerTest {
         when(dataHolder.getClaimConfig()).thenReturn(claimConfig);
         systemDefaultClaimMetadataManager = mock(SystemDefaultClaimMetadataManager.class);
         dbBasedClaimMetadataManager = mock(DBBasedClaimMetadataManager.class);
+        cacheBackedDBBasedClaimMetadataManager = mock(CacheBackedDBBasedClaimMetadataManager.class);
 
         claimMetadataManager = new UnifiedClaimMetadataManager();
         setPrivateField(claimMetadataManager, "systemDefaultClaimMetadataManager", systemDefaultClaimMetadataManager);
         setPrivateField(claimMetadataManager, "dbBasedClaimMetadataManager", dbBasedClaimMetadataManager);
+        setPrivateField(claimMetadataManager, "cacheBackedDBBasedClaimMetadataManager",
+                cacheBackedDBBasedClaimMetadataManager);
     }
 
     private void setPrivateField(Object target, String fieldName, Object value) throws Exception {
@@ -687,7 +691,7 @@ public class UnifiedClaimMetadataManagerTest {
     public void testRemoveAllClaimDialects() throws ClaimMetadataException {
 
         claimMetadataManager.removeAllClaimDialects(1);
-        verify(dbBasedClaimMetadataManager, times(1)).removeAllClaimDialects(1);
+        verify(cacheBackedDBBasedClaimMetadataManager, times(1)).removeAllClaimDialects(1);
     }
 
     @Test
