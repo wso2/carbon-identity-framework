@@ -178,7 +178,7 @@
 				<AttributeID>dateOfBirth</AttributeID>
 				<Description>Birth Date</Description>
 				<RegEx>^\d{4}-\d{2}-\d{2}$</RegEx>
-				<dataType>date_time</dataType>
+				<dataType>date</dataType>
 				<RegExValidationError>Date of Birth is not in the correct format of YYYY-MM-DD</RegExValidationError>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
@@ -727,7 +727,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>unlockTime</AttributeID>
 				<Description>Unlock Time</Description>
-				<dataType>date_time</dataType>
+				<dataType>epoch</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -736,7 +736,7 @@
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>lastLoginTime</AttributeID>
 				<Description>Last Login Time</Description>
-				<dataType>date_time</dataType>
+				<dataType>epoch</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -746,7 +746,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lastLogonTime</AttributeID>
 				<Description>Last Logon Time</Description>
-				<dataType>date_time</dataType>
+				<dataType>epoch</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -756,7 +756,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lastPasswordUpdate</AttributeID>
 				<Description>Last Password Update Time</Description>
-				<dataType>date_time</dataType>
+				<dataType>epoch</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
@@ -999,7 +999,7 @@
 				<Description>Claim to dynamically calculate password expiry time of user</Description>
 				<ReadOnly>true</ReadOnly>
 				<Returned>request</Returned>
-				<dataType>date_time</dataType>
+				<dataType>epoch</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
