@@ -1061,23 +1061,23 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @throws IdentityApplicationManagementException if an error occurs during the
      *                                                cloning process
      */
-    public static IdentityProvider createIdPClone(IdentityProvider idP) throws IdentityApplicationManagementException {
+    public static IdentityProvider createIdPClone(IdentityProvider idP) 
+        throws IdentityApplicationManagementException {
 
-        ObjectOutputStream objOutPutStream;
-        ObjectInputStream objInputStream;
-        IdentityProvider newObject;
-        try {
-            ByteArrayOutputStream byteArrayOutPutStream = new ByteArrayOutputStream();
-            objOutPutStream = new ObjectOutputStream(byteArrayOutPutStream);
-            objOutPutStream.writeObject(idP);
-
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutPutStream.toByteArray());
-            objInputStream = new ObjectInputStream(byteArrayInputStream);
-            newObject = (IdentityProvider) objInputStream.readObject();
-        } catch (ClassNotFoundException | IOException e) {
-            log.error("Error occurred while deep cloning IDP object", e.getMessage());
+        try (
+            ByteArrayOutputStream byteArrayOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteArrayOut)
+        ) {
+            objOut.writeObject(idP);
+            try (
+                ByteArrayInputStream byteArrayIn = new ByteArrayInputStream(byteArrayOut.toByteArray());
+                ObjectInputStream objIn = new ObjectInputStream(byteArrayIn)
+            ) {
+                return (IdentityProvider) objIn.readObject();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            log.error("Error occurred while deep cloning IDP object", e);
             throw new IdentityApplicationManagementException("Error deep cloning IDP object.", e);
         }
-        return newObject;
     }
 }
