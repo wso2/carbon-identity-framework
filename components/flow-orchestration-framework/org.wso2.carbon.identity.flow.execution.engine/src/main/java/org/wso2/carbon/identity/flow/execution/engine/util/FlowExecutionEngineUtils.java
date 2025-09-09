@@ -310,6 +310,7 @@ public class FlowExecutionEngineUtils {
     /**
      * Handle the flow engine server exceptions.
      *
+     * @param flowType Flow type.
      * @param response Executor response.
      * @return FlowEngineServerException.
      */
@@ -394,6 +395,7 @@ public class FlowExecutionEngineUtils {
     /**
      * Handle the flow engine client exceptions.
      *
+     * @param flowType Flow type.
      * @param response Executor response.
      * @return FlowEngineClientException.
      */
