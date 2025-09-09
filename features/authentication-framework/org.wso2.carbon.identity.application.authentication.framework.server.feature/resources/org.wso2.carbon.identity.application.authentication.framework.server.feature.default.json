@@ -227,7 +227,7 @@
 
   "authentication.authenticator.office365.name": "Office365Authenticator",
   "authentication.authenticator.office365.parameters.Tags": "OIDC",
-  "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
+  "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": true,
 
   "authentication.authenticator.iwa_kerberos.name": "IWAKerberosAuthenticator",
   "authentication.authenticator.iwa_kerberos.parameters.Tags": "Enterprise",

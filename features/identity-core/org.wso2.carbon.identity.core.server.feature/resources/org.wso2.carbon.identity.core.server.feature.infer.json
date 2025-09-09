@@ -303,7 +303,8 @@
       "actions.types.pre_update_password.enable_in_registration_flows": false,
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
       "oauth.return_sp_id_to_apps": true,
-      "captcha.enable_captcha_for_local_otp_authenticators": false
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false
     }
   }
 }
