@@ -429,7 +429,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         if (isDuplicateAssociation(existingAssociations, eventId, condition)) {
             if (log.isDebugEnabled()) {
                 log.debug("Duplicate association found for workflow: " + workflowId +
-                         " with event: " + eventId + " and condition: " + condition);
+                         " with event: " + eventId + " with the same condition.");
             }
             throw new WorkflowClientException("The workflow " + workflowId + " is already associated with the " +
                     "event " + eventId + " with the same condition.");
@@ -870,11 +870,12 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 associationDAO.listAssociationsForWorkflow(association.getWorkflowId());
         if (isDuplicateAssociation(existingAssociations, association.getEventId(), association.getCondition())) {
             if (log.isDebugEnabled()) {
-                log.debug("Duplicate association found for workflow: " + workflowId +
-                        " with event: " + eventId + " and condition: " + condition);
+                log.debug("Duplicate association found for workflow: " + association.getWorkflowId() +
+                        " with event: " + association.getEventId() + " with the same condition.");
             }
-            throw new WorkflowClientException("The workflow " + workflowId + " is already associated with the " +
-                    "event " + eventId + " with the same condition.");
+            throw new WorkflowClientException("The workflow " + association.getWorkflowId() +
+                    " is already associated with the " + "event " + association.getEventId() +
+                    " with the same condition.");
         }
 
         association.setEnabled(isEnable);
