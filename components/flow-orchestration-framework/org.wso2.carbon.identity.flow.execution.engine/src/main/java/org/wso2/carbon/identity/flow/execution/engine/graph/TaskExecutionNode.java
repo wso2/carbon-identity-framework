@@ -173,10 +173,15 @@ public class TaskExecutionNode implements Node {
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_USER_ERROR:
+                if (response.getErrorCode() != null){
+                    throw handleClientException(flowType, response);
+                }
                 throw handleClientException(flowType, ERROR_CODE_FLOW_FAILURE, response.getErrorMessage());
             case STATUS_ERROR:
-                throw handleClientException(flowType, ERROR_CODE_REQUEST_PROCESSING_FAILURE,
-                        response.getErrorMessage());
+                if (response.getErrorCode() != null){
+                    throw handleServerException(flowType, response);
+                }
+                throw handleServerException(flowType, ERROR_CODE_REQUEST_PROCESSING_FAILURE, response.getErrorMessage());
             default:
                 throw handleServerException(flowType, ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
         }
