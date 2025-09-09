@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.workflow.mgt;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
@@ -421,6 +423,16 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             log.error("Null or empty string given as condition expression when associating " + workflowId +
                     " to event " + eventId);
             throw new InternalWorkflowException("Condition cannot be null");
+        }
+
+        List<Association> existingAssociations = associationDAO.listAssociationsForWorkflow(workflowId);
+        if (isDuplicateAssociation(existingAssociations, eventId, condition)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Duplicate association found for workflow: " + workflowId +
+                         " with event: " + eventId + " and condition: " + condition);
+            }
+            throw new WorkflowClientException("The workflow " + workflowId + " is already associated with the " +
+                    "event " + eventId + " with the same condition.");
         }
 
         // Check for xpath syntax errors.
@@ -1264,5 +1276,21 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             throws WorkflowException {
 
         return workflowRequestDAO.retrieveWorkflow(requestId);
+    }
+
+    /**
+     * Check if a duplicate association exists for the given event and condition.
+     *
+     * @param existingAssociations List of existing associations for the workflow.
+     * @param eventId             The event ID to check.
+     * @param condition           The condition to check.
+     * @return true if a duplicate association is found, false otherwise.
+     */
+    private boolean isDuplicateAssociation(List<Association> existingAssociations, String eventId, String condition) {
+
+        return !CollectionUtils.isEmpty(existingAssociations) && existingAssociations.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(association -> StringUtils.equals(association.getEventId(), eventId) &&
+                        StringUtils.equals(association.getCondition(), condition));
     }
 }
