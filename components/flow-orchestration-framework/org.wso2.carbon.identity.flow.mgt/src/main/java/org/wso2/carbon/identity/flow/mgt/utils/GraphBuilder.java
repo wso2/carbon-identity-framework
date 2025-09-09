@@ -375,7 +375,7 @@ public class GraphBuilder {
         ActionDTO action = step.getData().getAction();
         NodeConfig endNode;
 
-        // if the action is not defined, consider it as a prompt only node.
+        // If the action is not defined, consider it as a prompt only node.
         if (action == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("No action defined for the end step. Therefore creating a prompt only node.");
