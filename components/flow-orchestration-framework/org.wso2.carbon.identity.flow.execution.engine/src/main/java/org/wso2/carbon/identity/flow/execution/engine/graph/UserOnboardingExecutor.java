@@ -290,7 +290,7 @@ public class UserOnboardingExecutor implements Executor {
      * @param data     Optional data to format the error description.
      * @return Modified ExecutorResponse with error details.
      */
-    private ExecutorResponse errorResponse(ExecutorResponse response, ErrorMessages error, Throwable e ,Object... data) {
+    private ExecutorResponse errorResponse(ExecutorResponse response, ErrorMessages error, Throwable e, Object... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {

@@ -147,7 +147,7 @@ public class ExecutorResponse {
     /**
      * Model class to represent an error object.
      */
-    public static  class ErrorObject {
+    public static class ErrorObject {
 
         private String code;
         private String message;
