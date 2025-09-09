@@ -32,10 +32,11 @@ public class ExecutorResponse {
     private Map<String, char[]> userCredentials;
     private Map<String, Object> contextProperties;
     private Map<String, String> additionalInfo;
-    private String errorMessage;
+    private ErrorObject errorObject;
 
     public ExecutorResponse() {
 
+        this.errorObject = new ErrorObject();
     }
 
     public ExecutorResponse(String result) {
@@ -105,11 +106,88 @@ public class ExecutorResponse {
 
     public String getErrorMessage() {
 
-        return errorMessage;
+        return errorObject.getMessage();
     }
 
     public void setErrorMessage(String errorMessage) {
 
-        this.errorMessage = errorMessage;
+        this.errorObject.setMessage(errorMessage);
+    }
+
+    public String getErrorCode() {
+
+        return errorObject.getCode();
+    }
+
+    public void setErrorCode(String errorCode) {
+
+        this.errorObject.setCode(errorCode);
+    }
+
+    public String getErrorDescription() {
+
+        return errorObject.getDescription();
+    }
+
+    public void setErrorDescription(String errorDescription) {
+
+        this.errorObject.setDescription(errorDescription);
+    }
+
+    public Throwable getThrowable() {
+
+        return errorObject.getThrowable();
+    }
+
+    public void setThrowable(Throwable throwable) {
+
+        this.errorObject.setThrowable(throwable);
+    }
+
+    /**
+     * Model class to represent an error object.
+     */
+    public static  class ErrorObject {
+
+        private String code;
+        private String message;
+        private String description;
+        private Throwable throwable;
+
+        public ErrorObject() {
+
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public Throwable getThrowable() {
+            return throwable;
+        }
+
+        public void setThrowable(Throwable throwable) {
+            this.throwable = throwable;
+        }
     }
 }
