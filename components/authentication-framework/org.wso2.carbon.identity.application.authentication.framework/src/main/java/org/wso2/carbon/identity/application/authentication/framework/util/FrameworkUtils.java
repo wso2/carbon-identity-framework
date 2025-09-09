@@ -2540,6 +2540,7 @@ public class FrameworkUtils {
      * @throws UserStoreException If an error occurs while retrieving the user store manager.
      */
     private static AbstractUserStoreManager getUserStoreManager(String userStoreDomain) throws UserStoreException {
+
         if (userStoreDomain != null) {
             return (AbstractUserStoreManager) ((AbstractUserStoreManager)
                     CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager())
@@ -2550,6 +2551,7 @@ public class FrameworkUtils {
     }
 
     public static String getPASTRCookieName (String sessionDataKey) {
+
         return FrameworkConstants.PASTR_COOKIE + "-" + sessionDataKey;
     }
 

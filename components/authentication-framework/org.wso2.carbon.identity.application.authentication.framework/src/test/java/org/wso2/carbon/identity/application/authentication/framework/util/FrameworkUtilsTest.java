@@ -1439,29 +1439,25 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         assertEquals(actual, expected, note);
     }
 
-    // Java
     /**
      * Test multi attribute separator retrieval from user realm configuration.
      */
     @Test
     public void testGetMultiAttributeSeparatorFromUserRealmConfig() {
+
+        final String MULTI_ATTRIBUTE_SEPARATOR = ",";
         try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
             CarbonContext carbonContext = mock(CarbonContext.class);
             UserRealm userRealm = mock(UserRealm.class);
             RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
 
             carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
-            lenient().when(carbonContext.getUserRealm()).thenReturn(userRealm);
-            try {
-                lenient().when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
-            } catch (UserStoreException e) {
-                throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
-            }
-            lenient().when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
-                    .thenReturn(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
+            when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+                    .thenReturn(MULTI_ATTRIBUTE_SEPARATOR);
 
             String separator = FrameworkUtils.getMultiAttributeSeparator();
-            assertEquals(separator, IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT);
+            assertEquals(separator, MULTI_ATTRIBUTE_SEPARATOR);
         }
     }
 
@@ -1470,7 +1466,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
      */
     @Test
     public void testGetMultiAttributeSeparatorWithUserStoreDomain() {
+
         String userStoreDomain = "SECONDARY";
+        final String MULTI_ATTRIBUTE_SEPARATOR = ";";
+
         try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
             CarbonContext carbonContext = mock(CarbonContext.class);
             UserRealm userRealm = mock(UserRealm.class);
@@ -1479,21 +1478,19 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
 
             carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
-            lenient().when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            when(carbonContext.getUserRealm()).thenReturn(userRealm);
             try {
-                lenient().when(userRealm.getUserStoreManager()).thenReturn(primaryUserStoreManager);
-                lenient().when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
+                when(userRealm.getUserStoreManager()).thenReturn(primaryUserStoreManager);
             } catch (UserStoreException e) {
                 throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
             }
-            lenient().when(primaryUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
+            when(primaryUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
                     .thenReturn(secondaryUserStoreManager);
-            lenient().when(secondaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
-            lenient().when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
-                    .thenReturn(";");
+            when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+                    .thenReturn(MULTI_ATTRIBUTE_SEPARATOR);
 
             String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
-            assertEquals(separator, ";");
+            assertEquals(separator, MULTI_ATTRIBUTE_SEPARATOR);
         }
     }
 }
