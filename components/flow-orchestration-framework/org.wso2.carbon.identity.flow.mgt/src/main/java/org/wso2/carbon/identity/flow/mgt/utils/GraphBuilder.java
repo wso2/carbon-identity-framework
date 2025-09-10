@@ -372,7 +372,21 @@ public class GraphBuilder {
 
     private void processEndStep(StepDTO step) {
 
-        NodeConfig endNode = createPagePromptNode(step.getId());
+        ActionDTO action = step.getData().getAction();
+        NodeConfig endNode;
+
+        // If the action is not defined, consider it as a prompt only node.
+        if (action == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No action defined for the end step. Therefore creating a prompt only node.");
+            }
+            endNode = createPagePromptNode(step.getId());
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Action defined for the end step. Therefore creating a task execution node.");
+            }
+            endNode = createTaskExecutionNode(step.getId(), action.getExecutor());
+        }
         handleTempNodesInStep(Collections.singletonList(endNode), step);
     }
 }

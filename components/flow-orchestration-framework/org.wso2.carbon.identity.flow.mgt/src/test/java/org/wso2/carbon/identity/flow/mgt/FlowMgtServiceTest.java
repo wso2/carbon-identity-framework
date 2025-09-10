@@ -91,6 +91,7 @@ public class FlowMgtServiceTest {
     private static final String DB_NAME = "flow_mgt_dao_db";
     private static final String DB_SCRIPT = "identity.sql";
     private static final String FLOW_JSON = "flow.json";
+    private static final String FLOW_WITH_END_NODE_JSON = "flowWithEndNode.json";
     private static final int TEST_TENANT_ID = -1234;
     private static final String TEST_TENANT_DOMAIN = "testTenant";
     private static final String TEST_ORG_ID = "testOrgId";
@@ -177,6 +178,27 @@ public class FlowMgtServiceTest {
         assertEquals(regGraph.getNodeConfigs().size(), 5);
         assertEquals(regGraph.getFirstNodeId(), "step_1");
         assertEquals(regGraph.getNodeConfigs().get("step_1").getType(), DECISION);
+    }
+
+    @Test(dependsOnMethods = {"testGetFlow", "testGetRegistrationGraph"})
+    public void testUpdateFlowWithEnd() throws Exception {
+
+        try (MockedStatic<FlowMgtUtils> flowMgtUtils = mockStatic(FlowMgtUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+
+            loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
+            flowMgtUtils.when(FlowMgtUtils::getInitiatorId).thenReturn(LoggerUtils.Initiator.System.name());
+
+            service.updateFlow(createSampleGraphConfigWithEndNode(), TEST_TENANT_ID);
+        }
+    }
+
+    @Test(dependsOnMethods = {"testUpdateFlowWithEnd"})
+    public void testGetFlowWithEnd() throws Exception {
+
+        FlowDTO flowDTO = service.getFlow("SELF_REGISTRATION", TEST_TENANT_ID);
+        assertNotNull(flowDTO);
+        assertEquals(flowDTO.getSteps().size(), 2);
     }
 
     @DataProvider(name = "invalidStepData")
@@ -367,6 +389,19 @@ public class FlowMgtServiceTest {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             FlowDTO flowDTO = objectMapper.readValue(new File(getFilePath(FLOW_JSON)), FlowDTO.class);
+            flowDTO.setFlowType("SELF_REGISTRATION");
+            return flowDTO;
+        } catch (Exception e) {
+            throw new RuntimeException("Error while reading the JSON file.", e);
+        }
+    }
+
+    private static FlowDTO createSampleGraphConfigWithEndNode() {
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            FlowDTO flowDTO = objectMapper.readValue(new File(getFilePath(FLOW_WITH_END_NODE_JSON)), FlowDTO.class);
             flowDTO.setFlowType("SELF_REGISTRATION");
             return flowDTO;
         } catch (Exception e) {
