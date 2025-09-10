@@ -304,7 +304,8 @@
       "actions.types.pre_update_password.enable_in_registration_flows": false,
       "captcha.enable_captcha_for_local_otp_authenticators": false,
       "flow_execution.enable_legacy_flows": true,
-      "scim2.return_conflict_on_claim_uniqueness_violation": false
+      "scim2.return_conflict_on_claim_uniqueness_violation": false,
+      "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false
     }
   }
 }
