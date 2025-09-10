@@ -304,6 +304,7 @@
       "notification_templates.super_organization_display_name.enable": false,
       "multi_tenancy.stratos.public_cloud_setup": true,
       "token_exchange.implicit_association.include_primary_when_secondary_present": false,
+      "scim.restrict_federated_user_access": false,
       "scim2.return_conflict_on_claim_uniqueness_violation": false
     },
     "IS_7.1.0": {
@@ -338,6 +339,7 @@
       "notification_templates.super_organization_display_name.enable": false,
       "multi_tenancy.stratos.public_cloud_setup": true,
       "token_exchange.implicit_association.include_primary_when_secondary_present": false,
+      "scim.restrict_federated_user_access": false,
       "scim2.return_conflict_on_claim_uniqueness_violation": false,
       "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false
     }
