@@ -429,7 +429,8 @@ public class RoleDAOTest {
                 L1_ORG_TENANT_ORG_ID, roleDAO);
         roleDAO.addMainRoleToSharedRoleRelationship(roleBasicInfo.getId(), sharedRoleBasicInfo.getId(),
                 SAMPLE_TENANT_DOMAIN, L1_ORG_TENANT_DOMAIN);
-
+        organizationManagementUtil.when(() -> OrganizationManagementUtil.isOrganization(L1_ORG_TENANT_DOMAIN))
+                .thenReturn(true);
         mockRealmConfiguration();
         Role role = roleDAO.getRole(sharedRoleBasicInfo.getId(), L1_ORG_TENANT_DOMAIN);
         assertEquals(sharedRoleBasicInfo.getId(), role.getId());
