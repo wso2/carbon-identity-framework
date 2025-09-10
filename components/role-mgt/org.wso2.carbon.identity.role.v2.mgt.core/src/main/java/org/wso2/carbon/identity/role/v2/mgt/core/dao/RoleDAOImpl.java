@@ -1711,6 +1711,11 @@ public class RoleDAOImpl implements RoleDAO {
     public boolean isSharedRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
         if (!isOrganization(tenantDomain)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(
+                        String.format("Tenant domain %s is not an organization. Returning false for shared role check.",
+                                tenantDomain));
+            }
             return false;
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
