@@ -1675,6 +1675,14 @@
             Supported versions: IS 7.2.0 onwards
         -->
         <ReturnConflictOnClaimUniquenessViolation>{{scim2.return_conflict_on_claim_uniqueness_violation}}</ReturnConflictOnClaimUniquenessViolation>
+
+        <!--
+            If you want to throw a UserStoreException in case of user creation failures, then enable this
+            property value.
+            Default value: true
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <ThrowUserStoreExceptionOnUserCreationError>{{scim2.throw_userstore_exception_on_user_creation_error}}</ThrowUserStoreExceptionOnUserCreationError>
     </SCIM2>
 
     <Captcha>
