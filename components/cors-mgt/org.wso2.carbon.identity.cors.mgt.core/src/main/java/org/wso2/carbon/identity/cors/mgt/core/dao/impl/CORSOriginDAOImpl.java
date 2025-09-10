@@ -49,7 +49,6 @@ import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.ORIGIN;
-import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.TENANT_ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.UNIQUE_ID;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.handleServerException;
 
@@ -159,10 +158,15 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                             });
                 }
 
-                // cleanupDanglingOrigins(template, tenantId); // Disabled temporarily.
+                // Cleanup dangling origins (origins without any association to an application) is disabled temporary.
+                // Even the CORS Origins are stored for each application separately, the CORS valve filters them
+                // based on the tenant level. Because of that there might be other applications which are not configured
+                // allowed origins but still working as another application has already set is as an allowed origin.
+                // Related issue: https://github.com/wso2/product-is/issues/11241
+                // cleanupDanglingOrigins(template, tenantId);
                 return null;
             });
-        } catch (TransactionException | DataAccessException e) {
+        } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_CORS_ADD, e, tenantDomain);
         }
     }
@@ -209,7 +213,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 }
                 return null;
             });
-        } catch (TransactionException | DataAccessException e) {
+        } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_CORS_ADD, e, tenantDomain);
         }
     }
@@ -238,12 +242,15 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                             });
                 }
 
-                // cleanupDanglingOrigins(template, tenantId); // Disabled temporarily.
+                // Cleanup dangling origins (origins without any association to an application) is disabled temporary.
+                // Even the CORS Origins are stored for each application separately, the CORS valve filters them
+                // based on the tenant level. Because of that there might be other applications which are not configured
+                // allowed origins but still working as another application has already set is as an allowed origin.
+                // Related issue: https://github.com/wso2/product-is/issues/11241
+                // cleanupDanglingOrigins(template, tenantId);
                 return null;
             });
-        } catch (CORSManagementServiceServerException e) {
-            throw e;
-        } catch (TransactionException | DataAccessException e) {
+        } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_CORS_DELETE, e, currentId[0]);
         }
     }
