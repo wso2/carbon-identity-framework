@@ -426,7 +426,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
 
         List<Association> existingAssociations = associationDAO.listAssociationsForWorkflow(workflowId);
-        if (isDuplicateAssociation(existingAssociations, eventId, condition)) {
+        if (hasDuplicateAssociation(existingAssociations, eventId, condition)) {
             if (log.isDebugEnabled()) {
                 log.debug("Duplicate association found for workflow: " + workflowId +
                          " with event: " + eventId + " with the same condition.");
@@ -868,7 +868,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
         List<Association> existingAssociations =
                 associationDAO.listAssociationsForWorkflow(association.getWorkflowId());
-        if (isDuplicateAssociation(existingAssociations, association.getEventId(), association.getCondition())) {
+        if (hasDuplicateAssociationForUpdate(existingAssociations, association.getEventId(), association.getCondition(),
+                associationId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Duplicate association found for workflow: " + association.getWorkflowId() +
                         " with event: " + association.getEventId() + " with the same condition.");
@@ -1292,17 +1293,38 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     /**
      * Check if a duplicate association exists for the given event and condition.
+     * Used when adding a new association to ensure no conflicts exist.
      *
      * @param existingAssociations List of existing associations for the workflow.
      * @param eventId             The event ID to check.
      * @param condition           The condition to check.
      * @return true if a duplicate association is found, false otherwise.
      */
-    private boolean isDuplicateAssociation(List<Association> existingAssociations, String eventId, String condition) {
+    private boolean hasDuplicateAssociation(List<Association> existingAssociations, String eventId, String condition) {
 
         return !CollectionUtils.isEmpty(existingAssociations) && existingAssociations.stream()
                 .filter(Objects::nonNull)
                 .anyMatch(association -> StringUtils.equals(association.getEventId(), eventId) &&
                         StringUtils.equals(association.getCondition(), condition));
+    }
+
+    /**
+     * Check if a duplicate association exists for the given event and condition during update.
+     * Excludes the current association being updated from the duplicate check.
+     *
+     * @param existingAssociations List of existing associations for the workflow.
+     * @param eventId             The event ID to check.
+     * @param condition           The condition to check.
+     * @param associationId       The ID of the association being updated (to exclude from check).
+     * @return true if a duplicate association is found, false otherwise.
+     */
+    private boolean hasDuplicateAssociationForUpdate(List<Association> existingAssociations, String eventId,
+                                                     String condition, String associationId) {
+
+        return !CollectionUtils.isEmpty(existingAssociations) && existingAssociations.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(association -> !StringUtils.equals(association.getAssociationId(), associationId)
+                        && StringUtils.equals(association.getEventId(), eventId)
+                        && StringUtils.equals(association.getCondition(), condition));
     }
 }
