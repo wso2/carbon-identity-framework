@@ -2264,6 +2264,10 @@ public class IdentityUtil {
      */
     public static boolean isWithinAllowedJWTDepth(String jwt) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Checking JWT depth validation");
+        }
+
         int maxDepth = 255;
         String maxDepthStr = IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY);
         if (StringUtils.isNotBlank(maxDepthStr)) {
@@ -2281,9 +2285,9 @@ public class IdentityUtil {
         // Extract and decode JWT payload.
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
+        if (parts.length < 2) {
+            log.warn("Invalid JWT format - missing payload section");
             return true;
-        }
-
         byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
         String payload = new String(payloadBytes, StandardCharsets.UTF_8);
 
