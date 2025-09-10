@@ -2285,9 +2285,9 @@ public class IdentityUtil {
         // Extract and decode JWT payload.
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
-        if (parts.length < 2) {
             log.warn("Invalid JWT format - missing payload section");
             return true;
+        }
         byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
         String payload = new String(payloadBytes, StandardCharsets.UTF_8);
 
@@ -2337,7 +2337,6 @@ public class IdentityUtil {
 
             currentLevel = nextLevel;
         }
-
         // If we still have objects after maxDepth levels, it's too deep.
         return currentLevel.isEmpty();
     }
