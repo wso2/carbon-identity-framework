@@ -162,9 +162,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
-                handleExistingUser(username, userStoreDomain, tenantDomain, idp, subjectVal, userClaims, attributes, userStoreManager);
+                handleExistingUser(username, userStoreDomain, tenantDomain, idp, subjectVal, userClaims,
+                        attributes, userStoreManager);
             } else {
-                boolean userCreated = handleNewUserCreation(username, userStoreDomain, tenantDomain, idp, subjectVal, userClaims, userStoreManager);
+                boolean userCreated = handleNewUserCreation(username, userStoreDomain, tenantDomain, idp,
+                        subjectVal, userClaims, userStoreManager);
                 if (!userCreated) {
                     return; // User creation incomplete due to workflow
                 }
@@ -705,8 +707,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      * @return true if user was created successfully, false if creation incomplete due to workflow
      */
     private boolean handleNewUserCreation(String username, String userStoreDomain, String tenantDomain, String idp,
-                                         String subjectVal, Map<String, String> userClaims, UserStoreManager userStoreManager)
-            throws FrameworkException {
+                                          String subjectVal, Map<String, String> userClaims,
+                                          UserStoreManager userStoreManager) throws FrameworkException {
         
         char[] password = generatePassword();
         char[] passwordFromUser = (userClaims.get(FrameworkConstants.PASSWORD) != null)
