@@ -2257,6 +2257,11 @@ public class IdentityUtil {
         return userStoreName;
     }
 
+    /**
+     * Check whether the JWT is within the allowed depth.
+     * @param jwt JWT string.
+     * @return True if the JWT is within the allowed depth, false otherwise.
+     */
     public static boolean isWithinAllowedJWTDepth(String jwt) {
 
         int maxDepth = 255;
@@ -2265,7 +2270,7 @@ public class IdentityUtil {
             try {
                 maxDepth = Integer.parseInt(maxDepthStr);
             } catch (NumberFormatException e) {
-                // Use default
+                // Use default.
             }
         }
 
@@ -2273,68 +2278,63 @@ public class IdentityUtil {
             return true;
         }
 
-        // Extract and decode JWT payload
+        // Extract and decode JWT payload.
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
             return true;
         }
 
-        try {
-            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
-            String payload = new String(payloadBytes, StandardCharsets.UTF_8);
+        byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+        String payload = new String(payloadBytes, StandardCharsets.UTF_8);
 
-            Object json;
+        Object json;
+        try {
+            json = new org.json.JSONObject(payload);
+        } catch (Exception e) {
             try {
-                json = new org.json.JSONObject(payload);
-            } catch (Exception e) {
-                try {
-                    json = new org.json.JSONArray(payload);
-                } catch (Exception ex) {
-                    return true;
-                }
+                json = new org.json.JSONArray(payload);
+            } catch (Exception ex) {
+                return true;
+            }
+        }
+
+        // Level-order traversal to check depth.
+        Queue<Object> currentLevel = new ArrayDeque<>();
+        currentLevel.offer(json);
+
+        for (int depth = 1; depth <= maxDepth; depth++) {
+            if (currentLevel.isEmpty()) {
+                return true; // No more nested objects.
             }
 
-            // Level-order traversal to check depth
-            Queue<Object> currentLevel = new ArrayDeque<>();
-            currentLevel.offer(json);
+            Queue<Object> nextLevel = new ArrayDeque<>();
 
-            for (int depth = 1; depth <= maxDepth; depth++) {
-                if (currentLevel.isEmpty()) {
-                    return true; // No more nested objects
-                }
+            while (!currentLevel.isEmpty()) {
+                Object current = currentLevel.poll();
 
-                Queue<Object> nextLevel = new ArrayDeque<>();
-
-                while (!currentLevel.isEmpty()) {
-                    Object current = currentLevel.poll();
-
-                    if (current instanceof org.json.JSONObject) {
-                        org.json.JSONObject obj = (org.json.JSONObject) current;
-                        for (String key : obj.keySet()) {
-                            Object value = obj.opt(key);
-                            if (value instanceof org.json.JSONObject || value instanceof org.json.JSONArray) {
-                                nextLevel.offer(value);
-                            }
+                if (current instanceof org.json.JSONObject) {
+                    org.json.JSONObject obj = (org.json.JSONObject) current;
+                    for (String key : obj.keySet()) {
+                        Object value = obj.opt(key);
+                        if (value instanceof org.json.JSONObject || value instanceof org.json.JSONArray) {
+                            nextLevel.offer(value);
                         }
-                    } else if (current instanceof org.json.JSONArray) {
-                        org.json.JSONArray arr = (org.json.JSONArray) current;
-                        for (int i = 0; i < arr.length(); i++) {
-                            Object value = arr.opt(i);
-                            if (value instanceof org.json.JSONObject || value instanceof org.json.JSONArray) {
-                                nextLevel.offer(value);
-                            }
+                    }
+                } else if (current instanceof org.json.JSONArray) {
+                    org.json.JSONArray arr = (org.json.JSONArray) current;
+                    for (int i = 0; i < arr.length(); i++) {
+                        Object value = arr.opt(i);
+                        if (value instanceof org.json.JSONObject || value instanceof org.json.JSONArray) {
+                            nextLevel.offer(value);
                         }
                     }
                 }
-
-                currentLevel = nextLevel;
             }
 
-            // If we still have objects after maxDepth levels, it's too deep
-            return currentLevel.isEmpty();
-
-        } catch (Exception e) {
-            return true;
+            currentLevel = nextLevel;
         }
+
+        // If we still have objects after maxDepth levels, it's too deep.
+        return currentLevel.isEmpty();
     }
 }
