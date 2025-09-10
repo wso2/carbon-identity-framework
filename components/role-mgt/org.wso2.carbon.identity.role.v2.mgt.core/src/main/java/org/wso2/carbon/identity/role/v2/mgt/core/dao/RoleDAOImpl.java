@@ -1710,6 +1710,9 @@ public class RoleDAOImpl implements RoleDAO {
     @Override
     public boolean isSharedRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
+        if (!isOrganization(tenantDomain)) {
+            return false;
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         boolean isShared = false;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
