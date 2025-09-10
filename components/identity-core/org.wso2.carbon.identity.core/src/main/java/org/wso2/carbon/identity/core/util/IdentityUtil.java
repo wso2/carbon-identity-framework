@@ -2275,10 +2275,14 @@ public class IdentityUtil {
                 maxDepth = Integer.parseInt(maxDepthStr);
             } catch (NumberFormatException e) {
                 // Use default.
+                log.warn("Invalid JWT maximum depth value: " + maxDepthStr + ". Using default: 255");
             }
         }
 
         if (StringUtils.isBlank(jwt)) {
+            if (log.isDebugEnabled()) {
+                log.debug("JWT is blank, skipping depth validation");
+            }
             return true;
         }
 
@@ -2336,6 +2340,10 @@ public class IdentityUtil {
             }
 
             currentLevel = nextLevel;
+        }
+        // If we still have objects after maxDepth levels, it's too deep
+        if (!currentLevel.isEmpty()) {
+            log.warn("JWT payload exceeds maximum allowed depth of " + maxDepth);
         }
         // If we still have objects after maxDepth levels, it's too deep.
         return currentLevel.isEmpty();
