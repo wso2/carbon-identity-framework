@@ -511,12 +511,16 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get identity provider with mandatory properties only
+     * Get identity provider with mandatory properties only.
+     *
      * @param idp Identity provider
      * @return Identity provider with mandatory properties
      */
     private IdentityProvider getIdpWithMandatoryProps(IdentityProvider idp) {
 
+        if (idp == null) {
+            return null;
+        }
         IdentityProvider newIdp = new IdentityProvider();
         newIdp.setIdentityProviderName(idp.getIdentityProviderName());
         newIdp.setDisplayName(idp.getDisplayName());
