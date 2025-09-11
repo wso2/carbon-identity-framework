@@ -214,7 +214,7 @@ public class FlowExecutionEngine {
             finalDataDTO = new DataDTO.Builder()
                     .components(dataDTO.getComponents())
                     .requiredParams(nodeResponse.getRequiredData())
-                    .additionalData(dataDTO.getAdditionalData())
+                    .additionalData(nodeResponse.getAdditionalInfo())
                     .build();
             handleError(finalDataDTO, nodeResponse);
         }
