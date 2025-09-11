@@ -138,6 +138,7 @@
             <Update>
                 <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_user_mgt_update"/>
+                <Scope name="internal_shared_application_create"/>
             </Update>
             <Delete>
             </Delete>
@@ -154,6 +155,8 @@
                 <Scope name="internal_group_mgt_view"/>
                 <Scope name="internal_session_view"/>
                 <Scope name="internal_governance_view"/>
+                <Scope name="internal_shared_application_view"/>
+                <Scope name="internal_organization_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -940,6 +943,7 @@
             <Update>
                 <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_user_mgt_update"/>
+                <Scope name="internal_shared_application_create"/>
             </Update>
             <Delete>
             </Delete>
@@ -956,6 +960,8 @@
                 <Scope name="internal_group_mgt_view"/>
                 <Scope name="internal_session_view"/>
                 <Scope name="internal_governance_view"/>
+                <Scope name="internal_shared_application_view"/>
+                <Scope name="internal_organization_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
