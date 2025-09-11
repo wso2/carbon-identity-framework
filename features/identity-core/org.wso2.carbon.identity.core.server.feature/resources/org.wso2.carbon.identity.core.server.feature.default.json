@@ -879,6 +879,8 @@
   "configuration.store.query_length.max": "4194304",
   "configuration.store.allow_cross_tenant_search": false,
 
+  "federated.authenticator.max_property_limit": "50",
+
   "fido.webauthn.enable": true,
   "fido.enable_passkey_progressive_enrollment": false,
   "fido.enable_usernameless_authentication": true,
