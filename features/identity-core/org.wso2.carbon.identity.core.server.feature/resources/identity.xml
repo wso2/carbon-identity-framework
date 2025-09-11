@@ -2861,4 +2861,13 @@
         <Enabled>true</Enabled>
     </AgentIdentity>
 
+    <NotificationChannel>
+        <SMS>
+            <Custom>
+                <ConnectionTimeout>5000</ConnectionTimeout>
+                <ConnectionReadTimeout>20000</ConnectionReadTimeout>
+            </Custom>
+        </SMS>
+    </NotificationChannel>
+
 </Server>
