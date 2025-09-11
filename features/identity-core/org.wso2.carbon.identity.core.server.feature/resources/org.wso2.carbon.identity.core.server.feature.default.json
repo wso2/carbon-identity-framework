@@ -2066,5 +2066,8 @@
 
   "console.ui.organizations.organization_display_name.enable": true,
   "console.ui.organizations.organization_handle.enable": true,
-  "notification_templates.super_organization_display_name.enable": true
+  "notification_templates.super_organization_display_name.enable": true,
+  
+  "notificationChannel.sms.custom.connection_timeout": "5000",
+  "notificationChannel.sms.custom.connection_read_timeout": "20000"
 }
