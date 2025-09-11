@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.graph;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +27,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
+import org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -58,6 +60,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USERNAME;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PRE_UPDATE_PASSWORD_ACTION_VALIDATION_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.USER_ALREADY_EXISTING_USERNAME;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
@@ -101,15 +104,17 @@ public class UserOnboardingExecutor implements Executor {
     }
 
     @Override
-    public ExecutorResponse execute(FlowExecutionContext context) throws FlowEngineException {
+    public ExecutorResponse execute(FlowExecutionContext context) {
 
-        FlowUser user = updateUserProfile(context);
-        Map<String, String> userClaims = user.getClaims();
-        Map<String, char[]> credentials = user.getUserCredentials();
-        char[] password =
-                credentials.getOrDefault(PASSWORD_KEY, new DefaultPasswordGenerator().generatePassword());
-        String flowType = context.getFlowType();
+        char[] password = null;
+        ExecutorResponse response = new ExecutorResponse();
         try {
+            FlowUser user = updateUserProfile(context);
+            Map<String, String> userClaims = user.getClaims();
+            Map<String, char[]> credentials = user.getUserCredentials();
+            password =
+                    credentials.getOrDefault(PASSWORD_KEY, new DefaultPasswordGenerator().generatePassword());
+
             String userStoreDomainName = resolveUserStoreDomain(user.getUsername());
             UserStoreManager userStoreManager = getUserStoreManager(context.getTenantDomain(), userStoreDomainName,
                     context.getContextIdentifier(), context.getFlowType());
@@ -123,21 +128,30 @@ public class UserOnboardingExecutor implements Executor {
                 LOG.debug("User: " + user.getUsername() + " successfully onboarded in user store: " +
                         userStoreDomainName + " of tenant: " + context.getTenantDomain());
             }
-            return new ExecutorResponse(STATUS_COMPLETE);
+            response.setResult(STATUS_COMPLETE);
+            return response;
         } catch (UserStoreException e) {
-            handleAndThrowClientExceptionForActionFailure(flowType, e);
-            if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
-                throw handleClientException(flowType, ERROR_CODE_USERNAME_ALREADY_EXISTS, context.getTenantDomain());
+            response = handleAndThrowClientExceptionForActionFailure(response, e);
+            if (response.getResult() != null) {
+                return response;
             }
-            throw handleServerException(flowType, ERROR_CODE_USER_ONBOARD_FAILURE, e, user.getUsername(),
+            if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
+                return userErrorResponse(response, ERROR_CODE_USERNAME_ALREADY_EXISTS, context.getTenantDomain());
+            }
+            return errorResponse(response, ERROR_CODE_USER_ONBOARD_FAILURE, e, context.getFlowUser().getUsername(),
                     context.getContextIdentifier());
+        } catch (FlowEngineClientException e) {
+            return userErrorResponse(response, e);
+        } catch (FlowEngineException e) {
+            return errorResponse(response, e);
         } finally {
-            Arrays.fill(password, '\0');
+            if (password != null) {
+                Arrays.fill(password, '\0');
+            }
         }
     }
 
-    private void handleAndThrowClientExceptionForActionFailure(String flowType, UserStoreException e)
-            throws FlowEngineException {
+    private ExecutorResponse handleAndThrowClientExceptionForActionFailure(ExecutorResponse response, UserStoreException e) {
 
         if (e instanceof UserStoreClientException &&
                 UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED
@@ -145,7 +159,7 @@ public class UserOnboardingExecutor implements Executor {
             Throwable cause = e.getCause();
             while (cause != null) {
                 if (cause instanceof UserActionExecutionClientException) {
-                    throw new FlowEngineClientException(flowType, Constants.ErrorMessages.
+                    return userErrorResponse(response,
                             ERROR_CODE_PRE_UPDATE_PASSWORD_ACTION_VALIDATION_FAILURE.getCode(),
                             ((UserActionExecutionClientException) cause).getError(),
                             ((UserActionExecutionClientException) cause).getDescription(), cause);
@@ -153,6 +167,7 @@ public class UserOnboardingExecutor implements Executor {
                 cause = cause.getCause();
             }
         }
+        return response;
     }
 
     private FlowUser updateUserProfile(FlowExecutionContext context) throws FlowEngineException {
@@ -265,5 +280,103 @@ public class UserOnboardingExecutor implements Executor {
                 }
             }
         }));
+    }
+
+    /**
+     * Creates an error response with the provided details.
+     *
+     * @param response ExecutorResponse to be modified with error details.
+     * @param error    Error message enum to be set in the response.
+     * @param data     Optional data to format the error description.
+     * @return Modified ExecutorResponse with error details.
+     */
+    private ExecutorResponse errorResponse(ExecutorResponse response, ErrorMessages error, Throwable e, Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        response.setErrorCode(error.getCode());
+        response.setErrorMessage(error.getMessage());
+        response.setErrorDescription(description);
+        response.setThrowable(e);
+        response.setResult(Constants.ExecutorStatus.STATUS_ERROR);
+        return response;
+    }
+
+    /**
+     * Creates an error response with the provided FlowEngineException details.
+     *
+     * @param response            ExecutorResponse to be modified with error details.
+     * @param flowEngineException FlowEngineException containing error details.
+     * @return Modified ExecutorResponse with error details.
+     */
+    private ExecutorResponse errorResponse(ExecutorResponse response, FlowEngineException flowEngineException) {
+
+        response.setErrorMessage(flowEngineException.getMessage());
+        response.setErrorCode(flowEngineException.getErrorCode());
+        response.setErrorDescription(flowEngineException.getDescription());
+        response.setThrowable(flowEngineException);
+        response.setResult(Constants.ExecutorStatus.STATUS_ERROR);
+        return response;
+    }
+
+    /**
+     * Creates an error response with the provided details.
+     *
+     * @param response ExecutorResponse to be modified with error details.
+     * @param error    Error message enum to be set in the response.
+     * @param data     Optional data to format the error description.
+     * @return Modified ExecutorResponse with error details.
+     */
+    private ExecutorResponse userErrorResponse(ExecutorResponse response, ErrorMessages error, Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        response.setErrorCode(error.getCode());
+        response.setErrorMessage(error.getMessage());
+        response.setErrorDescription(description);
+        response.setResult(Constants.ExecutorStatus.STATUS_USER_ERROR);
+        return response;
+    }
+
+    /**
+     * Creates a user error response with the provided details.
+     *
+     * @param response    ExecutorResponse to be modified with user error details.
+     * @param errorCode   Error code to be set in the response.
+     * @param message     User error message to be set in the response.
+     * @param description Description of the error to be set in the response.
+     * @param throwable   Throwable associated with the error.
+     * @return Modified ExecutorResponse with user error details.
+     */
+    private ExecutorResponse userErrorResponse(ExecutorResponse response, String errorCode, String message,
+                                               String description, Throwable throwable) {
+
+        response.setErrorCode(errorCode);
+        response.setErrorMessage(message);
+        response.setErrorDescription(description);
+        response.setThrowable(throwable);
+        response.setResult(Constants.ExecutorStatus.STATUS_USER_ERROR);
+        return response;
+    }
+
+    /**
+     * Creates a user error response with the provided FlowEngineException details.
+     *
+     * @param response            ExecutorResponse to be modified with user error details.
+     * @param flowEngineException FlowEngineException containing error details.
+     * @return Modified ExecutorResponse with user error details.
+     */
+    private ExecutorResponse userErrorResponse(ExecutorResponse response, FlowEngineException flowEngineException) {
+
+        response.setErrorCode(flowEngineException.getErrorCode());
+        response.setErrorMessage(flowEngineException.getMessage());
+        response.setErrorDescription(flowEngineException.getDescription());
+        response.setThrowable(flowEngineException);
+        response.setResult(Constants.ExecutorStatus.STATUS_USER_ERROR);
+        return response;
     }
 }
