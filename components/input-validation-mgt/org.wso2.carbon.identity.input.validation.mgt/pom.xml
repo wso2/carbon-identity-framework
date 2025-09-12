@@ -90,6 +90,12 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.organization.management</groupId>
             <artifactId>org.wso2.carbon.identity.organization.management.organization.user.sharing</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.framework.async.operation.status.mgt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
