@@ -4713,6 +4713,18 @@
             </GetPolicyDoc>
         </PolicyEditorService>
         {% endif %}
+        <TOTPAdminService>
+            <SelfOperations>
+                <Enabled>{{totp_admin_service.self_operations.enabled | default('false')}}</Enabled>
+            </SelfOperations>
+            <Permission>{{totp_admin_service.permission | default('/permission/admin/manage/identity/usermgt/update')}}</Permission>
+        </TOTPAdminService>
+        <ApplicationMgtAdminService>
+            <IdpSecretsRetrievalPermission>{{appmgt_admin_service.idp_secrets_retrieval_permission | default('/permission/admin/manage/identity/idpmgt/view')}}</IdpSecretsRetrievalPermission>
+        </ApplicationMgtAdminService>
+        <UserManagementWorkflowService>
+            <WorkflowServicePermission>{{ user_management_workflow_service.permission | default('/permission/admin/manage/identity/workflow/association/view') }}</WorkflowServicePermission>
+        </UserManagementWorkflowService>
     </AdminServices>
 
     <AIServices>
