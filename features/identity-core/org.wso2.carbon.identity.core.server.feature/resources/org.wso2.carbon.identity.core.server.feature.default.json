@@ -370,6 +370,7 @@
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
+  "passive_sts.soap_enabled": false,
 
   "user_account_association.enable_sha256": true,
   "federated_user_account_association.max_bulk_operations": 1000,
