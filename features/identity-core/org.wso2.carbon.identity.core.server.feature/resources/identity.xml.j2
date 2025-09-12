@@ -4740,4 +4740,25 @@
         <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
     </FlowExecution>
 
+    <NotificationChannel>
+        <SMS>
+            <Custom>
+                <!--
+                    Specifies the connection timeout in milliseconds when connecting to the custom SMS provider.
+                    A timeout of zero is interpreted as an infinite timeout.
+                    Default value is 5000ms.
+                    Supported versions : IS 7.2.0 onwards
+                -->
+                <ConnectionTimeout>{{notificationChannel.sms.custom.connection_timeout}}</ConnectionTimeout>
+                <!--
+                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is 
+                    established to the custom SMS provider. A timeout of zero is interpreted as an infinite timeout.
+                    Default value is 20000ms.
+                    Supported versions : IS 7.2.0 onwards
+                -->
+                <ConnectionReadTimeout>{{notificationChannel.sms.custom.connection_read_timeout}}</ConnectionReadTimeout>
+            </Custom>
+        </SMS>
+    </NotificationChannel>
+
 </Server>

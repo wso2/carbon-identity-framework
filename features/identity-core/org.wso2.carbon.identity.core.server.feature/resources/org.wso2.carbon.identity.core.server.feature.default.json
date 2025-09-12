@@ -2049,6 +2049,9 @@
     "INVITED_USER_REGISTRATION": "30"
   },
   "flow_execution.enable_legacy_flows": false,
-  "captcha.enable_captcha_for_local_otp_authenticators": true
+  "captcha.enable_captcha_for_local_otp_authenticators": true,
+
+  "notificationChannel.sms.custom.connection_timeout": "5000",
+  "notificationChannel.sms.custom.connection_read_timeout": "20000"
 }
 
