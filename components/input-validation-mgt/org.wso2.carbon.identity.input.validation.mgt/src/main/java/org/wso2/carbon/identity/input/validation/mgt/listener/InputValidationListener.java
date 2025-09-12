@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.input.validation.mgt.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.message.StringFormattedMessage;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -36,9 +35,6 @@ import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
 import org.wso2.carbon.identity.mgt.policy.PolicyViolationException;
-import org.wso2.carbon.identity.organization.management.organization.user.sharing.util.OrganizationSharedUserUtil;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -90,12 +86,6 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         }
         if (IS_USERNAME_VALIDATION_ENABLED && !UserCoreUtil.getSkipUsernamePatternValidationThreadLocal()) {
             validationRequiredFieldWithValues.put(USERNAME, userName);
-        }
-        // Username validation should be skipped when sharing users to sub-organizations. Setting the relevant thread
-        // local flag to true to skip username validation in later stages of user creation as well.
-        if (skipUsernameValidation(claims)) {
-            validationRequiredFieldWithValues.remove(USERNAME);
-            UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
         }
         return validate(validationRequiredFieldWithValues, userStoreManager);
     }
@@ -219,23 +209,5 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
             validator.validate(context);
         }
         return true;
-    }
-
-    /**
-     * Skip username validation when sharing users to sub-organizations.
-     *
-     * @param claims User claims.
-     * @return True if username validation is to be skipped.
-     */
-    private boolean skipUsernameValidation(Map<String, String> claims) {
-
-        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        try {
-            return OrganizationManagementUtil.isOrganization(tenantDomain) &&
-                    OrganizationSharedUserUtil.isSharedUser(claims);
-        } catch (OrganizationManagementException e) {
-            LOG.error("Error while checking if tenant: " + tenantDomain + " is an organization.", e);
-        }
-        return false;
     }
 }
