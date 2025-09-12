@@ -880,6 +880,7 @@
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
   "authentication.adaptive.graaljs.script_statements_limit": "0",
+  "authentication.adaptive.shared_applications.enable": false,
   "AdaptiveAuth.ScriptEngine": "graaljs",
 
   "federated.idp.role_claim_value_attribute_separator": ",",
