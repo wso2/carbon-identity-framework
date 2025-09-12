@@ -287,7 +287,8 @@
   "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.module_index": "44",
   "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.subscriptions": [
     "POST_DELETE_ROLE_V2_EVENT",
-    "POST_DELETE_USER_WITH_ID"
+    "POST_DELETE_USER_WITH_ID",
+    "POST_DELETE_APPLICATION_WITH_ID"
   ],
   "identity_mgt.events.schemes.OrganizationUserSharingHandler.module_index": "45",
   "identity_mgt.events.schemes.OrganizationUserSharingHandler.subscriptions": [
