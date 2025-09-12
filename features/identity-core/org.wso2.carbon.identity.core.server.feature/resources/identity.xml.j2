@@ -713,6 +713,9 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
                 <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
+                {% if oauth.grant_type.organization_switch.allow_refresh_tokens is defined %}
+                <IsRefreshTokenAllowed>{{oauth.grant_type.organization_switch.allow_refresh_tokens}}</IsRefreshTokenAllowed>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
