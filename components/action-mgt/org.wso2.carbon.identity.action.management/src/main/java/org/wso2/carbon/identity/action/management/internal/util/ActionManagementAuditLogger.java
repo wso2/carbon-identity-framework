@@ -35,6 +35,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.sql.Timestamp;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
@@ -71,6 +72,39 @@ public class ActionManagementAuditLogger {
     }
 
     /**
+     * Print action audit log related to the operation by the action type and action ID with updated time.
+     *
+     * @param operation  Operation associated with the state change.
+     * @param actionType Type of the action to be logged.
+     * @param actionId   ID of the action to be logged.
+     * @param updatedAt  Time of the update.
+     */
+    public void printAuditLog(Operation operation, String actionType, String actionId, Timestamp updatedAt) {
+        JSONObject data = createAuditLogEntry(actionType, actionId);
+        data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
+        buildAuditLog(operation, data);
+    }
+
+    /**
+     * Print action audit log related to the operation by the action DTO with updated time.
+     *
+     * @param operation         Operation associated with the state change.
+     * @param updatingActionDTO Action object to be logged.
+     * @param updatedAt         Time of the update.
+     */
+    public void printAuditLog(Operation operation, ActionDTO updatingActionDTO, Timestamp updatedAt) {
+        JSONObject data = null;
+        try {
+            data = createAuditLogEntry(updatingActionDTO);
+        } catch (ActionMgtException e) {
+            data = createAuditLogEntry(String.valueOf(updatingActionDTO.getType()), updatingActionDTO.getId());
+        }
+        data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
+        buildAuditLog(operation, data);
+    }
+
+
+    /**
      * Build audit log using the provided data.
      *
      * @param operation Operation to be logged.
@@ -104,6 +138,10 @@ public class ActionManagementAuditLogger {
                 actionDTO.getDescription() != null ? actionDTO.getDescription() : JSONObject.NULL);
         data.put(LogConstants.ACTION_STATUS_FIELD, actionDTO.getStatus() != null ? actionDTO.getStatus()
                 : JSONObject.NULL);
+        data.put(LogConstants.CREATED_AT_FIELD, actionDTO.getCreatedAt() != null ?
+                actionDTO.getCreatedAt() : JSONObject.NULL);
+        data.put(LogConstants.UPDATED_AT_FIELD, actionDTO.getUpdatedAt() != null ?
+                actionDTO.getUpdatedAt() : JSONObject.NULL);
         if (actionDTO.getEndpoint() != null) {
             data.put(LogConstants.ENDPOINT_CONFIG_FIELD, getEndpointData(actionDTO.getEndpoint()));
         }
@@ -169,6 +207,10 @@ public class ActionManagementAuditLogger {
         JSONObject endpointData = new JSONObject();
         endpointData.put(LogConstants.ENDPOINT_URI_FIELD, endpointConfig.getUri() != null ? endpointConfig.getUri() :
                 JSONObject.NULL);
+        endpointData.put(LogConstants.ALLOWED_HEADERS_FIELD, endpointConfig.getAllowedHeaders() != null ?
+                endpointConfig.getAllowedHeaders() : JSONObject.NULL);
+        endpointData.put(LogConstants.ALLOWED_PARAMETERS_FIELD, endpointConfig.getAllowedParameters() != null ?
+                endpointConfig.getAllowedParameters() : JSONObject.NULL);
         if (endpointConfig.getAuthentication() != null) {
             Authentication authentication = endpointConfig.getAuthentication();
             endpointData.put(LogConstants.AUTHENTICATION_SCHEME_FIELD, authentication.getType());
@@ -277,6 +319,10 @@ public class ActionManagementAuditLogger {
         public static final String API_KEY_HEADER_FIELD = "ApiKeyHeader";
         public static final String API_KEY_VALUE_FIELD = "ApiKeyValue";
         public static final String ACTION_RULE = "Rule";
+        public static final String ALLOWED_HEADERS_FIELD = "AllowedHeaders";
+        public static final String ALLOWED_PARAMETERS_FIELD = "AllowedParameters";
+        public static final String CREATED_AT_FIELD = "CreatedAt";
+        public static final String UPDATED_AT_FIELD = "UpdatedAt";
     }
 }
 

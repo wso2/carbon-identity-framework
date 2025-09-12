@@ -59,6 +59,8 @@ public class TestUtil {
     public static final String TEST_ACTION_DESCRIPTION_UPDATED = "Updated Test Action description";
     public static final String TEST_ACTION_URI = "https://example.com";
     public static final String TEST_ACTION_URI_UPDATED = "https://sample.com";
+    public static final String TEST_CREATED_AT = "2025-08-21 15:25:41.388";
+    public static final String TEST_UPDATED_AT = "2025-08-22 15:25:41.388";
 
     public static final String TEST_USERNAME = "sampleUsername";
     public static final String TEST_USERNAME_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
