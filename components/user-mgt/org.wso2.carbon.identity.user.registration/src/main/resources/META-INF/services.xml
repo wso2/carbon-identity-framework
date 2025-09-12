@@ -25,6 +25,20 @@
             To administer Identity user registration related functionality.
         </description>
         <parameter name="ServiceClass">org.wso2.carbon.identity.user.registration.UserRegistrationService</parameter>
+
+        <operation name="addUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/create
+            </parameter>
+        </operation>
+        <operation name="isUserExist">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/view
+            </parameter>
+        </operation>
+        <operation name="getRoleName">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/view
+            </parameter>
+        </operation>
+
     </service>
     <parameter name="hiddenService" locked="true">true</parameter>
 </serviceGroup>
