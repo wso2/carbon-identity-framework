@@ -4201,8 +4201,10 @@
      </FIdPRoleBasedAuthzApplications>
      {% endif %}
 
+     {% if federated.authenticator.max_property_limit is defined %}
+     <MaxFederatedAuthenticatorPropertiesPerIdP>{{federated.authenticator.max_property_limit}}</MaxFederatedAuthenticatorPropertiesPerIdP>
+     {% endif %}
 
-    <MaxFederatedAuthenticatorPropertiesPerIdP>{{federated.authenticator.max_property_limit}}</MaxFederatedAuthenticatorPropertiesPerIdP>
 
     <!--This configuration is used for X509 Certificate based authentication. -->
 
