@@ -2262,7 +2262,8 @@ public class IdentityUtil {
 
     /**
      * Check whether the JWT is within the allowed depth.
-     * @param jwt JWT string.
+     *
+     * @param jwt JWT string to check.
      * @return True if the JWT is within the allowed depth, false otherwise.
      */
     public static boolean isWithinAllowedJWTDepth(String jwt) {
@@ -2311,7 +2312,8 @@ public class IdentityUtil {
 
     /**
      * Check whether the JSON object is within the allowed depth.
-     * @param json JSON object.
+     *
+     * @param json JSON object to check.
      * @return True if the JSON object is within the allowed depth, false otherwise.
      */
     public static boolean isWithinAllowedJsonDepth(Object json) {
@@ -2330,6 +2332,11 @@ public class IdentityUtil {
         return deepestLevelWithinMaxDepth.isEmpty();
     }
 
+    /**
+     * Get the allowed maximum depth for JSON objects.
+     *
+     * @return Maximum allowed JSON depth.
+     */
     public static int getAllowedMaxJsonDepth() {
 
         int maxDepth = 255;
