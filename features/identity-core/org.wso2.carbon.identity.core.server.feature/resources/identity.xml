@@ -1056,6 +1056,14 @@
             Supported versions: IS 7.2.0 onwards
         -->
         <ReturnConflictOnClaimUniquenessViolation>true</ReturnConflictOnClaimUniquenessViolation>
+
+        <!--
+           If you want to throw a UserStoreException in case of user creation failures due to, then enable this
+           property value.
+           Default value: true
+           Supported versions : IS 7.2.0 onwards
+        -->
+        <ThrowUserStoreExceptionOnUserCreationError>true</ThrowUserStoreExceptionOnUserCreationError>
     </SCIM2>
 
     <PasswordPolicy>
