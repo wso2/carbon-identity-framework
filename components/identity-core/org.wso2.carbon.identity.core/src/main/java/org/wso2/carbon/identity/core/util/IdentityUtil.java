@@ -30,6 +30,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
 import org.apache.xerces.util.SecurityManager;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.wso2.carbon.CarbonConstants;
@@ -2268,6 +2271,67 @@ public class IdentityUtil {
             log.debug("Checking JWT depth validation");
         }
 
+        if (StringUtils.isBlank(jwt)) {
+            if (log.isDebugEnabled()) {
+                log.debug("JWT is blank, skipping depth validation");
+            }
+            // Treated as 0 depth.
+            return true;
+        }
+
+        // Extract and decode JWT payload.
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            // Treated as 0 depth.
+            log.warn("Invalid JWT format - missing payload section");
+            return true;
+        }
+
+        byte[] payloadBytes;
+        try {
+            payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid Base64 encoding in JWT payload");
+            return true;
+        }
+        String payload = new String(payloadBytes, StandardCharsets.UTF_8);
+
+        Object json;
+        try {
+            json = new JSONObject(payload);
+        } catch (JSONException e) {
+            try {
+                json = new JSONArray(payload);
+            } catch (JSONException ex) {
+                return true;
+            }
+        }
+        return isWithinAllowedJsonDepth(json);
+    }
+
+    /**
+     * Check whether the JSON object is within the allowed depth.
+     * @param json JSON object.
+     * @return True if the JSON object is within the allowed depth, false otherwise.
+     */
+    public static boolean isWithinAllowedJsonDepth(Object json) {
+
+        if (!(json instanceof JSONObject) && !(json instanceof JSONArray)) {
+            // Not a JSON object or array, treated as 0 depth.
+            return true;
+        }
+
+        int maxDepth = getAllowedMaxJsonDepth();
+        Queue<Object> deepestLevelWithinMaxDepth = getDeepestLevelWithinMaxDepthOfJson(json, maxDepth);
+        if (!deepestLevelWithinMaxDepth.isEmpty()) {
+            log.warn("JWT payload exceeds maximum allowed depth of " + maxDepth);
+        }
+        // If we still have objects after maxDepth levels, it's too deep.
+        return deepestLevelWithinMaxDepth.isEmpty();
+    }
+
+    public static int getAllowedMaxJsonDepth() {
+
         int maxDepth = 255;
         String maxDepthStr = IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY);
         if (StringUtils.isNotBlank(maxDepthStr)) {
@@ -2278,33 +2342,10 @@ public class IdentityUtil {
                 log.warn("Invalid JWT maximum depth value: " + maxDepthStr + ". Using default: 255");
             }
         }
+        return maxDepth;
+    }
 
-        if (StringUtils.isBlank(jwt)) {
-            if (log.isDebugEnabled()) {
-                log.debug("JWT is blank, skipping depth validation");
-            }
-            return true;
-        }
-
-        // Extract and decode JWT payload.
-        String[] parts = jwt.split("\\.");
-        if (parts.length < 2) {
-            log.warn("Invalid JWT format - missing payload section");
-            return true;
-        }
-        byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
-        String payload = new String(payloadBytes, StandardCharsets.UTF_8);
-
-        Object json;
-        try {
-            json = new org.json.JSONObject(payload);
-        } catch (Exception e) {
-            try {
-                json = new org.json.JSONArray(payload);
-            } catch (Exception ex) {
-                return true;
-            }
-        }
+    static  Queue<Object> getDeepestLevelWithinMaxDepthOfJson(Object json, int maxDepth) {
 
         // Level-order traversal to check depth.
         Queue<Object> currentLevel = new ArrayDeque<>();
@@ -2312,40 +2353,42 @@ public class IdentityUtil {
 
         for (int depth = 1; depth <= maxDepth; depth++) {
             if (currentLevel.isEmpty()) {
-                return true; // No more nested objects.
+                return currentLevel;
             }
 
             Queue<Object> nextLevel = new ArrayDeque<>();
 
             while (!currentLevel.isEmpty()) {
-                Object current = currentLevel.poll();
-
-                if (current instanceof org.json.JSONObject) {
-                    org.json.JSONObject obj = (org.json.JSONObject) current;
-                    for (String key : obj.keySet()) {
-                        Object value = obj.opt(key);
-                        if (value instanceof org.json.JSONObject || value instanceof org.json.JSONArray) {
-                            nextLevel.offer(value);
-                        }
-                    }
-                } else if (current instanceof org.json.JSONArray) {
-                    org.json.JSONArray arr = (org.json.JSONArray) current;
-                    for (int i = 0; i < arr.length(); i++) {
-                        Object value = arr.opt(i);
-                        if (value instanceof org.json.JSONObject || value instanceof org.json.JSONArray) {
-                            nextLevel.offer(value);
-                        }
-                    }
-                }
+                loadNextLevelOfJSON(currentLevel, nextLevel);
             }
 
             currentLevel = nextLevel;
         }
-        // If we still have objects after maxDepth levels, it's too deep
-        if (!currentLevel.isEmpty()) {
-            log.warn("JWT payload exceeds maximum allowed depth of " + maxDepth);
-        }
-        // If we still have objects after maxDepth levels, it's too deep.
-        return currentLevel.isEmpty();
+
+        return currentLevel;
     }
+
+    static void loadNextLevelOfJSON(Queue<Object> currentLevel, Queue<Object> nextLevel) {
+
+        Object current = currentLevel.poll();
+
+        if (current instanceof JSONObject) {
+            JSONObject obj = (JSONObject) current;
+            for (String key : obj.keySet()) {
+                Object value = obj.opt(key);
+                if (value instanceof JSONObject || value instanceof JSONArray) {
+                    nextLevel.offer(value);
+                }
+            }
+        } else if (current instanceof JSONArray) {
+            JSONArray arr = (JSONArray) current;
+            for (int i = 0; i < arr.length(); i++) {
+                Object value = arr.opt(i);
+                if (value instanceof JSONObject || value instanceof JSONArray) {
+                    nextLevel.offer(value);
+                }
+            }
+        }
+    }
+
 }

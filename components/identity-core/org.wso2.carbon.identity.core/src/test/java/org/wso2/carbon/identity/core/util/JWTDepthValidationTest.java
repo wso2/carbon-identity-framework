@@ -1,15 +1,32 @@
-package org.wso2.carbon.identity.core;
+/*
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.wso2.carbon.identity.core.util;
+
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.AfterMethod;
 import static org.testng.Assert.*;
 import static org.mockito.Mockito.*;
 import org.mockito.MockedStatic;
-import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Base64;
 import java.nio.charset.StandardCharsets;
+import java.util.Queue;
 
 public class JWTDepthValidationTest {
 
@@ -194,8 +211,7 @@ public class JWTDepthValidationTest {
             identityUtilMock.when(() ->
                             IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
                     .thenReturn("4");
-            identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
-                    .thenCallRealMethod();
+            setRealMethodCalls(identityUtilMock);
 
             // Complex mixed structure depth 5.
             String depth5Structure = "{\"data\":{\"users\":[{\"profile\":{\"settings\":{}}}]}}";
@@ -214,8 +230,7 @@ public class JWTDepthValidationTest {
             identityUtilMock.when(() ->
                             IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
                     .thenReturn("4");
-            identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
-                    .thenCallRealMethod();
+            setRealMethodCalls(identityUtilMock);
 
             // Complex mixed structure depth 3 - should pass.
             String depth4Structure = "{\"data\":{\"users\":[{\"profile\":\"value\"}]}}";
@@ -279,8 +294,7 @@ public class JWTDepthValidationTest {
             identityUtilMock.when(() ->
                             IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
                     .thenReturn("5");
-            identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
-                    .thenCallRealMethod();
+            setRealMethodCalls(identityUtilMock);
 
             // Depth 5 should pass with limit 5.
             String depth5 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":\"value\"}}}}}";
@@ -299,8 +313,7 @@ public class JWTDepthValidationTest {
             identityUtilMock.when(() ->
                             IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
                     .thenReturn("invalid_number");
-            identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
-                    .thenCallRealMethod();
+            setRealMethodCalls(identityUtilMock);
 
             String depth4 = "{\"a\":{\"b\":{\"c\":{\"d\":\"value\"}}}}";
             // Falls back to default 255, so depth 4 should be allowed.
@@ -316,8 +329,7 @@ public class JWTDepthValidationTest {
             identityUtilMock.when(() ->
                             IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
                     .thenReturn(null);
-            identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
-                    .thenCallRealMethod();
+            setRealMethodCalls(identityUtilMock);
 
             String depth4 = "{\"a\":{\"b\":{\"c\":{\"d\":\"value\"}}}}";
             assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth4)));
@@ -328,8 +340,7 @@ public class JWTDepthValidationTest {
             identityUtilMock.when(() ->
                             IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
                     .thenReturn("");
-            identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
-                    .thenCallRealMethod();
+            setRealMethodCalls(identityUtilMock);
 
             String depth4 = "{\"a\":{\"b\":{\"c\":{\"d\":\"value\"}}}}";
             assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth4)));
@@ -344,8 +355,7 @@ public class JWTDepthValidationTest {
             identityUtilMock.when(() ->
                             IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
                     .thenReturn("0");
-            identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
-                    .thenCallRealMethod();
+            setRealMethodCalls(identityUtilMock);
 
             String depth1 = "{\"simple\":\"value\"}";
             assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth1)));
@@ -356,8 +366,7 @@ public class JWTDepthValidationTest {
             identityUtilMock.when(() ->
                             IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
                     .thenReturn("1");
-            identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
-                    .thenCallRealMethod();
+            setRealMethodCalls(identityUtilMock);
 
             String depth1 = "{\"simple\":\"value\"}";
             assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth1)));
@@ -365,5 +374,18 @@ public class JWTDepthValidationTest {
             String depth2 = "{\"nested\":{\"value\":\"test\"}}";
             assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth2)));
         }
+    }
+
+    private void setRealMethodCalls(MockedStatic<IdentityUtil> identityUtilMock) {
+
+        identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
+                .thenCallRealMethod();
+        identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJsonDepth(any()))
+                .thenCallRealMethod();
+        identityUtilMock.when(() -> IdentityUtil.getDeepestLevelWithinMaxDepthOfJson(any(), anyInt()))
+                .thenCallRealMethod();
+        identityUtilMock.when(IdentityUtil::getAllowedMaxJsonDepth).thenCallRealMethod();
+        identityUtilMock.when(() -> IdentityUtil.loadNextLevelOfJSON(any(Queue.class), any(Queue.class)))
+                .thenCallRealMethod();
     }
 }
