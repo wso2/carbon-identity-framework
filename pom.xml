@@ -69,7 +69,6 @@
         <module>components/multi-attribute-login</module>
         <module>components/secret-mgt</module>
         <module>components/central-logger</module>
-        <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
@@ -84,6 +83,7 @@
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
+        <module>components/input-validation-mgt</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
