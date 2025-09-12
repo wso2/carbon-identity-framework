@@ -2698,6 +2698,8 @@
         <AuthenticatorNameInAuthConfig>
             <Enable>true</Enable>
         </AuthenticatorNameInAuthConfig>
+
+        <AllowUpdatingAuthenticatedSubject>{{authentication.adaptive.allow_updating_authenticated_subject}}</AllowUpdatingAuthenticatedSubject>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
