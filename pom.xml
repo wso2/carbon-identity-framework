@@ -126,6 +126,7 @@
         <module>features/flow-orchestration-framework</module>
         <module>features/async-operation-status-mgt</module>
         <module>features/workflow-mgt</module>
+        <module>components/dfdp-core/org.wso2.carbon.identity.dfdp.core</module>
     </modules>
 
 

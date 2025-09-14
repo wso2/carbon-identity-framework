@@ -1,9 +1,0 @@
-{
-  "error": {
-    "code": "INTERNAL_SERVER_ERROR",
-    "message": "An internal server error occurred while processing the DFDP request",
-    "timestamp": "{{timestamp}}",
-    "status": 500,
-    "details": "Please contact the administrator if this problem persists"
-  }
-}
