@@ -301,6 +301,17 @@
             <Scopes>internal_webhook_mgt_delete</Scopes>
         </Resource>
 
+        <!-- DFDP (Debug Flow Data Provider) API -->
+        <Resource context="(.*)/api/server/v1/debug" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/debug" secured="false" http-method="POST"/>
+        <Resource context="(.*)/api/server/v1/debug/idps" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/debug/test/saml" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/debug/test/oidc" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/debug/test/google" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/debug/test/facebook" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/debug/test/custom" secured="false" http-method="GET"/>
+        <Resource context="/dfdp-api/dfdp-test(.*)" secured="false" http-method="all"/>
+
         <!-- Secret Type Management API -->
         <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_type_mgt_add</Scopes>

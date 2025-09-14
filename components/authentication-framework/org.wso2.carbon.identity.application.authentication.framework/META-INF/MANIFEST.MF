@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven 3.9.11
+Built-By: linukah
+Build-Jdk: 11.0.19
+Specification-Title: WSO2 Identity Server - IdP Debug Flow Data Provider
+  API v1
+Specification-Version: 1.3.185-SNAPSHOT
+Specification-Vendor: WSO2
+Implementation-Title: WSO2 Identity Server - IdP Debug Flow Data Provide
+ r API v1
+Implementation-Version: 1.3.185-SNAPSHOT
+Implementation-Vendor-Id: org.wso2.carbon.identity.server.api
+Implementation-Vendor: WSO2
+Implementation-URL: http://wso2.org/components/org.wso2.carbon.identity.
+ api.server.idp.debug/org.wso2.carbon.identity.api.server.idp.debug.v1
+

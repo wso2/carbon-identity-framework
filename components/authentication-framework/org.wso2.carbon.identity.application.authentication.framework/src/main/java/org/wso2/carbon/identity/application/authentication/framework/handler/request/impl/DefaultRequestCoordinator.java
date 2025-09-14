@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.dfdp.DFDPOrchestrator;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -56,6 +57,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
@@ -192,6 +194,28 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             // the request type (e.g. samlsso) set by the calling servlet.
             // TODO: use a different mechanism to determine the flow start.
             if (request.getParameter("type") != null) {
+                
+                // DFDP Detection & Routing: Check for debug flow data provider requests
+                // This follows the architecture: DefaultRequestCoordinator -> DFDP Detection & Routing
+                if (isDFDPRequest(request)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("DFDP: Debug Flow Data Provider request detected. Setting up DFDP-specific authentication flow through framework.");
+                    }
+                    
+                    // Create DFDP-specific authentication context with proper sequence configuration
+                    // Following flow: DefaultRequestCoordinator -> DFDP Authenticator Setup -> Framework Integration
+                    authRequest = createDFDPAuthenticationRequest(request);
+                    sessionDataKey = request.getParameter("sessionDataKey");
+                    if (sessionDataKey == null) {
+                        // Generate one if not already set
+                        sessionDataKey = UUID.randomUUID().toString();
+                    }
+                    
+                    if (log.isDebugEnabled()) {
+                        log.debug("DFDP: Created authentication request with sessionDataKey: " + sessionDataKey);
+                    }
+                }
+                
                 // Retrieves AuthenticationRequestCache entry, if the request contains a valid session data key and
                 // handles common auth logout request.
                 if (sessionDataKey != null) {
@@ -429,6 +453,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
+
+                // DFDP Detection & Routing - Bypass normal authentication flow for DFDP requests
+                if (isDFDPRequest(request, context)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("DFDP request detected. Routing to DFDP flow for context: " + 
+                                context.getContextIdentifier());
+                    }
+                    handleDFDPFlow(request, responseWrapper, context);
+                    return; // Exit early - bypass normal authentication flow
+                }
 
                 if (!context.isLogoutRequest()) {
                     enteredFlow = enterFlow(Flow.Name.LOGIN);
@@ -1559,6 +1593,246 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } else {
             return Flow.InitiatingPersona.USER;
         }
+    }
+
+    /**
+     * Checks if the current request is a DFDP (Debug Flow Data Provider) request.
+     * DFDP requests are identified by the presence of specific parameters that indicate
+     * debugging/testing of external IdP claim mappings.
+     *
+     * @param request HTTP servlet request
+     * @param context Authentication context
+     * @return true if this is a DFDP request, false otherwise
+     */
+    private boolean isDFDPRequest(HttpServletRequest request, AuthenticationContext context) {
+
+        // Check for DFDP parameter in request
+        String dfdpParam = request.getParameter(FrameworkConstants.DFDP_PARAM);
+        if (StringUtils.isNotBlank(dfdpParam) && "true".equals(dfdpParam)) {
+            return true;
+        }
+
+        // Check for DFDP target IdP parameter
+        String targetIdP = request.getParameter(FrameworkConstants.DFDP_TARGET_IDP);
+        if (StringUtils.isNotBlank(targetIdP)) {
+            return true;
+        }
+
+        // Check if DFDP is enabled in context
+        Object dfdpEnabled = context.getProperty(FrameworkConstants.DFDP_ENABLED);
+        if (dfdpEnabled instanceof Boolean && (Boolean) dfdpEnabled) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Handles the DFDP flow by setting up DFDP parameters in the context and
+     * delegating to the DFDPOrchestrator for processing.
+     *
+     * @param request HTTP servlet request
+     * @param response HTTP servlet response wrapper
+     * @param context Authentication context
+     * @throws IOException if an error occurs during response handling
+     * @throws FrameworkException if an error occurs during DFDP processing
+     */
+    private void handleDFDPFlow(HttpServletRequest request, CommonAuthResponseWrapper response,
+                               AuthenticationContext context) throws IOException, FrameworkException {
+
+        try {
+            // Extract and validate DFDP parameters from request
+            setupDFDPParameters(request, context);
+
+            // Mark context as DFDP enabled
+            context.setProperty(FrameworkConstants.DFDP_ENABLED, true);
+
+            // Generate unique request ID for tracking
+            String requestId = "dfdp-" + System.currentTimeMillis() + "-" + 
+                             context.getContextIdentifier();
+            context.setProperty(FrameworkConstants.DFDP_REQUEST_ID, requestId);
+
+            if (log.isDebugEnabled()) {
+                log.debug("DFDP flow initiated with request ID: " + requestId + 
+                         " for target IdP: " + context.getProperty(FrameworkConstants.DFDP_TARGET_IDP));
+            }
+
+            // Delegate to DFDPOrchestrator for processing
+            DFDPOrchestrator orchestrator = DFDPOrchestrator.getInstance();
+            orchestrator.processDFDPRequest(request, response, context);
+
+        } catch (Exception e) {
+            log.error("Error handling DFDP flow", e);
+            throw new FrameworkException("DFDP flow handling failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Extracts DFDP parameters from the request and sets them in the authentication context.
+     *
+     * @param request HTTP servlet request
+     * @param context Authentication context
+     * @throws FrameworkException if required DFDP parameters are missing
+     */
+    private void setupDFDPParameters(HttpServletRequest request, AuthenticationContext context) 
+            throws FrameworkException {
+
+        // Extract target Identity Provider
+        String targetIdP = request.getParameter(FrameworkConstants.DFDP_TARGET_IDP);
+        if (StringUtils.isBlank(targetIdP)) {
+            throw new FrameworkException("Target Identity Provider is required for DFDP processing");
+        }
+        context.setProperty(FrameworkConstants.DFDP_TARGET_IDP, targetIdP);
+
+        // Extract target authenticator (optional - will use default if not specified)
+        String targetAuthenticator = request.getParameter(FrameworkConstants.DFDP_TARGET_AUTHENTICATOR);
+        if (StringUtils.isNotBlank(targetAuthenticator)) {
+            context.setProperty(FrameworkConstants.DFDP_TARGET_AUTHENTICATOR, targetAuthenticator);
+        }
+
+        // Extract test claims (optional - for claim validation)
+        String testClaims = request.getParameter(FrameworkConstants.DFDP_TEST_CLAIMS);
+        if (StringUtils.isNotBlank(testClaims)) {
+            context.setProperty(FrameworkConstants.DFDP_TEST_CLAIMS, testClaims);
+        }
+
+        // Extract execution mode (optional - defaults to 'test')
+        String executionMode = request.getParameter(FrameworkConstants.DFDP_EXECUTION_MODE);
+        if (StringUtils.isBlank(executionMode)) {
+            executionMode = "test"; // Default execution mode
+        }
+        context.setProperty(FrameworkConstants.DFDP_EXECUTION_MODE, executionMode);
+
+        if (log.isDebugEnabled()) {
+            log.debug("DFDP parameters setup completed - Target IdP: " + targetIdP + 
+                     ", Target Authenticator: " + targetAuthenticator + 
+                     ", Execution Mode: " + executionMode);
+        }
+    }
+
+    /**
+     * Check if the request is a DFDP (Debug Flow Data Provider) request.
+     * DFDP requests are identified by specific parameters that indicate debug testing.
+     * 
+     * @param request the HTTP request
+     * @return true if this is a DFDP request, false otherwise
+     */
+    private boolean isDFDPRequest(HttpServletRequest request) {
+        // Check for DFDP-specific parameters
+        String dfdpMode = request.getParameter("dfdp_mode");
+        String dfdpAction = request.getParameter("dfdp_action");
+        String debugMode = request.getParameter("debug");
+        String testMode = request.getParameter("test_mode");
+        
+        // Check for framework-defined DFDP constants
+        String dfdpParam = request.getParameter(FrameworkConstants.DFDP_PARAM);
+        String dfdpTargetIdp = request.getParameter(FrameworkConstants.DFDP_TARGET_IDP);
+        String dfdpTargetAuth = request.getParameter(FrameworkConstants.DFDP_TARGET_AUTHENTICATOR);
+        String dfdpEnabled = request.getParameter(FrameworkConstants.DFDP_ENABLED);
+        
+        // Check for specific DFDP actions
+        boolean hasIdpTestAction = "test_idp_authentication".equals(request.getParameter("action"));
+        boolean hasTestAuthenticatorAction = "testAuthenticator".equals(request.getParameter("action"));
+        
+        // DFDP requests can be identified by:
+        // 1. Explicit DFDP parameters
+        // 2. Debug/test mode parameters
+        // 3. Specific test actions
+        // 4. Framework-defined DFDP constants
+        return StringUtils.isNotBlank(dfdpMode) || 
+               StringUtils.isNotBlank(dfdpAction) ||
+               "true".equals(debugMode) ||
+               "true".equals(testMode) ||
+               "true".equals(dfdpParam) ||
+               StringUtils.isNotBlank(dfdpTargetIdp) ||
+               StringUtils.isNotBlank(dfdpTargetAuth) ||
+               "true".equals(dfdpEnabled) ||
+               hasIdpTestAction ||
+               hasTestAuthenticatorAction;
+    }
+    
+    /**
+     * Create a DFDP-specific authentication request that integrates with the framework.
+     * This creates the proper cache entry and context for DFDP testing through the normal authentication flow.
+     * 
+     * @param request the HTTP request
+     * @return AuthenticationRequestCacheEntry for DFDP testing
+     * @throws FrameworkException if DFDP request creation fails
+     */
+    private AuthenticationRequestCacheEntry createDFDPAuthenticationRequest(HttpServletRequest request) 
+            throws FrameworkException {
+        
+        if (log.isDebugEnabled()) {
+            log.debug("Creating DFDP authentication request cache entry");
+        }
+        
+        // Create the underlying AuthenticationRequest
+        AuthenticationRequest authRequest = new AuthenticationRequest();
+        
+        // Set DFDP-specific request type
+        authRequest.setType("dfdp");
+        
+        // Set request parameters
+        Map<String, String[]> parameterMap = new HashMap<>();
+        
+        // Copy existing parameters
+        if (request.getParameterMap() != null) {
+            for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+                parameterMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        // Generate a unique session data key for this DFDP request
+        String sessionDataKey = UUID.randomUUID().toString();
+        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[]{sessionDataKey});
+        parameterMap.put(FrameworkConstants.IS_DFDP_REQUEST, new String[]{"true"});
+        parameterMap.put("type", new String[]{"dfdp"});
+        
+        // Extract target IdP and authenticator for DFDP testing
+        String targetIdP = request.getParameter("idp");
+        if (StringUtils.isBlank(targetIdP)) {
+            targetIdP = request.getParameter(FrameworkConstants.DFDP_TARGET_IDP);
+        }
+        
+        String targetAuthenticator = request.getParameter("authenticator");
+        if (StringUtils.isBlank(targetAuthenticator)) {
+            targetAuthenticator = request.getParameter(FrameworkConstants.DFDP_TARGET_AUTHENTICATOR);
+        }
+        
+        if (StringUtils.isNotBlank(targetIdP)) {
+            parameterMap.put(FrameworkConstants.DFDP_TARGET_IDP, new String[]{targetIdP});
+        }
+        
+        if (StringUtils.isNotBlank(targetAuthenticator)) {
+            parameterMap.put(FrameworkConstants.DFDP_TARGET_AUTHENTICATOR, new String[]{targetAuthenticator});
+        }
+        
+        // Set tenant domain
+        String tenantDomain = request.getParameter(TENANT_DOMAIN);
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+        parameterMap.put(TENANT_DOMAIN, new String[]{tenantDomain});
+        
+        // Set the parameters in the AuthenticationRequest
+        authRequest.setRequestQueryParams(parameterMap);
+        authRequest.setTenantDomain(tenantDomain);
+        
+        // Set caller path for DFDP
+        authRequest.setCommonAuthCallerPath("/dfdp-test");
+        
+        // Create cache entry with the AuthenticationRequest
+        AuthenticationRequestCacheEntry cacheEntry = new AuthenticationRequestCacheEntry(authRequest);
+        
+        // Store in cache with the session data key
+        FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, cacheEntry);
+        
+        if (log.isDebugEnabled()) {
+            log.debug("Created DFDP authentication request with sessionDataKey: " + sessionDataKey + 
+                     ", Target IdP: " + targetIdP + ", Target Authenticator: " + targetAuthenticator);
+        }
+        
+        return cacheEntry;
     }
 }
 
