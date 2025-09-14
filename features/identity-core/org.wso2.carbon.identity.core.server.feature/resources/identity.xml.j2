@@ -2097,6 +2097,9 @@
         {% if authentication_policy.pre_authentication_account_lock_check is defined %}
         <PreAuthenticationAccountLockCheck>{{authentication_policy.pre_authentication_account_lock_check}}</PreAuthenticationAccountLockCheck>
         {% endif %}
+        {% if authentication_policy.enable_legacy_authentication is defined %}
+        <EnableLegacyAuthentication>{{authentication_policy.enable_legacy_authentication}}</EnableLegacyAuthentication>
+        {% endif %}
     </AuthenticationPolicy>
 
     <!-- Show authenticated user name in audit logs. -->
