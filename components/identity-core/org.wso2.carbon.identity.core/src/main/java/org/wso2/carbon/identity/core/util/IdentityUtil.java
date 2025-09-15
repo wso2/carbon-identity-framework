@@ -2260,10 +2260,10 @@ public class IdentityUtil {
     }
 
     /**
-     * Check whether the JWT is within the allowed depth.
+     * Check whether the JWT exceeds the allowed depth.
      *
      * @param jwt JWT string to check.
-     * @return True if the JWT is within the allowed depth, false otherwise.
+     * @return True if the JWT exceeds the allowed depth, false otherwise.
      */
     public static boolean exceedsAllowedJWTDepth(String jwt) {
 
@@ -2300,10 +2300,10 @@ public class IdentityUtil {
     }
 
     /**
-     * Check whether the JSON is within the allowed depth.
+     * Check whether the JSON exceeds the allowed depth.
      *
      * @param json JSON String to check.
-     * @return True if the JSON object is within the allowed depth, false otherwise.
+     * @return True if the JSON exceeds the allowed depth, false otherwise.
      */
     public static boolean exceedsAllowedJsonDepth(String json) {
 
@@ -2370,7 +2370,8 @@ public class IdentityUtil {
 
     /**
      * Get the allowed maximum depth for JSON objects.
-     *
+     * This value defines how deeply nested a JSON structure can be before it is
+     * considered invalid by this component.
      * @return Maximum allowed JSON depth.
      */
     public static int getAllowedMaxJsonDepth() {

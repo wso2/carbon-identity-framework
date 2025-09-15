@@ -26,7 +26,6 @@ import org.mockito.MockedStatic;
 
 import java.util.Base64;
 import java.nio.charset.StandardCharsets;
-import java.util.Queue;
 
 public class JWTDepthValidationTest {
 
