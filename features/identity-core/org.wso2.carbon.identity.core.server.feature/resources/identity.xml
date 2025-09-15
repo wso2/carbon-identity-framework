@@ -2756,6 +2756,7 @@
         <FIDO2TrustedOrigins>
             <Origin>${carbon.protocol}://${carbon.host}:${carbon.management.port}</Origin>
         </FIDO2TrustedOrigins>
+        <EnableSPParamInRedirectUri>false</EnableSPParamInRedirectUri>
     </FIDO>
 
     <MaximumItemsPerPage>100</MaximumItemsPerPage>

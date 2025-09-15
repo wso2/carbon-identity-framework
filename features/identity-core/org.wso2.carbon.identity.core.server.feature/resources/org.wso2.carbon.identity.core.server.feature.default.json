@@ -891,6 +891,7 @@
   "fido.enable_passkey_progressive_enrollment": false,
   "fido.enable_usernameless_authentication": true,
   "fido.trusted.origins": [],
+  "fido.enable_sp_param_in_redirect_uri": false,
   "fido.user_response_timeout": "300000",
   "fido.metadata_service.enable": false,
   "fido.metadata_service.mds_endpoints": [],
