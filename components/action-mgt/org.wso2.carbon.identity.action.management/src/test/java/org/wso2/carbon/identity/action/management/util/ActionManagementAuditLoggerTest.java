@@ -300,19 +300,6 @@ public class ActionManagementAuditLoggerTest {
         };
     }
 
-    @Test(dataProvider = "actionDataProvider")
-    public void testPrintAuditLogWithAction(ActionManagementAuditLogger.Operation operation, ActionDTO actionDTO)
-            throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
-
-        auditLogger.printAuditLog(operation, actionDTO);
-        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
-
-        Assert.assertNotNull(capturedArg);
-        assertActionData(capturedArg, actionDTO);
-        assertAuditLoggerData(capturedArg, operation.getLogAction());
-
-    }
-
     @Test
     public void testPrintAuditLogWithActionTypeAndId() throws NoSuchFieldException, IllegalAccessException {
 
@@ -326,6 +313,87 @@ public class ActionManagementAuditLoggerTest {
                 Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());
         assertAuditLoggerData(capturedArg, DELETE_ACTION);
 
+    }
+
+    @Test
+    public void printsUpdateAuditLogWithActionDTOAndUpdatedAt() throws Exception {
+
+        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.UPDATE;
+        java.sql.Timestamp updatedAt = new java.sql.Timestamp(System.currentTimeMillis());
+
+        auditLogger.printUpdateAuditLog(operation, actionDTO, updatedAt);
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+
+        Assert.assertNotNull(capturedArg);
+        assertActionData(capturedArg, actionDTO);
+
+        Field dataField = AuditLog.AuditLogBuilder.class.getDeclaredField("data");
+        dataField.setAccessible(true);
+        Map<String, Object> dataMap = (Map<String, Object>) dataField.get(capturedArg);
+        Assert.assertEquals(dataMap.get("UpdatedAt") != null ? dataMap.get("UpdatedAt").toString() : null,
+                updatedAt.toString());
+
+        assertAuditLoggerData(capturedArg, UPDATE_ACTION);
+    }
+
+    @Test
+    public void printsCreationAuditLogWithActionDTOAndCreatedAt() throws Exception {
+
+        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.ADD;
+        java.sql.Timestamp createdAt = new java.sql.Timestamp(System.currentTimeMillis());
+
+        auditLogger.printCreationAuditLog(operation, actionDTO, createdAt);
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+
+        Assert.assertNotNull(capturedArg);
+        assertActionData(capturedArg, actionDTO);
+
+        Field dataField = AuditLog.AuditLogBuilder.class.getDeclaredField("data");
+        dataField.setAccessible(true);
+        Map<String, Object> dataMap = (Map<String, Object>) dataField.get(capturedArg);
+        Assert.assertEquals(dataMap.get("CreatedAt") != null ? dataMap.get("CreatedAt").toString() : null,
+                createdAt.toString());
+
+        assertAuditLoggerData(capturedArg, ADD_ACTION);
+    }
+
+    @Test
+    public void printsAuditLogWithTypeIdAndNullUpdatedAt() throws NoSuchFieldException, IllegalAccessException {
+
+        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.UPDATE;
+
+        auditLogger.printAuditLog(operation, actionDTO.getType().name(), actionDTO.getId(), null);
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+
+        Assert.assertNotNull(capturedArg);
+        Assert.assertEquals(extractMapByField("ActionId", capturedArg), actionDTO.getId());
+        Assert.assertEquals(extractMapByField("ActionType", capturedArg),
+                Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());
+
+        Field dataField = AuditLog.AuditLogBuilder.class.getDeclaredField("data");
+        dataField.setAccessible(true);
+        Map<String, Object> dataMap = (Map<String, Object>) dataField.get(capturedArg);
+        Assert.assertNull(dataMap.get("UpdatedAt"));
+
+        assertAuditLoggerData(capturedArg, UPDATE_ACTION);
+    }
+
+    @Test
+    public void printsCreationAuditLogWithNullCreatedAt() throws NoSuchFieldException, IllegalAccessException {
+
+        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.ADD;
+
+        auditLogger.printCreationAuditLog(operation, actionDTO, null);
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+
+        Assert.assertNotNull(capturedArg);
+
+        Field dataField = AuditLog.AuditLogBuilder.class.getDeclaredField("data");
+        dataField.setAccessible(true);
+        Map<String, Object> dataMap = (Map<String, Object>) dataField.get(capturedArg);
+        Assert.assertNull(dataMap.get("CreatedAt"));
+
+        assertAuditLoggerData(capturedArg, ADD_ACTION);
     }
 
     /**

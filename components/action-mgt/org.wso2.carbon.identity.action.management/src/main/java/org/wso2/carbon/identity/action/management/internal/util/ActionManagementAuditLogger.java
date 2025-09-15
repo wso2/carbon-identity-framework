@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.management.internal.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
@@ -46,17 +47,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.trigger
  */
 public class ActionManagementAuditLogger {
 
-    /**
-     * Print action audit log related to the operation.
-     *
-     * @param operation Operation associated with the state change.
-     * @param actionDTO Action object to be logged.
-     */
-    public void printAuditLog(Operation operation, ActionDTO actionDTO) throws ActionMgtException {
-
-        JSONObject data = createAuditLogEntry(actionDTO);
-        buildAuditLog(operation, data);
-    }
+    private static final Log LOG = org.apache.commons.logging.LogFactory.getLog(ActionManagementAuditLogger.class);
 
     /**
      * Print action audit log related to the operation by the action type and action ID.
@@ -80,29 +71,47 @@ public class ActionManagementAuditLogger {
      * @param updatedAt  Time of the update.
      */
     public void printAuditLog(Operation operation, String actionType, String actionId, Timestamp updatedAt) {
+
         JSONObject data = createAuditLogEntry(actionType, actionId);
         data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
         buildAuditLog(operation, data);
     }
 
     /**
-     * Print action audit log related to the operation by the action DTO with updated time.
+     * Print action audit log related to the operation by the updated action DTO with updated time.
      *
      * @param operation         Operation associated with the state change.
-     * @param updatingActionDTO Action object to be logged.
+     * @param updatingActionDTO Updated action object to be logged.
      * @param updatedAt         Time of the update.
      */
-    public void printAuditLog(Operation operation, ActionDTO updatingActionDTO, Timestamp updatedAt) {
-        JSONObject data = null;
+    public void printUpdateAuditLog(Operation operation, ActionDTO updatingActionDTO, Timestamp updatedAt) {
+
         try {
-            data = createAuditLogEntry(updatingActionDTO);
+            JSONObject data = createAuditLogEntry(updatingActionDTO);
+            data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
+            buildAuditLog(operation, data);
         } catch (ActionMgtException e) {
-            data = createAuditLogEntry(String.valueOf(updatingActionDTO.getType()), updatingActionDTO.getId());
+            LOG.warn("Failed to publish audit log for action update. Action id: " + updatingActionDTO.getId(), e);
         }
-        data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
-        buildAuditLog(operation, data);
     }
 
+    /**
+     * Print action audit log related to the operation by the created action DTO with created time.
+     *
+     * @param operation         Operation associated with the state change.
+     * @param creatingActionDTO Created action object to be logged.
+     * @param createdAt         Time of the creation.
+     */
+    public void printCreationAuditLog(Operation operation, ActionDTO creatingActionDTO, Timestamp createdAt) {
+
+        try {
+            JSONObject data = createAuditLogEntry(creatingActionDTO);
+            data.put(LogConstants.CREATED_AT_FIELD, createdAt != null ? createdAt : JSONObject.NULL);
+            buildAuditLog(operation, data);
+        } catch (ActionMgtException e) {
+            LOG.warn("Failed to publish audit log for action creation. Action id: " + creatingActionDTO.getId(), e);
+        }
+    }
 
     /**
      * Build audit log using the provided data.
