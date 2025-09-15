@@ -1303,8 +1303,8 @@
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
         <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
 
-        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
         <JWT>
+        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
             <RenewTokenWithoutRevokingExisting>
                 <Enable>{{oauth.jwt.renew_token_without_revoking_existing.enable}}</Enable>
                 {% if oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types is defined %}
@@ -1315,8 +1315,9 @@
                 </AllowedGrantTypes>
                 {% endif %}
             </RenewTokenWithoutRevokingExisting>
-        </JWT>
         {% endif %}
+            <MaximumAllowedDepth>{{oauth.jwt.maximum_allowed_depth}}</MaximumAllowedDepth>
+        </JWT>
 
         {% if oauth.restricted_scopes is defined %}
         <RestrictedScopes>
