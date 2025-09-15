@@ -57,18 +57,18 @@ public class JWTDepthValidationTest {
     @Test
     public void testNullAndEmptyJWT() {
 
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(null));
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(""));
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth("   "));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(null));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(""));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth("   "));
     }
 
     @Test
     public void testInvalidJWTFormats() {
 
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth("invalidjwt"));
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth("onlyonepart."));
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth("header."));
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth("header.invalid@base64!.signature"));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth("invalidjwt"));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth("onlyonepart."));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth("header."));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth("header.invalid@base64!.signature"));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class JWTDepthValidationTest {
 
         String invalidJson = "not json at all";
         String jwt = createJWT(invalidJson);
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(jwt));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(jwt));
     }
 
     @Test
@@ -84,8 +84,8 @@ public class JWTDepthValidationTest {
 
         String malformedObject = "{\"incomplete\":";
         String malformedArray = "[{\"incomplete\"";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(malformedObject)));
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(malformedArray)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(malformedObject)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(malformedArray)));
     }
 
     @Test
@@ -93,15 +93,15 @@ public class JWTDepthValidationTest {
 
         // Flat object.
         String flatObject = "{\"sub\":\"user123\",\"name\":\"John Doe\",\"exp\":1234567890}";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(flatObject)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(flatObject)));
 
         // Flat array.
         String flatArray = "[\"value1\",\"value2\",\"value3\"]";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(flatArray)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(flatArray)));
 
         // Empty structures.
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT("{}")));
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT("[]")));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT("{}")));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT("[]")));
     }
 
     @Test
@@ -109,19 +109,19 @@ public class JWTDepthValidationTest {
 
         // Object with nested object.
         String objectWithObject = "{\"user\":{\"id\":123,\"name\":\"John\"}}";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(objectWithObject)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(objectWithObject)));
 
         // Object with nested array.
         String objectWithArray = "{\"items\":[1,2,3,4,5]}";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(objectWithArray)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(objectWithArray)));
 
         // Array with nested objects.
         String arrayWithObjects = "[{\"id\":1},{\"id\":2}]";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(arrayWithObjects)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(arrayWithObjects)));
 
         // Array with nested arrays.
         String arrayWithArrays = "[[1,2],[3,4]]";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(arrayWithArrays)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(arrayWithArrays)));
 
         // Object with nested object (depth 256).
         StringBuilder deepObject = new StringBuilder("{");
@@ -133,7 +133,7 @@ public class JWTDepthValidationTest {
             deepObject.append("}");
         }
         deepObject.append("}");
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(deepObject.toString())));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(deepObject.toString())));
 
         // Object with nested array (depth 256).
         StringBuilder deepArray = new StringBuilder("{");
@@ -146,7 +146,7 @@ public class JWTDepthValidationTest {
             deepArray.append("]");
         }
         deepArray.append("}");
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(deepArray.toString())));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(deepArray.toString())));
 
         // Mixed Object (depth 256).
         StringBuilder mixedDeep = new StringBuilder("{"); // 1 level here.
@@ -159,7 +159,7 @@ public class JWTDepthValidationTest {
             mixedDeep.append("]}");
         }
         mixedDeep.append("]}");
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(mixedDeep.toString())));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(mixedDeep.toString())));
     }
 
     @Test
@@ -175,7 +175,7 @@ public class JWTDepthValidationTest {
             deepObject.append("}");
         }
         deepObject.append("}");
-        assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(deepObject.toString())));
+        assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(deepObject.toString())));
 
         // Object with nested array (depth 256).
         StringBuilder deepArray = new StringBuilder("{");
@@ -188,7 +188,7 @@ public class JWTDepthValidationTest {
             deepArray.append("]");
         }
         deepArray.append("}");
-        assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(deepArray.toString())));
+        assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(deepArray.toString())));
 
         // Mixed Object (depth 256).
         StringBuilder mixedDeep = new StringBuilder("{"); // 1 level here.
@@ -201,7 +201,7 @@ public class JWTDepthValidationTest {
            mixedDeep.append("]}");
         }
         mixedDeep.append("]}");
-        assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(mixedDeep.toString())));
+        assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(mixedDeep.toString())));
     }
 
     @Test
@@ -215,11 +215,11 @@ public class JWTDepthValidationTest {
 
             // Complex mixed structure depth 5.
             String depth5Structure = "{\"data\":{\"users\":[{\"profile\":{\"settings\":{}}}]}}";
-            assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth5Structure)));
+            assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth5Structure)));
 
             // Array with deeply nested object (depth 5).
             String arrayDepth5 = "[{\"user\":{\"profile\":{\"settings\":{\"theme\":\"dark\"}}}}]";
-            assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(arrayDepth5)));
+            assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(arrayDepth5)));
         }
     }
 
@@ -234,11 +234,11 @@ public class JWTDepthValidationTest {
 
             // Complex mixed structure depth 3 - should pass.
             String depth4Structure = "{\"data\":{\"users\":[{\"profile\":\"value\"}]}}";
-            assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth4Structure)));
+            assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth4Structure)));
 
             // Object with multiple nested arrays (depth 3) - should pass.
             String multipleArraysDepth4 = "{\"matrix\":[[1,2],[3,4]],\"list\":[[\"a\",\"b\"],[\"c\",\"d\"]]}";
-            assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(multipleArraysDepth4)));
+            assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(multipleArraysDepth4)));
         }
     }
 
@@ -252,7 +252,7 @@ public class JWTDepthValidationTest {
             payload.append("\"key").append(i).append("\":{\"value\":").append(i).append("}");
         }
         payload.append("}");
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(payload.toString())));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(payload.toString())));
     }
 
     @Test
@@ -265,26 +265,26 @@ public class JWTDepthValidationTest {
             payload.append("\"field").append(i).append("\":\"value").append(i).append("\"");
         }
         payload.append("}");
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(payload.toString())));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(payload.toString())));
     }
 
     @Test
     public void testEmptyNestedStructures() {
 
         String emptyObjects = "{\"empty\":{},\"nested\":{\"empty2\":{}}}";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(emptyObjects)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(emptyObjects)));
 
         String emptyArrays = "{\"empty\":[],\"nested\":{\"empty2\":[]}}";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(emptyArrays)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(emptyArrays)));
     }
 
     @Test
     public void testSpecialValues() {
         String specialChars = "{\"message\":{\"text\":\"Hello {\\\"world\\\"}: [1,2,3]\"}}";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(specialChars)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(specialChars)));
 
         String nullValues = "{\"user\":{\"name\":null,\"profile\":null}}";
-        assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(nullValues)));
+        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(nullValues)));
     }
 
     @Test
@@ -298,11 +298,11 @@ public class JWTDepthValidationTest {
 
             // Depth 5 should pass with limit 5.
             String depth5 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":\"value\"}}}}}";
-            assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth5)));
+            assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth5)));
 
             // Depth 6 should fail with limit 5.
             String depth6 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":{\"f\":\"value\"}}}}}}";
-            assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth6)));
+            assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth6)));
         }
     }
 
@@ -317,7 +317,7 @@ public class JWTDepthValidationTest {
 
             String depth4 = "{\"a\":{\"b\":{\"c\":{\"d\":\"value\"}}}}";
             // Falls back to default 255, so depth 4 should be allowed.
-            assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth4)));
+            assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth4)));
         }
     }
 
@@ -332,7 +332,7 @@ public class JWTDepthValidationTest {
             setRealMethodCalls(identityUtilMock);
 
             String depth4 = "{\"a\":{\"b\":{\"c\":{\"d\":\"value\"}}}}";
-            assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth4)));
+            assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth4)));
         }
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
@@ -343,7 +343,7 @@ public class JWTDepthValidationTest {
             setRealMethodCalls(identityUtilMock);
 
             String depth4 = "{\"a\":{\"b\":{\"c\":{\"d\":\"value\"}}}}";
-            assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth4)));
+            assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth4)));
         }
     }
 
@@ -358,7 +358,7 @@ public class JWTDepthValidationTest {
             setRealMethodCalls(identityUtilMock);
 
             String depth1 = "{\"simple\":\"value\"}";
-            assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth1)));
+            assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth1)));
         }
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
@@ -369,23 +369,19 @@ public class JWTDepthValidationTest {
             setRealMethodCalls(identityUtilMock);
 
             String depth1 = "{\"simple\":\"value\"}";
-            assertTrue(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth1)));
+            assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth1)));
 
             String depth2 = "{\"nested\":{\"value\":\"test\"}}";
-            assertFalse(IdentityUtil.isWithinAllowedJWTDepth(createJWT(depth2)));
+            assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(depth2)));
         }
     }
 
     private void setRealMethodCalls(MockedStatic<IdentityUtil> identityUtilMock) {
 
-        identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJWTDepth(anyString()))
+        identityUtilMock.when(() -> IdentityUtil.exceedsAllowedJWTDepth(anyString()))
                 .thenCallRealMethod();
-        identityUtilMock.when(() -> IdentityUtil.isWithinAllowedJsonDepth(any()))
-                .thenCallRealMethod();
-        identityUtilMock.when(() -> IdentityUtil.getDeepestLevelWithinMaxDepthOfJson(any(), anyInt()))
+        identityUtilMock.when(() -> IdentityUtil.exceedsAllowedJsonDepth(any()))
                 .thenCallRealMethod();
         identityUtilMock.when(IdentityUtil::getAllowedMaxJsonDepth).thenCallRealMethod();
-        identityUtilMock.when(() -> IdentityUtil.loadNextLevelOfJSON(any(Queue.class), any(Queue.class)))
-                .thenCallRealMethod();
     }
 }
