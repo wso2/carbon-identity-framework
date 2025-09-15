@@ -18,8 +18,6 @@
 package org.wso2.carbon.identity.core.util;
 
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.AfterMethod;
 import static org.testng.Assert.*;
 import static org.mockito.Mockito.*;
 import org.mockito.MockedStatic;
