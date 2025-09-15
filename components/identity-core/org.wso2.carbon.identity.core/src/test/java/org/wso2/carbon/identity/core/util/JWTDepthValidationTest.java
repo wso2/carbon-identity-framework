@@ -29,19 +29,6 @@ import java.nio.charset.StandardCharsets;
 
 public class JWTDepthValidationTest {
 
-    @BeforeMethod
-    public void setUp() {
-
-        // Reset any system properties before each test.
-        System.clearProperty("jwt.maximum.allowed.depth");
-    }
-
-    @AfterMethod
-    public void tearDown() {
-
-        System.clearProperty("jwt.maximum.allowed.depth");
-    }
-
     // Helper method to create JWT with given payload.
     private String createJWT(String payload) {
 
