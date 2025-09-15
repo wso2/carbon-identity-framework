@@ -50,6 +50,18 @@ public class ActionManagementAuditLogger {
     private static final Log LOG = org.apache.commons.logging.LogFactory.getLog(ActionManagementAuditLogger.class);
 
     /**
+     * Print action audit log related to the operation.
+     *
+     * @param operation Operation associated with the state change.
+     * @param actionDTO Action object to be logged.
+     */
+    public void printAuditLog(Operation operation, ActionDTO actionDTO) throws ActionMgtException {
+
+        JSONObject data = createAuditLogEntry(actionDTO);
+        buildAuditLog(operation, data);
+    }
+
+    /**
      * Print action audit log related to the operation by the action type and action ID.
      *
      * @param operation  Operation associated with the state change.
