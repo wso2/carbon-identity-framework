@@ -70,6 +70,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Adding Action for Action Type: %s.", actionType));
         }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String resolvedActionType = getActionTypeFromPath(actionType);
         ACTION_VALIDATOR.doPreAddActionValidations(action);
         // Check whether the maximum allowed actions per type is reached.
@@ -77,11 +78,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         String generatedActionId = UUID.randomUUID().toString();
         ActionDTO creatingActionDTO = buildActionDTO(resolvedActionType, generatedActionId, action);
 
-        DAO_FACADE.addAction(creatingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-        ActionDTO createdActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, generatedActionId,
-                IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printCreationAuditLog(ActionManagementAuditLogger.Operation.ADD, creatingActionDTO,
-                createdActionDTO.getCreatedAt());
+        DAO_FACADE.addAction(creatingActionDTO, tenantId);
+        ActionDTO createdActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, generatedActionId, tenantId);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD,
+                creatingActionDTO, createdActionDTO.getCreatedAt(), true);
 
         return buildAction(resolvedActionType, createdActionDTO);
     }
@@ -152,16 +152,16 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating Action for Action Type: %s and Action ID: %s.", actionType, actionId));
         }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String resolvedActionType = getActionTypeFromPath(actionType);
         ACTION_VALIDATOR.doPreUpdateActionValidations(action);
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
 
-        DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-        ActionDTO updatedActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, actionId,
-                IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printUpdateAuditLog(ActionManagementAuditLogger.Operation.UPDATE, updatingActionDTO,
-                updatedActionDTO.getUpdatedAt());
+        DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
+        ActionDTO updatedActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, actionId, tenantId);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE,
+                updatingActionDTO, updatedActionDTO.getUpdatedAt(), false);
 
         return buildAction(resolvedActionType, updatedActionDTO);
     }
@@ -180,11 +180,13 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Deleting Action for Action Type: %s and Action ID: %s", actionType, actionId));
         }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         ActionDTO existingActionDTO = DAO_FACADE.getActionByActionId(getActionTypeFromPath(actionType), actionId,
-                IdentityTenantUtil.getTenantId(tenantDomain));
+                tenantId);
         if (existingActionDTO != null) {
-            DAO_FACADE.deleteAction(existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-            auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId);
+            DAO_FACADE.deleteAction(existingActionDTO, tenantId);
+            auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId,
+                    existingActionDTO.getUpdatedAt());
         }
     }
 

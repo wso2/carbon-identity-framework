@@ -90,38 +90,24 @@ public class ActionManagementAuditLogger {
     }
 
     /**
-     * Print action audit log related to the operation by the updated action DTO with updated time.
+     * Print action audit log related to the operation with created/updated time.
      *
-     * @param operation         Operation associated with the state change.
-     * @param updatingActionDTO Updated action object to be logged.
-     * @param updatedAt         Time of the update.
+     * @param operation  Operation associated with the state change.
+     * @param actionDTO  Action object to be logged.
+     * @param timestamp  Time of the creation/update.
+     * @param isCreation Whether the operation is creation or update.
      */
-    public void printUpdateAuditLog(Operation operation, ActionDTO updatingActionDTO, Timestamp updatedAt) {
+    public void printAuditLog(Operation operation, ActionDTO actionDTO,
+                              Timestamp timestamp, boolean isCreation) {
 
         try {
-            JSONObject data = createAuditLogEntry(updatingActionDTO);
-            data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
+            JSONObject data = createAuditLogEntry(actionDTO);
+            String fieldName = isCreation ? LogConstants.CREATED_AT_FIELD : LogConstants.UPDATED_AT_FIELD;
+            data.put(fieldName, timestamp != null ? timestamp : JSONObject.NULL);
             buildAuditLog(operation, data);
         } catch (ActionMgtException e) {
-            LOG.warn("Failed to publish audit log for action update. Action id: " + updatingActionDTO.getId(), e);
-        }
-    }
-
-    /**
-     * Print action audit log related to the operation by the created action DTO with created time.
-     *
-     * @param operation         Operation associated with the state change.
-     * @param creatingActionDTO Created action object to be logged.
-     * @param createdAt         Time of the creation.
-     */
-    public void printCreationAuditLog(Operation operation, ActionDTO creatingActionDTO, Timestamp createdAt) {
-
-        try {
-            JSONObject data = createAuditLogEntry(creatingActionDTO);
-            data.put(LogConstants.CREATED_AT_FIELD, createdAt != null ? createdAt : JSONObject.NULL);
-            buildAuditLog(operation, data);
-        } catch (ActionMgtException e) {
-            LOG.warn("Failed to publish audit log for action creation. Action id: " + creatingActionDTO.getId(), e);
+            LOG.warn(String.format("Failed to publish audit log for %s action. Action id: %s",
+                    operation.name().toLowerCase(), actionDTO.getId()), e);
         }
     }
 
