@@ -18,6 +18,12 @@
 
 package org.wso2.carbon.identity.flow.mgt;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Constants for the orchestration flow.
  */
@@ -134,20 +140,30 @@ public class Constants {
 
     public enum FlowTypes {
 
-        REGISTRATION("REGISTRATION"),
-        PASSWORD_RECOVERY("PASSWORD_RECOVERY"),
-        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION");
+        REGISTRATION("REGISTRATION", Properties.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED,
+                Properties.IS_EMAIL_VERIFICATION_ENABLED, Properties.IS_AUTO_LOGIN_ENABLED),
+        PASSWORD_RECOVERY("PASSWORD_RECOVERY", Properties.IS_AUTO_LOGIN_ENABLED,
+                Properties.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
+        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", Properties.IS_AUTO_LOGIN_ENABLED,
+                Properties.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED);
 
         private final String type;
+        private final ArrayList<Properties> supportedProperties = new ArrayList<>();
 
-        FlowTypes(String type) {
+        FlowTypes(String type, Properties... requiredFlags) {
 
             this.type = type;
+            this.supportedProperties.addAll(Arrays.asList(requiredFlags));
         }
 
         public String getType() {
 
             return type;
+        }
+
+        public ArrayList<Properties> getSupportedProperties() {
+
+            return supportedProperties;
         }
     }
 
@@ -258,6 +274,64 @@ public class Constants {
 
         private FlowAIConstants() {
 
+        }
+    }
+
+    /**
+     * Constants for the flow properties.
+     */
+    public enum Properties {
+
+        IS_AUTO_LOGIN_ENABLED("isAutoLoginEnabled"),
+        IS_EMAIL_VERIFICATION_ENABLED("isEmailVerificationEnabled"),
+        IS_ACCOUNT_LOCK_ON_CREATION_ENABLED("isAccountLockOnCreationEnabled"),
+        IS_FLOW_COMPLETION_NOTIFICATION_ENABLED("isFlowCompletionNotificationEnabled");
+
+        private final String property;
+        private final String defaultValue;
+
+        private static final Map<String, Properties> LOOKUP = new HashMap<>();
+
+        static {
+            for (Properties constant : values()) {
+                LOOKUP.put(constant.property, constant);
+            }
+        }
+
+        Properties(String property) {
+
+            this.property = property;
+            this.defaultValue = "false";
+        }
+
+        Properties(String property, List<String> allowedValues) {
+
+            this.property = property;
+            this.defaultValue = "false";
+        }
+
+        Properties(String property, String defaultValue) {
+
+            this.property = property;
+            this.defaultValue = defaultValue;
+        }
+
+        public String getName() {
+
+            return property;
+        }
+
+        public String getDefaultValue() {
+
+            return defaultValue;
+        }
+
+        public static Properties fromProperty(String name) {
+
+            if (LOOKUP.containsKey(name)) {
+                return LOOKUP.get(name);
+            }
+            throw new IllegalArgumentException("No enum constant found for flag: " + name);
         }
     }
 }

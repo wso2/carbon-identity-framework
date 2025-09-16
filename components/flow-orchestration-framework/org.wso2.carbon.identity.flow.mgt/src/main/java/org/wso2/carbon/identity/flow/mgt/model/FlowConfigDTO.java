@@ -18,6 +18,14 @@
 
 package org.wso2.carbon.identity.flow.mgt.model;
 
+import org.wso2.carbon.identity.flow.mgt.Constants;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.wso2.carbon.identity.flow.mgt.Constants.Properties.IS_AUTO_LOGIN_ENABLED;
+
 /**
  * Flow configuration model class.
  */
@@ -25,7 +33,7 @@ public class FlowConfigDTO {
 
     private String flowType;
     private Boolean isEnabled;
-    private Boolean isAutoLoginEnabled;
+    private final Map<String, String> properties = new HashMap<>();
 
     public String getFlowType() {
 
@@ -49,11 +57,51 @@ public class FlowConfigDTO {
 
     public Boolean getIsAutoLoginEnabled() {
 
-        return isAutoLoginEnabled;
+        return Boolean.parseBoolean(getProperty(IS_AUTO_LOGIN_ENABLED));
     }
 
     public void setIsAutoLoginEnabled(Boolean autoLoginEnabled) {
 
-        isAutoLoginEnabled = autoLoginEnabled;
+        addProperty(IS_AUTO_LOGIN_ENABLED, String.valueOf(autoLoginEnabled));
+    }
+
+    public void addProperty(Constants.Properties property, String value) {
+
+        if (property != null) {
+            this.properties.put(property.getName(), value);
+        }
+    }
+
+    public void addAllProperties(ArrayList<Constants.Properties> properties) {
+
+        for (Constants.Properties flag : properties) {
+            addProperty(flag, flag.getDefaultValue());
+        }
+    }
+
+    public void addAllProperties(Map<String, String> properties) {
+
+        this.properties.putAll(properties);
+    }
+
+    public Map<Constants.Properties, String> getProperties(ArrayList<Constants.Properties> propertyList) {
+
+        Map<Constants.Properties, String> selectedFlags = new HashMap<>();
+        for (Constants.Properties flag : propertyList) {
+            if (properties.containsKey(flag.getName())) {
+                selectedFlags.put(flag, properties.get(flag.getName()));
+            }
+        }
+        return selectedFlags;
+    }
+
+    public String getProperty(Constants.Properties property) {
+
+        return properties.get(property.getName());
+    }
+
+    public Map<String, String> getAllProperties() {
+
+        return properties;
     }
 }

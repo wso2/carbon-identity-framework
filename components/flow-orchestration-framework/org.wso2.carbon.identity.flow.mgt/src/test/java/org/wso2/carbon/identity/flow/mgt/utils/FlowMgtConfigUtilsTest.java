@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
@@ -98,7 +99,7 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertTrue(result.getIsEnabled());
-        Assert.assertTrue(result.getIsAutoLoginEnabled());
+        Assert.assertFalse(result.getIsAutoLoginEnabled());
         verify(configurationManager).addResource(eq(RESOURCE_TYPE), any(Resource.class));
     }
 
@@ -374,7 +375,7 @@ public class FlowMgtConfigUtilsTest {
         FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
         flowConfigDTO.setFlowType(FLOW_TYPE_REGISTRATION);
         flowConfigDTO.setIsEnabled(true);
-        flowConfigDTO.setIsAutoLoginEnabled(true);
+        flowConfigDTO.addAllProperties(Constants.FlowTypes.REGISTRATION.getSupportedProperties());
         return flowConfigDTO;
     }
 
@@ -393,8 +394,10 @@ public class FlowMgtConfigUtilsTest {
         List<Attribute> attributes = new ArrayList<>();
         attributes.add(new Attribute(FLOW_TYPE, flowType));
         attributes.add(new Attribute(IS_ENABLED, "true"));
-        attributes.add(new Attribute(IS_AUTO_LOGIN_ENABLED, "true"));
-
+        for (Constants.Properties property : Constants.FlowTypes
+                .valueOf(flowType).getSupportedProperties()) {
+            attributes.add(new Attribute(property.getName(), property.getDefaultValue()));
+        }
         resource.setAttributes(attributes);
         return resource;
     }
