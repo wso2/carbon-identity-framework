@@ -617,6 +617,7 @@ public abstract class FrameworkConstants {
         public static final String JS_OPTIONS_USERNAME = "username";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
+        public static final String PROP_USERNAME_UPDATED_EXTERNALLY = "usernameUpdatedExternally";
 
         public static final String JS_FUNC_ON_LOGIN_REQUEST = "onLoginRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
@@ -706,6 +707,8 @@ public abstract class FrameworkConstants {
                 = "AdaptiveAuthExecutionSupervisorResult";
         public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
                 = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
+        public static final String ALLOW_AUTHENTICATED_SUB_UPDATE =
+                "AdaptiveAuth.AllowUpdatingAuthenticatedSubject";
         public static final String GRAALJS_SCRIPT_STATEMENTS_LIMIT
                 = "AdaptiveAuth.GraalJS.ScriptStatementsLimit";
         public static final int DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT = 0;

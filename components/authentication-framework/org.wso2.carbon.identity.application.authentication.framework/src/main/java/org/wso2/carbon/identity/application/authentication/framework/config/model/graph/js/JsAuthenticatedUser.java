@@ -37,6 +37,8 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.List;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
+
 /**
  * Abstract Javascript wrapper for Java level AuthenticatedUser.
  * This provides controlled access to AuthenticatedUser object via provided javascript native syntax.
@@ -173,6 +175,7 @@ public abstract class JsAuthenticatedUser extends AbstractJSObjectWrapper<Authen
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_USERNAME:
                 getWrapped().setUserName((String) value);
+                getContext().setProperty(PROP_USERNAME_UPDATED_EXTERNALLY, "true");
                 break;
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
                 getWrapped().setUserStoreDomain((String) value);
