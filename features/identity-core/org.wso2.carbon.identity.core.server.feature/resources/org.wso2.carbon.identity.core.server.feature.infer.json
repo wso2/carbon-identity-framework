@@ -305,7 +305,9 @@
       "multi_tenancy.stratos.public_cloud_setup": true,
       "token_exchange.implicit_association.include_primary_when_secondary_present": false,
       "scim.restrict_federated_user_access": false,
-      "scim2.return_conflict_on_claim_uniqueness_violation": false
+      "scim2.return_conflict_on_claim_uniqueness_violation": false,
+      "scim2.throw_userstore_exception_on_user_creation_error": false,
+      "authentication.local_authenticators.hide_user_existence": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -341,7 +343,9 @@
       "token_exchange.implicit_association.include_primary_when_secondary_present": false,
       "scim.restrict_federated_user_access": false,
       "scim2.return_conflict_on_claim_uniqueness_violation": false,
-      "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false
+      "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
+      "scim2.throw_userstore_exception_on_user_creation_error": false,
+      "authentication.local_authenticators.hide_user_existence": false
     }
   }
 }
