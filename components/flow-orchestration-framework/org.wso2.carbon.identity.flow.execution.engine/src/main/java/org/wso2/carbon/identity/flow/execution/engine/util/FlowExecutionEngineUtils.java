@@ -40,8 +40,8 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineExcept
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
+import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
-import org.wso2.carbon.identity.flow.execution.engine.store.FlowContextStore;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
@@ -306,6 +306,22 @@ public class FlowExecutionEngineUtils {
         return new FlowEngineServerException(flowType, error.getCode(), error.getMessage(), description);
     }
 
+
+    /**
+     * Handle the flow engine server exceptions.
+     *
+     * @param flowType Flow type.
+     * @param response Executor response.
+     * @return FlowEngineServerException.
+     */
+    public static FlowEngineServerException handleServerException(String flowType, ExecutorResponse response) {
+
+        String errorMsg = response.getErrorMessage();
+        String errorCode = response.getErrorCode();
+        String errorDescription = response.getErrorDescription();
+        Throwable throwable = response.getThrowable();
+        return new FlowEngineServerException(flowType, errorCode, errorMsg, errorDescription, throwable);
+    }
     /**
      * Handle the flow engine client exceptions.
      *
@@ -374,6 +390,22 @@ public class FlowExecutionEngineUtils {
             description = String.format(description, data);
         }
         return new FlowEngineClientException(flowType, error.getCode(), error.getMessage(), description);
+    }
+
+    /**
+     * Handle the flow engine client exceptions.
+     *
+     * @param flowType Flow type.
+     * @param response Executor response.
+     * @return FlowEngineClientException.
+     */
+    public static FlowEngineClientException handleClientException(String flowType, ExecutorResponse response) {
+
+        String errorMsg = response.getErrorMessage();
+        String errorCode = response.getErrorCode();
+        String errorDescription = response.getErrorDescription();
+        Throwable throwable = response.getThrowable();
+        return new FlowEngineClientException(flowType, errorCode, errorMsg, errorDescription, throwable);
     }
 
     /**

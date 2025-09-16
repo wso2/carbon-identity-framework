@@ -713,6 +713,9 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
                 <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
+                {% if oauth.grant_type.organization_switch.allow_refresh_tokens is defined %}
+                <IsRefreshTokenAllowed>{{oauth.grant_type.organization_switch.allow_refresh_tokens}}</IsRefreshTokenAllowed>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
@@ -1495,6 +1498,7 @@
         <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
         <EnableLogoutWreplyValidation>{{passive_sts.enable_logout_wreply_validation}}</EnableLogoutWreplyValidation>
+        <SOAPEnabled>{{passive_sts.soap_enabled}}</SOAPEnabled>
     </PassiveSTS>
 
     <UserAccountAssociation>
@@ -1557,6 +1561,9 @@
             -->
             <ComplexMultiValuedAttributeSupportEnabled>{{scim.enable_complex_multivalued_attribute_support}}</ComplexMultiValuedAttributeSupportEnabled>
         </SCIMAuthenticators>
+
+        <!-- Restrict federated users from accessing the endpoint -->
+        <RestrictFederatedUserAccess>{{scim.restrict_federated_user_access}}</RestrictFederatedUserAccess>
     </SCIM>
 
     <SCIM2>
@@ -1688,6 +1695,14 @@
             Supported versions : IS 7.2.0 onwards
         -->
         <ReturnConflictOnClaimUniquenessViolation>{{scim2.return_conflict_on_claim_uniqueness_violation}}</ReturnConflictOnClaimUniquenessViolation>
+
+        <!--
+            If you want to throw a UserStoreException in case of user creation failures, then enable this
+            property value.
+            Default value: true
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <ThrowUserStoreExceptionOnUserCreationError>{{scim2.throw_userstore_exception_on_user_creation_error}}</ThrowUserStoreExceptionOnUserCreationError>
     </SCIM2>
 
     <Captcha>
@@ -2244,6 +2259,10 @@
     <Webhooks>
         <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
     </Webhooks>
+
+    <LocalAuthenticators>
+        <HideUserExistenceOnAuthFlow>{{authentication.local_authenticators.hide_user_existence}}</HideUserExistenceOnAuthFlow>
+    </LocalAuthenticators>
 
     <EventListeners>
         <EventListener id="input_validation"
@@ -4241,6 +4260,10 @@
      </FIdPRoleBasedAuthzApplications>
      {% endif %}
 
+     {% if federated.authenticator.max_property_limit is defined %}
+     <MaxFederatedAuthenticatorPropertiesPerIdP>{{federated.authenticator.max_property_limit}}</MaxFederatedAuthenticatorPropertiesPerIdP>
+     {% endif %}
+
     <!--This configuration is used for X509 Certificate based authentication. -->
 
     <X509>
@@ -4791,5 +4814,26 @@
         </FlowTypeTTLs>
         <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
     </FlowExecution>
+
+    <NotificationChannel>
+        <SMS>
+            <Custom>
+                <!--
+                    Specifies the connection timeout in milliseconds when connecting to the custom SMS provider.
+                    A timeout of zero is interpreted as an infinite timeout.
+                    Default value is 5000ms.
+                    Supported versions : IS 7.2.0 onwards
+                -->
+                <ConnectionTimeout>{{notificationChannel.sms.custom.connection_timeout}}</ConnectionTimeout>
+                <!--
+                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is 
+                    established to the custom SMS provider. A timeout of zero is interpreted as an infinite timeout.
+                    Default value is 20000ms.
+                    Supported versions : IS 7.2.0 onwards
+                -->
+                <ConnectionReadTimeout>{{notificationChannel.sms.custom.connection_read_timeout}}</ConnectionReadTimeout>
+            </Custom>
+        </SMS>
+    </NotificationChannel>
 
 </Server>

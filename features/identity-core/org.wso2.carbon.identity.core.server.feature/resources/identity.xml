@@ -889,6 +889,7 @@
         <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>true</EnableDefaultSignatureAndDigestAlgorithm>
         <EnableLogoutWreplyValidation>true</EnableLogoutWreplyValidation>
+        <SOAPEnabled>false</SOAPEnabled>
     </PassiveSTS>
 
     <UserAccountAssociation>
@@ -1065,6 +1066,14 @@
             Supported versions: IS 7.2.0 onwards
         -->
         <ReturnConflictOnClaimUniquenessViolation>true</ReturnConflictOnClaimUniquenessViolation>
+
+        <!--
+           If you want to throw a UserStoreException in case of user creation failures due to, then enable this
+           property value.
+           Default value: true
+           Supported versions : IS 7.2.0 onwards
+        -->
+        <ThrowUserStoreExceptionOnUserCreationError>true</ThrowUserStoreExceptionOnUserCreationError>
     </SCIM2>
 
     <PasswordPolicy>
@@ -1299,6 +1308,10 @@
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
     </Webhooks>
+
+    <LocalAuthenticators>
+        <HideUserExistenceOnAuthFlow>true</HideUserExistenceOnAuthFlow>
+    </LocalAuthenticators>
 
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -2866,5 +2879,14 @@
     <AgentIdentity>
         <Enabled>true</Enabled>
     </AgentIdentity>
+
+    <NotificationChannel>
+        <SMS>
+            <Custom>
+                <ConnectionTimeout>5000</ConnectionTimeout>
+                <ConnectionReadTimeout>20000</ConnectionReadTimeout>
+            </Custom>
+        </SMS>
+    </NotificationChannel>
 
 </Server>

@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.482-SNAPSHOT</version>
+    <version>7.8.491-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -69,7 +69,6 @@
         <module>components/multi-attribute-login</module>
         <module>components/secret-mgt</module>
         <module>components/central-logger</module>
-        <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
@@ -84,6 +83,7 @@
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
+        <module>components/input-validation-mgt</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>

@@ -371,6 +371,7 @@
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
+  "passive_sts.soap_enabled": false,
 
   "user_account_association.enable_sha256": true,
   "federated_user_account_association.max_bulk_operations": 1000,
@@ -388,6 +389,7 @@
   "scim.authentication_handler.oauth.properties.Priority": "10",
   "scim.authentication_handler.oauth.properties.AuthorizationServer": "local://services",
   "scim.enable_complex_multivalued_attribute_support": false,
+  "scim.restrict_federated_user_access": true,
   "scim2.endpoints.users_endpoint": "$ref{server.base_path}/scim2/Users",
   "scim2.endpoints.groups_endpoint": "$ref{server.base_path}/scim2/Groups",
   "scim2.enable_complex_multivalued_attribute_support": false,
@@ -406,6 +408,7 @@
   "scim2.enable_scim2_roles_v3_api": true,
   "scim2.default_role_api_version_for_ref": "v3",
   "scim2.return_conflict_on_claim_uniqueness_violation": true,
+  "scim2.throw_userstore_exception_on_user_creation_error": true,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -1993,7 +1996,7 @@
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
   "organization_management.organization_versioning.new_organization_version": "v1.0.0",
-  "organization_discovery.default_param": "orgName",
+  "organization_discovery.default_param": "orgHandle",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
@@ -2066,5 +2069,8 @@
 
   "console.ui.organizations.organization_display_name.enable": true,
   "console.ui.organizations.organization_handle.enable": true,
-  "notification_templates.super_organization_display_name.enable": true
+  "notification_templates.super_organization_display_name.enable": true,
+  
+  "notificationChannel.sms.custom.connection_timeout": "5000",
+  "notificationChannel.sms.custom.connection_read_timeout": "20000"
 }

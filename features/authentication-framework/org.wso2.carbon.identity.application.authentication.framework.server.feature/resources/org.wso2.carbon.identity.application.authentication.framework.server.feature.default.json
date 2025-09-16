@@ -227,6 +227,7 @@
 
   "authentication.authenticator.office365.name": "Office365Authenticator",
   "authentication.authenticator.office365.parameters.Tags": "OIDC",
+  "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": true,
 
   "authentication.authenticator.iwa_kerberos.name": "IWAKerberosAuthenticator",
   "authentication.authenticator.iwa_kerberos.parameters.Tags": "Enterprise",
@@ -249,6 +250,8 @@
   "authentication.authenticator.push_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.push_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.push_local.parameters.enableRetryFromAuthenticator": true,
+
+  "authentication.local_authenticators.hide_user_existence": true,
 
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
