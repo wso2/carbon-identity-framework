@@ -91,6 +91,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -2265,7 +2266,7 @@ public class IdentityUtil {
      * @param jwt JWT string to check.
      * @return True if the JWT exceeds the allowed depth, false otherwise.
      */
-    public static boolean exceedsAllowedJWTDepth(String jwt) {
+    public static boolean exceedsAllowedJWTDepth(String jwt) throws ParseException {
 
         if (log.isDebugEnabled()) {
             log.debug("Checking JWT depth validation");
@@ -2305,7 +2306,7 @@ public class IdentityUtil {
      * @param json JSON String to check.
      * @return True if the JSON exceeds the allowed depth, false otherwise.
      */
-    public static boolean exceedsAllowedJsonDepth(String json) {
+    public static boolean exceedsAllowedJsonDepth(String json) throws ParseException {
 
         int maxDepth = getAllowedMaxJsonDepth();
         try (JsonReader reader = new JsonReader(new StringReader(json))) {
@@ -2337,33 +2338,13 @@ public class IdentityUtil {
                         reader.endArray();
                         break;
 
-                    case NAME:
-                        reader.nextName();
-                        break;
-
-                    case STRING:
-                        reader.nextString();
-                        break;
-
-                    case NUMBER:
-                        reader.nextDouble();
-                        break;
-
-                    case BOOLEAN:
-                        reader.nextBoolean();
-                        break;
-
-                    case NULL:
-                        reader.nextNull();
-                        break;
-
                     default:
                         reader.skipValue();
                         break;
                 }
             }
         } catch (IOException e) {
-            return false;
+            throw new ParseException("Error parsing JSON for depth validation", 0);
         }
         return false;
     }

@@ -18,12 +18,18 @@
 package org.wso2.carbon.identity.core.util;
 
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
-import static org.mockito.Mockito.*;
 import org.mockito.MockedStatic;
 
+import java.text.ParseException;
 import java.util.Base64;
 import java.nio.charset.StandardCharsets;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 
 public class JWTDepthValidationTest {
 
@@ -39,7 +45,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testNullAndEmptyJWT() {
+    public void testNullAndEmptyJWT() throws ParseException {
 
         assertFalse(IdentityUtil.exceedsAllowedJWTDepth(null));
         assertFalse(IdentityUtil.exceedsAllowedJWTDepth(""));
@@ -47,7 +53,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testInvalidJWTFormats() {
+    public void testInvalidJWTFormats() throws ParseException {
 
         assertFalse(IdentityUtil.exceedsAllowedJWTDepth("invalidjwt"));
         assertFalse(IdentityUtil.exceedsAllowedJWTDepth("onlyonepart."));
@@ -60,7 +66,7 @@ public class JWTDepthValidationTest {
 
         String invalidJson = "not json at all";
         String jwt = createJWT(invalidJson);
-        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(jwt));
+        assertThrows(ParseException.class, () -> IdentityUtil.exceedsAllowedJWTDepth(jwt));
     }
 
     @Test
@@ -68,12 +74,14 @@ public class JWTDepthValidationTest {
 
         String malformedObject = "{\"incomplete\":";
         String malformedArray = "[{\"incomplete\"";
-        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(malformedObject)));
-        assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(malformedArray)));
+        assertThrows(ParseException.class,
+                () -> IdentityUtil.exceedsAllowedJWTDepth(createJWT(malformedObject)));
+        assertThrows(ParseException.class,
+                () -> IdentityUtil.exceedsAllowedJWTDepth(createJWT(malformedArray)));
     }
 
     @Test
-    public void testFlatStructuresAgainstDefaultDepth() {
+    public void testFlatStructuresAgainstDefaultDepth() throws ParseException {
 
         // Flat object.
         String flatObject = "{\"sub\":\"user123\",\"name\":\"John Doe\",\"exp\":1234567890}";
@@ -89,7 +97,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testNonFlatStructuresBelowDefaultDepthAgainstDefaultDepth() {
+    public void testNonFlatStructuresBelowDefaultDepthAgainstDefaultDepth() throws ParseException {
 
         // Object with nested object.
         String objectWithObject = "{\"user\":{\"id\":123,\"name\":\"John\"}}";
@@ -147,7 +155,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testNonFlatStructuresOverDefaultDepthAgainstDefaultDepth() {
+    public void testNonFlatStructuresOverDefaultDepthAgainstDefaultDepth() throws ParseException {
 
         // Object with nested object (depth 256).
         StringBuilder deepObject = new StringBuilder("{");
@@ -204,11 +212,13 @@ public class JWTDepthValidationTest {
             // Array with deeply nested object (depth 5).
             String arrayDepth5 = "[{\"user\":{\"profile\":{\"settings\":{\"theme\":\"dark\"}}}}]";
             assertTrue(IdentityUtil.exceedsAllowedJWTDepth(createJWT(arrayDepth5)));
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
     }
 
     @Test
-    public void testStructureDepthNotExceedConfiguredDepth() {
+    public void testStructureDepthNotExceedConfiguredDepth() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             identityUtilMock.when(() ->
@@ -227,7 +237,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testLargeWidthButAllowedDepth() {
+    public void testLargeWidthButAllowedDepth() throws ParseException {
 
         // Many siblings at depth 2 - should pass.
         StringBuilder payload = new StringBuilder("{");
@@ -240,7 +250,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testVeryLongButShallowJWT() {
+    public void testVeryLongButShallowJWT() throws ParseException {
 
         // Large JWT but only depth 1.
         StringBuilder payload = new StringBuilder("{");
@@ -253,7 +263,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testEmptyNestedStructures() {
+    public void testEmptyNestedStructures() throws ParseException {
 
         String emptyObjects = "{\"empty\":{},\"nested\":{\"empty2\":{}}}";
         assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(emptyObjects)));
@@ -263,7 +273,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testSpecialValues() {
+    public void testSpecialValues() throws ParseException {
         String specialChars = "{\"message\":{\"text\":\"Hello {\\\"world\\\"}: [1,2,3]\"}}";
         assertFalse(IdentityUtil.exceedsAllowedJWTDepth(createJWT(specialChars)));
 
@@ -272,7 +282,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testCustomMaxDepthConfiguration() {
+    public void testCustomMaxDepthConfiguration() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             identityUtilMock.when(() ->
@@ -291,7 +301,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testInvalidConfiguration() {
+    public void testInvalidConfiguration() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             identityUtilMock.when(() ->
@@ -306,7 +316,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testNullAndBlankConfiguration() {
+    public void testNullAndBlankConfiguration() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             // Test null config -> fallback 255.
@@ -332,7 +342,7 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testExtremeDepthLimits() {
+    public void testExtremeDepthLimits() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             // Test depth limit 0.
