@@ -2352,22 +2352,12 @@ public class IdentityUtil {
     /**
      * Get the allowed maximum depth for JSON objects.
      * This value defines how deeply nested a JSON structure can be before it is
-     * considered invalid by this component.
+     * considered invalid.
      * @return Maximum allowed JSON depth.
      */
     public static int getAllowedMaxJsonDepth() {
 
-        int maxDepth = 255;
-        String maxDepthStr = IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY);
-        if (StringUtils.isNotBlank(maxDepthStr)) {
-            try {
-                maxDepth = Integer.parseInt(maxDepthStr);
-            } catch (NumberFormatException e) {
-                // Use default.
-                log.warn("Invalid JWT maximum depth value: " + maxDepthStr + ". Using default: 255");
-            }
-        }
-        return maxDepth;
+        return Integer.parseInt(IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY));
     }
 
 }
