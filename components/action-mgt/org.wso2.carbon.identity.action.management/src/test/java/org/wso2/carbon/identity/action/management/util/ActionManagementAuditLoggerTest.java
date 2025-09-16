@@ -80,9 +80,11 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_VALUE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CREATED_AT;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_SHARING_TYPE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_SHARING_TYPE_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_UPDATED_AT;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_USERNAME;
 
 /**
@@ -184,7 +186,7 @@ public class ActionManagementAuditLoggerTest {
                                 .description(TEST_ACTION_DESCRIPTION)
                                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                                 .status(Action.Status.ACTIVE)
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                                         .uri(TEST_ACTION_URI)
@@ -204,7 +206,7 @@ public class ActionManagementAuditLoggerTest {
                                 .description(TEST_ACTION_DESCRIPTION)
                                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                                 .status(Action.Status.ACTIVE)
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                                         .uri(TEST_ACTION_URI)
@@ -223,7 +225,7 @@ public class ActionManagementAuditLoggerTest {
                                 .description(TEST_ACTION_DESCRIPTION_UPDATED)
                                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                                 .status(Action.Status.ACTIVE)
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                                         .uri(TEST_ACTION_URI_UPDATED)
@@ -240,7 +242,7 @@ public class ActionManagementAuditLoggerTest {
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
                                 .name(TEST_ACTION_NAME_UPDATED)
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .build()
                 },
@@ -248,7 +250,7 @@ public class ActionManagementAuditLoggerTest {
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
                                 .description(TEST_ACTION_DESCRIPTION_UPDATED)
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .build()
                 },
@@ -261,7 +263,7 @@ public class ActionManagementAuditLoggerTest {
                                         .allowedHeaders(Collections.singletonList(TEST_ACTION_ALLOWED_HEADER_1))
                                         .allowedParameters(Collections.singletonList(TEST_ACTION_ALLOWED_PARAMETER_1))
                                         .build())
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .build()
                 },
@@ -273,7 +275,7 @@ public class ActionManagementAuditLoggerTest {
                                         .allowedHeaders(Collections.singletonList(TEST_ACTION_ALLOWED_HEADER_1))
                                         .allowedParameters(Collections.singletonList(TEST_ACTION_ALLOWED_PARAMETER_1))
                                         .build())
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .build()
                 },
@@ -285,7 +287,7 @@ public class ActionManagementAuditLoggerTest {
                                         .allowedHeaders(Collections.singletonList(TEST_ACTION_ALLOWED_HEADER_1))
                                         .allowedParameters(Collections.singletonList(TEST_ACTION_ALLOWED_PARAMETER_1))
                                         .build())
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .build()
                 },
@@ -293,7 +295,7 @@ public class ActionManagementAuditLoggerTest {
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
                                 .properties(updatedActionProperties)
-                                .createdAt(Timestamp.valueOf(TestUtil.TEST_CREATED_AT))
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
                                 .updatedAt(Timestamp.valueOf(TestUtil.TEST_UPDATED_AT))
                                 .build()
                 }
@@ -326,6 +328,47 @@ public class ActionManagementAuditLoggerTest {
                 Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());
         assertAuditLoggerData(capturedArg, DELETE_ACTION);
 
+    }
+
+    @Test
+    public void testPrintAuditLogWithActionDTOAndCreatedAt() throws Exception {
+
+        Timestamp now = Timestamp.valueOf(TEST_CREATED_AT);
+        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.ADD;
+
+        auditLogger.printAuditLog(operation, actionDTO, now, true);
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+
+        Assert.assertNotNull(capturedArg);
+        Assert.assertEquals(extractMapByField("CreatedAt", capturedArg), String.valueOf(now));
+        assertAuditLoggerData(capturedArg, ADD_ACTION);
+    }
+
+    @Test
+    public void testPrintAuditLogWithActionDTOAndUpdatedAt() throws Exception {
+
+        Timestamp now = Timestamp.valueOf(TEST_UPDATED_AT);
+        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.UPDATE;
+
+        auditLogger.printAuditLog(operation, actionDTO, now, false);
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+
+        Assert.assertNotNull(capturedArg);
+        Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), String.valueOf(now));
+        assertAuditLoggerData(capturedArg, UPDATE_ACTION);
+    }
+
+    @Test
+    public void testPrintAuditLogWithActionDTOAndNullTimestamp() throws Exception {
+
+        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.UPDATE;
+
+        auditLogger.printAuditLog(operation, actionDTO, null, false);
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+
+        Assert.assertNotNull(capturedArg);
+        Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), null);
+        assertAuditLoggerData(capturedArg, UPDATE_ACTION);
     }
 
     /**
