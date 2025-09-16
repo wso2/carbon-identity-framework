@@ -880,9 +880,6 @@
         <Resource context="(.*)/api/server/v1/configs/home-realm-identifiers" secured="true" http-method="GET">
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
-            <Scopes>internal_login</Scopes>
-        </Resource>
         <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
             <Scopes>internal_login</Scopes>
         </Resource>
@@ -1491,6 +1488,9 @@
         <!-- Configuration Management API -->
         <Resource context="(.*)/api/server/v1/configs/authentication/inbound/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_config_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
+            <Scopes>internal_config_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="PATCH, PUT">
             <Scopes>internal_config_update</Scopes>
