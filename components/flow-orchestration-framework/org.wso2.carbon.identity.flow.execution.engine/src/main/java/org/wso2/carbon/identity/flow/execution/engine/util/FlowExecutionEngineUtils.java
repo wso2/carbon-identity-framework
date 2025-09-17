@@ -63,7 +63,6 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 
 /**
@@ -190,7 +189,9 @@ public class FlowExecutionEngineUtils {
             FlowConfigDTO flowConfigDTO = FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
                     .getFlowConfig(flowType, IdentityTenantUtil.getTenantId(tenantDomain));
             if (flowConfigDTO != null) {
-                context.setGenerateAuthenticationAssertion(flowConfigDTO.getIsAutoLoginEnabled());
+                context.setGenerateAuthenticationAssertion(Boolean.parseBoolean(
+                        flowConfigDTO.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED))
+                );
             }
 
             return context;
