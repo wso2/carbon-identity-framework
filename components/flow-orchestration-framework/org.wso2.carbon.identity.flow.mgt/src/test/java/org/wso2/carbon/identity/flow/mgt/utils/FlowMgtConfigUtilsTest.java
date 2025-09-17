@@ -154,8 +154,6 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertTrue(result.getIsEnabled());
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
-                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(
                 result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
@@ -178,8 +176,6 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertFalse(result.getIsEnabled());
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
-        Assert.assertFalse(Boolean.parseBoolean(
-                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
@@ -196,8 +192,6 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_PASSWORD_RECOVERY);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
-                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(
                 result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
@@ -214,8 +208,6 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_INVITED_USER_REGISTRATION);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
-                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(
                 result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
@@ -305,16 +297,12 @@ public class FlowMgtConfigUtilsTest {
             switch (config.getFlowType()) {
                 case FLOW_TYPE_REGISTRATION:
                     Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
-                            Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
-                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
                             Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
                     Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
                             Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
                     break;
                 case FLOW_TYPE_PASSWORD_RECOVERY:
                 case FLOW_TYPE_INVITED_USER_REGISTRATION:
-                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
-                            Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
                     Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
                             Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
                     break;
@@ -336,9 +324,8 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
-                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
@@ -382,9 +369,8 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
-                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
@@ -406,9 +392,8 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
-                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
-        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
