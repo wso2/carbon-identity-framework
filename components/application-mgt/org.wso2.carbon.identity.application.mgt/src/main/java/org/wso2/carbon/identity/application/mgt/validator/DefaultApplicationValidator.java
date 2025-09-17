@@ -673,6 +673,10 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                         "but loops are available in the provided script.");
             }
         }
+        if (IdentityApplicationManagementUtil.isArrayFillPresentInAdaptiveAuthScript(script)) {
+            validationErrors.add("Script contains Array().fill() constructs which are not allowed.");
+        }
+
     }
 
     private String getAdaptiveAuthScript(AuthenticationScriptConfig scriptConfig) {
