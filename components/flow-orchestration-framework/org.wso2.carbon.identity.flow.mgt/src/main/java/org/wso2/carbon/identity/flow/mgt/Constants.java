@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.flow.mgt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -140,20 +139,20 @@ public class Constants {
 
     public enum FlowTypes {
 
-        REGISTRATION("REGISTRATION", Properties.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED,
-                Properties.IS_EMAIL_VERIFICATION_ENABLED, Properties.IS_AUTO_LOGIN_ENABLED),
-        PASSWORD_RECOVERY("PASSWORD_RECOVERY", Properties.IS_AUTO_LOGIN_ENABLED,
-                Properties.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
-        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", Properties.IS_AUTO_LOGIN_ENABLED,
-                Properties.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED);
+        REGISTRATION("REGISTRATION", FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED,
+                FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED, FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED),
+        PASSWORD_RECOVERY("PASSWORD_RECOVERY", FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+                FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
+        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+                FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED);
 
         private final String type;
-        private final ArrayList<Properties> supportedProperties = new ArrayList<>();
+        private final ArrayList<FlowCompletionConfig> supportedFlowCompletionConfigs = new ArrayList<>();
 
-        FlowTypes(String type, Properties... requiredFlags) {
+        FlowTypes(String type, FlowCompletionConfig... requiredFlowCompletionConfigs) {
 
             this.type = type;
-            this.supportedProperties.addAll(Arrays.asList(requiredFlags));
+            this.supportedFlowCompletionConfigs.addAll(Arrays.asList(requiredFlowCompletionConfigs));
         }
 
         public String getType() {
@@ -161,9 +160,9 @@ public class Constants {
             return type;
         }
 
-        public ArrayList<Properties> getSupportedProperties() {
+        public ArrayList<FlowCompletionConfig> getSupportedFlowCompletionConfigs() {
 
-            return supportedProperties;
+            return supportedFlowCompletionConfigs;
         }
     }
 
@@ -278,47 +277,41 @@ public class Constants {
     }
 
     /**
-     * Constants for the flow properties.
+     * Constants for the flow completion configs.
      */
-    public enum Properties {
+    public enum FlowCompletionConfig {
 
         IS_AUTO_LOGIN_ENABLED("isAutoLoginEnabled"),
         IS_EMAIL_VERIFICATION_ENABLED("isEmailVerificationEnabled"),
         IS_ACCOUNT_LOCK_ON_CREATION_ENABLED("isAccountLockOnCreationEnabled"),
         IS_FLOW_COMPLETION_NOTIFICATION_ENABLED("isFlowCompletionNotificationEnabled");
 
-        private final String property;
+        private final String config;
         private final String defaultValue;
 
-        private static final Map<String, Properties> LOOKUP = new HashMap<>();
+        private static final Map<String, FlowCompletionConfig> LOOKUP = new HashMap<>();
 
         static {
-            for (Properties constant : values()) {
-                LOOKUP.put(constant.property, constant);
+            for (FlowCompletionConfig constant : values()) {
+                LOOKUP.put(constant.config, constant);
             }
         }
 
-        Properties(String property) {
+        FlowCompletionConfig(String config) {
 
-            this.property = property;
+            this.config = config;
             this.defaultValue = "false";
         }
 
-        Properties(String property, List<String> allowedValues) {
+        FlowCompletionConfig(String config, String defaultValue) {
 
-            this.property = property;
-            this.defaultValue = "false";
-        }
-
-        Properties(String property, String defaultValue) {
-
-            this.property = property;
+            this.config = config;
             this.defaultValue = defaultValue;
         }
 
-        public String getName() {
+        public String getConfig() {
 
-            return property;
+            return config;
         }
 
         public String getDefaultValue() {
@@ -326,12 +319,12 @@ public class Constants {
             return defaultValue;
         }
 
-        public static Properties fromProperty(String name) {
+        public static FlowCompletionConfig fromConfig(String config) {
 
-            if (LOOKUP.containsKey(name)) {
-                return LOOKUP.get(name);
+            if (LOOKUP.containsKey(config)) {
+                return LOOKUP.get(config);
             }
-            throw new IllegalArgumentException("No enum constant found for flag: " + name);
+            return null;
         }
     }
 }

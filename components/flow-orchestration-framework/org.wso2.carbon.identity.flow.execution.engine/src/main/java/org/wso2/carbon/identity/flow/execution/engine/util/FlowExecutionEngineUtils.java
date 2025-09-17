@@ -189,7 +189,9 @@ public class FlowExecutionEngineUtils {
             FlowConfigDTO flowConfigDTO = FlowExecutionEngineDataHolder.getInstance().getFlowMgtService()
                     .getFlowConfig(flowType, IdentityTenantUtil.getTenantId(tenantDomain));
             if (flowConfigDTO != null) {
-                context.setGenerateAuthenticationAssertion(flowConfigDTO.getIsAutoLoginEnabled());
+                context.setGenerateAuthenticationAssertion(Boolean.parseBoolean(
+                        flowConfigDTO.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED))
+                );
             }
 
             return context;

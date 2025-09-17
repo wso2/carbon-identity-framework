@@ -180,11 +180,11 @@ public class FlowMgtConfigUtils {
     private static FlowConfigDTO getDefaultConfig(String flowType) {
 
         LOG.debug("Returning default flow configuration for flow type: " + flowType);
-        Constants.FlowTypes flowTypeRequested = Constants.FlowTypes.valueOf(flowType);
+        Constants.FlowTypes requestedFlowType = Constants.FlowTypes.valueOf(flowType);
         FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
         flowConfigDTO.setFlowType(flowType);
         flowConfigDTO.setIsEnabled(false);
-        flowConfigDTO.addAllProperties(flowTypeRequested.getSupportedProperties());
+        flowConfigDTO.addAllFlowCompletionConfigs(requestedFlowType.getSupportedFlowCompletionConfigs());
         return flowConfigDTO;
     }
 
@@ -215,7 +215,8 @@ public class FlowMgtConfigUtils {
                     flowConfigDTO.setIsEnabled(Boolean.parseBoolean(attribute.getValue()));
                     break;
                 default:
-                    flowConfigDTO.addProperty(Constants.Properties.fromProperty(attribute.getKey()), attribute.getValue());
+                    flowConfigDTO.addFlowCompletionConfig(Constants.FlowCompletionConfig.fromConfig(attribute.getKey()),
+                            attribute.getValue());
                     break;
             }
         }
@@ -233,17 +234,17 @@ public class FlowMgtConfigUtils {
         String flowType = flowConfigDTO.getFlowType();
         Attribute flowTypeAttribute = new Attribute(FLOW_TYPE, flowType);
         Attribute flowIsEnabledAttribute = new Attribute(IS_ENABLED, String.valueOf(flowConfigDTO.getIsEnabled()));
-        Map<Constants.Properties, String> flags = flowConfigDTO.getProperties(
-                Constants.FlowTypes.valueOf(flowType).getSupportedProperties());
+        Map<Constants.FlowCompletionConfig, String> supportedConfigs = flowConfigDTO.getFlowCompletionConfigs(
+                Constants.FlowTypes.valueOf(flowType).getSupportedFlowCompletionConfigs());
 
         List<Attribute> attributes = new ArrayList<>();
         attributes.add(flowTypeAttribute);
         attributes.add(flowIsEnabledAttribute);
 
-        // Add any additional properties as attributes.
-        if (!flags.isEmpty()) {
-            flags.forEach((key, value) -> {
-                Attribute attribute = new Attribute(key.getName(), value);
+        // Add any additional supported configs as attributes.
+        if (!supportedConfigs.isEmpty()) {
+            supportedConfigs.forEach((key, value) -> {
+                Attribute attribute = new Attribute(key.getConfig(), value);
                 attributes.add(attribute);
             });
         }

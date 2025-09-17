@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.flow.mgt.Constants.Properties.IS_AUTO_LOGIN_ENABLED;
-
 /**
  * Flow configuration model class.
  */
@@ -33,75 +31,119 @@ public class FlowConfigDTO {
 
     private String flowType;
     private Boolean isEnabled;
-    private final Map<String, String> properties = new HashMap<>();
+    private final Map<String, String> flowCompletionConfigs = new HashMap<>();
 
+    /**
+     * Get the flow type.
+     *
+     * @return Flow type.
+     */
     public String getFlowType() {
 
         return flowType;
     }
 
+    /**
+     * Set the flow type.
+     *
+     * @param flowType Flow type.
+     */
     public void setFlowType(String flowType) {
 
         this.flowType = flowType;
     }
 
+    /**
+     * Get whether the flow is enabled or not.
+     *
+     * @return True if the flow is enabled, false otherwise.
+     */
     public Boolean getIsEnabled() {
 
         return isEnabled;
     }
 
+    /**
+     * Set whether the flow is enabled or not.
+     *
+     * @param enabled True if the flow is enabled, false otherwise.
+     */
     public void setIsEnabled(Boolean enabled) {
 
         isEnabled = enabled;
     }
 
-    public Boolean getIsAutoLoginEnabled() {
+    /**
+     * Add a flow completion configuration.
+     *
+     * @param flowCompletionConfig Flow completion configuration enum.
+     * @param value                Value of the flow completion configuration.
+     */
+    public void addFlowCompletionConfig(Constants.FlowCompletionConfig flowCompletionConfig, String value) {
 
-        return Boolean.parseBoolean(getProperty(IS_AUTO_LOGIN_ENABLED));
-    }
-
-    public void setIsAutoLoginEnabled(Boolean autoLoginEnabled) {
-
-        addProperty(IS_AUTO_LOGIN_ENABLED, String.valueOf(autoLoginEnabled));
-    }
-
-    public void addProperty(Constants.Properties property, String value) {
-
-        if (property != null) {
-            this.properties.put(property.getName(), value);
+        if (flowCompletionConfig != null) {
+            this.flowCompletionConfigs.put(flowCompletionConfig.getConfig(), value);
         }
     }
 
-    public void addAllProperties(ArrayList<Constants.Properties> properties) {
+    /**
+     * Add all flow completion configurations from a list.
+     *
+     * @param flowCompletionConfigs List of flow completion configuration enums.
+     */
+    public void addAllFlowCompletionConfigs(ArrayList<Constants.FlowCompletionConfig> flowCompletionConfigs) {
 
-        for (Constants.Properties flag : properties) {
-            addProperty(flag, flag.getDefaultValue());
+        for (Constants.FlowCompletionConfig flowCompletionConfig : flowCompletionConfigs) {
+            addFlowCompletionConfig(flowCompletionConfig, flowCompletionConfig.getDefaultValue());
         }
     }
 
-    public void addAllProperties(Map<String, String> properties) {
+    /**
+     * Add all flow completion configurations from a map.
+     *
+     * @param configs Map of flow completion configurations.
+     */
+    public void addAllFlowCompletionConfigs(Map<String, String> configs) {
 
-        this.properties.putAll(properties);
+        this.flowCompletionConfigs.putAll(configs);
     }
 
-    public Map<Constants.Properties, String> getProperties(ArrayList<Constants.Properties> propertyList) {
+    /**
+     * Get specific flow completion configurations.
+     *
+     * @param configList List of flow completion configuration enums.
+     * @return Map of flow completion configurations.
+     */
+    public Map<Constants.FlowCompletionConfig, String> getFlowCompletionConfigs(
+            ArrayList<Constants.FlowCompletionConfig> configList) {
 
-        Map<Constants.Properties, String> selectedFlags = new HashMap<>();
-        for (Constants.Properties flag : propertyList) {
-            if (properties.containsKey(flag.getName())) {
-                selectedFlags.put(flag, properties.get(flag.getName()));
+        Map<Constants.FlowCompletionConfig, String> selectedConfigs = new HashMap<>();
+        for (Constants.FlowCompletionConfig config : configList) {
+            if (flowCompletionConfigs.containsKey(config.getConfig())) {
+                selectedConfigs.put(config, flowCompletionConfigs.get(config.getConfig()));
             }
         }
-        return selectedFlags;
+        return selectedConfigs;
     }
 
-    public String getProperty(Constants.Properties property) {
+    /**
+     * Get a specific flow completion configuration.
+     *
+     * @param flowCompletionConfig Flow completion configuration enum.
+     * @return Value of the flow completion configuration.
+     */
+    public String getFlowCompletionConfig(Constants.FlowCompletionConfig flowCompletionConfig) {
 
-        return properties.get(property.getName());
+        return flowCompletionConfigs.get(flowCompletionConfig.getConfig());
     }
 
-    public Map<String, String> getAllProperties() {
+    /**
+     * Get all flow completion configurations.
+     *
+     * @return Map of flow completion configurations.
+     */
+    public Map<String, String> getAllFlowCompletionConfigs() {
 
-        return properties;
+        return flowCompletionConfigs;
     }
 }
