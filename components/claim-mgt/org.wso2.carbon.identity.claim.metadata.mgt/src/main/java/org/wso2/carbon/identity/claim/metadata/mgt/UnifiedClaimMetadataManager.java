@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_FAILED_TO_RESOLVE_ORGANIZATION_ID;
@@ -750,6 +751,8 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             return;
         }
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        boolean isHierarchicalMode = resolveWithHierarchicalMode(tenantDomain, tenantId);
+        String primaryUserStoreDomain = IdentityUtil.getPrimaryDomainName();
         if (!localClaimList.isEmpty() && !isClaimDialectInDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId,
                 tenantDomain)) {
             addSystemDefaultDialectToDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
@@ -762,14 +765,22 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                 throw new ClaimMetadataClientException(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI.getCode(),
                         String.format(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
             }
+
+            Predicate<AttributeMapping> filterCondition;
+            if (isHierarchicalMode && isOrganization(tenantId)) {
+                filterCondition = mappedAttribute -> !mappedAttribute.getUserStoreDomain().equals(userStoreDomain) &&
+                                !mappedAttribute.getUserStoreDomain().equals(primaryUserStoreDomain);
+            } else {
+                filterCondition = mappedAttribute -> !mappedAttribute.getUserStoreDomain().equals(userStoreDomain);
+            }
             List<AttributeMapping> missingMappedAttributes = localClaimMap.get(localClaim.getClaimURI())
                     .getMappedAttributes().stream()
-                    .filter(mappedAttribute -> !mappedAttribute.getUserStoreDomain().equals(userStoreDomain))
+                    .filter(filterCondition)
                     .collect(Collectors.toList());
             localClaim.getMappedAttributes().addAll(missingMappedAttributes);
             localClaim.setClaimProperties(localClaimMap.get(localClaim.getClaimURI()).getClaimProperties());
         }
-        if (resolveWithHierarchicalMode(tenantDomain, tenantId)) {
+        if (isHierarchicalMode) {
             this.cacheBackedDBBasedClaimMetadataManager
                     .updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
         } else {
@@ -1101,12 +1112,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
      */
     public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
 
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        if (resolveWithHierarchicalMode(tenantDomain, tenantId)) {
-            this.cacheBackedDBBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
-        } else {
-            this.dbBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
-        }
+        this.cacheBackedDBBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
     }
 
     /**

@@ -72,6 +72,9 @@ import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
@@ -94,6 +97,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
 /**
@@ -727,6 +731,10 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
         if (isNoneCanHandle) {
+            if (FrameworkUtils.contextHasUserAssertion(request, context)) {
+                throw new FrameworkException(ERROR_INVALID_USER_ASSERTION.getCode(),
+                        ERROR_INVALID_USER_ASSERTION.getMessage());
+            }
             throw new FrameworkException("No authenticator can handle the request in step :  " + currentStep);
         }
     }
@@ -743,6 +751,15 @@ public class DefaultStepHandler implements StepHandler {
         if (authenticator == null) {
             LOG.error("Authenticator is null for AuthenticatorConfig: " + authenticatorConfig.getName());
             return;
+        }
+
+        boolean isAuthenticationRequired;
+        try {
+            isAuthenticationRequired = authenticator.isAuthenticationRequired(request, response, context);
+        } catch (AuthenticationFailedException e) {
+            LOG.error("Error while checking if authentication is required for authenticator: " +
+                    authenticator.getName(), e);
+            throw new FrameworkException(e.getErrorCode(), e.getMessage(), e);
         }
 
         String idpName = FrameworkConstants.LOCAL_IDP_NAME;
@@ -768,7 +785,7 @@ public class DefaultStepHandler implements StepHandler {
         try {
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
             AuthenticatorFlowStatus status;
-            if (authenticator.isAuthenticationRequired(request, response, context)) {
+            if (isAuthenticationRequired) {
                 status = authenticator.process(request, response, context);
             } else {
                 // If the authenticator does not require authentication based on the assertion, we can skip the process.
@@ -985,13 +1002,18 @@ public class DefaultStepHandler implements StepHandler {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
             if (errorContext != null) {
                 Throwable rootCause = ExceptionUtils.getRootCause(e);
-                if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.
-                        equals(errorContext.getErrorCode()) && !(rootCause instanceof UserStoreClientException) &&
+                if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
+                                .equals(errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE
+                                .equals(errorContext.getErrorCode()) &&
+                        !(rootCause instanceof UserStoreClientException) &&
                         !IdentityCoreConstants.USER_ACCOUNT_LOCKED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(
                                 errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(
+                                errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(
                                 errorContext.getErrorCode())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Authentication failed exception!", e);
@@ -1290,8 +1312,16 @@ public class DefaultStepHandler implements StepHandler {
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
-                } else if (IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                } else if (IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE.equals(errorCode)
+                            || IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Redirecting to login page with email verification pending message for error: "
+                                + errorCode);
+                    }
                     retryParam = "&authFailure=true&authFailureMsg=email.verification.pending";
+                    if (IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE.equals(errorCode)) {
+                        retryParam = "&authFailure=true&authFailureMsg=email.otp.verification.pending";
+                    }
                     Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
                     if (domain != null) {
                         username = IdentityUtil.addDomainToName(username, domain.toString());
@@ -1321,7 +1351,14 @@ public class DefaultStepHandler implements StepHandler {
                 } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
                         .equals(errorCode)) {
                     return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
-                            loginPage, otp, reCaptchaParamString);
+                            loginPage, otp, reCaptchaParamString, null);
+                } else if (IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE
+                        .equals(errorCode)) {
+                    LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP " +
+                            "error.");
+                    String recoveryEndpoint = resolveInvitedUserRegistrationEndpoint(context.getTenantDomain());
+                    return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                            loginPage, otp, reCaptchaParamString, recoveryEndpoint);
                 } else {
                     if (StringUtils.isNotBlank(retryParam) && StringUtils.isNotBlank(reason)) {
                         retryParam = "&authFailure=true&authFailureMsg=" + URLEncoder.encode(reason, "UTF-8");
@@ -1366,7 +1403,14 @@ public class DefaultStepHandler implements StepHandler {
 
             } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
                 return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
-                        loginPage, otp, reCaptchaParamString);
+                        loginPage, otp, reCaptchaParamString, null);
+            } else if (IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE.equals(errorCode)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Redirecting to forced password reset page for ASK_PASSWORD_SET_PASSWORD_VIA_OTP error.");
+                }
+                String recoveryEndpoint = resolveInvitedUserRegistrationEndpoint(context.getTenantDomain());
+                return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                        loginPage, otp, reCaptchaParamString, recoveryEndpoint);
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
                         "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
@@ -1436,11 +1480,11 @@ public class DefaultStepHandler implements StepHandler {
     private String getRedirectURLForcedPasswordResetOTP(HttpServletRequest request, HttpServletResponse response,
                                                         AuthenticationContext context, String authenticatorNames,
                                                         String loginPage, String otp,
-                                                        StringBuilder reCaptchaParamString)
+                                                        StringBuilder reCaptchaParamString, String recoveryPage)
             throws IOException {
 
         String username = request.getParameter("username");
-        // Setting callback so that the user is prompted to login after a password reset.
+        // Setting callback so that the user is prompted to log in after a password reset.
         String callback;
         try {
             callback = ServiceURLBuilder.create().addPath(loginPage).build().getAbsolutePublicURL();
@@ -1452,14 +1496,15 @@ public class DefaultStepHandler implements StepHandler {
         callback = callback + ("?" + context.getContextIdIncludedQueryParams())
                 + "&authenticators=" + authenticatorNames;
 
+        if (recoveryPage == null) {
+            recoveryPage = FrameworkConstants.DefaultUrlContexts.ACCOUNT_RECOVERY_CONFIRM_RECOVERY_ENDPOINT + "?";
+        }
         if (username == null) {
-            return response.encodeRedirectURL(
-                    ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
+            return response.encodeRedirectURL((recoveryPage + context.getContextIdIncludedQueryParams()))
                     + "&confirmation=" + otp + "&callback=" + URLEncoder.encode(callback, "UTF-8")
                     + reCaptchaParamString.toString();
         }
-        return response.encodeRedirectURL(
-                ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
+        return response.encodeRedirectURL((recoveryPage + context.getContextIdIncludedQueryParams()))
                 + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp
                 + "&callback=" + URLEncoder.encode(callback, "UTF-8") + reCaptchaParamString.toString();
     }
@@ -1598,5 +1643,29 @@ public class DefaultStepHandler implements StepHandler {
             authenticatorConfig.setParameterMap(new HashMap<>());
         }
         authenticatorConfig.getParameterMap().put(FrameworkConstants.ORG_ID_PARAMETER, orgId);
+    }
+
+    private String resolveInvitedUserRegistrationEndpoint(String tenantDomain) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Resolving invited user registration endpoint for tenant: " + tenantDomain);
+        }
+        try {
+            if (FlowMgtConfigUtils.getFlowConfig(Constants.FlowTypes.INVITED_USER_REGISTRATION.getType(),
+                    tenantDomain).getIsEnabled()) {
+                String endpoint = ServiceURLBuilder.create()
+                        .addPath(FrameworkConstants.DefaultUrlContexts.ORCHESTRATED_INVITED_USER_REGISTRATION_ENDPOINT)
+                        .build().getAbsolutePublicURL();
+                endpoint += "?flowType=" + Constants.FlowTypes.INVITED_USER_REGISTRATION.getType() + "&";
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Invited user registration flow is enabled. Using endpoint: " + endpoint);
+                }
+                return endpoint;
+            }
+        } catch (FlowMgtServerException | URLBuilderException e) {
+            LOG.warn("Error while checking the invited user registration flow status. Falling back to " +
+                    "accountrecoveryendpoint/confirmrecovery.do", e);
+        }
+        return null;
     }
 }

@@ -791,6 +791,7 @@
         </RestrictedQueryParameters>
 
         <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
+        <ReturnSpIdToApplication>true</ReturnSpIdToApplication>
     </OAuth>
 
     <RestApiAuthentication>
@@ -888,6 +889,7 @@
         <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>true</EnableDefaultSignatureAndDigestAlgorithm>
         <EnableLogoutWreplyValidation>true</EnableLogoutWreplyValidation>
+        <SOAPEnabled>false</SOAPEnabled>
     </PassiveSTS>
 
     <UserAccountAssociation>
@@ -1046,7 +1048,32 @@
         -->
         <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
 
-        <EnableScim2RolesV3Api>false</EnableScim2RolesV3Api>
+        <EnableScim2RolesV3Api>true</EnableScim2RolesV3Api>
+        <!--
+            This configuration is used to mention the preferred role api version for 'ref'
+            attribute of the 'roles' attribute in the SCIM 2.0 User resource and Group resource.
+            Default value : v3
+            Applicable values : v1, v2, v3
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <DefaultRoleAPIVersionForRef>v3</DefaultRoleAPIVersionForRef>
+
+        <!--
+            If you want to return a 409 Conflict response (recommended) instead of a 400 Bad Request
+            when duplicate claims (excluding username) are encountered during SCIM2 user operations,
+            then enable this property value.
+            Default value: true
+            Supported versions: IS 7.2.0 onwards
+        -->
+        <ReturnConflictOnClaimUniquenessViolation>true</ReturnConflictOnClaimUniquenessViolation>
+
+        <!--
+           If you want to throw a UserStoreException in case of user creation failures due to, then enable this
+           property value.
+           Default value: true
+           Supported versions : IS 7.2.0 onwards
+        -->
+        <ThrowUserStoreExceptionOnUserCreationError>true</ThrowUserStoreExceptionOnUserCreationError>
     </SCIM2>
 
     <PasswordPolicy>
@@ -1281,6 +1308,10 @@
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
     </Webhooks>
+
+    <LocalAuthenticators>
+        <HideUserExistenceOnAuthFlow>true</HideUserExistenceOnAuthFlow>
+    </LocalAuthenticators>
 
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -2672,6 +2703,8 @@
         <AuthenticatorNameInAuthConfig>
             <Enable>true</Enable>
         </AuthenticatorNameInAuthConfig>
+
+        <AllowUpdatingAuthenticatedSubject>{{authentication.adaptive.allow_updating_authenticated_subject}}</AllowUpdatingAuthenticatedSubject>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
@@ -2840,8 +2873,22 @@
         </OnInitialUse>
     </OnDemandConfig>
 
+    <BrandingConfiguration>
+        <CustomContent>
+            <MaxFileSize>1048576</MaxFileSize>
+        </CustomContent>
+    </BrandingConfiguration>
     <AgentIdentity>
         <Enabled>true</Enabled>
     </AgentIdentity>
+
+    <NotificationChannel>
+        <SMS>
+            <Custom>
+                <ConnectionTimeout>5000</ConnectionTimeout>
+                <ConnectionReadTimeout>20000</ConnectionReadTimeout>
+            </Custom>
+        </SMS>
+    </NotificationChannel>
 
 </Server>

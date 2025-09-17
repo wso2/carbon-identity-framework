@@ -641,7 +641,7 @@ public class ConfigurationManagerTest {
     @Test (priority = 35)
     public void testGetInheritedResourcesByType() throws Exception {
 
-        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
                 .thenReturn(true);
         utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
         when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
@@ -660,7 +660,7 @@ public class ConfigurationManagerTest {
     @Test (priority = 34)
     public void testGetInheritedResourcesByTypeInheritanceDisabled() throws Exception {
 
-        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyInt()))
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
                 .thenReturn(true);
         utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(false);
         when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
@@ -674,6 +674,26 @@ public class ConfigurationManagerTest {
         verify(orgResourceResolverService, times(0)).getResourcesFromOrgHierarchy(
                 eq(TEST_ORG_ID), any(), any());
         org.testng.Assert.assertFalse(returnedResources.getResources().isEmpty());
+    }
+
+    @Test (priority = 36)
+    public void testGetInheritedResource() throws Exception {
+
+        organizationManagementUtilMockedStatic.when(() -> OrganizationManagementUtil.isOrganization(anyString()))
+                .thenReturn(true);
+        utilsMockedStatic.when(() -> Utils.isLoginAndRegistrationConfigInheritanceEnabled(any())).thenReturn(true);
+        when(organizationManager.resolveOrganizationId(anyString())).thenReturn(TEST_ORG_ID);
+
+        ResourceType resourceType = configurationManager.addResourceType(getInheritableSampleResourceTypeAdd());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        when(orgResourceResolverService.getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any())).thenReturn(resource1);
+
+        Resource returnedResource = configurationManager.getResource(INHERITABLE_SAMPLE_RESOURCE_TYPE_NAME,
+                SAMPLE_RESOURCE_NAME1, true);
+        verify(orgResourceResolverService, times(1)).getResourcesFromOrgHierarchy(
+                eq(TEST_ORG_ID), any(), any());
+        Assert.assertNotNull(returnedResource);
     }
 
     private void removeCreatedTimeColumn() throws DataAccessException {

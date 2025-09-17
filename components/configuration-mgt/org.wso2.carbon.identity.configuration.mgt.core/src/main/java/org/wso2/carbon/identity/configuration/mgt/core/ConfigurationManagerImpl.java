@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.organization.management.service.util.Organizatio
 import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.FirstFoundAggregationStrategy;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
 
 import java.io.InputStream;
@@ -193,10 +194,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         ResourceType resourceType = getResourceType(resourceTypeName);
         List<Resource> resourceList;
         try {
-            if (OrganizationManagementUtil.isOrganization(tenantId) &&
-                    Utils.isLoginAndRegistrationConfigInheritanceEnabled(
-                            IdentityTenantUtil.getTenantDomain(tenantId)) &&
-                    ConfigurationConstants.INHERITED_RESOURCE_TYPES.contains(resourceType.getName())) {
+            if (isInheritanceEnabled(resourceTypeName, IdentityTenantUtil.getTenantDomain(tenantId))) {
                     resourceList = getInheritedResourcesByType(tenantId, resourceType.getId());
             } else {
                 resourceList = this.getConfigurationDAO().getResourcesByType(tenantId, resourceType.getId());
@@ -267,26 +265,46 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
     /**
      * {@inheritDoc}
+     * @deprecated Use {@link #getResource(String, String, boolean)} instead.
      */
+    @Deprecated
     public Resource getResource(String resourceTypeName, String resourceName)
             throws ConfigurationManagementException {
 
-        return getResource(getTenantId(), resourceTypeName, resourceName);
+        return getResource(getTenantId(), resourceTypeName, resourceName, false);
+    }
+
+    @Override
+    public Resource getResource(String resourceTypeName, String resourceName, boolean getInheritedResource)
+            throws ConfigurationManagementException {
+
+        return getResource(getTenantId(), resourceTypeName, resourceName, getInheritedResource);
     }
 
     @Override
     public Resource getResourceByTenantId(int tenantId, String resourceTypeName, String resourceName)
             throws ConfigurationManagementException {
 
-        return getResource(tenantId, resourceTypeName, resourceName);
+        return getResource(tenantId, resourceTypeName, resourceName, false);
     }
 
-    private Resource getResource(int tenantId, String resourceTypeName, String resourceName)
+    private Resource getResource(int tenantId, String resourceTypeName, String resourceName,
+                                 boolean getInheritedResource)
             throws ConfigurationManagementException {
 
         validateResourceRetrieveRequest(resourceTypeName, resourceName);
         ResourceType resourceType = getResourceType(resourceTypeName);
-        Resource resource = this.getConfigurationDAO().getResourceByName(tenantId, resourceType.getId(), resourceName);
+        Resource resource;
+        try {
+            if (getInheritedResource &&
+                    isInheritanceEnabled(resourceTypeName, IdentityTenantUtil.getTenantDomain(tenantId))) {
+                resource = getInheritedResourceByName(tenantId, resourceType.getId(), resourceName);
+            } else {
+                resource = this.getConfigurationDAO().getResourceByName(tenantId, resourceType.getId(), resourceName);
+            }
+        } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
+            throw handleServerException(ErrorMessages.ERROR_CODE_GET_RESOURCE, resourceName, e);
+        }
         if (resource == null) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("No resource found for the resource with name: %s in tenant with ID: %s",
@@ -295,6 +313,34 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS, resourceName, null);
         }
         return resource;
+    }
+
+    /**
+     * Method to get inherited resource by resource and resource type name.
+     *
+     * @param tenantId Tenant ID.
+     * @param resourceTypeId Resource type ID.
+     * @param resourceName Resource name.
+     * @return Resource object of the given name inherited from the organization hierarchy.
+     * @throws OrganizationManagementException If an error occurred when getting organization manager.
+     * @throws OrgResourceHierarchyTraverseException If an error occurred when traversing the resource hierarchy.
+     */
+    private Resource getInheritedResourceByName(int tenantId, String resourceTypeId, String resourceName)
+            throws OrganizationManagementException, OrgResourceHierarchyTraverseException {
+
+        OrganizationManager organizationManager =
+                ConfigurationManagerComponentDataHolder.getInstance().getOrganizationManager();
+        OrgResourceResolverService orgResourceResolverService =
+                ConfigurationManagerComponentDataHolder.getInstance().getOrgResourceResolverService();
+        String orgId = organizationManager.resolveOrganizationId(IdentityTenantUtil.getTenantDomain(tenantId));
+
+        return orgResourceResolverService.getResourcesFromOrgHierarchy(
+                orgId,
+                LambdaExceptionUtils.rethrowFunction(orgID ->
+                        Optional.ofNullable(this.getConfigurationDAO().getResourceByName(
+                                IdentityTenantUtil.getTenantId(organizationManager.resolveTenantDomain(orgID)),
+                                resourceTypeId, resourceName))),
+                new FirstFoundAggregationStrategy<>());
     }
 
     /**
@@ -1193,5 +1239,32 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         } else {
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
         }
+    }
+
+    /**
+     * Check whether inheritance is enabled for the given resource type in the given tenant domain.
+     *
+     * @param resourceTypeName Resource type name.
+     * @param tenantDomain     Tenant domain.
+     * @return True if inheritance is enabled, false otherwise.
+     * @throws OrganizationManagementException If an error occurs while checking inheritance status.
+     */
+    private boolean isInheritanceEnabled(String resourceTypeName, String tenantDomain) throws OrganizationManagementException {
+
+        if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+            return false;
+        }
+
+        Optional<ConfigurationConstants.InheritedResourceType> matchingResourceType =
+                ConfigurationConstants.InheritedResourceType.getByResourceTypeName(resourceTypeName);
+        if (!matchingResourceType.isPresent()) {
+            return false;
+        }
+
+        if (!matchingResourceType.get().shouldCheckOrgVersionWhenInheriting()) {
+            return true;
+        }
+
+        return Utils.isLoginAndRegistrationConfigInheritanceEnabled(tenantDomain);
     }
 }

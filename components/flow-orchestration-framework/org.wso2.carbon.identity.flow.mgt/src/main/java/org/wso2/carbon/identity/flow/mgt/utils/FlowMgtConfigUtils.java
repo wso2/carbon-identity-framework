@@ -36,11 +36,11 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowConfigConstants.FLOW_TYPE;
-import static org.wso2.carbon.identity.flow.mgt.Constants.FlowConfigConstants.IS_AUTO_LOGIN_ENABLED;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowConfigConstants.IS_ENABLED;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowConfigConstants.RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowConfigConstants.RESOURCE_TYPE;
@@ -76,7 +76,8 @@ public class FlowMgtConfigUtils {
         Resource newResource = buildResourceFromFlowConfig(flowConfigDTO);
 
         Resource updatedResource;
-        if (existingResource == null) {
+        if (existingResource == null ||
+                (tenantDomain != null && !tenantDomain.equals(existingResource.getTenantDomain()))) {
             LOG.debug("Adding new flow configuration for flow type: " + flowConfigDTO.getFlowType());
             updatedResource = addResource(newResource, tenantDomain);
         } else {
@@ -179,10 +180,11 @@ public class FlowMgtConfigUtils {
     private static FlowConfigDTO getDefaultConfig(String flowType) {
 
         LOG.debug("Returning default flow configuration for flow type: " + flowType);
+        Constants.FlowTypes requestedFlowType = Constants.FlowTypes.valueOf(flowType);
         FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
         flowConfigDTO.setFlowType(flowType);
         flowConfigDTO.setIsEnabled(false);
-        flowConfigDTO.setIsAutoLoginEnabled(false);
+        flowConfigDTO.addAllFlowCompletionConfigs(requestedFlowType.getSupportedFlowCompletionConfigs());
         return flowConfigDTO;
     }
 
@@ -212,10 +214,10 @@ public class FlowMgtConfigUtils {
                 case IS_ENABLED:
                     flowConfigDTO.setIsEnabled(Boolean.parseBoolean(attribute.getValue()));
                     break;
-                case IS_AUTO_LOGIN_ENABLED:
-                    flowConfigDTO.setIsAutoLoginEnabled(Boolean.parseBoolean(attribute.getValue()));
-                    break;
                 default:
+                    flowConfigDTO.addFlowCompletionConfig(Constants.FlowCompletionConfig.fromConfig(attribute.getKey()),
+                            attribute.getValue());
+                    break;
             }
         }
         return flowConfigDTO;
@@ -229,15 +231,23 @@ public class FlowMgtConfigUtils {
      */
     private static Resource buildResourceFromFlowConfig(FlowConfigDTO flowConfigDTO) {
 
-        Attribute flowTypeAttribute = new Attribute(FLOW_TYPE, flowConfigDTO.getFlowType());
+        String flowType = flowConfigDTO.getFlowType();
+        Attribute flowTypeAttribute = new Attribute(FLOW_TYPE, flowType);
         Attribute flowIsEnabledAttribute = new Attribute(IS_ENABLED, String.valueOf(flowConfigDTO.getIsEnabled()));
-        Attribute flowIsAutoLoginEnabledAttribute = new Attribute(IS_AUTO_LOGIN_ENABLED,
-                String.valueOf(flowConfigDTO.getIsAutoLoginEnabled()));
+        Map<Constants.FlowCompletionConfig, String> supportedConfigs = flowConfigDTO.getFlowCompletionConfigs(
+                Constants.FlowTypes.valueOf(flowType).getSupportedFlowCompletionConfigs());
 
         List<Attribute> attributes = new ArrayList<>();
         attributes.add(flowTypeAttribute);
         attributes.add(flowIsEnabledAttribute);
-        attributes.add(flowIsAutoLoginEnabledAttribute);
+
+        // Add any additional supported configs as attributes.
+        if (!supportedConfigs.isEmpty()) {
+            supportedConfigs.forEach((key, value) -> {
+                Attribute attribute = new Attribute(key.getConfig(), value);
+                attributes.add(attribute);
+            });
+        }
 
         Resource resource = new Resource();
         resource.setResourceType(RESOURCE_TYPE);
@@ -250,7 +260,7 @@ public class FlowMgtConfigUtils {
 
         Resource resource = null;
         try {
-            resource = getConfigurationManager().getResource(RESOURCE_TYPE, resourceName);
+            resource = getConfigurationManager().getResource(RESOURCE_TYPE, resourceName, true);
         } catch (ConfigurationManagementException e) {
             if (!ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) &&
                     !ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {

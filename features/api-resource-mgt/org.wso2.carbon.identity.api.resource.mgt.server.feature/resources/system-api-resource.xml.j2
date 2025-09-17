@@ -761,7 +761,6 @@
                     description="Delete roles in the organization (root)"/>
         </Scopes>
     </APIResource>
-    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResource name="SCIM2 Roles V3 API" identifier="/scim2/v3/Roles" requiresAuthorization="true"
                  description="API representation of the SCIM2 Roles V3 API" type="TENANT">
         <Scopes>
@@ -779,7 +778,6 @@
                     description="Delete roles in the organization (root)"/>
         </Scopes>
     </APIResource>
-    {% endif %}
     <APIResource name="SCIM2 Roles V1/V2 API" identifier="/o/scim2/Roles"
                  requiresAuthorization="true"
                  description="API representation of the SCIM2 Roles V1/V2 API" type="ORGANIZATION">
@@ -794,7 +792,6 @@
                     description="Delete roles in the organization"/>
         </Scopes>
     </APIResource>
-    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResource name="SCIM2 Roles V3 API" identifier="/o/scim2/v3/Roles" requiresAuthorization="true"
                      description="API representation of the SCIM2 Roles V3 API" type="ORGANIZATION">
         <Scopes>
@@ -812,12 +809,29 @@
                     description="Delete roles in the organization"/>
         </Scopes>
     </APIResource>
-    {% endif %}
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API" type="TENANT">
         <Scopes>
             <Scope displayName="Create Bulk Resource" name="internal_bulk_resource_create"
                     description="Create new SCIM resources in bulk in the organization (root)"/>
+            <Scope displayName="Create Bulk User" name="internal_bulk_user_create"
+                    description="Fine-grained scope for user create in bulk"/>
+            <Scope displayName="Update Bulk User" name="internal_bulk_user_update"
+                    description="Fine-grained scope for user update in bulk"/>
+            <Scope displayName="Delete Bulk User" name="internal_bulk_user_delete"
+                    description="Fine-grained scope for user delete in bulk"/>
+            <Scope displayName="Create Bulk Group" name="internal_bulk_group_create"
+                    description="Fine-grained scope for group create in bulk"/>
+            <Scope displayName="Update Bulk Group" name="internal_bulk_group_update"
+                    description="Fine-grained scope for group update in bulk"/>
+            <Scope displayName="Delete Bulk Group" name="internal_bulk_group_delete"
+                    description="Fine-grained scope for group delete in bulk"/>
+            <Scope displayName="Create Bulk Role" name="internal_bulk_role_create"
+                    description="Fine-grained scope for role create in bulk"/>
+            <Scope displayName="Update Bulk Role" name="internal_bulk_role_update"
+                    description="Fine-grained scope for role update in bulk"/>
+            <Scope displayName="Delete Bulk Role" name="internal_bulk_role_delete"
+                    description="Fine-grained scope for role delete in bulk"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/o/scim2/Bulk"
@@ -826,6 +840,24 @@
         <Scopes>
             <Scope displayName="Create Bulk Resource" name="internal_org_bulk_resource_create"
                         description="Create new SCIM resources in bulk in the organization"/>
+            <Scope displayName="Create Bulk User" name="internal_org_bulk_user_create"
+                    description="Fine-grained scope for user create in bulk in the organization"/>
+            <Scope displayName="Update Bulk User" name="internal_org_bulk_user_update"
+                    description="Fine-grained scope for user update in bulk in the organization"/>
+            <Scope displayName="Delete Bulk User" name="internal_org_bulk_user_delete"
+                    description="Fine-grained scope for user delete in bulk in the organization"/>
+            <Scope displayName="Create Bulk Group" name="internal_org_bulk_group_create"
+                    description="Fine-grained scope for group create in bulk in the organization"/>
+            <Scope displayName="Update Bulk Group" name="internal_org_bulk_group_update"
+                    description="Fine-grained scope for group update in bulk in the organization"/>
+            <Scope displayName="Delete Bulk Group" name="internal_org_bulk_group_delete"
+                    description="Fine-grained scope for group delete in bulk in the organization"/>
+            <Scope displayName="Create Bulk Role" name="internal_org_bulk_role_create"
+                    description="Fine-grained scope for role create in bulk in the organization"/>
+            <Scope displayName="Update Bulk Role" name="internal_org_bulk_role_update"
+                    description="Fine-grained scope for role update in bulk in the organization"/>
+            <Scope displayName="Delete Bulk Role" name="internal_org_bulk_role_delete"
+                    description="Fine-grained scope for role delete in bulk in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Agents API" identifier="/scim2/Agents" requiresAuthorization="true"
@@ -1444,7 +1476,6 @@
                    description="Manage edits of roles in the organization from the Console"/>
         </Scopes>
     </APIResource>
-    {% if scim2.enable_scim2_roles_v3_api is sameas true %}
     <APIResource name="Role Assignments Feature" identifier="console:role_assignments"
                 requiresAuthorization="true"
                 description="Resource representation of the Role Assignments Management Feature"
@@ -1471,7 +1502,6 @@
                 description="Manage edits of Role Assignments from the Console"/>
         </Scopes>
     </APIResource>
-    {% endif %}
     <APIResource name="User Management Feature" identifier="console:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
@@ -1798,6 +1828,19 @@
                    description="Manage edits of flows from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Flows Feature" identifier="console:org:flows"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Flows Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Flows Feature" name="console:org:flows"
+                   description="Manage flows from the Console"/>
+            <Scope displayName="Flows View Feature" name="console:org:flows_view"
+                   description="Manage views of flows from the Console"/>
+            <Scope displayName="Flows Edit Feature" name="console:org:flows_edit"
+                   description="Manage edits of flows from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="ORGANIZATION">
@@ -1888,6 +1931,16 @@
                    description="View flow in the organization (root)"/>
             <Scope displayName="Update Flow" name="internal_flow_update"
                    description="Update flow in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Management API" identifier="/o/api/server/v1/flow"
+                 requiresAuthorization="true"
+                 description="API representation of the Flow Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Flow" name="internal_org_flow_view"
+                   description="View flow in the organization"/>
+            <Scope displayName="Update Flow" name="internal_org_flow_update"
+                   description="Update flow in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Asynchronous Operation Status API" identifier="/o/api/server/v1/async-operations"

@@ -271,12 +271,14 @@
   },
   "preserve_previous_product_behaviour.version": {
     "IS_7.0.0": {
+      "oauth.dcrm.return_null_fields_in_response": true,
+      "oauth.oidc.user_info.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
       "scim2.enable_group_based_user_filter_improvements": false,
       "scim2.enable_error_code_for_password_policy_violations": false,
       "user_store_commons.enable_circuit_breaker_for_user_stores": false,
       "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": true,
       "event.default_listener.email_domain_validation_handler.enable": false,
-      "oauth.dcrm.return_null_fields_in_response": true,
       "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
       "session_management.filter_by_unique_session_id_for_user": false,
       "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
@@ -284,11 +286,36 @@
       "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
       "console.identity_providers.disabled_features": [],
       "scim2.enable_scim2_roles_v3_api": false,
+      "scim2.default_role_api_version_for_ref": "v2",
       "localization.prioritize_param": false,
-      "attribute.return_previous_additional_properties.enable": true
+      "attribute.return_previous_additional_properties.enable": true,
+      "oauth.introspect.allow_cross_sub_org": true,
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "server.disable_admin_services": false,
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
+        "POST_ADD_ORGANIZATION"
+      ],
+      "flow_execution.enable_legacy_flows": true,
+      "organization_discovery.default_param": "orgName",
+      "console.ui.organizations.organization_display_name.enable": false,
+      "console.ui.organizations.organization_handle.enable": false,
+      "notification_templates.super_organization_display_name.enable": false,
+      "multi_tenancy.stratos.public_cloud_setup": true,
+      "token_exchange.implicit_association.include_primary_when_secondary_present": false,
+      "scim.restrict_federated_user_access": false,
+      "scim2.return_conflict_on_claim_uniqueness_violation": false,
+      "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
+      "scim2.throw_userstore_exception_on_user_creation_error": false,
+      "authentication.local_authenticators.hide_user_existence": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
+      "oauth.return_sp_id_to_apps": true,
+      "oauth.jwt.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.return_only_app_associated_roles": false,
+      "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
       "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": false,
       "session_management.filter_by_unique_session_id_for_user": false,
       "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
@@ -296,9 +323,30 @@
       "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
       "console.identity_providers.disabled_features": [],
       "scim2.enable_scim2_roles_v3_api": false,
+      "scim2.default_role_api_version_for_ref": "v2",
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
-      "actions.types.pre_update_password.enable_in_registration_flows": false
+      "actions.types.pre_update_password.enable_in_registration_flows": false,
+      "oauth.introspect.allow_cross_sub_org": true,
+      "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
+      "captcha.enable_captcha_for_local_otp_authenticators": false,
+      "server.disable_admin_services": false,
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
+      "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
+        "POST_ADD_ORGANIZATION"
+      ],
+      "flow_execution.enable_legacy_flows": true,
+      "organization_discovery.default_param": "orgName",
+      "console.ui.organizations.organization_display_name.enable": false,
+      "console.ui.organizations.organization_handle.enable": false,
+      "notification_templates.super_organization_display_name.enable": false,
+      "multi_tenancy.stratos.public_cloud_setup": true,
+      "token_exchange.implicit_association.include_primary_when_secondary_present": false,
+      "scim.restrict_federated_user_access": false,
+      "scim2.return_conflict_on_claim_uniqueness_violation": false,
+      "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
+      "scim2.throw_userstore_exception_on_user_creation_error": false,
+      "authentication.local_authenticators.hide_user_existence": false
     }
   }
 }

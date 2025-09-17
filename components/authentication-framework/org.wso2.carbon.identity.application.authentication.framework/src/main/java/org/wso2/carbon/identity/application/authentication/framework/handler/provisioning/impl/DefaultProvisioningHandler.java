@@ -274,12 +274,21 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     for (Claim claim : toBeDeletedFromExistingUserClaims) {
                         toBeDeletedUserClaims.add(claim.getClaimUri());
                     }
+                    // If claim is not modified, remove it from userClaims to avoid unnecessary updates.
+                    for (Claim claim : existingUserClaimList) {
+                        if (userClaims.containsKey(claim.getClaimUri()) &&
+                                userClaims.get(claim.getClaimUri()).equals(claim.getValue())) {
+                            userClaims.remove(claim.getClaimUri());
+                        }
+                    }
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 userClaims.remove(USERNAME_CLAIM);
                 userClaims.remove(USER_ID_CLAIM);
-                userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                if (!userClaims.isEmpty()) {
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                }
                     /*
                     Since the user is exist following code is get all active claims of user and crosschecking against
                     tobeDeleted claims (claims came from federated idp as null). If there is a match those claims

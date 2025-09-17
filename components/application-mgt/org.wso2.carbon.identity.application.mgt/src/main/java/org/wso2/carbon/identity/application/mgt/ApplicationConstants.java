@@ -144,6 +144,7 @@ public class ApplicationConstants {
     public static final String CONSOLE_PORTAL_PATH = "Console.AppBaseName";
     public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
     public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
+    public static final String AUTHORIZE_INTERNAL_SCOPES = "OAuth.AuthorizeInternalScopes";
     public static final String RBAC = "RBAC";
     public static final String SYSTEM_PORTALS = "SystemPortals";
     public static final String IMPERSONATE_SCOPE_NAME = "internal_user_impersonate";
@@ -152,6 +153,7 @@ public class ApplicationConstants {
             IMPERSONATE_SCOPE_NAME, IMPERSONATE_ORG_SCOPE_NAME));
     public static final String IMPERSONATE_ROLE_NAME = "Impersonator";
     public static final String IMPERSONATION_API_RESOURCE = "system:impersonation";
+    public static final String IMPERSONATION_ORG_API_RESOURCE = "org:impersonation";
     public static final String APPLICATION_ROLE_AUDIENCE = "application";
 
     /**
