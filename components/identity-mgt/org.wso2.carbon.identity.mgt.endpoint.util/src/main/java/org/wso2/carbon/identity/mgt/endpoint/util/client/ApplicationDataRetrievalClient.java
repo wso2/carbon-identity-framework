@@ -254,10 +254,21 @@ public class ApplicationDataRetrievalClient {
         }
     }
 
+    /**
+     * Checks whether the given URL is a valid back to application URL.
+     *
+     * @param url               The URL to be validated.
+     * @param tenant            The tenant domain of the application.
+     * @param applicationName   The name of the application.
+     * @return true if the URL is a valid back to application URL, false otherwise.
+     * @throws ApplicationDataRetrievalClientException If an error occurs while retrieving application data.
+     * @throws PreferenceRetrievalClientException If an error occurs while retrieving governance preferences.
+     */
     public boolean checkIfBackToApplicationURLValid(String url, String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException, PreferenceRetrievalClientException {
 
         if (!ApplicationMgtUtil.shouldValidateBackToApplicationURL()) {
+            log.debug("Back to application URL validation is disabled. Hence skipping the validation.");
             return true;
         }
 

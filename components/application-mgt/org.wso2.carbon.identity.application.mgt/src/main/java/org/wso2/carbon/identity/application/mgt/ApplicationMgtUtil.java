@@ -1508,9 +1508,18 @@ public class ApplicationMgtUtil {
         return !existingValue.isPresent() || !Objects.equals(expectedValue, existingValue.get());
     }
 
+    /**
+     * Check whether to validate the back to application URL.
+     *
+     * @return true if the back to application URL should be validated.
+     */
     public static boolean shouldValidateBackToApplicationURL() {
 
         String validateBackToApplicationURLProperty = IdentityUtil.getProperty(VALIDATE_BACK_TO_APPLICATION_URL_PROPERTY);
+
+        if (log.isDebugEnabled()) {
+            log.debug("The 'ValidateBackToApplicationURL' property is set to: " + validateBackToApplicationURLProperty);
+        }
 
         if (StringUtils.isNotBlank(validateBackToApplicationURLProperty)) {
             return Boolean.parseBoolean(validateBackToApplicationURLProperty);
