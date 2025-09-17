@@ -30,6 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -51,6 +52,8 @@ public class ApplicationDataRetrievalClient {
     private static final String APP_ID = "id";
     private static final String APP_ENABLED_STATE_QUERY = "&attributes=applicationEnabled";
     private static final String APP_ENABLED_STATE_KEY = "applicationEnabled";
+    private static final PreferenceRetrievalClient preferenceRetrievalClient =
+            new PreferenceRetrievalClient();
 
     /**
      * Gets the access url configured for the given application.
@@ -249,6 +252,21 @@ public class ApplicationDataRetrievalClient {
             }
             throw new ApplicationDataRetrievalClientException(msg, e);
         }
+    }
+
+    public boolean checkIfBackToApplicationURLValid(String url, String tenant, String applicationName)
+            throws ApplicationDataRetrievalClientException, PreferenceRetrievalClientException {
+
+        if (!ApplicationMgtUtil.shouldValidateBackToApplicationURL()) {
+            return true;
+        }
+
+        String appAccessURL = getApplicationAccessURL(tenant, applicationName);
+        if (StringUtils.isNotEmpty(appAccessURL) && appAccessURL.equals(url)) {
+            return true;
+        }
+
+        return preferenceRetrievalClient.checkIfRecoveryCallbackURLValid(tenant, url);
     }
 
     /**
