@@ -134,7 +134,8 @@ public class FlowConfigDTO {
      */
     public String getFlowCompletionConfig(Constants.FlowCompletionConfig flowCompletionConfig) {
 
-        return flowCompletionConfigs.get(flowCompletionConfig.getConfig());
+        String value = flowCompletionConfigs.get(flowCompletionConfig.getConfig());
+        return value != null ? value : flowCompletionConfig.getDefaultValue();
     }
 
     /**
