@@ -2276,16 +2276,14 @@ public class IdentityUtil {
             if (log.isDebugEnabled()) {
                 log.debug("JWT is blank, skipping depth validation");
             }
-            // Treated as 0 depth.
-            return false;
+            throw new ParseException("Error validating JWT depth. JWT is blank.", 0);
         }
 
         // Extract and decode JWT payload.
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
-            // Treated as 0 depth.
-            log.warn("Invalid JWT format - missing payload section");
-            return false;
+            log.warn("Invalid JWT format");
+            throw new ParseException("Error validating JWT depth. Invalid JWT format.", 0);
         }
 
         byte[] payloadBytes;
@@ -2293,7 +2291,7 @@ public class IdentityUtil {
             payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid Base64 encoding in JWT payload");
-            return false;
+            throw new ParseException("Error validating JWT depth. Invalid Base64 encoding in JWT payload.", 0);
         }
         String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
 
@@ -2344,7 +2342,7 @@ public class IdentityUtil {
                 }
             }
         } catch (IOException e) {
-            throw new ParseException("Error parsing JSON for depth validation", 0);
+            throw new ParseException("Error parsing JSON while depth validation.", 0);
         }
         return false;
     }
