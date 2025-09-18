@@ -50,31 +50,6 @@ public class ActionManagementAuditLogger {
     private static final Log LOG = org.apache.commons.logging.LogFactory.getLog(ActionManagementAuditLogger.class);
 
     /**
-     * Print action audit log related to the operation.
-     *
-     * @param operation Operation associated with the state change.
-     * @param actionDTO Action object to be logged.
-     */
-    public void printAuditLog(Operation operation, ActionDTO actionDTO) throws ActionMgtException {
-
-        JSONObject data = createAuditLogEntry(actionDTO);
-        buildAuditLog(operation, data);
-    }
-
-    /**
-     * Print action audit log related to the operation by the action type and action ID.
-     *
-     * @param operation  Operation associated with the state change.
-     * @param actionType Type of the action to be logged.
-     * @param actionId   ID of the action to be logged.
-     */
-    public void printAuditLog(Operation operation, String actionType, String actionId) {
-
-        JSONObject data = createAuditLogEntry(actionType, actionId);
-        buildAuditLog(operation, data);
-    }
-
-    /**
      * Print action audit log related to the operation by the action type and action ID with updated time.
      *
      * @param operation  Operation associated with the state change.
@@ -94,16 +69,16 @@ public class ActionManagementAuditLogger {
      *
      * @param operation  Operation associated with the state change.
      * @param actionDTO  Action object to be logged.
-     * @param timestamp  Time of the creation/update.
-     * @param isCreation Whether the operation is creation or update.
+     * @param createdAt  Time of creation.
+     * @param updatedAt  Time of update.
      */
     public void printAuditLog(Operation operation, ActionDTO actionDTO,
-                              Timestamp timestamp, boolean isCreation) {
+                              Timestamp createdAt, Timestamp updatedAt) {
 
         try {
             JSONObject data = createAuditLogEntry(actionDTO);
-            String fieldName = isCreation ? LogConstants.CREATED_AT_FIELD : LogConstants.UPDATED_AT_FIELD;
-            data.put(fieldName, timestamp != null ? timestamp : JSONObject.NULL);
+            data.put(LogConstants.CREATED_AT_FIELD, createdAt != null ? createdAt : JSONObject.NULL);
+            data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
             buildAuditLog(operation, data);
         } catch (ActionMgtException e) {
             LOG.warn(String.format("Failed to publish audit log for %s action. Action id: %s",

@@ -80,8 +80,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
         DAO_FACADE.addAction(creatingActionDTO, tenantId);
         ActionDTO createdActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, generatedActionId, tenantId);
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD,
-                creatingActionDTO, createdActionDTO.getCreatedAt(), true);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, creatingActionDTO,
+                createdActionDTO.getCreatedAt(), createdActionDTO.getUpdatedAt());
 
         return buildAction(resolvedActionType, createdActionDTO);
     }
@@ -160,8 +160,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
         ActionDTO updatedActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, actionId, tenantId);
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE,
-                updatingActionDTO, updatedActionDTO.getUpdatedAt(), false);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, updatingActionDTO,
+                null, updatedActionDTO.getUpdatedAt());
 
         return buildAction(resolvedActionType, updatedActionDTO);
     }
