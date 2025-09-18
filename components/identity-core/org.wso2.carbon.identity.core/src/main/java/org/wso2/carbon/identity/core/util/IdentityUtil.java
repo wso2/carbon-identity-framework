@@ -2264,9 +2264,9 @@ public class IdentityUtil {
      * Check whether the JWT exceeds the allowed depth.
      *
      * @param jwt JWT string to check.
-     * @return True if the JWT exceeds the allowed depth, false otherwise.
+     * @throws  ParseException If the JWT exceeds the allowed depth or if an error occurs during parsing.
      */
-    public static boolean exceedsAllowedJWTDepth(String jwt) throws ParseException {
+    public static void validateJWTDepth(String jwt) throws ParseException {
 
         if (log.isDebugEnabled()) {
             log.debug("Checking JWT depth validation");
@@ -2295,18 +2295,17 @@ public class IdentityUtil {
         }
         String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
 
-        return exceedsAllowedJsonDepth(jsonPayload);
+        validateJsonDepth(jsonPayload, getAllowedMaxJWTDepth());
     }
 
     /**
      * Check whether the JSON exceeds the allowed depth.
      *
      * @param json JSON String to check.
-     * @return True if the JSON exceeds the allowed depth, false otherwise.
+     * @throws  ParseException If the JSON exceeds the allowed depth or if an error occurs during parsing.
      */
-    public static boolean exceedsAllowedJsonDepth(String json) throws ParseException {
+    public static void validateJsonDepth(String json, int maxDepth) throws ParseException {
 
-        int maxDepth = getAllowedMaxJsonDepth();
         try (JsonReader reader = new JsonReader(new StringReader(json))) {
             int depth = 0;
 
@@ -2315,11 +2314,11 @@ public class IdentityUtil {
 
                 if (token == JsonToken.BEGIN_OBJECT) {
                     depth++;
-                    if (depth > maxDepth) return true;
+                    if (depth > maxDepth) throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
                     reader.beginObject();
                 } else if (token == JsonToken.BEGIN_ARRAY) {
                     depth++;
-                    if (depth > maxDepth) return true;
+                    if (depth > maxDepth) throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
                     reader.beginArray();
                 } else if (token == JsonToken.END_OBJECT) {
                     depth--;
@@ -2334,7 +2333,6 @@ public class IdentityUtil {
         } catch (IOException e) {
             throw new ParseException("Error parsing JSON while depth validation.", 0);
         }
-        return false;
     }
 
     /**
@@ -2343,9 +2341,11 @@ public class IdentityUtil {
      * considered invalid.
      * @return Maximum allowed JSON depth.
      */
-    public static int getAllowedMaxJsonDepth() {
+    public static int getAllowedMaxJWTDepth() {
 
-        return Integer.parseInt(IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY));
+        String depthConfig = IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY);
+        return StringUtils.isNotBlank(depthConfig) ? Integer.parseInt(depthConfig) :
+                IdentityCoreConstants.DEFAULT_JWT_MAXIMUM_ALLOWED_DEPTH;
     }
 
 }

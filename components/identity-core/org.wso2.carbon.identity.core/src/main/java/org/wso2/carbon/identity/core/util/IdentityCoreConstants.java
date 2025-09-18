@@ -141,6 +141,7 @@ public class IdentityCoreConstants {
 
     // JWT related constants.
     public static final String JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY = "JWT.MaximumAllowedDepth";
+    public static final int DEFAULT_JWT_MAXIMUM_ALLOWED_DEPTH = 255;
 
     public static class Filter {
 
