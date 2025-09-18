@@ -403,11 +403,13 @@ public class ActionManagementAuditLoggerTest {
 
     @Test
     public void testPrintActivateAuditLog() throws NoSuchFieldException, IllegalAccessException {
+
         assertAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, ACTIVATE_ACTION);
     }
 
     @Test
     public void testPrintDeactivateAuditLog() throws NoSuchFieldException, IllegalAccessException {
+
         assertAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, DEACTIVATE_ACTION);
     }
 
@@ -451,7 +453,7 @@ public class ActionManagementAuditLoggerTest {
         Assert.assertNotNull(capturedArg);
         Assert.assertEquals(extractMapByField("ActionId", capturedArg), actionDTO.getId());
         Assert.assertEquals(extractMapByField("ActionType", capturedArg),
-                Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());;
+                Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());
         assertAuditLoggerData(capturedArg, expectedAction);
     }
 
