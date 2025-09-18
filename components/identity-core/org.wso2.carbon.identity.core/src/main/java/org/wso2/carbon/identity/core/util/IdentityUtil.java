@@ -2313,32 +2313,22 @@ public class IdentityUtil {
             while (reader.hasNext()) {
                 JsonToken token = reader.peek();
 
-                switch (token) {
-                    case BEGIN_OBJECT:
-                        depth++;
-                        if (depth > maxDepth) return true;
-                        reader.beginObject();
-                        break;
-
-                    case BEGIN_ARRAY:
-                        depth++;
-                        if (depth > maxDepth) return true;
-                        reader.beginArray();
-                        break;
-
-                    case END_OBJECT:
-                        depth--;
-                        reader.endObject();
-                        break;
-
-                    case END_ARRAY:
-                        depth--;
-                        reader.endArray();
-                        break;
-
-                    default:
-                        reader.skipValue();
-                        break;
+                if (token == JsonToken.BEGIN_OBJECT) {
+                    depth++;
+                    if (depth > maxDepth) return true;
+                    reader.beginObject();
+                } else if (token == JsonToken.BEGIN_ARRAY) {
+                    depth++;
+                    if (depth > maxDepth) return true;
+                    reader.beginArray();
+                } else if (token == JsonToken.END_OBJECT) {
+                    depth--;
+                    reader.endObject();
+                } else if (token == JsonToken.END_ARRAY) {
+                    depth--;
+                    reader.endArray();
+                } else {
+                    reader.skipValue();
                 }
             }
         } catch (IOException e) {
