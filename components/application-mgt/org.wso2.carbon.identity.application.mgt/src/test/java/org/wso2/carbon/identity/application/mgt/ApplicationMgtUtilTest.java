@@ -88,6 +88,7 @@ import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.base.MultitenantConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.VALIDATE_BACK_TO_APPLICATION_URL_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.PATH_CONSTANT;
@@ -852,6 +853,34 @@ public class ApplicationMgtUtilTest {
 
         boolean result = ApplicationMgtUtil.shouldUpdateSpProperty(updatedValue, SHARE_WITH_ALL_CHILDREN, application);
         assertEquals(result, expectedResult);
+    }
+
+    @DataProvider(name = "validateBackToApplicationURLDataProvider")
+    public Object[][] validateBackToApplicationURLDataProvider() {
+
+        return new Object[][]{
+                // Property is set to "true" → should return true.
+                {"true", true},
+
+                // Property is set to "false" → should return false.
+                {"false", false},
+
+                // Property is set to null/blank → should return false (default).
+                {null, false},
+
+                // Property is set to empty string → should return false (default).
+                {"", false}
+        };
+    }
+
+    @Test(dataProvider = "validateBackToApplicationURLDataProvider")
+    public void testShouldValidateBackToApplicationURL(String propertyValue, boolean expected) {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(VALIDATE_BACK_TO_APPLICATION_URL_PROPERTY)).
+                    thenReturn(propertyValue);
+            assertEquals(ApplicationMgtUtil.shouldValidateBackToApplicationURL(), expected);
+        }
     }
 
     private void mockTenantRegistry(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext,
