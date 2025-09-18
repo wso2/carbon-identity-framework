@@ -1515,10 +1515,12 @@ public class ApplicationMgtUtil {
      */
     public static boolean shouldValidateBackToApplicationURL() {
 
-        String validateBackToApplicationURLProperty = IdentityUtil.getProperty(VALIDATE_BACK_TO_APPLICATION_URL_PROPERTY);
+        String validateBackToApplicationURLProperty = IdentityUtil
+                .getProperty(VALIDATE_BACK_TO_APPLICATION_URL_PROPERTY);
 
         if (log.isDebugEnabled()) {
-            log.debug("The 'ValidateBackToApplicationURL' property is set to: " + validateBackToApplicationURLProperty);
+            log.debug("The 'ValidateBackToApplicationURL' property is set to: "
+                    + validateBackToApplicationURLProperty);
         }
 
         if (StringUtils.isNotBlank(validateBackToApplicationURLProperty)) {
