@@ -1201,13 +1201,13 @@
       "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     },
     {
-      "description": "This email OTP is sent to the user to set their password",
-      "displayName": "Invite user to set password via Email OTP",
+      "description": "This email OTP is sent to sign in and complete registration.",
+      "displayName": "Email OTP for Invited User Registration",
       "id": "QXNrUGFzc3dvcmRFbWFpbE9UUA"
     },
     {
-      "description": "This email is resent to the user to set their password via Email OTP",
-      "displayName": "Resend invite user to set password via Email OTP",
+      "description": "This email OTP is resent to sign in and complete registration.",
+      "displayName": "Resend Email OTP for Invited User Registration",
       "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA"
     },
     {
@@ -1268,18 +1268,18 @@
       "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
     },
     {
-      "description": "This SMS is sent to send the OTP for setting a password.",
-      "displayName": "Send Password Setup OTP",
+      "description": "This SMS OTP is sent to sign in and complete registration.",
+      "displayName": "SMS OTP for Invited User Registration",
       "id": "YXNrUGFzc3dvcmRTTVNPVFA"
     },
     {
-      "description": "This SMS is sent to resend the OTP for setting a password.",
-      "displayName": "Resend Password Setup OTP",
+      "description": "This SMS OTP is resent to sign in and complete registration.",
+      "displayName": "Resend SMS OTP for Invited User Registration",
       "id": "YXNrUGFzc3dvcmRSZXNlbmRTTVNPVFA"
     },
     {
-      "description": "This SMS is sent to notify the user that their account is now unlocked.",
-      "displayName": "Password Setup Success",
+      "description": "This SMS is sent to notify the user that their account has been set up successfully.",
+      "displayName": "Invited User Registration Success",
       "id": "YXNrUGFzc3dvcmRTZXRTdWNjZXNz"
     }
   ],
