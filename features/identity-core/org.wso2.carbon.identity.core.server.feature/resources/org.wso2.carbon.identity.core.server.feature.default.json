@@ -1267,12 +1267,12 @@
       "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
     },
     {
-      "description": "This SMS is sent to provide the OTP for completing account setup.",
+      "description": "This SMS OTP is sent to sign in and complete registration.",
       "displayName": "SMS OTP for Invited User Registration",
       "id": "YXNrUGFzc3dvcmRTTVNPVFA"
     },
     {
-      "description": "This SMS is sent to resend the OTP for completing account setup.",
+      "description": "This SMS OTP is resent to sign in and complete registration.",
       "displayName": "Resend SMS OTP for Invited User Registration",
       "id": "YXNrUGFzc3dvcmRSZXNlbmRTTVNPVFA"
     },
