@@ -245,6 +245,15 @@ public class AuthenticationContextLoader {
                                                        String tenantDomain)
             throws SessionDataStorageOptimizationException {
 
+        // Check for debug flow by resource ID and return a mock ServiceProvider if matched.
+        if ("DFDP_DEBUG_SP_RESOURCE_ID".equals(optimizedApplicationConfig.getServiceProviderResourceId())) {
+            // Create a minimal mock ServiceProvider for debug flow.
+            ServiceProvider debugSp = new ServiceProvider();
+            debugSp.setApplicationResourceId("DFDP_DEBUG_SP_RESOURCE_ID");
+            debugSp.setApplicationName("DFDP Debug Flow SP");
+            // Set minimal LocalAndOutBoundAuthenticationConfig if needed.
+            return debugSp;
+        }
         ServiceProvider serviceProvider;
         ServiceProvider clonedSP;
         ApplicationManagementServiceImpl applicationManager = (ApplicationManagementServiceImpl)
