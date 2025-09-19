@@ -315,6 +315,20 @@
             <Scopes>internal_secret_type_mgt_delete</Scopes>
         </Resource>
 
+        <!-- [Organization] Secret Management API -->
+        <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_secret_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="PATCH, PUT">
+            <Scopes>internal_org_secret_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_secret_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_secret_mgt_delete</Scopes>
+        </Resource>
+
         <!-- Secret Management API -->
         <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_mgt_add</Scopes>
