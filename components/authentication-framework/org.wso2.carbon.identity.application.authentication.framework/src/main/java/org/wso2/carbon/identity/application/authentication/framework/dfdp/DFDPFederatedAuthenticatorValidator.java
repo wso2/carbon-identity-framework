@@ -137,10 +137,10 @@ public class DFDPFederatedAuthenticatorValidator {
         if (isValidFederatedAuthenticator(authenticatorName, 
             PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain())) {
             
-            return "✅ " + authenticatorName + " is a valid federated authenticator for DFDP testing. " +
+            return authenticatorName + " is a valid federated authenticator for DFDP testing. " +
                    "This will allow testing of real external IdP claim mappings and authentication flows.";
         } else {
-            return "❌ " + authenticatorName + " is not a valid federated authenticator. " +
+            return authenticatorName + " is not a valid federated authenticator. " +
                    "For DFDP federated testing, use authenticators like: SAML2Authenticator, OIDCAuthenticator, " +
                    "FacebookAuthenticator, GoogleOIDCAuthenticator, etc.";
         }
