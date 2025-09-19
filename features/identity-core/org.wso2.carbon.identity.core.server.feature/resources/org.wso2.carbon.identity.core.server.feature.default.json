@@ -324,6 +324,7 @@
   "saml.slo.retry_attempts": "5",
   "saml.slo.retry_interval": "1m",
   "saml.slo.host_name_verification": true,
+  "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": true,
   "saml.response.validity": "5m",
   "saml.artifact.validity": "4m",
   "saml.use_tenant_key_of": "user",
