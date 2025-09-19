@@ -105,6 +105,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MYAC
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TENANT_DOMAIN_PLACEHOLDER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.VALIDATE_BACK_TO_APPLICATION_URL_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 
 /**
@@ -1505,5 +1506,26 @@ public class ApplicationMgtUtil {
                 .findFirst();
 
         return !existingValue.isPresent() || !Objects.equals(expectedValue, existingValue.get());
+    }
+
+    /**
+     * Check whether to validate the back to application URL.
+     *
+     * @return true if the back to application URL should be validated.
+     */
+    public static boolean shouldValidateBackToApplicationURL() {
+
+        String validateBackToApplicationURLProperty = IdentityUtil
+                .getProperty(VALIDATE_BACK_TO_APPLICATION_URL_PROPERTY);
+
+        if (log.isDebugEnabled()) {
+            log.debug("The 'ValidateBackToApplicationURL' property is set to: "
+                    + validateBackToApplicationURLProperty);
+        }
+
+        if (StringUtils.isNotBlank(validateBackToApplicationURLProperty)) {
+            return Boolean.parseBoolean(validateBackToApplicationURLProperty);
+        }
+        return false;
     }
 }

@@ -1,0 +1,10 @@
+{
+  "applications": [
+    {
+      "id": "12345-67890-abcdef",
+      "name": "TestApplication",
+      "accessUrl": "https://testapp.example.com/home",
+      "applicationEnabled": true
+    }
+  ]
+}

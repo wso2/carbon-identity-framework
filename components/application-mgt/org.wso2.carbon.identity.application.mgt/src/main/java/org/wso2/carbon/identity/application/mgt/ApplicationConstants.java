@@ -127,6 +127,8 @@ public class ApplicationConstants {
     public static final String TRUSTED_APP_CONSENT_REQUIRED_PROPERTY = "ApplicationMgt.TrustedAppConsentRequired";
     public static final String TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY =
             "ApplicationMgt.TrustedAppMaxThumbprintCount";
+    public static final String VALIDATE_BACK_TO_APPLICATION_URL_PROPERTY =
+            "ApplicationMgt.ValidateBackToApplicationURL";
 
     public static final String NON_EXISTING_USER_CODE = "30007 - ";
 
