@@ -27,7 +27,63 @@
 		</parameter>
 		<parameter name="adminService" locked="true">true</parameter>
 		<parameter name="hiddenService" locked="false">false</parameter>
-		<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+		<parameter name="AuthorizationAction" locked="false">/permission/admin/login</parameter>
+        <operation name="verifyUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+        <operation name="sendRecoveryNotification">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+        <operation name="resendNotification">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+        <operation name="verifyConfirmationCode">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+        <operation name="updatePassword">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+        <operation name="getUserChallengeQuestionIds">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/view
+            </parameter>
+        </operation>
+        <operation name="getUserChallengeQuestion">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/view
+            </parameter>
+        </operation>
+        <operation name="getUserChallengeQuestions">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/view
+            </parameter>
+        </operation>
+        <operation name="verifyUserChallengeAnswer">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+        <operation name="verifyUserChallengeAnswers">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+        <operation name="verifyAccount">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            </parameter>
+        </operation>
+        <operation name="registerUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/create
+            </parameter>
+        </operation>
+        <operation name="resendSignUpConfiramtionCode">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/create
+            </parameter>
+        </operation>
+        <operation name="confirmUserSelfRegistration">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/create
+            </parameter>
+        </operation>
 	</service>
 
     <service name="AccountCredentialMgtConfigService" scope="transportsession">
