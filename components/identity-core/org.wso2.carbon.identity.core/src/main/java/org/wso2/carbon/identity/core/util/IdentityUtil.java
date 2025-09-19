@@ -2298,6 +2298,21 @@ public class IdentityUtil {
         validateJsonDepth(jsonPayload, getAllowedMaxJWTDepth());
     }
 
+    public static void validateJWTDepthOfJWTPayload(String payload) throws ParseException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Checking JWT payload depth validation");
+        }
+
+        if (StringUtils.isBlank(payload)) {
+            if (log.isDebugEnabled()) {
+                log.debug("JWT payload is blank, skipping depth validation");
+            }
+            throw new ParseException("Error validating JWT depth. JWT is blank.", 0);
+        }
+        validateJsonDepth(payload, getAllowedMaxJWTDepth());
+    }
+
     /**
      * Check whether the JSON exceeds the allowed depth.
      *

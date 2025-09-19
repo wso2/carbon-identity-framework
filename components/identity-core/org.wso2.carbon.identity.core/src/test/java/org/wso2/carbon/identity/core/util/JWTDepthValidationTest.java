@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.Test;
 import org.mockito.MockedStatic;
 
@@ -306,6 +307,26 @@ public class JWTDepthValidationTest {
 
             String depth2 = "{\"nested\":{\"value\":\"test\"}}";
             assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(createJWT(depth2)));
+        }
+    }
+
+    @Test
+    public void testValidateJWTDepthOfJWTPayload() throws ParseException {
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            setMaxJWTDepth(identityUtilMock, 5);
+            setRealMethodCalls(identityUtilMock);
+
+            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(StringUtils.EMPTY));
+
+            String depth1 = "{\"simple\":\"value\"}";
+            IdentityUtil.validateJWTDepth(createJWT(depth1));
+
+            String depth5 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":\"value\"}}}}}";
+            IdentityUtil.validateJWTDepth(createJWT(depth5));
+
+            String depth6 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":{\"f\":\"value\"}}}}}}";
+            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(createJWT(depth6)));
         }
     }
 
