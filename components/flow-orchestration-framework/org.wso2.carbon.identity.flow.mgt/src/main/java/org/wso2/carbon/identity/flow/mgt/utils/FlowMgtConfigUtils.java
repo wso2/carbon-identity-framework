@@ -85,7 +85,7 @@ public class FlowMgtConfigUtils {
             newResource.setResourceName(existingResource.getResourceName());
             updatedResource = updateResource(newResource, tenantDomain);
         }
-        return buildFlowConfigFromResource(updatedResource);
+        return buildAndPopulateFlowConfigFromResource(updatedResource);
     }
 
     /**
@@ -98,7 +98,7 @@ public class FlowMgtConfigUtils {
      */
     public static FlowConfigDTO getFlowConfig(String flowType, String tenantDomain) throws FlowMgtServerException {
 
-        return buildFlowConfigFromResource(flowType, tenantDomain);
+        return buildAndPopulateFlowConfigFromResource(flowType, tenantDomain);
     }
 
     /**
@@ -118,7 +118,7 @@ public class FlowMgtConfigUtils {
             }
             resources.getResources()
                     .forEach(resource -> {
-                        FlowConfigDTO flowConfigDTO = buildFlowConfigFromResource(resource);
+                        FlowConfigDTO flowConfigDTO = buildAndPopulateFlowConfigFromResource(resource);
                         flowMgtConfigs.add(flowConfigDTO);
                     });
             Arrays.stream(Constants.FlowTypes.values()).map(
@@ -163,12 +163,12 @@ public class FlowMgtConfigUtils {
      * @return FlowConfigDTO
      * @throws FlowMgtServerException If an error occurs while retrieving the flow configuration.
      */
-    private static FlowConfigDTO buildFlowConfigFromResource(String flowType, String tenantDomain)
+    private static FlowConfigDTO buildAndPopulateFlowConfigFromResource(String flowType, String tenantDomain)
             throws FlowMgtServerException {
 
         String resourceName = RESOURCE_NAME_PREFIX + flowType;
         Resource resource = getResource(resourceName, tenantDomain);
-        return buildFlowConfigFromResource(flowType, resource);
+        return buildAndPopulateFlowConfigFromResource(flowType, resource);
     }
 
     /**
@@ -194,22 +194,24 @@ public class FlowMgtConfigUtils {
      * @param resource The resource containing flow configuration attributes.
      * @return FlowConfigDTO
      */
-    private static FlowConfigDTO buildFlowConfigFromResource(String flowType, Resource resource) {
+    private static FlowConfigDTO buildAndPopulateFlowConfigFromResource(String flowType, Resource resource) {
 
         if (resource == null || CollectionUtils.isEmpty(resource.getAttributes())) {
             return getDefaultConfig(flowType);
         }
-        return buildFlowConfigFromResource(resource);
+        return buildAndPopulateFlowConfigFromResource(resource);
     }
 
-    private static FlowConfigDTO buildFlowConfigFromResource(Resource resource) {
+    private static FlowConfigDTO buildAndPopulateFlowConfigFromResource(Resource resource) {
 
         List<Attribute> attributes = resource.getAttributes();
         FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
+        Constants.FlowTypes flowType = null;
         for (Attribute attribute : attributes) {
             switch (attribute.getKey()) {
                 case FLOW_TYPE:
                     flowConfigDTO.setFlowType(attribute.getValue());
+                    flowType = Constants.FlowTypes.valueOf(attribute.getValue());
                     break;
                 case IS_ENABLED:
                     flowConfigDTO.setIsEnabled(Boolean.parseBoolean(attribute.getValue()));
@@ -218,6 +220,15 @@ public class FlowMgtConfigUtils {
                     flowConfigDTO.addFlowCompletionConfig(Constants.FlowCompletionConfig.fromConfig(attribute.getKey()),
                             attribute.getValue());
                     break;
+            }
+        }
+
+        // Add any missing supported configs with default values.
+        if (flowType != null) {
+            for (Constants.FlowCompletionConfig config : flowType.getSupportedFlowCompletionConfigs()) {
+                if (flowConfigDTO.getFlowCompletionConfig(config) == null) {
+                    flowConfigDTO.addFlowCompletionConfig(config, config.getDefaultValue());
+                }
             }
         }
         return flowConfigDTO;

@@ -420,6 +420,28 @@ public class FlowMgtConfigUtilsTest {
                 Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
     }
 
+    @Test void testBuildFlowConfigFromResourceWithMissingAttributes() throws Exception {
+
+        Resource resource = createResourceWithMissingAttributes();
+
+
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
+
+        FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
+        Assert.assertTrue(result.getIsEnabled());
+
+        // Missing attributes should take default values.
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+    }
+
     @Test
     public void testGetFlowConfigsWithEmptyResourceList() throws Exception {
 
@@ -516,6 +538,24 @@ public class FlowMgtConfigUtilsTest {
         attributes.add(new Attribute(Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED.getConfig(), "true"));
         attributes.add(new Attribute(
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED.getConfig(), "true"));
+        resource.setAttributes(attributes);
+        return resource;
+    }
+
+    private Resource createResourceWithMissingAttributes() {
+
+        return createResourceWithMissingAttributes(FLOW_TYPE_REGISTRATION);
+    }
+
+    private Resource createResourceWithMissingAttributes(String flowType) {
+
+        Resource resource = new Resource();
+        resource.setResourceName(RESOURCE_NAME_PREFIX + flowType);
+        resource.setResourceType(RESOURCE_TYPE);
+
+        List<Attribute> attributes = new ArrayList<>();
+        attributes.add(new Attribute(FLOW_TYPE, flowType));
+        attributes.add(new Attribute(IS_ENABLED, "true"));
         resource.setAttributes(attributes);
         return resource;
     }
