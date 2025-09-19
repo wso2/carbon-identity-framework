@@ -1201,12 +1201,12 @@
     },
     {
       "description": "This email OTP is sent to sign in and complete registration.",
-      "displayName": "Email OTP for Account Setup",
+      "displayName": "Email OTP for Invited Account Setup",
       "id": "QXNrUGFzc3dvcmRFbWFpbE9UUA"
     },
     {
       "description": "This email OTP is resent to sign in and complete registration.",
-      "displayName": "Resend Email OTP for Account Setup",
+      "displayName": "Resend Email OTP for Invited Account Setup",
       "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA"
     },
     {
@@ -1268,12 +1268,12 @@
     },
     {
       "description": "This SMS is sent to provide the OTP for completing account setup.",
-      "displayName": "SMS OTP for Account Setup",
+      "displayName": "SMS OTP for Invited Account Setup",
       "id": "YXNrUGFzc3dvcmRTTVNPVFA"
     },
     {
       "description": "This SMS is sent to resend the OTP for completing account setup.",
-      "displayName": "Resend SMS OTP for Account Setup",
+      "displayName": "Resend SMS OTP for Invited Account Setup",
       "id": "YXNrUGFzc3dvcmRSZXNlbmRTTVNPVFA"
     },
     {
