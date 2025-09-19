@@ -792,6 +792,9 @@
 
         <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
         <ReturnSpIdToApplication>true</ReturnSpIdToApplication>
+        <Callback>
+            <EnforceLiteralCharacters>true</EnforceLiteralCharacters>
+        </Callback>
     </OAuth>
 
     <RestApiAuthentication>
