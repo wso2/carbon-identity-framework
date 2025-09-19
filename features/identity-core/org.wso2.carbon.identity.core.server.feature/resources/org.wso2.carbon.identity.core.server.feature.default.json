@@ -580,7 +580,7 @@
   "application_mgt.enable_role_validation": false,
   "application_mgt.trusted_app_consent_required": false,
   "application_mgt.trusted_app_max_thumbprint_count": "20",
-  "application_mgt.validate_back_to_application_url": false,
+  "application_mgt.validate_back_to_application_url": true,
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,

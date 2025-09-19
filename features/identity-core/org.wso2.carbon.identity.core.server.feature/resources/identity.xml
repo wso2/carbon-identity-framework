@@ -1280,7 +1280,7 @@
         The default value of the configuration is false.
         -->
         <EnableRoleValidation>false</EnableRoleValidation>
-        <ValidateBackToApplicationURL>false</ValidateBackToApplicationURL>
+        <ValidateBackToApplicationURL>true</ValidateBackToApplicationURL>
     </ApplicationMgt>
 
     <JITProvisioning>
