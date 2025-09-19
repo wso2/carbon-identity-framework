@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.Test;
 import org.mockito.MockedStatic;
 
@@ -309,6 +310,26 @@ public class JWTDepthValidationTest {
         }
     }
 
+    @Test
+    public void testValidateJWTDepthOfJWTPayload() throws ParseException {
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            setMaxJWTDepth(identityUtilMock, 5);
+            setRealMethodCalls(identityUtilMock);
+
+            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepthOfJWTPayload(StringUtils.EMPTY));
+
+            String depth1 = "{\"simple\":\"value\"}";
+            IdentityUtil.validateJWTDepthOfJWTPayload(depth1);
+
+            String depth5 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":\"value\"}}}}}";
+            IdentityUtil.validateJWTDepthOfJWTPayload(depth5);
+
+            String depth6 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":{\"f\":\"value\"}}}}}}";
+            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepthOfJWTPayload(depth6));
+        }
+    }
+
     private void setRealMethodCalls(MockedStatic<IdentityUtil> identityUtilMock) {
 
         identityUtilMock.when(() -> IdentityUtil.validateJWTDepth(any()))
@@ -316,6 +337,8 @@ public class JWTDepthValidationTest {
         identityUtilMock.when(() -> IdentityUtil.validateJsonDepth(any(), anyInt()))
                 .thenCallRealMethod();
         identityUtilMock.when(IdentityUtil::getAllowedMaxJWTDepth).thenCallRealMethod();
+        identityUtilMock.when(() -> IdentityUtil.validateJWTDepthOfJWTPayload(any()))
+                .thenCallRealMethod();
     }
 
     private void setMaxJWTDepth(MockedStatic<IdentityUtil> identityUtilMock, int i) {
