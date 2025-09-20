@@ -238,7 +238,7 @@ public class JSExecutionSupervisor {
                 return;
             }
 
-            if (memoryLimitInBytes > 0) {
+            if (memoryLimitInBytes > 0 && memoryCounter != null) {
                 long consumedMemory = getTotalConsumedMemory();
                 if (consumedMemory > memoryLimitInBytes) {
                     terminateScriptExecutingThread(MONITOR_TYPE_MEMORY, consumedMemory);
