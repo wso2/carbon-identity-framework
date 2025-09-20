@@ -1038,12 +1038,12 @@
     {
       "id": "QWNjb3VudExvY2tGYWlsZWRBdHRlbXB0",
       "displayName": "Account Locked By Failed Attempts",
-      "description": "This email notifies the user that the account is locked by due to too many failed login attempts"
+      "description": "This email notifies the user that the account is locked due to too many failed login attempts"
     },
     {
       "id": "YWNjb3VudExvY2tGYWlsZWRBdHRlbXB0VW50aWxBZG1pblVubG9jaw",
       "displayName": "Account Locked By Failed Attempts Until Admin Unlocks",
-      "description": "This email notifies the user that the account is locked by due to too many failed login attempts until admin unlocks"
+      "description": "This email notifies the user that the account is locked due to too many failed login attempts until an admin unlocks it."
     },
     {
       "id": "QWNjb3VudEVuYWJsZQ",
@@ -1102,7 +1102,7 @@
     {
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
       "displayName": "Resend Admin Initiated Password Reset",
-      "description": "This email notifies the user that the organization admin has re-initiated a password reset."
+      "description": "This email notifies the user that the organization admin has reinitiated a password reset."
     },
     {
       "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
@@ -1210,7 +1210,7 @@
       "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA"
     },
     {
-      "description": "This email is sent to confirm the user email address via Email OTP",
+      "description": "This email is sent to confirm the user's email address via Email OTP",
       "displayName": "Confirm Email Address via Email OTP",
       "id": "RW1haWxDb25maXJtV2l0aE9UUA"
     },
