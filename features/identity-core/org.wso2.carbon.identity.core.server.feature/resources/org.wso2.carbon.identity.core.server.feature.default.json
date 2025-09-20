@@ -1097,7 +1097,7 @@
     {
       "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
       "displayName": "Admin Initiated Password Reset",
-      "description": "This email notifies the user that the organization admin has requested a password reset."
+      "description": "This email notifies the user that the organization admin has initiated a password reset."
     },
     {
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
