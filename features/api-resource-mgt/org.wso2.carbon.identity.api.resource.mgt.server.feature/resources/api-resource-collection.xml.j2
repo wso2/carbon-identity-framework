@@ -933,10 +933,12 @@
             <Read>
                 <Scope name="internal_workflow_view"/>
                 <Scope name="internal_workflow_association_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_role_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="workflowInstances" displayName="Workflow Instances" type="tenant">
+    <APIResourceCollection name="workflowInstances" displayName="Workflow Requests" type="tenant">
         <Scopes>
             <Feature>
                 <Scope name="console:workflowInstances"/>
@@ -1886,10 +1888,12 @@
             <Read>
                 <Scope name="internal_org_workflow_view"/>
                 <Scope name="internal_org_workflow_association_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_role_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_workflowInstances" displayName="Workflow Instances" type="organization">
+    <APIResourceCollection name="org_workflowInstances" displayName="Workflow Requests" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:workflowInstances"/>
