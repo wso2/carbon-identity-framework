@@ -139,6 +139,10 @@ public class IdentityCoreConstants {
     public static final String AGENT_IDENTITY_USERSTORE_NAME = "AgentIdentity.Userstore";
     public static final String DEFAULT_AGENT_IDENTITY_USERSTORE_NAME = "AGENT";
 
+    // JWT related constants.
+    public static final String JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY = "JWT.MaximumAllowedDepth";
+    public static final int DEFAULT_JWT_MAXIMUM_ALLOWED_DEPTH = 255;
+
     public static class Filter {
 
         public static final String AND = "and";
