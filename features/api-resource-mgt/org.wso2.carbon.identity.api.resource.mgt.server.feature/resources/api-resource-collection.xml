@@ -873,7 +873,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="workflowInstances" displayName="Workflow Instances" type="tenant">
+    <APIResourceCollection name="workflowInstances" displayName="Workflow Requests" type="tenant">
         <Scopes>
             <Feature>
                 <Scope name="console:workflowInstances"/>
@@ -1769,7 +1769,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_workflowInstances" displayName="Workflow Instances" type="organization">
+    <APIResourceCollection name="org_workflowInstances" displayName="Workflow Requests" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:workflowInstances"/>
