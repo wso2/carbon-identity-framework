@@ -696,12 +696,15 @@ public abstract class FrameworkConstants {
                 "AdaptiveAuth.ExecutionSupervisor.Enable";
         public static final String CONF_EXECUTION_SUPERVISOR_THREAD_COUNT =
                 "AdaptiveAuth.ExecutionSupervisor.ThreadCount";
+        public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE =
+                "AdaptiveAuth.ExecutionSupervisor.TimeoutEnable";
         public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT =
                 "AdaptiveAuth.ExecutionSupervisor.Timeout";
         public static final String CONF_EXECUTION_SUPERVISOR_MEMORY_LIMIT =
                 "AdaptiveAuth.ExecutionSupervisor.MemoryLimit";
         public static final int DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT = 1;
         public static final long DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT = 500L;
+        public static final boolean DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE = true;
         public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
         public static final String PROP_EXECUTION_SUPERVISOR_RESULT
                 = "AdaptiveAuthExecutionSupervisorResult";
