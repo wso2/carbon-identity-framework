@@ -37,6 +37,7 @@ public class JSExecutionSupervisor {
     private static final String JS_EXECUTION_MONITOR = "JS-Exec-Monitor";
     private final long timeoutInMillis;
     private final long memoryLimitInBytes;
+    private final boolean timeoutCheckEnabled;
     private long taskExecutionRateInMillis = 50L;
     private Map<String, TaskHolder> currentScriptExecutions = new HashMap<>();
     private ScheduledExecutorService monitoringService;
@@ -46,15 +47,21 @@ public class JSExecutionSupervisor {
 
     public JSExecutionSupervisor(int threadCount, long timeoutInMillis) {
 
-        this(threadCount, timeoutInMillis, 0L);
+        this(threadCount, true, timeoutInMillis, 0L);
     }
 
     public JSExecutionSupervisor(int threadCount, long timeoutInMillis, long memoryLimit) {
+
+        this(threadCount, true, timeoutInMillis, memoryLimit);
+    }
+
+    public JSExecutionSupervisor(int threadCount, boolean timeoutCheckEnabled, long timeoutInMillis, long memoryLimit) {
 
         if (taskExecutionRateInMillis > timeoutInMillis) {
             taskExecutionRateInMillis = timeoutInMillis;
         }
 
+        this.timeoutCheckEnabled = timeoutCheckEnabled;
         this.timeoutInMillis = timeoutInMillis;
 
         if (memoryLimit > 0) {
@@ -221,17 +228,17 @@ public class JSExecutionSupervisor {
 
             long elapsedTime = getTotalElapsedTime();
 
-            if (elapsedTime > timeoutInMillis) {
+            if (timeoutCheckEnabled && elapsedTime > timeoutInMillis) {
                 terminateScriptExecutingThread(MONITOR_TYPE_TIME, elapsedTime);
                 return;
             }
 
-            if (isTimeBasedWarnThresholdReached(elapsedTime)) {
+            if (timeoutCheckEnabled && isTimeBasedWarnThresholdReached(elapsedTime)) {
                 printThresholdReachedWarnLog(MONITOR_TYPE_TIME, elapsedTime);
                 return;
             }
 
-            if (memoryCounter != null) {
+            if (memoryLimitInBytes > 0) {
                 long consumedMemory = getTotalConsumedMemory();
                 if (consumedMemory > memoryLimitInBytes) {
                     terminateScriptExecutingThread(MONITOR_TYPE_MEMORY, consumedMemory);

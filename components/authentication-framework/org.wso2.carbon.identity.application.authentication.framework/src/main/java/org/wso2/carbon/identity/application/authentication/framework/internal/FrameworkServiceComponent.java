@@ -398,6 +398,18 @@ public class FrameworkServiceComponent {
             }
         }
 
+        String timeOutEnabledString = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE);
+        boolean timeOutEnabled = FrameworkConstants.AdaptiveAuthentication
+                .DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE;
+        if (StringUtils.isNotBlank(timeOutEnabledString)) {
+            try {
+                timeOutEnabled = Boolean.parseBoolean(timeOutEnabledString);
+            } catch (Exception e) {
+                log.error("Error while parsing adaptive authentication execution supervisor timeout enable config: "
+                        + timeOutEnabledString + ", setting timeout enable to default value: " + timeOutEnabled, e);
+            }
+        }
         String timeoutString = IdentityUtil.getProperty(
                 FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_TIMEOUT);
         long timeoutInMillis = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT;
@@ -423,7 +435,8 @@ public class FrameworkServiceComponent {
         }
 
         FrameworkServiceDataHolder.getInstance()
-                .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeoutInMillis, memoryLimitInBytes));
+                .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeOutEnabled, timeoutInMillis,
+                        memoryLimitInBytes));
     }
 
     @Deactivate
