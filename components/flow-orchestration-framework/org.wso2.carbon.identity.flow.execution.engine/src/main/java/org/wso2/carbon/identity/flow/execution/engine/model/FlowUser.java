@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
@@ -61,7 +62,6 @@ public class FlowUser implements Serializable {
     private static final long serialVersionUID = -1873658743998134877L;
     private static final Log LOG = LogFactory.getLog(FlowUser.class);
 
-    private static final String USER_SOURCE_ID_CLAIM_URI = "http://wso2.org/claims/identity/userSourceId";
     private static final String MANAGED_ORG_CLAIM_URI = "http://wso2.org/claims/identity/managedOrg";
     private static final String LOCAL_CREDENTIAL_EXISTS_CLAIM_URI = "http://wso2.org/claims/identity/localCredentialExists";
 
@@ -171,7 +171,7 @@ public class FlowUser implements Serializable {
         final String managedOrgId = claims.get(MANAGED_ORG_CLAIM_URI);
         final boolean isManagedByDifferentOrg = StringUtils.isNotBlank(managedOrgId);
 
-        final String userSourceId = claims.get(USER_SOURCE_ID_CLAIM_URI);
+        final String userSourceId = claims.get(FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM);
         final String localCredentialExistsStr = claims.get(LOCAL_CREDENTIAL_EXISTS_CLAIM_URI);
         // This case covers an external user source where local credentials are explicitly flagged as not existing.
         boolean isExternalUserWithoutLocalCreds = false;
@@ -183,6 +183,18 @@ public class FlowUser implements Serializable {
 
         final boolean isManagedExternally = isManagedByDifferentOrg || isExternalUserWithoutLocalCreds;
         return !isManagedExternally;
+    }
+
+    public boolean isAccountLocked() {
+
+        String accountLocked = claims.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI);
+        return Boolean.parseBoolean(accountLocked);
+    }
+
+    public boolean isAccountDisabled() {
+
+        String accountDisabled = claims.get(FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI);
+        return Boolean.parseBoolean(accountDisabled);
     }
 
     private String resolveUsername(FlowUser user, String tenantDomain) {
