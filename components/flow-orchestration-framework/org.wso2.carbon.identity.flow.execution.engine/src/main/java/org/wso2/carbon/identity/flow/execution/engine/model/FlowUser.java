@@ -174,8 +174,12 @@ public class FlowUser implements Serializable {
         final String userSourceId = claims.get(USER_SOURCE_ID_CLAIM_URI);
         final String localCredentialExistsStr = claims.get(LOCAL_CREDENTIAL_EXISTS_CLAIM_URI);
         // This case covers an external user source where local credentials are explicitly flagged as not existing.
-        final boolean isExternalUserWithoutLocalCreds = StringUtils.isNotEmpty(userSourceId)
-                && !Boolean.parseBoolean(localCredentialExistsStr);
+        boolean isExternalUserWithoutLocalCreds = false;
+        if (StringUtils.isNotEmpty(userSourceId)) {
+            if (!Boolean.parseBoolean(localCredentialExistsStr)) {
+                isExternalUserWithoutLocalCreds = true;
+            }
+        }
 
         final boolean isManagedExternally = isManagedByDifferentOrg || isExternalUserWithoutLocalCreds;
         return !isManagedExternally;
