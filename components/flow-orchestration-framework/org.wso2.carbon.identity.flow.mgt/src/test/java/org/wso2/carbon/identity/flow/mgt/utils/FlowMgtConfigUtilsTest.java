@@ -159,9 +159,9 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
-                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED
-                )
-        ));
+                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -180,6 +180,8 @@ public class FlowMgtConfigUtilsTest {
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                         Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -254,6 +256,8 @@ public class FlowMgtConfigUtilsTest {
                             Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
                     Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
                             Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
                     break;
                 case FLOW_TYPE_PASSWORD_RECOVERY:
                 case FLOW_TYPE_INVITED_USER_REGISTRATION:
@@ -300,6 +304,8 @@ public class FlowMgtConfigUtilsTest {
                             Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
                     Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
                             Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
                     break;
                 case FLOW_TYPE_PASSWORD_RECOVERY:
                 case FLOW_TYPE_INVITED_USER_REGISTRATION:
@@ -330,6 +336,8 @@ public class FlowMgtConfigUtilsTest {
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -375,6 +383,8 @@ public class FlowMgtConfigUtilsTest {
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -398,6 +408,8 @@ public class FlowMgtConfigUtilsTest {
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -418,6 +430,8 @@ public class FlowMgtConfigUtilsTest {
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertTrue(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertTrue(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test void testBuildFlowConfigFromResourceWithMissingAttributes() throws Exception {
@@ -440,6 +454,8 @@ public class FlowMgtConfigUtilsTest {
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
         Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
                 Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -538,6 +554,8 @@ public class FlowMgtConfigUtilsTest {
         attributes.add(new Attribute(Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED.getConfig(), "true"));
         attributes.add(new Attribute(
                 Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED.getConfig(), "true"));
+        attributes.add(new Attribute(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED.getConfig(), "true"));
         resource.setAttributes(attributes);
         return resource;
     }
