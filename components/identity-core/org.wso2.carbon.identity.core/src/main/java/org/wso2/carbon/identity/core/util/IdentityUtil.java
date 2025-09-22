@@ -2282,7 +2282,6 @@ public class IdentityUtil {
         // Extract and decode JWT payload.
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
-            log.warn("Invalid JWT format");
             throw new ParseException("Error validating JWT depth. Invalid JWT format.", 0);
         }
 
@@ -2290,7 +2289,6 @@ public class IdentityUtil {
         try {
             payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid Base64 encoding in JWT payload");
             throw new ParseException("Error validating JWT depth. Invalid Base64 encoding in JWT payload.", 0);
         }
         String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
