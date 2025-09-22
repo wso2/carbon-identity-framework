@@ -434,10 +434,10 @@ public class FlowMgtConfigUtilsTest {
                 Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
-    @Test void testBuildFlowConfigFromResourceWithMissingAttributes() throws Exception {
+    @Test
+    public void testBuildFlowConfigFromResourceWithMissingAttributes() throws Exception {
 
         Resource resource = createResourceWithMissingAttributes();
-
 
         when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
