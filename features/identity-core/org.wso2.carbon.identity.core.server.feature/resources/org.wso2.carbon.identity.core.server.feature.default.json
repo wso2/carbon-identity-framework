@@ -1337,7 +1337,7 @@
   "console.ui.routes.organizationEnabledRoutes.branding": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.consoleSettings": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.emailTemplates": "v0.0.0",
-  "console.ui.routes.organizationEnabledRoutes.flows": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.flows": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.gettingStarted": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.governanceConnectors": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.groups": "v0.0.0",
