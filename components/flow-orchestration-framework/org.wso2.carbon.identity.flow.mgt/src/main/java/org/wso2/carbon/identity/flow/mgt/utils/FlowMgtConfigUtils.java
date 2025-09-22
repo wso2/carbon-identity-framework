@@ -226,7 +226,7 @@ public class FlowMgtConfigUtils {
         // Add any missing supported configs with default values.
         if (flowType != null) {
             for (Constants.FlowCompletionConfig config : flowType.getSupportedFlowCompletionConfigs()) {
-                if (flowConfigDTO.getFlowCompletionConfig(config) == null) {
+                if (!flowConfigDTO.isFlowCompletionConfigPresent(config)) {
                     flowConfigDTO.addFlowCompletionConfig(config, config.getDefaultValue());
                 }
             }
