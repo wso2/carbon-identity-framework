@@ -1462,6 +1462,7 @@
             <SeparateMultiAttributesFromIdP>{{saml.separate_multi_attributes_from_idp}}</SeparateMultiAttributesFromIdP>
         {% endif %}
         <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
+        <SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>{{saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert}}</SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>
     </SSOService>
 
     <Consent>
@@ -4727,6 +4728,18 @@
             </GetPolicyDoc>
         </PolicyEditorService>
         {% endif %}
+        <TOTPAdminService>
+            <SelfOperations>
+                <Enabled>{{totp_admin_service.self_operations.enabled | default('false')}}</Enabled>
+            </SelfOperations>
+            <Permission>{{totp_admin_service.permission | default('/permission/admin/manage/identity/usermgt/update')}}</Permission>
+        </TOTPAdminService>
+        <ApplicationMgtAdminService>
+            <IdpSecretsRetrievalPermission>{{appmgt_admin_service.idp_secrets_retrieval_permission | default('/permission/admin/manage/identity/idpmgt/view')}}</IdpSecretsRetrievalPermission>
+        </ApplicationMgtAdminService>
+        <UserManagementWorkflowService>
+            <WorkflowServicePermission>{{ user_management_workflow_service.permission | default('/permission/admin/manage/identity/workflow/association/view') }}</WorkflowServicePermission>
+        </UserManagementWorkflowService>
     </AdminServices>
 
     <AIServices>

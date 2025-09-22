@@ -172,6 +172,7 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID = "POST_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID";
         public static final String PRE_DELETE_USER_WITH_ID = "PRE_DELETE_USER_WITH_ID";
         public static final String POST_DELETE_USER_WITH_ID = "POST_DELETE_USER_WITH_ID";
+        public static final String POST_DELETE_MAIN_APPLICATION_WITH_ID = "POST_DELETE_MAIN_APPLICATION_WITH_ID";
         public static final String PRE_SET_USER_CLAIM_VALUE_WITH_ID = "PRE_SET_USER_CLAIM_VALUE_WITH_ID";
         public static final String POST_SET_USER_CLAIM_VALUE_WITH_ID = "POST_SET_USER_CLAIM_VALUE_WITH_ID";
         public static final String PRE_SET_USER_CLAIM_VALUES_WITH_ID = "PRE_SET_USER_CLAIM_VALUES_WITH_ID";
