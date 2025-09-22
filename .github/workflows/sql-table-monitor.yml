@@ -50,17 +50,19 @@ jobs:
           new_tables_found=false
           new_tables_list=""
           
+          # Fetch base ref only once before processing files
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+
           # Process each changed SQL file
           while IFS= read -r file; do
             if [ -n "$file" ]; then
               echo "Analyzing file: $file"
               
               # Get the diff for this file
-              git fetch origin ${{ github.event.pull_request.base.ref }}
               diff_output=$(git diff origin/${{ github.event.pull_request.base.ref }}...HEAD -- "$file" || true)
               
               # Look for new CREATE TABLE statements in the added lines (lines starting with +)
-              new_create_tables=$(echo "$diff_output" | grep "^+" | grep -i "CREATE TABLE" | sed 's/^+//' || true)
+              new_create_tables=$(echo "$diff_output" | grep "^+" | grep -iP "CREATE\s+TABLE" | sed 's/^+//' || true)
               
               if [ -n "$new_create_tables" ]; then
                 new_tables_found=true
