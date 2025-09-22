@@ -561,6 +561,20 @@
                     description="Delete secrets in secret management service"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Secret Management API" identifier="/o/api/server/v1/secrets"
+                 requiresAuthorization="true" description="API representation of the Secret Management API"
+                 type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Add Secret" name="internal_org_secret_mgt_add"
+                    description="Create new secrets in the organization"/>
+            <Scope displayName="Update Secret" name="internal_org_secret_mgt_update"
+                    description="Update secrets in the organization"/>
+            <Scope displayName="View Secret" name="internal_org_secret_mgt_view"
+                    description="View secrets in the organization"/>
+            <Scope displayName="Delete Secret" name="internal_org_secret_mgt_delete"
+                    description="Delete secrets in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Userstore Management API" identifier="/api/server/v1/userstore"
                  requiresAuthorization="true"
                  description="API representation of the Userstore Management API" type="TENANT">
