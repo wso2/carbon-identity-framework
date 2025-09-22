@@ -3479,24 +3479,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String allowedAudienceType =
                 StringUtils.isBlank(associatedRolesConfig.getAllowedAudience()) ? RoleConstants.ORGANIZATION :
                         associatedRolesConfig.getAllowedAudience().toLowerCase();
-        String allowedAudienceId;
-        switch (allowedAudienceType) {
-            case RoleConstants.APPLICATION:
-                allowedAudienceId = serviceProvider.getApplicationResourceId();
-                break;
-            default:
-                try {
-                    allowedAudienceId = getOrganizationManager().resolveOrganizationId(tenantDomain);
-                } catch (OrganizationManagementException e) {
-                    throw new IdentityApplicationManagementException(
-                            String.format("Error while resolving the organization id for the tenant domain: %s",
-                                    tenantDomain), e);
-                }
-                break;
+
+        if (RoleConstants.ORGANIZATION.equals(allowedAudienceType)) {
+            // Skip role audience validation for organization audience type since application role associations
+            // are not modified during application updates for this audience type.
+            log.debug("Skipping the role audience validation since the allowed audience type is organization.");
+            return true;
         }
+
+        String allowedAudienceId = serviceProvider.getApplicationResourceId();
         // Stream the roles and check whether the role exits in the correct audience.
-        boolean allRolesInCorrectAudience = roles.stream()
-                .allMatch(role -> isRoleInCorrectAudience(role, tenantDomain, allowedAudienceType, allowedAudienceId));
+        boolean allRolesInCorrectAudience = StringUtils.isNotBlank(allowedAudienceId) && roles.stream()
+                .allMatch(role ->
+                        isRoleInCorrectAudience(role, tenantDomain, allowedAudienceType, allowedAudienceId));
         if (!allRolesInCorrectAudience) {
             log.debug("One or more role does not exist or not in correct audience.");
         }
