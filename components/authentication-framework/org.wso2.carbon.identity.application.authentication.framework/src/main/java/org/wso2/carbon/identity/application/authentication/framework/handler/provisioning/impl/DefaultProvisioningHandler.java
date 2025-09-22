@@ -674,18 +674,18 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     private Map<String, String> prepareClaimMappings(Map<String, String> attributes) {
 
         Map<String, String> userClaims = new HashMap<>();
-        boolean allowCustomDialectsClaims = FrameworkUtils.allowCustomDialectClaims();
+        boolean allowNonStandardClaimUri = FrameworkUtils.allowNonStandardClaimUri();
         if (attributes != null && !attributes.isEmpty()) {
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String claimURI = entry.getKey();
                 String claimValue = entry.getValue();
                 if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue))) {
-                    if (allowCustomDialectsClaims) {
+                    if (allowNonStandardClaimUri) {
                         userClaims.put(claimURI, claimValue);
                     } else {
                         /*
-                         For claimValues not mapped to local claim dialect uris, need to skip to prevent user provision failure.
-                         Password is a different case where we have to keep for password provisioning.
+                         For claimValues not mapped to local claim dialect uris, need to skip to prevent user provision
+                         failure. Password is a different case where we have to keep for password provisioning.
                          */
                         if ((claimURI.equals(FrameworkConstants.PASSWORD) ||
                                 claimURI.contains(LOCAL_DEFAULT_CLAIM_DIALECT))) {

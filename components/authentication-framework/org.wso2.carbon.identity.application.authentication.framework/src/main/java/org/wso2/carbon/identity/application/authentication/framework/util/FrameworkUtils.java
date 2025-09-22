@@ -4324,14 +4324,14 @@ public class FrameworkUtils {
     }
 
     /**
-     * Check whether custom dialect claims are allowed.
+     * Check whether non-standard claim URIs are allowed.
      *
-     * @return true if custom dialect claims are allowed, false otherwise.
+     * @return true if non-standard claim URIs are allowed, false otherwise.
      */
-    public static boolean allowCustomDialectClaims() {
+    public static boolean allowNonStandardClaimUri() {
 
         return Boolean.parseBoolean(IdentityUtil.
-                getProperty(FrameworkConstants.ALLOW_CUSTOM_DIALECT_CLAIMS));
+                getProperty(FrameworkConstants.ALLOW_NON_STANDARD_CLAIM_URI));
     }
 
     /**
