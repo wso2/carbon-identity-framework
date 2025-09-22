@@ -140,7 +140,8 @@ public class Constants {
     public enum FlowTypes {
 
         REGISTRATION("REGISTRATION", FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED,
-                FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED, FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED),
+                FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED, FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+                FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
         PASSWORD_RECOVERY("PASSWORD_RECOVERY", FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
                 FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
         INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,

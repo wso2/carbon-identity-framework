@@ -139,6 +139,17 @@ public class FlowConfigDTO {
     }
 
     /**
+     * Check if a specific flow completion configuration is present.
+     *
+     * @param flowCompletionConfig Flow completion configuration enum.
+     * @return True if the flow completion configuration is present, false otherwise.
+     */
+    public boolean isFlowCompletionConfigPresent(Constants.FlowCompletionConfig flowCompletionConfig) {
+
+        return flowCompletionConfigs.containsKey(flowCompletionConfig.getConfig());
+    }
+
+    /**
      * Get all flow completion configurations.
      *
      * @return Map of flow completion configurations.
