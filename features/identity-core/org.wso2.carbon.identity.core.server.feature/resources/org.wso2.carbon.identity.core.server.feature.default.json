@@ -987,11 +987,6 @@
       "description": "This email notifies the user that password reset is successfully completed"
     },
     {
-      "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
-      "displayName": "Admin-Requested Password Reset",
-      "description": "This email notifies the user that the organization admin has requested a password reset."
-    },
-    {
       "id": "VW5zZWVuRGV2aWNlTG9naW4",
       "displayName": "New Device Login",
       "description": "This email notifies the user that a login from a new device is detected"
@@ -1044,12 +1039,12 @@
     {
       "id": "QWNjb3VudExvY2tGYWlsZWRBdHRlbXB0",
       "displayName": "Account Locked By Failed Attempts",
-      "description": "This email notifies the user that the account is locked by due to too many failed login attempts"
+      "description": "This email notifies the user that the account is locked due to too many failed login attempts"
     },
     {
       "id": "YWNjb3VudExvY2tGYWlsZWRBdHRlbXB0VW50aWxBZG1pblVubG9jaw",
       "displayName": "Account Locked By Failed Attempts Until Admin Unlocks",
-      "description": "This email notifies the user that the account is locked by due to too many failed login attempts until admin unlocks"
+      "description": "This email notifies the user that the account is locked due to too many failed login attempts until an admin unlocks it."
     },
     {
       "id": "QWNjb3VudEVuYWJsZQ",
@@ -1101,19 +1096,24 @@
       "description": "This email is sent when the organization admin re-initiates the request for a new user password."
     },
     {
+      "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
+      "displayName": "Admin Initiated Password Reset",
+      "description": "This email notifies the user that the organization admin has initiated a password reset."
+    },
+    {
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
-      "displayName": "Resend Admin-Requested Forced Password Reset",
-      "description": "This email is sent when the organization admin re-initiates the forced password reset for a user"
+      "displayName": "Resend Admin Initiated Password Reset",
+      "description": "This email notifies the user that the organization admin has reinitiated a password reset."
     },
     {
       "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
-      "displayName": "Admin Forced Password Reset with OTP",
-      "description": "This email is sent when the organization admin initiates the forced password reset for a user with OTP"
+      "displayName": "Admin Initiated Password Reset with OTP",
+      "description": "This email is sent when the organization admin initiates the password reset for a user with OTP."
     },
     {
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
-      "displayName": "Resend Admin Forced Password Reset with OTP",
-      "description": "This email is sent when the organization admin reinitiates the forced password reset for a user with OTP"
+      "displayName": "Resend Admin Initiated Password Reset with OTP",
+      "description": "This email is sent when the organization admin reinitiates the password reset for a user with OTP."
     },
     {
       "id": "YWNjb3VudEFjdGl2YXRpb25TdWNjZXNz",
@@ -1211,7 +1211,7 @@
       "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA"
     },
     {
-      "description": "This email is sent to confirm the user email address via Email OTP",
+      "description": "This email is sent to confirm the user's email address via Email OTP",
       "displayName": "Confirm Email Address via Email OTP",
       "id": "RW1haWxDb25maXJtV2l0aE9UUA"
     },
@@ -1266,6 +1266,16 @@
       "description": "This SMS is sent to verify the user's mobile number after an update.",
       "displayName": "Verify Mobile On Update",
       "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
+    },
+    {
+      "description": "This SMS is sent to provide a one-time password when admin initiates a password reset for a user",
+      "displayName": "Admin Initiated Password Reset",
+      "id": "YWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0"
+    },
+    {
+      "description": "This SMS is sent to provide a one-time password when admin resends a password reset request",
+      "displayName": "Admin Resend Initiated Password Reset",
+      "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0"
     },
     {
       "description": "This SMS OTP is sent to sign in and complete registration.",
@@ -1462,7 +1472,7 @@
   "console.approvalWorkflows.enabled": true,
   "console.approvalWorkflows.scopes.feature": ["console:approvalWorkflows"],
   "console.approvalWorkflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
-  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
+  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view", "internal_user_mgt_list", "internal_role_mgt_view"],
   "console.approvalWorkflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
   "console.approvalWorkflows.scopes.delete": ["internal_workflow_delete", "internal_workflow_association_delete"],
   "console.workflowInstances.enabled": true,
