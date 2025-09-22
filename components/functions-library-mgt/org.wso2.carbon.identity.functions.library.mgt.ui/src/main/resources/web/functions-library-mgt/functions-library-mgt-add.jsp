@@ -78,7 +78,6 @@
                     location.href = '#';
                 } else {
                     try {
-                        validateScript(content);  // Syntax-only check.
                         encodeFunctionLibScript();
                         $("#add-functionlib-form").submit();
                         return true;
@@ -88,12 +87,6 @@
                     }
                 }
             }
-        }
-
-        function validateScript(content) {
-            const preparedCode = prepareScript(content);
-            esprima.parseScript(preparedCode, { tolerant: false });
-            return true;
         }
 
         function validateTextForIllegal(field) {
@@ -259,4 +252,3 @@
     </div>
 </fmt:bundle>
 <script src="./js/function-lib-mgt.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/esprima/dist/esprima.min.js"></script>
