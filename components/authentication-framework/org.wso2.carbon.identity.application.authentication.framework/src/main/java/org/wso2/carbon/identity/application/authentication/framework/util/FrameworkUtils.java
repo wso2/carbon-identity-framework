@@ -4324,6 +4324,17 @@ public class FrameworkUtils {
     }
 
     /**
+     * Check whether custom dialect claims are allowed.
+     *
+     * @return true if custom dialect claims are allowed, false otherwise.
+     */
+    public static boolean allowCustomDialectClaims() {
+
+        return Boolean.parseBoolean(IdentityUtil.
+                getProperty(FrameworkConstants.ALLOW_CUSTOM_DIALECT_CLAIMS));
+    }
+
+    /**
      * Return a filtered list of requested scope claims.
      *
      * @param claimListOfScopes Claims list of requested scopes.
