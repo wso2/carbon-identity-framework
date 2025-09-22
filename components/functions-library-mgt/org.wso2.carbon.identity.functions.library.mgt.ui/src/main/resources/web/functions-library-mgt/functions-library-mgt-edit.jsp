@@ -91,7 +91,7 @@
                     location.href = '#';
                 } else {
                     try {
-                        eval(prepareScript(content));
+                        validateScript(content);  // Syntax-only check.
                         functionLibName = functionLibName + ".js";
                         if (functionLibName != oldFunctionLibName) {
                             CARBON.showConfirmationDialog('<fmt:message key="update.function.library.name.warn"/>',
@@ -112,6 +112,12 @@
                     return true;
                 }
             }
+        }
+
+        function validateScript(content) {
+            const preparedCode = prepareScript(content);
+            esprima.parseScript(preparedCode, { tolerant: false });
+            return true;
         }
 
         function validateTextForIllegal(field) {
@@ -218,3 +224,4 @@
     </div>
 </fmt:bundle>
 <script src="./js/function-lib-mgt.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/esprima/dist/esprima.min.js"></script>
