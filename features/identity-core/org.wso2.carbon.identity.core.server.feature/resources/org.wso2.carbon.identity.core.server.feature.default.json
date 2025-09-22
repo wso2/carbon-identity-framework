@@ -1471,7 +1471,7 @@
   "console.approvalWorkflows.enabled": true,
   "console.approvalWorkflows.scopes.feature": ["console:approvalWorkflows"],
   "console.approvalWorkflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
-  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
+  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view", "internal_user_mgt_list", "internal_role_mgt_view"],
   "console.approvalWorkflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
   "console.approvalWorkflows.scopes.delete": ["internal_workflow_delete", "internal_workflow_association_delete"],
   "console.workflowInstances.enabled": true,
