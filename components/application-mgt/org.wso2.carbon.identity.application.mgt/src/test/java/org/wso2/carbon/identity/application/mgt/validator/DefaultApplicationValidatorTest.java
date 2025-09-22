@@ -596,6 +596,260 @@ public class DefaultApplicationValidatorTest {
         });
     }
 
+    @DataProvider(name = "validateArrayFillInAdaptiveAuthScriptDataProvider")
+    public Object[][] validateArrayFillInAdaptiveAuthScriptDataProvider() {
+
+        // Scripts containing Array().fill() that should be rejected.
+        String scriptWithArrayFill = "var onLoginRequest = function(context) {\n" +
+                "    var arr = Array(100).fill(0);\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        String scriptWithArrayFillSpaces = "var onLoginRequest = function(context) {\n" +
+                "    var arr = Array ( 1000 ) . fill ( null );\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        String scriptWithArrayFillVariable = "var onLoginRequest = function(context) {\n" +
+                "    const N = 10000;\n" +
+                "    var arr = Array(N).fill(null);\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        String scriptWithArrayFillInFunction = "var onLoginRequest = function(context) {\n" +
+                "    function createArray() {\n" +
+                "        return Array(500).fill('test');\n" +
+                "    }\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        String scriptWithArrayFillMultiLine = "var onLoginRequest = function(context) {\n" +
+                "    var arr = Array(100)\n" +
+                "        .fill(0);\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        // Scripts that should be accepted (no Array().fill()).
+        String scriptWithArrayOnly = "var onLoginRequest = function(context) {\n" +
+                "    var arr = Array(10);\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        String scriptWithFillOnly = "var onLoginRequest = function(context) {\n" +
+                "    var arr = ['a', 'b', 'c'];\n" +
+                "    arr.fill('x');\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        String scriptWithArrayFillInComment = "var onLoginRequest = function(context) {\n" +
+                "    // Array(100).fill(0) - this is commented out\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        String scriptWithArrayFillInMultiLineComment = "var onLoginRequest = function(context) {\n" +
+                "    /* This is a comment with Array(100).fill(0)\n" +
+                "       that spans multiple lines */\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        String validComplexScript = "var onLoginRequest = function(context) {\n" +
+                "    var users = ['alice', 'bob', 'charlie'];\n" +
+                "    var roles = new Array();\n" +
+                "    roles.push('admin');\n" +
+                "    executeStep(1);\n" +
+                "};";
+
+        return new Object[][]{
+                // isValidationFailScenario, script, expectedErrorMessage.
+                {true, scriptWithArrayFill, "Script contains Array().fill() constructs which are not allowed."},
+                {true, scriptWithArrayFillSpaces, "Script contains Array().fill() constructs which are not allowed."},
+                {true, scriptWithArrayFillVariable, "Script contains Array().fill() constructs which are not allowed."},
+                {true, scriptWithArrayFillInFunction, "Script contains Array().fill() constructs which are " +
+                        "not allowed."},
+                {true, scriptWithArrayFillMultiLine, "Script contains Array().fill() constructs which are" +
+                        " not allowed."},
+                {false, scriptWithArrayOnly, null},
+                {false, scriptWithFillOnly, null},
+                {false, scriptWithArrayFillInComment, null},
+                {false, scriptWithArrayFillInMultiLineComment, null},
+                {false, validComplexScript, null}
+        };
+    }
+
+    /**
+     * Test array fill validation in adaptive authentication scripts.
+     *
+     * @param isValidationFailScenario Whether validation should fail.
+     * @param script                   The script to validate.
+     * @param expectedErrorMessage     Expected error message if validation fails.
+     * @throws Exception If an error occurs during testing.
+     */
+    @Test(dataProvider = "validateArrayFillInAdaptiveAuthScriptDataProvider")
+    public void testValidateArrayFillInAdaptiveAuthScript(boolean isValidationFailScenario, String script,
+                                                          String expectedErrorMessage) throws Exception {
+
+        DefaultApplicationValidator defaultApplicationValidator = new DefaultApplicationValidator();
+
+        // Use reflection to call the private validateAdaptiveAuthScript method.
+        Method validateAdaptiveAuthScript = DefaultApplicationValidator.class.getDeclaredMethod(
+                "validateAdaptiveAuthScript", List.class, AuthenticationScriptConfig.class);
+        validateAdaptiveAuthScript.setAccessible(true);
+
+        AuthenticationScriptConfig scriptConfig = new AuthenticationScriptConfig();
+        scriptConfig.setContent(script);
+
+        List<String> validationErrors = new ArrayList<>();
+        validateAdaptiveAuthScript.invoke(defaultApplicationValidator, validationErrors, scriptConfig);
+
+        if (isValidationFailScenario) {
+            Assert.assertFalse(validationErrors.isEmpty(), "This is an invalid scenario. There should be " +
+                    "validation messages.");
+
+            // Check if there's a validation message related to array fill.
+            List<String> arrayFillErrors = validationErrors.stream()
+                    .filter(error -> StringUtils.containsIgnoreCase(error, "Array().fill()"))
+                    .collect(Collectors.toList());
+
+            Assert.assertFalse(arrayFillErrors.isEmpty(), "There should be a validation message related to " +
+                    "Array().fill()");
+
+            if (expectedErrorMessage != null) {
+                Assert.assertTrue(validationErrors.contains(expectedErrorMessage),
+                        "Expected error message not found. Actual errors: " + String.join("|", validationErrors));
+            }
+        } else {
+            // Filter out any loop-related errors as we're only testing array fill validation.
+            List<String> arrayFillErrors = validationErrors.stream()
+                    .filter(error -> StringUtils.containsIgnoreCase(error, "Array().fill()"))
+                    .collect(Collectors.toList());
+
+            Assert.assertTrue(arrayFillErrors.isEmpty(), "There should not be any Array().fill() validation messages " +
+                    "for valid scripts. Array fill errors: " + String.join("|", arrayFillErrors));
+        }
+    }
+
+    /**
+     * Test array fill validation through the main validateApplication method.
+     *
+     * @throws Exception If an error occurs during testing.
+     */
+    @Test
+    public void testValidateApplicationWithArrayFillScript() throws Exception {
+
+        // Create a service provider with adaptive auth script containing Array().fill()
+        ServiceProvider serviceProvider = createServiceProviderWithAdaptiveAuthScript(
+                "var onLoginRequest = function(context) {\n" +
+                "    var largeArray = Array(100000).fill(null);\n" +
+                "    executeStep(1);\n" +
+                "};"
+        );
+
+        // Mock required dependencies.
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        when(applicationManagementService.getAllRequestPathAuthenticators(eq(SUPER_TENANT_DOMAIN_NAME)))
+                .thenReturn(new RequestPathAuthenticatorConfig[0]);
+        when(applicationManagementService.getAllLocalAuthenticators(eq(SUPER_TENANT_DOMAIN_NAME)))
+                .thenReturn(new org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig[0]);
+        when(applicationManagementService.getAllLocalClaimUris(eq(SUPER_TENANT_DOMAIN_NAME)))
+                .thenReturn(new String[0]);
+
+        try (MockedStatic<ApplicationManagementService> staticApplicationManagementService =
+                 mockStatic(ApplicationManagementService.class)) {
+
+            staticApplicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(applicationManagementService);
+
+            DefaultApplicationValidator validator = new DefaultApplicationValidator();
+            List<String> validationErrors = validator.validateApplication(serviceProvider,
+                    SUPER_TENANT_DOMAIN_NAME, USERNAME);
+
+            // Verify that validation fails due to Array().fill() usage.
+            Assert.assertFalse(validationErrors.isEmpty(), "Validation should fail for scripts with Array().fill()");
+
+            boolean hasArrayFillError = validationErrors.stream()
+                    .anyMatch(error -> error.contains("Script contains Array().fill() constructs which are " +
+                            "not allowed."));
+
+            Assert.assertTrue(hasArrayFillError,
+                    "Should have Array().fill() validation error. Actual errors: " +
+                    String.join("|", validationErrors));
+        }
+    }
+
+    /**
+     * Test array fill validation with valid script through validateApplication method.
+     *
+     * @throws Exception If an error occurs during testing.
+     */
+    @Test
+    public void testValidateApplicationWithValidScript() throws Exception {
+
+        // Create a service provider with adaptive auth script without Array().fill().
+        ServiceProvider serviceProvider = createServiceProviderWithAdaptiveAuthScript(
+                "var onLoginRequest = function(context) {\n" +
+                "    var normalArray = ['a', 'b', 'c'];\n" +
+                "    var emptyArray = Array(10);\n" +
+                "    executeStep(1);\n" +
+                "};"
+        );
+
+        // Mock required dependencies.
+        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        when(applicationManagementService.getAllRequestPathAuthenticators(eq(SUPER_TENANT_DOMAIN_NAME)))
+                .thenReturn(new RequestPathAuthenticatorConfig[0]);
+        when(applicationManagementService.getAllLocalAuthenticators(eq(SUPER_TENANT_DOMAIN_NAME)))
+                .thenReturn(new org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig[0]);
+        when(applicationManagementService.getAllLocalClaimUris(eq(SUPER_TENANT_DOMAIN_NAME)))
+                .thenReturn(new String[0]);
+
+        try (MockedStatic<ApplicationManagementService> staticApplicationManagementService =
+                 mockStatic(ApplicationManagementService.class)) {
+
+            staticApplicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(applicationManagementService);
+
+            DefaultApplicationValidator validator = new DefaultApplicationValidator();
+            List<String> validationErrors = validator.validateApplication(serviceProvider,
+                    SUPER_TENANT_DOMAIN_NAME, USERNAME);
+
+            // Verify that there are no Array().fill() related errors.
+            boolean hasArrayFillError = validationErrors.stream()
+                    .anyMatch(error -> error.contains("Script contains Array().fill() constructs which are not " +
+                            "allowed."));
+
+            Assert.assertFalse(hasArrayFillError,
+                    "Should not have Array().fill() validation error for valid scripts. Errors: " +
+                    String.join("|", validationErrors));
+        }
+    }
+
+    /**
+     * Helper method to create a ServiceProvider with adaptive authentication script.
+     *
+     * @param scriptContent The content of the adaptive authentication script.
+     * @return ServiceProvider with the given script.
+     */
+    private ServiceProvider createServiceProviderWithAdaptiveAuthScript(String scriptContent) {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("test-app");
+        serviceProvider.setApplicationVersion("v1.0.0");
+        serviceProvider.setApplicationID(1);
+
+        // Create authentication script config.
+        AuthenticationScriptConfig scriptConfig = new AuthenticationScriptConfig();
+        scriptConfig.setContent(scriptContent);
+
+        // Create local and outbound authentication config.
+        org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig authConfig =
+                new org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig();
+        authConfig.setAuthenticationScriptConfig(scriptConfig);
+
+        serviceProvider.setLocalAndOutBoundAuthenticationConfig(authConfig);
+
+        return serviceProvider;
+    }
+
     /**
      * Common method to validate discoverable groups by giving a custom assertion function.
      *
