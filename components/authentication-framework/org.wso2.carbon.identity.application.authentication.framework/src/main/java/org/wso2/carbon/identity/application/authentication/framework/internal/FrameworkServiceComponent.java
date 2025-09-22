@@ -403,12 +403,7 @@ public class FrameworkServiceComponent {
         boolean timeOutEnabled = FrameworkConstants.AdaptiveAuthentication
                 .DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE;
         if (StringUtils.isNotBlank(timeOutEnabledString)) {
-            try {
-                timeOutEnabled = Boolean.parseBoolean(timeOutEnabledString);
-            } catch (Exception e) {
-                log.error("Error while parsing adaptive authentication execution supervisor timeout enable config: "
-                        + timeOutEnabledString + ", setting timeout enable to default value: " + timeOutEnabled, e);
-            }
+            timeOutEnabled = Boolean.parseBoolean(timeOutEnabledString);
         }
         String timeoutString = IdentityUtil.getProperty(
                 FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_TIMEOUT);

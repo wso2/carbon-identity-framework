@@ -55,6 +55,16 @@ public class JSExecutionSupervisor {
         this(threadCount, true, timeoutInMillis, memoryLimit);
     }
 
+    /**
+     * Create JS execution supervisor with timeout check. If timeoutCheckEnabled is false, no time based supervision
+     * will be done.
+     *
+     * @param threadCount         Thread count for the monitoring service.
+     * @param timeoutCheckEnabled Whether time based supervision should be done.
+     * @param timeoutInMillis     Timeout in milliseconds. If the `timeoutCheckEnabled` is false, this value will
+     *                            be ignored.
+     * @param memoryLimit         Memory limit in bytes.
+     */
     public JSExecutionSupervisor(int threadCount, boolean timeoutCheckEnabled, long timeoutInMillis, long memoryLimit) {
 
         if (taskExecutionRateInMillis > timeoutInMillis) {
