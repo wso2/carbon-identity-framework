@@ -1268,12 +1268,12 @@
     },
     {
       "description": "This SMS is sent to provide a one-time password when admin initiates a password reset for a user",
-      "displayName": "Admin Forced Password Reset",
+      "displayName": "Admin Initiated Password Reset",
       "id": "YWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0"
     },
     {
       "description": "This SMS is sent to provide a one-time password when admin resends a password reset request",
-      "displayName": "Admin Resend Forced Password Reset",
+      "displayName": "Admin Resend Initiated Password Reset",
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0"
     },
     {
