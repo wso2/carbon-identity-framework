@@ -185,8 +185,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 tenantId);
         if (existingActionDTO != null) {
             DAO_FACADE.deleteAction(existingActionDTO, tenantId);
-            auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId,
-                    existingActionDTO.getUpdatedAt());
+            auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId);
         }
     }
 

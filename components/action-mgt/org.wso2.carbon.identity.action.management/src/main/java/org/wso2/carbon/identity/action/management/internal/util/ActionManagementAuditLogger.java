@@ -50,6 +50,19 @@ public class ActionManagementAuditLogger {
     private static final Log LOG = org.apache.commons.logging.LogFactory.getLog(ActionManagementAuditLogger.class);
 
     /**
+     * Print action audit log related to the operation by the action type and action ID.
+     *
+     * @param operation  Operation associated with the state change.
+     * @param actionType Type of the action to be logged.
+     * @param actionId   ID of the action to be logged.
+     */
+    public void printAuditLog(Operation operation, String actionType, String actionId) {
+
+        JSONObject data = createAuditLogEntry(actionType, actionId);
+        buildAuditLog(operation, data);
+    }
+
+    /**
      * Print action audit log related to the operation by the action type and action ID with updated time.
      *
      * @param operation  Operation associated with the state change.
