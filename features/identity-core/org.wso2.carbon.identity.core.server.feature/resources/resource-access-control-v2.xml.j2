@@ -1486,6 +1486,11 @@
         <Resource context="(.*)/o/api/server/v1/configs/impersonation(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_config_delete</Scopes>
         </Resource>
+        {% if configs.endpoint.elevate_permission is not sameas false %}
+        <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_config_view</Scopes>
+        </Resource>
+        {% endif %}
         <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="PATCH">
             <Scopes>internal_org_config_update</Scopes>
         </Resource>
