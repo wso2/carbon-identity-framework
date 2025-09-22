@@ -3481,9 +3481,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         associatedRolesConfig.getAllowedAudience().toLowerCase();
 
         if (RoleConstants.ORGANIZATION.equals(allowedAudienceType)) {
-            // Skip role audience validation for organization audience type since application role associations
-            // are not modified during application updates for this audience type.
-            log.debug("Skipping the role audience validation since the allowed audience type is organization.");
+            // Skip role audience validation for organization audience type, since role associations
+            // are resolved at runtime and not stored in the database. Hence, no modifications occur
+            // during application updates for this audience type.
+            if (log.isDebugEnabled()) {
+                log.debug("Skipping role audience validation for organization audience type as role associations are " +
+                        "resolved at runtime.");
+            }
             return true;
         }
 
