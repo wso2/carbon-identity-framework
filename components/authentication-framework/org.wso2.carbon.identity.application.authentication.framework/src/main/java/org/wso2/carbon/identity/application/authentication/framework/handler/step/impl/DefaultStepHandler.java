@@ -1018,7 +1018,6 @@ public class DefaultStepHandler implements StepHandler {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Authentication failed exception!", e);
                     }
-                    LOG.error("Authentication failed exception! " + e.getMessage());
                 } else {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Authentication failed exception!", e);
@@ -1028,7 +1027,6 @@ public class DefaultStepHandler implements StepHandler {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Authentication failed exception!", e);
                 }
-                LOG.error("Authentication failed exception! " + e.getMessage());
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + idpName + ", Authenticator:" +
                     authenticatorConfig.getName();
