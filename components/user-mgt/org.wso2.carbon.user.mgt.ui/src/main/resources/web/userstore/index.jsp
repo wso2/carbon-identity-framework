@@ -29,7 +29,6 @@
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="java.util.ResourceBundle" %>
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
@@ -42,8 +41,6 @@
         <%
     	UserRealmInfo userRealmInfo = null;
             String currentUser = (String) session.getAttribute("logged-user");
-            String BUNDLE = "org.wso2.carbon.identity.template.mgt.ui.i18n.Resources";
-            ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
             try {
     			String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -130,10 +127,11 @@
             </table>
             <%      }
                 }
-            else {
-                String message = resourceBundle.getString("error.while.loading.user.realm.info");
-                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-            }
+            else {%>
+                <script type="text/javascript">
+                    location.href = "<%=request.getHeader("referer")%>";
+                </script>
+            <%}
             %>
             </td>
 
