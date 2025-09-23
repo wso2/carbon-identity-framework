@@ -880,6 +880,7 @@
   "authentication.adaptive.long_wait.prompt": false,
   "authentication.adaptive.execution_supervisor.enable": false,
   "authentication.adaptive.execution_supervisor.thread_count": "1",
+  "authentication.adaptive.execution_supervisor.timeout_enable": true,
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
   "authentication.adaptive.allow_updating_authenticated_subject": false,
