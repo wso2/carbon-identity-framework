@@ -512,4 +512,14 @@ public class AuthenticationEndpointUtil {
                 !url.toLowerCase().contains("ftp:") &&
                 !url.toLowerCase().contains("data:");
     }
+
+    /**
+     * Return whether the consent page redirect parameters are allowed in the authentication endpoint.
+     *
+     * @return true if the consent page redirect parameters are allowed in the authentication endpoint.
+     */
+    public static boolean isConsentPageRedirectParamsAllowed() {
+
+        return ConfigurationFacade.getInstance().isConsentPageRedirectParamsAllowed();
+    }
 }

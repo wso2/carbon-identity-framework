@@ -311,6 +311,16 @@ public class ConfigurationFacade {
         return FileBasedConfigurationBuilder.getInstance().getMaxLoginAttemptCount();
     }
 
+    /**
+     * Return whether the consent page redirect params are allowed.
+     *
+     * @return True if the query params are allowed, false otherwise.
+     */
+    public boolean isConsentPageRedirectParamsAllowed() {
+
+        return FileBasedConfigurationBuilder.getInstance().isConsentPageRedirectParamsAllowed();
+    }
+
     private String readAccountRecoveryEndpointPath() {
 
         return preprocessEndpointPath(IdentityUtil.getProperty("RecoveryEndpoint.Path"));
