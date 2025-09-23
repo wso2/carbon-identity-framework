@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -58,6 +59,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
@@ -90,6 +92,7 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -117,6 +120,7 @@ import org.wso2.carbon.user.core.model.ExpressionCondition;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -2215,5 +2219,119 @@ public class ApplicationManagementServiceImplTest {
         }
 
         return sharedAppId;
+    }
+
+    @DataProvider(name = "isAssociatedRolesConfigValidDataProvider")
+    public Object[][] isAssociatedRolesConfigValidDataProvider() {
+        return new Object[][]{
+                // Test cases: {testName, associatedRolesConfig, tenantDomain, expectedResult}.
+                {"NullAssociatedRolesConfig", null, SUPER_TENANT_DOMAIN_NAME, true},
+                {"EmptyRoles", createAssociatedRolesConfig(RoleConstants.APPLICATION, new RoleV2[0]),
+                        SUPER_TENANT_DOMAIN_NAME, true},
+                {"OrganizationAudienceType", createAssociatedRolesConfig(RoleConstants.ORGANIZATION,
+                        createRoles("role1", "role2")), SUPER_TENANT_DOMAIN_NAME, true},
+                {"OrganizationAudienceTypeNullAudience", createAssociatedRolesConfig(null,
+                        createRoles("role1", "role2")), SUPER_TENANT_DOMAIN_NAME, true},
+                {"OrganizationAudienceTypeBlankAudience", createAssociatedRolesConfig("",
+                        createRoles("role1", "role2")), SUPER_TENANT_DOMAIN_NAME, true},
+                {"OrganizationAudienceTypeEmptyAudience", createAssociatedRolesConfig("   ",
+                        createRoles("role1", "role2")), SUPER_TENANT_DOMAIN_NAME, true}
+        };
+    }
+
+    @Test(dataProvider = "isAssociatedRolesConfigValidDataProvider")
+    public void testIsAssociatedRolesConfigValid(String testName, AssociatedRolesConfig associatedRolesConfig,
+                                                  String tenantDomain, boolean expectedResult) throws Exception {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("TestApp");
+        serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
+
+        Method isAssociatedRolesConfigValidMethod = ApplicationManagementServiceImpl.class
+                .getDeclaredMethod("isAssociatedRolesConfigValid", ServiceProvider.class, String.class);
+        isAssociatedRolesConfigValidMethod.setAccessible(true);
+
+        boolean result = (boolean) isAssociatedRolesConfigValidMethod.invoke(applicationManagementService,
+                serviceProvider, tenantDomain);
+
+        Assert.assertEquals(result, expectedResult, "Test case '" + testName + "' failed.");
+    }
+
+    /**
+     * Test specifically the organization audience type scenario to ensure it returns true early.
+     */
+    @Test
+    public void testIsAssociatedRolesConfigValidOrganizationAudienceTypeReturnsEarly() throws Exception {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName("TestApp");
+
+        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+        associatedRolesConfig.setAllowedAudience(RoleConstants.ORGANIZATION);
+        associatedRolesConfig.setRoles(createRoles("role1", "role2", "role3"));
+        serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
+
+        Method isAssociatedRolesConfigValidMethod = ApplicationManagementServiceImpl.class
+                .getDeclaredMethod("isAssociatedRolesConfigValid", ServiceProvider.class, String.class);
+        isAssociatedRolesConfigValidMethod.setAccessible(true);
+
+        boolean result = (boolean) isAssociatedRolesConfigValidMethod.invoke(applicationManagementService,
+                serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertTrue(result,
+                "Method should return true for organization audience type and skip validation");
+    }
+
+    /**
+     * Test with different case variations of organization audience type.
+     */
+    @Test
+    public void testIsAssociatedRolesConfigValidOrganizationAudienceTypeCaseInsensitive() throws Exception {
+        String[] organizationVariations = {"organization", "ORGANIZATION", "Organization", "OrGaNiZaTiOn"};
+
+        for (String audienceType : organizationVariations) {
+            ServiceProvider serviceProvider = new ServiceProvider();
+            serviceProvider.setApplicationName("TestApp");
+
+            AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+            associatedRolesConfig.setAllowedAudience(audienceType);
+            associatedRolesConfig.setRoles(createRoles("role1"));
+            serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
+
+            Method isAssociatedRolesConfigValidMethod = ApplicationManagementServiceImpl.class
+                    .getDeclaredMethod("isAssociatedRolesConfigValid", ServiceProvider.class, String.class);
+            isAssociatedRolesConfigValidMethod.setAccessible(true);
+
+            boolean result = (boolean) isAssociatedRolesConfigValidMethod.invoke(applicationManagementService,
+                    serviceProvider, SUPER_TENANT_DOMAIN_NAME);
+
+            Assert.assertTrue(result,
+                    "Method should return true for organization audience type variation: " + audienceType);
+        }
+    }
+
+    /**
+     * Helper method to create AssociatedRolesConfig with specified audience and roles.
+     */
+    private AssociatedRolesConfig createAssociatedRolesConfig(String allowedAudience, RoleV2[] roles) {
+
+        AssociatedRolesConfig config = new AssociatedRolesConfig();
+        config.setAllowedAudience(allowedAudience);
+        config.setRoles(roles);
+        return config;
+    }
+
+    /**
+     * Helper method to create an array of RoleV2 objects.
+     */
+    private RoleV2[] createRoles(String... roleNames) {
+
+        RoleV2[] roles = new RoleV2[roleNames.length];
+        for (int i = 0; i < roleNames.length; i++) {
+            roles[i] = new RoleV2();
+            roles[i].setName(roleNames[i]);
+            roles[i].setId("role-id-" + i);
+        }
+        return roles;
     }
 }
