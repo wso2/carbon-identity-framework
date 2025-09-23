@@ -165,6 +165,7 @@ public class FlowUser implements Serializable {
      *
      * @return true if credentials are managed locally, false otherwise.
      */
+    @JsonIgnore
     public boolean isCredentialsManagedLocally() {
 
         // Credentials are NOT managed locally if any of these conditions are true.
@@ -185,12 +186,14 @@ public class FlowUser implements Serializable {
         return !isManagedExternally;
     }
 
+    @JsonIgnore
     public boolean isAccountLocked() {
 
         String accountLocked = claims.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI);
         return Boolean.parseBoolean(accountLocked);
     }
 
+    @JsonIgnore
     public boolean isAccountDisabled() {
 
         String accountDisabled = claims.get(FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI);
