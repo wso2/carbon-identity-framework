@@ -34,6 +34,7 @@ public class JWTDepthValidationTest {
 
     private static final int DEFAULT_MAX_DEPTH = 255;
 
+
     // Helper method to create JWT with given payload.
     private String createJWT(String payload) {
 
@@ -332,6 +333,9 @@ public class JWTDepthValidationTest {
 
     private void setRealMethodCalls(MockedStatic<IdentityUtil> identityUtilMock) {
 
+        identityUtilMock.when( () ->
+                        IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_JWT_DEPTH_VALIDATION))
+                .thenReturn("true");
         identityUtilMock.when(() -> IdentityUtil.validateJWTDepth(any()))
                 .thenCallRealMethod();
         identityUtilMock.when(() -> IdentityUtil.validateJsonDepth(any(), anyInt()))

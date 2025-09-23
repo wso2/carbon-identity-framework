@@ -2268,6 +2268,11 @@ public class IdentityUtil {
      */
     public static void validateJWTDepth(String jwt) throws ParseException {
 
+        String enableJWTDepth =
+                IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_JWT_DEPTH_VALIDATION);
+        if (StringUtils.isBlank(enableJWTDepth) || !Boolean.parseBoolean(enableJWTDepth)) {
+            return;
+        }
         if (log.isDebugEnabled()) {
             log.debug("Checking JWT depth validation");
         }
