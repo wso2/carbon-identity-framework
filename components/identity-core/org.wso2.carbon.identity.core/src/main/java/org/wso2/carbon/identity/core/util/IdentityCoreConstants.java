@@ -91,6 +91,7 @@ public class IdentityCoreConstants {
     public static final String USER_EMAIL_NOT_VERIFIED_ERROR_CODE = "17012";
     public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE = "17013";
     public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_MISMATCHED_ERROR_CODE = "17014";
+    public static final String USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE = "17015";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 
@@ -137,6 +138,10 @@ public class IdentityCoreConstants {
     public static final String AGENT_IDENTITY_ENABLE = "AgentIdentity.Enabled";
     public static final String AGENT_IDENTITY_USERSTORE_NAME = "AgentIdentity.Userstore";
     public static final String DEFAULT_AGENT_IDENTITY_USERSTORE_NAME = "AGENT";
+
+    // JWT related constants.
+    public static final String JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY = "JWT.MaximumAllowedDepth";
+    public static final int DEFAULT_JWT_MAXIMUM_ALLOWED_DEPTH = 255;
 
     public static class Filter {
 

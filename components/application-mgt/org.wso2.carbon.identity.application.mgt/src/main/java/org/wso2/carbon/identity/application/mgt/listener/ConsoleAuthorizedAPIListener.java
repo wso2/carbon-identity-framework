@@ -36,6 +36,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_ORG_SCOPE_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPERSONATE_SCOPE_NAME;
+
 /**
  * Console authorized API listener.
  */
@@ -49,6 +52,8 @@ public class ConsoleAuthorizedAPIListener extends AbstractAuthorizedAPIManagemen
             "internal_approval_task_update",
             "internal_org_approval_task_view",
             "internal_org_approval_task_update");
+    private static final List<String> UNAUTHORIZED_RBAC_SCOPES = Arrays.asList(
+            IMPERSONATE_SCOPE_NAME, IMPERSONATE_ORG_SCOPE_NAME);
 
     @Override
     public int getExecutionOrderId() {
@@ -141,6 +146,7 @@ public class ConsoleAuthorizedAPIListener extends AbstractAuthorizedAPIManagemen
                 List<Scope> systemAPIScopes = ApplicationManagementServiceComponentHolder.getInstance()
                         .getAPIResourceManager().getSystemAPIScopes(tenantDomain);
                 systemAPIScopes.removeIf(scope -> authorizedNoPolicyScopes.contains(scope.getName()));
+                systemAPIScopes.removeIf(scope -> UNAUTHORIZED_RBAC_SCOPES.contains(scope.getName()));
                 AuthorizedScopes authorizedScopes =
                         new AuthorizedScopes(APIResourceManagementConstants.RBAC_AUTHORIZATION, systemAPIScopes.stream()
                                 .map(Scope::getName).collect(Collectors.toList()));

@@ -30,9 +30,6 @@ import org.wso2.carbon.identity.event.publisher.internal.component.EventPublishe
 import org.wso2.carbon.identity.event.publisher.internal.util.EventPublisherExceptionHandler;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Implementation of the EventPublisherService interface.
@@ -42,8 +39,6 @@ public class EventPublisherServiceImpl implements EventPublisherService {
 
     private static final Log log = LogFactory.getLog(EventPublisherServiceImpl.class);
     private static final EventPublisherServiceImpl eventPublisherServiceImpl = new EventPublisherServiceImpl();
-    private static final int THREAD_POOL_SIZE = 10;
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     private final String webhookAdapter;
 
     private EventPublisherServiceImpl() {
@@ -68,17 +63,7 @@ public class EventPublisherServiceImpl implements EventPublisherService {
         EventPublisher adapterManager = retrieveAdapterManager(webhookAdapter);
 
         log.debug("Invoking registered event publisher: " + adapterManager.getClass().getName());
-        CompletableFuture.runAsync(() -> {
-            try {
-                adapterManager.publish(eventPayload, eventContext);
-            } catch (EventPublisherException e) {
-                log.error("Error while publishing event with publisher: " +
-                        adapterManager.getClass().getName(), e);
-            }
-        }, executorService).exceptionally(ex -> {
-            log.error("Error occurred in async event publishing: " + ex.getMessage(), ex);
-            return null;
-        });
+        adapterManager.publish(eventPayload, eventContext);
     }
 
     @Override

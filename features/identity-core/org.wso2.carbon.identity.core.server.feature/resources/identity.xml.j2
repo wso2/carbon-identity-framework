@@ -713,6 +713,9 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
                 <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
+                {% if oauth.grant_type.organization_switch.allow_refresh_tokens is defined %}
+                <IsRefreshTokenAllowed>{{oauth.grant_type.organization_switch.allow_refresh_tokens}}</IsRefreshTokenAllowed>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
@@ -1303,8 +1306,8 @@
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
         <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
 
-        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
         <JWT>
+        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
             <RenewTokenWithoutRevokingExisting>
                 <Enable>{{oauth.jwt.renew_token_without_revoking_existing.enable}}</Enable>
                 {% if oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types is defined %}
@@ -1315,8 +1318,9 @@
                 </AllowedGrantTypes>
                 {% endif %}
             </RenewTokenWithoutRevokingExisting>
-        </JWT>
         {% endif %}
+            <MaximumAllowedDepth>{{oauth.jwt.maximum_allowed_depth}}</MaximumAllowedDepth>
+        </JWT>
 
         {% if oauth.restricted_scopes is defined %}
         <RestrictedScopes>
@@ -1367,6 +1371,7 @@
         </RestrictedQueryParameters>
 
         <AuthorizeAllScopes>{{oauth.authorize_all_scopes}}</AuthorizeAllScopes>
+        <AuthorizeInternalScopes>{{oauth.authorize_internal_scopes}}</AuthorizeInternalScopes>
 
         <!--
             When this configuration is enabled, the system supports the features defined in RFC9396,
@@ -1458,6 +1463,7 @@
             <SeparateMultiAttributesFromIdP>{{saml.separate_multi_attributes_from_idp}}</SeparateMultiAttributesFromIdP>
         {% endif %}
         <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
+        <SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>{{saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert}}</SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>
     </SSOService>
 
     <Consent>
@@ -1493,6 +1499,7 @@
         <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
         <EnableLogoutWreplyValidation>{{passive_sts.enable_logout_wreply_validation}}</EnableLogoutWreplyValidation>
+        <SOAPEnabled>{{passive_sts.soap_enabled}}</SOAPEnabled>
     </PassiveSTS>
 
     <UserAccountAssociation>
@@ -1555,6 +1562,9 @@
             -->
             <ComplexMultiValuedAttributeSupportEnabled>{{scim.enable_complex_multivalued_attribute_support}}</ComplexMultiValuedAttributeSupportEnabled>
         </SCIMAuthenticators>
+
+        <!-- Restrict federated users from accessing the endpoint -->
+        <RestrictFederatedUserAccess>{{scim.restrict_federated_user_access}}</RestrictFederatedUserAccess>
     </SCIM>
 
     <SCIM2>
@@ -1669,6 +1679,31 @@
         {% endif %}
 
         <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
+        <!--
+            This configuration is used to mention the preferred role api version for 'ref'
+            attribute of the 'roles' attribute in the SCIM 2.0 User resource and Group resource.
+            Default value : v3
+            Applicable values : v1, v2, v3
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <DefaultRoleAPIVersionForRef>{{scim2.default_role_api_version_for_ref}}</DefaultRoleAPIVersionForRef>
+
+        <!--
+            If you want to return a 409 Conflict response (recommended) instead of a 400 Bad Request
+            when duplicate claims (excluding username) are encountered during SCIM2 user operations,
+            then enable this property value.
+            Default value: true
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <ReturnConflictOnClaimUniquenessViolation>{{scim2.return_conflict_on_claim_uniqueness_violation}}</ReturnConflictOnClaimUniquenessViolation>
+
+        <!--
+            If you want to throw a UserStoreException in case of user creation failures, then enable this
+            property value.
+            Default value: true
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <ThrowUserStoreExceptionOnUserCreationError>{{scim2.throw_userstore_exception_on_user_creation_error}}</ThrowUserStoreExceptionOnUserCreationError>
     </SCIM2>
 
     <Captcha>
@@ -2225,6 +2260,10 @@
     <Webhooks>
         <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
     </Webhooks>
+
+    <LocalAuthenticators>
+        <HideUserExistenceOnAuthFlow>{{authentication.local_authenticators.hide_user_existence}}</HideUserExistenceOnAuthFlow>
+    </LocalAuthenticators>
 
     <EventListeners>
         <EventListener id="input_validation"
@@ -4144,6 +4183,8 @@
         <GraalJS>
             <ScriptStatementsLimit>{{authentication.adaptive.graaljs.script_statements_limit}}</ScriptStatementsLimit>
         </GraalJS>
+
+        <AllowUpdatingAuthenticatedSubject>{{authentication.adaptive.allow_updating_authenticated_subject}}</AllowUpdatingAuthenticatedSubject>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
@@ -4161,6 +4202,41 @@
             {% endfor %}
         </ExemptContext>
     </IntermediateCertValidation>
+
+    {% set cfg = client_certificate_based_authentication or {} %}
+        <ClientCertBasedAuthentication enable="{{ cfg.enable | default(false) | string | lower }}">
+
+        {% if cfg.user_thumbprint_mapping %}
+        <UserThumbprintMappings>
+            {% for m in cfg.user_thumbprint_mapping %}
+            <Mapping>
+            <TrustedIssuer>{{ m.trusted_issuer }}</TrustedIssuer>
+            <CertThumbprint>{{ m.cert_thumbprint }}</CertThumbprint>
+            {% if m.allowed_username is string %}
+                <AllowedUsername>{{ m.allowed_username }}</AllowedUsername>
+            {% elif m.allowed_username is sequence %}
+                {% for u in m.allowed_username %}
+                <AllowedUsername>{{ u }}</AllowedUsername>
+                {% endfor %}
+            {% else %}
+            {% endif %}
+            </Mapping>
+            {% endfor %}
+        </UserThumbprintMappings>
+        {% endif %}
+
+        {% if cfg.system_thumbprint_mapping %}
+        <SystemThumbprintMappings>
+            {% for m in cfg.system_thumbprint_mapping %}
+            <Mapping>
+            <TrustedIssuer>{{ m.trusted_issuer }}</TrustedIssuer>
+            <CertThumbprint>{{ m.cert_thumbprint }}</CertThumbprint>
+            <AllowedSystemUser>{{ m.allowed_system_user }}</AllowedSystemUser>
+            </Mapping>
+            {% endfor %}
+        </SystemThumbprintMappings>
+        {% endif %}
+        </ClientCertBasedAuthentication>
 
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
@@ -4185,6 +4261,10 @@
          <AppName>{{application}}</AppName>
          {% endfor %}
      </FIdPRoleBasedAuthzApplications>
+     {% endif %}
+
+     {% if federated.authenticator.max_property_limit is defined %}
+     <MaxFederatedAuthenticatorPropertiesPerIdP>{{federated.authenticator.max_property_limit}}</MaxFederatedAuthenticatorPropertiesPerIdP>
      {% endif %}
 
     <!--This configuration is used for X509 Certificate based authentication. -->
@@ -4649,6 +4729,18 @@
             </GetPolicyDoc>
         </PolicyEditorService>
         {% endif %}
+        <TOTPAdminService>
+            <SelfOperations>
+                <Enabled>{{totp_admin_service.self_operations.enabled | default('false')}}</Enabled>
+            </SelfOperations>
+            <Permission>{{totp_admin_service.permission | default('/permission/admin/manage/identity/usermgt/update')}}</Permission>
+        </TOTPAdminService>
+        <ApplicationMgtAdminService>
+            <IdpSecretsRetrievalPermission>{{appmgt_admin_service.idp_secrets_retrieval_permission | default('/permission/admin/manage/identity/idpmgt/view')}}</IdpSecretsRetrievalPermission>
+        </ApplicationMgtAdminService>
+        <UserManagementWorkflowService>
+            <WorkflowServicePermission>{{ user_management_workflow_service.permission | default('/permission/admin/manage/identity/workflow/association/view') }}</WorkflowServicePermission>
+        </UserManagementWorkflowService>
     </AdminServices>
 
     <AIServices>
@@ -4681,6 +4773,12 @@
             <ResultRequestPath>{{ai_services.flow_ai.result_request_path}}</ResultRequestPath>
         </FlowAI>
     </AIServices>
+
+    <TokenExchange>
+        <ImplicitAssociation>
+            <IncludePrimaryWhenSecondaryPresent>{{token_exchange.implicit_association.include_primary_when_secondary_present}}</IncludePrimaryWhenSecondaryPresent>
+        </ImplicitAssociation>
+    </TokenExchange>
 
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
     <FilterByUniqueSessionIdForUser>{{session_management.filter_by_unique_session_id_for_user}}</FilterByUniqueSessionIdForUser>
@@ -4731,5 +4829,26 @@
         </FlowTypeTTLs>
         <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
     </FlowExecution>
+
+    <NotificationChannel>
+        <SMS>
+            <Custom>
+                <!--
+                    Specifies the connection timeout in milliseconds when connecting to the custom SMS provider.
+                    A timeout of zero is interpreted as an infinite timeout.
+                    Default value is 5000ms.
+                    Supported versions : IS 7.2.0 onwards
+                -->
+                <ConnectionTimeout>{{notificationChannel.sms.custom.connection_timeout}}</ConnectionTimeout>
+                <!--
+                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is 
+                    established to the custom SMS provider. A timeout of zero is interpreted as an infinite timeout.
+                    Default value is 20000ms.
+                    Supported versions : IS 7.2.0 onwards
+                -->
+                <ConnectionReadTimeout>{{notificationChannel.sms.custom.connection_read_timeout}}</ConnectionReadTimeout>
+            </Custom>
+        </SMS>
+    </NotificationChannel>
 
 </Server>

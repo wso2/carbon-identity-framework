@@ -107,6 +107,7 @@
   "oauth.jwt.return_only_app_associated_roles": true,
   "oauth.revoked_token_headers_in_response.enable": false,
   "oauth.return_sp_id_to_apps": false,
+  "oauth.jwt.maximum_allowed_depth": 255,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
   "oauth.enable_sha256": true,
@@ -324,6 +325,7 @@
   "saml.slo.retry_attempts": "5",
   "saml.slo.retry_interval": "1m",
   "saml.slo.host_name_verification": true,
+  "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": true,
   "saml.response.validity": "5m",
   "saml.artifact.validity": "4m",
   "saml.use_tenant_key_of": "user",
@@ -370,6 +372,7 @@
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
+  "passive_sts.soap_enabled": false,
 
   "user_account_association.enable_sha256": true,
   "federated_user_account_association.max_bulk_operations": 1000,
@@ -387,6 +390,7 @@
   "scim.authentication_handler.oauth.properties.Priority": "10",
   "scim.authentication_handler.oauth.properties.AuthorizationServer": "local://services",
   "scim.enable_complex_multivalued_attribute_support": false,
+  "scim.restrict_federated_user_access": true,
   "scim2.endpoints.users_endpoint": "$ref{server.base_path}/scim2/Users",
   "scim2.endpoints.groups_endpoint": "$ref{server.base_path}/scim2/Groups",
   "scim2.enable_complex_multivalued_attribute_support": false,
@@ -403,6 +407,9 @@
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
   "scim2.enable_scim2_roles_v3_api": true,
+  "scim2.default_role_api_version_for_ref": "v3",
+  "scim2.return_conflict_on_claim_uniqueness_violation": true,
+  "scim2.throw_userstore_exception_on_user_creation_error": true,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -875,7 +882,9 @@
   "authentication.adaptive.execution_supervisor.thread_count": "1",
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
+  "authentication.adaptive.allow_updating_authenticated_subject": false,
   "authentication.adaptive.graaljs.script_statements_limit": "0",
+  "authentication.adaptive.shared_applications.enable": false,
   "AdaptiveAuth.ScriptEngine": "graaljs",
 
   "federated.idp.role_claim_value_attribute_separator": ",",
@@ -979,11 +988,6 @@
       "description": "This email notifies the user that password reset is successfully completed"
     },
     {
-      "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
-      "displayName": "Admin-Requested Password Reset",
-      "description": "This email notifies the user that the organization admin has requested a password reset."
-    },
-    {
       "id": "VW5zZWVuRGV2aWNlTG9naW4",
       "displayName": "New Device Login",
       "description": "This email notifies the user that a login from a new device is detected"
@@ -1036,12 +1040,12 @@
     {
       "id": "QWNjb3VudExvY2tGYWlsZWRBdHRlbXB0",
       "displayName": "Account Locked By Failed Attempts",
-      "description": "This email notifies the user that the account is locked by due to too many failed login attempts"
+      "description": "This email notifies the user that the account is locked due to too many failed login attempts"
     },
     {
       "id": "YWNjb3VudExvY2tGYWlsZWRBdHRlbXB0VW50aWxBZG1pblVubG9jaw",
       "displayName": "Account Locked By Failed Attempts Until Admin Unlocks",
-      "description": "This email notifies the user that the account is locked by due to too many failed login attempts until admin unlocks"
+      "description": "This email notifies the user that the account is locked due to too many failed login attempts until an admin unlocks it."
     },
     {
       "id": "QWNjb3VudEVuYWJsZQ",
@@ -1093,19 +1097,24 @@
       "description": "This email is sent when the organization admin re-initiates the request for a new user password."
     },
     {
+      "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
+      "displayName": "Admin Initiated Password Reset",
+      "description": "This email notifies the user that the organization admin has initiated a password reset."
+    },
+    {
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
-      "displayName": "Resend Admin-Requested Forced Password Reset",
-      "description": "This email is sent when the organization admin re-initiates the forced password reset for a user"
+      "displayName": "Resend Admin Initiated Password Reset",
+      "description": "This email notifies the user that the organization admin has reinitiated a password reset."
     },
     {
       "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
-      "displayName": "Admin Forced Password Reset with OTP",
-      "description": "This email is sent when the organization admin initiates the forced password reset for a user with OTP"
+      "displayName": "Admin Initiated Password Reset with OTP",
+      "description": "This email is sent when the organization admin initiates the password reset for a user with OTP."
     },
     {
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
-      "displayName": "Resend Admin Forced Password Reset with OTP",
-      "description": "This email is sent when the organization admin reinitiates the forced password reset for a user with OTP"
+      "displayName": "Resend Admin Initiated Password Reset with OTP",
+      "description": "This email is sent when the organization admin reinitiates the password reset for a user with OTP."
     },
     {
       "id": "YWNjb3VudEFjdGl2YXRpb25TdWNjZXNz",
@@ -1193,17 +1202,17 @@
       "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     },
     {
-      "description": "This email OTP is sent to the user to set their password",
-      "displayName": "Invite user to set password via Email OTP",
+      "description": "This email OTP is sent to sign in and complete registration.",
+      "displayName": "Email OTP for Invited User Registration",
       "id": "QXNrUGFzc3dvcmRFbWFpbE9UUA"
     },
     {
-      "description": "This email is resent to the user to set their password via Email OTP",
-      "displayName": "Resend invite user to set password via Email OTP",
+      "description": "This email OTP is resent to sign in and complete registration.",
+      "displayName": "Resend Email OTP for Invited User Registration",
       "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA"
     },
     {
-      "description": "This email is sent to confirm the user email address via Email OTP",
+      "description": "This email is sent to confirm the user's email address via Email OTP",
       "displayName": "Confirm Email Address via Email OTP",
       "id": "RW1haWxDb25maXJtV2l0aE9UUA"
     },
@@ -1260,18 +1269,28 @@
       "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
     },
     {
-      "description": "This SMS is sent to send the OTP for setting a password.",
-      "displayName": "Send Password Setup OTP",
+      "description": "This SMS is sent to provide a one-time password when admin initiates a password reset for a user",
+      "displayName": "Admin Initiated Password Reset",
+      "id": "YWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0"
+    },
+    {
+      "description": "This SMS is sent to provide a one-time password when admin resends a password reset request",
+      "displayName": "Admin Resend Initiated Password Reset",
+      "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0"
+    },
+    {
+      "description": "This SMS OTP is sent to sign in and complete registration.",
+      "displayName": "SMS OTP for Invited User Registration",
       "id": "YXNrUGFzc3dvcmRTTVNPVFA"
     },
     {
-      "description": "This SMS is sent to resend the OTP for setting a password.",
-      "displayName": "Resend Password Setup OTP",
+      "description": "This SMS OTP is resent to sign in and complete registration.",
+      "displayName": "Resend SMS OTP for Invited User Registration",
       "id": "YXNrUGFzc3dvcmRSZXNlbmRTTVNPVFA"
     },
     {
-      "description": "This SMS is sent to notify the user that their account is now unlocked.",
-      "displayName": "Password Setup Success",
+      "description": "This SMS is sent to notify the user that their account has been set up successfully.",
+      "displayName": "Invited User Registration Success",
       "id": "YXNrUGFzc3dvcmRTZXRTdWNjZXNz"
     }
   ],
@@ -1300,44 +1319,44 @@
   "console.ui.hiddenConnectionTemplates": [
     "swe-idp"
   ],
-  "console.ui.hiddenApplicationTemplates": [],
+  "console.ui.hiddenApplicationTemplates": [
+    "microsoft-365"
+  ],
   "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
   "console.ui.isXacmlConnectorEnabled": false,
-  "console.ui.routes.organizationEnabledRoutes": [
-    "accountSecurity",
-    "actions",
-    "admin-forced-password-reset",
-    "apiResources",
-    "applications",
-    "approvalWorkflows",
-    "approvals",
-    "attributeDialects",
-    "branding",
-    "consoleSettings",
-    "emailTemplates",
-    "flows",
-    "gettingStarted",
-    "governanceConnectors",
-    "groups",
-    "identityProviders",
-    "loginAndRegistration",
-    "oidcScopes",
-    "organizations",
-    "password-recovery",
-    "roles",
-    "self-registration-connector",
-    "smsTemplates",
-    "user-email-verification",
-    "userRoles",
-    "userStores",
-    "username-recovery",
-    "users",
-    "workflowInstanceDetails",
-    "workflowInstances"
-  ],
+  "console.ui.routes.organizationEnabledRoutes.accountSecurity": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.actions": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.admin-forced-password-reset": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.apiResources": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.applications": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.approvals": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.attributeDialects": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.branding": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.consoleSettings": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.emailTemplates": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.flows": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.gettingStarted": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.governanceConnectors": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.groups": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.identityProviders": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.loginAndRegistration": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.oidcScopes": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.organizations": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.password-recovery": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.roles": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.self-registration-connector": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.smsTemplates": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.user-email-verification": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.userRoles": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.userStores": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.username-recovery": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.users": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.workflowInstanceDetails": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.workflowInstances": "v0.0.0",
   "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
@@ -1454,7 +1473,7 @@
   "console.approvalWorkflows.enabled": true,
   "console.approvalWorkflows.scopes.feature": ["console:approvalWorkflows"],
   "console.approvalWorkflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
-  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
+  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view", "internal_user_mgt_list", "internal_role_mgt_view"],
   "console.approvalWorkflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
   "console.approvalWorkflows.scopes.delete": ["internal_workflow_delete", "internal_workflow_association_delete"],
   "console.workflowInstances.enabled": true,
@@ -1988,7 +2007,7 @@
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
   "organization_management.organization_versioning.new_organization_version": "v1.0.0",
-  "organization_discovery.default_param": "orgName",
+  "organization_discovery.default_param": "orgHandle",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
@@ -2031,6 +2050,7 @@
   "webhooks.maximum_webhooks_per_tenant": "10",
 
   "oauth.authorize_all_scopes": false,
+  "oauth.authorize_internal_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
 
   "system_applications.system_portals": ["Console", "My Account"],
@@ -2038,6 +2058,8 @@
   "notification_templates.sms_templates.apply": true,
 
   "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": true,
+
+  "token_exchange.implicit_association.include_primary_when_secondary_present": true,
 
   "attribute.return_previous_additional_properties.enabled": false,
 
@@ -2057,6 +2079,12 @@
   },
   "flow_execution.enable_legacy_flows": false,
   "branding_configuration.custom_content.max_file_size": 1048576,
-  "captcha.enable_captcha_for_local_otp_authenticators": true
-}
+  "captcha.enable_captcha_for_local_otp_authenticators": true,
 
+  "console.ui.organizations.organization_display_name.enable": true,
+  "console.ui.organizations.organization_handle.enable": true,
+  "notification_templates.super_organization_display_name.enable": true,
+  
+  "notificationChannel.sms.custom.connection_timeout": "5000",
+  "notificationChannel.sms.custom.connection_read_timeout": "20000"
+}

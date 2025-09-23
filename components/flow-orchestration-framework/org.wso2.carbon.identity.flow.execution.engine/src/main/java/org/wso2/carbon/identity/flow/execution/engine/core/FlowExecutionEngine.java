@@ -84,11 +84,13 @@ public class FlowExecutionEngine {
             throws FlowEngineException {
 
         GraphConfig graph = context.getGraphConfig();
-
         String tenantDomain = context.getTenantDomain();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Starting the " + context.getFlowType() + " flow for the tenant: " + tenantDomain);
+        }
         if (graph.getFirstNodeId() == null) {
-            throw handleServerException(ERROR_CODE_FIRST_NODE_NOT_FOUND, context.getFlowType(), graph.getId(),
-                    tenantDomain);
+            throw handleServerException(context.getFlowType(), ERROR_CODE_FIRST_NODE_NOT_FOUND, context.getFlowType(),
+                    graph.getId(), tenantDomain);
         }
 
         NodeConfig currentNode = context.getCurrentNode();
@@ -196,7 +198,8 @@ public class FlowExecutionEngine {
             case Constants.NodeTypes.PROMPT_ONLY:
                 return new PagePromptNode().execute(context, nodeConfig);
             default:
-                throw handleServerException(ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(), context.getFlowType(),
+                throw handleServerException(context.getFlowType(), ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(),
+                        context.getFlowType(),
                         context.getGraphConfig().getId(), context.getTenantDomain());
         }
     }
@@ -211,7 +214,7 @@ public class FlowExecutionEngine {
             finalDataDTO = new DataDTO.Builder()
                     .components(dataDTO.getComponents())
                     .requiredParams(nodeResponse.getRequiredData())
-                    .additionalData(dataDTO.getAdditionalData())
+                    .additionalData(nodeResponse.getAdditionalInfo())
                     .build();
             handleError(finalDataDTO, nodeResponse);
         }
@@ -248,7 +251,7 @@ public class FlowExecutionEngine {
 
         if (nodeResponse.getAdditionalInfo() == null || nodeResponse.getAdditionalInfo().isEmpty() ||
                 !nodeResponse.getAdditionalInfo().containsKey(REDIRECT_URL)) {
-            throw handleServerException(ERROR_CODE_REDIRECTION_URL_NOT_FOUND);
+            throw handleServerException(context.getFlowType(), ERROR_CODE_REDIRECTION_URL_NOT_FOUND);
         }
         String redirectUrl = nodeResponse.getAdditionalInfo().get(REDIRECT_URL);
         nodeResponse.getAdditionalInfo().remove(REDIRECT_URL);
@@ -269,7 +272,7 @@ public class FlowExecutionEngine {
 
         if (nodeResponse.getAdditionalInfo() == null || nodeResponse.getAdditionalInfo().isEmpty() ||
                 !nodeResponse.getAdditionalInfo().containsKey(WEBAUTHN_DATA)) {
-            throw handleServerException(ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND);
+            throw handleServerException(context.getFlowType(), ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND);
         }
 
         Map<String, Object> webAuthnData = FlowExecutionEngineUtils.getMapFromJSONString(nodeResponse
@@ -290,7 +293,7 @@ public class FlowExecutionEngine {
             throws FlowEngineServerException {
 
         if (nodeResponse.getRequiredData() == null || nodeResponse.getRequiredData().isEmpty()) {
-            throw handleServerException(ERROR_CODE_REQUIRED_DATA_NOT_FOUND);
+            throw handleServerException(context.getFlowType(), ERROR_CODE_REQUIRED_DATA_NOT_FOUND);
         }
         return new FlowExecutionStep.Builder()
                 .flowId(context.getContextIdentifier())

@@ -78,7 +78,8 @@ public class ConfigurationConstants {
     public enum InheritedResourceType {
         INPUT_VALIDATION_CONFIGURATIONS("input-validation-configurations", true),
         FLOW_MGT_CONFIG("flow-mgt-config", true),
-        IMPERSONATION_CONFIGURATION("IMPERSONATION_CONFIGURATION", true);
+        IMPERSONATION_CONFIGURATION("IMPERSONATION_CONFIGURATION", true),
+        COMPATIBILITY_SETTINGS("compatibility-settings", false);
 
         private final String resourceTypeName;
         private final boolean checkOrgVersionWhenInheriting;

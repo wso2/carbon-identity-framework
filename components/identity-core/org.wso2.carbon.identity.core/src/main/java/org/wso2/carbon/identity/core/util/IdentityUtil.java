@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.ibm.wsdl.util.xml.DOM2Writer;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
@@ -73,6 +75,8 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URLEncoder;
@@ -87,6 +91,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -2254,4 +2259,111 @@ public class IdentityUtil {
         }
         return userStoreName;
     }
+
+    /**
+     * Check whether the JWT exceeds the allowed depth.
+     *
+     * @param jwt JWT string to check.
+     * @throws  ParseException If the JWT exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJWTDepth(String jwt) throws ParseException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Checking JWT depth validation");
+        }
+
+        if (StringUtils.isBlank(jwt)) {
+            if (log.isDebugEnabled()) {
+                log.debug("JWT is blank, skipping depth validation");
+            }
+            throw new ParseException("Error validating JWT depth. JWT is blank.", 0);
+        }
+
+        // Extract and decode JWT payload.
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            throw new ParseException("Error validating JWT depth. Invalid JWT format.", 0);
+        }
+
+        byte[] payloadBytes;
+        try {
+            payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+        } catch (IllegalArgumentException e) {
+            throw new ParseException("Error validating JWT depth. Invalid Base64 encoding in JWT payload.", 0);
+        }
+        String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
+
+        validateJsonDepth(jsonPayload, getAllowedMaxJWTDepth());
+    }
+
+    /**
+     * Check whether the JWT payload exceeds the allowed depth.
+     * @param payload JWT payload(JSON) string to check.
+     * @throws ParseException If the JWT payload exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJWTDepthOfJWTPayload(String payload) throws ParseException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Checking JWT payload depth validation");
+        }
+
+        if (StringUtils.isBlank(payload)) {
+            if (log.isDebugEnabled()) {
+                log.debug("JWT payload is blank, skipping depth validation");
+            }
+            throw new ParseException("Error validating JWT depth. JWT is blank.", 0);
+        }
+        validateJsonDepth(payload, getAllowedMaxJWTDepth());
+    }
+
+    /**
+     * Check whether the JSON exceeds the allowed depth.
+     *
+     * @param json JSON String to check.
+     * @throws  ParseException If the JSON exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJsonDepth(String json, int maxDepth) throws ParseException {
+
+        try (JsonReader reader = new JsonReader(new StringReader(json))) {
+            int depth = 0;
+
+            while (reader.hasNext()) {
+                JsonToken token = reader.peek();
+
+                if (token == JsonToken.BEGIN_OBJECT) {
+                    depth++;
+                    if (depth > maxDepth) throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    reader.beginObject();
+                } else if (token == JsonToken.BEGIN_ARRAY) {
+                    depth++;
+                    if (depth > maxDepth) throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    reader.beginArray();
+                } else if (token == JsonToken.END_OBJECT) {
+                    depth--;
+                    reader.endObject();
+                } else if (token == JsonToken.END_ARRAY) {
+                    depth--;
+                    reader.endArray();
+                } else {
+                    reader.skipValue();
+                }
+            }
+        } catch (IOException e) {
+            throw new ParseException("Error parsing JSON while depth validation.", 0);
+        }
+    }
+
+    /**
+     * Get the allowed maximum depth for JSON objects.
+     * This value defines how deeply nested a JSON structure can be before it is
+     * considered invalid.
+     * @return Maximum allowed JSON depth.
+     */
+    public static int getAllowedMaxJWTDepth() {
+
+        String depthConfig = IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY);
+        return StringUtils.isNotBlank(depthConfig) ? Integer.parseInt(depthConfig) :
+                IdentityCoreConstants.DEFAULT_JWT_MAXIMUM_ALLOWED_DEPTH;
+    }
+
 }

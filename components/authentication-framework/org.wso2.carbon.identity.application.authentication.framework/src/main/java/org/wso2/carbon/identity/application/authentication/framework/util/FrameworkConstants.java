@@ -546,7 +546,9 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT = "/authenticationendpoint/dynamic_prompt.do";
         public static final String AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT = "/authenticationendpoint/claims.do";
         public static final String ACCOUNT_RECOVERY_ENDPOINT_PATH = "/accountrecoveryendpoint";
-
+        public static final String ACCOUNT_RECOVERY_CONFIRM_RECOVERY_ENDPOINT =
+                "accountrecoveryendpoint/confirmrecovery.do";
+        public static final String ORCHESTRATED_INVITED_USER_REGISTRATION_ENDPOINT = "/accounts/register";
     }
 
     /**
@@ -615,6 +617,7 @@ public abstract class FrameworkConstants {
         public static final String JS_OPTIONS_USERNAME = "username";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
+        public static final String PROP_USERNAME_UPDATED_EXTERNALLY = "usernameUpdatedExternally";
 
         public static final String JS_FUNC_ON_LOGIN_REQUEST = "onLoginRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
@@ -704,6 +707,8 @@ public abstract class FrameworkConstants {
                 = "AdaptiveAuthExecutionSupervisorResult";
         public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
                 = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
+        public static final String ALLOW_AUTHENTICATED_SUB_UPDATE =
+                "AdaptiveAuth.AllowUpdatingAuthenticatedSubject";
         public static final String GRAALJS_SCRIPT_STATEMENTS_LIMIT
                 = "AdaptiveAuth.GraalJS.ScriptStatementsLimit";
         public static final int DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT = 0;

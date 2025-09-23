@@ -49,6 +49,9 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.mgt.Constants;
+import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
+import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.IOException;
@@ -210,19 +213,29 @@ public class DefaultStepHandlerTest {
         }
     }
 
-    @Test
-    public void testGetRedirectURLWhenAuthenticationFail()
+    @DataProvider
+    public Object[] getOTPBasedFailedLoginScenarios() {
+
+        return new Object[]{
+                IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE,
+                IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
+        };
+    }
+
+    @Test(dataProvider = "getOTPBasedFailedLoginScenarios")
+    public void testGetRedirectURLWhenAuthenticationFail(String errorCode)
             throws URISyntaxException, IOException, URLBuilderException {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
-             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
+             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class);
+             MockedStatic<FlowMgtConfigUtils> flowMgtConfigUtil = mockStatic(FlowMgtConfigUtils.class)) {
 
             String callbackUrl = "http://localhost:8080/callback";
 
             AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain("carbon.super");
             IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
-            when(errorMsgContext.getErrorCode())
-                    .thenReturn(IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE);
+            when(errorMsgContext.getErrorCode()).thenReturn(errorCode);
             identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
 
             // Mock ServiceURLBuilder chain
@@ -234,6 +247,11 @@ public class DefaultStepHandlerTest {
             when(mockServiceURLBuilder.build(any(String.class))).thenReturn(mockServiceURL);  // Non-deprecated method
             when(mockServiceURL.getAbsolutePublicURL()).thenReturn(callbackUrl);
 
+            FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
+            flowConfigDTO.setIsEnabled(true);
+            flowMgtConfigUtil.when(() -> FlowMgtConfigUtils.getFlowConfig(
+                    Constants.FlowTypes.INVITED_USER_REGISTRATION.getType(), "carbon.super"))
+                    .thenReturn(flowConfigDTO);
             // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
             // Not relevant to the test flow furthermore.
             String retryParam = "";
@@ -252,21 +270,82 @@ public class DefaultStepHandlerTest {
                     "true", retryParam, "");
             Assert.assertTrue(redirectUrl.contains(URLEncoder.encode(callbackUrl, "UTF-8")));
 
+            when(request.getParameter("username")).thenReturn("testUser");
             redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
                     "false", retryParam, "");
             Assert.assertTrue(redirectUrl.contains(URLEncoder.encode(callbackUrl, "UTF-8")));
         }
     }
 
-    @Test
-    public void testAskPasswordOTPFailureNotLogged() throws FrameworkException, AuthenticationFailedException,
-            LogoutFailedException {
+    /**
+     * Data provider for testLoginFailureNotLoggedForDefinedRecoveryScenarios.
+     *
+     * @return Object[][] with error codes.
+     */
+    @DataProvider
+    public Object[][] emailVerificationErrorCodes() {
+
+        return new Object[][] {
+                { IdentityCoreConstants.USER_EMAIL_NOT_VERIFIED_ERROR_CODE, "email.verification.pending" },
+                { IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE, "email.otp.verification.pending" }
+        };
+    }
+
+    @Test(dataProvider = "emailVerificationErrorCodes")
+    public void testGetRedirectURLWhenEmailOTPVerificationAuthenticationFail(String errorCode, String failureMessage)
+            throws URISyntaxException, IOException {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+            AuthenticationContext context = new AuthenticationContext();
+            IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
+            when(errorMsgContext.getErrorCode()).thenReturn(errorCode);
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
+
+            // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
+            // Not relevant to the test flow furthermore.
+            String retryParam = "";
+            doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
+
+            // The basicAuthRedirectUrl should contain the error code for the user locked state as query parameters
+            URIBuilder basicAuthRedirectUrlBuilder = new URIBuilder("http://example.com/");
+            basicAuthRedirectUrlBuilder.addParameter(
+                    FrameworkConstants.ERROR_CODE,
+                    UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+            String basicAuthRedirectUrl = basicAuthRedirectUrlBuilder.build().toString();
+            response = spy(new CommonAuthResponseWrapper(response));
+            when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn(basicAuthRedirectUrl);
+
+            String redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
+                    "true", retryParam, "");
+            Assert.assertTrue(redirectUrl.contains(errorCode));
+            Assert.assertTrue(redirectUrl.contains("authFailureMsg=" + failureMessage));
+        }
+    }
+
+    /**
+     * Data provider for testLoginFailureNotLoggedForDefinedRecoveryScenarios.
+     *
+     * @return Object[][] with error codes.
+     */
+    @DataProvider
+    public Object[][] recoveryErrorCodeProvider() {
+
+        return new Object[][] {
+                { IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE },
+                { IdentityCoreConstants.USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE }
+        };
+    }
+
+    @Test(dataProvider = "recoveryErrorCodeProvider")
+    public void testLoginFailureNotLoggedForDefinedRecoveryScenarios(String errorCode) throws FrameworkException,
+            AuthenticationFailedException, LogoutFailedException {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
              MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
              MockedStatic<LogFactory> logFactory = mockStatic(LogFactory.class)) {
 
-            // Mock the LOG instance
+            // Mock the LOG instance.
             Log mockLog = mock(Log.class);
             when(mockLog.isDebugEnabled()).thenReturn(true);
             when(mockLog.isErrorEnabled()).thenReturn(true);
@@ -282,8 +361,7 @@ public class DefaultStepHandlerTest {
             when(sequenceConfig.getStepMap()).thenReturn(stepMap);
 
             IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
-            when(errorMsgContext.getErrorCode())
-                    .thenReturn(IdentityCoreConstants.ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE);
+            when(errorMsgContext.getErrorCode()).thenReturn(errorCode);
             identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
 
             // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
@@ -296,13 +374,12 @@ public class DefaultStepHandlerTest {
             when(authenticatorConfig.getApplicationAuthenticator()).thenReturn(applicationAuthenticator);
             when(applicationAuthenticator.isAuthenticationRequired(request, response, context)).thenReturn(true);
             when(applicationAuthenticator.process(request, response, context))
-                    .thenThrow(new AuthenticationFailedException("ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE"));
+                    .thenThrow(new AuthenticationFailedException(errorCode));
             loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
 
             defaultStepHandler.doAuthentication(request, response, context, authenticatorConfig);
 
-            verify(mockLog, never()).error("Authentication failed exception! " + 
-                    "ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE");
+            verify(mockLog, never()).error("Authentication failed exception! " + errorCode);
         }
     }
 

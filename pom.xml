@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.465-SNAPSHOT</version>
+    <version>7.8.508-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -69,7 +69,6 @@
         <module>components/multi-attribute-login</module>
         <module>components/secret-mgt</module>
         <module>components/central-logger</module>
-        <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
@@ -84,6 +83,7 @@
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
+        <module>components/input-validation-mgt</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
@@ -1278,6 +1278,11 @@
                 <artifactId>org.wso2.carbon.identity.organization.resource.sharing.policy.management</artifactId>
                 <version>${org.wso2.carbon.identity.organization.management.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.management.organization.user.sharing</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.organization.management</groupId>
@@ -2038,7 +2043,7 @@
         <org.bouncycastle.imp.pkg.version.range>[0.0.0,2.0.0)</org.bouncycastle.imp.pkg.version.range>
         <org.wso2.carbon.identity.organization.management.core.version>1.1.48
         </org.wso2.carbon.identity.organization.management.core.version>
-        <org.wso2.carbon.identity.organization.management.version>2.0.8</org.wso2.carbon.identity.organization.management.version>
+        <org.wso2.carbon.identity.organization.management.version>2.0.33</org.wso2.carbon.identity.organization.management.version>
         <org.wso2.carbon.identity.organization.management.version.range>[2.0.0, 3.0.0)</org.wso2.carbon.identity.organization.management.version.range>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
