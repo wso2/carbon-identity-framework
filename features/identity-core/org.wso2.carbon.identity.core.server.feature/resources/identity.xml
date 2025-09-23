@@ -2880,6 +2880,9 @@
     </BrandingConfiguration>
     <AgentIdentity>
         <Enabled>true</Enabled>
+        <Userstore>AGENT</Userstore>
+        <Datasource>jdbc/AgentIdentity</Datasource>
+        <UserstoreManagerClass>org.wso2.carbon.identity.agent.manager.AgentUserStoreManager</UserstoreManagerClass>
     </AgentIdentity>
 
     <NotificationChannel>
