@@ -676,6 +676,9 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         if (IdentityApplicationManagementUtil.isArrayFillPresentInAdaptiveAuthScript(script)) {
             validationErrors.add("Script contains Array().fill() constructs which are not allowed.");
         }
+        if (IdentityApplicationManagementUtil.isStringRepeatPresentInAdaptiveAuthScript(script)) {
+            validationErrors.add("Script contains String.repeat() constructs which are not allowed.");
+        }
 
     }
 
