@@ -1206,14 +1206,12 @@ public class ApplicationMgtUtil {
             return resolveOriginUrlFromPlaceholders(absoluteUrl);
         }
         String basePath = StringUtils.EMPTY;
-        if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
+        if (subOrgAppWithBaseURLPlaceholder) {
+            basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+        } else if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
         } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(MYACCOUNT_ACCESS_ORIGIN);
-        }
-
-        if (subOrgAppWithBaseURLPlaceholder) {
-            basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
         }
 
         if (StringUtils.isEmpty(basePath)) {
