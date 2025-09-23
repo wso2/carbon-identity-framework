@@ -2223,6 +2223,7 @@ public class ApplicationManagementServiceImplTest {
 
     @DataProvider(name = "isAssociatedRolesConfigValidDataProvider")
     public Object[][] isAssociatedRolesConfigValidDataProvider() {
+
         return new Object[][]{
                 // Test cases: {testName, associatedRolesConfig, tenantDomain, expectedResult}.
                 {"NullAssociatedRolesConfig", null, SUPER_TENANT_DOMAIN_NAME, true},
@@ -2287,8 +2288,8 @@ public class ApplicationManagementServiceImplTest {
      */
     @Test
     public void testIsAssociatedRolesConfigValidOrganizationAudienceTypeCaseInsensitive() throws Exception {
-        String[] organizationVariations = {"organization", "ORGANIZATION", "Organization", "OrGaNiZaTiOn"};
 
+        String[] organizationVariations = {"organization", "ORGANIZATION", "Organization", "OrGaNiZaTiOn"};
         for (String audienceType : organizationVariations) {
             ServiceProvider serviceProvider = new ServiceProvider();
             serviceProvider.setApplicationName("TestApp");
