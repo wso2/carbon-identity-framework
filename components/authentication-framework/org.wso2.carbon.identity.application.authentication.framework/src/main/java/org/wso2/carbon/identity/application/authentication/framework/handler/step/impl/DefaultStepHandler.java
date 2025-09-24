@@ -1279,21 +1279,28 @@ public class DefaultStepHandler implements StepHandler {
                             reCaptchaParamString.toString();
                 } else if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                     String redirectURL;
-                    redirectURL = response.encodeRedirectURL(loginPage
-                            + ("?" + context.getContextIdIncludedQueryParams()))
-                            + String.format(
-                            "&errorCode=%s&authenticators=%s",
-                            errorCode, URLEncoder.encode(authenticatorNames, "UTF-8"))
-                            + retryParam + reCaptchaParamString;
-                    if (remainingAttempts == 0) {
-                        redirectURL = String.format("%s&remainingAttempts=0", redirectURL);
-                    }
-                    if (!StringUtils.isBlank(reason)) {
-                        redirectURL = String.format("%s&lockedReason=%s", redirectURL, reason);
-                    }
-                    if (username != null) {
-                        redirectURL = String.format("%s&failedUsername=%s", redirectURL, URLEncoder.encode(username,
-                                "UTF-8"));
+                    if (isRedirectionToRetryPageOnAccountLock(context)) {
+                        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+                        redirectURL = response.encodeRedirectURL(retryPage
+                                + ("?" + context.getContextIdIncludedQueryParams()))
+                                + errorParamString;
+                    } else {
+                        redirectURL = response.encodeRedirectURL(loginPage
+                                + ("?" + context.getContextIdIncludedQueryParams()))
+                                + String.format(
+                                "&errorCode=%s&authenticators=%s",
+                                errorCode, URLEncoder.encode(authenticatorNames, "UTF-8"))
+                                + retryParam + reCaptchaParamString;
+                        if (remainingAttempts == 0) {
+                            redirectURL = String.format("%s&remainingAttempts=0", redirectURL);
+                        }
+                        if (!StringUtils.isBlank(reason)) {
+                            redirectURL = String.format("%s&lockedReason=%s", redirectURL, reason);
+                        }
+                        if (username != null) {
+                            redirectURL = String.format("%s&failedUsername=%s", redirectURL, URLEncoder.encode(username,
+                                    "UTF-8"));
+                        }
                     }
                     return redirectURL;
                 } else if (IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(errorCode)) {
