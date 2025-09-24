@@ -377,5 +377,9 @@
   "identity_mgt.events.schemes.TokenEventHook.subscriptions": [
     "POST_ISSUE_ACCESS_TOKEN_V2",
     "TOKEN_REVOKED"
+  ],
+  "identity_mgt.events.schemes.userSelfRegistrationCompletionHandler.module_index": "58",
+  "identity_mgt.events.schemes.userSelfRegistrationCompletionHandler.subscriptions": [
+    "POST_ADD_USER"
   ]
 }
