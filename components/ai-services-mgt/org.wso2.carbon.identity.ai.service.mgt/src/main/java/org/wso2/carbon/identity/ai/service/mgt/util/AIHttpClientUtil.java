@@ -73,6 +73,7 @@ public class AIHttpClientUtil {
             HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY_NAME, DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT);
     private static final int HTTP_SOCKET_TIMEOUT = readIntProperty(HTTP_SOCKET_TIMEOUT_PROPERTY_NAME,
             DEFAULT_HTTP_SOCKET_TIMEOUT);
+    private static final String USER_AGENT_VALUE = "IAM-AI-Services";
 
     // Singleton instance of CloseableHttpClient with connection pooling.
     private static final CloseableHttpClient httpClient = HttpClients.custom()
@@ -195,6 +196,7 @@ public class AIHttpClientUtil {
             throws IOException {
 
         // Here we don't close the client connection since we are using a connection pool.
+        httpRequest.addHeader("User-Agent", USER_AGENT_VALUE);
         HttpResponse httpResponse = httpClient.execute(httpRequest);
         int status = httpResponse.getStatusLine().getStatusCode();
         String response = EntityUtils.toString(httpResponse.getEntity());
