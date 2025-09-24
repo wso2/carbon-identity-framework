@@ -1320,6 +1320,7 @@
             </RenewTokenWithoutRevokingExisting>
         {% endif %}
             <MaximumAllowedDepth>{{oauth.jwt.maximum_allowed_depth}}</MaximumAllowedDepth>
+            <EnableDepthValidation>{{oauth.jwt.enable_depth_validation}}</EnableDepthValidation>
         </JWT>
 
         {% if oauth.restricted_scopes is defined %}

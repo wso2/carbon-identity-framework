@@ -332,6 +332,9 @@ public class JWTDepthValidationTest {
 
     private void setRealMethodCalls(MockedStatic<IdentityUtil> identityUtilMock) {
 
+        identityUtilMock.when(() ->
+                        IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_JWT_DEPTH_VALIDATION))
+                .thenReturn("true");
         identityUtilMock.when(() -> IdentityUtil.validateJWTDepth(any()))
                 .thenCallRealMethod();
         identityUtilMock.when(() -> IdentityUtil.validateJsonDepth(any(), anyInt()))
