@@ -94,7 +94,7 @@ public class ActionManagementAuditLogger {
             data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
             buildAuditLog(operation, data);
         } catch (ActionMgtException e) {
-            LOG.warn(String.format("Failed to publish audit log for %s action. Action id: %s",
+            LOG.warn(String.format("Failed to publish audit log for %s. Action id: %s",
                     operation.name().toLowerCase(), actionDTO.getId()), e);
         }
     }

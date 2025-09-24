@@ -81,6 +81,7 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE_UPDATED;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CREATED_AT;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_DELETED_PROPERTY;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_SHARING_TYPE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_SHARING_TYPE_UPDATED;
@@ -235,21 +236,27 @@ public class ActionManagementAuditLoggerTest {
     public Object[][] updateActionDataProvider() {
 
         Map<String, ActionProperty> updatedActionProperties = new HashMap<>();
+        Map<String, ActionProperty> deleteActionProperties = new HashMap<>();
         updatedActionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
                 new ActionProperty.BuilderForService(TEST_PASSWORD_SHARING_TYPE_UPDATED).build());
         updatedActionProperties.put(CERTIFICATE_PROPERTY_NAME, new ActionProperty.BuilderForService(new Certificate
                 .Builder().id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
                 .certificateContent(TEST_CERTIFICATE_UPDATED).build()).build());
 
+        deleteActionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
+                new ActionProperty.BuilderForService(TEST_DELETED_PROPERTY).build());
+        deleteActionProperties.put(CERTIFICATE_PROPERTY_NAME,
+                new ActionProperty.BuilderForService(TEST_DELETED_PROPERTY).build());
+
         return new Object[][]{
                 // UPDATE Operations - Test cases for UPDATE operation
                 // full action update
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
-                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .id(PRE_UPDATE_PASSWORD_ACTION_ID)
                                 .name(TEST_ACTION_NAME_UPDATED)
                                 .description(TEST_ACTION_DESCRIPTION_UPDATED)
-                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                                .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                                 .status(Action.Status.ACTIVE)
                                 .updatedAt(Timestamp.valueOf(TEST_UPDATED_AT))
                                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
@@ -290,7 +297,21 @@ public class ActionManagementAuditLoggerTest {
                                         .build())
                                 .build()
                 },
-                // Update action endpoint
+                // Update action endpoint with allowed headers and parameters
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .uri(TEST_ACTION_URI_UPDATED)
+                                        .allowedHeaders(List.of(TEST_ACTION_ALLOWED_HEADER_1))
+                                        .allowedParameters(List.of(TEST_ACTION_ALLOWED_PARAMETER_1))
+                                        .authentication(new Authentication.BasicAuthBuilder(TEST_USERNAME,
+                                                TEST_PASSWORD).build())
+                                        .build())
+                                .build()
+                },
+                // Update action endpoint uri
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
@@ -332,7 +353,7 @@ public class ActionManagementAuditLoggerTest {
                                         .build())
                                 .build()
                 },
-                // Update action properties - PRE UPDATE PASSWORD
+                // Update action properties
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
                                 .id(PRE_UPDATE_PASSWORD_ACTION_ID)
@@ -345,7 +366,7 @@ public class ActionManagementAuditLoggerTest {
                         new ActionDTOBuilder()
                                 .id(PRE_UPDATE_PASSWORD_ACTION_ID)
                                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
-                                .properties(new HashMap<>())
+                                .properties(deleteActionProperties)
                                 .build()
                 }
         };
@@ -357,11 +378,9 @@ public class ActionManagementAuditLoggerTest {
         return new Object[][]{
 
                 {ActionManagementAuditLogger.Operation.ACTIVATE,
-                        ACTIVATE_ACTION,
                         Timestamp.valueOf(TEST_UPDATED_AT)
                 },
                 {ActionManagementAuditLogger.Operation.DEACTIVATE,
-                        DEACTIVATE_ACTION,
                         Timestamp.valueOf(TEST_UPDATED_AT)
                 }
         };
@@ -406,7 +425,7 @@ public class ActionManagementAuditLoggerTest {
 
     @Test(dataProvider = "activateAndDeactivateActionDataProvider")
     public void testPrintActivateAndDeactivateActionAuditLog(ActionManagementAuditLogger.Operation operation,
-                                                             String actionName, Timestamp updatedAt) throws
+                                                             Timestamp updatedAt) throws
             NoSuchFieldException, IllegalAccessException {
 
         auditLogger.printAuditLog(operation, actionDTO.getType().name(), actionDTO.getId(), updatedAt);

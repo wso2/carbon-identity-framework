@@ -91,6 +91,7 @@ public class TestUtil {
     public static final String PASSWORD_SHARING_TYPE_PROPERTY_NAME = "passwordSharingType";
     public static final String TEST_PASSWORD_SHARING_TYPE = "PLAIN_TEXT";
     public static final String TEST_PASSWORD_SHARING_TYPE_UPDATED = "SHA256_HASHED";
+    public static final String TEST_DELETED_PROPERTY = "__DELETED__";
     public static final String CERTIFICATE_PROPERTY_NAME = "certificate";
     public static final String TEST_CERTIFICATE = "sampleCertificate";
     public static final String TEST_CERTIFICATE_UPDATED = "UpdatedSampleCertificate";
