@@ -609,10 +609,10 @@ public interface IdpManager {
     }
 
     /**
-     * Get the all user defined federated authenticator of the tenant domain.
+     Get all user defined federated authenticators of the tenant domain.
      *
      * @param tenantDomain  Tenant Domain.
-     * @return User all user defined federated authenticators.
+     * @return All user defined federated authenticators.
      * @throws IdentityProviderManagementException  If an error occurred while getting all user defined federated
      * authenticator.
      */
