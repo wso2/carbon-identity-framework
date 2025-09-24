@@ -123,13 +123,10 @@ public class ApplicationAuthenticatorManager {
                         .getUserDefinedLocalAuthenticator(localConfig));
             }
 
-            FederatedAuthenticatorConfig[] fedConfig = FrameworkServiceDataHolder.getInstance()
-                    .getIdentityProviderManager().getAllFederatedAuthenticators(tenantDomain);
-            for (FederatedAuthenticatorConfig fedAuth : fedConfig) {
-                if (fedAuth instanceof UserDefinedFederatedAuthenticatorConfig) {
-                    allAuthenticators.add(FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService()
-                            .getUserDefinedFederatedAuthenticator((UserDefinedFederatedAuthenticatorConfig) fedAuth));
-                }
+            for (FederatedAuthenticatorConfig fedConfig : FrameworkServiceDataHolder.getInstance()
+                    .getIdentityProviderManager().getAllUserDefinedFederatedAuthenticators(tenantDomain)) {
+                allAuthenticators.add(FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService()
+                            .getUserDefinedFederatedAuthenticator((UserDefinedFederatedAuthenticatorConfig) fedConfig));
             }
 
             return allAuthenticators;
@@ -170,11 +167,10 @@ public class ApplicationAuthenticatorManager {
             }
 
             // Check whether the authenticator config is the user defined fed authenticator config, if so resolve it.
-            FederatedAuthenticatorConfig[] fedConfig = FrameworkServiceDataHolder.getInstance()
-                    .getIdentityProviderManager().getAllFederatedAuthenticators(tenantDomain);
+            List<FederatedAuthenticatorConfig> fedConfig = FrameworkServiceDataHolder.getInstance()
+                    .getIdentityProviderManager().getAllUserDefinedFederatedAuthenticators(tenantDomain);
             for (FederatedAuthenticatorConfig fedAuth : fedConfig) {
-                if (fedAuth instanceof UserDefinedFederatedAuthenticatorConfig &&
-                        fedAuth.getName().equals(authenticatorName)) {
+                if (fedAuth.getName().equals(authenticatorName)) {
                     return FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService()
                             .getUserDefinedFederatedAuthenticator((UserDefinedFederatedAuthenticatorConfig) fedAuth);
                 }
