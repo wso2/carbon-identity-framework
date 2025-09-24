@@ -39,6 +39,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUES_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUE_PREFIX;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTE_PREFIX;
 
@@ -136,6 +138,7 @@ public class LocalClaimDAO extends ClaimDAO {
 
             resultSet = preparedStatement.executeQuery();
 
+            Map<Integer, List<String>> canonicalValuesMap = new HashMap<>();
             while (resultSet.next()) {
                 String propertyName = resultSet.getString(SQLConstants.PROPERTY_NAME_COLUMN);
                 String propertyValue = resultSet.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
@@ -157,6 +160,14 @@ public class LocalClaimDAO extends ClaimDAO {
                     }
                     subAttributes += propertyValue;
                     existingAttributeMap.put(SUB_ATTRIBUTES_PROPERTY, subAttributes);
+                } else if (propertyName.startsWith(CANONICAL_VALUE_PREFIX)) {
+                    List<String> canonicalValuesList = canonicalValuesMap.get(localClaimId);
+                    if (canonicalValuesList == null) {
+                        canonicalValuesList = new ArrayList<>();
+                    }
+                    canonicalValuesList.add(propertyValue);
+                    canonicalValuesMap.put(localClaimId, canonicalValuesList);
+                    existingAttributeMap.put(CANONICAL_VALUES_PROPERTY, canonicalValuesList.toString());
                 } else {
                     existingAttributeMap.put(propertyName, propertyValue);
                 }

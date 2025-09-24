@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
@@ -88,6 +89,7 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -1406,5 +1408,97 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
         // Assert the result
         assertEquals(result, expectedResult);
+    }
+
+    @DataProvider(name = "userAssertionCases")
+    public Object[][] userAssertionCases() {
+        return new Object[][]{
+
+                {"ctx-jwt", "req-jwt", true, "Context non-null -> true; request ignored"},
+                {null, "req-jwt", true, "Context null -> use request non-empty"},
+                {null, null, false, "Both null -> false"},
+                {"", "req-jwt", false, "Context empty string -> dominates -> false"},
+                {" ", null, true, "Whitespace is NOT empty -> true with isNotEmpty"},
+                {null, "", false, "Request empty string -> false"},
+        };
+    }
+
+    @Test(dataProvider = "userAssertionCases",
+            description = "Verifies precedence (context over request), null/empty handling, and toString() conversion.")
+    public void testContextHasUserAssertion(Object contextProp, String requestParam, boolean expected, String note) {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        AuthenticationContext context = mock(AuthenticationContext.class);
+
+        when(context.getProperty(FrameworkConstants.USER_ASSERTION)).thenReturn(contextProp);
+        if (contextProp == null) {
+            when(request.getParameter(FrameworkConstants.USER_ASSERTION)).thenReturn(requestParam);
+        }
+
+        boolean actual = FrameworkUtils.contextHasUserAssertion(request, context);
+        assertEquals(actual, expected, note);
+    }
+
+    /**
+     * Test multi attribute separator retrieval from user realm configuration.
+     */
+    @Test
+    public void testGetMultiAttributeSeparatorFromUserRealmConfig() {
+
+        final String multiAttributeSeparator = ",";
+        try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
+            CarbonContext carbonContext = mock(CarbonContext.class);
+            UserRealm userRealm = mock(UserRealm.class);
+            AbstractUserStoreManager primaryUserStoreManager = mock(AbstractUserStoreManager.class);
+            RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
+
+            carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
+            when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            try {
+                when(userRealm.getUserStoreManager()).thenReturn(primaryUserStoreManager);
+            } catch (UserStoreException e) {
+                throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
+            }
+            when(primaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
+            when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+                    .thenReturn(multiAttributeSeparator);
+
+            String separator = FrameworkUtils.getMultiAttributeSeparator();
+            assertEquals(separator, multiAttributeSeparator);
+        }
+    }
+
+    /**
+     * Test multi attribute separator retrieval for a specific user store domain.
+     */
+    @Test
+    public void testGetMultiAttributeSeparatorWithUserStoreDomain() {
+
+        String userStoreDomain = "SECONDARY";
+        final String multiAttributeSeparator = ";";
+
+        try (MockedStatic<CarbonContext> carbonContextMockedStatic = mockStatic(CarbonContext.class)) {
+            CarbonContext carbonContext = mock(CarbonContext.class);
+            UserRealm userRealm = mock(UserRealm.class);
+            AbstractUserStoreManager primaryUserStoreManager = mock(AbstractUserStoreManager.class);
+            AbstractUserStoreManager secondaryUserStoreManager = mock(AbstractUserStoreManager.class);
+            RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
+
+            carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
+            when(carbonContext.getUserRealm()).thenReturn(userRealm);
+            try {
+                when(userRealm.getUserStoreManager()).thenReturn(primaryUserStoreManager);
+            } catch (UserStoreException e) {
+                throw new RuntimeException("Unexpected UserStoreException in test setup.", e);
+            }
+            when(primaryUserStoreManager.getSecondaryUserStoreManager(userStoreDomain))
+                    .thenReturn(secondaryUserStoreManager);
+            when(secondaryUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
+            when(realmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+                    .thenReturn(multiAttributeSeparator);
+
+            String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
+            assertEquals(separator, multiAttributeSeparator);
+        }
     }
 }

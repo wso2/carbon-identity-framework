@@ -308,13 +308,10 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
 
         super.removeAllClaimDialects(tenantId);
-        List<Integer> tenantIdsToBeInvalidated = getOrganizationsToBeInvalidated(tenantId);
-        for (Integer tenantIdToBeInvalidated: tenantIdsToBeInvalidated) {
-            claimDialectCache.clearClaimDialects(tenantIdToBeInvalidated);
-            localClaimCache.clear(tenantIdToBeInvalidated);
-            externalClaimCache.clear(tenantIdToBeInvalidated);
-            associatedClaimCache.clear(tenantIdToBeInvalidated);
-        }
+        claimDialectCache.clearClaimDialects(tenantId);
+        localClaimCache.clear(tenantId);
+        externalClaimCache.clear(tenantId);
+        associatedClaimCache.clear(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("All claim dialects are removed for tenant: " + tenantId +
                     ". Invalidated ClaimDialectCache, LocalClaimCache and ExternalClaimCache.");

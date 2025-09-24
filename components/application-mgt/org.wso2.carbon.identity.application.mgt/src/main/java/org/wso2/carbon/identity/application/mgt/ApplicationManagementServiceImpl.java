@@ -249,6 +249,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // Set default application version.
         serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+        if (isFragmentApp(serviceProvider)) {
+            serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
+        }
 
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
@@ -1750,6 +1753,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (StringUtils.isBlank(serviceProvider.getApplicationVersion())) {
                 serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
             }
+            if (isFragmentApp(serviceProvider)) {
+                serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
+            }
             validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
             applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
@@ -2604,6 +2610,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // Set default application version.
         application.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+        if (isFragmentApp(application)) {
+            application.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
+        }
 
         doPreAddApplicationChecks(application, tenantDomain, username);
         ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
@@ -3470,24 +3479,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String allowedAudienceType =
                 StringUtils.isBlank(associatedRolesConfig.getAllowedAudience()) ? RoleConstants.ORGANIZATION :
                         associatedRolesConfig.getAllowedAudience().toLowerCase();
-        String allowedAudienceId;
-        switch (allowedAudienceType) {
-            case RoleConstants.APPLICATION:
-                allowedAudienceId = serviceProvider.getApplicationResourceId();
-                break;
-            default:
-                try {
-                    allowedAudienceId = getOrganizationManager().resolveOrganizationId(tenantDomain);
-                } catch (OrganizationManagementException e) {
-                    throw new IdentityApplicationManagementException(
-                            String.format("Error while resolving the organization id for the tenant domain: %s",
-                                    tenantDomain), e);
-                }
-                break;
+
+        if (RoleConstants.ORGANIZATION.equals(allowedAudienceType)) {
+            // Skip role audience validation for organization audience type, since role associations
+            // are resolved at runtime and not stored in the database. Hence, no modifications occur
+            // during application updates for this audience type.
+            if (log.isDebugEnabled()) {
+                log.debug("Skipping role audience validation for organization audience type as role associations are " +
+                        "resolved at runtime.");
+            }
+            return true;
         }
+
+        String allowedAudienceId = serviceProvider.getApplicationResourceId();
         // Stream the roles and check whether the role exits in the correct audience.
-        boolean allRolesInCorrectAudience = roles.stream()
-                .allMatch(role -> isRoleInCorrectAudience(role, tenantDomain, allowedAudienceType, allowedAudienceId));
+        boolean allRolesInCorrectAudience = StringUtils.isNotBlank(allowedAudienceId) && roles.stream()
+                .allMatch(role ->
+                        isRoleInCorrectAudience(role, tenantDomain, allowedAudienceType, allowedAudienceId));
         if (!allRolesInCorrectAudience) {
             log.debug("One or more role does not exist or not in correct audience.");
         }
@@ -3570,5 +3578,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return !isFragmentApp;
         }
         return false;
+    }
+
+    /**
+     * Check whether the service provider is a fragment application.
+     *
+     * @param serviceProvider Service provider.
+     * @return True if the service provider is a fragment application.
+     */
+    private static boolean isFragmentApp(ServiceProvider serviceProvider) {
+
+        return Arrays.stream(serviceProvider.getSpProperties())
+                .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 }

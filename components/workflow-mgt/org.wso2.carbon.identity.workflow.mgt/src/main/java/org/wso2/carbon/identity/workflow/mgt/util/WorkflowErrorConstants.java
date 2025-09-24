@@ -53,7 +53,9 @@ public class WorkflowErrorConstants {
         ERROR_CODE_ROLE_WF_USER_PENDING_DELETION("WFM-10011",
                 "There is the pending deletion workflow for the user: %s"),
         ERROR_CODE_ROLE_WF_ROLE_NOT_FOUND("WFM-10012",
-                "The role is not found in the system.");
+                "The role is not found in the system."),
+        ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE("WFM-10013",
+                "The user %s is already pending approval for the role.");
         private final String code;
         private final String message;
 

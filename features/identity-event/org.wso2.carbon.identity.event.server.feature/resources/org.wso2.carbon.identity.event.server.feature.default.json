@@ -245,10 +245,6 @@
     "PRE_DELETE_ORGANIZATION",
     "POST_DELETE_ORGANIZATION"
   ],
-  "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
-  "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
-    "POST_ADD_ORGANIZATION"
-  ],
   "identity_mgt.events.schemes.OrgClaimMgtHandler.module_index": "38",
   "identity_mgt.events.schemes.OrgClaimMgtHandler.subscriptions": [
     "POST_SHARE_APPLICATION",
@@ -291,7 +287,8 @@
   "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.module_index": "44",
   "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.subscriptions": [
     "POST_DELETE_ROLE_V2_EVENT",
-    "POST_DELETE_USER_WITH_ID"
+    "POST_DELETE_USER_WITH_ID",
+    "POST_DELETE_MAIN_APPLICATION_WITH_ID"
   ],
   "identity_mgt.events.schemes.OrganizationUserSharingHandler.module_index": "45",
   "identity_mgt.events.schemes.OrganizationUserSharingHandler.subscriptions": [

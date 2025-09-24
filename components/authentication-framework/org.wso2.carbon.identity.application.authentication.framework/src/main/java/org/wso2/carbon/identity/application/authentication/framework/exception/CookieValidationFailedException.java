@@ -24,8 +24,35 @@ import java.io.IOException;
  * Session nonce Cookie Validation Failed Exception.
  */
 public class CookieValidationFailedException extends IOException {
-    
+
+    private final String errorCode;
+    private final String errorMessage;
+
     public CookieValidationFailedException(String errorCode, String message) {
+
         super(errorCode + " : " + message);
+        this.errorCode = errorCode;
+        this.errorMessage = message;
+
+    }
+
+    /**
+     * Get the error code.
+     *
+     * @return Error code.
+     */
+    public String getErrorCode() {
+
+        return errorCode;
+    }
+
+    /**
+     * Get the error message.
+     *
+     * @return Error message.
+     */
+    public String getErrorMessage() {
+
+        return errorMessage;
     }
 }

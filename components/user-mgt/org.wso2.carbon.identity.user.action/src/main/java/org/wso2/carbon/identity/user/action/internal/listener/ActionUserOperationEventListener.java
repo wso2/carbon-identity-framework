@@ -198,8 +198,9 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         org.wso2.carbon.identity.core.context.model.Organization accessingOrganization =
                 IdentityContext.getThreadLocalIdentityContext().getOrganization();
         if (accessingOrganization == null) {
-            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
-                    "Accessing organization is not present in the identity context.");
+            log.warn("Accessing organization is not present in the identity context. " +
+                    "Hence cannot populate user resident organization from ActionUserOperationEventListener.");
+            return null;
         }
 
         return new Organization.Builder()

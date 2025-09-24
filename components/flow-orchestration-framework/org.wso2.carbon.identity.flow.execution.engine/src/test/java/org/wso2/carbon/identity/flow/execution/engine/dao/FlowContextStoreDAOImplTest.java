@@ -120,7 +120,7 @@ public class FlowContextStoreDAOImplTest {
         doThrow(dataAccessException).when(jdbcTemplate).executeUpdateWithAffectedRows(contains("UPDATE"), any());
 
         FlowEngineServerException expectedException = new FlowEngineServerException("Store failure");
-        flowEngineUtils.when(() -> FlowExecutionEngineUtils.handleServerException(
+        flowEngineUtils.when(() -> FlowExecutionEngineUtils.handleServerException( any(String.class),
                         any(Constants.ErrorMessages.class), any(Exception.class), any(String.class)))
                 .thenReturn(expectedException);
 

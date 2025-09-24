@@ -579,6 +579,187 @@ public class WorkflowManagementServiceImplTest {
                 workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, ""));
     }
 
+    /**
+     * Test addAssociation with duplicate association detection - should throw WorkflowClientException.
+     */
+    @Test
+    public void testAddAssociationDuplicateDetection() throws WorkflowException {
+
+        // Create existing association with same event and condition
+        Association existingAssociation = new Association();
+        existingAssociation.setEventId(EVENT_ID);
+        existingAssociation.setCondition(CONDITION);
+        existingAssociation.setWorkflowId(WORKFLOW_ID);
+
+        List<Association> existingAssociations = Arrays.asList(existingAssociation);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Attempt to add duplicate association should throw exception
+        assertThrows(WorkflowClientException.class, () ->
+                workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION));
+
+        // Verify that the duplicate was detected before any DAO operations
+        verify(mockAssociationDAO).listAssociationsForWorkflow(WORKFLOW_ID);
+        verify(mockAssociationDAO, times(0)).addAssociation(any(), any(), any(), any());
+    }
+
+    /**
+     * Test addAssociation with null existing associations list.
+     */
+    @Test
+    public void testAddAssociationWithNullExistingAssociations() throws WorkflowException {
+
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(null);
+
+        // Should succeed when no existing associations
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+    }
+
+    /**
+     * Test addAssociation with empty existing associations list.
+     */
+    @Test
+    public void testAddAssociationWithEmptyExistingAssociations() throws WorkflowException {
+
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(Collections.emptyList());
+
+        // Should succeed when no existing associations
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+    }
+
+    /**
+     * Test addAssociation with different event ID should succeed.
+     */
+    @Test
+    public void testAddAssociationDifferentEventId() throws WorkflowException {
+
+        // Create existing association with different event ID
+        Association existingAssociation = new Association();
+        existingAssociation.setEventId("different-event-id");
+        existingAssociation.setCondition(CONDITION);
+        existingAssociation.setWorkflowId(WORKFLOW_ID);
+
+        List<Association> existingAssociations = Arrays.asList(existingAssociation);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Should succeed with different event ID
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+    }
+
+    /**
+     * Test addAssociation with different condition should succeed.
+     */
+    @Test
+    public void testAddAssociationDifferentCondition() throws WorkflowException {
+
+        // Create existing association with different condition
+        Association existingAssociation = new Association();
+        existingAssociation.setEventId(EVENT_ID);
+        existingAssociation.setCondition("//different[@condition='test']");
+        existingAssociation.setWorkflowId(WORKFLOW_ID);
+
+        List<Association> existingAssociations = Arrays.asList(existingAssociation);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Should succeed with different condition
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+    }
+
+    /**
+     * Test addAssociation with null association in existing list.
+     */
+    @Test
+    public void testAddAssociationWithNullAssociationInList() throws WorkflowException {
+
+        // Create list with null association
+        List<Association> existingAssociations = new ArrayList<>();
+        existingAssociations.add(null);
+        existingAssociations.add(createTestAssociation());
+
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Should succeed as null associations are filtered out
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, "different-event", CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, "different-event", CONDITION);
+    }
+
+    /**
+     * Test updateAssociation with duplicate detection for new values.
+     */
+    @Test
+    public void testUpdateAssociationDuplicateDetection() throws WorkflowException {
+
+        Association currentAssociation = createTestAssociation();
+        currentAssociation.setAssociationId("1");
+
+        // Create another existing association that would conflict with update.
+        Association conflictingAssociation = new Association();
+        conflictingAssociation.setAssociationId("2");
+        conflictingAssociation.setEventId("ADD_USER");
+        conflictingAssociation.setCondition(WFConstant.DEFAULT_ASSOCIATION_CONDITION);
+        conflictingAssociation.setWorkflowId(WORKFLOW_ID);
+
+        List<Association> existingAssociations = Arrays.asList(currentAssociation, conflictingAssociation);
+
+        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(currentAssociation);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Attempt to update to conflicting values should throw exception.
+        assertThrows(WorkflowClientException.class, () ->
+                workflowManagementService.updateAssociation(ASSOCIATION_ID, "New Name", WORKFLOW_ID,
+                        "ADD_USER", WFConstant.DEFAULT_ASSOCIATION_CONDITION, true));
+
+        verify(mockAssociationDAO).getAssociation(ASSOCIATION_ID);
+        verify(mockAssociationDAO).listAssociationsForWorkflow(WORKFLOW_ID);
+        verify(mockAssociationDAO, times(0)).updateAssociation(any());
+    }
+
+    /**
+     * Test updateAssociation succeeds when no duplicates exist.
+     */
+    @Test
+    public void testUpdateAssociationNoDuplicates() throws WorkflowException {
+
+        Association association = createTestAssociation();
+
+        // Empty existing associations list - no conflicts.
+        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(association);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(Collections.emptyList());
+
+        workflowManagementService.updateAssociation(ASSOCIATION_ID, "New Name", WORKFLOW_ID,
+                "new-event-id", WFConstant.DEFAULT_ASSOCIATION_CONDITION, false);
+
+        verify(mockAssociationDAO).updateAssociation(association);
+        assertEquals(association.getAssociationName(), "New Name");
+        assertEquals(association.getEventId(), "new-event-id");
+        assertFalse(association.isEnabled());
+    }
+
+    /**
+     * Test addAssociation with invalid XPath expression should throw WorkflowRuntimeException.
+     */
+    @Test
+    public void testAddAssociationInvalidXPath() throws WorkflowException {
+
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(Collections.emptyList());
+
+        String invalidXPath = "//invalid[xpath expression";
+
+        assertThrows(WorkflowRuntimeException.class, () ->
+                workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, invalidXPath));
+
+        verify(mockAssociationDAO, times(0)).addAssociation(any(), any(), any(), any());
+    }
+
     @Test
     public void testListPaginatedWorkflows() throws WorkflowException {
 
@@ -631,6 +812,7 @@ public class WorkflowManagementServiceImplTest {
         int result = workflowManagementService.getWorkflowsCount(TENANT_ID, null);
 
         assertEquals(result, 5);
+        verify(mockWorkflowDAO).getWorkflowsCount(TENANT_ID, WFConstant.DEFAULT_FILTER);
     }
 
     @Test
@@ -670,28 +852,27 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testRemoveAssociation() throws WorkflowException {
 
-        int associationId = 1;
+        workflowManagementService.removeAssociation(Integer.parseInt(ASSOCIATION_ID));
 
-        workflowManagementService.removeAssociation(associationId);
-
-        verify(mockAssociationDAO).removeAssociation(associationId);
-        verify(mockWorkflowListener).doPreRemoveAssociation(associationId);
-        verify(mockWorkflowListener).doPostRemoveAssociation(associationId);
+        verify(mockAssociationDAO).removeAssociation(Integer.parseInt(ASSOCIATION_ID));
+        verify(mockWorkflowListener).doPreRemoveAssociation(Integer.parseInt(ASSOCIATION_ID));
+        verify(mockWorkflowListener).doPostRemoveAssociation(Integer.parseInt(ASSOCIATION_ID));
     }
 
     @Test
     public void testGetAssociationsForWorkflow() throws WorkflowException {
 
-        List<Association> expectedAssociations = Arrays.asList(createTestAssociation());
-        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(expectedAssociations);
+        Association association = createTestAssociation();
+        List<Association> associations = Arrays.asList(association);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(associations);
         when(mockWorkflowServiceDataHolder.getRequestHandler(EVENT_ID)).thenReturn(mockWorkflowRequestHandler);
-        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Event Friendly Name");
+        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Friendly Name");
 
         List<Association> result = workflowManagementService.getAssociationsForWorkflow(WORKFLOW_ID);
 
         assertNotNull(result);
         assertEquals(result.size(), 1);
-        assertEquals(result.get(0).getEventName(), "Event Friendly Name");
+        assertEquals(result.get(0).getEventName(), "Friendly Name");
         verify(mockWorkflowListener).doPreGetAssociationsForWorkflow(WORKFLOW_ID);
         verify(mockWorkflowListener).doPostGetAssociationsForWorkflow(WORKFLOW_ID, result);
     }
@@ -699,11 +880,12 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testListPaginatedAssociations() throws WorkflowException {
 
-        List<Association> expectedAssociations = Arrays.asList(createTestAssociation());
+        Association association = createTestAssociation();
+        List<Association> associations = Arrays.asList(association);
         when(mockAssociationDAO.listPaginatedAssociations(TENANT_ID, WFConstant.DEFAULT_FILTER, 0, 10))
-                .thenReturn(expectedAssociations);
+                .thenReturn(associations);
         when(mockWorkflowServiceDataHolder.getRequestHandler(EVENT_ID)).thenReturn(mockWorkflowRequestHandler);
-        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Event Friendly Name");
+        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Friendly Name");
 
         List<Association> result = workflowManagementService.listPaginatedAssociations(TENANT_ID, 10, 0, null);
 
@@ -715,12 +897,27 @@ public class WorkflowManagementServiceImplTest {
     }
 
     @Test
+    public void testListPaginatedAssociationsInvalidLimit() {
+
+        assertThrows(WorkflowClientException.class, () ->
+                workflowManagementService.listPaginatedAssociations(TENANT_ID, -1, 0, null));
+    }
+
+    @Test
+    public void testListPaginatedAssociationsInvalidOffset() {
+
+        assertThrows(WorkflowClientException.class, () ->
+                workflowManagementService.listPaginatedAssociations(TENANT_ID, 10, -1, null));
+    }
+
+    @Test
     public void testListAllAssociations() throws WorkflowException {
 
-        List<Association> expectedAssociations = Arrays.asList(createTestAssociation());
-        when(mockAssociationDAO.listAssociations(TENANT_ID)).thenReturn(expectedAssociations);
+        Association association = createTestAssociation();
+        List<Association> associations = Arrays.asList(association);
+        when(mockAssociationDAO.listAssociations(TENANT_ID)).thenReturn(associations);
         when(mockWorkflowServiceDataHolder.getRequestHandler(EVENT_ID)).thenReturn(mockWorkflowRequestHandler);
-        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Event Friendly Name");
+        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Friendly Name");
 
         List<Association> result = workflowManagementService.listAllAssociations(TENANT_ID);
 
@@ -733,8 +930,8 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testGetAssociation() throws WorkflowException {
 
-        Association expectedAssociation = createTestAssociation();
-        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(expectedAssociation);
+        Association association = createTestAssociation();
+        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(association);
 
         Association result = workflowManagementService.getAssociation(ASSOCIATION_ID);
 
@@ -761,6 +958,7 @@ public class WorkflowManagementServiceImplTest {
         int result = workflowManagementService.getAssociationsCount(TENANT_ID, null);
 
         assertEquals(result, 3);
+        verify(mockAssociationDAO).getAssociationsCount(TENANT_ID, WFConstant.DEFAULT_FILTER);
     }
 
     @Test

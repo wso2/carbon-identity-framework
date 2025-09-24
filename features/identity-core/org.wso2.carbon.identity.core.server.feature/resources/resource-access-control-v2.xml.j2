@@ -44,6 +44,93 @@
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
 
+        <Resource context="(.*)/o/api/server/v1/configs/authentication/inbound/passivests(.*)" secured="true"
+        http-method="PATCH">
+            <Scopes>internal_org_config_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs/authentication/inbound/passivests(.*)" secured="true"
+        http-method="PATCH">
+           <Scopes>internal_config_update</Scopes>
+        </Resource>
+
+        <Resource context="/carbon(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
+        <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
+        <Resource context="/services(.*)" secured="false" http-method="all"/>
+        <Resource context="/t/(.*)/services(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/samlsso(.*)" secured="false" http-method="all"/>
+        <Resource context="/acs(.*)" secured="false" http-method="all"/>
+        <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
+        <Resource context="/openid(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/passivests(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/samlartresolve(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth/request-token(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth/authorize-url(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth/access-token(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/token(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/authorize(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/revoke(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/userinfo(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/jwks(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/par(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/authn(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/wso2/scim/Users(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/wso2/scim/Bulk(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/authenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/accountrecoveryendpoint/confirmregistration.do(.*)" secured="false"
+                  http-method="GET, POST, HEAD"/>
+        <Resource context="(.*)/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/mex(.*)" secured="false" http-method="all"/>
+        <Resource context="/mexut(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
+        <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
+        <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/cas(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/saml/slo(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/extend-session(.*)" secured="false" http-method="all"/>
+        <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/longwaitstatus(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/registry/resource(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/registry/tags(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
+        <Resource context="(.*)/.well-known/trusted-apps/android" secured="false" http-method="GET"/>
+        <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
+        <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
+        <Resource context="(.*)/accounts(.*)" secured="false" http-method="all"/>
+
+        <!-- 'Login only' mode migration configuration -->
+        {% if resource_access_control.login_only_mode.enable is sameas true %}
+            <Resource context="^(?!/api/identity/user/v1.0/introspect-code|/t/.*/o/.*/oauth2/introspect|/oauth2/introspect|/o/api/server/v1/guests/invitation/introspect|/api/identity/entitlement).*" secured="true" http-method="POST, PUT, PATCH">
+                <Scopes>no_access_granted</Scopes>
+            </Resource>
+        {% endif %}
+
         <!-- [Organization] User Code Management API -->
         <Resource context="(.*)/o/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_user_code_mgt_create</Scopes>
@@ -141,6 +228,13 @@
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
+
         <!-- [Organization]  Notification Sender Management V1/V2 API -->
         <Resource context="(.*)/o/api/server/v(.*)/notification-senders/(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_notification_senders_create</Scopes>
@@ -228,6 +322,20 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_secret_type_mgt_delete</Scopes>
+        </Resource>
+
+        <!-- [Organization] Secret Management API -->
+        <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_secret_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="PATCH, PUT">
+            <Scopes>internal_org_secret_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_secret_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_secret_mgt_delete</Scopes>
         </Resource>
 
         <!-- Secret Management API -->
@@ -643,11 +751,69 @@
         <!-- [Organization] SCIM2 Bulk API -->
         <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_bulk_resource_create</Scopes>
+            <Operations>
+                <Operation name="createRole">
+                    <scope>internal_org_bulk_role_create</scope>
+                </Operation>
+                <Operation name="updateRole">
+                    <scope>internal_org_bulk_role_update</scope>
+                </Operation>
+                <Operation name="deleteRole">
+                    <scope>internal_org_bulk_role_delete</scope>
+                </Operation>
+                <Operation name="createUser">
+                    <scope>internal_org_bulk_user_create</scope>
+                </Operation>
+                <Operation name="updateUser">
+                    <scope>internal_org_bulk_user_update</scope>
+                </Operation>
+                <Operation name="deleteUser">
+                    <scope>internal_org_bulk_user_delete</scope>
+                </Operation>
+                <Operation name="createGroup">
+                    <scope>internal_org_bulk_group_create</scope>
+                </Operation>
+                <Operation name="updateGroup">
+                    <scope>internal_org_bulk_group_update</scope>
+                </Operation>
+                <Operation name="deleteGroup">
+                    <scope>internal_org_bulk_group_delete</scope>
+                </Operation>
+            </Operations>
         </Resource>
 
         <!-- SCIM2 Bulk API -->
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
             <Scopes>internal_bulk_resource_create</Scopes>
+            <Operations>
+                <Operation name="createRole">
+                    <scope>internal_bulk_role_create</scope>
+                </Operation>
+                <Operation name="updateRole">
+                    <scope>internal_bulk_role_update</scope>
+                </Operation>
+                <Operation name="deleteRole">
+                    <scope>internal_bulk_role_delete</scope>
+                </Operation>
+                <Operation name="createUser">
+                    <scope>internal_bulk_user_create</scope>
+                </Operation>
+                <Operation name="updateUser">
+                    <scope>internal_bulk_user_update</scope>
+                </Operation>
+                <Operation name="deleteUser">
+                    <scope>internal_bulk_user_delete</scope>
+                </Operation>
+                <Operation name="createGroup">
+                    <scope>internal_bulk_group_create</scope>
+                </Operation>
+                <Operation name="updateGroup">
+                    <scope>internal_bulk_group_update</scope>
+                </Operation>
+                <Operation name="deleteGroup">
+                    <scope>internal_bulk_group_delete</scope>
+                </Operation>
+            </Operations>
         </Resource>
 
         <!-- [Organization] Authentication Data APIs -->
@@ -1026,6 +1192,18 @@
         <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="PATCH">
             <Scopes>internal_shared_application_create</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/share-with-all" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/unshare" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/unshare-with-all" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="GET">
             <Scopes>internal_shared_application_view</Scopes>
         </Resource>
@@ -1325,6 +1503,9 @@
         </Resource>
         <Resource context="(.*)/o/api/server/v1/configs/authentication/inbound/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_config_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/configs/impersonation(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_config_delete</Scopes>
         </Resource>
         <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="PATCH">
             <Scopes>internal_org_config_update</Scopes>
@@ -1645,6 +1826,14 @@
          <!-- Flow execution API -->
           <Resource context="(.*)/api/server/v1/flow/(.*)" secured="false" http-method="POST" />
 
+        <!-- [Organization] Flow management API -->
+        <Resource context="(.*)/o/api/server/v1/flow(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_flow_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/flow(.*)" secured="true" http-method="PUT, PATCH">
+            <Scopes>internal_org_flow_update</Scopes>
+        </Resource>
+
          <!-- Flow management API -->
          <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">
              <Scopes>internal_flow_view</Scopes>
@@ -1774,83 +1963,6 @@
           <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
               <Scopes>internal_workflow_instance_delete</Scopes>
           </Resource>
-
-        <Resource context="/carbon(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
-        <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
-        <Resource context="/services(.*)" secured="false" http-method="all"/>
-        <Resource context="/t/(.*)/services(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/samlsso(.*)" secured="false" http-method="all"/>
-        <Resource context="/acs(.*)" secured="false" http-method="all"/>
-        <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
-        <Resource context="/openid(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/passivests(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/samlartresolve(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth/request-token(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth/authorize-url(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth/access-token(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/token(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/authorize(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/revoke(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/userinfo(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/jwks(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/par(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/authn(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/wso2/scim/Users(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/wso2/scim/Bulk(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/authenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/accountrecoveryendpoint/confirmregistration.do(.*)" secured="false"
-                  http-method="GET, POST, HEAD"/>
-        <Resource context="(.*)/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/mex(.*)" secured="false" http-method="all"/>
-        <Resource context="/mexut(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
-        <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
-        <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/identity/cas(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/identity/saml/slo(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/identity/extend-session(.*)" secured="false" http-method="all"/>
-        <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/longwaitstatus(.*)" secured="false" http-method="GET"/>
-        <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/registry/resource(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/registry/tags(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
-        <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="PUT"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
-        <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
-        <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
-        <Resource context="(.*)/.well-known/trusted-apps/android" secured="false" http-method="GET"/>
-        <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
-        <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
-        <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
-        <Resource context="(.*)/accounts(.*)" secured="false" http-method="all"/>
 
         <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
         <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">

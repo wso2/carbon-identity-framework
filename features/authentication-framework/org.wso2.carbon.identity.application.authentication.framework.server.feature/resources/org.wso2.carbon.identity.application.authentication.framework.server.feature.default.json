@@ -204,6 +204,7 @@
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
   "authentication.authenticator.totp.parameters.EnableAccountLockingForFailedAttempts": true,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
+  "authentication.authenticator.totp.parameters.PreventTOTPCodeReuse": true,
 
   "authentication.authenticator.backup_code.name": "backup-code-authenticator",
   "authentication.authenticator.backup_code.enable": true,
@@ -226,6 +227,7 @@
 
   "authentication.authenticator.office365.name": "Office365Authenticator",
   "authentication.authenticator.office365.parameters.Tags": "OIDC",
+  "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": true,
 
   "authentication.authenticator.iwa_kerberos.name": "IWAKerberosAuthenticator",
   "authentication.authenticator.iwa_kerberos.parameters.Tags": "Enterprise",
@@ -241,6 +243,7 @@
   "authentication.authenticator.sms_otp_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.sms_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp_local.parameters.enableRetryFromAuthenticator": true,
+  "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": true,
 
   "authentication.authenticator.push_local.name": "push-notification-authenticator",
   "authentication.authenticator.push_local.enable": true,
@@ -248,11 +251,13 @@
   "authentication.authenticator.push_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.push_local.parameters.enableRetryFromAuthenticator": true,
 
+  "authentication.local_authenticators.hide_user_existence": true,
+
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
   "authorization_control.skip_authorization.client_authentication.name":"ClientAuthentication",
-  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*),(.*)/api/users/v2/recovery/username/(.*),(.*)/api/server/v(.*)/organization-configs/discovery(.*),(.*)/api/server/v(.*)/configs/authenticators(.*),(.*)/api/server/v1/flow/config(.*),(.*)/api/server/v1/flow/configs(.*)",
+  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*),(.*)/api/users/v2/recovery/username/(.*),(.*)/api/server/v(.*)/organization-configs/discovery(.*),(.*)/api/server/v(.*)/configs/authenticators(.*),(.*)/api/server/v1/flow/config(.*),(.*)/api/server/v1/flow/configs(.*),(.*)/api/server/v1/claim-dialects/local/claims(.*)",
 
   "jit_provisioning.indelible_claims.claim_uris": [
     "http://wso2.org/claims/userid",
