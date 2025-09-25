@@ -1515,8 +1515,8 @@
   "console.flows.scopes.feature": ["console:flows"],
   "console.flows.disabled_features": [],
   "console.flows.scopes.create": [],
-  "console.flows.scopes.read": [],
-  "console.flows.scopes.update": [],
+  "console.flows.scopes.read": ["internal_flow_view", "internal_governance_view"],
+  "console.flows.scopes.update": ["internal_flow_update", "internal_governance_update"],
   "console.flows.scopes.delete": [],
   "console.certificates.enabled": true,
   "console.certificates.scopes.feature": ["console:certificates"],
@@ -2079,6 +2079,7 @@
     "INVITED_USER_REGISTRATION": "30"
   },
   "flow_execution.enable_legacy_flows": false,
+  "flow_execution.registration.display_claim_availability": false,
   "branding_configuration.custom_content.max_file_size": 1048576,
   "captcha.enable_captcha_for_local_otp_authenticators": true,
 

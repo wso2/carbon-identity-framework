@@ -1495,12 +1495,16 @@
                 <Scope name="console:flows_edit"/>
             </Feature>
             <Update>
+                <Scope name="internal_flow_update"/>
+                <Scope name="internal_governance_update"/>
             </Update>
             <Delete>
             </Delete>
             <Create>
             </Create>
             <Read>
+                <Scope name="internal_flow_view"/>
+                <Scope name="internal_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1941,12 +1945,16 @@
                 <Scope name="console:org:flows_edit"/>
             </Feature>
             <Update>
+                <Scope name="internal_org_flow_update"/>
+                <Scope name="internal_org_governance_update"/>
             </Update>
             <Delete>
             </Delete>
             <Create>
             </Create>
             <Read>
+                <Scope name="internal_org_flow_view"/>
+                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
