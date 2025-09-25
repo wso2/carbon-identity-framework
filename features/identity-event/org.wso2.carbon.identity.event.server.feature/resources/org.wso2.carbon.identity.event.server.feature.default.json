@@ -381,7 +381,7 @@
   "identity_mgt.events.schemes.userSelfRegistrationCompletionHandler.subscriptions": [
     "POST_ADD_USER"
   ],
-  "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.module_index": "58",
+  "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.module_index": "59",
   "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.subscriptions": [
     "PRE_AUTHENTICATION"
   ]
