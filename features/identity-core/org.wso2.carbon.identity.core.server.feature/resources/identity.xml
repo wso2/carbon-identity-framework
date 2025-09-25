@@ -2885,6 +2885,22 @@
         <UserstoreManagerClass>org.wso2.carbon.identity.agent.manager.AgentUserStoreManager</UserstoreManagerClass>
     </AgentIdentity>
 
+    <FlowExecution>
+        <UserAssertion>
+            <ExpiryTime>2000</ExpiryTime>
+        </UserAssertion>
+        <DefaultTTL>30</DefaultTTL>
+        <FlowTypeTTLs>
+            <FlowTypeTTL type="REGISTRATION">30</FlowTypeTTL>
+            <FlowTypeTTL type="PASSWORD_RECOVERY">30</FlowTypeTTL>
+            <FlowTypeTTL type="INVITED_USER_REGISTRATION">30</FlowTypeTTL>
+        </FlowTypeTTLs>
+        <EnableLegacyFlows>false</EnableLegacyFlows>
+        <Registration>
+            <DisplayClaimAvailability>false</DisplayClaimAvailability>
+        </Registration>
+    </FlowExecution>
+
     <NotificationChannel>
         <SMS>
             <Custom>
