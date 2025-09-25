@@ -117,7 +117,8 @@
   "identity_mgt.events.schemes.failLoginAttemptValidator.properties.enable": true,
   "identity_mgt.events.schemes.SAMLLogoutHandler.module_index": "17",
   "identity_mgt.events.schemes.SAMLLogoutHandler.subscriptions": [
-    "SESSION_TERMINATE"
+    "SESSION_TERMINATE",
+    "SESSION_EXPIRE"
   ],
   "identity_mgt.events.schemes.SAMLLogoutHandler.properties.enable": true,
   "identity_mgt.events.schemes.confirmationCodesInvalidate.module_index": "18",
