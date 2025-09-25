@@ -74,7 +74,6 @@
   "identity_mgt.events.schemes.adminForcedPasswordReset.module_index": "9",
   "identity_mgt.events.schemes.adminForcedPasswordReset.subscriptions": [
     "PRE_SET_USER_CLAIMS",
-    "PRE_AUTHENTICATION",
     "POST_UPDATE_CREDENTIAL_BY_ADMIN"
   ],
   "identity_mgt.events.schemes.'suspension.notification'.module_index": "10",
