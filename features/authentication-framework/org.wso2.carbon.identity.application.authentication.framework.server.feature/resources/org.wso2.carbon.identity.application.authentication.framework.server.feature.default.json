@@ -278,11 +278,11 @@
   "authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association": false,
 
   "ai_services.token_endpoint": "https://api.asgardeo.io/t/wso2devtools/oauth2/token",
-  "ai_services.branding_ai.endpoint": "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/iam-ai-us/branding-ai/v1.0",
+  "ai_services.branding_ai.endpoint": "https://dev-tools.wso2.com/iam-ai-services/v1/branding-ai",
   "ai_services.branding_ai.generate_request_path": "/api/server/v1/branding-preference/generate",
   "ai_services.branding_ai.status_request_path": "/api/server/v1/branding-preference/status",
   "ai_services.branding_ai.result_request_path": "/api/server/v1/branding-preference/result",
-  "ai_services.login_flow_ai.endpoint": "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/iam-ai-us/loginflow-ai/v1.0",
+  "ai_services.login_flow_ai.endpoint": "https://dev-tools.wso2.com/iam-ai-us/iam-ai-services/v1.0",
   "ai_services.login_flow_ai.generate_request_path": "/api/server/v1/applications/loginflow/generate",
   "ai_services.login_flow_ai.status_request_path": "/api/server/v1/applications/loginflow/status",
   "ai_services.login_flow_ai.result_request_path": "/api/server/v1/applications/loginflow/result",
