@@ -21,7 +21,7 @@
     <parent>
         <artifactId>carbon-service-stubs</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>7.8.514-SNAPSHOT</version>
+        <version>7.8.514</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
