@@ -82,14 +82,33 @@ public class FlowExecutionEngineUtils {
      */
     public static void addFlowContextToCache(FlowExecutionContext context) throws FlowEngineException {
 
+        addFlowContextToCache(context.getContextIdentifier(), context);
+    }
+
+    /**
+     * Add flow context to cache with provided key.
+     *
+     * @param cacheKeyIdentifier Cache key identifier.
+     * @param context            Flow context.
+     * @throws FlowEngineException Flow engine exception.
+     */
+    public static void addFlowContextToCache(String cacheKeyIdentifier, FlowExecutionContext context)
+            throws FlowEngineException {
+
+        if (StringUtils.isBlank(cacheKeyIdentifier)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache key identifier is blank. Skipping adding flow context to cache.");
+            }
+            return;
+        }
         // Persist an optimized version of the context in the cache and flow context store.
         optimizeContext(context);
         FlowExecCtxCacheEntry cacheEntry = new FlowExecCtxCacheEntry(context);
-        FlowExecCtxCacheKey cacheKey = new FlowExecCtxCacheKey(context.getContextIdentifier());
+        FlowExecCtxCacheKey cacheKey = new FlowExecCtxCacheKey(cacheKeyIdentifier);
         FlowExecCtxCache.getInstance().clearCacheEntry(cacheKey);
         FlowExecCtxCache.getInstance().addToCache(cacheKey, cacheEntry);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Flow context added to cache for context id: " + context.getContextIdentifier());
+            LOG.debug("Flow context added to cache for context id: " + cacheKeyIdentifier);
         }
     }
 
