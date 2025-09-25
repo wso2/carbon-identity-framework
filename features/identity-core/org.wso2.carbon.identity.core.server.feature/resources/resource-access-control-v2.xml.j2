@@ -903,9 +903,11 @@
         <Resource context="(.*)/api/server/v1/configs/home-realm-identifiers" secured="true" http-method="GET">
             <Scopes>internal_login</Scopes>
         </Resource>
+        {% if configs.endpoint.elevate_permission is sameas false %}
         <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
             <Scopes>internal_login</Scopes>
         </Resource>
+        {% endif %}
         <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
             <Scopes>internal_login</Scopes>
         </Resource>
@@ -1507,6 +1509,11 @@
         <Resource context="(.*)/o/api/server/v1/configs/impersonation(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_config_delete</Scopes>
         </Resource>
+        {% if configs.endpoint.elevate_permission is not sameas false %}
+        <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_config_view</Scopes>
+        </Resource>
+        {% endif %}
         <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="PATCH">
             <Scopes>internal_org_config_update</Scopes>
         </Resource>
@@ -1515,6 +1522,11 @@
         <Resource context="(.*)/api/server/v1/configs/authentication/inbound/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_config_update</Scopes>
         </Resource>
+        {% if configs.endpoint.elevate_permission is not sameas false %}
+        <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
+            <Scopes>internal_config_view</Scopes>
+        </Resource>
+        {% endif %}
         <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="PATCH, PUT">
             <Scopes>internal_config_update</Scopes>
         </Resource>
