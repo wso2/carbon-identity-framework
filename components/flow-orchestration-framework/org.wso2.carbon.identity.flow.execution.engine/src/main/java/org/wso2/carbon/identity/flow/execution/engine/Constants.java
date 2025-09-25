@@ -41,9 +41,6 @@ public class Constants {
 
     public static final String USER_ASSERTION_EXPIRY_PROPERTY = "FlowExecution.UserAssertion.ExpiryTime";
 
-    // Constants for self registration configurations.
-    public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
-
     // Constants related for OTP field length handling.
     public static final String OTP_LENGTH = "otpLength";
     public static final String OTP_VARIANT = "OTP";
@@ -238,8 +235,6 @@ public class Constants {
         public static final String STATUS_ERROR = "ERROR";
         public static final String STATUS_USER_ERROR = "USER_ERROR";
         public static final String STATUS_CLIENT_INPUT_REQUIRED = "CLIENT_INPUT_REQUIRED";
-        // User store manager related statuses.
-        public static final String USER_ALREADY_EXISTING_USERNAME = "UserAlreadyExistingUsername";
 
         private ExecutorStatus() {
 
