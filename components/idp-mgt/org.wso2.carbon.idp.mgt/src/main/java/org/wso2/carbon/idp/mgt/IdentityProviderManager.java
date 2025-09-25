@@ -2481,11 +2481,18 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
+    public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return dao.getAllUserDefinedFederatedAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators(String tenantDomain)
             throws IdentityProviderManagementException {
 
-        List<FederatedAuthenticatorConfig> allFederatedAuthenticators =
-                dao.getAllUserDefinedFederatedAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
+        List<FederatedAuthenticatorConfig> allFederatedAuthenticators = new ArrayList<>();
+        allFederatedAuthenticators.addAll(getAllUserDefinedFederatedAuthenticators(tenantDomain));
         allFederatedAuthenticators.addAll(Arrays.asList(getAllFederatedAuthenticators()));
         return allFederatedAuthenticators.toArray(new FederatedAuthenticatorConfig[0]);
     }
