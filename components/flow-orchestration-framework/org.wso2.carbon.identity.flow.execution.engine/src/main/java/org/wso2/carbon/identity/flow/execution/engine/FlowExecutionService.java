@@ -89,14 +89,14 @@ public class FlowExecutionService {
                 context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId);
                 String originalFlowId = context.getContextIdentifier();
 
-                // if the incoming flow id is different from the original flow id, it means this is a one time flow id.
+                // If the incoming flow id is different from the original flow id, it means this is a one time flow id.
                 if (!originalFlowId.equals(flowId)) {
                     FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
                     // Retrieve the original context and set it to the current context.
                     flowId = originalFlowId;
-                    //graphConfig will be removed from cache when adding to cache.
+                    // GraphConfig will be removed from cache when adding to cache.
                     graphConfig = context.getGraphConfig();
-                    //Cache the context against the original flowId.
+                    // Cache the context against the original flowId.
                     FlowExecutionEngineUtils.addFlowContextToCache(context);
                     context.setGraphConfig(graphConfig);
                 }
@@ -188,6 +188,14 @@ public class FlowExecutionService {
                 return false;
         }
     }
+
+    /**
+     * Cache the flow execution context.
+     *
+     * @param context Flow execution context.
+     * @param step    Current execution step.
+     * @throws FlowEngineException If something goes wrong while caching the context.
+     */
     private void cacheContext(FlowExecutionContext context, FlowExecutionStep step)
             throws FlowEngineException {
 
@@ -197,7 +205,8 @@ public class FlowExecutionService {
         String otfiToken = (String) context.getProperty(OTFI);
         if (StringUtils.isBlank(otfiToken)) {
             FlowExecutionEngineUtils.addFlowContextToCache(context);
+        } else {
+            FlowExecutionEngineUtils.addFlowContextToCache(otfiToken, context);
         }
-        FlowExecutionEngineUtils.addFlowContextToCache(otfiToken, context);
     }
 }
