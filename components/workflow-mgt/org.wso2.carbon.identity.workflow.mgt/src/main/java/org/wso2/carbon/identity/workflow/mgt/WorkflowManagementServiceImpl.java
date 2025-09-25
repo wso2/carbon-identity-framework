@@ -26,6 +26,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
+import org.wso2.carbon.identity.workflow.mgt.bean.Property;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
@@ -48,6 +49,7 @@ import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
+import org.wso2.carbon.identity.workflow.mgt.util.Utils;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
@@ -1268,12 +1270,15 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        WorkflowRequest workflowRequest = null;
-        workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
+        WorkflowRequest workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
         if (workflowRequest == null) {
             String errorMessage = "Workflow request not found with ID: " + requestId;
             log.debug(errorMessage);
             throw new WorkflowClientException(errorMessage);
+        }
+        List<Property> properties = Utils.getWorkflowRequestParameters(workflowRequest);
+        if (CollectionUtils.isNotEmpty(properties)) {
+            workflowRequest.setProperties(properties);
         }
 
         for (WorkflowListener workflowListener : workflowListenerList) {

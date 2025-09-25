@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.workflow.mgt.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener;
@@ -45,6 +46,7 @@ public class WorkflowServiceDataHolder {
     private RealmService realmService;
     private ConfigurationContextService configurationContextService;
     private BundleContext bundleContext;
+    private ClaimMetadataManagementService claimMetadataManagementService;
 
     private Map<String, WorkflowRequestHandler> workflowRequestHandlers = new HashMap<String, WorkflowRequestHandler>();
 
@@ -189,5 +191,16 @@ public class WorkflowServiceDataHolder {
 
         this.workflowService = workflowService;
     }
+
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
 }
 
