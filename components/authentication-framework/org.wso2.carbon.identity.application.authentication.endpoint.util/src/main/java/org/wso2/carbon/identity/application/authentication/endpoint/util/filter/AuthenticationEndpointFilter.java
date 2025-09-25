@@ -23,10 +23,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -73,6 +78,10 @@ public class AuthenticationEndpointFilter implements Filter {
     private static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
     public static final String CONSOLE_APPLICATION_NAME = "Console";
     public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
+    private static final String SERVICE_PROVIDER_ID = "spId";
+    private static final String TENANT_DOMAIN = "tenantDomain";
+
+
 
     private ServletContext context = null;
 
@@ -149,6 +158,32 @@ public class AuthenticationEndpointFilter implements Filter {
                 return;
             }
 
+            String serviceProviderId = servletRequest.getParameter(SERVICE_PROVIDER_ID);
+            String tenantDomain;
+            if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                tenantDomain = IdentityTenantUtil.resolveTenantDomain();
+            }
+
+            else {
+                tenantDomain = servletRequest.getParameter(TENANT_DOMAIN);
+            }
+
+            ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+
+            Set<String> configuredAuthenticatorsSet = new HashSet<>();
+
+            try {
+                if (!StringUtils.isBlank(serviceProviderId))
+                    configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppId(tenantDomain,serviceProviderId);
+                else {
+
+                    configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain,serviceProviderName);
+                }
+            } catch (ApplicationDataRetrievalClientException e) {
+                // Exception is ignored.
+                log.info("error for AuthenticatorDataRetrievalClientException" + e);
+            }
+
             Map<String, String> idpAuthenticatorMapping = new HashMap<String, String>();
             String authenticators = servletRequest.getParameter(REQUEST_PARAM_AUTHENTICATORS);
             if (authenticators != null) {
@@ -162,12 +197,17 @@ public class AuthenticationEndpointFilter implements Filter {
                                 || StringUtils.equalsIgnoreCase(MY_ACCOUNT_APPLICATION_NAME, serviceProviderName))) {
                             continue;
                         }
-                        if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
-                            idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
-                                                        idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
-                                                        authenticatorIdPMapArr[0]);
-                        } else {
-                            idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
+                        String authenticatorIDP = authenticatorIdPMapArr[0] + ":" + authenticatorIdPMapArr[i];
+                        boolean authenticatorExists = configuredAuthenticatorsSet.contains(authenticatorIDP);
+                        if (authenticatorExists) {
+
+                            if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
+                                idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
+                                        idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
+                                                authenticatorIdPMapArr[0]);
+                            } else {
+                                idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
+                            }
                         }
                     }
                 }
