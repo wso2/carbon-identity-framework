@@ -53,7 +53,7 @@ public class RoleManagementUtils {
 
     private static final Log log = LogFactory.getLog(RoleManagementUtils.class);
 
-    private static final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getRoleDAO();
+    private static final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getCacheBackedRoleDAO();
 
     /**
      * Checks whether the given role is an internal or application role.
