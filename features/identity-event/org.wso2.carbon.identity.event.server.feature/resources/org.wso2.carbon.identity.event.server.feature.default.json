@@ -74,7 +74,6 @@
   "identity_mgt.events.schemes.adminForcedPasswordReset.module_index": "9",
   "identity_mgt.events.schemes.adminForcedPasswordReset.subscriptions": [
     "PRE_SET_USER_CLAIMS",
-    "PRE_AUTHENTICATION",
     "POST_UPDATE_CREDENTIAL_BY_ADMIN"
   ],
   "identity_mgt.events.schemes.'suspension.notification'.module_index": "10",
@@ -365,8 +364,7 @@
   "identity_mgt.events.schemes.askPasswordBasedPasswordSetup.module_index": "55",
   "identity_mgt.events.schemes.askPasswordBasedPasswordSetup.subscriptions": [
     "PRE_ADD_USER",
-    "POST_ADD_USER",
-    "PRE_AUTHENTICATION"
+    "POST_ADD_USER"
   ],
   "identity_mgt.events.schemes.OrganizationVersionHandler.module_index": "56",
   "identity_mgt.events.schemes.OrganizationVersionHandler.subscriptions": [
@@ -382,5 +380,9 @@
   "identity_mgt.events.schemes.userSelfRegistrationCompletionHandler.module_index": "58",
   "identity_mgt.events.schemes.userSelfRegistrationCompletionHandler.subscriptions": [
     "POST_ADD_USER"
+  ],
+  "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.module_index": "59",
+  "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.subscriptions": [
+    "PRE_AUTHENTICATION"
   ]
 }
