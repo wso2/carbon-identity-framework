@@ -89,6 +89,10 @@
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -135,6 +139,8 @@
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.jaxen; version="${axiom.org.jaxen.imp.pkg.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.claim.metadata.mgt.*;
+                            version="${carbon.identity.package.import.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.base; version="${carbon.base.imp.pkg.version.range}",
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
