@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util.filter
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -80,9 +81,7 @@ public class AuthenticationEndpointFilter implements Filter {
     public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
     private static final String SERVICE_PROVIDER_ID = "spId";
     private static final String TENANT_DOMAIN = "tenantDomain";
-
-
-
+    public static final String SUPER_TENANT_DOMAIN_NAME = "carbon.super";
     private ServletContext context = null;
 
     @Override
@@ -166,6 +165,10 @@ public class AuthenticationEndpointFilter implements Filter {
 
             else {
                 tenantDomain = servletRequest.getParameter(TENANT_DOMAIN);
+            }
+
+            if (StringUtils.isEmpty(tenantDomain)) {
+                tenantDomain = SUPER_TENANT_DOMAIN_NAME;
             }
 
             ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
