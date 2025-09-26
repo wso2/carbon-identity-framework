@@ -863,6 +863,14 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             }
         }
         List<String> roles = roleDAO.getRoleIdListOfUser(userId, tenantDomain);
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                roles.add(getEveryOneRoleId(tenantDomain));
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityRoleManagementException(String.format("Error while checking whether the tenant domain: " +
+                    "%s is an organization.", tenantDomain), e);
+        }
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
                 roleManagementListener.postGetRoleIdListOfUser(roles, userId, tenantDomain);
@@ -1164,5 +1172,19 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             throws IdentityRoleManagementException {
 
         return userIDResolver.getNamesByIDs(userIDs, tenantDomain);
+    }
+
+    /**
+     * Get everyone role id.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return every one role id.
+     * @throws IdentityRoleManagementException if error occurred while retrieving everyone role id.
+     */
+    public String getEveryOneRoleId(String tenantDomain) throws IdentityRoleManagementException {
+
+        String everyOneRoleName = RoleManagementUtils.getEveryOneRoleName(tenantDomain);
+        String orgId = RoleManagementUtils.getOrganizationId(tenantDomain);
+        return getRoleIdByName(everyOneRoleName, ORGANIZATION, orgId, tenantDomain);
     }
 }

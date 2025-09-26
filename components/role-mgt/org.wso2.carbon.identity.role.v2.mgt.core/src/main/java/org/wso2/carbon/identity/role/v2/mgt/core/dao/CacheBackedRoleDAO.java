@@ -130,6 +130,9 @@ public class CacheBackedRoleDAO implements RoleDAO {
         Role role = roleDAO.getRole(roleId, tenantDomain);
         RoleNameCacheKey cacheKey = new RoleNameCacheKey(role.getName(), role.getAudience(), role.getAudienceId());
         roleCacheByName.clearCacheEntry(cacheKey, tenantDomain);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache cleared for role: " + role.getName());
+        }
         roleDAO.deleteRole(roleId, tenantDomain);
     }
 
@@ -184,12 +187,21 @@ public class CacheBackedRoleDAO implements RoleDAO {
         RoleNameCacheKey cacheKey = new RoleNameCacheKey(roleName, audience, audienceId);
         RoleCacheEntry entry = roleCacheByName.getValueFromCache(cacheKey, tenantDomain);
         if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache hit for role: " + roleName);
+            }
             return entry.getRoleId();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Getting role ID for role name: " + roleName + " in tenant: " + tenantDomain);
         }
         String roleId = roleDAO.getRoleIdByName(roleName, audience, audienceId, tenantDomain);
 
         if (roleName != null) {
             roleCacheByName.addToCache(cacheKey, new RoleCacheEntry(roleId), tenantDomain);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cached role ID for role: " + roleName);
+            }
         }
         return roleId;
     }
