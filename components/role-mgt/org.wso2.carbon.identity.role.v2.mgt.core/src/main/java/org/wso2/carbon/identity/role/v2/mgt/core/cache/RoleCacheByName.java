@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.cache;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
@@ -26,12 +28,14 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 public class RoleCacheByName extends BaseCache<RoleNameCacheKey, RoleCacheEntry> {
 
     private static final String CACHE_NAME = "RoleCacheByName";
+    private static final Log log = LogFactory.getLog(RoleCacheByName.class);
 
     private static final RoleCacheByName instance = new RoleCacheByName();
 
     private RoleCacheByName() {
 
         super(CACHE_NAME);
+        log.debug("Initialized RoleCacheByName with cache name: " + CACHE_NAME);
     }
 
     public static RoleCacheByName getInstance() {

@@ -865,6 +865,9 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         List<String> roles = roleDAO.getRoleIdListOfUser(userId, tenantDomain);
         try {
             if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Adding everyone role of tenant to the user role list.");
+                }
                 roles.add(getEveryOneRoleId(tenantDomain));
             }
         } catch (OrganizationManagementException e) {
