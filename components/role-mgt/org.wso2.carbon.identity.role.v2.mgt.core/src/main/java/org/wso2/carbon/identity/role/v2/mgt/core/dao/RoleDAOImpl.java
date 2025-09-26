@@ -1162,20 +1162,6 @@ public class RoleDAOImpl implements RoleDAO {
         return roleBasicInfo;
     }
 
-    /**
-     * Get everyone role id.
-     *
-     * @param tenantDomain Tenant domain.
-     * @return every one role id.
-     * @throws IdentityRoleManagementException if error occurred while retrieving everyone role id.
-     */
-    private String getEveryOneRoleId(String tenantDomain) throws IdentityRoleManagementException {
-
-        String everyOneRoleName = getEveryOneRoleName(tenantDomain);
-        String orgId = RoleManagementUtils.getOrganizationId(tenantDomain);
-        return getRoleIdByName(everyOneRoleName, ORGANIZATION, orgId, tenantDomain);
-    }
-
     private String getUsernameByUserID(String userId, String tenantDomain) throws IdentityRoleManagementException {
 
         return userIDResolver.getNameByID(userId, tenantDomain);
@@ -1297,9 +1283,6 @@ public class RoleDAOImpl implements RoleDAO {
                     String roleId = resultSet.getString(1);
                     roleIds.add(roleId);
                 }
-            }
-            if (!isOrganization(tenantDomain)) {
-                roleIds.add(getEveryOneRoleId(tenantDomain));
             }
         } catch (SQLException e) {
             String errorMessage = "Error while retrieving role id list of user by id: " + userId + " and " +
