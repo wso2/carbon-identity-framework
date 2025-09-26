@@ -258,7 +258,6 @@ public class ActionManagementAuditLoggerTest {
                                 .description(TEST_ACTION_DESCRIPTION_UPDATED)
                                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                                 .status(Action.Status.ACTIVE)
-                                .updatedAt(Timestamp.valueOf(TEST_UPDATED_AT))
                                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                                         .uri(TEST_ACTION_URI_UPDATED)
                                         .allowedHeaders(List.of(TEST_ACTION_ALLOWED_HEADER_1))
@@ -390,11 +389,13 @@ public class ActionManagementAuditLoggerTest {
     public void testPrintAddActionAuditLog(ActionManagementAuditLogger.Operation operation, ActionDTO creatingActionDTO)
             throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
-        auditLogger.printAuditLog(operation, creatingActionDTO,
-                Timestamp.valueOf(TEST_CREATED_AT), Timestamp.valueOf(TEST_UPDATED_AT));
-        Assert.assertNotNull(Timestamp.valueOf(TEST_CREATED_AT), "createdAt should not be null.");
-        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
+        Timestamp createdAt = Timestamp.valueOf(TestUtil.TEST_CREATED_AT);
+        Timestamp updatedAt = Timestamp.valueOf(TestUtil.TEST_UPDATED_AT);
+        auditLogger.printAuditLog(operation, creatingActionDTO, createdAt, updatedAt);
+
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+        Assert.assertEquals(extractMapByField("CreatedAt", capturedArg), String.valueOf(createdAt));
+        Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), String.valueOf(updatedAt));
         assertActionData(capturedArg, creatingActionDTO);
         assertAuditLoggerData(capturedArg, ADD_ACTION);
     }
@@ -404,10 +405,12 @@ public class ActionManagementAuditLoggerTest {
                                               ActionDTO updatingActionDTO)
             throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
-        auditLogger.printAuditLog(operation, updatingActionDTO,
-                null, Timestamp.valueOf(TEST_UPDATED_AT));
-        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
+        Timestamp updatedAt = Timestamp.valueOf(TEST_UPDATED_AT);
+        auditLogger.printAuditLog(operation, updatingActionDTO, null, updatedAt);
+
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+        Assert.assertNotNull(capturedArg);
+        Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), String.valueOf(updatedAt));
         assertActionData(capturedArg, updatingActionDTO);
         assertAuditLoggerData(capturedArg, UPDATE_ACTION);
     }
@@ -435,7 +438,6 @@ public class ActionManagementAuditLoggerTest {
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
 
         Assert.assertNotNull(capturedArg);
-        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
         Assert.assertEquals(extractMapByField("ActionId", capturedArg), actionDTO.getId());
         Assert.assertEquals(extractMapByField("ActionType", capturedArg), actionDTO.getType().name());
         Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), String.valueOf(updatedAt));
