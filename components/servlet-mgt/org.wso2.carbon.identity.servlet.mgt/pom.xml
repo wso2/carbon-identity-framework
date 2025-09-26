@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>servlet-mgt</artifactId>
-        <version>7.8.522-SNAPSHOT</version>
+        <version>7.8.522</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
