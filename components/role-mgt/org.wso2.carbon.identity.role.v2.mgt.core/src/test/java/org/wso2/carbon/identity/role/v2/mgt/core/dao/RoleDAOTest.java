@@ -25,7 +25,9 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -56,6 +58,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.api.AuthorizationManager;
@@ -151,11 +154,36 @@ public class RoleDAOTest {
     private MockedStatic<UserCoreUtil> userCoreUtil;
     private MockedStatic<UserRolesCache> userRolesCache;
     private MockedStatic<AuthorizationCache> authorizationCache;
+    private MockedStatic<RoleManagementUtils> roleManagementUtils;
 
     @Mock
     UserRealm mockUserRealm;
 
     MockedStatic<OrganizationManagementUtil> organizationManagementUtil;
+
+    @BeforeClass
+    public void classSetUp() {
+
+        roleManagementUtils = mockStatic(RoleManagementUtils.class);
+        roleManagementUtils.when(() -> RoleManagementUtils.getOrganizationId(SAMPLE_TENANT_DOMAIN))
+                .thenReturn(SAMPLE_ORG_ID);
+        roleManagementUtils.when(() -> RoleManagementUtils.getOrganizationId(L1_ORG_TENANT_DOMAIN))
+                .thenReturn(L1_ORG_TENANT_ORG_ID);
+        roleManagementUtils.when(() -> RoleManagementUtils.removeInternalDomain(anyString()))
+                .thenAnswer(invocation -> {
+                    String input = invocation.getArgument(0, String.class);
+                    if (input.startsWith("Internal/") || input.startsWith("INTERNAL/")) {
+                        return input.substring(input.indexOf("/") + 1);
+                    }
+                    return input;
+                });
+    }
+
+    @AfterClass
+    public void classTearDown() {
+
+        roleManagementUtils.close();
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
