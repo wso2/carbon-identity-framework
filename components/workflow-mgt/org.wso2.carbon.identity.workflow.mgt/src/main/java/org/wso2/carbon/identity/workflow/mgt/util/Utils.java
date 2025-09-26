@@ -114,10 +114,8 @@ public class Utils {
                                                 .getLocalClaims(
                                                         CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
                             } catch (ClaimMetadataException e) {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Error while retrieving local claims for tenant: " +
+                                log.error("Error while retrieving local claims for tenant: " +
                                             CarbonContext.getThreadLocalCarbonContext().getTenantDomain(), e);
-                                }
                                 continue;
                             }
 

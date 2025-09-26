@@ -1276,8 +1276,15 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             log.debug(errorMessage);
             throw new WorkflowClientException(errorMessage);
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieved workflow request with ID: " + requestId);
+        }
+
         List<Property> properties = Utils.getWorkflowRequestParameters(workflowRequest);
         if (CollectionUtils.isNotEmpty(properties)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Found " + properties.size() + " properties for workflow request: " + requestId);
+            }
             workflowRequest.setProperties(properties);
         }
 
