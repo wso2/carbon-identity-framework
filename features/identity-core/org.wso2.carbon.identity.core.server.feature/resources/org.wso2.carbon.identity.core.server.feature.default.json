@@ -107,7 +107,7 @@
   "oauth.jwt.return_only_app_associated_roles": true,
   "oauth.revoked_token_headers_in_response.enable": false,
   "oauth.return_sp_id_to_apps": false,
-  "oauth.jwt.maximum_allowed_depth": 255,
+  "oauth.jwt.maximum_allowed_depth": "255",
   "oauth.jwt.enable_depth_validation": true,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
