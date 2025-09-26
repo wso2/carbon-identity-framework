@@ -55,7 +55,7 @@
   "localization.prioritize_param": "true",
 
   "server.internal_hostname": "localhost",
-  "server.disable_admin_services": true,
+  "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
   "recoveryendpoint.hostname": "$ref{server.hostname}",
@@ -108,6 +108,7 @@
   "oauth.revoked_token_headers_in_response.enable": false,
   "oauth.return_sp_id_to_apps": false,
   "oauth.jwt.maximum_allowed_depth": 255,
+  "oauth.jwt.enable_depth_validation": true,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
   "oauth.enable_sha256": true,
@@ -317,6 +318,8 @@
   "oauth.allowed_scopes": ["^device_.*"],
 
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
+
+  "oauth.callback.enforce_literal_characters": true,
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -1515,8 +1518,8 @@
   "console.flows.scopes.feature": ["console:flows"],
   "console.flows.disabled_features": [],
   "console.flows.scopes.create": [],
-  "console.flows.scopes.read": [],
-  "console.flows.scopes.update": [],
+  "console.flows.scopes.read": ["internal_flow_view", "internal_governance_view"],
+  "console.flows.scopes.update": ["internal_flow_update", "internal_governance_update"],
   "console.flows.scopes.delete": [],
   "console.certificates.enabled": true,
   "console.certificates.scopes.feature": ["console:certificates"],
@@ -2079,6 +2082,7 @@
     "INVITED_USER_REGISTRATION": "30"
   },
   "flow_execution.enable_legacy_flows": false,
+  "flow_execution.registration.display_claim_availability": false,
   "branding_configuration.custom_content.max_file_size": 1048576,
   "captcha.enable_captcha_for_local_otp_authenticators": true,
 
