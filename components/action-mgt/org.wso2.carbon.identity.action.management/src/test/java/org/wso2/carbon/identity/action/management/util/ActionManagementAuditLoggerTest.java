@@ -390,6 +390,8 @@ public class ActionManagementAuditLoggerTest {
     public void testPrintAddActionAuditLog(ActionManagementAuditLogger.Operation operation, ActionDTO creatingActionDTO)
             throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
+        Assert.assertNotNull(Timestamp.valueOf(TEST_CREATED_AT), "createdAt should not be null.");
+        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
         auditLogger.printAuditLog(operation, creatingActionDTO,
                 Timestamp.valueOf(TEST_CREATED_AT), Timestamp.valueOf(TEST_UPDATED_AT));
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
@@ -402,6 +404,7 @@ public class ActionManagementAuditLoggerTest {
                                               ActionDTO updatingActionDTO)
             throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
+        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
         auditLogger.printAuditLog(operation, updatingActionDTO,
                 null, Timestamp.valueOf(TEST_UPDATED_AT));
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
@@ -427,6 +430,8 @@ public class ActionManagementAuditLoggerTest {
     public void testPrintActivateAndDeactivateActionAuditLog(ActionManagementAuditLogger.Operation operation,
                                                              Timestamp updatedAt) throws
             NoSuchFieldException, IllegalAccessException {
+
+        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
 
         auditLogger.printAuditLog(operation, actionDTO.getType().name(), actionDTO.getId(), updatedAt);
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
@@ -515,8 +520,6 @@ public class ActionManagementAuditLoggerTest {
         String description = actionDTO.getDescription();
         String type = actionDTO.getType() != null ? actionDTO.getType().name() : null;
         String status = actionDTO.getStatus() != null ? actionDTO.getStatus().name() : null;
-        String createdAt = actionDTO.getCreatedAt() != null ? String.valueOf(actionDTO.getCreatedAt()) : null;
-        String updatedAt = actionDTO.getUpdatedAt() != null ? String.valueOf(actionDTO.getUpdatedAt()) : null;
 
         String uri = actionDTO.getEndpoint() != null && actionDTO.getEndpoint().getUri() != null ?
                 actionDTO.getEndpoint().getUri() : null;
