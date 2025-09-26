@@ -55,7 +55,7 @@
   "localization.prioritize_param": "true",
 
   "server.internal_hostname": "localhost",
-  "server.disable_admin_services": true,
+  "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
   "recoveryendpoint.hostname": "$ref{server.hostname}",

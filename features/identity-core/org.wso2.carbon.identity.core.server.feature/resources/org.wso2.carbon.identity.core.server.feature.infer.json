@@ -292,7 +292,7 @@
       "oauth.introspect.allow_cross_sub_org": true,
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
       "captcha.enable_captcha_for_local_otp_authenticators": false,
-      "server.disable_admin_services": false,
+      "server.enable_admin_services": true,
       "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
       "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
         "POST_ADD_ORGANIZATION"
@@ -332,7 +332,7 @@
       "oauth.introspect.allow_cross_sub_org": true,
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
       "captcha.enable_captcha_for_local_otp_authenticators": false,
-      "server.disable_admin_services": false,
+      "server.enable_admin_services": true,
       "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
       "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
         "POST_ADD_ORGANIZATION"
