@@ -390,10 +390,10 @@ public class ActionManagementAuditLoggerTest {
     public void testPrintAddActionAuditLog(ActionManagementAuditLogger.Operation operation, ActionDTO creatingActionDTO)
             throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
-        Assert.assertNotNull(Timestamp.valueOf(TEST_CREATED_AT), "createdAt should not be null.");
-        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
         auditLogger.printAuditLog(operation, creatingActionDTO,
                 Timestamp.valueOf(TEST_CREATED_AT), Timestamp.valueOf(TEST_UPDATED_AT));
+        Assert.assertNotNull(Timestamp.valueOf(TEST_CREATED_AT), "createdAt should not be null.");
+        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
         assertActionData(capturedArg, creatingActionDTO);
         assertAuditLoggerData(capturedArg, ADD_ACTION);
@@ -404,9 +404,9 @@ public class ActionManagementAuditLoggerTest {
                                               ActionDTO updatingActionDTO)
             throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
-        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
         auditLogger.printAuditLog(operation, updatingActionDTO,
                 null, Timestamp.valueOf(TEST_UPDATED_AT));
+        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
         assertActionData(capturedArg, updatingActionDTO);
         assertAuditLoggerData(capturedArg, UPDATE_ACTION);
@@ -431,12 +431,11 @@ public class ActionManagementAuditLoggerTest {
                                                              Timestamp updatedAt) throws
             NoSuchFieldException, IllegalAccessException {
 
-        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
-
         auditLogger.printAuditLog(operation, actionDTO.getType().name(), actionDTO.getId(), updatedAt);
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
 
         Assert.assertNotNull(capturedArg);
+        Assert.assertNotNull(Timestamp.valueOf(TEST_UPDATED_AT), "updatedAt should not be null.");
         Assert.assertEquals(extractMapByField("ActionId", capturedArg), actionDTO.getId());
         Assert.assertEquals(extractMapByField("ActionType", capturedArg), actionDTO.getType().name());
         Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), String.valueOf(updatedAt));
