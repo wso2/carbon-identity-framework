@@ -25,9 +25,13 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
+import org.wso2.carbon.identity.workflow.mgt.bean.Property;
+import org.wso2.carbon.identity.workflow.mgt.bean.RequestParameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
@@ -51,6 +55,7 @@ import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
+import org.wso2.carbon.identity.workflow.mgt.util.WorkflowDataType;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
@@ -63,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -1278,5 +1284,185 @@ public class WorkflowManagementServiceImplTest {
         request.setRequestId(REQUEST_ID);
         request.setCreatedBy(USER_NAME);
         return request;
+    }
+
+    @Test
+    public void testGetWorkflowRequestBeanWithClaimsProcessing() throws Exception {
+
+        WorkflowRequest mockWorkflowRequest = createWorkflowRequestWithClaims();
+        when(mockDAO.getWorkflowRequest(REQUEST_ID)).thenReturn(mockWorkflowRequest);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        List<LocalClaim> mockLocalClaims = createMockLocalClaims();
+        when(mockClaimService.getLocalClaims(anyString())).thenReturn(mockLocalClaims);
+
+        WorkflowServiceDataHolder mockHolder = mock(WorkflowServiceDataHolder.class);
+        when(mockHolder.getClaimMetadataManagementService()).thenReturn(mockClaimService);
+        List<WorkflowListener> listeners = Arrays.asList(mockWorkflowListener);
+        when(mockHolder.getWorkflowListenerList()).thenReturn(listeners);
+
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            mockedDataHolder.when(WorkflowServiceDataHolder::getInstance).thenReturn(mockHolder);
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getTenantDomain()).thenReturn("carbon.super");
+
+            WorkflowRequest result = service.getWorkflowRequestBean(REQUEST_ID);
+
+            assertNotNull(result, "Result should not be null");
+            assertEquals(result.getRequestId(), REQUEST_ID);
+            assertNotNull(result.getProperties(), "Properties should not be null after processing");
+            assertTrue(result.getProperties().size() > 0, "Should have processed properties");
+
+            // Verify that claims were processed correctly
+            boolean foundEmailProperty = false;
+            boolean foundFirstNameProperty = false;
+
+            for (Property property : result.getProperties()) {
+                if ("Email".equals(property.getKey())) {
+                    foundEmailProperty = true;
+                    assertEquals(property.getValue(), "test@example.com");
+                } else if ("First Name".equals(property.getKey())) {
+                    foundFirstNameProperty = true;
+                    assertEquals(property.getValue(), "John");
+                }
+            }
+
+            assertTrue(foundEmailProperty, "Should find processed email property");
+            assertTrue(foundFirstNameProperty, "Should find processed first name property");
+            verify(mockClaimService).getLocalClaims("carbon.super");
+        }
+
+        verify(mockDAO).getWorkflowRequest(REQUEST_ID);
+    }
+
+    @Test
+    public void testGetWorkflowRequestBeanWithCredentialFiltering() throws Exception {
+
+        WorkflowRequest mockWorkflowRequest = createWorkflowRequestWithCredentials();
+        when(mockDAO.getWorkflowRequest(REQUEST_ID)).thenReturn(mockWorkflowRequest);
+
+        // Use existing mock infrastructure
+        WorkflowServiceDataHolder mockHolder = mock(WorkflowServiceDataHolder.class);
+        List<WorkflowListener> listeners = Arrays.asList(mockWorkflowListener);
+        when(mockHolder.getWorkflowListenerList()).thenReturn(listeners);
+
+        mockedDataHolder.when(WorkflowServiceDataHolder::getInstance).thenReturn(mockHolder);
+
+        WorkflowRequest result = service.getWorkflowRequestBean(REQUEST_ID);
+
+        assertNotNull(result);
+        assertNotNull(result.getProperties());
+        // Should have only 1 property (username), credential should be filtered out
+        assertEquals(result.getProperties().size(), 1);
+        assertEquals(result.getProperties().get(0).getKey(), "username");
+        assertEquals(result.getProperties().get(0).getValue(), "testuser");
+
+        verify(mockDAO).getWorkflowRequest(REQUEST_ID);
+    }
+
+    @Test
+    public void testGetWorkflowRequestBeanWithEmptyProperties() throws Exception {
+
+        WorkflowRequest mockWorkflowRequest = createWorkflowRequestWithEmptyProperties();
+        when(mockDAO.getWorkflowRequest(REQUEST_ID)).thenReturn(mockWorkflowRequest);
+
+        // Use existing mock infrastructure
+        WorkflowServiceDataHolder mockHolder = mock(WorkflowServiceDataHolder.class);
+        List<WorkflowListener> listeners = Arrays.asList(mockWorkflowListener);
+        when(mockHolder.getWorkflowListenerList()).thenReturn(listeners);
+
+        mockedDataHolder.when(WorkflowServiceDataHolder::getInstance).thenReturn(mockHolder);
+
+        WorkflowRequest result = service.getWorkflowRequestBean(REQUEST_ID);
+
+        assertNotNull(result);
+        assertEquals(result.getRequestId(), REQUEST_ID);
+        assertNotNull(result.getProperties());
+        assertEquals(result.getProperties().size(), 0);
+
+        verify(mockDAO).getWorkflowRequest(REQUEST_ID);
+    }
+
+    // Helper methods for creating test data
+
+    private WorkflowRequest createWorkflowRequestWithClaims() {
+
+        WorkflowRequest request = new WorkflowRequest();
+        request.setRequestId(REQUEST_ID);
+        request.setCreatedBy("testuser");
+
+        List<RequestParameter> parameters = new ArrayList<>();
+
+        // Add claims parameter
+        Map<String, String> claimsMap = new HashMap<>();
+        claimsMap.put("http://wso2.org/claims/emailaddress", "test@example.com");
+        claimsMap.put("http://wso2.org/claims/givenname", "John");
+
+        RequestParameter claimsParam = new RequestParameter();
+        claimsParam.setName(WFConstant.CLAIMS_PROPERTY_NAME);
+        claimsParam.setValue(claimsMap);
+        claimsParam.setValueType(WorkflowDataType.STRING_STRING_MAP_TYPE);
+        parameters.add(claimsParam);
+
+        // Add regular parameter
+        RequestParameter regularParam = new RequestParameter();
+        regularParam.setName("username");
+        regularParam.setValue("testuser");
+        regularParam.setValueType(WorkflowDataType.STRING_TYPE);
+        parameters.add(regularParam);
+
+        request.setRequestParameters(parameters);
+        return request;
+    }
+
+    private WorkflowRequest createWorkflowRequestWithCredentials() {
+
+        WorkflowRequest request = new WorkflowRequest();
+        request.setRequestId(REQUEST_ID);
+        request.setCreatedBy("testuser");
+
+        List<RequestParameter> parameters = new ArrayList<>();
+
+        RequestParameter credentialParam = new RequestParameter();
+        credentialParam.setName(WFConstant.CREDENTIAL);
+        credentialParam.setValue("secret");
+        credentialParam.setValueType(WorkflowDataType.STRING_TYPE);
+        parameters.add(credentialParam);
+
+        RequestParameter regularParam = new RequestParameter();
+        regularParam.setName("username");
+        regularParam.setValue("testuser");
+        regularParam.setValueType(WorkflowDataType.STRING_TYPE);
+        parameters.add(regularParam);
+
+        request.setRequestParameters(parameters);
+        return request;
+    }
+
+    private WorkflowRequest createWorkflowRequestWithEmptyProperties() {
+
+        WorkflowRequest request = new WorkflowRequest();
+        request.setRequestId(REQUEST_ID);
+        request.setCreatedBy("testuser");
+        request.setRequestParameters(new ArrayList<>());
+        return request;
+    }
+
+    private List<LocalClaim> createMockLocalClaims() {
+
+        List<LocalClaim> localClaims = new ArrayList<>();
+
+        LocalClaim emailClaim = mock(LocalClaim.class);
+        when(emailClaim.getClaimURI()).thenReturn("http://wso2.org/claims/emailaddress");
+        when(emailClaim.getClaimProperty("DisplayName")).thenReturn("Email");
+        localClaims.add(emailClaim);
+
+        LocalClaim firstNameClaim = mock(LocalClaim.class);
+        when(firstNameClaim.getClaimURI()).thenReturn("http://wso2.org/claims/givenname");
+        when(firstNameClaim.getClaimProperty("DisplayName")).thenReturn("First Name");
+        localClaims.add(firstNameClaim);
+
+        return localClaims;
     }
 }
