@@ -45,6 +45,10 @@ public class CacheBackedRoleDAO extends RoleDAOImpl {
     public String getRoleIdByName(String roleName, String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        if (!RoleManagementUtils.getEveryOneRoleName(tenantDomain).equals(roleName)) {
+            return super.getRoleIdByName(roleName, audience, audienceId, tenantDomain);
+        }
+
         /* The cache is added only for the Everyone role, as it is the only role name frequently used, due to its use in
          listing user roles. Since the Everyone role cannot be modified or deleted, no invalidation scenario is
          required. However, if this method is later extended to cache other role names, please ensure the corresponding
@@ -52,7 +56,7 @@ public class CacheBackedRoleDAO extends RoleDAOImpl {
          */
         RoleNameCacheKey cacheKey = new RoleNameCacheKey(roleName, audience, audienceId);
         RoleIdCacheEntry entry = roleCacheByName.getValueFromCache(cacheKey, tenantDomain);
-        if (entry != null && RoleManagementUtils.getEveryOneRoleName(tenantDomain).equals(roleName)) {
+        if (entry != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Cache hit for role: " + roleName + " in tenant: " + tenantDomain);
             }

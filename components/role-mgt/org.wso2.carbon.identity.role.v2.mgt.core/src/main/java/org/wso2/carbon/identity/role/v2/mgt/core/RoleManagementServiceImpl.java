@@ -863,17 +863,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             }
         }
         List<String> roles = roleDAO.getRoleIdListOfUser(userId, tenantDomain);
-        try {
-            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Adding everyone role of tenant to the user role list.");
-                }
-                roles.add(getEveryoneRoleId(tenantDomain));
-            }
-        } catch (OrganizationManagementException e) {
-            throw new IdentityRoleManagementException(String.format("Error while checking whether the tenant domain: " +
-                    "%s is an organization.", tenantDomain), e);
-        }
+        addEveryoneRoleToRoleList(roles, tenantDomain);
+
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
                 roleManagementListener.postGetRoleIdListOfUser(roles, userId, tenantDomain);
@@ -1189,5 +1180,19 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         String everyOneRoleName = RoleManagementUtils.getEveryOneRoleName(tenantDomain);
         String orgId = RoleManagementUtils.getOrganizationId(tenantDomain);
         return getRoleIdByName(everyOneRoleName, ORGANIZATION, orgId, tenantDomain);
+    }
+
+    private void addEveryoneRoleToRoleList(List<String> roles, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                log.debug("Adding everyone role of tenant to the user role list.");
+                roles.add(getEveryoneRoleId(tenantDomain));
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityRoleManagementException(String.format("Error while checking whether the tenant domain: " +
+                    "%s is an organization.", tenantDomain), e);
+        }
     }
 }
