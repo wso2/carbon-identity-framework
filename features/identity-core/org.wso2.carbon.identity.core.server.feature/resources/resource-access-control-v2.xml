@@ -18,6 +18,7 @@
   -->
 
 <ResourceAccessControl xmlns="http://wso2.org/projects/carbon/carbon.xml" default-access="deny">
+    <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" />
     <Resource context="(.*)/lsp/(.*)" secured="true" http-method="all"/>
     <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
     <Resource context="/" secured="false" http-method="GET"/>

@@ -1562,6 +1562,9 @@
 
 
     <ResourceAccessControl default-access="deny">
+        <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" >
+            <Permissions>/</Permissions>
+        </Resource>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
