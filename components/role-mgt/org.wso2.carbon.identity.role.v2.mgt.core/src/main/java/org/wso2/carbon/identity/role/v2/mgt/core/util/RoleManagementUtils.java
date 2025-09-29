@@ -234,7 +234,7 @@ public class RoleManagementUtils {
     }
 
     /**
-     * Get everyone role name.
+     * Get everyone role name by tenant domain.
      *
      * @param tenantDomain Tenant domain.
      * @return every one role name.

@@ -1120,30 +1120,6 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     /**
-     * Get everyone role name.
-     *
-     * @param tenantDomain Tenant domain.
-     * @return every one role name.
-     * @throws IdentityRoleManagementException if error occurred while retrieving everyone role name.
-     */
-    private String getEveryOneRoleName(String tenantDomain) throws IdentityRoleManagementException {
-
-        String everyOneRoleName;
-        try {
-            everyOneRoleName = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration()
-                    .getEveryOneRoleName();
-        } catch (UserStoreException e) {
-            throw new IdentityRoleManagementException("Error while retrieving everyone role name", e);
-        }
-        if (everyOneRoleName == null) {
-            String errorMessage =
-                    "Everyone role name not found for tenantDomain : " + tenantDomain;
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage);
-        }
-        return RoleManagementUtils.removeInternalDomain(everyOneRoleName);
-    }
-
-    /**
      * Get everyone role basic info.
      *
      * @param tenantDomain Tenant domain.
@@ -1152,7 +1128,7 @@ public class RoleDAOImpl implements RoleDAO {
      */
     private RoleBasicInfo getEveryOneRole(String tenantDomain) throws IdentityRoleManagementException {
 
-        String everyOneRoleName = getEveryOneRoleName(tenantDomain);
+        String everyOneRoleName = RoleManagementUtils.getEveryOneRoleName(tenantDomain);
         String orgId = RoleManagementUtils.getOrganizationId(tenantDomain);
         String roleId = getRoleIdByName(everyOneRoleName, ORGANIZATION, orgId, tenantDomain);
         RoleBasicInfo roleBasicInfo = new RoleBasicInfo(roleId, everyOneRoleName);

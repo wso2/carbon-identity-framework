@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
-import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleCacheByName;
-import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleCacheEntry;
+import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleIdCacheByName;
+import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleIdCacheEntry;
 import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleNameCacheKey;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
@@ -37,19 +37,20 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Cache layer implementation of the {@link CacheBackedRoleDAO} interface.
+ * Cache layer implementation of the {@link RoleDAO} interface.
  * Delegates calls to the underlying RoleDAO implementation.
  */
 public class CacheBackedRoleDAO implements RoleDAO {
 
     private static final Log LOG = LogFactory.getLog(CacheBackedRoleDAO.class);
+
     private final RoleDAOImpl roleDAO;
-    private final RoleCacheByName roleCacheByName;
+    private final RoleIdCacheByName roleCacheByName;
 
     public CacheBackedRoleDAO(RoleDAOImpl roleDAO) {
 
         this.roleDAO = roleDAO;
-        roleCacheByName = RoleCacheByName.getInstance();
+        roleCacheByName = RoleIdCacheByName.getInstance();
     }
 
     @Override
@@ -185,7 +186,7 @@ public class CacheBackedRoleDAO implements RoleDAO {
             throws IdentityRoleManagementException {
 
         RoleNameCacheKey cacheKey = new RoleNameCacheKey(roleName, audience, audienceId);
-        RoleCacheEntry entry = roleCacheByName.getValueFromCache(cacheKey, tenantDomain);
+        RoleIdCacheEntry entry = roleCacheByName.getValueFromCache(cacheKey, tenantDomain);
         if (entry != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Cache hit for role: " + roleName);
@@ -198,7 +199,7 @@ public class CacheBackedRoleDAO implements RoleDAO {
         String roleId = roleDAO.getRoleIdByName(roleName, audience, audienceId, tenantDomain);
 
         if (roleName != null) {
-            roleCacheByName.addToCache(cacheKey, new RoleCacheEntry(roleId), tenantDomain);
+            roleCacheByName.addToCache(cacheKey, new RoleIdCacheEntry(roleId), tenantDomain);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Cached role ID for role: " + roleName);
             }

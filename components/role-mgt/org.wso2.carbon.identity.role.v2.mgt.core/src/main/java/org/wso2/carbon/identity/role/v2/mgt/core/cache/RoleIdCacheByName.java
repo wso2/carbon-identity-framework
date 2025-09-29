@@ -23,22 +23,29 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
- * Role cache based on the role name.
+ * Role Id cache based on the role name.
  */
-public class RoleCacheByName extends BaseCache<RoleNameCacheKey, RoleCacheEntry> {
+public class RoleIdCacheByName extends BaseCache<RoleNameCacheKey, RoleIdCacheEntry> {
 
-    private static final String CACHE_NAME = "RoleCacheByName";
-    private static final Log log = LogFactory.getLog(RoleCacheByName.class);
+    private static final String CACHE_NAME = "RoleIdCacheByName";
+    private static final Log log = LogFactory.getLog(RoleIdCacheByName.class);
 
-    private static final RoleCacheByName instance = new RoleCacheByName();
+    private static final RoleIdCacheByName instance = new RoleIdCacheByName();
 
-    private RoleCacheByName() {
+    private RoleIdCacheByName() {
 
         super(CACHE_NAME);
-        log.debug("Initialized RoleCacheByName with cache name: " + CACHE_NAME);
+        if (log.isDebugEnabled()) {
+            log.debug("Initialized RoleIdCacheByName with cache name: " + CACHE_NAME);
+        }
     }
 
-    public static RoleCacheByName getInstance() {
+    /**
+     * Retrieve the singleton instance.
+     *
+     * @return Singleton instance of RoleIdCacheByName.
+     */
+    public static RoleIdCacheByName getInstance() {
 
         return instance;
     }

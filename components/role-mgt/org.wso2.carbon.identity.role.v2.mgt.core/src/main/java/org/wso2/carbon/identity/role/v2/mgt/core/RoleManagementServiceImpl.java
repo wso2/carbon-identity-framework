@@ -868,7 +868,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 if (log.isDebugEnabled()) {
                     log.debug("Adding everyone role of tenant to the user role list.");
                 }
-                roles.add(getEveryOneRoleId(tenantDomain));
+                roles.add(getEveryoneRoleId(tenantDomain));
             }
         } catch (OrganizationManagementException e) {
             throw new IdentityRoleManagementException(String.format("Error while checking whether the tenant domain: " +
@@ -1178,13 +1178,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     /**
-     * Get everyone role id.
+     * Get everyone role id by tenant domain.
      *
      * @param tenantDomain Tenant domain.
      * @return every one role id.
      * @throws IdentityRoleManagementException if error occurred while retrieving everyone role id.
      */
-    public String getEveryOneRoleId(String tenantDomain) throws IdentityRoleManagementException {
+    private String getEveryoneRoleId(String tenantDomain) throws IdentityRoleManagementException {
 
         String everyOneRoleName = RoleManagementUtils.getEveryOneRoleName(tenantDomain);
         String orgId = RoleManagementUtils.getOrganizationId(tenantDomain);

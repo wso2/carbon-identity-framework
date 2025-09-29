@@ -23,27 +23,28 @@ import org.wso2.carbon.identity.core.cache.CacheKey;
 import java.util.Objects;
 
 /**
- * Role management DAO factory.
+ * Cache Key by role name for RoleIdCacheByName cache.
  */
 public class RoleNameCacheKey extends CacheKey {
 
-    private static final long serialVersionUID = 131341321312312L;
+    private static final long serialVersionUID = 9172836450192837465L;
 
     private final String roleName;
     private final String audience;
     private final String audienceId;
 
+    /**
+     * Constructor to create RoleNameCacheKey.
+     *
+     * @param roleName   Name of the role.
+     * @param audience   Audience of the role.
+     * @param audienceId Audience ID of the role.
+     */
     public RoleNameCacheKey(String roleName, String audience, String audienceId) {
 
         this.roleName = roleName;
         this.audience = audience;
         this.audienceId = audienceId;
-    }
-
-
-    public String getRoleName() {
-
-        return roleName;
     }
 
     @Override
@@ -60,7 +61,6 @@ public class RoleNameCacheKey extends CacheKey {
         }
 
         RoleNameCacheKey that = (RoleNameCacheKey) o;
-
         return Objects.equals(roleName, that.roleName) && Objects.equals(audience, that.audience) &&
                 Objects.equals(audienceId, that.audienceId);
     }
