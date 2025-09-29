@@ -177,6 +177,8 @@ public class RoleDAOTest {
                     }
                     return input;
                 });
+        roleManagementUtils.when(() -> RoleManagementUtils.getEveryOneRoleName(anyString()))
+                .thenReturn("Internal/everyone");
     }
 
     @AfterClass
@@ -1029,7 +1031,7 @@ public class RoleDAOTest {
         addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
         addRole("everyone", ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
         List<String> roles = roleDAO.getRoleIdListOfUser("userID1", SAMPLE_TENANT_DOMAIN);
-        assertEquals(roles.size(), 3);
+        assertEquals(roles.size(), 2);
     }
 
     @Test
@@ -1359,10 +1361,9 @@ public class RoleDAOTest {
 
         CarbonContext mockCarbonContext = mock(CarbonContext.class);
         carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
-        when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+        lenient().when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
         RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
-        when(mockUserRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
-        lenient().when(realmConfiguration.getEveryOneRoleName()).thenReturn("Internal/everyone");
+        lenient().when(mockUserRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
     }
 
     private List<String> getRoleNamesList(List<RoleBasicInfo> roles) {

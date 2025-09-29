@@ -43,7 +43,6 @@ import java.util.Set;
 public class CacheBackedRoleDAO implements RoleDAO {
 
     private static final Log LOG = LogFactory.getLog(CacheBackedRoleDAO.class);
-
     private final RoleDAOImpl roleDAO;
     private final RoleIdCacheByName roleCacheByName;
 
