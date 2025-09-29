@@ -31,7 +31,7 @@ public class RoleMgtDAOFactory {
     private RoleMgtDAOFactory() {
 
         this.roleDAO = new RoleDAOImpl();
-        this.cacheBackedRoleDAO = new CacheBackedRoleDAO((RoleDAOImpl) roleDAO);
+        this.cacheBackedRoleDAO = new CacheBackedRoleDAO();
         this.groupDAO = new GroupDAOImpl();
     }
 
