@@ -748,6 +748,7 @@ public class WorkflowRequestDAO {
                 }
                 if (workflowRequest != null) {
                     requestDTO.setRequestParams(workflowRequest.getRequestParameterAsString());
+                    requestDTO.setRequestParameters(workflowRequest.getRequestParameters());
                 }
 
                 return requestDTO;

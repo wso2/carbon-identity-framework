@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.workflow.mgt.bean;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This object represent a request associated with a workflow.
  */
@@ -30,6 +33,8 @@ public class WorkflowRequest {
     private String status;
     private String requestParams;
     private String createdBy;
+    private List<RequestParameter> requestParameters = new ArrayList<RequestParameter>();
+    private List<Property> properties = new ArrayList<Property>();
 
     public String getRequestId() {
 
@@ -99,5 +104,45 @@ public class WorkflowRequest {
     public void setCreatedBy(String createdBy) {
 
         this.createdBy = createdBy;
+    }
+
+    /**
+     * Get the list of properties.
+     *
+     * @return List of properties.
+     */
+    public List<Property> getProperties() {
+
+        return properties;
+    }
+
+    /**
+     * Set the list of properties.
+     *
+     * @param properties List of properties.
+     */
+    public void setProperties(List<Property> properties) {
+
+        this.properties = properties;
+    }
+
+    /**
+     * Set the list of request parameters.
+     *
+     * @param requestParameters List of request parameters.
+     */
+    public void setRequestParameters(List<RequestParameter> requestParameters) {
+
+        this.requestParameters = requestParameters;
+    }
+
+    /**
+     * Get the list of request parameters.
+     *
+     * @return List of request parameters.
+     */
+    public List<RequestParameter> getRequestParameters() {
+
+        return requestParameters;
     }
 }
