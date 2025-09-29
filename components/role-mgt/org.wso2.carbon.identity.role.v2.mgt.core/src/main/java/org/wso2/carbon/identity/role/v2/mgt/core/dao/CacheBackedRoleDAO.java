@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
 import java.util.List;
@@ -68,11 +69,26 @@ public class CacheBackedRoleDAO implements RoleDAO {
     }
 
     @Override
+    public List<Role> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                               List<String> requiredAttributes) throws IdentityRoleManagementException {
+
+        return roleDAO.getRoles(limit, offset, sortBy, sortOrder, tenantDomain, requiredAttributes);
+    }
+
+    @Override
     public List<RoleBasicInfo> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
                                         String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
 
         return roleDAO.getRoles(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain);
+    }
+
+    @Override
+    public List<Role> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset, String sortBy,
+                               String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoles(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain, requiredAttributes);
     }
 
     @Override
@@ -316,6 +332,13 @@ public class CacheBackedRoleDAO implements RoleDAO {
     }
 
     @Override
+    public Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(roleIds, subOrgTenantDomain);
+    }
+
+    @Override
     public List<String> getAssociatedApplicationIdsByRoleId(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -326,5 +349,17 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public int getRoleAudienceRefId(String audience, String audienceId) throws IdentityRoleManagementException {
 
         return roleDAO.getRoleAudienceRefId(audience, audienceId);
+    }
+
+    @Override
+    public List<RoleDTO> getSharedHybridRoles(String roleId, int mainTenantId) throws IdentityRoleManagementException {
+
+        return roleDAO.getSharedHybridRoles(roleId, mainTenantId);
+    }
+
+    @Override
+    public boolean isSharedRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleDAO.isSharedRole(roleId, tenantDomain);
     }
 }
