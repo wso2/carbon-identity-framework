@@ -2861,6 +2861,7 @@
     <BrandingConfiguration>
         <CustomContent>
             <MaxFileSize>1048576</MaxFileSize>
+            <AllowOnlyForUrlBrandedTenants>false</AllowOnlyForUrlBrandedTenants>
         </CustomContent>
     </BrandingConfiguration>
     <AgentIdentity>
