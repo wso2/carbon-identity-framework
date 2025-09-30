@@ -1385,6 +1385,16 @@
         <Callback>
             <EnforceLiteralCharacters>{{oauth.callback.enforce_literal_characters}}</EnforceLiteralCharacters>
         </Callback>
+        <!--
+        By enabling this config, the refresh token will be issued during impersonation flow.
+        Please note that this is not recommended to enable this in production environments.
+        Default value : false
+        -->
+        {% if oauth.impersonated_refresh_token is defined %}
+        <ImpersonatedRefreshToken>
+            <Enable>{{oauth.impersonated_refresh_token.enable}}</Enable>
+        </ImpersonatedRefreshToken>
+        {% endif %}
     </OAuth>
 
     <RestApiAuthentication>
