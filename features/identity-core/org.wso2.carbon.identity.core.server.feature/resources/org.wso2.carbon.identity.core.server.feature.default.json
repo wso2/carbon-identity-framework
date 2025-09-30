@@ -1842,7 +1842,8 @@
     "internal_group_mgt_view",
     "internal_idp_view",
     "internal_session_view",
-    "internal_governance_view"
+    "internal_governance_view",
+    "internal_claim_meta_view"
   ],
   "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
   "console.guest_user.enabled": true,
