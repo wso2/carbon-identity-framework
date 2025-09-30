@@ -2273,23 +2273,17 @@ public class IdentityUtil {
         if (StringUtils.isBlank(enableJWTDepth) || !Boolean.parseBoolean(enableJWTDepth)) {
             return;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Initiating JWT depth validation.");
-        }
+        log.debug("Initiating JWT depth validation.");
 
         if (StringUtils.isBlank(jwt)) {
-            if (log.isDebugEnabled()) {
-                log.debug("JWT is blank, skipping depth validation.");
-            }
+            log.debug("JWT is blank, skipping depth validation.");
             return;
         }
 
         // Extract and decode JWT payload.
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
-            if (log.isDebugEnabled()) {
-                log.debug("Invalid JWT format. Skipping depth validation.");
-            }
+            log.debug("Invalid JWT format. Skipping depth validation.");
             return;
         }
 
@@ -2297,9 +2291,7 @@ public class IdentityUtil {
         try {
             payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
         } catch (IllegalArgumentException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Invalid Base64 encoding in JWT payload.");
-            }
+            log.debug("Invalid Base64 encoding in JWT payload.");
             return;
         }
         String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
@@ -2315,14 +2307,10 @@ public class IdentityUtil {
      */
     public static void validateJWTDepthOfJWTPayload(String payload) throws ParseException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Checking JWT payload depth validation");
-        }
+        log.debug("Checking JWT payload depth validation");
 
         if (StringUtils.isBlank(payload)) {
-            if (log.isDebugEnabled()) {
-                log.debug("JWT payload is blank, skipping depth validation");
-            }
+            log.debug("JWT payload is blank, skipping depth validation");
             return;
         }
         validateJsonDepth(payload, getAllowedMaxJWTDepth());
@@ -2361,12 +2349,10 @@ public class IdentityUtil {
                 }
             }
         } catch (IOException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error occurred while validating JSON depth.", e);
-            }
+            log.debug("Error occurred while validating JSON depth.", e);
             return;
         }
-        log.info("Validated JSON depth successfully.");
+        log.debug("Validated JSON depth successfully.");
     }
 
     /**
