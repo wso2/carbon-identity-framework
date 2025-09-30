@@ -2366,6 +2366,7 @@ public class IdentityUtil {
             }
             return;
         }
+        log.info("Validated JSON depth successfully.");
     }
 
     /**
