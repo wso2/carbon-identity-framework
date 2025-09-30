@@ -795,6 +795,9 @@
         <Callback>
             <EnforceLiteralCharacters>true</EnforceLiteralCharacters>
         </Callback>
+        <ImpersonatedRefreshToken>
+            <Enable>false</Enable>
+        </ImpersonatedRefreshToken>
     </OAuth>
 
     <RestApiAuthentication>
