@@ -2261,7 +2261,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Check whether the JWT exceeds the allowed depth.
+     * Check whether the JWT exceeds the allowed depth. This only validates the depth of the payload part of the JWT.
      *
      * @param jwt JWT string to check.
      * @throws  ParseException If the JWT exceeds the allowed depth or if an error occurs during parsing.
@@ -2274,27 +2274,33 @@ public class IdentityUtil {
             return;
         }
         if (log.isDebugEnabled()) {
-            log.debug("Checking JWT depth validation");
+            log.debug("Initiating JWT depth validation.");
         }
 
         if (StringUtils.isBlank(jwt)) {
             if (log.isDebugEnabled()) {
-                log.debug("JWT is blank, skipping depth validation");
+                log.debug("JWT is blank, skipping depth validation.");
             }
-            throw new ParseException("Error validating JWT depth. JWT is blank.", 0);
+            return;
         }
 
         // Extract and decode JWT payload.
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
-            throw new ParseException("Error validating JWT depth. Invalid JWT format.", 0);
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid JWT format. Skipping depth validation.");
+            }
+            return;
         }
 
         byte[] payloadBytes;
         try {
             payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
         } catch (IllegalArgumentException e) {
-            throw new ParseException("Error validating JWT depth. Invalid Base64 encoding in JWT payload.", 0);
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid Base64 encoding in JWT payload.");
+            }
+            return;
         }
         String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
 
@@ -2302,7 +2308,8 @@ public class IdentityUtil {
     }
 
     /**
-     * Check whether the JWT payload exceeds the allowed depth.
+     * Check whether the JWT payload exceeds the allowed depth. This only validates the depth
+     * of the payload part of the JWT.
      * @param payload JWT payload(JSON) string to check.
      * @throws ParseException If the JWT payload exceeds the allowed depth or if an error occurs during parsing.
      */
@@ -2316,7 +2323,7 @@ public class IdentityUtil {
             if (log.isDebugEnabled()) {
                 log.debug("JWT payload is blank, skipping depth validation");
             }
-            throw new ParseException("Error validating JWT depth. JWT is blank.", 0);
+            return;
         }
         validateJsonDepth(payload, getAllowedMaxJWTDepth());
     }
@@ -2354,7 +2361,10 @@ public class IdentityUtil {
                 }
             }
         } catch (IOException e) {
-            throw new ParseException("Error parsing JSON while depth validation.", 0);
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while validating JSON depth.", e);
+            }
+            return;
         }
     }
 
