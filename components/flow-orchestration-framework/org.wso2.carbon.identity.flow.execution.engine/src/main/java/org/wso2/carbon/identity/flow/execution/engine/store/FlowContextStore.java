@@ -61,14 +61,7 @@ public class FlowContextStore {
 
     public void storeContext(FlowExecutionContext context) throws FlowEngineException {
 
-        String flowType = context.getFlowType();
-        long ttlMinutes = resolveTTL(flowType);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Storing context: " + context.getContextIdentifier() + " with TTL: " + ttlMinutes + " mins");
-        }
-
-        flowContextStoreDAO.storeContext(context, ttlMinutes * 60);
+        storeContext(context.getContextIdentifier(), context);
     }
 
     public void storeContext(String contextIdentifier, FlowExecutionContext context) throws FlowEngineException {
