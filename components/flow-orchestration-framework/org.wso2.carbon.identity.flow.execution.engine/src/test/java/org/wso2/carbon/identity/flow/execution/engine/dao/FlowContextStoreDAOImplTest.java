@@ -53,6 +53,7 @@ import static org.testng.Assert.assertThrows;
 public class FlowContextStoreDAOImplTest {
 
     private static final String CONTEXT_ID = "test-context-id";
+    private static final String DIFFERENT_CONTEXT_ID = "different-context-id";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String FLOW_TYPE = "REGISTRATION";
     private static final long TTL_SECONDS = 900L;
@@ -101,12 +102,36 @@ public class FlowContextStoreDAOImplTest {
     }
 
     @Test
+    public void testStoreContextSuccessfulInsertWithDifferentContextID() throws Exception {
+
+        FlowExecutionContext context = createTestContext();
+        when(jdbcTemplate.executeUpdateWithAffectedRows(contains("UPDATE"), any())).thenReturn(0);
+
+        flowContextStoreDAO.storeContext(DIFFERENT_CONTEXT_ID, context, TTL_SECONDS);
+
+        verify(jdbcTemplate).executeUpdateWithAffectedRows(contains("UPDATE"), any());
+        verify(jdbcTemplate).executeUpdate(contains("INSERT"), any());
+    }
+
+    @Test
     public void testStoreContextSuccessfulUpdate() throws Exception {
 
         FlowExecutionContext context = createTestContext();
         when(jdbcTemplate.executeUpdateWithAffectedRows(contains("UPDATE"), any())).thenReturn(1);
 
         flowContextStoreDAO.storeContext(context, TTL_SECONDS);
+
+        verify(jdbcTemplate).executeUpdateWithAffectedRows(contains("UPDATE"), any());
+        verify(jdbcTemplate, times(0)).executeUpdate(contains("INSERT"), any());
+    }
+
+    @Test
+    public void testStoreContextSuccessfulUpdateWithDifferentContextID() throws Exception {
+
+        FlowExecutionContext context = createTestContext();
+        when(jdbcTemplate.executeUpdateWithAffectedRows(contains("UPDATE"), any())).thenReturn(1);
+
+        flowContextStoreDAO.storeContext(DIFFERENT_CONTEXT_ID, context, TTL_SECONDS);
 
         verify(jdbcTemplate).executeUpdateWithAffectedRows(contains("UPDATE"), any());
         verify(jdbcTemplate, times(0)).executeUpdate(contains("INSERT"), any());
@@ -134,6 +159,20 @@ public class FlowContextStoreDAOImplTest {
         doReturn(expectedContext).when(jdbcTemplate).fetchSingleRecord(contains("SELECT"), any(), any());
 
         FlowExecutionContext actualContext = flowContextStoreDAO.getContext(CONTEXT_ID);
+
+        assertNotNull(actualContext);
+        assertEquals(actualContext.getContextIdentifier(), CONTEXT_ID);
+        assertEquals(actualContext.getTenantDomain(), TENANT_DOMAIN);
+        assertEquals(actualContext.getFlowType(), FLOW_TYPE);
+    }
+
+    @Test
+    public void testGetContextSuccessWithDifferentContextID() throws Exception {
+
+        FlowExecutionContext expectedContext = createTestContext();
+        doReturn(expectedContext).when(jdbcTemplate).fetchSingleRecord(contains("SELECT"), any(), any());
+
+        FlowExecutionContext actualContext = flowContextStoreDAO.getContext(DIFFERENT_CONTEXT_ID);
 
         assertNotNull(actualContext);
         assertEquals(actualContext.getContextIdentifier(), CONTEXT_ID);
