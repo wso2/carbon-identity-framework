@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
@@ -41,6 +42,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -254,7 +256,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 throw e;
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while updating the authorized API. Caused by, ", e);
+            if (isScopeConflict(e)) {
+                throw new IdentityApplicationManagementClientException(
+                        "Duplicate authorized scopes found while adding authorized API.", e);
+            }
+            throw new IdentityApplicationManagementException("Error while adding authorized API. Caused by, ", e);
         }
     }
 
@@ -328,9 +334,25 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 throw e;
             }
-        } catch (SQLException | APIResourceMgtException e) {
+        } catch (SQLException e) {
+            if (isScopeConflict(e)) {
+                throw new IdentityApplicationManagementClientException(
+                        "Duplicate authorized scopes found while adding authorized API.", e);
+            }
+            throw new IdentityApplicationManagementException("Error while adding authorized API. Caused by, ", e);
+        } catch (APIResourceMgtException e) {
             throw new IdentityApplicationManagementException("Error while adding authorized API. Caused by, ", e);
         }
+    }
+
+    private boolean isScopeConflict(SQLException e) {
+
+        if (e instanceof SQLIntegrityConstraintViolationException ||
+            (e.getNextException() instanceof SQLIntegrityConstraintViolationException)) {
+            return true;
+        }
+        // Handle constraint violations in JDBC drivers which don't throw SQLIntegrityConstraintViolationException.
+        return e.getMessage() != null && e.getMessage().toUpperCase().contains("AUTHORIZED_SCOPE_UNIQUE");
     }
 
     private void addScopes(Connection dbConnection, String appId, String apiId, List<String> scopesToAdd, int tenantId)
