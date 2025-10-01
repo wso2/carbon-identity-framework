@@ -258,7 +258,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         } catch (SQLException e) {
             if (isScopeConflict(e)) {
                 throw new IdentityApplicationManagementClientException(
-                        "Duplicate authorized scopes found while adding authorized API.", e);
+                        "API resource or scopes are already authorized", e);
             }
             throw new IdentityApplicationManagementException("Error while adding authorized API. Caused by, ", e);
         }
@@ -337,7 +337,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         } catch (SQLException e) {
             if (isScopeConflict(e)) {
                 throw new IdentityApplicationManagementClientException(
-                        "Duplicate authorized scopes found while adding authorized API.", e);
+                        "API resource or scopes are already authorized", e);
             }
             throw new IdentityApplicationManagementException("Error while adding authorized API. Caused by, ", e);
         } catch (APIResourceMgtException e) {
