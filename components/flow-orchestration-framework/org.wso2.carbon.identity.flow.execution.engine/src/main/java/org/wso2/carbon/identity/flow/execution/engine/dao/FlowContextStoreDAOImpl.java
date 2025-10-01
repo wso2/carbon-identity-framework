@@ -85,6 +85,43 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
     }
 
     @Override
+    public void storeContext(String contextIdentifier, FlowExecutionContext context, long ttlSeconds) throws FlowEngineException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            String serializedContext = OBJECT_MAPPER.writeValueAsString(context);
+            Timestamp now = Timestamp.from(Instant.now());
+            Timestamp expiresAt = Timestamp.from(Instant.now().plusSeconds(ttlSeconds));
+
+            int affectedRows = jdbcTemplate.executeUpdateWithAffectedRows(
+                    UPDATE_CONTEXT_SQL,
+                    preparedStatement -> {
+                        preparedStatement.setString(1, serializedContext);
+                        preparedStatement.setString(2, context.getContextIdentifier());
+                        preparedStatement.setInt(3, IdentityTenantUtil.getTenantId(context.getTenantDomain()));
+                    });
+
+            if (affectedRows == 0) {
+                jdbcTemplate.executeUpdate(
+                        INSERT_CONTEXT_SQL,
+                        preparedStatement -> {
+                            preparedStatement.setString(1, contextIdentifier);
+                            preparedStatement.setInt(2, IdentityTenantUtil.getTenantId(context.getTenantDomain()));
+                            preparedStatement.setString(3, context.getFlowType());
+                            preparedStatement.setTimestamp(4, now);
+                            preparedStatement.setTimestamp(5, expiresAt);
+                            preparedStatement.setString(6, serializedContext);
+                        });
+            }
+        } catch (IOException | DataAccessException e) {
+            throw FlowExecutionEngineUtils.handleServerException(context.getFlowType(),
+                    Constants.ErrorMessages.ERROR_CODE_FLOW_CONTEXT_STORE_FAILURE,
+                    e,
+                    context.getContextIdentifier());
+        }
+    }
+
+    @Override
     public FlowExecutionContext getContext(String contextId) throws FlowEngineException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
