@@ -1966,6 +1966,9 @@
 
 
     <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
+        <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" >
+            <Permissions>/</Permissions>
+        </Resource>
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}"
                 {% if resource.allowed_auth_handlers is defined %}
