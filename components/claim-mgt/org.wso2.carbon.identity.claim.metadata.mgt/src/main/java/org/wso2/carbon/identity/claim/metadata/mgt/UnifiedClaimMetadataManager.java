@@ -772,13 +772,13 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                                 !mappedAttribute.getUserStoreDomain().equals(primaryUserStoreDomain);
             } else {
                 filterCondition = mappedAttribute -> !mappedAttribute.getUserStoreDomain().equals(userStoreDomain);
+                localClaim.setClaimProperties(localClaimMap.get(localClaim.getClaimURI()).getClaimProperties());
             }
             List<AttributeMapping> missingMappedAttributes = localClaimMap.get(localClaim.getClaimURI())
                     .getMappedAttributes().stream()
                     .filter(filterCondition)
                     .collect(Collectors.toList());
             localClaim.getMappedAttributes().addAll(missingMappedAttributes);
-            localClaim.setClaimProperties(localClaimMap.get(localClaim.getClaimURI()).getClaimProperties());
         }
         if (isHierarchicalMode) {
             this.cacheBackedDBBasedClaimMetadataManager
