@@ -316,10 +316,9 @@
 
   "oauth.drop_unregistered_scopes": true,
   "oauth.allowed_scopes": ["^device_.*"],
-
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
-
   "oauth.callback.enforce_literal_characters": true,
+  "oauth.impersonated_refresh_token.enable": false,
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -1842,7 +1841,8 @@
     "internal_group_mgt_view",
     "internal_idp_view",
     "internal_session_view",
-    "internal_governance_view"
+    "internal_governance_view",
+    "internal_claim_meta_view"
   ],
   "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
   "console.guest_user.enabled": true,

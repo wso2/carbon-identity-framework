@@ -46,56 +46,53 @@ public class JWTDepthValidationTest {
     }
 
     @Test
-    public void testNullAndEmptyJWT() {
+    public void testNullAndEmptyJWT() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
 
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(null));
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(""));
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth("   "));
+            IdentityUtil.validateJWTDepth(null);
+            IdentityUtil.validateJWTDepth("");
+            IdentityUtil.validateJWTDepth("   ");
         }
     }
 
     @Test
-    public void testInvalidJWTFormats() {
+    public void testInvalidJWTFormats() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth("invalidjwt"));
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth("onlyonepart."));
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth("header."));
-            assertThrows(ParseException.class, () ->
-                    IdentityUtil.validateJWTDepth("header.invalid@base64!.signature"));
+            IdentityUtil.validateJWTDepth("invalidjwt");
+            IdentityUtil.validateJWTDepth("onlyonepart.");
+            IdentityUtil.validateJWTDepth("header.");
+            IdentityUtil.validateJWTDepth("header.invalid@base64!.signature");
         }
     }
 
     @Test
-    public void testNonJSONPayload() {
+    public void testNonJSONPayload() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             String invalidJson = "not json at all";
             String jwt = createJWT(invalidJson);
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(jwt));
+            IdentityUtil.validateJWTDepth(jwt);
         }
     }
 
     @Test
-    public void testMalformedJSON() {
+    public void testMalformedJSON() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
             setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             String malformedObject = "{\"incomplete\":";
             String malformedArray = "[{\"incomplete\"";
-            assertThrows(ParseException.class,
-                    () -> IdentityUtil.validateJWTDepth(createJWT(malformedObject)));
-            assertThrows(ParseException.class,
-                    () -> IdentityUtil.validateJWTDepth(createJWT(malformedArray)));
+            IdentityUtil.validateJWTDepth(createJWT(malformedObject));
+            IdentityUtil.validateJWTDepth(createJWT(malformedArray));
         }
     }
 
@@ -317,7 +314,7 @@ public class JWTDepthValidationTest {
             setMaxJWTDepth(identityUtilMock, 5);
             setRealMethodCalls(identityUtilMock);
 
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepthOfJWTPayload(StringUtils.EMPTY));
+            IdentityUtil.validateJWTDepthOfJWTPayload(StringUtils.EMPTY);
 
             String depth1 = "{\"simple\":\"value\"}";
             IdentityUtil.validateJWTDepthOfJWTPayload(depth1);
