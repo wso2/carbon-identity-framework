@@ -66,7 +66,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
                     UPDATE_CONTEXT_SQL,
                     preparedStatement -> {
                         preparedStatement.setString(1, serializedContext);
-                        preparedStatement.setString(2, context.getContextIdentifier());
+                        preparedStatement.setString(2, contextIdentifier);
                         preparedStatement.setInt(3, IdentityTenantUtil.getTenantId(context.getTenantDomain()));
                     });
 
