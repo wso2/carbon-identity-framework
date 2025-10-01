@@ -321,7 +321,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
             }
         }
-        sessionIdList = getSessionIdListByUserId(userIdToSearch);
+
+        List<UserSession> sessionList = getSessionsByUserId(userIdToSearch);
+        sessionIdList = sessionList.stream().map(UserSession::getSessionId).collect(Collectors.toList());
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
                 Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
