@@ -36,10 +36,12 @@ import org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAsserti
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTFI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes.REGISTRATION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
@@ -78,12 +80,26 @@ public class FlowExecutionService {
         FlowExecutionStep step;
         FlowExecutionContext context = null;
         boolean isFlowEnteredInIdentityContext = false;
+        GraphConfig graphConfig = null;
         try {
             if (StringUtils.isBlank(flowId)) {
                 // No flowId present hence initiate the flow.
                 context = FlowExecutionEngineUtils.initiateContext(tenantDomain, applicationId, flowType);
             } else {
                 context = FlowExecutionEngineUtils.retrieveFlowContextFromCache(flowId);
+                String originalFlowId = context.getContextIdentifier();
+
+                // If the incoming flow id is different from the original flow id, it means this is a one time flow id.
+                if (!originalFlowId.equals(flowId)) {
+                    FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
+                    // Retrieve the original context and set it to the current context.
+                    flowId = originalFlowId;
+                    // GraphConfig will be removed from cache when adding to cache.
+                    graphConfig = context.getGraphConfig();
+                    // Cache the context against the original flowId.
+                    FlowExecutionEngineUtils.addFlowContextToCache(context);
+                    context.setGraphConfig(graphConfig);
+                }
             }
 
             isFlowEnteredInIdentityContext = enterFlowInIdentityContext(context.getFlowType());
@@ -118,7 +134,7 @@ public class FlowExecutionService {
                             AuthenticationAssertionUtils.getSignedUserAssertion(context));
                 }
             } else {
-                FlowExecutionEngineUtils.addFlowContextToCache(context);
+                cacheContext(context, step);
             }
             step.setFlowType(context.getFlowType());
             return step;
@@ -170,6 +186,27 @@ public class FlowExecutionService {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    /**
+     * Cache the flow execution context.
+     *
+     * @param context Flow execution context.
+     * @param step    Current execution step.
+     * @throws FlowEngineException If something goes wrong while caching the context.
+     */
+    private void cacheContext(FlowExecutionContext context, FlowExecutionStep step)
+            throws FlowEngineException {
+
+        if (context == null || context.getProperties() == null) {
+            return;
+        }
+        String otfiToken = (String) context.getProperty(OTFI);
+        if (StringUtils.isBlank(otfiToken)) {
+            FlowExecutionEngineUtils.addFlowContextToCache(context);
+        } else {
+            FlowExecutionEngineUtils.addFlowContextToCache(otfiToken, context);
         }
     }
 }

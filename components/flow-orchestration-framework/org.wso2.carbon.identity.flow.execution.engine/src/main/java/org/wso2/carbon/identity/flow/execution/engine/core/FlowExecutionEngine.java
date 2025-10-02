@@ -140,14 +140,21 @@ public class FlowExecutionEngine {
                 return step;
             }
         }
-        return new FlowExecutionStep.Builder()
-                .flowId(context.getContextIdentifier())
-                .flowStatus(STATUS_COMPLETE)
-                .stepType(REDIRECTION)
-                .data(new DataDTO.Builder()
-                        .url(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context))
-                        .build())
-                .build();
+
+        // If there are no more nodes to process, mark the flow as complete.
+        NodeConfig endNode = graph.getNodeConfigs().get(END_NODE_ID);
+        if (endNode == null) {
+            return new FlowExecutionStep.Builder()
+                    .flowId(context.getContextIdentifier())
+                    .flowStatus(STATUS_COMPLETE)
+                    .stepType(REDIRECTION)
+                    .data(new DataDTO.Builder()
+                            .url(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context))
+                            .build())
+                    .build();
+        }
+        return resolveStepForPrompt(graph, context.getGraphConfig().getNodeConfigs().get(END_NODE_ID),
+                context, context.getCurrentNodeResponse());
     }
 
     /**
@@ -227,9 +234,10 @@ public class FlowExecutionEngine {
                         "end node. Changing the flow status to COMPLETE, step type to REDIRECTION and setting " +
                         "the redirect URL.");
             }
-            if (finalDataDTO != null ) {
-                finalDataDTO.setRedirectURL(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context));
+            if (finalDataDTO == null ) {
+                finalDataDTO = new DataDTO();
             }
+            finalDataDTO.setRedirectURL(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context));
             return new FlowExecutionStep.Builder()
                     .flowId(context.getContextIdentifier())
                     .flowStatus(STATUS_COMPLETE)

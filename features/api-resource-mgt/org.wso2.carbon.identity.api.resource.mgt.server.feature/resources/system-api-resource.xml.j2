@@ -543,20 +543,6 @@
                     description="Delete script libraries"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Secret Type Management API" identifier="/api/server/v1/secret-type"
-                 requiresAuthorization="true"
-                 description="API representation of the Secret Type Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="Add Secret Type" name="internal_secret_type_mgt_add" 
-                    description="Create new secret types in secret management service"/>
-            <Scope displayName="Update Secret Type" name="internal_secret_type_mgt_update" 
-                    description="Update secret types in secret management service"/>
-            <Scope displayName="View Secret Type" name="internal_secret_type_mgt_view" 
-                    description="View secret types in secret management service"/>
-            <Scope displayName="Delete Secret Type" name="internal_secret_type_mgt_delete" 
-                    description="Delete secret types in secret management service"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Secret Management API" identifier="/api/server/v1/secrets"
                  requiresAuthorization="true" description="API representation of the Secret Management API" type="TENANT">
         <Scopes>
