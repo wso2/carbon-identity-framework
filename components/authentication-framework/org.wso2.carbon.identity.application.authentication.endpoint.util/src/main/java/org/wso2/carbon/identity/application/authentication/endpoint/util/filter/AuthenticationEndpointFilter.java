@@ -23,9 +23,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -80,9 +82,6 @@ public class AuthenticationEndpointFilter implements Filter {
     private static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
     public static final String CONSOLE_APPLICATION_NAME = "Console";
     public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
-    private static final String SERVICE_PROVIDER_ID = "spId";
-    private static final String TENANT_DOMAIN = "tenantDomain";
-    public static final String SUPER_TENANT_DOMAIN_NAME = "carbon.super";
 
     private ServletContext context = null;
 
@@ -161,7 +160,7 @@ public class AuthenticationEndpointFilter implements Filter {
             }
 
             Set<String> configuredAuthenticatorsSet = new HashSet<>();
-            String serviceProviderId = servletRequest.getParameter(SERVICE_PROVIDER_ID);
+            String serviceProviderId = servletRequest.getParameter(FrameworkConstants.REQUEST_PARAM_SP_UUID);
             String tenantDomain;
 
             if (authenticatorValidationEnabled) {
@@ -172,14 +171,13 @@ public class AuthenticationEndpointFilter implements Filter {
                 if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                     tenantDomain = IdentityTenantUtil.resolveTenantDomain();
                 } else {
-                    tenantDomain = servletRequest.getParameter(TENANT_DOMAIN);
+                    tenantDomain = servletRequest.getParameter(MultitenantConstants.TENANT_DOMAIN);
                 }
-
                 if (StringUtils.isBlank(tenantDomain)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Default super tenant domain will be used");
                     }
-                    tenantDomain = SUPER_TENANT_DOMAIN_NAME;
+                    tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
                 }
 
                 ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
@@ -202,7 +200,7 @@ public class AuthenticationEndpointFilter implements Filter {
                 }
             }
 
-            Map<String, String> idpAuthenticatorMapping = new HashMap<String, String>();
+            Map<String, String> idpAuthenticatorMapping = new HashMap<>();
             String authenticators = servletRequest.getParameter(REQUEST_PARAM_AUTHENTICATORS);
             if (authenticators != null) {
                 String[] authenticatorIdPMappings = authenticators.split(";");
@@ -224,17 +222,14 @@ public class AuthenticationEndpointFilter implements Filter {
                             if (authenticatorExists) {
                                 if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                                     idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
-                                            idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
-                                                    authenticatorIdPMapArr[0]);
+                                            idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);
                                 } else {
                                     idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
                                 }
                             }
                         } else {
                             if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
-                                idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
-                                        idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
-                                                authenticatorIdPMapArr[0]);
+                                idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);
                             } else {
                                 idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
                             }
