@@ -27,8 +27,6 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrieva
 import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.Mockito.mockStatic;
