@@ -3046,6 +3046,41 @@
         </ExemptContext>
     </IntermediateCertValidation>
 
+    {% set cfg = client_certificate_based_authentication or {} %}
+    <ClientCertBasedAuthentication enable="{{ cfg.enable | default(false) | string | lower }}">
+        {% if cfg.log_client_cert_info %}
+        <LogClientCertInfoEnabled>{{ cfg.log_client_cert_info }}</LogClientCertInfoEnabled>
+        {% endif %}
+        {% if cfg.user_thumbprint_mapping %}
+        <UserThumbprintMappings>
+            {% for m in cfg.user_thumbprint_mapping %}
+            <Mapping>
+            <TrustedIssuer>{{ m.trusted_issuer }}</TrustedIssuer>
+            <CertThumbprint>{{ m.cert_thumbprint }}</CertThumbprint>
+            {% if m.allowed_username is string %}
+                <AllowedUsername>{{ m.allowed_username }}</AllowedUsername>
+            {% elif m.allowed_username is sequence %}
+                {% for u in m.allowed_username %}
+                <AllowedUsername>{{ u }}</AllowedUsername>
+                {% endfor %}
+            {% endif %}
+            </Mapping>
+            {% endfor %}
+        </UserThumbprintMappings>
+        {% endif %}
+        {% if cfg.system_thumbprint_mapping %}
+        <SystemThumbprintMappings>
+            {% for m in cfg.system_thumbprint_mapping %}
+            <Mapping>
+            <TrustedIssuer>{{ m.trusted_issuer }}</TrustedIssuer>
+            <CertThumbprint>{{ m.cert_thumbprint }}</CertThumbprint>
+            <AllowedSystemUser>{{ m.allowed_system_user }}</AllowedSystemUser>
+            </Mapping>
+            {% endfor %}
+        </SystemThumbprintMappings>
+        {% endif %}
+    </ClientCertBasedAuthentication>
+
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
 
