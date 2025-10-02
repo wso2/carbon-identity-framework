@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -81,6 +82,7 @@ public class AuthenticationEndpointFilter implements Filter {
     private static final String SERVICE_PROVIDER_ID = "spId";
     private static final String TENANT_DOMAIN = "tenantDomain";
     public static final String SUPER_TENANT_DOMAIN_NAME = "carbon.super";
+
     private ServletContext context = null;
 
     @Override
@@ -160,13 +162,14 @@ public class AuthenticationEndpointFilter implements Filter {
             String tenantDomain;
             if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                 tenantDomain = IdentityTenantUtil.resolveTenantDomain();
-            }
-
-            else {
+            } else {
                 tenantDomain = servletRequest.getParameter(TENANT_DOMAIN);
             }
 
-            if (StringUtils.isEmpty(tenantDomain)) {
+            if (StringUtils.isBlank(tenantDomain)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Default super tenant domain will be used");
+                }
                 tenantDomain = SUPER_TENANT_DOMAIN_NAME;
             }
 
@@ -175,15 +178,20 @@ public class AuthenticationEndpointFilter implements Filter {
             Set<String> configuredAuthenticatorsSet = new HashSet<>();
 
             try {
-                if (!StringUtils.isBlank(serviceProviderId))
-                    configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppId(tenantDomain,serviceProviderId);
-                else {
+                if (!StringUtils.isBlank(serviceProviderId)) {
 
-                    configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain,serviceProviderName);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Retrieving authenticators for service provider ID: " + serviceProviderId + "in tenant: " + tenantDomain);
+                    }
+                    configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppId(tenantDomain, serviceProviderId);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Retrieving authenticators for service provider using Service Provider Name: " + serviceProviderName + "in tenant: " + tenantDomain);
+                    }
+                    configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain, serviceProviderName);
                 }
             } catch (ApplicationDataRetrievalClientException e) {
-                // Exception is ignored.
-                log.info("error for AuthenticatorDataRetrievalClientException" + e);
+                log.error("error for AuthenticatorDataRetrievalClientException" + e);
             }
 
             Map<String, String> idpAuthenticatorMapping = new HashMap<String, String>();
@@ -201,8 +209,10 @@ public class AuthenticationEndpointFilter implements Filter {
                         }
                         String authenticatorIDP = authenticatorIdPMapArr[0] + ":" + authenticatorIdPMapArr[i];
                         boolean authenticatorExists = configuredAuthenticatorsSet.contains(authenticatorIDP);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Checking authenticator: " + authenticatorIDP + ", exists: " + authenticatorExists);
+                        }
                         if (authenticatorExists) {
-
                             if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                                 idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
                                         idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +

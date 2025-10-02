@@ -221,6 +221,9 @@ public class ApplicationDataRetrievalClient {
             }
 
             Set<String> configuredAuthenticatorsSet = new HashSet<>(Arrays.asList((resultBuilder.toString()).split(";")));
+            if (log.isDebugEnabled()) {
+                log.debug("Found " + configuredAuthenticatorsSet.size() + " authenticators for application: " + applicationId);
+            }
             return configuredAuthenticatorsSet;
 
         } catch (IOException | JSONException e) {
@@ -246,8 +249,6 @@ public class ApplicationDataRetrievalClient {
         try {
             String applicationID = getApplicationID(tenant,applicationName);
             return getApplicationAuthenticatorsByAppId(tenant, applicationID);
-
-
         } catch (JSONException e) {
             String msg = "Error while getting authenticators of" + applicationName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
