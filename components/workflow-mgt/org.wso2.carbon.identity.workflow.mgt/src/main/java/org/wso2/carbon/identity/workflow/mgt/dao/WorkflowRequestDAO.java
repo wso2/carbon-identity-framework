@@ -736,8 +736,10 @@ public class WorkflowRequestDAO {
 
                 requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
                 requestDTO.setOperationType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
-                requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
-                requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
+                requestDTO.setCreatedAt(
+                        resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toInstant().toString());
+                requestDTO.setUpdatedAt(
+                        resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toInstant().toString());
                 requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
                 requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
 
