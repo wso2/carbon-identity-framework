@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
+import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionDTOModelResolverFactory;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOFacade;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
@@ -602,6 +603,7 @@ public class ActionManagementDAOFacadeTest {
                 .name(TEST_ACTION_NAME)
                 .description(TEST_ACTION_DESCRIPTION)
                 .status(Action.Status.INACTIVE)
+                .actionVersion(ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD))
@@ -620,6 +622,7 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(actualActionDTO.getName(), expectedActionDTO.getName());
         Assert.assertEquals(actualActionDTO.getDescription(), expectedActionDTO.getDescription());
         Assert.assertEquals(actualActionDTO.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(actualActionDTO.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(actualActionDTO.getCreatedAt());
         Assert.assertNotNull(actualActionDTO.getUpdatedAt());
         Assert.assertEquals(actualActionDTO.getEndpoint().getUri(), expectedActionDTO.getEndpoint().getUri());

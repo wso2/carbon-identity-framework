@@ -40,6 +40,8 @@ public class ActionMgtConstants {
     public static final String ALLOWED_PARAMETERS_PROPERTY = "allowedParameters";
     public static final String RULE_PROPERTY = "rule";
 
+    public static final String DEFAULT_LATEST_ACTION_VERSION = "v1";
+
     private ActionMgtConstants() {
     }
 }

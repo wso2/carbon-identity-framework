@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
+import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionManagementServiceImpl;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -137,6 +138,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
         Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(sampleAction.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(sampleAction.getCreatedAt());
         Assert.assertNotNull(sampleAction.getUpdatedAt());
         Assert.assertEquals(sampleAction.getCreatedAt().getTime(), sampleAction.getUpdatedAt().getTime());
@@ -206,6 +208,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
         Assert.assertEquals(result.getType().getActionType(), sampleAction.getType().getActionType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
         Assert.assertEquals(result.getUpdatedAt(), sampleAction.getUpdatedAt());
         Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
@@ -230,6 +233,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
         Assert.assertEquals(result.getType(), sampleAction.getType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
         Assert.assertEquals(result.getUpdatedAt(), sampleAction.getUpdatedAt());
         Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
@@ -242,6 +246,19 @@ public class ActionManagementServiceImplTest {
                 sampleActionAuth.getProperty(Authentication.Property.USERNAME).getValue());
         Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
                 sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
+    }
+
+    @Test(priority = 6)
+    public void testUpdateActionFailureWithNotAllowedActionVersion() throws Exception {
+
+        Action updatingAction = TestUtil.buildMockActionWithVersion(
+                TEST_ACTION_NAME_UPDATED,
+                TEST_ACTION_DESCRIPTION_UPDATED,
+                "v2",
+                TEST_ACTION_URI,
+                TestUtil.buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER, TEST_API_KEY_VALUE));
+        Assert.assertThrows(ActionMgtException.class, () ->actionManagementService.updateAction(
+                PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), updatingAction, TENANT_DOMAIN));
     }
 
     @Test(priority = 7)
@@ -260,6 +277,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getType(), sampleAction.getType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
         Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
@@ -280,9 +298,11 @@ public class ActionManagementServiceImplTest {
     public void testActivateAction() throws ActionMgtException {
 
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(sampleAction.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Action activatedAction = actionManagementService.activateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 sampleAction.getId(), TENANT_DOMAIN);
         Assert.assertEquals(activatedAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(sampleAction.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertEquals(activatedAction.getCreatedAt(), sampleAction.getCreatedAt());
         Assert.assertTrue(activatedAction.getUpdatedAt().after(sampleAction.getUpdatedAt()));
         sampleAction = activatedAction;
@@ -306,9 +326,11 @@ public class ActionManagementServiceImplTest {
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(sampleAction.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Action deactivatedAction = actionManagementService.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 sampleAction.getId(), TENANT_DOMAIN);
         Assert.assertEquals(deactivatedAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(sampleAction.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertEquals(deactivatedAction.getCreatedAt(), sampleAction.getCreatedAt());
         Assert.assertTrue(deactivatedAction.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
@@ -387,6 +409,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
         Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(sampleAction.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(sampleAction.getCreatedAt());
         Assert.assertNotNull(sampleAction.getUpdatedAt());
         Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
@@ -420,6 +443,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
         Assert.assertEquals(result.getType().getActionType(), sampleAction.getType().getActionType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
         Assert.assertEquals(result.getUpdatedAt(), sampleAction.getUpdatedAt());
         Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
@@ -454,6 +478,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getType(), sampleAction.getType());
         Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
         Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
         Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());

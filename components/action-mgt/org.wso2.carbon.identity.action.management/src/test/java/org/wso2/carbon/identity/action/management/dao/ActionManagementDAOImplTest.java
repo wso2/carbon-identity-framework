@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
@@ -76,6 +77,7 @@ public class ActionManagementDAOImplTest {
                 .name(TestUtil.TEST_ACTION_NAME)
                 .description(TestUtil.TEST_ACTION_DESCRIPTION)
                 .status(Action.Status.INACTIVE)
+                .actionVersion(ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
@@ -101,6 +103,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getName(), creatingActionDTO.getName());
         Assert.assertEquals(createdActionDTO.getDescription(), creatingActionDTO.getDescription());
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(createdActionDTO.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(createdActionDTO.getCreatedAt());
         Assert.assertNotNull(createdActionDTO.getUpdatedAt());
         Assert.assertEquals(createdActionDTO.getCreatedAt().getTime(), createdActionDTO.getUpdatedAt().getTime());
@@ -158,6 +161,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(createdActionDTO.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -206,6 +210,7 @@ public class ActionManagementDAOImplTest {
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
                 .status(Action.Status.INACTIVE)
+                .actionVersion(ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
@@ -230,6 +235,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getName(), creatingActionDTO.getName());
         Assert.assertNull(createdActionDTO.getDescription());
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(createdActionDTO.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(createdActionDTO.getCreatedAt());
         Assert.assertNotNull(createdActionDTO.getUpdatedAt());
         Assert.assertEquals(createdActionDTO.getCreatedAt().getTime(), createdActionDTO.getUpdatedAt().getTime());
@@ -287,6 +293,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), updatingAction.getName());
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -334,6 +341,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), updatingAction.getName());
         Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -382,6 +390,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -432,6 +441,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -488,6 +498,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -539,6 +550,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -586,6 +598,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -629,6 +642,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(result.getName(), createdActionDTO.getName());
         Assert.assertEquals(result.getDescription(), createdActionDTO.getDescription());
         Assert.assertEquals(result.getStatus(), createdActionDTO.getStatus());
+        Assert.assertEquals(result.getActionVersion(), ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION);
         Assert.assertNotNull(result.getCreatedAt());
         Assert.assertEquals(result.getCreatedAt().getTime(), createdActionDTO.getCreatedAt().getTime());
         Assert.assertNotNull(result.getUpdatedAt());
@@ -684,6 +698,7 @@ public class ActionManagementDAOImplTest {
                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                 .name(TestUtil.TEST_ACTION_NAME)
                 .status(Action.Status.INACTIVE)
+                .actionVersion(ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(new Authentication.NoneAuthBuilder().build())
@@ -712,6 +727,7 @@ public class ActionManagementDAOImplTest {
                 .type(Action.ActionTypes.PRE_UPDATE_PROFILE)
                 .name(TestUtil.TEST_ACTION_NAME)
                 .status(Action.Status.INACTIVE)
+                .actionVersion(ActionMgtConstants.DEFAULT_LATEST_ACTION_VERSION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(new Authentication.NoneAuthBuilder().build())

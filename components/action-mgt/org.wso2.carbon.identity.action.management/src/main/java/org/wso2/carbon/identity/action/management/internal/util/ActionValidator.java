@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 
@@ -266,5 +267,25 @@ public class ActionValidator {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, param);
         }
+    }
+
+    /**
+     * Validate the action version update during an update operation to ensure only the latest version is used.
+     *
+     * @param actionType    Action type.
+     * @param actionVersion Action version.
+     * @throws ActionMgtClientException If the action version is not the latest.
+     */
+    public void validateActionVersion(ActionTypes actionType, String actionVersion) throws ActionMgtClientException {
+
+        if (actionVersion == null) {
+            return;
+        }
+
+        if (ActionManagementConfig.getInstance().getLatestVersion(actionType).equals(actionVersion)) {
+            return;
+        }
+        throw ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_VERSION_UPDATE,
+                ActionManagementConfig.getInstance().getLatestVersion(actionType));
     }
 }

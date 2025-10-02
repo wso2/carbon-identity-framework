@@ -114,6 +114,17 @@ public class TestUtil {
                 .build();
     }
 
+    public static Action buildMockActionWithVersion(String name, String description, String version, String uri,
+                                                    Authentication authentication) {
+
+        return new Action.ActionRequestBuilder()
+                .name(name)
+                .description(description)
+                .actionVersion(version)
+                .endpoint(buildMockEndpointConfig(uri, authentication))
+                .build();
+    }
+
     public static Action buildMockAction(String name, String description, String uri, Authentication authentication,
                                          List<String> allowedHeaders, List<String> allowedParameters) {
 
