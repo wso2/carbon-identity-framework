@@ -43,6 +43,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.AUTHENTICATOR_VALIDATION_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.REQUEST_PARAM_SP;
 
 /**
@@ -103,8 +104,9 @@ public class AuthenticationEndpointFilter implements Filter {
         String redirectUrl = null;
         String appSpecificCustomPageConfigKey = null;
         String refererHeader = ((HttpServletRequest) servletRequest).getHeader(REQUEST_PARAM_REFERRER);
-
         String serviceProviderName = null;
+        Boolean authenticatorValidationEnabled = Boolean.valueOf(context.getInitParameter(Constants.AUTHENTICATOR_VALIDATION_ENABLED));
+
         if (servletRequest.getParameter(Constants.REQUEST_PARAM_SP) != null) {
             serviceProviderName = servletRequest.getParameter(Constants.REQUEST_PARAM_SP);
         } else if (servletRequest.getParameter(REQUEST_PARAM_APPLICATION) != null) {
@@ -158,40 +160,46 @@ public class AuthenticationEndpointFilter implements Filter {
                 return;
             }
 
+            Set<String> configuredAuthenticatorsSet = new HashSet<>();
             String serviceProviderId = servletRequest.getParameter(SERVICE_PROVIDER_ID);
             String tenantDomain;
-            if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-                tenantDomain = IdentityTenantUtil.resolveTenantDomain();
-            } else {
-                tenantDomain = servletRequest.getParameter(TENANT_DOMAIN);
-            }
 
-            if (StringUtils.isBlank(tenantDomain)) {
+            if (authenticatorValidationEnabled) {
+
                 if (log.isDebugEnabled()) {
-                    log.debug("Default super tenant domain will be used");
+                    log.debug("Authenticator Validation is Enabled");
                 }
-                tenantDomain = SUPER_TENANT_DOMAIN_NAME;
-            }
-
-            ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
-
-            Set<String> configuredAuthenticatorsSet = new HashSet<>();
-
-            try {
-                if (!StringUtils.isBlank(serviceProviderId)) {
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Retrieving authenticators for service provider ID: " + serviceProviderId + "in tenant: " + tenantDomain);
-                    }
-                    configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppId(tenantDomain, serviceProviderId);
+                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    tenantDomain = IdentityTenantUtil.resolveTenantDomain();
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Retrieving authenticators for service provider using Service Provider Name: " + serviceProviderName + "in tenant: " + tenantDomain);
-                    }
-                    configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain, serviceProviderName);
+                    tenantDomain = servletRequest.getParameter(TENANT_DOMAIN);
                 }
-            } catch (ApplicationDataRetrievalClientException e) {
-                log.error("error for AuthenticatorDataRetrievalClientException" + e);
+
+                if (StringUtils.isBlank(tenantDomain)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Default super tenant domain will be used");
+                    }
+                    tenantDomain = SUPER_TENANT_DOMAIN_NAME;
+                }
+
+                ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+
+                try {
+                    if (!StringUtils.isBlank(serviceProviderId)) {
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("Retrieving authenticators for service provider ID: " + serviceProviderId + "in tenant: " + tenantDomain);
+                        }
+                        configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppId(tenantDomain, serviceProviderId);
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Retrieving authenticators for service provider using Service Provider Name: " + serviceProviderName + "in tenant: " + tenantDomain);
+                        }
+                        configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain, serviceProviderName);
+                    }
+                } catch (ApplicationDataRetrievalClientException e) {
+                    log.error("error for AuthenticatorDataRetrievalClientException" + e);
+                }
             }
 
             Map<String, String> idpAuthenticatorMapping = new HashMap<String, String>();
@@ -207,12 +215,22 @@ public class AuthenticationEndpointFilter implements Filter {
                                 || StringUtils.equalsIgnoreCase(MY_ACCOUNT_APPLICATION_NAME, serviceProviderName))) {
                             continue;
                         }
-                        String authenticatorIDP = authenticatorIdPMapArr[0] + ":" + authenticatorIdPMapArr[i];
-                        boolean authenticatorExists = configuredAuthenticatorsSet.contains(authenticatorIDP);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Checking authenticator: " + authenticatorIDP + ", exists: " + authenticatorExists);
-                        }
-                        if (authenticatorExists) {
+                        if (authenticatorValidationEnabled) {
+                            String authenticatorIDP = authenticatorIdPMapArr[0] + ":" + authenticatorIdPMapArr[i];
+                            boolean authenticatorExists = configuredAuthenticatorsSet.contains(authenticatorIDP);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Checking authenticator: " + authenticatorIDP + ", exists: " + authenticatorExists);
+                            }
+                            if (authenticatorExists) {
+                                if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
+                                    idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
+                                            idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
+                                                    authenticatorIdPMapArr[0]);
+                                } else {
+                                    idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
+                                }
+                            }
+                        } else {
                             if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                                 idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
                                         idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
