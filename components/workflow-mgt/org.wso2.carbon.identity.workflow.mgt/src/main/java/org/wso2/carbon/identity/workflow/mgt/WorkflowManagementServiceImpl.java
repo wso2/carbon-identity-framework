@@ -564,6 +564,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
+        requestEntityRelationshipDAO.deleteEntityRelationsByWorkflowId(workflowId);
+        workflowRequestDAO.abortWorkflowRequests(workflowId);
+
         workflowDAO.removeWorkflowParams(workflowId);
         workflowDAO.removeWorkflow(workflowId);
 
