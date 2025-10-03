@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dao;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
@@ -35,6 +37,8 @@ import java.util.List;
  * Request Entity Relationship DAO class.
  */
 public class RequestEntityRelationshipDAO {
+
+    private static final Log LOG = LogFactory.getLog(RequestEntityRelationshipDAO.class);
 
     /**
      * Add a new relationship between a workflow request and an entity.
@@ -230,4 +234,30 @@ public class RequestEntityRelationshipDAO {
         return entityNames;
     }
 
+    /**
+     * Delete entity relations which are associated with a given workflow id.
+     *
+     * @param workflowId workflow id
+     * @throws InternalWorkflowException If an error occurs when deleting entity relations.
+     */
+    public void deleteEntityRelationsByWorkflowId(String workflowId) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        PreparedStatement prepStmt = null;
+        try {
+            prepStmt = connection.prepareStatement(SQLConstants.DELETE_ENTITY_RELATIONS_BY_WORKFLOW_ID_QUERY);
+            prepStmt.setString(1, workflowId);
+            prepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitTransaction(connection);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Deleted entity relations for workflow id: " + workflowId);
+            }
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException("Error when deleting entity relations for workflow id: " +
+                    workflowId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
 }
