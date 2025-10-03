@@ -32,10 +32,12 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequ
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.execution.api.service.ActionInvocationResponseClassProvider;
+import org.wso2.carbon.identity.action.execution.api.service.ActionVersionHandler;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutionRequestBuilderFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutorServiceImpl;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionInvocationResponseClassFactory;
+import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionVersionHandlerFactory;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 
@@ -185,5 +187,26 @@ public class ActionExecutionServiceComponent {
         LOG.debug("Unregistering ActionInvocationResponseClassProvider: " + classProvider.getClass().getName() +
                 " in the ActionExecutionServiceComponent.");
         ActionInvocationResponseClassFactory.unregisterActionInvocationResponseClassProvider(classProvider);
+    }
+
+    @Reference(
+            name = "action.execution.ActionVersionHandler",
+            service = ActionVersionHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionVersionHandler"
+    )
+    protected void setActionVersionHandler(ActionVersionHandler actionVersionHandler) {
+
+        LOG.debug("Registering ActionVersionHandler: " + actionVersionHandler.getClass().getName() +
+                " in the ActionExecutionServiceComponent.");
+        ActionVersionHandlerFactory.registerActionVersionHandler(actionVersionHandler);
+    }
+
+    protected void unsetActionVersionHandler(ActionVersionHandler actionVersionHandler) {
+
+        LOG.debug("Unregistering ActionVersionHandler: " + actionVersionHandler.getClass().getName() +
+                " in the ActionExecutionServiceComponent.");
+        ActionVersionHandlerFactory.unregisterActionVersionHandler(actionVersionHandler);
     }
 }
