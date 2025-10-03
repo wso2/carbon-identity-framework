@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.Test;
 import org.mockito.MockedStatic;
 
@@ -123,31 +124,11 @@ public class JWTDepthValidationTest {
             deepObject.append("}");
             IdentityUtil.validateJWTDepth(createJWT(deepObject.toString()));
 
-            // Object with nested array (depth 256).
-            StringBuilder deepArray = new StringBuilder("{");
-            deepArray.append("\"level\" : ");
-            for (int i = 0; i < 254; i++) {
-                deepArray.append("[");
-            }
-            deepArray.append("1"); // Deepest level.
-            for (int i = 0; i < 254; i++) {
-                deepArray.append("]");
-            }
-            deepArray.append("}");
-            IdentityUtil.validateJWTDepth(createJWT(deepArray.toString()));
+            // Object with nested array (depth 255).
+            IdentityUtil.validateJWTDepth(createJWT(generateDeepNestedJSONArray(255)));
 
-            // Mixed Object (depth 256).
-            StringBuilder mixedDeep = new StringBuilder("{"); // 1 level here.
-            mixedDeep.append("\"root\":["); // 1 level here.
-            for (int i = 0; i < 126; i++) {
-                mixedDeep.append("{\"level").append(i).append("\":[");
-            }
-            mixedDeep.append("1"); // Deepest level.
-            for (int i = 0; i < 126; i++) {
-                mixedDeep.append("]}");
-            }
-            mixedDeep.append("]}");
-            IdentityUtil.validateJWTDepth(createJWT(mixedDeep.toString()));
+            // Mixed Object (depth 255).
+            IdentityUtil.validateJWTDepth(createJWT(generateMixedDeepJSON(255)));
         }
     }
 
@@ -158,42 +139,16 @@ public class JWTDepthValidationTest {
             setRealMethodCalls(identityUtilMock);
 
             // Object with nested object (depth 256).
-            StringBuilder deepObject = new StringBuilder("{");
-            for (int i = 0; i < 256; i++) {
-                deepObject.append("\"level").append(i).append("\":{");
-            }
-            deepObject.append("\"value\":\"deep\""); // Deepest level.
-            for (int i = 0; i < 256; i++) {
-                deepObject.append("}");
-            }
-            deepObject.append("}");
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(createJWT(deepObject.toString())));
+            assertThrows(ParseException.class,
+                    () -> IdentityUtil.validateJWTDepth(createJWT(generateDeepNestedJSONObject(256))));
 
             // Object with nested array (depth 256).
-            StringBuilder deepArray = new StringBuilder("{");
-            deepArray.append("\"level\" : ");
-            for (int i = 0; i < 256; i++) {
-                deepArray.append("[");
-            }
-            deepArray.append("1"); // Deepest level.
-            for (int i = 0; i < 256; i++) {
-                deepArray.append("]");
-            }
-            deepArray.append("}");
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(createJWT(deepArray.toString())));
+            assertThrows(ParseException.class,
+                    () -> IdentityUtil.validateJWTDepth(createJWT(generateDeepNestedJSONArray(256))));
 
             // Mixed Object (depth 256).
-            StringBuilder mixedDeep = new StringBuilder("{"); // 1 level here.
-            mixedDeep.append("\"root\":["); // 1 level here.
-            for (int i = 0; i < 128; i++) {
-                mixedDeep.append("{\"level").append(i).append("\":[");
-            }
-            mixedDeep.append("1"); // Deepest level.
-            for (int i = 0; i < 128; i++) {
-                mixedDeep.append("]}");
-            }
-            mixedDeep.append("]}");
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(createJWT(mixedDeep.toString())));
+            assertThrows(ParseException.class,
+                    () -> IdentityUtil.validateJWTDepth(createJWT(generateMixedDeepJSON(256))));
         }
     }
 
@@ -256,6 +211,31 @@ public class JWTDepthValidationTest {
         }
     }
 
+
+    @Test
+    public void testValidateJWTDepthOfJWTPayload() throws ParseException {
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            setRealMethodCalls(identityUtilMock);
+
+            IdentityUtil.validateJWTDepthOfJWTPayload(StringUtils.EMPTY);
+
+            // Object with nested object (depth 256).
+            IdentityUtil.validateJWTDepthOfJWTPayload(generateDeepNestedJSONObject(1));
+
+            // Object with nested object (depth 256).
+            IdentityUtil.validateJWTDepthOfJWTPayload(generateDeepNestedJSONObject(255));
+
+            // Object with nested object (depth 256).
+            assertThrows(ParseException.class,
+                    () -> IdentityUtil.validateJWTDepthOfJWTPayload(generateDeepNestedJSONObject(256)));
+
+            // Object with nested array (depth 256).
+            assertThrows(ParseException.class,
+                    () -> IdentityUtil.validateJWTDepthOfJWTPayload(generateDeepNestedJSONArray(256)));
+        }
+    }
+
     private void setRealMethodCalls(MockedStatic<IdentityUtil> identityUtilMock) {
 
         identityUtilMock.when(() ->
@@ -267,5 +247,54 @@ public class JWTDepthValidationTest {
                 .thenCallRealMethod();
         identityUtilMock.when(() -> IdentityUtil.validateJWTDepthOfJWTPayload(any()))
                 .thenCallRealMethod();
+    }
+
+    private String generateDeepNestedJSONObject(int depth) {
+
+        StringBuilder jsonBuilder = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            jsonBuilder.append("{\"level").append(i).append("\":");
+        }
+        jsonBuilder.append("\"deepValue\"");
+        for (int i = 0; i < depth; i++) {
+            jsonBuilder.append("}");
+        }
+        return jsonBuilder.toString();
+    }
+
+    private String generateDeepNestedJSONArray(int depth) {
+
+        StringBuilder jsonBuilder = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            jsonBuilder.append("[");
+        }
+        jsonBuilder.append("1");
+        for (int i = 0; i < depth; i++) {
+            jsonBuilder.append("]");
+        }
+        return jsonBuilder.toString();
+    }
+
+    private String generateMixedDeepJSON(int depth) {
+
+        // Edge cases are not handled since only used for testing.
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("{\"root\":[");
+        depth -= 2; // Account for root object and array.
+        for (int i = 0; i < depth / 2; i++) {
+            jsonBuilder.append("{\"level").append(i).append("\":[");
+        }
+        if (depth % 2 == 1) {
+            jsonBuilder.append("{\"level").append(depth / 2).append("\":");
+        }
+        jsonBuilder.append("1");
+        if (depth % 2 == 1) {
+            jsonBuilder.append("}");
+        }
+        for (int i = 0; i < depth / 2; i++) {
+            jsonBuilder.append("]}");
+        }
+        jsonBuilder.append("]}");
+        return jsonBuilder.toString();
     }
 }
