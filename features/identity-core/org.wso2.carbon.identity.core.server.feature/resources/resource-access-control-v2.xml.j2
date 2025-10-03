@@ -737,7 +737,7 @@
         <!-- [Organization] SCIM2 Bulk API -->
         <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_bulk_resource_create</Scopes>
-            <Operations>
+            <Operations mandatory="false">
                 <Operation name="createRole">
                     <scope>internal_org_bulk_role_create</scope>
                 </Operation>
@@ -771,7 +771,7 @@
         <!-- SCIM2 Bulk API -->
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
             <Scopes>internal_bulk_resource_create</Scopes>
-            <Operations>
+            <Operations mandatory="false">
                 <Operation name="createRole">
                     <scope>internal_bulk_role_create</scope>
                 </Operation>
