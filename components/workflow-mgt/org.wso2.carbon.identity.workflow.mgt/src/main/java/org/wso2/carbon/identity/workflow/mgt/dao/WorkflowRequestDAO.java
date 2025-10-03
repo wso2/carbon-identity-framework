@@ -777,6 +777,8 @@ public class WorkflowRequestDAO {
      */
     public void abortWorkflowRequests(String workflowId) throws InternalWorkflowException {
 
+        log.info("Aborting workflow requests for workflow ID: " + workflowId);
+
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
         String query = SQLConstants.ABORT_WORKFLOW_REQUEST_BY_WORKFLOW_ID;
