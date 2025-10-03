@@ -242,6 +242,9 @@ public class RequestEntityRelationshipDAO {
      */
     public void deleteEntityRelationsByWorkflowId(String workflowId) throws InternalWorkflowException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Deleting entity relations for workflow id: " + workflowId);
+        }
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
         try {
