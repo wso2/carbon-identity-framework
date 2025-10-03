@@ -564,6 +564,12 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
+        /* A workflow request can be processed by multiple workflows. The workflow requests are cleared only if there
+           are no workflows related to those workflow requests deleted.  */
+        requestEntityRelationshipDAO.deleteObsoleteEntityRelationsByWorkflowId(workflowId);
+
+        workflowRequestDAO.abortWorkflowRequests(workflowId);
+
         workflowDAO.removeWorkflowParams(workflowId);
         workflowDAO.removeWorkflow(workflowId);
 
@@ -1030,6 +1036,17 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return !associations.isEmpty();
     }
 
+    @Override
+    public List<WorkflowAssociation> getWorkflowAssociationsForEvent(String eventType, String tenantDomain)
+            throws WorkflowException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving workflow associations for event: " + eventType + " in tenant: " + tenantDomain);
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return workflowRequestAssociationDAO.getWorkflowAssociationsForRequest(eventType, tenantId);
+    }
+
     /**
      * Returns array of requests initiated by a user.
      *
@@ -1294,6 +1311,22 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
         return workflowRequest;
+    }
+
+    @Override
+    public String fetchWorkflowRequestRelationshipId(String requestId, String workflowId) throws WorkflowException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Fetching workflow request relationship ID for requestId: " + requestId + " and workflowId: "
+                    + workflowId);
+        }
+        return workflowRequestAssociationDAO.fetchWorkflowRequestRelationshipId(requestId, workflowId);
+    }
+
+    @Override
+    public List<String> fetchWorkflowRequestRelationshipIds(String requestId) throws WorkflowException {
+
+        return workflowRequestAssociationDAO.fetchWorkflowRequestRelationshipIds(requestId);
     }
 
     @Override

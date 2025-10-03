@@ -245,6 +245,35 @@ public class WorkflowRequestDAO {
     }
 
     /**
+     * Abort all pending workflow requests of a given workflow.
+     *
+     * @param workflowId ID of the workflow to abort requests of.
+     * @throws InternalWorkflowException If a database error occurs while aborting workflow requests for the given workflow ID.
+     */
+    public void abortWorkflowRequests(String workflowId) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.ABORT_WORKFLOW_REQUEST_BY_WORKFLOW_ID;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            prepStmt.setString(2, workflowId);
+            prepStmt.execute();
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully aborted workflow requests for workflow: " + workflowId);
+            }
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException("Error when aborting workflow requests for workflow id: " +
+                    workflowId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
+
+    /**
      * Get requests of a given user.
      *
      * @param userName user name of user to get requests
