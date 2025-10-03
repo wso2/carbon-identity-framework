@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.identity.core.util;
 
-import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.Test;
 import org.mockito.MockedStatic;
 
@@ -49,9 +48,7 @@ public class JWTDepthValidationTest {
     public void testNullAndEmptyJWT() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
-
             IdentityUtil.validateJWTDepth(null);
             IdentityUtil.validateJWTDepth("");
             IdentityUtil.validateJWTDepth("   ");
@@ -62,7 +59,6 @@ public class JWTDepthValidationTest {
     public void testInvalidJWTFormats() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             IdentityUtil.validateJWTDepth("invalidjwt");
             IdentityUtil.validateJWTDepth("onlyonepart.");
@@ -75,7 +71,6 @@ public class JWTDepthValidationTest {
     public void testNonJSONPayload() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             String invalidJson = "not json at all";
             String jwt = createJWT(invalidJson);
@@ -87,7 +82,6 @@ public class JWTDepthValidationTest {
     public void testMalformedJSON() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             String malformedObject = "{\"incomplete\":";
             String malformedArray = "[{\"incomplete\"";
@@ -100,7 +94,6 @@ public class JWTDepthValidationTest {
     public void testNonFlatStructuresBelowMaxDepth() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             // Object with nested object.
             String objectWithObject = "{\"user\":{\"id\":123,\"name\":\"John\"}}";
@@ -162,7 +155,6 @@ public class JWTDepthValidationTest {
     public void testNonFlatStructuresOverMaxDepth() {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
 
             // Object with nested object (depth 256).
@@ -209,7 +201,6 @@ public class JWTDepthValidationTest {
     public void testLargeWidthButAllowedDepth() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             // Many siblings at depth 2 - should pass.
             StringBuilder payload = new StringBuilder("{");
@@ -226,7 +217,6 @@ public class JWTDepthValidationTest {
     public void testVeryLongButShallowJWT() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             // Large JWT but only depth 1.
             StringBuilder payload = new StringBuilder("{");
@@ -243,7 +233,6 @@ public class JWTDepthValidationTest {
     public void testEmptyNestedStructures() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
 
             String emptyObjects = "{\"empty\":{},\"nested\":{\"empty2\":{}}}";
@@ -258,72 +247,12 @@ public class JWTDepthValidationTest {
     public void testSpecialValues() throws ParseException {
 
         try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, DEFAULT_MAX_DEPTH);
             setRealMethodCalls(identityUtilMock);
             String specialChars = "{\"message\":{\"text\":\"Hello {\\\"world\\\"}: [1,2,3]\"}}";
             IdentityUtil.validateJWTDepth(createJWT(specialChars));
 
             String nullValues = "{\"user\":{\"name\":null,\"profile\":null}}";
             IdentityUtil.validateJWTDepth(createJWT(nullValues));
-        }
-    }
-
-    @Test
-    public void testInvalidConfiguration() {
-
-        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            identityUtilMock.when(() ->
-                            IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
-                    .thenReturn("invalid_number");
-            setRealMethodCalls(identityUtilMock);
-
-            String depth4 = "{\"a\":{\"b\":{\"c\":{\"d\":\"value\"}}}}";
-            // Falls back to default 255, so depth 4 should be allowed.
-            assertThrows(NumberFormatException.class, () -> IdentityUtil.validateJWTDepth(createJWT(depth4)));
-        }
-    }
-
-    @Test
-    public void testExtremeDepthLimits() throws ParseException {
-
-        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, 0);
-            setRealMethodCalls(identityUtilMock);
-
-            String depth1 = "{\"simple\":\"value\"}";
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(createJWT(depth1)));
-        }
-
-        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            // Test depth limit 1.
-            setMaxJWTDepth(identityUtilMock, 1);
-            setRealMethodCalls(identityUtilMock);
-
-            String depth1 = "{\"simple\":\"value\"}";
-            IdentityUtil.validateJWTDepth(createJWT(depth1));
-
-            String depth2 = "{\"nested\":{\"value\":\"test\"}}";
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepth(createJWT(depth2)));
-        }
-    }
-
-    @Test
-    public void testValidateJWTDepthOfJWTPayload() throws ParseException {
-
-        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
-            setMaxJWTDepth(identityUtilMock, 5);
-            setRealMethodCalls(identityUtilMock);
-
-            IdentityUtil.validateJWTDepthOfJWTPayload(StringUtils.EMPTY);
-
-            String depth1 = "{\"simple\":\"value\"}";
-            IdentityUtil.validateJWTDepthOfJWTPayload(depth1);
-
-            String depth5 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":\"value\"}}}}}";
-            IdentityUtil.validateJWTDepthOfJWTPayload(depth5);
-
-            String depth6 = "{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":{\"f\":\"value\"}}}}}}";
-            assertThrows(ParseException.class, () -> IdentityUtil.validateJWTDepthOfJWTPayload(depth6));
         }
     }
 
@@ -336,15 +265,7 @@ public class JWTDepthValidationTest {
                 .thenCallRealMethod();
         identityUtilMock.when(() -> IdentityUtil.validateJsonDepth(any(), anyInt()))
                 .thenCallRealMethod();
-        identityUtilMock.when(IdentityUtil::getAllowedMaxJWTDepth).thenCallRealMethod();
         identityUtilMock.when(() -> IdentityUtil.validateJWTDepthOfJWTPayload(any()))
                 .thenCallRealMethod();
-    }
-
-    private void setMaxJWTDepth(MockedStatic<IdentityUtil> identityUtilMock, int i) {
-
-        identityUtilMock.when(() ->
-                        IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY))
-                .thenReturn(Integer.toString(i));
     }
 }

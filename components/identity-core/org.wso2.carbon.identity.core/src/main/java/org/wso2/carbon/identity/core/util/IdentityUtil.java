@@ -2296,7 +2296,7 @@ public class IdentityUtil {
         }
         String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
 
-        validateJsonDepth(jsonPayload, getAllowedMaxJWTDepth());
+        validateJsonDepth(jsonPayload, IdentityCoreConstants.MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH);
     }
 
     /**
@@ -2313,7 +2313,7 @@ public class IdentityUtil {
             log.debug("JWT payload is blank, skipping depth validation");
             return;
         }
-        validateJsonDepth(payload, getAllowedMaxJWTDepth());
+        validateJsonDepth(payload, IdentityCoreConstants.MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH);
     }
 
     /**
@@ -2354,18 +2354,4 @@ public class IdentityUtil {
         }
         log.debug("Validated JSON depth successfully.");
     }
-
-    /**
-     * Get the allowed maximum depth for JSON objects.
-     * This value defines how deeply nested a JSON structure can be before it is
-     * considered invalid.
-     * @return Maximum allowed JSON depth.
-     */
-    public static int getAllowedMaxJWTDepth() {
-
-        String depthConfig = IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY);
-        return StringUtils.isNotBlank(depthConfig) ? Integer.parseInt(depthConfig) :
-                IdentityCoreConstants.DEFAULT_JWT_MAXIMUM_ALLOWED_DEPTH;
-    }
-
 }
