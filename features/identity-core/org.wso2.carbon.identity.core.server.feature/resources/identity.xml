@@ -275,6 +275,9 @@
 
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>300</AuthorizationCodeDefaultValidityPeriod>
+
+        <!-- If enabled, disabled applications will be rejected during OAuth client authentication -->
+        <EnableDisabledApplicationAuthenticationCheck>true</EnableDisabledApplicationAuthenticationCheck>
         <!-- Default validity period for application access tokens in seconds -->
         <AccessTokenDefaultValidityPeriod>3600</AccessTokenDefaultValidityPeriod>
         <!-- Default validity period for user access tokens in seconds -->

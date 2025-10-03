@@ -274,6 +274,8 @@
     "console",
     "SYSTEM"
   ],
+
+  "oauth.enable_disabled_application_authentication_check": true,
   "authentication.jit_provisioning.associating_to_existing_user": false,
   "authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association": false,
 
