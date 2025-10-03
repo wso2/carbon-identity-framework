@@ -70,7 +70,7 @@ public class WorkflowRequestAssociationDAO {
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when adding new workflow request relationship.", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -97,7 +97,8 @@ public class WorkflowRequestAssociationDAO {
                 return resultSet.getString(SQLConstants.REQUEST_ID_COLUMN);
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when getting request id of relationship id: " + relationshipId,
+                    e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -107,7 +108,8 @@ public class WorkflowRequestAssociationDAO {
     /**
      * Update state of workflow of a request.
      *
-     * @param relationshipId
+     * @param relationshipId relationshipId to update.
+     * @param status         new status.
      * @throws InternalWorkflowException
      */
     public void updateStatusOfRelationship(String relationshipId, String status) throws InternalWorkflowException {
@@ -125,7 +127,7 @@ public class WorkflowRequestAssociationDAO {
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when updating status of relationship id: " + relationshipId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -154,7 +156,8 @@ public class WorkflowRequestAssociationDAO {
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when updating status of relationships of request id: "
+                    + requestId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -182,7 +185,7 @@ public class WorkflowRequestAssociationDAO {
                 states.add(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when getting workflow states of request id: " + requestId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -210,7 +213,7 @@ public class WorkflowRequestAssociationDAO {
                 return resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN);
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when getting status of relationship id: " + relationshipId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -218,11 +221,11 @@ public class WorkflowRequestAssociationDAO {
     }
 
     /**
-     * Get array of Workflows of a request.
+     * Get an array of Workflows of a request.
      *
-     * @param requestId
-     * @return
-     * @throws InternalWorkflowException
+     * @param requestId The request Id.
+     * @return Array of WorkflowRequestAssociation.
+     * @throws InternalWorkflowException if an error occurs while getting the workflows of a request.
      */
     public WorkflowRequestAssociation[] getWorkflowsOfRequest(String requestId) throws InternalWorkflowException {
 
@@ -250,17 +253,17 @@ public class WorkflowRequestAssociationDAO {
             }
             return requestArray;
         } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when getting workflows of request id: " + requestId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
     }
 
     /**
-     * @param eventId
-     * @param tenantId
-     * @return
-     * @throws InternalWorkflowException
+     * @param eventId eventId of the workflow association
+     * @param tenantId tenantId of the workflow association
+     * @return List of WorkflowAssociation
+     * @throws InternalWorkflowException if an error occurs while getting the workflow associations for an event.
      */
     public List<WorkflowAssociation> getWorkflowAssociationsForRequest(String eventId, int tenantId)
             throws InternalWorkflowException {
@@ -292,10 +295,72 @@ public class WorkflowRequestAssociationDAO {
                 associations.add(association);
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+            throw new InternalWorkflowException("Error when getting workflow associations for event: " + eventId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return associations;
+    }
+
+    /**
+     * Fetch workflow request relationship id for given request id and workflow id.
+     *
+     * @param requestId  Request id of the workflow request association.
+     * @param workflowId Workflow id of the workflow request association.
+     * @return Relationship id of the workflow request association.
+     * @throws InternalWorkflowException if an error occurs while fetching the relationship-id.
+     */
+    public String fetchWorkflowRequestRelationshipId(String requestId, String workflowId)
+            throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.GET_WORKFLOW_REQUEST_RELATIONSHIP_ID;
+        ResultSet resultSet = null;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, requestId);
+            prepStmt.setString(2, workflowId);
+            resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(SQLConstants.RELATIONSHIP_ID_COLUMN);
+            }
+        } catch (SQLException e) {
+            throw new InternalWorkflowException("Error when fetching workflow request relationship id for request id: "
+                    + requestId + " and workflow id: " + workflowId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
+        }
+        return null;
+    }
+
+    /**
+     * Fetch workflow request relationship ids for given request id.
+     *
+     * @param requestId  Request id of the workflow request association.
+     * @return List of Relationship ids of the workflow request association.
+     * @throws InternalWorkflowException if an error occurs while fetching the relationship-ids.
+     */
+    public List<String> fetchWorkflowRequestRelationshipIds(String requestId) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.GET_WORKFLOW_REQUEST_RELATIONSHIP_IDS;
+        ResultSet resultSet = null;
+        List<String> relationshipIds = new ArrayList<>();
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, requestId);
+            resultSet = prepStmt.executeQuery();
+            while (resultSet.next()) {
+                relationshipIds.add(resultSet.getString(SQLConstants.RELATIONSHIP_ID_COLUMN));
+            }
+        } catch (SQLException e) {
+            throw new InternalWorkflowException("Error when fetching workflow request relationship ids for request id: "
+                    + requestId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
+        }
+        return relationshipIds;
     }
 }

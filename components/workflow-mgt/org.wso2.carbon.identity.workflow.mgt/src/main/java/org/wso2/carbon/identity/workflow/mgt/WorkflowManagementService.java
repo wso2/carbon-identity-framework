@@ -22,6 +22,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
+import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequestFilterResponse;
@@ -348,6 +349,19 @@ public interface WorkflowManagementService {
     boolean isEventAssociated(String eventType) throws WorkflowException;
 
     /**
+     * Get workflow associations for a given event.
+     *
+     * @param eventType event type to check.
+     * @param tenantDomain tenant domain.
+     * @return List of WorkflowAssociation objects.
+     */
+    default List<WorkflowAssociation> getWorkflowAssociationsForEvent(String eventType, String tenantDomain)
+            throws WorkflowException {
+
+        return Collections.emptyList();
+    }
+
+    /**
      * Get array of request objects initiated by user.
      *
      * @param user     User name.
@@ -445,5 +459,30 @@ public interface WorkflowManagementService {
             throws WorkflowException {
 
         throw new NotImplementedException("Get workflow by request ID functionality is not implemented.");
+    }
+
+    /**
+     * Fetch the workflow request relationship ID for a given request ID and workflow ID.
+     *
+     * @param requestId  The ID of the workflow request.
+     * @param workflowId The ID of the workflow.
+     * @return The relationship ID between the workflow request and the workflow.
+     * @throws WorkflowException If an error occurs while fetching the relationship ID.
+     */
+    default String fetchWorkflowRequestRelationshipId(String requestId, String workflowId) throws WorkflowException {
+
+        throw new NotImplementedException("Get workflow relationship ID functionality is not implemented.");
+    }
+
+    /**
+     * Fetch all workflow request relationship IDs for a given request ID.
+     *
+     * @param requestId The ID of the workflow request.
+     * @return A list of relationship IDs associated with the workflow request.
+     * @throws WorkflowException If an error occurs while fetching the relationship IDs.
+     */
+    default List<String> fetchWorkflowRequestRelationshipIds(String requestId) throws WorkflowException {
+
+        throw new NotImplementedException("Get workflow relationship IDs functionality is not implemented.");
     }
 }

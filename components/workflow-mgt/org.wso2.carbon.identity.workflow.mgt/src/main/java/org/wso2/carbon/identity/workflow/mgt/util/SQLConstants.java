@@ -58,6 +58,7 @@ public class SQLConstants {
     public static final String REQUEST_UPDATED_AT_COLUMN = "UPDATED_AT";
     public static final String REQUEST_STATUS_COLUMN = "STATUS";
     public static final String REQUEST_ID_COLUMN = "REQUEST_ID";
+    public static final String RELATIONSHIP_ID_COLUMN = "RELATIONSHIP_ID";
     public static final String CREATED_BY_COLUMN = "CREATED_BY";
 
     public static final String TEMPLATE = "Template";
@@ -84,9 +85,15 @@ public class SQLConstants {
 
     public static final String GET_FULL_WORKFLOW_REQUEST_QUERY = "SELECT UUID, REQUEST, STATUS, " +
             "CREATED_BY, OPERATION_TYPE, CREATED_AT, UPDATED_AT FROM WF_REQUEST WHERE UUID = ?";
-            
+    public static final String DELETE_OBSOLETE_ENTITY_RELATIONS_BY_WORKFLOW_ID_QUERY =
+            "DELETE FROM WF_REQUEST_ENTITY_RELATIONSHIP WHERE REQUEST_ID IN (" +
+            "SELECT r.REQUEST_ID FROM WF_WORKFLOW_REQUEST_RELATION r JOIN" +
+            "(SELECT REQUEST_ID FROM WF_WORKFLOW_REQUEST_RELATION WHERE WORKFLOW_ID = ? GROUP BY REQUEST_ID " +
+            "HAVING COUNT(*) = 1) single_assoc ON r.REQUEST_ID = single_assoc.REQUEST_ID)";
     public static final String UPDATE_STATUS_OF_REQUEST = "UPDATE WF_REQUEST SET STATUS = ? , UPDATED_AT = ? WHERE " +
             "UUID = ?";
+    public static final String ABORT_WORKFLOW_REQUEST_BY_WORKFLOW_ID = "UPDATE WF_REQUEST SET STATUS = 'DELETED', " +
+            "UPDATED_AT = ? WHERE UUID IN (SELECT REQUEST_ID FROM WF_WORKFLOW_REQUEST_RELATION WHERE WORKFLOW_ID = ?)";
 
     public static final String UPDATE_UPDATED_AT_OF_REQUEST = "UPDATE WF_REQUEST SET UPDATED_AT = ? WHERE UUID = ?";
 
@@ -496,7 +503,10 @@ public class SQLConstants {
 
     public static final String GET_REQUEST_ID_OF_RELATIONSHIP = "SELECT REQUEST_ID FROM " +
             "WF_WORKFLOW_REQUEST_RELATION WHERE RELATIONSHIP_ID = ?";
-
+    public static final String GET_WORKFLOW_REQUEST_RELATIONSHIP_ID = "SELECT RELATIONSHIP_ID FROM " +
+            "WF_WORKFLOW_REQUEST_RELATION WHERE REQUEST_ID = ? AND WORKFLOW_ID = ?";
+    public static final String GET_WORKFLOW_REQUEST_RELATIONSHIP_IDS = "SELECT RELATIONSHIP_ID FROM " +
+            "WF_WORKFLOW_REQUEST_RELATION WHERE REQUEST_ID = ?";
     public static final String GET_STATES_OF_REQUEST = "SELECT STATUS FROM WF_WORKFLOW_REQUEST_RELATION WHERE " +
             "REQUEST_ID = ?";
 
