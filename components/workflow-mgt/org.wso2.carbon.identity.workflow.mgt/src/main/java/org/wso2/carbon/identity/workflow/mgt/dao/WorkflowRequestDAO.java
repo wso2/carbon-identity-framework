@@ -248,7 +248,8 @@ public class WorkflowRequestDAO {
      * Abort all pending workflow requests of a given workflow.
      *
      * @param workflowId ID of the workflow to abort requests of.
-     * @throws InternalWorkflowException If a database error occurs while aborting workflow requests for the given workflow ID.
+     * @throws InternalWorkflowException If a database error occurs while aborting workflow requests for the given
+     * workflow ID.
      */
     public void abortWorkflowRequests(String workflowId) throws InternalWorkflowException {
 
