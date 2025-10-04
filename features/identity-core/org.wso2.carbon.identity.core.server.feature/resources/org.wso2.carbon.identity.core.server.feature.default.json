@@ -1471,7 +1471,7 @@
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
-  "console.approvals.enabled": true,
+  "console.approvals.enabled": false,
   "console.approvals.scopes.feature": ["console:users"],
   "console.approvals.scopes.read": ["internal_approval_task_view"],
   "console.approvals.scopes.update": ["internal_approval_task_update"],
