@@ -55,8 +55,8 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.compone
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordRequestBuilder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v1.models.PasswordUpdatingUser;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v1.models.PreUpdatePasswordEvent;
 import org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -165,6 +165,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         preUpdatePasswordAction = new PreUpdatePasswordAction.ResponseBuilder()
                 .id(TEST_ID)
                 .name(TEST_ACTION)
+                .actionVersion("v1")
                 .description(TEST_DESCRIPTION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_URL)
@@ -186,6 +187,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         preUpdatePasswordActionWithoutCert = new PreUpdatePasswordAction.ResponseBuilder()
                 .id(TEST_ID)
                 .name(TEST_ACTION)
+                .actionVersion("v1")
                 .description(TEST_DESCRIPTION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_URL)
