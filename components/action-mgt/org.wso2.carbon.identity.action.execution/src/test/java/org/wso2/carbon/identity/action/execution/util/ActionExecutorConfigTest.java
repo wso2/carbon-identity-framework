@@ -471,4 +471,14 @@ public class ActionExecutorConfigTest {
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(2, actionExecutorConfig.getHttpRequestRetryCount());
     }
+
+    @Test
+    public void testGetRetiredUpToVersion() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreUpdatePassword.retiredUpToVersion.Version", "v2");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(actionExecutorConfig.getRetiredUpToVersion(ActionType.PRE_UPDATE_PASSWORD), "v2");
+        Assert.assertEquals(actionExecutorConfig.getRetiredUpToVersion(ActionType.AUTHENTICATION), "v0");
+    }
 }
