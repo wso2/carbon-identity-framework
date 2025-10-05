@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.internal.model;
+package org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v2.models;
 
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
@@ -50,8 +50,7 @@ public class PreUpdatePasswordEvent extends Event {
     public enum Action {
         UPDATE,
         RESET,
-        INVITE,
-        REGISTER
+        INVITE
     }
 
     private final FlowInitiatorType initiatorType;

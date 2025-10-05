@@ -53,7 +53,7 @@ import org.wso2.carbon.identity.user.pre.update.password.action.api.model.Passwo
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordRequestBuilder;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordRequestBuilderV1;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
@@ -127,7 +127,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     private org.wso2.carbon.identity.core.context.model.Organization accessingOrganization;
     private org.wso2.carbon.identity.core.context.model.RootOrganization rootOrganization;
     private final FlowContext flowContext = FlowContext.create();
-    private PreUpdatePasswordRequestBuilder preUpdatePasswordActionRequestBuilder;
+    private PreUpdatePasswordRequestBuilderV1 preUpdatePasswordActionRequestBuilder;
     private ClaimMetadataManagementService claimMetadataManagementService;
     private MockedStatic<FrameworkUtils> frameworkUtils;
 
@@ -221,7 +221,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         userStoreModel = createUserStoreModel();
         userStoreModel.bindToRealm();
 
-        preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordRequestBuilder();
+        preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordRequestBuilderV1();
         flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
 
         PrivilegedCarbonContext.startTenantFlow();

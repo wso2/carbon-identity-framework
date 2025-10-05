@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
+import org.wso2.carbon.identity.action.execution.api.service.ActionVersionHandler;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
@@ -39,7 +40,8 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionExecutor;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordRequestBuilder;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionVersionHandler;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordRequestBuilderV1;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordResponseProcessor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionConverter;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionDTOModelResolver;
@@ -70,7 +72,7 @@ public class PreUpdatePasswordActionServiceComponent {
                     null);
             LOG.debug("Pre Update Password Action DTO Model Resolver is enabled");
 
-            bundleCtx.registerService(ActionExecutionRequestBuilder.class, new PreUpdatePasswordRequestBuilder(),
+            bundleCtx.registerService(ActionExecutionRequestBuilder.class, new PreUpdatePasswordRequestBuilderV1(),
                     null);
             LOG.debug("Pre Update Password Action Request Builder is enabled");
 
@@ -84,6 +86,10 @@ public class PreUpdatePasswordActionServiceComponent {
             bundleCtx.registerService(RuleEvaluationDataProvider.class,
                     new PreUpdatePasswordActionRuleEvaluationDataProvider(), null);
             LOG.debug("User Pre Update Password Action Rule Evaluation Data Provider is enabled");
+
+            bundleCtx.registerService(ActionVersionHandler.class,
+                    new PreUpdatePasswordActionVersionHandler(), null);
+            LOG.debug("Pre Update Password Action version handler is enabled");
 
             LOG.debug("Pre Update Password Action bundle is activated");
         } catch (Throwable e) {

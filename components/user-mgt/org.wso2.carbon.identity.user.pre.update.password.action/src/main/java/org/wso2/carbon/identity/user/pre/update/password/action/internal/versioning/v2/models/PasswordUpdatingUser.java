@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.internal.model;
+package org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v2.models;
 
 import com.google.gson.Gson;
 import com.nimbusds.jose.EncryptionMethod;
@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionReques
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
 
 import java.security.Key;
 import java.security.cert.X509Certificate;
