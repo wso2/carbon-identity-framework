@@ -91,27 +91,52 @@ public class Processor {
      */
     private Map<String, Object> processAuthenticationResult(AuthenticationContext context) {
         Map<String, Object> authResult = new HashMap<>();
+        
+        LOG.error("[DEBUG-TRACE] PROCESSOR ENTRY - Context ID: " + (context != null ? context.getContextIdentifier() : "null"));
 
         try {
-            // Get authentication status.
+            // Get authentication status from simulation results
             Boolean callbackResult = (Boolean) context.getProperty("DEBUG_CALLBACK_RESULT");
             Boolean authResultBool = (Boolean) context.getProperty("DEBUG_AUTH_RESULT");
+            String authSuccess = (String) context.getProperty("DEBUG_AUTH_SUCCESS");
             
-            boolean isSuccessful = Boolean.TRUE.equals(callbackResult) || Boolean.TRUE.equals(authResultBool);
+            // Check simulation results first, then fallback to callback results
+            boolean isSuccessful = "true".equals(authSuccess) || 
+                                 Boolean.TRUE.equals(callbackResult) || 
+                                 Boolean.TRUE.equals(authResultBool);
             authResult.put("success", isSuccessful);
 
-            // Get authenticated user details.
+            // Get authenticated user details and user existence from simulation
+            Boolean debugUserExists = (Boolean) context.getProperty("DEBUG_USER_EXISTS");
+            String debugAuthError = (String) context.getProperty("DEBUG_AUTH_ERROR");
+            
+            LOG.error("CUSTOM DEBUG PROCESSOR: debugUserExists = " + debugUserExists);
+            LOG.error("CUSTOM DEBUG PROCESSOR: isSuccessful = " + isSuccessful);
+            LOG.error("CUSTOM DEBUG PROCESSOR: authenticatedUser = " + context.getSubject());
+            
             AuthenticatedUser authenticatedUser = context.getSubject();
-            if (authenticatedUser != null) {
+            if (authenticatedUser != null && isSuccessful) {
                 authResult.put("userExists", true);
                 authResult.put("userId", authenticatedUser.getUserId());
                 authResult.put("username", authenticatedUser.getUserName());
                 authResult.put("userStoreDomain", authenticatedUser.getUserStoreDomain());
                 authResult.put("tenantDomain", authenticatedUser.getTenantDomain());
                 authResult.put("federatedIdPName", authenticatedUser.getFederatedIdPName());
+                authResult.put("userDetails", "Authentication successful");
+                LOG.error("CUSTOM DEBUG PROCESSOR: Set userExists=true (authenticated user branch)");
             } else {
-                authResult.put("userExists", false);
-                authResult.put("userDetails", "No authenticated user found");
+                // Use simulation results for user existence and error details
+                boolean finalUserExists = debugUserExists != null ? debugUserExists : false;
+                authResult.put("userExists", finalUserExists);
+                LOG.error("CUSTOM DEBUG PROCESSOR: Set userExists=" + finalUserExists + " (fallback branch)");
+                
+                if (debugAuthError != null) {
+                    authResult.put("userDetails", debugAuthError);
+                } else if (!isSuccessful) {
+                    authResult.put("userDetails", "Authentication failed");
+                } else {
+                    authResult.put("userDetails", "No authenticated user found");
+                }
             }
 
             // Calculate response times.
@@ -383,7 +408,7 @@ public class Processor {
             }
 
             // Check if processing is complete.
-            String callbackProcessed = (String) context.getProperty("DEBUG_CALLBACK_PROCESSED");
+             String callbackProcessed = (String) context.getProperty("DEBUG_CALLBACK_PROCESSED");
             if ("true".equals(callbackProcessed)) {
                 return "COMPLETED";
             }
