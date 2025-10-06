@@ -684,7 +684,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         userClaims.put(claimURI, claimValue);
                     } else {
                         /*
-                         For claimValues not mapped to local claim dialect uris, need to skip to prevent user provision
+                         For claimValues not mapped to local claim dialect URIs, need to skip to prevent user provision
                          failure. Password is a different case where we have to keep for password provisioning.
                          */
                         if ((claimURI.equals(FrameworkConstants.PASSWORD) ||
