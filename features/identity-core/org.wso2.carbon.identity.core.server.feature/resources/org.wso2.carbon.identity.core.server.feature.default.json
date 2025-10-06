@@ -318,7 +318,7 @@
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
-  "oauth.impersonated_refresh_token.enable": false,
+  "oauth.impersonated_refresh_token.enable": true,
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
