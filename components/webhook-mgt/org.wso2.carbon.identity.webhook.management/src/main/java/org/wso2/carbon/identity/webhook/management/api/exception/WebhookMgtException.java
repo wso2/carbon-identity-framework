@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.webhook.management.api.exception;
 
 /**
- * Webhook management exception.
+ * Webhook management exception....
  */
 public class WebhookMgtException extends Exception {
 
