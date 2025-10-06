@@ -51,6 +51,15 @@ public interface FlowDAO {
     FlowDTO getFlow(String flowType, int tenantId) throws FlowMgtServerException;
 
     /**
+     * Delete the specific flow of the given tenant.
+     *
+     * @param flowType The flow type.
+     * @param tenantId The tenant ID.
+     * @throws FlowMgtServerException If an error occurs while deleting the flow.
+     */
+    void deleteFlow(String flowType, int tenantId) throws FlowMgtFrameworkException;
+
+    /**
      * Get the specific graph of the given tenant.
      *
      * @param flowType The flow type.

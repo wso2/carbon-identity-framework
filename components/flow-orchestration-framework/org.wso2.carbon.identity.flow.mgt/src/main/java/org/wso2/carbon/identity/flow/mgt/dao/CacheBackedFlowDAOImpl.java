@@ -73,6 +73,15 @@ public class CacheBackedFlowDAOImpl implements FlowDAO {
     }
 
     @Override
+    public void deleteFlow(String flowType, int tenantId) throws FlowMgtFrameworkException {
+
+        FlowMgtCacheKey flowMgtCacheKey = new FlowMgtCacheKey(flowType, DEFAULT_FLOW_NAME);
+        FlowMgtCache.getInstance().clearCacheEntry(flowMgtCacheKey, tenantId);
+        GraphConfigCache.getInstance().clearCacheEntry(flowMgtCacheKey, tenantId);
+        FLOW_DAO.deleteFlow(flowType, tenantId);
+    }
+
+    @Override
     public GraphConfig getGraphConfig(String flowType, int tenantId) throws FlowMgtFrameworkException {
 
         FlowMgtCacheKey flowMgtCacheKey = new FlowMgtCacheKey(flowType, DEFAULT_FLOW_NAME);

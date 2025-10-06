@@ -104,6 +104,30 @@ public class FlowMgtService {
         return FLOW_DAO.getFlow(flowType, tenantIdWithResource);
     }
 
+    public void deleteFlow(String flowType, int tenantID) throws FlowMgtFrameworkException {
+
+        try {
+            // Only allow deleting flows in the non-root organization.
+            String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
+            String orgId = FlowMgtServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(tenantDomain);
+            if (FlowMgtServiceDataHolder.getInstance().getOrganizationManager().isPrimaryOrganization(orgId)) {
+                return;
+            }
+        } catch (OrganizationManagementException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DELETE_FLOW, e,
+                    IdentityTenantUtil.getTenantDomain(tenantID));
+        }
+        clearFlowResolveCache(tenantID);
+        FLOW_DAO.deleteFlow(flowType, tenantID);
+        AuditLog.AuditLogBuilder auditLogBuilder =
+                new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                        flowType,
+                        LoggerUtils.Target.Flow.name(),
+                        String.format("%s%s", LogConstants.FlowManagement.DELETE_FLOW, flowType));
+        triggerAuditLogEvent(auditLogBuilder, true);
+    }
+
     /**
      * Get the graph config by tenant ID.
      *
