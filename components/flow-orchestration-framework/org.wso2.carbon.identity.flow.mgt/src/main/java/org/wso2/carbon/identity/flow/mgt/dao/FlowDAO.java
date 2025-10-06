@@ -55,7 +55,7 @@ public interface FlowDAO {
      *
      * @param flowType The flow type.
      * @param tenantId The tenant ID.
-     * @throws FlowMgtServerException If an error occurs while deleting the flow.
+     * @throws FlowMgtFrameworkException If an error occurs while deleting the flow.
      */
     void deleteFlow(String flowType, int tenantId) throws FlowMgtFrameworkException;
 
