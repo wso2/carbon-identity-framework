@@ -104,6 +104,13 @@ public class FlowMgtService {
         return FLOW_DAO.getFlow(flowType, tenantIdWithResource);
     }
 
+    /**
+     * Delete the specific flow of the given non-root organization.
+     *
+     * @param flowType The flow type.
+     * @param tenantID The tenant ID.
+     * @throws FlowMgtFrameworkException If an error occurs while deleting the flow.
+     */
     public void deleteFlow(String flowType, int tenantID) throws FlowMgtFrameworkException {
 
         try {
