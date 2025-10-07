@@ -71,6 +71,8 @@ public class Constants {
                 "Unexpected server error while updating the flow config for tenant, %s"),
         ERROR_CODE_INVOKING_AI_SERVICE("65012", "Error while invoking the AI service.",
                 "Unexpected server error while invoking the AI service for tenant, %s"),
+        ERROR_CODE_DELETE_FLOW("65013", "Error while deleting the flow.",
+                "Unexpected server error while deleting the flow for tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",

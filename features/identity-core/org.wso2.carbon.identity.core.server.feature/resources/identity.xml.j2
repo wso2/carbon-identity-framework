@@ -2235,9 +2235,16 @@
                 {% endfor %}
             </ExcludedParameters>
         </ActionRequest>
+        <!--
+            Please note that the latest_version temporary configuration is intended strictly for internal use.
+            Do not modify it for custom requirements, and it should not be recommended or exposed to customers.
+        -->
         <Types>
             <PreIssueAccessToken>
                 <Enable>{{actions.types.pre_issue_access_token.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_issue_access_token.version.latest}}</Latest>
+                </<Version>
                 <ActionRequest>
                     <ExcludedHeaders>
                          {% for header in actions.types.pre_issue_access_token.action_request.excluded_headers %}
@@ -2263,12 +2270,21 @@
             </PreIssueAccessToken>
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_update_profile.version.latest}}</Latest>
+                </<Version>
             </PreUpdateProfile>
             <PreUpdatePassword>
+                <Version>
+                    <Latest>{{actions.types.pre_update_password.version.latest}}</Latest>
+                </<Version>
                 <EnableInRegistrationFlows>{{actions.types.pre_update_password.enable_in_registration_flows}}</EnableInRegistrationFlows>
             </PreUpdatePassword>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.authentication.version.latest}}</Latest>
+                </<Version>
                 <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
             </Authentication>
         </Types>

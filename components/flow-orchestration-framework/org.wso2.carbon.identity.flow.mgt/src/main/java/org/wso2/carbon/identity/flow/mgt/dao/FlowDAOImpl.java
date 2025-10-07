@@ -255,6 +255,22 @@ public class FlowDAOImpl implements FlowDAO {
     }
 
     @Override
+    public void deleteFlow(String flowType, int tenantId) throws FlowMgtFrameworkException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_FLOW,
+                    preparedStatement -> {
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setBoolean(2, true);
+                        preparedStatement.setString(3, flowType);
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DELETE_FLOW, e, tenantId);
+        }
+    }
+
+    @Override
     public GraphConfig getGraphConfig(String flowType, int tenantId) throws FlowMgtFrameworkException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
