@@ -45,7 +45,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.AUTHENTICATOR_VALIDATION_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.REQUEST_PARAM_SP;
 
 /**
