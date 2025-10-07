@@ -1171,7 +1171,7 @@ public class WorkflowManagementServiceImplTest {
 
         when(mockWorkflowRequestDAO.retrieveCreatedUserOfRequest(REQUEST_ID)).thenReturn("any-user");
 
-        workflowManagementService.deleteWorkflowRequestCreatedByAnyUser(REQUEST_ID, false);
+        workflowManagementService.deleteWorkflowRequestCreatedByAnyUser(REQUEST_ID);
 
         verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.DELETED.toString());
         verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
