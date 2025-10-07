@@ -1092,6 +1092,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void abortWorkflowRequest(String requestId) throws WorkflowException {
 
+        log.info("Aborting workflow request: " + requestId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         WorkflowRequest workflowRequest = new WorkflowRequest();
