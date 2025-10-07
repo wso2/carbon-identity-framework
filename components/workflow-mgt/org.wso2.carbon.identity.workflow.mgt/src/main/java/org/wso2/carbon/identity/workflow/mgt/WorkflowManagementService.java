@@ -360,10 +360,10 @@ public interface WorkflowManagementService {
     WorkflowRequestAssociation[] getWorkflowsOfRequest(String requestId) throws WorkflowException;
 
     /**
-     * Delete workflow request.
+     * Move workflow requests created by the logged in user to DELETED state.
      *
      * @param requestId Request ID.
-     * @throws WorkflowException If an error occurs while deleting the request.
+     * @throws WorkflowException
      */
     void deleteWorkflowRequest(String requestId) throws WorkflowException;
 
@@ -383,8 +383,21 @@ public interface WorkflowManagementService {
      *
      * @param requestId Request ID.
      * @throws WorkflowException
+     * @deprecated Use {@link #deleteWorkflowRequestCreatedByAnyUser(String, boolean)} instead.
      */
+    @Deprecated
     default void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
+
+    }
+
+    /**
+     * Move workflow requests created by any user to DELETED state or hard delete based on the input.
+     *
+     * @param requestId  Request ID.
+     * @param hardDelete If true, perform a hard delete.
+     * @throws WorkflowException
+     */
+    default void deleteWorkflowRequestCreatedByAnyUser(String requestId, boolean hardDelete) throws WorkflowException {
 
     }
 

@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.workflow.mgt.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
@@ -98,22 +97,21 @@ public class WorkflowDAO {
 
         try {
             prepStmt = connection.prepareStatement(query);
-            int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-            prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, workflowId);
+            prepStmt.setString(1, workflowId);
             rs = prepStmt.executeQuery();
-            if (rs.next()) {
+            while (rs.next()) {
                 String workflowName = rs.getString(SQLConstants.WF_NAME_COLUMN);
                 String description = rs.getString(SQLConstants.DESCRIPTION_COLUMN);
                 String templateId = rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
                 String implId = rs.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
                 workflow = new Workflow();
-                workflow.setTenantId(tenantId);
                 workflow.setWorkflowId(workflowId);
                 workflow.setWorkflowName(workflowName);
                 workflow.setWorkflowDescription(description);
                 workflow.setTemplateId(templateId);
                 workflow.setWorkflowImplId(implId);
+
+                break;
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);

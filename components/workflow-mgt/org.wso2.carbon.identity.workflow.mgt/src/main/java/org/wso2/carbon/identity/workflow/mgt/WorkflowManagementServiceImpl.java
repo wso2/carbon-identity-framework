@@ -1135,7 +1135,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        workflowRequestDAO.deleteRequest(requestId);
+        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
+        workflowRequestAssociationDAO
+                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
+        requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
 
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
@@ -1149,9 +1152,22 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      *
      * @param requestId Request ID
      * @throws WorkflowException
+     * @deprecated Use {@link #deleteWorkflowRequestCreatedByAnyUser(String, boolean)} instead.
      */
     @Override
     public void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
+
+        deleteWorkflowRequestCreatedByAnyUser(requestId, false);
+    }
+
+    /**
+     * Move workflow request created by any user to DELETED state or hard delete the request.
+     *
+     * @param requestId Request ID
+     * @throws WorkflowException
+     */
+    @Override
+    public void deleteWorkflowRequestCreatedByAnyUser(String requestId, boolean hardDelete) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
@@ -1165,7 +1181,14 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        workflowRequestDAO.deleteRequest(requestId);
+        if (hardDelete) {
+            workflowRequestDAO.deleteRequest(requestId);
+        } else {
+            workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
+            workflowRequestAssociationDAO
+                    .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
+            requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+        }
 
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
