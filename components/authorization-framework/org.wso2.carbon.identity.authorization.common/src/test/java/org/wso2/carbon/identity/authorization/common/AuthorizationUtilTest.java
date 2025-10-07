@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.OperationScopeValidationContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.context.model.OperationScopeSet;
 import org.wso2.carbon.identity.authorization.common.exception.ForbiddenException;
 
 import java.nio.file.Paths;
@@ -49,7 +50,9 @@ public class AuthorizationUtilTest {
                 new OperationScopeValidationContext();
         operationScopeValidationContext.setValidationRequired(validationRequired);
         operationScopeValidationContext.setValidatedScopes(validatedScopes);
-        operationScopeValidationContext.setOperationScopeMap(operationScopeMap);
+        OperationScopeSet operationScopeSet = new OperationScopeSet();
+        operationScopeSet.setOperationScopeMap(operationScopeMap);
+        operationScopeValidationContext.setOperationScopeSet(operationScopeSet);
 
         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .setOperationScopeValidationContext(operationScopeValidationContext);
@@ -88,7 +91,9 @@ public class AuthorizationUtilTest {
                 new OperationScopeValidationContext();
         operationScopeValidationContext.setValidationRequired(validationRequired);
         operationScopeValidationContext.setValidatedScopes(validatedScopes);
-        operationScopeValidationContext.setOperationScopeMap(operationScopeMap);
+        OperationScopeSet operationScopeSet = new OperationScopeSet();
+        operationScopeSet.setOperationScopeMap(operationScopeMap);
+        operationScopeValidationContext.setOperationScopeSet(operationScopeSet);
 
         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .setOperationScopeValidationContext(operationScopeValidationContext);
