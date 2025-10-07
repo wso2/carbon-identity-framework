@@ -1171,12 +1171,14 @@ public class WorkflowManagementServiceImplTest {
 
         when(mockWorkflowRequestDAO.retrieveCreatedUserOfRequest(REQUEST_ID)).thenReturn("any-user");
 
-        workflowManagementService.deleteWorkflowRequestCreatedByAnyUser(REQUEST_ID);
+        workflowManagementService.deleteWorkflowRequestCreatedByAnyUser(REQUEST_ID, false);
 
         verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.DELETED.toString());
         verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
                 WFConstant.HT_STATE_SKIPPED);
         verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);
+        workflowManagementService.deleteWorkflowRequestCreatedByAnyUser(REQUEST_ID, true);
+
     }
 
     @Test
@@ -1238,6 +1240,41 @@ public class WorkflowManagementServiceImplTest {
 
         assertNotNull(result);
         assertEquals(result, expectedRequest);
+    }
+
+    /**
+     * Test abortWorkflowRequest - happy path.
+     * Verifies that workflow request is properly aborted with correct status updates and relationship deletions.
+     */
+    @Test
+    public void testAbortWorkflowRequest() throws WorkflowException {
+
+        String testRequestId = "test-request-abort-1";
+
+        // Mock the workflow listener.
+        List<WorkflowListener> workflowListeners = Arrays.asList(mockWorkflowListener);
+        when(mockWorkflowServiceDataHolder.getWorkflowListenerList()).thenReturn(workflowListeners);
+        when(mockWorkflowListener.isEnable()).thenReturn(true);
+
+        // Execute the method.
+        workflowManagementService.abortWorkflowRequest(testRequestId);
+
+        // Verify pre-update listener is called.
+        verify(mockWorkflowListener).doPreUpdateWorkflowRequest(any(WorkflowRequest.class));
+
+        // Verify DAO methods are called with correct parameters.
+        verify(mockWorkflowRequestDAO).updateStatusOfRequest(
+                eq(testRequestId),
+                eq(WorkflowRequestStatus.ABORTED.toString())
+        );
+        verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(
+                eq(testRequestId),
+                eq(WFConstant.HT_STATE_SKIPPED)
+        );
+        verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(eq(testRequestId));
+
+        // Verify post-update listener is called.
+        verify(mockWorkflowListener).doPostUpdateWorkflowRequest(any(WorkflowRequest.class));
     }
 
     // Helper methods for creating test objects
