@@ -91,6 +91,13 @@ public class PreUpdateProfileAction extends Action {
         }
 
         @Override
+        public ResponseBuilder actionVersion(String actionVersion) {
+
+            super.actionVersion(actionVersion);
+            return this;
+        }
+
+        @Override
         public ResponseBuilder createdAt(Timestamp createdAt) {
 
             super.createdAt(createdAt);
