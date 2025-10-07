@@ -1105,6 +1105,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
 
         workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.ABORTED.toString());
+        if (log.isDebugEnabled()) {
+            log.debug("Updated workflow request status to ABORTED for requestId: " + requestId);
+        }
         workflowRequestAssociationDAO
                 .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
         requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
