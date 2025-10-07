@@ -1156,22 +1156,22 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      *
      * @param requestId Request ID
      * @throws WorkflowException
-     * @deprecated Use {@link #deleteWorkflowRequestCreatedByAnyUser(String, boolean)} instead.
+     * @deprecated Use {@link #softDeleteWorkflowRequestByAnyUser(String)} instead.
      */
     @Override
     public void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
 
-        deleteWorkflowRequestCreatedByAnyUser(requestId, false);
+        softDeleteWorkflowRequestByAnyUser(requestId);
     }
 
     /**
-     * Move workflow request created by any user to DELETED state or hard delete the request.
+     * Permanently delete workflow request created by any user.
      *
      * @param requestId Request ID
      * @throws WorkflowException
      */
     @Override
-    public void deleteWorkflowRequestCreatedByAnyUser(String requestId, boolean hardDelete) throws WorkflowException {
+    public void permanentlyDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
@@ -1185,14 +1185,40 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        if (hardDelete) {
-            workflowRequestDAO.deleteRequest(requestId);
-        } else {
-            workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
-            workflowRequestAssociationDAO
-                    .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
-            requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+        workflowRequestDAO.deleteRequest(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostDeleteWorkflowRequest(workflowRequest);
+            }
         }
+    }
+
+    /**
+     * Soft delete workflow request created by any user.
+     *
+     * @param requestId Request ID
+     * @throws WorkflowException
+     */
+    @Override
+    public void softDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        WorkflowRequest workflowRequest = new WorkflowRequest();
+        workflowRequest.setRequestId(requestId);
+        workflowRequest.setCreatedBy(workflowRequestDAO.retrieveCreatedUserOfRequest(requestId));
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreDeleteWorkflowRequest(workflowRequest);
+            }
+        }
+
+        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
+        workflowRequestAssociationDAO
+                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
+        requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
 
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {

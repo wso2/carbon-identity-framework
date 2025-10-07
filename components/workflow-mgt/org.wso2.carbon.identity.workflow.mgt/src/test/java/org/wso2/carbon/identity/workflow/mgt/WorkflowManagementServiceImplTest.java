@@ -1177,7 +1177,8 @@ public class WorkflowManagementServiceImplTest {
         verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
                 WFConstant.HT_STATE_SKIPPED);
         verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);
-        workflowManagementService.deleteWorkflowRequestCreatedByAnyUser(REQUEST_ID, true);
+
+        workflowManagementService.permanentlyDeleteWorkflowRequestByAnyUser(REQUEST_ID);
 
     }
 

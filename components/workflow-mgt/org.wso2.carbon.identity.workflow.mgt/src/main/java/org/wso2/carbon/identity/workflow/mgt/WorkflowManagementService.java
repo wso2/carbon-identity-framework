@@ -383,7 +383,7 @@ public interface WorkflowManagementService {
      *
      * @param requestId Request ID.
      * @throws WorkflowException
-     * @deprecated Use {@link #deleteWorkflowRequestCreatedByAnyUser(String, boolean)} instead.
+     * @deprecated Use {@link #softDeleteWorkflowRequestByAnyUser(String)} instead.
      */
     @Deprecated
     default void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
@@ -391,13 +391,21 @@ public interface WorkflowManagementService {
     }
 
     /**
-     * Move workflow requests created by any user to DELETED state or hard delete based on the input.
+     * Move workflow requests created by any user to DELETED state.
      *
      * @param requestId  Request ID.
-     * @param hardDelete If true, perform a hard delete.
      * @throws WorkflowException
      */
-    default void deleteWorkflowRequestCreatedByAnyUser(String requestId, boolean hardDelete) throws WorkflowException {
+    default void softDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
+
+    }
+    /**
+     * permanently delete workflow requests created by any user.
+     *
+     * @param requestId  Request ID.
+     * @throws WorkflowException
+     */
+    default void permanentlyDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
 
     }
 
