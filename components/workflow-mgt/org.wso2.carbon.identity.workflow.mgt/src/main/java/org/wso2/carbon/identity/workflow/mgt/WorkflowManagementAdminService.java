@@ -45,6 +45,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Admin service for workflow management related operations
+ */
 public class WorkflowManagementAdminService {
 
     private static final Log log = LogFactory.getLog(WorkflowManagementAdminService.class);
@@ -108,7 +111,6 @@ public class WorkflowManagementAdminService {
                 workflow.setTemplateParameters(templateParams.toArray(new Parameter[templateParams.size()]));
                 workflow.setWorkflowImplParameters(workflowImplParams
                                                            .toArray(new Parameter[workflowImplParams.size()]));
-
             }
             return workflow;
         } catch (InternalWorkflowException e) {
@@ -298,13 +300,14 @@ public class WorkflowManagementAdminService {
      * @return WorkflowWizard[]
      * @throws WorkflowException
      */
-    public WorkflowWizard[] listPaginatedWorkflows(int limit, int offset, String filter) throws WorkflowException{
+    public WorkflowWizard[] listPaginatedWorkflows(int limit, int offset, String filter) throws WorkflowException {
 
         List<WorkflowWizard> workflowWizards = new ArrayList<>();
         List<Workflow> workflowBeans = null;
         try {
             int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            workflowBeans = WorkflowServiceDataHolder.getInstance().getWorkflowService().listPaginatedWorkflows(tenantId, limit, offset, filter);
+            workflowBeans = WorkflowServiceDataHolder.getInstance().getWorkflowService()
+                    .listPaginatedWorkflows(tenantId, limit, offset, filter);
             for (Workflow workflow : workflowBeans) {
                 WorkflowWizard workflowTmp = getWorkflow(workflow);
                 if (workflowTmp != null) {
@@ -349,7 +352,7 @@ public class WorkflowManagementAdminService {
      * @return Return count of workflows
      * @throws WorkflowException
      */
-    public int getWorkflowsCount(String filter) throws WorkflowException{
+    public int getWorkflowsCount(String filter) throws WorkflowException {
 
         int count;
         try {
@@ -425,7 +428,8 @@ public class WorkflowManagementAdminService {
         try {
             int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
             associations =
-                    WorkflowServiceDataHolder.getInstance().getWorkflowService().listPaginatedAssociations(tenantId, limit, offset, filter);
+                    WorkflowServiceDataHolder.getInstance().getWorkflowService()
+                            .listPaginatedAssociations(tenantId, limit, offset, filter);
         } catch (InternalWorkflowException e) {
             throw new WorkflowException(WFConstant.Exceptions.ERROR_LISTING_ASSOCIATIONS, e);
         }
@@ -485,7 +489,7 @@ public class WorkflowManagementAdminService {
      * @return Return count of associations
      * @throws WorkflowException
      */
-    public int getAssociationsCount(String filter) throws WorkflowException{
+    public int getAssociationsCount(String filter) throws WorkflowException {
 
         int count;
         try {

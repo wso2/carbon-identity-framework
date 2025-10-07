@@ -33,11 +33,11 @@ public class WorkflowWizard {
     private String templateId;
     private String workflowImplId;
 
-    private Template template ;
+    private Template template;
     private WorkflowImpl workflowImpl;
 
-    private Parameter[] templateParameters ;
-    private Parameter[] workflowImplParameters ;
+    private Parameter[] templateParameters;
+    private Parameter[] workflowImplParameters;
 
     public String getWorkflowId() {
         return workflowId;
