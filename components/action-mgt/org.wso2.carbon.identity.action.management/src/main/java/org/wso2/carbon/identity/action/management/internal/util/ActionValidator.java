@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.internal.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
@@ -274,9 +275,10 @@ public class ActionValidator {
      *
      * @param actionType    Action type.
      * @param actionVersion Action version.
-     * @throws ActionMgtClientException If the action version is not the latest.
+     * @throws ActionMgtException If any error occurred during resolving latest action version or provided version is
+     * not action version is not the latest
      */
-    public void validateActionVersion(ActionTypes actionType, String actionVersion) throws ActionMgtClientException {
+    public void validateActionVersion(ActionTypes actionType, String actionVersion) throws ActionMgtException {
 
         if (actionVersion == null) {
             return;

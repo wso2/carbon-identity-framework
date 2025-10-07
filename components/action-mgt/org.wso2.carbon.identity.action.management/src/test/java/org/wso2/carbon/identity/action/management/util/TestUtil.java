@@ -105,6 +105,8 @@ public class TestUtil {
     public static final String TEST_ACTION_ALLOWED_PARAMETER_2 = "testParam_2";
     public static final String TEST_ACTION_ALLOWED_PARAMETER_3 = "testParam_3";
 
+    public static final String TEST_DEFAULT_LATEST_ACTION_VERSION = "v1";
+
     public static Action buildMockAction(String name, String description, String uri, Authentication authentication) {
 
         return new Action.ActionRequestBuilder()

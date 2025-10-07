@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
@@ -350,7 +351,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param action The action model containing details for the action.
      * @return The constructed `ActionDTO` object.
      */
-    private ActionDTO buildActionDTOForCreation(String actionType, String actionId, Action action) {
+    private ActionDTO buildActionDTOForCreation(String actionType, String actionId, Action action)
+            throws ActionMgtServerException {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
         Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.IN_FLOW ?
