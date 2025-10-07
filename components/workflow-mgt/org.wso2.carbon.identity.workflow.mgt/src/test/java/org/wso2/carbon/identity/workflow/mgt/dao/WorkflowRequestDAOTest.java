@@ -169,6 +169,31 @@ public class WorkflowRequestDAOTest {
         }
     }
 
+    @Test(dependsOnMethods = "testGetWorkflowRequestWithValidId")
+    public void testDeleteRequestWithValidId() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(getConnection());
+
+            WorkflowRequest requestBeforeDelete = workflowRequestDAO.getWorkflowRequest(TEST_REQUEST_ID_1);
+            if (requestBeforeDelete == null) {
+                throw new Exception("Precondition failed: Request with ID " + TEST_REQUEST_ID_1 + " should exist.");
+            }
+
+            // Delete the request.
+            workflowRequestDAO.deleteRequest(TEST_REQUEST_ID_1);
+
+            // Verify the request no longer exists.
+            try {
+                workflowRequestDAO.getWorkflowRequest(TEST_REQUEST_ID_1);
+            } catch (WorkflowClientException e) {
+                // Expected exception since the request should be deleted.
+                assertNotNull(e, "Exception should be thrown for deleted request");
+            }
+        }
+    }
+
     /**
      * Gets a connection to the H2 database.
      *
