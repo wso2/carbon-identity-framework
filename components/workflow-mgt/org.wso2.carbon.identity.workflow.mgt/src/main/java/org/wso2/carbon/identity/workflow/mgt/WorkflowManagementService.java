@@ -360,12 +360,23 @@ public interface WorkflowManagementService {
     WorkflowRequestAssociation[] getWorkflowsOfRequest(String requestId) throws WorkflowException;
 
     /**
-     * Move workflow requests created by the logged in user to DELETED state.
+     * Delete workflow request.
      *
      * @param requestId Request ID.
-     * @throws WorkflowException
+     * @throws WorkflowException If an error occurs while deleting the request.
      */
     void deleteWorkflowRequest(String requestId) throws WorkflowException;
+
+    /**
+     * Abort workflow request.
+     *
+     * @param requestId Request ID.
+     * @throws WorkflowException If an error occurs while aborting the request.
+     */
+    default void abortWorkflowRequest(String requestId) throws WorkflowException {
+
+    }
+
 
     /**
      * Move workflow requests created by any user to DELETED state.

@@ -1142,7 +1142,7 @@ public class WorkflowManagementServiceImplTest {
 
             workflowManagementService.deleteWorkflowRequest(REQUEST_ID);
 
-            verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.DELETED.toString());
+            verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.ABORTED.toString());
             verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
                     WFConstant.HT_STATE_SKIPPED);
             verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);
@@ -1173,7 +1173,7 @@ public class WorkflowManagementServiceImplTest {
 
         workflowManagementService.deleteWorkflowRequestCreatedByAnyUser(REQUEST_ID);
 
-        verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.DELETED.toString());
+        verify(mockWorkflowRequestDAO).updateStatusOfRequest(REQUEST_ID, WorkflowRequestStatus.ABORTED.toString());
         verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
                 WFConstant.HT_STATE_SKIPPED);
         verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);

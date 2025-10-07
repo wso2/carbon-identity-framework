@@ -1090,6 +1090,32 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
+    public void abortWorkflowRequest(String requestId) throws WorkflowException {
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        WorkflowRequest workflowRequest = new WorkflowRequest();
+        workflowRequest.setRequestId(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreUpdateWorkflowRequest(workflowRequest);
+            }
+        }
+
+        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.ABORTED.toString());
+        workflowRequestAssociationDAO
+                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
+        requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostUpdateWorkflowRequest(workflowRequest);
+            }
+        }
+    }
+
+    @Override
     public void deleteWorkflowRequest(String requestId) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =
@@ -1109,10 +1135,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
-        workflowRequestAssociationDAO
-                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
-        requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+        workflowRequestDAO.deleteRequest(requestId);
 
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
@@ -1142,10 +1165,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
-        workflowRequestAssociationDAO
-                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
-        requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+        workflowRequestDAO.deleteRequest(requestId);
 
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {

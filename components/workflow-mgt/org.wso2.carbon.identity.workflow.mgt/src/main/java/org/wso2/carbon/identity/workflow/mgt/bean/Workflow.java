@@ -27,12 +27,23 @@ public class Workflow implements Serializable {
 
     private static final long serialVersionUID = -5191252401224311955L;
 
+    private int tenantId;
     private String workflowId;
     private String workflowName;
     private String workflowDescription;
 
     private String templateId;
     private String workflowImplId;
+
+    public int getTenantId() {
+
+        return tenantId;
+    }
+
+    public void setTenantId(int tenantId) {
+
+        this.tenantId = tenantId;
+    }
 
     public String getWorkflowId() {
 

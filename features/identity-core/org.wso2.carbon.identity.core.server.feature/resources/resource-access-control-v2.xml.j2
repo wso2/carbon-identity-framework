@@ -1954,6 +1954,9 @@
          <Resource context="(.*)/o/api/server/v1/workflow-instances(.*)" secured="true" http-method="GET">
               <Scopes>internal_org_workflow_instance_view</Scopes>
           </Resource>
+          <Resource context="(.*)/o/api/server/v1/workflow-instances/(.*)/abort" secured="true" http-method="POST">
+              <Scopes>internal_org_workflow_instance_update</Scopes>
+          </Resource>
           <Resource context="(.*)/o/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
               <Scopes>internal_org_workflow_instance_delete</Scopes>
           </Resource>
@@ -1961,6 +1964,9 @@
           <!-- Workflow Instance Management API -->
           <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="GET">
               <Scopes>internal_workflow_instance_view</Scopes>
+          </Resource>
+          <Resource context="(.*)/api/server/v1/workflow-instances/(.*)/abort" secured="true" http-method="POST">
+              <Scopes>internal_workflow_instance_update</Scopes>
           </Resource>
           <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
               <Scopes>internal_workflow_instance_delete</Scopes>

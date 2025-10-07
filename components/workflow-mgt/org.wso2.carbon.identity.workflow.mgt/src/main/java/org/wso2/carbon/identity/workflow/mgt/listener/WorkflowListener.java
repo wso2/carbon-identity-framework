@@ -52,7 +52,7 @@ public interface WorkflowListener {
     void doPostListWorkflowEvents(List<WorkflowEvent> result);
 
     /**
-     * Trigger before delete the request.
+     * Trigger before delete the workflow request.
      *
      * @param workflowRequest Request to delete.
      * @throws WorkflowException
@@ -60,12 +60,32 @@ public interface WorkflowListener {
     void doPreDeleteWorkflowRequest(WorkflowRequest workflowRequest) throws WorkflowException;
 
     /**
-     * Trigger after deleting the request.
+     * Trigger after deleting the workflow request.
      *
      * @param workflowRequest Request to delete
      * @throws WorkflowException
      */
     void doPostDeleteWorkflowRequest(WorkflowRequest workflowRequest) throws WorkflowException;
+
+    /**
+     * Trigger before update the workflow request.
+     *
+     * @param workflowRequest Workflow request to update.
+     * @throws WorkflowException
+     */
+    default void doPreUpdateWorkflowRequest(WorkflowRequest workflowRequest) throws WorkflowException {
+
+    }
+
+    /**
+     * Trigger after updating the workflow request.
+     *
+     * @param workflowRequest Workflow request to update.
+     * @throws WorkflowException
+     */
+    default void doPostUpdateWorkflowRequest(WorkflowRequest workflowRequest) throws WorkflowException {
+
+    }
 
     /**
      * Trigger before delete the workflow.
