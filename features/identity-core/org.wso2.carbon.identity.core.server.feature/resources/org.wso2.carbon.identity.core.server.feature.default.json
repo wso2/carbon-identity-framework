@@ -2034,9 +2034,13 @@
   "actions.http_client.retry_count": "2",
   "actions.maximum_actions_per_action_type": "1",
   "actions.types.pre_issue_access_token.enable": true,
+  "actions.types.pre_issue_access_token.version.latest": "v1",
   "actions.types.authentication.enable": true,
+  "actions.types.authentication.version.latest": "v1",
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
+  "actions.types.pre_update_profile.version.latest": "v1",
+  "actions.types.pre_update_password.version.latest": "v1",
   "actions.types.pre_update_password.enable_in_registration_flows": true,
 
   "outbound_adapters.httppublisher.enabled": true,
