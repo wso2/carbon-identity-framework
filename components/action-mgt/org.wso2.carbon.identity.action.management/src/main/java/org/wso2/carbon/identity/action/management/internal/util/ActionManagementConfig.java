@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.action.management.internal.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
+import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.util.Collections;
@@ -71,22 +74,76 @@ public class ActionManagementConfig {
     }
 
     /**
+     * Get the latest version of the action type.
+     *
+     * @param actionType Action type.
+     * @return Latest version of the action type.
+     */
+    public String getLatestVersion(ActionTypes actionType) throws ActionMgtServerException {
+
+        switch (actionType) {
+            case PRE_ISSUE_ACCESS_TOKEN:
+                return getVersion(
+                        ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getLatestVersionProperty(), actionType);
+            case AUTHENTICATION:
+                return getVersion(ActionTypeConfig.AUTHENTICATION.getLatestVersionProperty(), actionType);
+            case PRE_UPDATE_PASSWORD:
+                return getVersion(
+                        ActionTypeConfig.PRE_UPDATE_PASSWORD.getLatestVersionProperty(), actionType);
+            case PRE_UPDATE_PROFILE:
+                return getVersion(
+                        ActionTypeConfig.PRE_UPDATE_PROFILE.getLatestVersionProperty(), actionType);
+            default:
+                throw new ActionMgtServerException("Unsupported action type: " + actionType);
+        }
+    }
+
+    private String getVersion(String actionTypePropertyName, ActionTypes actionType) throws ActionMgtServerException {
+
+        String versionPropertyValue =
+                (String) IdentityConfigParser.getInstance().getConfiguration().get(actionTypePropertyName);
+        if (StringUtils.isBlank(versionPropertyValue)) {
+            throw new ActionMgtServerException(String.format("Unable to resolve the latest action version for " +
+                    "action type: %s", actionType.getActionType()));
+        }
+        return versionPropertyValue;
+    }
+
+    /**
      * Enum to hold the configuration properties for each action type.
      */
     public enum ActionTypeConfig {
 
         PRE_ISSUE_ACCESS_TOKEN(
                 "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header",
-                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter"
+                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.PreIssueAccessToken.Version.Latest"
+        ),
+        AUTHENTICATION(
+                "Actions.Types.Authentication.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.Authentication.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.Authentication.Version.Latest"
+        ),
+        PRE_UPDATE_PASSWORD(
+                "Actions.Types.PreUpdatePassword.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.PreUpdatePassword.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.PreUpdatePassword.Version.Latest"
+        ),
+        PRE_UPDATE_PROFILE(
+                "Actions.Types.PreUpdateProfile.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.PreUpdateProfile.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.PreUpdateProfile.Version.Latest"
         );
 
         private final String excludedHeadersProperty;
         private final String excludedParamsProperty;
+        private final String latestVersionProperty;
 
-        ActionTypeConfig(String excludedHeadersProperty, String excludedParamsProperty) {
+        ActionTypeConfig(String excludedHeadersProperty, String excludedParamsProperty, String latestVersionProperty) {
 
             this.excludedHeadersProperty = excludedHeadersProperty;
             this.excludedParamsProperty = excludedParamsProperty;
+            this.latestVersionProperty = latestVersionProperty;
         }
 
         public String getExcludedHeadersProperty() {
@@ -97,6 +154,11 @@ public class ActionManagementConfig {
         public String getExcludedParamsProperty() {
 
             return excludedParamsProperty;
+        }
+
+        public String getLatestVersionProperty() {
+
+            return latestVersionProperty;
         }
     }
 }

@@ -1949,6 +1949,7 @@
                 <Scope name="internal_org_governance_update"/>
             </Update>
             <Delete>
+                <Scope name="internal_org_flow_delete"/>
             </Delete>
             <Create>
             </Create>
