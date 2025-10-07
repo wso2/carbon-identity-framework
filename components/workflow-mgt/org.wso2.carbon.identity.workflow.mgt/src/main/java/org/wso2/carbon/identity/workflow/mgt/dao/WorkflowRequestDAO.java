@@ -244,6 +244,25 @@ public class WorkflowRequestDAO {
         }
     }
 
+    public void deleteRequest(String requestId) throws InternalWorkflowException {
+
+        log.info("Deleting workflow request with ID: " + requestId);
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.DELETE_REQUEST;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, requestId);
+            prepStmt.execute();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
     /**
      * Get requests of a given user.
      *

@@ -1484,6 +1484,7 @@
   "console.workflowInstances.enabled": true,
   "console.workflowInstances.scopes.feature": ["console:workflowInstances"],
   "console.workflowInstances.scopes.read": ["internal_workflow_instance_view"],
+  "console.workflowInstances.scopes.update": ["internal_workflow_instance_update"],
   "console.workflowInstances.scopes.delete": ["internal_workflow_instance_delete"],
   "console.attribute_dialects.enabled": true,
   "console.attribute_dialects.scopes.feature": ["console:attributes"],
