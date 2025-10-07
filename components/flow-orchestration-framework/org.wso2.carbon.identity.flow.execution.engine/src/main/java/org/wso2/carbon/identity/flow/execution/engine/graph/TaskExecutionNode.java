@@ -181,7 +181,7 @@ public class TaskExecutionNode implements Node {
                 if (response.getErrorCode() != null){
                     throw handleServerException(flowType, response);
                 }
-                throw handleServerException(flowType, ERROR_CODE_REQUEST_PROCESSING_FAILURE, response.getErrorMessage());
+                throw handleServerException(flowType, ERROR_CODE_EXECUTOR_FAILURE, response.getErrorMessage());
             default:
                 throw handleServerException(flowType, ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
         }
