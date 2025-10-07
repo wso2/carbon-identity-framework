@@ -164,7 +164,6 @@ public class AuthenticationEndpointFilter implements Filter {
             String tenantDomain;
 
             if (authenticatorValidationEnabled) {
-
                 if (log.isDebugEnabled()) {
                     log.debug("Authenticator Validation is Enabled");
                 }
