@@ -83,7 +83,7 @@ public class WorkFlowExecutorManagerTest {
      * Test public handleCallback method that delegates to private handleCallback.
      */
     @Test
-    public void testHandleCallbackWhenWorkflowRequestAborted() throws Exception {
+    public void testHandleCallbackWhenWorkflowRequestAbortedOrDeleted() throws Exception {
 
         Map<String, Object> additionalParams = new HashMap<>();
 
@@ -95,9 +95,6 @@ public class WorkFlowExecutorManagerTest {
         when(mockResultSet.next()).thenReturn(true);
         when(mockResultSet.getString(SQLConstants.REQUEST_ID_COLUMN)).thenReturn("REQUEST_ID");
 
-        when(mockResultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN))
-                .thenReturn(WorkflowRequestStatus.ABORTED.toString());
-
         WorkflowRequest workflowRequest = new WorkflowRequest();
 
         byte[] workflowRequestBytes = SerializationUtils.serialize(workflowRequest);
@@ -108,6 +105,12 @@ public class WorkFlowExecutorManagerTest {
         identityDatabaseUtilMockedStatic.when(() -> IdentityDatabaseUtil.getDBConnection())
                 .thenReturn(mockConnection);
 
+        when(mockResultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN))
+                .thenReturn(WorkflowRequestStatus.ABORTED.toString());
+        WorkFlowExecutorManager.getInstance().handleCallback(TEST_UUID, STATUS_APPROVED, additionalParams);
+
+        when(mockResultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN))
+                .thenReturn(WorkflowRequestStatus.DELETED.toString());
         WorkFlowExecutorManager.getInstance().handleCallback(TEST_UUID, STATUS_APPROVED, additionalParams);
     }
 }
