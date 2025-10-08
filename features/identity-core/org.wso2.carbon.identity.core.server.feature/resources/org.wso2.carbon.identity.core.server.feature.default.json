@@ -1851,6 +1851,8 @@
   "console.dynamic_client_registration.scopes.feature": [
     "console:applications"
   ],
+  "console.dynamic_client_registration.scopes.create": [],
+  "console.dynamic_client_registration.scopes.delete": [],
   "console.dynamic_client_registration.scopes.read": [
     "internal_config_view"
   ],
