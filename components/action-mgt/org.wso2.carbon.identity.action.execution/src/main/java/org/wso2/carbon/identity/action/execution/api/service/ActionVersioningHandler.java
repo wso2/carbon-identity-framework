@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.execution.api.service;
 
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.management.api.model.Action;
@@ -38,13 +39,11 @@ public interface ActionVersioningHandler {
     /**
      * Check whether the action version is eligible to be triggered for the action version and the given flow context.
      *
-     * @param actionType  ActionType.
-     * @param action      Action.
      * @param flowContext FlowContext.
      * @return true if the action version is eligible to be triggered, false otherwise.
      * @throws ActionExecutionException ActionExecutionException.
      */
-    boolean isVersionEligibleForTrigger(ActionType actionType, Action action, FlowContext flowContext)
+    boolean canExecute(ActionExecutionRequestContext actionExecutionRequestContext, FlowContext flowContext)
             throws ActionExecutionException;
 
     /**

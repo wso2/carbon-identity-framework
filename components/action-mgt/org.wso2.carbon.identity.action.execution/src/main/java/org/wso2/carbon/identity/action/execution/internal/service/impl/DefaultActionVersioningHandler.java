@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.internal.service.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.service.ActionVersioningHandler;
@@ -46,7 +47,7 @@ public class DefaultActionVersioningHandler implements ActionVersioningHandler {
     }
 
     @Override
-    public boolean isVersionEligibleForTrigger(ActionType actionType, Action action, FlowContext flowContext)
+    public boolean canExecute(ActionExecutionRequestContext actionExecutionRequestContext, FlowContext flowContext)
             throws ActionExecutionException {
 
         return true;
@@ -55,12 +56,11 @@ public class DefaultActionVersioningHandler implements ActionVersioningHandler {
     @Override
     public boolean isRetiredActionVersion(ActionType actionType, Action action) {
 
-        String retiredUpToVersion = ActionExecutorConfig.getInstance().getRetiredUpToVersion(actionType)
-                .replace(VERSION_PREFIX, StringUtils.EMPTY);
+        String retiredUpToVersion = ActionExecutorConfig.getInstance().getRetiredUpToVersion(actionType);
         if (StringUtils.isBlank(retiredUpToVersion)) {
             return false;
         }
-        int retiredActionVersion = Integer.parseInt(retiredUpToVersion);
+        int retiredActionVersion = Integer.parseInt(retiredUpToVersion.replace(VERSION_PREFIX, StringUtils.EMPTY));
         int actionVersion = Integer.parseInt(action.getActionVersion().replace(VERSION_PREFIX, StringUtils.EMPTY));
         return (actionVersion <= retiredActionVersion);
     }

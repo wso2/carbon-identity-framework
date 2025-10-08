@@ -476,9 +476,9 @@ public class ActionExecutorConfigTest {
     public void testGetRetiredUpToVersion() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.Types.PreUpdatePassword.retiredUpToVersion.Version", "v2");
+        configMap.put("Actions.Types.PreUpdatePassword.Version.RetiredUpTo", "v2");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(actionExecutorConfig.getRetiredUpToVersion(ActionType.PRE_UPDATE_PASSWORD), "v2");
-        Assert.assertEquals(actionExecutorConfig.getRetiredUpToVersion(ActionType.AUTHENTICATION), "v0");
+        Assert.assertNull(actionExecutorConfig.getRetiredUpToVersion(ActionType.AUTHENTICATION));
     }
 }

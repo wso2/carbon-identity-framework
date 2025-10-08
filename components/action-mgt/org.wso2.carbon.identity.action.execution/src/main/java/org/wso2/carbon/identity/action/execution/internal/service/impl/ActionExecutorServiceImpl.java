@@ -153,8 +153,9 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
         }
 
+        ActionExecutionRequestContext actionExecutionRequestContext = ActionExecutionRequestContext.create(action);
         ActionType actionType = ActionType.valueOf(action.getType().getActionType());
-        if (!isEligibleActionVersionToTrigger(actionType, action, flowContext)) {
+        if (!isEligibleActionVersionToTrigger(actionExecutionRequestContext, flowContext)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("This action version is not eligible to be triggered for the action: %s. " +
                         "Skipping action execution.", action.getId()));
@@ -172,7 +173,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         DIAGNOSTIC_LOGGER.logActionExecution(action);
 
-        ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, action, flowContext);
+        ActionExecutionRequest actionRequest = buildActionExecutionRequest(
+                actionType, action, flowContext, actionExecutionRequestContext);
         ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
         return executeAction(action, actionRequest, flowContext, actionExecutionResponseProcessor);
@@ -215,7 +217,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private ActionExecutionRequest buildActionExecutionRequest(ActionType actionType, Action action,
-                                                               FlowContext flowContext)
+            FlowContext flowContext, ActionExecutionRequestContext actionExecutionRequestContext)
             throws ActionExecutionException {
 
         ActionExecutionRequestBuilder requestBuilder =
@@ -225,8 +227,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
         try {
             ActionExecutionRequest actionExecutionRequest =
-                    requestBuilder.buildActionExecutionRequest(flowContext,
-                            ActionExecutionRequestContext.create(action));
+                    requestBuilder.buildActionExecutionRequest(flowContext, actionExecutionRequestContext);
             if (actionExecutionRequest.getEvent() == null || actionExecutionRequest.getEvent().getRequest() == null) {
                 return actionExecutionRequest;
             }
@@ -306,24 +307,27 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private boolean isEligibleActionVersionToTrigger(ActionType actionType, Action action, FlowContext flowContext)
+    private boolean isEligibleActionVersionToTrigger(ActionExecutionRequestContext actionExecutionRequestContext,
+                                                     FlowContext flowContext)
             throws ActionExecutionException {
 
+        ActionType actionType = actionExecutionRequestContext.getActionType();
+        Action action = actionExecutionRequestContext.getAction();
         ActionVersioningHandler versioningHandler =
                 ActionVersioningHandlerFactory.getActionVersioningHandler(actionType);
         if (versioningHandler == null) {
-            throw new ActionExecutionException("No action version handler found for action type: " + actionType);
+            throw new ActionExecutionException(
+                    String.format("No action version handler found for action type: %s", actionType));
+        }
+
+        // If the action version is retired, throw an expection.
+        if (versioningHandler.isRetiredActionVersion(actionType, action)) {
+            throw new ActionExecutionException(
+                    String.format("Action version is retired for action: %s", action.getId()));
         }
 
         try {
-            // If the action version is retired, skip executing the action.
-            if (versioningHandler.isRetiredActionVersion(actionType, action)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Action version is retired for action: %s.",  action.getId()));
-                }
-                return false;
-            }
-            return versioningHandler.isVersionEligibleForTrigger(actionType, action, flowContext);
+            return versioningHandler.canExecute(actionExecutionRequestContext, flowContext);
         } catch (ActionExecutionException e) {
             throw new ActionExecutionException("Error occurred when trying to validate whether action version is " +
                     "eligible to be triggered for action type: " + actionType, e);

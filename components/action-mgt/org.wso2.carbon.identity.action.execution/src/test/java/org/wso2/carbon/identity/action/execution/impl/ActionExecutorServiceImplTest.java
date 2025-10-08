@@ -534,7 +534,8 @@ public class ActionExecutorServiceImplTest {
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
-    @Test
+    @Test(expectedExceptions = ActionExecutionException.class,
+    expectedExceptionsMessageRegExp = "Action version is retired for action: actionId")
     public void testActionExecuteFailureWithRetiredActionVersion() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
@@ -564,13 +565,7 @@ public class ActionExecutorServiceImplTest {
                 expectedStatus);
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
-        ActionExecutionStatus actualStatus =
-                actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
-        assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
-
-        ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
-                actionType, action.getId(), FlowContext.create(), "tenantDomain");
-        assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
+        actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
     }
 
     @Test
