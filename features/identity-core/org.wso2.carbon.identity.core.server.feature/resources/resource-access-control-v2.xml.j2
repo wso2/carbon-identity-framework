@@ -871,18 +871,18 @@
         {% endif %}
 
         <!-- [Organization] Approval Tasks -->
-        <Resource context="(.*)/o/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
+        <Resource context="(.*)/o/api/users/v2/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
             <Scopes>internal_org_approval_task_view</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
+        <Resource context="(.*)/o/api/users/v2/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_org_approval_task_update</Scopes>
         </Resource>
 
         <!-- Approval Tasks -->
-        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
+        <Resource context="(.*)/api/users/v2/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
             <Scopes>internal_approval_task_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
+        <Resource context="(.*)/api/users/v2/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_approval_task_update</Scopes>
         </Resource>
 

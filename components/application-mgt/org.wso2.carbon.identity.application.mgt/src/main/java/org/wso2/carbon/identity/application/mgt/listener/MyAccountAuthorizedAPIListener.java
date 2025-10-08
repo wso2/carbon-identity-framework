@@ -48,8 +48,8 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPE
 public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagementListener {
 
     private static final List<String> authorizedNoPolicyAPIIdentifiers = Arrays.asList(
-            "/api/users/v1/me/approval-tasks",
-            "/o/api/users/v1/me/approval-tasks");
+            "/api/users/v2/me/approval-tasks",
+            "/o/api/users/v2/me/approval-tasks");
     private static final List<String> authorizedNoPolicyScopes = Arrays.asList(
             "internal_approval_task_view",
             "internal_approval_task_update",

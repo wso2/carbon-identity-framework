@@ -228,10 +228,6 @@
                                     </limits>
                                 </rule>
                             </rules>
-                            <excludes>
-                                <!-- Exclude all service interfaces -->
-                                <exclude>**/WorkflowListener.class</exclude>
-                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
