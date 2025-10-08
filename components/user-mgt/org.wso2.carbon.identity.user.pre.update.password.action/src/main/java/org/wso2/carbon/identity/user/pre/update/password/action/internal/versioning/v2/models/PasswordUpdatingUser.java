@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.internal.model;
+package org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v2.models;
 
 import com.google.gson.Gson;
 import com.nimbusds.jose.EncryptionMethod;
