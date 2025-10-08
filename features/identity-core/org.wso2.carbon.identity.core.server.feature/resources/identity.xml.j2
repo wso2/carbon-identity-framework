@@ -2244,6 +2244,7 @@
                 <Enable>{{actions.types.pre_issue_access_token.enable}}</Enable>
                 <Version>
                     <Latest>{{actions.types.pre_issue_access_token.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
                 </Version>
                 <ActionRequest>
                     <ExcludedHeaders>
@@ -2272,11 +2273,13 @@
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
                 <Version>
                     <Latest>{{actions.types.pre_update_profile.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
                 </Version>
             </PreUpdateProfile>
             <PreUpdatePassword>
                 <Version>
                     <Latest>{{actions.types.pre_update_password.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
                 </Version>
                 <EnableInRegistrationFlows>{{actions.types.pre_update_password.enable_in_registration_flows}}</EnableInRegistrationFlows>
             </PreUpdatePassword>
@@ -2284,6 +2287,7 @@
                 <Enable>{{actions.types.authentication.enable}}</Enable>
                 <Version>
                     <Latest>{{actions.types.authentication.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
                 </Version>
                 <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
             </Authentication>
