@@ -1900,6 +1900,8 @@
         <Scopes>
             <Scope displayName="View Workflow Instance" name="internal_workflow_instance_view"
                    description="View workflow instances"/>
+            <Scope displayName="Update Workflow Instance" name="internal_workflow_instance_update"
+                   description="Update workflow instance"/>
             <Scope displayName="Delete Workflow Instance" name="internal_workflow_instance_delete"
                    description="Delete workflow instance"/>
         </Scopes>
@@ -1938,6 +1940,8 @@
         <Scopes>
             <Scope displayName="View Workflow Instance" name="internal_org_workflow_instance_view"
                    description="View workflow instances"/>
+            <Scope displayName="Update Workflow Instance" name="internal_org_workflow_instance_update"
+                   description="Update workflow instance"/>
             <Scope displayName="Delete Workflow Instance" name="internal_org_workflow_instance_delete"
                    description="Delete workflow instance"/>
         </Scopes>

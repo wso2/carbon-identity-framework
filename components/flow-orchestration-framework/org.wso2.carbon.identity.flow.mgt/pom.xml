@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.8.546-SNAPSHOT</version>
+        <version>7.8.550-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -183,6 +183,7 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.wso2.carbon.identity.ai.service.mgt.*; version="${carbon.identity.package.import.version.range}",
+                            org.apache.http.client.methods; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.mgt.internal,

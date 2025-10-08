@@ -92,6 +92,8 @@ public class SQLConstants {
     public static final String UPDATE_STATUS_OF_REQUEST = "UPDATE WF_REQUEST SET STATUS = ? , UPDATED_AT = ? WHERE " +
             "UUID = ?";
 
+    public static final String DELETE_REQUEST = "DELETE FROM WF_REQUEST WHERE UUID = ?";
+
     public static final String UPDATE_UPDATED_AT_OF_REQUEST = "UPDATE WF_REQUEST SET UPDATED_AT = ? WHERE UUID = ?";
 
     public static final String ADD_WORKFLOW_QUERY = "INSERT INTO WF_WORKFLOW(ID, WF_NAME, DESCRIPTION, TEMPLATE_ID, " +
