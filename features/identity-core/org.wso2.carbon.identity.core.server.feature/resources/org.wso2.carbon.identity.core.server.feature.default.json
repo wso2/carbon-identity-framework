@@ -1846,6 +1846,19 @@
     "internal_claim_meta_view"
   ],
   "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
+  "console.dynamic_client_registration.enabled": true,
+  "console.dynamic_client_registration.disabled_features": [],
+  "console.dynamic_client_registration.scopes.feature": [
+    "console:applications"
+  ],
+  "console.dynamic_client_registration.scopes.create": [],
+  "console.dynamic_client_registration.scopes.delete": [],
+  "console.dynamic_client_registration.scopes.read": [
+    "internal_config_view"
+  ],
+  "console.dynamic_client_registration.scopes.update": [
+    "internal_config_update"
+  ],
   "console.guest_user.enabled": true,
   "console.guest_user.scopes.create": ["internal_guest_mgt_invite_add"],
   "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
