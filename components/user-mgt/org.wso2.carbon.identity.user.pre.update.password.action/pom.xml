@@ -115,6 +115,10 @@
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -163,7 +167,7 @@
                             org.wso2.carbon.identity.action.execution.api.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.api.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.api.model; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.action.management.api.service; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.management.api.service.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}",

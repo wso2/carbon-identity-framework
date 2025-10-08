@@ -24,8 +24,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.service.ActionVersioningHandler;
+import org.wso2.carbon.identity.action.execution.api.service.impl.DefaultActionVersioningHandler;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionVersioningHandlerFactory;
-import org.wso2.carbon.identity.action.execution.internal.service.impl.DefaultActionVersioningHandler;
 
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
