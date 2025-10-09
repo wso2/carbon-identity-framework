@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorServi
 import org.wso2.carbon.identity.action.execution.api.service.ActionVersioningHandler;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.action.management.api.service.ActionValidator;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -45,6 +46,7 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.executi
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordResponseProcessor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionConverter;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionDTOModelResolver;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionValidator;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -64,6 +66,9 @@ public class PreUpdatePasswordActionServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
+
+            bundleCtx.registerService(ActionValidator.class, new PreUpdatePasswordActionValidator(), null);
+            LOG.debug("Pre Update Password Action Validator is enabled");
 
             bundleCtx.registerService(ActionConverter.class, new PreUpdatePasswordActionConverter(), null);
             LOG.debug("Pre Update Password Action Converter is enabled");
