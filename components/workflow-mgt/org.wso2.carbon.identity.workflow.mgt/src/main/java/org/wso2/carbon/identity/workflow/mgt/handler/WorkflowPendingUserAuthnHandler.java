@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImpl;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
+import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -65,6 +66,12 @@ public class WorkflowPendingUserAuthnHandler extends AbstractEventHandler {
         validatePendingApproval(userName, tenantId);
     }
 
+    /**
+     * Get the name of the handler.
+     *
+     * @return Name of the handler.
+     */
+    @Override
     public String getName() {
 
         return "WorkflowPendingUserAuthnHandler";
@@ -75,12 +82,24 @@ public class WorkflowPendingUserAuthnHandler extends AbstractEventHandler {
         return "Workflow Pending User Authentication Handler";
     }
 
+    /**
+     * Initialize the handler.
+     *
+     * @param configuration Init configuration.
+     * @throws IdentityRuntimeException If an error occurred while initializing the handler.
+     */
     @Override
     public void init(InitConfig configuration) throws IdentityRuntimeException {
 
         super.init(configuration);
     }
 
+    /**
+     * Get the priority of the handler.
+     *
+     * @param messageContext Message context.
+     * @return Priority of the handler.
+     */
     @Override
     public int getPriority(MessageContext messageContext) {
 
@@ -99,9 +118,8 @@ public class WorkflowPendingUserAuthnHandler extends AbstractEventHandler {
         try {
             Entity entity = new Entity(MultitenantUtils.getTenantAwareUsername(username),
                     WFConstant.WORKFLOW_ENTITY_TYPE, tenantId);
-            WorkflowManagementService workflowManagementService = new WorkflowManagementServiceImpl();
-            isPendingApproval = workflowManagementService.entityHasPendingWorkflowsOfType(entity,
-                    WFConstant.WORKFLOW_REQUEST_TYPE);
+            isPendingApproval = WorkflowServiceDataHolder.getInstance().getWorkflowService()
+                    .entityHasPendingWorkflowsOfType(entity, WFConstant.WORKFLOW_REQUEST_TYPE);
         } catch (WorkflowException e) {
             throw new IdentityEventException("Error occurred while checking the pending approvals for " +
                     "the account of the user: " + username, e);
