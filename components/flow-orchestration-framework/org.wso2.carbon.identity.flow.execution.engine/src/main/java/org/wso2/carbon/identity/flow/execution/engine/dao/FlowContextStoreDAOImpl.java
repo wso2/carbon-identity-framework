@@ -50,6 +50,12 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
     @Override
     public void storeContext(FlowExecutionContext context, long ttlSeconds) throws FlowEngineException {
 
+        storeContext(context.getContextIdentifier(), context, ttlSeconds);
+    }
+
+    @Override
+    public void storeContext(String contextIdentifier, FlowExecutionContext context, long ttlSeconds) throws FlowEngineException {
+
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             String serializedContext = OBJECT_MAPPER.writeValueAsString(context);
@@ -60,7 +66,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
                     UPDATE_CONTEXT_SQL,
                     preparedStatement -> {
                         preparedStatement.setString(1, serializedContext);
-                        preparedStatement.setString(2, context.getContextIdentifier());
+                        preparedStatement.setString(2, contextIdentifier);
                         preparedStatement.setInt(3, IdentityTenantUtil.getTenantId(context.getTenantDomain()));
                     });
 
@@ -68,7 +74,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
                 jdbcTemplate.executeUpdate(
                         INSERT_CONTEXT_SQL,
                         preparedStatement -> {
-                            preparedStatement.setString(1, context.getContextIdentifier());
+                            preparedStatement.setString(1, contextIdentifier);
                             preparedStatement.setInt(2, IdentityTenantUtil.getTenantId(context.getTenantDomain()));
                             preparedStatement.setString(3, context.getFlowType());
                             preparedStatement.setTimestamp(4, now);

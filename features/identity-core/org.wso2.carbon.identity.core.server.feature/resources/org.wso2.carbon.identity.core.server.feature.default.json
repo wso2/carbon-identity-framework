@@ -108,7 +108,7 @@
   "oauth.jwt.return_only_app_associated_roles": true,
   "oauth.revoked_token_headers_in_response.enable": false,
   "oauth.return_sp_id_to_apps": false,
-  "oauth.jwt.maximum_allowed_depth": 255,
+  "oauth.jwt.maximum_allowed_depth": "255",
   "oauth.jwt.enable_depth_validation": true,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
@@ -288,7 +288,7 @@
   "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
   "oauth.oidc.token_endpoint.signing_algorithms": ["PS256", "ES256", "ES384", "RS384", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
-  "oauth.oidc.id_token.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
+  "oauth.oidc.id_token.signing_algorithms": ["PS256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
@@ -317,10 +317,9 @@
 
   "oauth.drop_unregistered_scopes": true,
   "oauth.allowed_scopes": ["^device_.*"],
-
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
-
   "oauth.callback.enforce_literal_characters": true,
+  "oauth.impersonated_refresh_token.enable": true,
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -1406,21 +1405,23 @@
   "console.webhooks.disabled_features": [
     "webhooks.settings"
   ],
-  "console.agents.enabled": true,
-  "console.agents.disabled_features": [],
-  "console.agents.scopes.feature": ["console:users"],
-  "console.agents.scopes.create": ["internal_user_mgt_create"],
+  "console.agents.disabled_features": [
+    "agents.disable",
+    "agents.groups"
+  ],
+  "console.agents.scopes.feature": ["console:agents"],
+  "console.agents.scopes.create": ["internal_agent_mgt_create"],
   "console.agents.scopes.read": [
+    "internal_agent_mgt_list",
+    "internal_agent_mgt_view",
     "internal_governance_view",
     "internal_group_mgt_view",
     "internal_login",
     "internal_role_mgt_view",
-    "internal_user_mgt_list",
-    "internal_user_mgt_view",
     "internal_userstore_view"
   ],
-  "console.agents.scopes.update": ["internal_user_mgt_update"],
-  "console.agents.scopes.delete": ["internal_user_mgt_delete"],
+  "console.agents.scopes.update": ["internal_agent_mgt_update"],
+  "console.agents.scopes.delete": ["internal_agent_mgt_delete"],
   "console.webhooks.scopes.feature": ["console:webhooks"],
   "console.webhooks.scopes.create": ["internal_webhook_mgt_create"],
   "console.webhooks.scopes.read": [
@@ -1437,7 +1438,7 @@
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.disabled_features": ["ai.flows.types.list.registration"],
+  "console.ai.disabled_features": [],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
   "console.ai.scopes.read": [],
@@ -1471,7 +1472,7 @@
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
-  "console.approvals.enabled": true,
+  "console.approvals.enabled": false,
   "console.approvals.scopes.feature": ["console:users"],
   "console.approvals.scopes.read": ["internal_approval_task_view"],
   "console.approvals.scopes.update": ["internal_approval_task_update"],
@@ -1484,6 +1485,7 @@
   "console.workflowInstances.enabled": true,
   "console.workflowInstances.scopes.feature": ["console:workflowInstances"],
   "console.workflowInstances.scopes.read": ["internal_workflow_instance_view"],
+  "console.workflowInstances.scopes.update": ["internal_workflow_instance_update"],
   "console.workflowInstances.scopes.delete": ["internal_workflow_instance_delete"],
   "console.attribute_dialects.enabled": true,
   "console.attribute_dialects.scopes.feature": ["console:attributes"],
@@ -1841,9 +1843,23 @@
     "internal_group_mgt_view",
     "internal_idp_view",
     "internal_session_view",
-    "internal_governance_view"
+    "internal_governance_view",
+    "internal_claim_meta_view"
   ],
   "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
+  "console.dynamic_client_registration.enabled": true,
+  "console.dynamic_client_registration.disabled_features": [],
+  "console.dynamic_client_registration.scopes.feature": [
+    "console:applications"
+  ],
+  "console.dynamic_client_registration.scopes.create": [],
+  "console.dynamic_client_registration.scopes.delete": [],
+  "console.dynamic_client_registration.scopes.read": [
+    "internal_config_view"
+  ],
+  "console.dynamic_client_registration.scopes.update": [
+    "internal_config_update"
+  ],
   "console.guest_user.enabled": true,
   "console.guest_user.scopes.create": ["internal_guest_mgt_invite_add"],
   "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
@@ -2033,9 +2049,13 @@
   "actions.http_client.retry_count": "2",
   "actions.maximum_actions_per_action_type": "1",
   "actions.types.pre_issue_access_token.enable": true,
+  "actions.types.pre_issue_access_token.version.latest": "v1",
   "actions.types.authentication.enable": true,
+  "actions.types.authentication.version.latest": "v1",
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
+  "actions.types.pre_update_profile.version.latest": "v1",
+  "actions.types.pre_update_password.version.latest": "v1",
   "actions.types.pre_update_password.enable_in_registration_flows": true,
 
   "outbound_adapters.httppublisher.enabled": true,
@@ -2084,7 +2104,7 @@
   },
   "flow_execution.enable_legacy_flows": false,
   "flow_execution.registration.display_claim_availability": false,
-  "branding_configuration.custom_content.max_file_size": 1048576,
+  "branding_configuration.custom_content.max_file_size": "1048576",
   "captcha.enable_captcha_for_local_otp_authenticators": true,
 
   "console.ui.organizations.organization_display_name.enable": true,

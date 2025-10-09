@@ -134,7 +134,7 @@
                    description="Delete actions in the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Task API" identifier="/api/users/v1/me/approval-tasks"
+    <APIResource name="Workflow Approval Task API" identifier="/api/users/v2/me/approval-tasks"
                  requiresAuthorization="false"
                  description="API representation of the workflow approval task API" type="TENANT">
         <Scopes>
@@ -144,7 +144,7 @@
                    description="Update workflow approval Tasks"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Approval Task API" identifier="/o/api/users/v1/me/approval-tasks"
+    <APIResource name="Workflow Approval Task API" identifier="/o/api/users/v2/me/approval-tasks"
                  requiresAuthorization="false"
                  description="API representation of the workflow approval task API" type="ORGANIZATION">
         <Scopes>
@@ -1846,6 +1846,8 @@
                    description="View flow in the organization"/>
             <Scope displayName="Update Flow" name="internal_org_flow_update"
                    description="Update flow in the organization"/>
+            <Scope displayName="Delete Flow" name="internal_org_flow_delete"
+                   description="Delete flow in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Asynchronous Operation Status API" identifier="/api/server/v1/async-operations"
@@ -1898,6 +1900,8 @@
         <Scopes>
             <Scope displayName="View Workflow Instance" name="internal_workflow_instance_view"
                    description="View workflow instances"/>
+            <Scope displayName="Update Workflow Instance" name="internal_workflow_instance_update"
+                   description="Update workflow instance"/>
             <Scope displayName="Delete Workflow Instance" name="internal_workflow_instance_delete"
                    description="Delete workflow instance"/>
         </Scopes>
@@ -1936,6 +1940,8 @@
         <Scopes>
             <Scope displayName="View Workflow Instance" name="internal_org_workflow_instance_view"
                    description="View workflow instances"/>
+            <Scope displayName="Update Workflow Instance" name="internal_org_workflow_instance_update"
+                   description="Update workflow instance"/>
             <Scope displayName="Delete Workflow Instance" name="internal_org_workflow_instance_delete"
                    description="Delete workflow instance"/>
         </Scopes>
