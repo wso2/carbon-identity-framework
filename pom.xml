@@ -80,6 +80,7 @@
         <module>components/system-config-mgt</module>
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
+        <module>components/debug-framework</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
