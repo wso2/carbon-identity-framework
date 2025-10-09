@@ -2168,6 +2168,7 @@
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
+        <AllowNonStandardClaimURI>{{authentication.jit_provisioning.allow_non_Standard_claim_uri}}</AllowNonStandardClaimURI>
         {% if authentication.jit_provisioning.show_failure_reason is defined %}
         <ShowFailureReason>{{authentication.jit_provisioning.show_failure_reason}}</ShowFailureReason>
         {% endif %}
@@ -4869,7 +4870,7 @@
                 -->
                 <ConnectionTimeout>{{notificationChannel.sms.custom.connection_timeout}}</ConnectionTimeout>
                 <!--
-                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is 
+                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is
                     established to the custom SMS provider. A timeout of zero is interpreted as an infinite timeout.
                     Default value is 20000ms.
                     Supported versions : IS 7.2.0 onwards
