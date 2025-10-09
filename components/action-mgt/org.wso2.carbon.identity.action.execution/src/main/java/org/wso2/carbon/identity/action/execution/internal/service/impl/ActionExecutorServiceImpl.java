@@ -515,18 +515,20 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logErrorResponse(Action action, ActionInvocationErrorResponse errorResponse) {
 
-        DIAGNOSTIC_LOGGER.logErrorResponse(action);
+        DIAGNOSTIC_LOGGER.logErrorResponse(action, errorResponse);
         if (LOG.isDebugEnabled()) {
             try {
                 String responseBody = serializeErrorResponse(errorResponse);
                 LOG.debug(String.format(
                         "Received error response from API: %s for action type: %s action id: %s with " +
-                                "authentication: %s. Response: %s",
+                                "authentication: %s. Response: %s. Error message: %s. Error description: %s",
                         action.getEndpoint().getUri(),
                         action.getType().getActionType(),
                         action.getId(),
                         action.getEndpoint().getAuthentication().getType(),
-                        responseBody));
+                        responseBody,
+                        errorResponse.getErrorMessage(),
+                        errorResponse.getErrorDescription()));
             } catch (JsonProcessingException e) {
                 LOG.debug("Error occurred while deserializing the error response for action: " +
                         action.getId() + " for action type: " + action.getType().getActionType(), e);
@@ -536,18 +538,20 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logFailureResponse(Action action, ActionInvocationFailureResponse failureResponse) {
 
-        DIAGNOSTIC_LOGGER.logFailureResponse(action);
+        DIAGNOSTIC_LOGGER.logFailureResponse(action, failureResponse);
         if (LOG.isDebugEnabled()) {
             try {
                 String responseBody = serializeFailureResponse(failureResponse);
                 LOG.debug(String.format(
                         "Received failure response from API: %s for action type: %s action id: %s with " +
-                                "authentication: %s. Response: %s",
+                                "authentication: %s. Response: %s. Failure message: %s. Failure description: %s",
                         action.getEndpoint().getUri(),
                         action.getType().getActionType(),
                         action.getId(),
                         action.getEndpoint().getAuthentication().getType(),
-                        responseBody));
+                        responseBody,
+                        failureResponse.getFailureReason(),
+                        failureResponse.getFailureDescription()));
             } catch (JsonProcessingException e) {
                 LOG.debug("Error occurred while deserializing the failure response for action: " +
                         action.getId() + " for action type: " + action.getType().getActionType(), e);

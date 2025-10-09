@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.action.execution.internal.util;
 
 import org.apache.http.client.methods.HttpPost;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
+import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -129,7 +131,7 @@ public class ActionExecutionDiagnosticLogger {
         triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
-    public void logErrorResponse(Action action) {
+    public void logErrorResponse(Action action, ActionInvocationErrorResponse errorResponse) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
@@ -139,11 +141,13 @@ public class ActionExecutionDiagnosticLogger {
                 "Received error response from external endpoint " +
                         action.getEndpoint().getUri() + " for " +
                         action.getType().getDisplayName() + " action.",
-                DiagnosticLog.ResultStatus.FAILED);
+                DiagnosticLog.ResultStatus.FAILED)
+                .inputParam("Error Message", errorResponse.getErrorMessage())
+                .inputParam("Error Description", errorResponse.getErrorDescription());
         triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
-    public void logFailureResponse(Action action) {
+    public void logFailureResponse(Action action, ActionInvocationFailureResponse failureResponse) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
@@ -153,7 +157,9 @@ public class ActionExecutionDiagnosticLogger {
                 "Received failure response from external endpoint " +
                         action.getEndpoint().getUri() + " for " +
                         action.getType().getDisplayName() + " action.",
-                DiagnosticLog.ResultStatus.FAILED);
+                DiagnosticLog.ResultStatus.FAILED)
+                .inputParam("Failure Message", failureResponse.getFailureReason())
+                .inputParam("Failure Description", failureResponse.getFailureDescription());
         triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
