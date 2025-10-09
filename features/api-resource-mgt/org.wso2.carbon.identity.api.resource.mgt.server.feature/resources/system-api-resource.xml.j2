@@ -69,6 +69,26 @@
                    description="Delete shared applications"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Application Authentication Script Management API"
+                 identifier="/api/server/v1/applications/(.*)/authenticationSequence/script"
+                 requiresAuthorization="true"
+                 description="API representation of the Application Authentication Script Management API"
+                 type="TENANT">
+        <Scopes>
+            <Scope displayName="Update Application Authentication Script" name="internal_application_script_update"
+                   description="Fine-grained scope for the authentication script update of an application"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application Authentication Script Management API"
+                 identifier="/o/api/server/v1/applications/(.*)/authenticationSequence/script"
+                 requiresAuthorization="true"
+                 description="API representation of the Application Authentication Script Management API"
+                 type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Update Application Authentication Script" name="internal_org_application_script_update"
+                   description="Fine-grained scope for the authentication script update of an application in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Application Management API" identifier="/api/server/v1/applications"
                  requiresAuthorization="true"
                  description="API representation of the Application Management API" type="TENANT">
