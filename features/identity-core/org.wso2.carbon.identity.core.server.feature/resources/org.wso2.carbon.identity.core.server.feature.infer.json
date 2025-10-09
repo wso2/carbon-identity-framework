@@ -272,7 +272,6 @@
   "preserve_previous_product_behaviour.version": {
     "IS_7.0.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
-      "oauth.impersonated_refresh_token.enable": true,
       "oauth.oidc.user_info.return_only_app_associated_roles": false,
       "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
       "scim2.enable_group_based_user_filter_improvements": false,
@@ -310,11 +309,13 @@
       "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
+      "oauth.allow_disabled_application_credentials_for_authentication": true,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
+      "configs.endpoint.elevate_permission": false,
+      "oauth.authorize_internal_scopes": true
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
-      "oauth.impersonated_refresh_token.enable": true,
       "oauth.return_sp_id_to_apps": true,
       "oauth.jwt.return_only_app_associated_roles": false,
       "oauth.oidc.user_info.return_only_app_associated_roles": false,
@@ -350,7 +351,10 @@
       "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
+      "oauth.allow_disabled_application_credentials_for_authentication": true,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
+      "configs.endpoint.elevate_permission": false,
+      "oauth.authorize_internal_scopes": true
     }
   }
 }

@@ -192,6 +192,16 @@ public class ActionExecutorConfig {
         return isActionTypeEnabled;
     }
 
+    private String getVersion(String actionTypePropertyName) {
+
+        String versionPropertyValue =
+                (String) IdentityConfigParser.getInstance().getConfiguration().get(actionTypePropertyName);
+        if (StringUtils.isNotBlank(versionPropertyValue)) {
+            return versionPropertyValue;
+        }
+        return null;
+    }
+
     /**
      * Returns the union set of headers configured in the system configuration 'actions.action_request.excluded_headers'
      * and actions.types.{actionType}.action_request.excluded_headers to exclude in the action request.
@@ -300,6 +310,28 @@ public class ActionExecutorConfig {
         return Collections.unmodifiableSet(allowedParameters);
     }
 
+    /**
+     * Returns the up to which version is retired for the given action type. If not configured, returns null.
+     *
+     * @param actionType ActionType
+     * @return Retired up to version as a String.
+     */
+    public String getRetiredUpToVersion(ActionType actionType) {
+
+        switch (actionType) {
+            case PRE_ISSUE_ACCESS_TOKEN:
+                return getVersion(ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getRetiredUpToVersionProperty());
+            case AUTHENTICATION:
+                return getVersion(ActionTypeConfig.AUTHENTICATION.getRetiredUpToVersionProperty());
+            case PRE_UPDATE_PASSWORD:
+                return getVersion(ActionTypeConfig.PRE_UPDATE_PASSWORD.getRetiredUpToVersionProperty());
+            case PRE_UPDATE_PROFILE:
+                return getVersion(ActionTypeConfig.PRE_UPDATE_PROFILE.getRetiredUpToVersionProperty());
+            default:
+                return null;
+        }
+    }
+
     private Set<String> getExcludedParamsInActionRequestForAllTypes() {
 
         List<String> excludedParamsPropertyValue =
@@ -337,39 +369,44 @@ public class ActionExecutorConfig {
                 "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header",
                 "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header",
-                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedParameters.Parameter"),
+                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedParameters.Parameter",
+                "Actions.Types.PreIssueAccessToken.Version.RetiredUpTo"),
         AUTHENTICATION("Actions.Types.Authentication.Enable",
                 "Actions.Types.Authentication.ActionRequest.ExcludedHeaders.Header",
                 "Actions.Types.Authentication.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.Authentication.ActionRequest.AllowedHeaders.Header",
-                "Actions.Types.Authentication.ActionRequest.AllowedParameters.Parameter"),
-
+                "Actions.Types.Authentication.ActionRequest.AllowedParameters.Parameter",
+                "Actions.Types.Authentication.Version.RetiredUpTo"),
         PRE_UPDATE_PASSWORD("Actions.Types.PreUpdatePassword.Enable",
                 "Actions.Types.PreUpdatePassword.ActionRequest.ExcludedHeaders.Header",
                 "Actions.Types.PreUpdatePassword.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.PreUpdatePassword.ActionRequest.AllowedHeaders.Header",
-                "Actions.Types.PreUpdatePassword.ActionRequest.AllowedParameters.Parameter"),
-
+                "Actions.Types.PreUpdatePassword.ActionRequest.AllowedParameters.Parameter",
+                "Actions.Types.PreUpdatePassword.Version.RetiredUpTo"),
         PRE_UPDATE_PROFILE("Actions.Types.PreUpdateProfile.Enable",
                 "Actions.Types.PreUpdateProfile.ActionRequest.ExcludedHeaders.Header",
                 "Actions.Types.PreUpdateProfile.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.PreUpdateProfile.ActionRequest.AllowedHeaders.Header",
-                "Actions.Types.PreUpdateProfile.ActionRequest.AllowedParameters.Parameter");
+                "Actions.Types.PreUpdateProfile.ActionRequest.AllowedParameters.Parameter",
+                "Actions.Types.PreUpdateProfile.Version.RetiredUpTo");
 
         private final String actionTypeEnableProperty;
         private final String excludedHeadersProperty;
         private final String excludedParamsProperty;
         private final String allowedHeaderProperty;
         private final String allowedParamsProperty;
+        private final String retiredUpToVersionProperty;
 
         ActionTypeConfig(String actionTypeEnableProperty, String excludedHeadersProperty,
-                         String excludedParamsProperty, String allowedHeaderProperty, String allowedParamsProperty) {
+                         String excludedParamsProperty, String allowedHeaderProperty, String allowedParamsProperty,
+                         String retiredUpToVersionProperty) {
 
             this.actionTypeEnableProperty = actionTypeEnableProperty;
             this.excludedHeadersProperty = excludedHeadersProperty;
             this.excludedParamsProperty = excludedParamsProperty;
             this.allowedHeaderProperty = allowedHeaderProperty;
             this.allowedParamsProperty = allowedParamsProperty;
+            this.retiredUpToVersionProperty = retiredUpToVersionProperty;
         }
 
         public String getActionTypeEnableProperty() {
@@ -395,6 +432,11 @@ public class ActionExecutorConfig {
         public String getAllowedParamsProperty() {
 
             return allowedParamsProperty;
+        }
+
+        public String getRetiredUpToVersionProperty() {
+
+            return retiredUpToVersionProperty;
         }
     }
 }

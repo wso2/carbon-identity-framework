@@ -3682,7 +3682,7 @@ public class IdPManagementDAO {
         List<AccountLookupAttributeMappingConfig> accountLookupAttributeMappingConfigs = new ArrayList<>();
         accountLookupAttributeMappingConfigs.add(primaryAccountLookupAttributeMappingConfig);
 
-        if (secondaryAccountLookupAttributeMappingProperty == null ||
+        if (secondaryAccountLookupAttributeMappingProperty != null &&
                 StringUtils.isNotBlank(secondaryAccountLookupAttributeMappingProperty.getValue())) {
             AccountLookupAttributeMappingConfig secondaryAccountLookupAttributeMappingConfig =
                     buildAccountLookupAttributeMappingConfig(secondaryAccountLookupAttributeMappingProperty.getValue());

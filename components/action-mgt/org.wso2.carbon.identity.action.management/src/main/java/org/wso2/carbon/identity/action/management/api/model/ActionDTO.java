@@ -31,6 +31,7 @@ public class ActionDTO {
     private final String name;
     private final String description;
     private final Action.Status status;
+    private final String actionVersion;
     private final Timestamp createdAt;
     private final Timestamp updatedAt;
     private final EndpointConfig endpoint;
@@ -44,6 +45,7 @@ public class ActionDTO {
         this.name = builder.name;
         this.description = builder.description;
         this.status = builder.status;
+        this.actionVersion = builder.actionVersion;
         this.createdAt = builder.createdAt;
         this.updatedAt = builder.updatedAt;
         this.endpoint = builder.endpoint;
@@ -74,6 +76,11 @@ public class ActionDTO {
     public Action.Status getStatus() {
 
         return status;
+    }
+
+    public String getActionVersion() {
+
+        return actionVersion;
     }
 
     public Timestamp getCreatedAt() {
@@ -120,6 +127,7 @@ public class ActionDTO {
         private final String name;
         private final String description;
         private final Action.Status status;
+        private final String actionVersion;
         private final Timestamp createdAt;
         private final Timestamp updatedAt;
         private final EndpointConfig endpoint;
@@ -133,6 +141,7 @@ public class ActionDTO {
             this.name = actionDTO.getName();
             this.description = actionDTO.getDescription();
             this.status = actionDTO.getStatus();
+            this.actionVersion = actionDTO.getActionVersion();
             this.createdAt = actionDTO.getCreatedAt();
             this.updatedAt = actionDTO.getUpdatedAt();
             this.endpoint = actionDTO.getEndpoint();
@@ -147,6 +156,7 @@ public class ActionDTO {
             this.name = action.getName();
             this.description = action.getDescription();
             this.status = action.getStatus();
+            this.actionVersion = action.getActionVersion();
             this.createdAt = action.getCreatedAt();
             this.updatedAt = action.getUpdatedAt();
             this.endpoint = action.getEndpoint();

@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -1500,5 +1501,97 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             String separator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
             assertEquals(separator, multiAttributeSeparator);
         }
+    }
+
+    @Test
+    public void testPreprocessUsernameWithContextTenantDomainReturnsOriginalForLegacySaaSApp() {
+
+        AuthenticationContext context = buildAuthenticationContext(true, "app.com", "user.com");
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtilMock = mockStatic(IdentityTenantUtil.class)) {
+
+            identityUtilMock.when(IdentityUtil::isEmailUsernameEnabled).thenReturn(false);
+            identityTenantUtilMock.when(IdentityTenantUtil::isLegacySaaSAuthenticationEnabled).thenReturn(true);
+            identityTenantUtilMock.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+
+            String processedUsername = FrameworkUtils.preprocessUsernameWithContextTenantDomain("alice", context);
+
+            assertEquals(processedUsername, "alice");
+        }
+    }
+
+    @Test
+    public void testPreprocessUsernameWithContextTenantDomainWhenEmailUsernameEnabled() {
+
+        AuthenticationContext context = buildAuthenticationContext(false, "app.com", "user.com");
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtilMock = mockStatic(IdentityTenantUtil.class)) {
+
+            identityUtilMock.when(IdentityUtil::isEmailUsernameEnabled).thenReturn(true);
+            identityTenantUtilMock.when(IdentityTenantUtil::isLegacySaaSAuthenticationEnabled).thenReturn(false);
+            identityTenantUtilMock.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+
+            String processedUsername = FrameworkUtils
+                    .preprocessUsernameWithContextTenantDomain("alice@example.com", context);
+
+            assertEquals(processedUsername, "alice@example.com@user.com");
+        }
+    }
+
+    @Test
+    public void testPreprocessUsernameWithContextTenantDomainAppendsContextTenantForNonSaaS() {
+
+        AuthenticationContext context = buildAuthenticationContext(false, "app.com", "user.com");
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtilMock = mockStatic(IdentityTenantUtil.class)) {
+
+            identityUtilMock.when(IdentityUtil::isEmailUsernameEnabled).thenReturn(false);
+            identityTenantUtilMock.when(IdentityTenantUtil::isLegacySaaSAuthenticationEnabled).thenReturn(false);
+            identityTenantUtilMock.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+
+            String processedUsername = FrameworkUtils
+                    .preprocessUsernameWithContextTenantDomain("alice", context);
+
+            assertEquals(processedUsername, "alice@app.com");
+        }
+    }
+
+    @Test
+    public void testPreprocessUsernameWithContextTenantDomainReturnsOriginalForSaaSEmailUser() {
+
+        AuthenticationContext context = buildAuthenticationContext(true, "app.com", "user.com");
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtilMock = mockStatic(IdentityTenantUtil.class)) {
+
+            identityUtilMock.when(IdentityUtil::isEmailUsernameEnabled).thenReturn(false);
+            identityTenantUtilMock.when(IdentityTenantUtil::isLegacySaaSAuthenticationEnabled).thenReturn(false);
+            identityTenantUtilMock.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(true);
+
+            String processedUsername = FrameworkUtils
+                    .preprocessUsernameWithContextTenantDomain("alice@example.com", context);
+
+            assertEquals(processedUsername, "alice@example.com");
+        }
+    }
+
+    private AuthenticationContext buildAuthenticationContext(boolean isSaaSApp, String tenantDomain,
+                                                             String userTenantDomain) {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(tenantDomain);
+        context.setLoginTenantDomain(userTenantDomain);
+        context.setUserTenantDomainHint(userTenantDomain);
+
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+        when(applicationConfig.isSaaSApp()).thenReturn(isSaaSApp);
+        sequenceConfig.setApplicationConfig(applicationConfig);
+        context.setSequenceConfig(sequenceConfig);
+
+        return context;
     }
 }

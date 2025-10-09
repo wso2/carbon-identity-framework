@@ -206,6 +206,7 @@ public class FlowExecutionService {
         if (StringUtils.isBlank(otfiToken)) {
             FlowExecutionEngineUtils.addFlowContextToCache(context);
         } else {
+            context.getProperties().remove(OTFI);
             FlowExecutionEngineUtils.addFlowContextToCache(otfiToken, context);
         }
     }

@@ -629,7 +629,7 @@
     <!-- [Organization] SCIM2 Bulk API -->
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_bulk_resource_create</Scopes>
-        <Operations>
+        <Operations mandatory="false">
             <Operation name="createRole">
                 <scope>internal_org_bulk_role_create</scope>
             </Operation>
@@ -663,7 +663,7 @@
     <!-- SCIM2 Bulk API -->
     <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
         <Scopes>internal_bulk_resource_create</Scopes>
-        <Operations>
+        <Operations mandatory="false">
             <Operation name="createRole">
                 <scope>internal_bulk_role_create</scope>
             </Operation>
@@ -737,18 +737,18 @@
     </Resource>
 
     <!-- [Organization] Approval Tasks -->
-    <Resource context="(.*)/o/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
+    <Resource context="(.*)/o/api/users/v2/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
         <Scopes>internal_org_approval_task_view</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
+    <Resource context="(.*)/o/api/users/v2/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
         <Scopes>internal_org_approval_task_update</Scopes>
     </Resource>
 
     <!-- Approval Tasks -->
-    <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
+    <Resource context="(.*)/api/users/v2/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
         <Scopes>internal_approval_task_view</Scopes>
     </Resource>
-    <Resource context="(.*)/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
+    <Resource context="(.*)/api/users/v2/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
         <Scopes>internal_approval_task_update</Scopes>
     </Resource>
 
@@ -1663,6 +1663,9 @@
     <Resource context="(.*)/o/api/server/v1/flow(.*)" secured="true" http-method="PUT, PATCH">
         <Scopes>internal_org_flow_update</Scopes>
     </Resource>
+    <Resource context="(.*)/o/api/server/v1/flow(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_flow_delete</Scopes>
+    </Resource>
 
     <!-- Flow management API -->
     <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">
@@ -1782,6 +1785,9 @@
     <Resource context="(.*)/o/api/server/v1/workflow-instances(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_workflow_instance_view</Scopes>
     </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflow-instances/(.*)/abort" secured="true" http-method="POST">
+        <Scopes>internal_org_workflow_instance_update</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_workflow_instance_delete</Scopes>
     </Resource>
@@ -1789,6 +1795,9 @@
     <!-- Workflow Instance Management API -->
     <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="GET">
         <Scopes>internal_workflow_instance_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflow-instances/(.*)/abort" secured="true" http-method="POST">
+        <Scopes>internal_workflow_instance_update</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_workflow_instance_delete</Scopes>
