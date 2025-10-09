@@ -319,8 +319,8 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         WorkflowRequest request = new WorkflowRequest();
         request.setRequestId(rs.getString("UUID"));
         request.setCreatedBy(rs.getString("CREATED_BY"));
-        request.setCreatedAt(rs.getString("CREATED_AT"));
-        request.setUpdatedAt(rs.getString("UPDATED_AT"));
+        request.setCreatedAt(rs.getTimestamp("CREATED_AT").toInstant().toString());
+        request.setUpdatedAt(rs.getTimestamp("UPDATED_AT").toInstant().toString());
         request.setStatus(rs.getString("STATUS"));
         request.setOperationType(rs.getString("OPERATION_TYPE"));
         request.setRequestParams(rs.getString("REQUEST"));
