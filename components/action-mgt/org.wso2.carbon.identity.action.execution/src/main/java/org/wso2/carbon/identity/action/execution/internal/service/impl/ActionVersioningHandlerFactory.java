@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.service.ActionVersioningHandler;
+import org.wso2.carbon.identity.action.execution.api.service.impl.DefaultActionVersioningHandler;
 
 import java.util.HashMap;
 import java.util.Map;

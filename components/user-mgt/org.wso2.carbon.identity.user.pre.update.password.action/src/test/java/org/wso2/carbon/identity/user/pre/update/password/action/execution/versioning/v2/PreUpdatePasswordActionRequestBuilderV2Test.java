@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.execution;
+package org.wso2.carbon.identity.user.pre.update.password.action.execution.versioning.v2;
 
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
@@ -53,10 +53,10 @@ import org.wso2.carbon.identity.user.pre.update.password.action.api.model.Passwo
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordRequestBuilder;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.common.model.Credential;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.common.model.PasswordUpdatingUser;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v2.PreUpdatePasswordRequestBuilderV2;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v2.model.PreUpdatePasswordEvent;
 import org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -112,12 +112,12 @@ import static org.wso2.carbon.identity.user.pre.update.password.action.util.Test
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_USER_STORE_DOMAIN_NAME;
 
 /**
- * Represents an unencrypted credential.
+ * Unit tests for PreUpdatePasswordActionRequestBuilderV2, verifying request building and related logic.
  */
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {PreUpdatePasswordActionServiceComponentHolder.class},
         initUserStoreManager = true)
-public class PreUpdatePasswordActionRequestBuilderTest {
+public class PreUpdatePasswordActionRequestBuilderV2Test {
 
     private PreUpdatePasswordAction preUpdatePasswordAction;
     private PreUpdatePasswordAction preUpdatePasswordActionWithoutCert;
@@ -127,7 +127,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     private org.wso2.carbon.identity.core.context.model.Organization accessingOrganization;
     private org.wso2.carbon.identity.core.context.model.RootOrganization rootOrganization;
     private final FlowContext flowContext = FlowContext.create();
-    private PreUpdatePasswordRequestBuilder preUpdatePasswordActionRequestBuilder;
+    private PreUpdatePasswordRequestBuilderV2 preUpdatePasswordActionRequestBuilderV2;
     private ClaimMetadataManagementService claimMetadataManagementService;
     private MockedStatic<FrameworkUtils> frameworkUtils;
 
@@ -165,6 +165,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         preUpdatePasswordAction = new PreUpdatePasswordAction.ResponseBuilder()
                 .id(TEST_ID)
                 .name(TEST_ACTION)
+                .actionVersion("v1")
                 .description(TEST_DESCRIPTION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_URL)
@@ -186,6 +187,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         preUpdatePasswordActionWithoutCert = new PreUpdatePasswordAction.ResponseBuilder()
                 .id(TEST_ID)
                 .name(TEST_ACTION)
+                .actionVersion("v1")
                 .description(TEST_DESCRIPTION)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_URL)
@@ -221,7 +223,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         userStoreModel = createUserStoreModel();
         userStoreModel.bindToRealm();
 
-        preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordRequestBuilder();
+        preUpdatePasswordActionRequestBuilderV2 = new PreUpdatePasswordRequestBuilderV2();
         flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
 
         PrivilegedCarbonContext.startTenantFlow();
@@ -242,7 +244,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     @Test
     public void getSupportedActionType() {
 
-        assertEquals(preUpdatePasswordActionRequestBuilder.getSupportedActionType(), ActionType.PRE_UPDATE_PASSWORD);
+        assertEquals(preUpdatePasswordActionRequestBuilderV2.getSupportedActionType(), ActionType.PRE_UPDATE_PASSWORD);
     }
 
     @DataProvider(name = "flowData")
@@ -292,7 +294,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
 
         IdentityContext.getThreadLocalIdentityContext().enterFlow(mockedFlow);
         ActionExecutionRequest actionExecutionRequest =
-                preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
+                preUpdatePasswordActionRequestBuilderV2.buildActionExecutionRequest(
                         flowContext, ActionExecutionRequestContext.create(preUpdatePasswordAction));
 
         assertNotNull(actionExecutionRequest);
@@ -348,7 +350,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
 
         IdentityContext.getThreadLocalIdentityContext().enterFlow(mockedFlow);
         ActionExecutionRequest actionExecutionRequest =
-                preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
+                preUpdatePasswordActionRequestBuilderV2.buildActionExecutionRequest(
                         flowContext, ActionExecutionRequestContext.create(preUpdatePasswordActionWithoutCert));
 
         assertNotNull(actionExecutionRequest);
@@ -396,7 +398,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         when(claimMetadataManagementService.getLocalClaim(any(), any()))
                 .thenThrow(new ClaimMetadataException("Error while retrieving local claim."));
 
-        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
+        preUpdatePasswordActionRequestBuilderV2.buildActionExecutionRequest(flowContext,
                 ActionExecutionRequestContext.create(preUpdatePasswordAction));
     }
 
@@ -418,7 +420,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
-        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
+        preUpdatePasswordActionRequestBuilderV2.buildActionExecutionRequest(flowContext,
                 ActionExecutionRequestContext.create(preUpdatePasswordAction));
     }
 
@@ -444,7 +446,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
-        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
+        preUpdatePasswordActionRequestBuilderV2.buildActionExecutionRequest(flowContext,
                 ActionExecutionRequestContext.create(preUpdatePasswordAction));
     }
 
@@ -469,7 +471,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
 
-        preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(flowContext,
+        preUpdatePasswordActionRequestBuilderV2.buildActionExecutionRequest(flowContext,
                 ActionExecutionRequestContext.create(preUpdatePasswordAction));
     }
 
