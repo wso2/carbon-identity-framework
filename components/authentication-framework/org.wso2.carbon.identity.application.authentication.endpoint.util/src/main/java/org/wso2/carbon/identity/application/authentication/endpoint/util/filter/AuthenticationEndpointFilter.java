@@ -194,7 +194,7 @@ public class AuthenticationEndpointFilter implements Filter {
                         configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain, serviceProviderName);
                     }
                 } catch (ApplicationDataRetrievalClientException e) {
-                    log.error("error for AuthenticatorDataRetrievalClientException" + e);
+                    log.error("error retriving authenticators from ApplicationDataRetrievalClient " + e);
                 }
             }
 
