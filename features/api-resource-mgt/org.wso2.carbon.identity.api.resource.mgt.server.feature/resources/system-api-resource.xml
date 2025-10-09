@@ -72,6 +72,14 @@
                    description="View applications"/>
             <Scope displayName="Delete Application" name="internal_application_mgt_delete"
                    description="Delete applications"/>
+            <Scope displayName="Update authorized internal APIs of an Application"
+                   name="internal_application_internal_api_update"
+                   description="Allows updating authorized internal APIs of an application. Requires both this scope and
+                    the application update scope (internal_application_mgt_update) for fine-grained access control."/>
+            <Scope displayName="Update authorized business APIs of an Application"
+                   name="internal_application_business_api_update"
+                   description="Allows updating authorized business APIs of an application. Requires both this scope and
+                    the application update scope (internal_application_mgt_update) for fine-grained access control."/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management API"

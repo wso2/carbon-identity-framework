@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.internal.model;
+package org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.common.model;
 
 /**
  * Represents an unencrypted credential.
