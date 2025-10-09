@@ -18,6 +18,10 @@
   -->
 
 <ResourceAccessControl xmlns="http://wso2.org/projects/carbon/carbon.xml" {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
+        <Resource context="(.*)/api/server/idp/debug/v1/debug" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/idp/debug/v1/debug" secured="false" http-method="POST"/>
+        <Resource context="(.*)/api/server/idp/debug/v1/debug/idps" secured="false" http-method="GET"/>
+
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}"
                 {% if resource.allowed_auth_handlers is defined %}
@@ -1172,12 +1176,7 @@
         <Resource context="(.*)/api/server/v1/keystores/(.*)" secured="true" http-method="GET">
             <Scopes>internal_keystore_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/keystores/certs(.*)" secured="true" http-method="POST, DELETE">
-            <Scopes>internal_keystore_update</Scopes>
-        </Resource>
-
-        <!-- Shared Application Management API -->
-        <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="PATCH">
+        <Resource context="(.*)/api/server/v1/keystores
             <Scopes>internal_shared_application_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="POST">
