@@ -56,10 +56,21 @@
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -83,12 +94,13 @@
                             org.wso2.carbon.identity.application.authentication.framework.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt.*; version="${carbon.identity.package.import.version.range}",
-                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
-                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.apache.commons.logging; version="${commons.logging.imp.pkg.version.range}",
-                            org.apache.commons.lang3; version="${commons.lang3.imp.pkg.version.range}",
-                            javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
-                            *
+                            org.osgi.framework; version="[1.7.0,2.0.0)",
+                            org.osgi.service.component; version="[1.2.0,2.0.0)",
+                            org.osgi.service.component.annotations; version="[1.2.0,2.0.0)",
+                            org.apache.commons.logging; version="[1.2.0,2.0.0)",
+                            org.apache.commons.lang3; version="[3.4.0,4.0.0)",
+                            javax.servlet.http; version="[2.6.0,3.0.0)",
+                            javax.servlet; version="[2.6.0,3.0.0)"
                         </Import-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>

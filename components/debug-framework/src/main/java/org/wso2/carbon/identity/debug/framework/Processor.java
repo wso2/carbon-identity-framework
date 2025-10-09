@@ -95,9 +95,9 @@ public class Processor {
         LOG.error("[DEBUG-TRACE] PROCESSOR ENTRY - Context ID: " + (context != null ? context.getContextIdentifier() : "null"));
 
         try {
-            // Get authentication status from simulation results
-            Boolean callbackResult = (Boolean) context.getProperty("DEBUG_CALLBACK_RESULT");
-            Boolean authResultBool = (Boolean) context.getProperty("DEBUG_AUTH_RESULT");
+            // Get authentication status from simulation results (handle both String and Boolean types)
+            Boolean callbackResult = getBooleanProperty(context, "DEBUG_CALLBACK_RESULT");
+            Boolean authResultBool = getBooleanProperty(context, "DEBUG_AUTH_RESULT");
             String authSuccess = (String) context.getProperty("DEBUG_AUTH_SUCCESS");
             
             // Check simulation results first, then fallback to callback results
@@ -107,7 +107,7 @@ public class Processor {
             authResult.put("success", isSuccessful);
 
             // Get authenticated user details and user existence from simulation
-            Boolean debugUserExists = (Boolean) context.getProperty("DEBUG_USER_EXISTS");
+            Boolean debugUserExists = getBooleanProperty(context, "DEBUG_USER_EXISTS");
             String debugAuthError = (String) context.getProperty("DEBUG_AUTH_ERROR");
             
             LOG.error("CUSTOM DEBUG PROCESSOR: debugUserExists = " + debugUserExists);
@@ -123,6 +123,10 @@ public class Processor {
                 authResult.put("tenantDomain", authenticatedUser.getTenantDomain());
                 authResult.put("federatedIdPName", authenticatedUser.getFederatedIdPName());
                 authResult.put("userDetails", "Authentication successful");
+                
+                // Add OAuth token information if available
+                addTokenInformation(authResult, context);
+                
                 LOG.error("CUSTOM DEBUG PROCESSOR: Set userExists=true (authenticated user branch)");
             } else {
                 // Use simulation results for user existence and error details
@@ -436,5 +440,110 @@ public class Processor {
         errorResult.put("message", errorMessage);
         errorResult.put("timestamp", System.currentTimeMillis());
         return errorResult;
+    }
+
+    /**
+     * Safely gets a Boolean property from AuthenticationContext.
+     * Handles both String ("true"/"false") and Boolean types.
+     *
+     * @param context AuthenticationContext to get property from.
+     * @param propertyName Name of the property.
+     * @return Boolean value or null if property doesn't exist or cannot be parsed.
+     */
+    private Boolean getBooleanProperty(AuthenticationContext context, String propertyName) {
+        Object property = context.getProperty(propertyName);
+        if (property == null) {
+            return null;
+        }
+        
+        if (property instanceof Boolean) {
+            return (Boolean) property;
+        } else if (property instanceof String) {
+            String stringValue = (String) property;
+            if ("true".equalsIgnoreCase(stringValue)) {
+                return Boolean.TRUE;
+            } else if ("false".equalsIgnoreCase(stringValue)) {
+                return Boolean.FALSE;
+            }
+        }
+        
+        // Cannot parse to boolean
+        return null;
+    }
+
+    /**
+     * Adds OAuth token information to the authentication result if tokens are available.
+     *
+     * @param authResult Map to add token information to.
+     * @param context AuthenticationContext containing token properties.
+     */
+    private void addTokenInformation(Map<String, Object> authResult, AuthenticationContext context) {
+        Map<String, Object> tokenInfo = new HashMap<>();
+        
+        // Get token information from context
+        String accessToken = (String) context.getProperty("DEBUG_ACCESS_TOKEN");
+        String idToken = (String) context.getProperty("DEBUG_ID_TOKEN");
+        String refreshToken = (String) context.getProperty("DEBUG_REFRESH_TOKEN");
+        String tokenType = (String) context.getProperty("DEBUG_TOKEN_TYPE");
+
+        // Add token information if available
+        if (accessToken != null) {
+            // For security, show only first and last few characters of actual tokens
+            String maskedAccessToken = maskToken(accessToken);
+            tokenInfo.put("accessToken", maskedAccessToken);
+            tokenInfo.put("accessTokenLength", accessToken.length());
+            
+            // Add full token if in debug mode (be careful with this in production!)
+            if (LOG.isDebugEnabled()) {
+                tokenInfo.put("fullAccessToken", accessToken);
+            }
+        }
+        
+        if (idToken != null) {
+            String maskedIdToken = maskToken(idToken);
+            tokenInfo.put("idToken", maskedIdToken);
+            tokenInfo.put("idTokenLength", idToken.length());
+            
+            // Add full ID token if in debug mode
+            if (LOG.isDebugEnabled()) {
+                tokenInfo.put("fullIdToken", idToken);
+            }
+        }
+        
+        if (refreshToken != null) {
+            String maskedRefreshToken = maskToken(refreshToken);
+            tokenInfo.put("refreshToken", maskedRefreshToken);
+            tokenInfo.put("refreshTokenLength", refreshToken.length());
+        }
+        
+        if (tokenType != null) {
+            tokenInfo.put("tokenType", tokenType);
+        }
+
+        // Add token info to auth result if any tokens were found
+        if (!tokenInfo.isEmpty()) {
+            authResult.put("tokenInfo", tokenInfo);
+            LOG.info("Added OAuth token information to debug response");
+        }
+    }
+
+    /**
+     * Masks a token for secure display, showing only first and last few characters.
+     *
+     * @param token The token to mask.
+     * @return Masked token string.
+     */
+    private String maskToken(String token) {
+        if (token == null || token.length() < 10) {
+            return "[TOKEN]";
+        }
+        
+        int prefixLength = Math.min(6, token.length() / 4);
+        int suffixLength = Math.min(4, token.length() / 4);
+        
+        String prefix = token.substring(0, prefixLength);
+        String suffix = token.substring(token.length() - suffixLength);
+        
+        return prefix + "..." + suffix + " (" + token.length() + " chars)";
     }
 }

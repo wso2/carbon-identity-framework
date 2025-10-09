@@ -83,7 +83,7 @@ public class ContextProvider {
         context.setCallerSessionKey(java.util.UUID.randomUUID().toString());
         context.setTenantDomain(DEBUG_TENANT_DOMAIN);
         context.setRelyingParty(DEBUG_SERVICE_PROVIDER_NAME);
-        context.setProperty("IS_DEBUG_FLOW", Boolean.TRUE);
+        context.setProperty("isDebugFlow", Boolean.TRUE);
         context.setProperty("DEBUG_AUTHENTICATOR_NAME", authenticatorName);
         context.setProperty("DEBUG_SESSION_ID", java.util.UUID.randomUUID().toString());
         context.setProperty("DEBUG_TIMESTAMP", System.currentTimeMillis());
