@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 
 /**
  * Cache entry for webhook cache.
- * This class holds the webhook object in cache.
+ * This class holds the webhook object in cache......
  */
 public class WebhookCacheEntry extends CacheEntry {
 
