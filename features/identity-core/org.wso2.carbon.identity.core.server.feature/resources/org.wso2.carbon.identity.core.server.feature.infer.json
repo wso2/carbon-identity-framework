@@ -311,7 +311,6 @@
       "authentication.local_authenticators.hide_user_existence": false,
       "oauth.allow_disabled_application_credentials_for_authentication": true,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
-      "configs.endpoint.elevate_permission": false,
       "oauth.authorize_internal_scopes": true
     },
     "IS_7.1.0": {
@@ -353,7 +352,6 @@
       "authentication.local_authenticators.hide_user_existence": false,
       "oauth.allow_disabled_application_credentials_for_authentication": true,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
-      "configs.endpoint.elevate_permission": false,
       "oauth.authorize_internal_scopes": true
     }
   }
