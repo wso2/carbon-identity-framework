@@ -2186,6 +2186,9 @@
         <TrustedAppConsentRequired>{{application_mgt.trusted_app_consent_required}}</TrustedAppConsentRequired>
         <TrustedAppMaxThumbprintCount>{{application_mgt.trusted_app_max_thumbprint_count}}</TrustedAppMaxThumbprintCount>
         <SkipEnforceAuthorizedAPIUpdatePermission>{{application_mgt.skip_enforce_authorized_api_update_permission}}</SkipEnforceAuthorizedAPIUpdatePermission>
+        {% if application_mgt.skip_enforce_script_update_permission is defined %}
+        <SkipEnforceScriptUpdatePermission>{{application_mgt.skip_enforce_script_update_permission}}</SkipEnforceScriptUpdatePermission>
+        {% endif %}
     </ApplicationMgt>
 
     <!--Role management service configurations-->

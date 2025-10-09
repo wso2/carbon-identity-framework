@@ -850,6 +850,17 @@
             </Delete>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="applicationAuthenticationScript" displayName="Application Authentication Script" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:applicationAuthenticationScript"/>
+                <Scope name="console:applicationAuthenticationScript_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_application_script_update"/>
+            </Update>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="applications" displayName="Applications" type="tenant">
         <Scopes>
             <Feature>
@@ -1836,6 +1847,17 @@
                 <Scope name="internal_org_permission_mgt_view"/>
                 <Scope name="internal_org_user_mgt_list"/>
             </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_applicationAuthenticationScript" displayName="Application Authentication Script" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:applicationAuthenticationScript"/>
+                <Scope name="console:org:applicationAuthenticationScript_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_application_script_update"/>
+            </Update>
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="org_applications" displayName="Applications" type="organization">

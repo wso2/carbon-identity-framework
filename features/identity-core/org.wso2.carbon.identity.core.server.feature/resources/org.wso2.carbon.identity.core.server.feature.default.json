@@ -1469,6 +1469,9 @@
     "applications.loginFlow.legacyEditor",
     "applications.sharedAccess.status"
   ],
+  "console.applications.sub_features.authenticationScript.scopes.update": [
+    "internal_application_script_update"
+  ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
   "console.approvals.enabled": false,
