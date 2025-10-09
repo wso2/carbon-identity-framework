@@ -1292,7 +1292,7 @@
         The default value of the configuration is false.
         -->
         <EnableRoleValidation>false</EnableRoleValidation>
-        <SkipEnforceAuthorizedAPIUpdatePermission>{{application_mgt.skip_enforce_authorized_api_update_permission}}</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
     </ApplicationMgt>
 
     <JITProvisioning>
