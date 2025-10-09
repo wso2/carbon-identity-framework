@@ -2261,7 +2261,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Check whether the JWT exceeds the allowed depth.
+     * Check whether the JWT exceeds the allowed depth. This only validates the depth of the payload part of the JWT.
      *
      * @param jwt JWT string to check.
      * @throws  ParseException If the JWT exceeds the allowed depth or if an error occurs during parsing.
@@ -2273,52 +2273,47 @@ public class IdentityUtil {
         if (StringUtils.isBlank(enableJWTDepth) || !Boolean.parseBoolean(enableJWTDepth)) {
             return;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Checking JWT depth validation");
-        }
+        log.debug("Initiating JWT depth validation.");
 
         if (StringUtils.isBlank(jwt)) {
-            if (log.isDebugEnabled()) {
-                log.debug("JWT is blank, skipping depth validation");
-            }
-            throw new ParseException("Error validating JWT depth. JWT is blank.", 0);
+            log.debug("JWT is blank, skipping depth validation.");
+            return;
         }
 
         // Extract and decode JWT payload.
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
-            throw new ParseException("Error validating JWT depth. Invalid JWT format.", 0);
+            log.debug("Invalid JWT format. Skipping depth validation.");
+            return;
         }
 
         byte[] payloadBytes;
         try {
             payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
         } catch (IllegalArgumentException e) {
-            throw new ParseException("Error validating JWT depth. Invalid Base64 encoding in JWT payload.", 0);
+            log.debug("Invalid Base64 encoding in JWT payload.");
+            return;
         }
         String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
 
-        validateJsonDepth(jsonPayload, getAllowedMaxJWTDepth());
+        validateJsonDepth(jsonPayload, IdentityCoreConstants.MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH);
     }
 
     /**
-     * Check whether the JWT payload exceeds the allowed depth.
+     * Check whether the JWT payload exceeds the allowed depth. This only validates the depth
+     * of the payload part of the JWT.
      * @param payload JWT payload(JSON) string to check.
      * @throws ParseException If the JWT payload exceeds the allowed depth or if an error occurs during parsing.
      */
     public static void validateJWTDepthOfJWTPayload(String payload) throws ParseException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Checking JWT payload depth validation");
-        }
+        log.debug("Checking JWT payload depth validation");
 
         if (StringUtils.isBlank(payload)) {
-            if (log.isDebugEnabled()) {
-                log.debug("JWT payload is blank, skipping depth validation");
-            }
-            throw new ParseException("Error validating JWT depth. JWT is blank.", 0);
+            log.debug("JWT payload is blank, skipping depth validation");
+            return;
         }
-        validateJsonDepth(payload, getAllowedMaxJWTDepth());
+        validateJsonDepth(payload, IdentityCoreConstants.MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH);
     }
 
     /**
@@ -2354,21 +2349,9 @@ public class IdentityUtil {
                 }
             }
         } catch (IOException e) {
-            throw new ParseException("Error parsing JSON while depth validation.", 0);
+            log.debug("Error occurred while validating JSON depth.", e);
+            return;
         }
+        log.debug("Validated JSON depth successfully.");
     }
-
-    /**
-     * Get the allowed maximum depth for JSON objects.
-     * This value defines how deeply nested a JSON structure can be before it is
-     * considered invalid.
-     * @return Maximum allowed JSON depth.
-     */
-    public static int getAllowedMaxJWTDepth() {
-
-        String depthConfig = IdentityUtil.getProperty(IdentityCoreConstants.JWT_MAXIMUM_ALLOWED_DEPTH_PROPERTY);
-        return StringUtils.isNotBlank(depthConfig) ? Integer.parseInt(depthConfig) :
-                IdentityCoreConstants.DEFAULT_JWT_MAXIMUM_ALLOWED_DEPTH;
-    }
-
 }

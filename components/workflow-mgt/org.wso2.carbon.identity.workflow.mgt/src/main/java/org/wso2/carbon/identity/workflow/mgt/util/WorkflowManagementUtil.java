@@ -26,6 +26,7 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
@@ -153,5 +154,15 @@ public class WorkflowManagementUtil {
         }
 
         return WFConstant.DEFAULT_RESULTS_PER_PAGE;
+    }
+
+    /**
+     * Generate owner role name for workflow.
+     *
+     * @param workflowName Workflow name
+     * @return
+     */
+    public static String createWorkflowRoleName(String workflowName) {
+        return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + workflowName;
     }
 }

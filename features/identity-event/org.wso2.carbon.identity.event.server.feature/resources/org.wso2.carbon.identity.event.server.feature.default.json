@@ -377,8 +377,8 @@
     "POST_ISSUE_ACCESS_TOKEN_V2",
     "TOKEN_REVOKED"
   ],
-  "identity_mgt.events.schemes.userSelfRegistrationCompletionHandler.module_index": "58",
-  "identity_mgt.events.schemes.userSelfRegistrationCompletionHandler.subscriptions": [
+  "identity_mgt.events.schemes.FlowRegistrationCompletionHandler.module_index": "58",
+  "identity_mgt.events.schemes.FlowRegistrationCompletionHandler.subscriptions": [
     "POST_ADD_USER"
   ],
   "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.module_index": "59",

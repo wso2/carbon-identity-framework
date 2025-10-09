@@ -50,7 +50,8 @@ public class AuthorizationUtil {
         if (operationScopeValidationContext != null && operationScopeValidationContext.isValidationRequired()) {
             LOG.debug("Operation scope validation is required for operation: " + operationName);
             List<String> allowedScopes = operationScopeValidationContext.getValidatedScopes();
-            Map<String, String> operationScopeMap = operationScopeValidationContext.getOperationScopeMap();
+            Map<String, String> operationScopeMap = operationScopeValidationContext.getOperationScopeSet()
+                    .getOperationScopeMap();
             String operationScope = operationScopeMap.get(operationName);
 
             if (operationScope == null) {

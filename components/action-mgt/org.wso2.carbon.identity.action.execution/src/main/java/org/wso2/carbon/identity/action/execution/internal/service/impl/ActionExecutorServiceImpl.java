@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
+import org.wso2.carbon.identity.action.execution.api.service.ActionVersioningHandler;
 import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.identity.action.execution.internal.util.APIClient;
 import org.wso2.carbon.identity.action.execution.internal.util.ActionExecutionDiagnosticLogger;
@@ -152,6 +153,17 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
         }
 
+        ActionExecutionRequestContext actionExecutionRequestContext = ActionExecutionRequestContext.create(action);
+        ActionType actionType = ActionType.valueOf(action.getType().getActionType());
+        if (!isEligibleActionVersionToTrigger(actionExecutionRequestContext, flowContext)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("This action version is not eligible to be triggered for the action: %s. " +
+                        "Skipping action execution.", action.getId()));
+            }
+            // If the action version is not satisfied, it is regarded as the action execution being successful.
+            return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
+        }
+
         DIAGNOSTIC_LOGGER.logActionInitiation(action);
 
         if (!evaluateActionRule(action, flowContext, tenantDomain)) {
@@ -161,8 +173,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         DIAGNOSTIC_LOGGER.logActionExecution(action);
 
-        ActionType actionType = ActionType.valueOf(action.getType().getActionType());
-        ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, action, flowContext);
+        ActionExecutionRequest actionRequest = buildActionExecutionRequest(
+                actionType, action, flowContext, actionExecutionRequestContext);
         ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
         return executeAction(action, actionRequest, flowContext, actionExecutionResponseProcessor);
@@ -205,7 +217,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private ActionExecutionRequest buildActionExecutionRequest(ActionType actionType, Action action,
-                                                               FlowContext flowContext)
+            FlowContext flowContext, ActionExecutionRequestContext actionExecutionRequestContext)
             throws ActionExecutionException {
 
         ActionExecutionRequestBuilder requestBuilder =
@@ -215,8 +227,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
         try {
             ActionExecutionRequest actionExecutionRequest =
-                    requestBuilder.buildActionExecutionRequest(flowContext,
-                            ActionExecutionRequestContext.create(action));
+                    requestBuilder.buildActionExecutionRequest(flowContext, actionExecutionRequestContext);
             if (actionExecutionRequest.getEvent() == null || actionExecutionRequest.getEvent().getRequest() == null) {
                 return actionExecutionRequest;
             }
@@ -293,6 +304,33 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         } catch (RuleEvaluationException e) {
             throw new ActionExecutionException(
                     "Error occurred while evaluating the rule for action: " + action.getId(), e);
+        }
+    }
+
+    private boolean isEligibleActionVersionToTrigger(ActionExecutionRequestContext actionExecutionRequestContext,
+                                                     FlowContext flowContext)
+            throws ActionExecutionException {
+
+        ActionType actionType = actionExecutionRequestContext.getActionType();
+        Action action = actionExecutionRequestContext.getAction();
+        ActionVersioningHandler versioningHandler =
+                ActionVersioningHandlerFactory.getActionVersioningHandler(actionType);
+        if (versioningHandler == null) {
+            throw new ActionExecutionException(
+                    String.format("No action version handler found for action type: %s", actionType));
+        }
+
+        // If the action version is retired, throw an expection.
+        if (versioningHandler.isRetiredActionVersion(actionType, action)) {
+            throw new ActionExecutionException(
+                    String.format("Action version is retired for action: %s", action.getId()));
+        }
+
+        try {
+            return versioningHandler.canExecute(actionExecutionRequestContext, flowContext);
+        } catch (ActionExecutionException e) {
+            throw new ActionExecutionException("Error occurred when trying to validate whether action version is " +
+                    "eligible to be triggered for action type: " + actionType, e);
         }
     }
 

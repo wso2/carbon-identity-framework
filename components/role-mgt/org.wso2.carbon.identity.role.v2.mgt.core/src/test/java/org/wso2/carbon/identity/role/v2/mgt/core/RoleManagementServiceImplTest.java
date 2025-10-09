@@ -29,11 +29,13 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.dao.CacheBackedRoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
@@ -59,7 +61,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 public class RoleManagementServiceImplTest extends IdentityBaseTest {
 
     @Mock
-    private RoleDAO roleDAO;
+    private CacheBackedRoleDAO roleDAO;
 
     private RoleManagementServiceImpl roleManagementService;
 
@@ -89,7 +91,7 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
         RoleMgtDAOFactory mockRoleMgtDAOFactory = mock(RoleMgtDAOFactory.class);
         roleMgtDAOFactory.when(RoleMgtDAOFactory::getInstance)
                 .thenReturn(mockRoleMgtDAOFactory);
-        when(mockRoleMgtDAOFactory.getRoleDAO()).thenReturn(roleDAO);
+        when(mockRoleMgtDAOFactory.getCacheBackedRoleDAO()).thenReturn((RoleDAO) roleDAO);
 
         roleManagementService = new RoleManagementServiceImpl();
     }
@@ -99,6 +101,7 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
 
         privilegedCarbonContext.close();
         roleMgtDAOFactory.close();
+        IdentityUtil.threadLocalProperties.remove();
     }
 
     @DataProvider(name = "addRoleWithSystemPrefixData")
@@ -116,9 +119,22 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
     public void testAddRoleWithSystemPrefix(boolean allowSystemPrefix, String roleName, boolean errorScenario)
             throws IdentityRoleManagementException {
 
-        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<RoleManagementUtils> roleManagementUtilsMock = mockStatic(RoleManagementUtils.class)) {
             identityUtil.when(() -> IdentityUtil.getProperty(ALLOW_SYSTEM_PREFIX_FOR_ROLES))
                     .thenReturn(String.valueOf(allowSystemPrefix));
+            roleManagementUtilsMock.when(RoleManagementUtils::isAllowSystemPrefixForRole)
+                    .thenReturn(allowSystemPrefix);
+            roleManagementUtilsMock.when(() -> RoleManagementUtils.getOrganizationId(anyString()))
+                    .thenReturn(tenantDomain);
+            roleManagementUtilsMock.when(() -> RoleManagementUtils.removeInternalDomain(anyString()))
+                    .thenAnswer(invocation -> {
+                        String input = invocation.getArgument(0, String.class);
+                        if (input.startsWith("Internal/") || input.startsWith("INTERNAL/")) {
+                            return input.substring(input.indexOf("/") + 1);
+                        }
+                        return input;
+                    });
 
             RoleBasicInfo mockRoleBasicInfo = new RoleBasicInfo(roleId, roleName);
             mockRoleBasicInfo.setAudience(APPLICATION);

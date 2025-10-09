@@ -882,6 +882,9 @@
                 <Scope name="console:workflowInstances_view"/>
                 <Scope name="console:workflowInstances_edit"/>
             </Feature>
+            <Update>
+                <Scope name="internal_workflow_instance_update"/>
+            </Update>
             <Delete>
                 <Scope name="internal_workflow_instance_delete"/>
             </Delete>
@@ -1788,6 +1791,9 @@
                 <Scope name="console:org:workflowInstances_view"/>
                 <Scope name="console:org:workflowInstances_edit"/>
             </Feature>
+            <Update>
+                <Scope name="internal_org_workflow_instance_update"/>
+            </Update>
             <Delete>
                 <Scope name="internal_org_workflow_instance_delete"/>
             </Delete>
@@ -1949,6 +1955,7 @@
                 <Scope name="internal_org_governance_update"/>
             </Update>
             <Delete>
+                <Scope name="internal_org_flow_delete"/>
             </Delete>
             <Create>
             </Create>

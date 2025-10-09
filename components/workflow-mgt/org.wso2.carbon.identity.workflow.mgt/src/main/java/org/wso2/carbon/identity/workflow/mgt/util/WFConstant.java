@@ -44,6 +44,10 @@ public class WFConstant {
 
     public static final String DEFAULT_FILTER = "*";
 
+    public static final String TENANT_DOMAIN_PARAM_NAME = "Tenant Domain";
+    public static final String CREDENTIAL = "Credential";
+    public static final String CLAIMS_PROPERTY_NAME = "Claims";
+
     public static final Set<Class> NUMERIC_CLASSES;
 
     static {
