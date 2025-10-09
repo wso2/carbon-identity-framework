@@ -19,35 +19,26 @@
 package org.wso2.carbon.identity.workflow.mgt.callback;
 
 /**
- * Represents the response from WS workflow executors
+ * Represent any additional parameters returned from the workflow
  */
-public class WSWorkflowResponse {
+public class WSParameter {
 
-    private String uuid;
-    private String status;
-    private WSParameter[] outputParams;
+    private String name;
+    private String value;
 
-    public String getUuid() {
-        return uuid;
+    public String getName() {
+        return name;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getStatus() {
-        return status;
+    public String getValue() {
+        return value;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public WSParameter[] getOutputParams() {
-        return outputParams;
-    }
-
-    public void setOutputParams(WSParameter[] outputParams) {
-        this.outputParams = outputParams;
+    public void setValue(String value) {
+        this.value = value;
     }
 }
