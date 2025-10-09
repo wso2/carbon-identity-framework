@@ -311,7 +311,6 @@
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
-      "configs.endpoint.elevate_permission": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -352,7 +351,6 @@
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
-      "configs.endpoint.elevate_permission": false
     }
   }
 }
