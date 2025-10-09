@@ -1223,8 +1223,16 @@
         </Resource>
 
         <!-- Application API resources Management API -->
-        <Resource context="(.*)/api/server/v1/applications/(.*)/authorized-apis(.*)" secured="true" http-method="POST, DELETE">
+        <Resource context="(.*)/api/server/v1/applications/(.*)/authorized-apis(.*)" secured="true" http-method="POST, DELETE, PATCH">
             <Scopes>internal_application_mgt_update</Scopes>
+            <Operations mandatory="true">
+                <Operation name="updateInternalAuthorizedAPI">
+                    <scope>internal_application_internal_api_update</scope>
+                </Operation>
+                <Operation name="updateBusinessAuthorizedAPI">
+                    <scope>internal_application_business_api_update</scope>
+                </Operation>
+            </Operations>
         </Resource>
 
         <!-- Application LoginFlow AI management API -->
