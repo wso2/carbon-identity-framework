@@ -35,6 +35,9 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Client which retrieves application data required by endpoints.
@@ -171,6 +174,83 @@ public class ApplicationDataRetrievalClient {
         } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting access URL of " + applicationId + " in tenant : " + tenant;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new ApplicationDataRetrievalClientException(msg, e);
+        }
+    }
+
+    /**
+     * Gets the authenticators and idp names configured for the given application.
+     *
+     * @param tenant Tenant domain of the application.
+     * @param applicationId UUID of the application.
+     * @return The authenticators configured for the given application
+     * @throws ApplicationDataRetrievalClientException If IO exception occurs or access URL is not configured.
+     */
+    public Set<String> getApplicationAuthenticatorsByAppId(String tenant, String applicationId)
+            throws ApplicationDataRetrievalClientException {
+
+        try {
+            HttpGet request = new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
+            setAuthorizationHeader(request);
+
+            String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
+
+            JSONObject root = new JSONObject(responseString);
+            JSONObject authSeq = root.getJSONObject("authenticationSequence");
+            JSONArray steps = authSeq.getJSONArray("steps");
+
+            StringBuilder resultBuilder = new StringBuilder();
+
+            for (int i = 0; i < steps.length(); i++) {
+                JSONObject step = steps.getJSONObject(i);
+                JSONArray options = step.getJSONArray("options");
+
+                for (int j = 0; j < options.length(); j++) {
+                    JSONObject option = options.getJSONObject(j);
+                    String idp = option.getString("idp");
+                    String authenticator = option.getString("authenticator");
+
+                    if (resultBuilder.length() > 0) {
+                        resultBuilder.append(";");
+                    }
+                    resultBuilder.append(authenticator).append(":").append(idp);
+                }
+            }
+
+            Set<String> configuredAuthenticatorsSet = new HashSet<>(Arrays.asList((resultBuilder.toString()).split(";")));
+            if (log.isDebugEnabled()) {
+                log.debug("Found " + configuredAuthenticatorsSet.size() + " authenticators for application: " + applicationId);
+            }
+            return configuredAuthenticatorsSet;
+
+        } catch (IOException | JSONException e) {
+            String msg = "Error while getting authenticators of" + applicationId + " in tenant : " + tenant;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new ApplicationDataRetrievalClientException(msg, e);
+        }
+    }
+
+    /**
+     * Gets the authenticators and idp names configured for the given application.
+     *
+     * @param tenant Tenant domain of the application.
+     * @param applicationName Name of the application.
+     * @return The authenticators configured for the given application
+     * @throws ApplicationDataRetrievalClientException If IO exception occurs or access URL is not configured.
+     */
+    public Set<String> getApplicationAuthenticatorsByAppName(String tenant, String applicationName)
+            throws ApplicationDataRetrievalClientException {
+
+        try {
+            String applicationID = getApplicationID(tenant,applicationName);
+            return getApplicationAuthenticatorsByAppId(tenant, applicationID);
+        } catch (JSONException e) {
+            String msg = "Error while getting authenticators of" + applicationName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }

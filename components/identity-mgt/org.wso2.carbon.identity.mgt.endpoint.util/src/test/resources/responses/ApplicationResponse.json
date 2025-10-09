@@ -1,0 +1,174 @@
+{
+  "id": "3285d13a-59ea-4107-a2db-e2641e0bce79",
+  "name": "My Account",
+  "description": "This is the my account application.",
+  "applicationVersion": "v3.0.0",
+  "accessUrl": "https://localhost:9443/myaccount",
+  "clientId": "MY_ACCOUNT",
+  "issuer": "",
+  "realm": "",
+  "templateId": "",
+  "templateVersion": "",
+  "isManagementApp": false,
+  "applicationEnabled": true,
+  "associatedRoles": {
+    "allowedAudience": "APPLICATION",
+    "roles": [
+      {
+        "id": "48bac7f7-0fb9-49b1-83df-a456756ea301",
+        "name": "Impersonator"
+      }
+    ]
+  },
+  "claimConfiguration": {
+    "dialect": "LOCAL",
+    "claimMappings": [
+      {
+        "applicationClaim": "http://wso2.org/claims/emailaddress",
+        "localClaim": {
+          "uri": "http://wso2.org/claims/emailaddress"
+        }
+      },
+      {
+        "applicationClaim": "http://wso2.org/claims/displayName",
+        "localClaim": {
+          "uri": "http://wso2.org/claims/displayName"
+        }
+      },
+      {
+        "applicationClaim": "http://wso2.org/claims/username",
+        "localClaim": {
+          "uri": "http://wso2.org/claims/username"
+        }
+      },
+      {
+        "applicationClaim": "http://wso2.org/claims/url",
+        "localClaim": {
+          "uri": "http://wso2.org/claims/url"
+        }
+      }
+    ],
+    "requestedClaims": [
+      {
+        "claim": {
+          "uri": "http://wso2.org/claims/emailaddress"
+        },
+        "mandatory": false
+      },
+      {
+        "claim": {
+          "uri": "http://wso2.org/claims/displayName"
+        },
+        "mandatory": false
+      },
+      {
+        "claim": {
+          "uri": "http://wso2.org/claims/username"
+        },
+        "mandatory": false
+      },
+      {
+        "claim": {
+          "uri": "http://wso2.org/claims/url"
+        },
+        "mandatory": false
+      }
+    ],
+    "subject": {
+      "claim": {
+        "uri": "http://wso2.org/claims/userid"
+      },
+      "includeUserDomain": true,
+      "includeTenantDomain": true,
+      "useMappedLocalSubject": false,
+      "mappedLocalSubjectMandatory": false
+    },
+    "role": {
+      "includeUserDomain": true,
+      "claim": {
+        "uri": "http://wso2.org/claims/role"
+      }
+    }
+  },
+  "inboundProtocols": [
+    {
+      "type": "oauth2",
+      "self": "/api/server/v1/applications/3285d13a-59ea-4107-a2db-e2641e0bce79/inbound-protocols/oidc"
+    }
+  ],
+  "authenticationSequence": {
+    "type": "USER_DEFINED",
+    "steps": [
+      {
+        "id": 1,
+        "options": [
+          {
+            "idp": "Google",
+            "authenticator": "GoogleOIDCAuthenticator"
+          },
+          {
+            "idp": "Microsoft",
+            "authenticator": "OpenIDConnectAuthenticator"
+          },
+          {
+            "idp": "LOCAL",
+            "authenticator": "BasicAuthenticator"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "options": [
+          {
+            "idp": "Google",
+            "authenticator": "GoogleOIDCAuthenticator"
+          },
+          {
+            "idp": "Microsoft",
+            "authenticator": "OpenIDConnectAuthenticator"
+          },
+          {
+            "idp": "LOCAL",
+            "authenticator": "totp"
+          }
+        ]
+      }
+    ],
+    "requestPathAuthenticators": [],
+    "script": "var onLoginRequest = function(context) {\n    executeStep(1);\n    executeStep(2);\n};\n",
+    "subjectStepId": 1,
+    "attributeStepId": 1
+  },
+  "advancedConfigurations": {
+    "saas": false,
+    "discoverableByEndUsers": false,
+    "skipLoginConsent": true,
+    "skipLogoutConsent": true,
+    "returnAuthenticatedIdpList": false,
+    "enableAuthorization": false,
+    "fragment": false,
+    "enableAPIBasedAuthentication": false,
+    "attestationMetaData": {
+      "enableClientAttestation": false,
+      "androidPackageName": "",
+      "appleAppId": ""
+    },
+    "additionalSpProperties": [
+      {
+        "name": "isB2BSelfServiceApp",
+        "value": "false",
+        "displayName": "Is B2B Self Service Application"
+      },
+      {
+        "name": "isSystemReservedApp",
+        "value": "true",
+        "displayName": "Is System Reserved Application"
+      }
+    ],
+    "useExternalConsentPage": false
+  },
+  "provisioningConfigurations": {
+    "outboundProvisioningIdps": []
+  },
+  "access": "WRITE"
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,10 +23,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -94,8 +102,9 @@ public class AuthenticationEndpointFilter implements Filter {
         String redirectUrl = null;
         String appSpecificCustomPageConfigKey = null;
         String refererHeader = ((HttpServletRequest) servletRequest).getHeader(REQUEST_PARAM_REFERRER);
-
         String serviceProviderName = null;
+        Boolean authenticatorValidationEnabled = Boolean.valueOf(context.getInitParameter(Constants.AUTHENTICATOR_VALIDATION_ENABLED));
+
         if (servletRequest.getParameter(Constants.REQUEST_PARAM_SP) != null) {
             serviceProviderName = servletRequest.getParameter(Constants.REQUEST_PARAM_SP);
         } else if (servletRequest.getParameter(REQUEST_PARAM_APPLICATION) != null) {
@@ -149,7 +158,47 @@ public class AuthenticationEndpointFilter implements Filter {
                 return;
             }
 
-            Map<String, String> idpAuthenticatorMapping = new HashMap<String, String>();
+            Set<String> configuredAuthenticatorsSet = new HashSet<>();
+            String serviceProviderId = servletRequest.getParameter(FrameworkConstants.REQUEST_PARAM_SP_UUID);
+            String tenantDomain;
+
+            if (authenticatorValidationEnabled) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Authenticator Validation is Enabled");
+                }
+                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    tenantDomain = IdentityTenantUtil.resolveTenantDomain();
+                } else {
+                    tenantDomain = servletRequest.getParameter(MultitenantConstants.TENANT_DOMAIN);
+                }
+                if (StringUtils.isBlank(tenantDomain)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Default super tenant domain will be used");
+                    }
+                    tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                }
+
+                ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+
+                try {
+                    if (!StringUtils.isBlank(serviceProviderId)) {
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("Retrieving authenticators for service provider ID: " + serviceProviderId + "in tenant: " + tenantDomain);
+                        }
+                        configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppId(tenantDomain, serviceProviderId);
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Retrieving authenticators for service provider using Service Provider Name: " + serviceProviderName + "in tenant: " + tenantDomain);
+                        }
+                        configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain, serviceProviderName);
+                    }
+                } catch (ApplicationDataRetrievalClientException e) {
+                    log.error("error retriving authenticators from ApplicationDataRetrievalClient " + e);
+                }
+            }
+
+            Map<String, String> idpAuthenticatorMapping = new HashMap<>();
             String authenticators = servletRequest.getParameter(REQUEST_PARAM_AUTHENTICATORS);
             if (authenticators != null) {
                 String[] authenticatorIdPMappings = authenticators.split(";");
@@ -162,12 +211,26 @@ public class AuthenticationEndpointFilter implements Filter {
                                 || StringUtils.equalsIgnoreCase(MY_ACCOUNT_APPLICATION_NAME, serviceProviderName))) {
                             continue;
                         }
-                        if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
-                            idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
-                                                        idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
-                                                        authenticatorIdPMapArr[0]);
+                        if (authenticatorValidationEnabled) {
+                            String authenticatorIDP = authenticatorIdPMapArr[0] + ":" + authenticatorIdPMapArr[i];
+                            boolean authenticatorExists = configuredAuthenticatorsSet.contains(authenticatorIDP);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Checking authenticator: " + authenticatorIDP + ", exists: " + authenticatorExists);
+                            }
+                            if (authenticatorExists) {
+                                if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
+                                    idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
+                                            idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);
+                                } else {
+                                    idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
+                                }
+                            }
                         } else {
-                            idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
+                            if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
+                                idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);
+                            } else {
+                                idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
+                            }
                         }
                     }
                 }

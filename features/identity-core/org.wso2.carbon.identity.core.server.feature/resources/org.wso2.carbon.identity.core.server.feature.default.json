@@ -58,6 +58,7 @@
   "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
+  "authenticationendpoint.authenticator_validation_enabled": true,
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
   "accounts.hostname": "$ref{server.hostname}",
