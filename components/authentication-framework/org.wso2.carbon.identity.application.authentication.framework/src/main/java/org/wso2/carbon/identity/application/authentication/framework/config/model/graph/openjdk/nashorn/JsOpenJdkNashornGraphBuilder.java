@@ -94,6 +94,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
     private static final String REMOVE_FUNCTIONS = "var quit=function(){Log.error('quit function is restricted.')};" +
             "var exit=function(){Log.error('exit function is restricted.')};" +
             "var print=function(){Log.error('print function is restricted.')};" +
+            "var printErr=function(){Log.error('printErr function is restricted.')};" +
             "var echo=function(){Log.error('echo function is restricted.')};" +
             "var readFully=function(){Log.error('readFully function is restricted.')};" +
             "var readLine=function(){Log.error('readLine function is restricted.')};" +
@@ -101,7 +102,10 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
             "var loadWithNewGlobal=function(){Log.error('loadWithNewGlobal function is restricted.')};" +
             "var $ARG=null;var $ENV=null;var $EXEC=null;" +
             "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +
-            "Object.defineProperty(this, 'engine', {});";
+            "Object.defineProperty(this, 'engine', {});" +
+            "var Graal = {" +
+                "    toString: function() { return 'restricted'; }" +
+            "};";
 
     /**
      * Constructs the builder with the given authentication context.
