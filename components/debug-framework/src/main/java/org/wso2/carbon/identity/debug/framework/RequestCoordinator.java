@@ -704,6 +704,7 @@ public class RequestCoordinator implements DebugService {
      * @param context AuthenticationContext for the debug flow.
      * @param request HttpServletRequest.
      * @param response HttpServletResponse.
+     * @param processedResult Result from processor.
      */
     private void handleInitialDebugRequest(AuthenticationContext context, 
                                          HttpServletRequest request, 
