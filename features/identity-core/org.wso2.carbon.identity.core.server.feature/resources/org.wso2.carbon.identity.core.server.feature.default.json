@@ -1469,6 +1469,12 @@
     "applications.loginFlow.legacyEditor",
     "applications.sharedAccess.status"
   ],
+  "console.applications.sub_features.businessAPIResourceAuthorization.scopes.update": [
+    "internal_application_business_api_update"
+  ],
+  "console.applications.sub_features.internalAPIResourceAuthorization.scopes.update": [
+    "internal_application_internal_api_update"
+  ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
   "console.approvals.enabled": false,
