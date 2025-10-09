@@ -1221,6 +1221,11 @@
         </Resource>
         <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_application_mgt_view</Scopes>
+            <Operations mandatory="true">
+                <Operation name="viewApplicationClientSecret">
+                    <scope>internal_org_application_mgt_client_secret_view</scope>
+                </Operation>
+            </Operations>
         </Resource>
 
         <!-- Application API resources Management API -->
@@ -1258,6 +1263,11 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
             <Scopes>internal_application_mgt_view</Scopes>
+             <Operations mandatory="true">
+                <Operation name="viewApplicationClientSecret">
+                    <scope>internal_application_mgt_client_secret_view</scope>
+                </Operation>
+            </Operations>
         </Resource>
 
         <!-- Should this go to applications mgt API -->
