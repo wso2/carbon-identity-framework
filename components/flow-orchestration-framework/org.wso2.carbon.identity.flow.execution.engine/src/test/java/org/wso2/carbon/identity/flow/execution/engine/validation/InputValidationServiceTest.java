@@ -155,11 +155,13 @@ public class InputValidationServiceTest {
         FlowExecutionContext.setGraphConfig(defaultGraph);
         DataDTO dataDTO = new DataDTO.Builder()
                 .requiredParams(Collections.singletonList("input1"))
+                .optionalParams(Collections.singletonList("input2"))
                 .build();
         inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
         Assert.assertEquals(FlowExecutionContext.getCurrentStepInputs().size(), 1);
-        Assert.assertEquals(FlowExecutionContext.getCurrentStepInputs().get(DEFAULT_ACTION).size(), 1);
+        Assert.assertEquals(FlowExecutionContext.getCurrentStepInputs().get(DEFAULT_ACTION).size(), 2);
         Assert.assertTrue(FlowExecutionContext.getCurrentStepInputs().get(DEFAULT_ACTION).contains("input1"));
+        Assert.assertTrue(FlowExecutionContext.getCurrentStepInputs().get(DEFAULT_ACTION).contains("input2"));
     }
 
     @Test
