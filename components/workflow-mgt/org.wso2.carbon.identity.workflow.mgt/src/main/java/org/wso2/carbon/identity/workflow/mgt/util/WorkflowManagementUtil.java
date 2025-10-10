@@ -23,9 +23,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.xml.sax.SAXException;
 
@@ -35,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -51,6 +55,86 @@ public class WorkflowManagementUtil {
 
     private static final Log log = LogFactory.getLog(WorkflowManagementUtil.class);
 
+    /**
+     * Create a internal role in workflow domain with same name as workflow.
+     *
+     * @param workflowName Workflow name.
+     * @throws WorkflowException
+     */
+    public static void createAppRole(String workflowName) throws WorkflowException {
+
+        String roleName = createWorkflowRoleName(workflowName);
+        String qualifiedUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        String[] user = {qualifiedUsername};
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Creating workflow role : " + roleName + " and assign the user : "
+                        + Arrays.toString(user) + " to that role");
+            }
+            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
+                    .addRole(roleName, user, null);
+        } catch (UserStoreException e) {
+            throw new WorkflowException("Error while creating role", e);
+        }
+
+    }
+
+    /**
+     * Delete role created for workflow.
+     *
+     * @param workflowName Workflow name.
+     * @throws WorkflowException
+     */
+    public static void deleteWorkflowRole(String workflowName) throws WorkflowException {
+
+        String roleName = createWorkflowRoleName(workflowName);
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Deleting workflow role : " + roleName);
+            }
+            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
+                    .deleteRole(roleName);
+        } catch (UserStoreException e) {
+            throw new WorkflowException("Error while creating workflow", e);
+        }
+    }
+
+    /**
+     * Update name of workflow role.
+     *
+     * @param oldWorkflowName Previous role name.
+     * @param newWorkflowName New role name.
+     * @throws WorkflowException
+     */
+    public static void updateWorkflowRoleName(String oldWorkflowName, String newWorkflowName) throws
+            WorkflowException {
+
+        String oldRoleName = createWorkflowRoleName(oldWorkflowName);
+        String newRoleName = createWorkflowRoleName(newWorkflowName);
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Updating workflow role : " + oldRoleName);
+            }
+            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
+                    .updateRoleName(oldRoleName, newRoleName);
+        } catch (UserStoreException e) {
+            throw new WorkflowException("Error while updating workflow role name.", e);
+        }
+
+    }
+
+    /**
+     * Generate owner role name for workflow.
+     *
+     * @param workflowName Workflow name.
+     * @return
+     */
+    public static String createWorkflowRoleName(String workflowName) {
+
+        return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + workflowName;
+    }
     /**
      * Un-marshall given string to given class type.
      *
@@ -154,15 +238,5 @@ public class WorkflowManagementUtil {
         }
 
         return WFConstant.DEFAULT_RESULTS_PER_PAGE;
-    }
-
-    /**
-     * Generate owner role name for workflow.
-     *
-     * @param workflowName Workflow name
-     * @return
-     */
-    public static String createWorkflowRoleName(String workflowName) {
-        return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + workflowName;
     }
 }

@@ -58,6 +58,9 @@ import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowDataType;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -124,7 +127,9 @@ public class WorkflowManagementServiceImplTest {
     private static final String WORKFLOW_NAME = "Test Workflow";
     private static final String WORKFLOW_DESCRIPTION = "Test workflow description";
     private static final String TEMPLATE_ID = "test-template-1";
-    private static final String WORKFLOW_IMPL_ID = "test-impl-1";
+    private static final String DEFAULT_WORKFLOW_IMPL_ID = "WorkflowEngine";
+    private static final String CUSTOM_WORKFLOW_IMPL_ID = "BPSWorkflowEngine";
+
     private static final String EVENT_ID = "test-event-1";
     private static final String ASSOCIATION_NAME = "test-association";
     private static final String ASSOCIATION_ID = "1";
@@ -434,11 +439,11 @@ public class WorkflowManagementServiceImplTest {
     public void testListWorkflowImpls() throws WorkflowException {
 
         Map<String, AbstractWorkflow> workflowImplMap = new HashMap<>();
-        workflowImplMap.put(WORKFLOW_IMPL_ID, mockAbstractWorkflow);
+        workflowImplMap.put(DEFAULT_WORKFLOW_IMPL_ID, mockAbstractWorkflow);
         Map<String, Map<String, AbstractWorkflow>> workflowImpls = new HashMap<>();
         workflowImpls.put(TEMPLATE_ID, workflowImplMap);
         when(mockWorkflowServiceDataHolder.getWorkflowImpls()).thenReturn(workflowImpls);
-        when(mockAbstractWorkflow.getWorkflowImplId()).thenReturn(WORKFLOW_IMPL_ID);
+        when(mockAbstractWorkflow.getWorkflowImplId()).thenReturn(DEFAULT_WORKFLOW_IMPL_ID);
         when(mockAbstractWorkflow.getWorkflowImplName()).thenReturn("Workflow Impl Name");
         when(mockAbstractWorkflow.getParametersMetaData()).thenReturn(new ParametersMetaData());
         when(mockAbstractWorkflow.getTemplateId()).thenReturn(TEMPLATE_ID);
@@ -447,7 +452,7 @@ public class WorkflowManagementServiceImplTest {
 
         assertNotNull(result);
         assertEquals(result.size(), 1);
-        assertEquals(result.get(0).getWorkflowImplId(), WORKFLOW_IMPL_ID);
+        assertEquals(result.get(0).getWorkflowImplId(), DEFAULT_WORKFLOW_IMPL_ID);
         verify(mockWorkflowListener).doPreListWorkflowImpls(TEMPLATE_ID);
         verify(mockWorkflowListener).doPostListWorkflowImpls(TEMPLATE_ID, result);
     }
@@ -456,38 +461,59 @@ public class WorkflowManagementServiceImplTest {
     public void testGetWorkflowImpl() throws WorkflowException {
 
         Map<String, AbstractWorkflow> workflowImplMap = new HashMap<>();
-        workflowImplMap.put(WORKFLOW_IMPL_ID, mockAbstractWorkflow);
+        workflowImplMap.put(DEFAULT_WORKFLOW_IMPL_ID, mockAbstractWorkflow);
         Map<String, Map<String, AbstractWorkflow>> workflowImpls = new HashMap<>();
         workflowImpls.put(TEMPLATE_ID, workflowImplMap);
         when(mockWorkflowServiceDataHolder.getWorkflowImpls()).thenReturn(workflowImpls);
-        when(mockAbstractWorkflow.getWorkflowImplId()).thenReturn(WORKFLOW_IMPL_ID);
+        when(mockAbstractWorkflow.getWorkflowImplId()).thenReturn(DEFAULT_WORKFLOW_IMPL_ID);
         when(mockAbstractWorkflow.getWorkflowImplName()).thenReturn("Workflow Impl Name");
         when(mockAbstractWorkflow.getParametersMetaData()).thenReturn(new ParametersMetaData());
         when(mockAbstractWorkflow.getTemplateId()).thenReturn(TEMPLATE_ID);
 
-        WorkflowImpl result = workflowManagementService.getWorkflowImpl(TEMPLATE_ID, WORKFLOW_IMPL_ID);
+        WorkflowImpl result = workflowManagementService.getWorkflowImpl(TEMPLATE_ID, DEFAULT_WORKFLOW_IMPL_ID);
 
         assertNotNull(result);
-        assertEquals(result.getWorkflowImplId(), WORKFLOW_IMPL_ID);
-        verify(mockWorkflowListener).doPreGetWorkflowImpl(TEMPLATE_ID, WORKFLOW_IMPL_ID);
-        verify(mockWorkflowListener).doPostGetWorkflowImpl(TEMPLATE_ID, WORKFLOW_IMPL_ID, result);
+        assertEquals(result.getWorkflowImplId(), DEFAULT_WORKFLOW_IMPL_ID);
+        verify(mockWorkflowListener).doPreGetWorkflowImpl(TEMPLATE_ID, DEFAULT_WORKFLOW_IMPL_ID);
+        verify(mockWorkflowListener).doPostGetWorkflowImpl(TEMPLATE_ID, DEFAULT_WORKFLOW_IMPL_ID, result);
     }
 
-    @Test
-    public void testAddWorkflow() throws WorkflowException {
+    @DataProvider
+    public Object[][] workflowImplementations() {
+
+        return new Object[][]{
+                {DEFAULT_WORKFLOW_IMPL_ID},
+                {CUSTOM_WORKFLOW_IMPL_ID}
+        };
+    }
+
+    @Test(dataProvider = "workflowImplementations")
+    public void testAddWorkflow(String workflowImplementation) throws WorkflowException, UserStoreException {
 
         Workflow workflow = createTestWorkflow();
+        workflow.setWorkflowImplId(workflowImplementation);
+
         List<Parameter> parameters = createTestParameters();
 
         Map<String, AbstractWorkflow> workflowImplMap = new HashMap<>();
-        workflowImplMap.put(WORKFLOW_IMPL_ID, mockAbstractWorkflow);
+        workflowImplMap.put(workflowImplementation, mockAbstractWorkflow);
         Map<String, Map<String, AbstractWorkflow>> workflowImpls = new HashMap<>();
         workflowImpls.put(TEMPLATE_ID, workflowImplMap);
         when(mockWorkflowServiceDataHolder.getWorkflowImpls()).thenReturn(workflowImpls);
 
         when(mockWorkflowDAO.getWorkflow(WORKFLOW_ID)).thenReturn(null); // First time creation
 
-        workflowManagementService.addWorkflow(workflow, parameters, TENANT_ID);
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            UserRealm mockUserRealm = mock(UserRealm.class);
+            UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
+
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+            when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+
+            workflowManagementService.addWorkflow(workflow, parameters, TENANT_ID);
+        }
 
         verify(mockAbstractWorkflow).deploy(any());
         verify(mockWorkflowDAO).addWorkflow(eq(workflow), eq(TENANT_ID));
@@ -496,23 +522,35 @@ public class WorkflowManagementServiceImplTest {
         verify(mockWorkflowListener).doPostAddWorkflow(eq(workflow), any(), eq(TENANT_ID));
     }
 
-    @Test
-    public void testAddWorkflowUpdate() throws WorkflowException {
+    @Test(dataProvider = "workflowImplementations")
+    public void testAddWorkflowUpdate(String workflowImplementation) throws WorkflowException, UserStoreException {
 
         Workflow workflow = createTestWorkflow();
+        workflow.setWorkflowImplId(workflowImplementation);
+
         Workflow existingWorkflow = createTestWorkflow();
         existingWorkflow.setWorkflowName("Old Name");
         List<Parameter> parameters = createTestParameters();
 
         Map<String, AbstractWorkflow> workflowImplMap = new HashMap<>();
-        workflowImplMap.put(WORKFLOW_IMPL_ID, mockAbstractWorkflow);
+        workflowImplMap.put(workflowImplementation, mockAbstractWorkflow);
         Map<String, Map<String, AbstractWorkflow>> workflowImpls = new HashMap<>();
         workflowImpls.put(TEMPLATE_ID, workflowImplMap);
         when(mockWorkflowServiceDataHolder.getWorkflowImpls()).thenReturn(workflowImpls);
 
         when(mockWorkflowDAO.getWorkflow(WORKFLOW_ID)).thenReturn(existingWorkflow);
 
-        workflowManagementService.addWorkflow(workflow, parameters, TENANT_ID);
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            UserRealm mockUserRealm = mock(UserRealm.class);
+            UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
+
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+            when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+
+            workflowManagementService.addWorkflow(workflow, parameters, TENANT_ID);
+        }
 
         verify(mockAbstractWorkflow).deploy(any());
         verify(mockWorkflowDAO).removeWorkflowParams(WORKFLOW_ID);
@@ -821,14 +859,25 @@ public class WorkflowManagementServiceImplTest {
         verify(mockWorkflowDAO).getWorkflowsCount(TENANT_ID, WFConstant.DEFAULT_FILTER);
     }
 
-    @Test
-    public void testRemoveWorkflow() throws WorkflowException {
+    @Test(dataProvider = "workflowImplementations")
+    public void testRemoveWorkflow(String workflowImplementation) throws WorkflowException, UserStoreException {
 
         Workflow workflow = createTestWorkflow();
+        workflow.setWorkflowImplId(workflowImplementation);
+
         when(mockWorkflowDAO.getWorkflow(WORKFLOW_ID)).thenReturn(workflow);
 
-        workflowManagementService.removeWorkflow(WORKFLOW_ID);
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            UserRealm mockUserRealm = mock(UserRealm.class);
+            UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
 
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+            when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+
+            workflowManagementService.removeWorkflow(WORKFLOW_ID);
+        }
         verify(mockWorkflowDAO).removeWorkflowParams(WORKFLOW_ID);
         verify(mockWorkflowDAO).removeWorkflow(WORKFLOW_ID);
         verify(mockWorkflowListener).doPreDeleteWorkflow(workflow);
@@ -1286,7 +1335,7 @@ public class WorkflowManagementServiceImplTest {
         workflow.setWorkflowName(WORKFLOW_NAME);
         workflow.setWorkflowDescription(WORKFLOW_DESCRIPTION);
         workflow.setTemplateId(TEMPLATE_ID);
-        workflow.setWorkflowImplId(WORKFLOW_IMPL_ID);
+        workflow.setWorkflowImplId(DEFAULT_WORKFLOW_IMPL_ID);
         return workflow;
     }
 
