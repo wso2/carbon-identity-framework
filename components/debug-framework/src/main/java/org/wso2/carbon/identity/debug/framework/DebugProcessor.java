@@ -9,15 +9,15 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -682,7 +682,9 @@ public class DebugProcessor {
             boolean first = true;
             
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if (!first) json.append(",");
+                if (!first) {
+                    json.append(",");
+                }
                 json.append("\"").append(entry.getKey()).append("\":");
                 json.append(convertToJson(entry.getValue()));
                 first = false;

@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.debug.framework.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
+
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -39,64 +39,39 @@ import org.wso2.carbon.identity.debug.framework.DebugService;
 public class DebugServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(DebugServiceComponent.class);
-    
-    // Static initialization logging to verify class loading
-    static {
-        try {
-            Log log = LogFactory.getLog(DebugServiceComponent.class);
-            log.info("=== STATIC INIT: DebugServiceComponent class is being loaded ===");
-        } catch (Exception e) {
-            System.err.println("ERROR in DebugServiceComponent static init: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 
     @Activate
     protected void activate(ComponentContext context) {
-        LOG.info("=== DEBUG FRAMEWORK: OSGi component activation STARTED ===");
-        
         try {
             BundleContext bundleContext = context.getBundleContext();
-            LOG.info("Debug Framework: Got bundle context: " + bundleContext);
             
             if (bundleContext == null) {
                 throw new RuntimeException("BundleContext is null - cannot register services");
             }
             
-            // Create RequestCoordinator instance
+            // Create and register RequestCoordinator instance
             RequestCoordinator debugCoordinator = new RequestCoordinator();
-            LOG.info("Debug Framework: Created RequestCoordinator instance: " + debugCoordinator);
             
             // Register RequestCoordinator as DebugService (it implements DebugService interface)  
-            ServiceRegistration<?> debugServiceReg = bundleContext.registerService(
-                DebugService.class.getName(), debugCoordinator, null);
-            LOG.info("Debug Framework: Registered DebugService - Registration: " + debugServiceReg);
+            bundleContext.registerService(DebugService.class.getName(), debugCoordinator, null);
             
             // Register RequestCoordinator itself for direct access
-            ServiceRegistration<?> coordinatorReg = bundleContext.registerService(
-                RequestCoordinator.class.getName(), debugCoordinator, null);
-            LOG.info("Debug Framework: Registered RequestCoordinator - Registration: " + coordinatorReg);
+            bundleContext.registerService(RequestCoordinator.class.getName(), debugCoordinator, null);
             
             // Store services in data holder for authentication framework access
             DebugFrameworkServiceDataHolder.getInstance().setDebugService(debugCoordinator);
             DebugFrameworkServiceDataHolder.getInstance().setRequestCoordinator(debugCoordinator);
-            LOG.info("Debug Framework: Stored services in data holder");
             
-            LOG.info("=== DEBUG FRAMEWORK: OSGi component activated SUCCESSFULLY ===");
+            LOG.info("Debug Framework OSGi component activated successfully");
             
         } catch (Throwable e) {
-            LOG.error("=== DEBUG FRAMEWORK: FATAL ERROR during OSGi component activation ===", e);
-            LOG.error("Debug Framework activation failed with: " + e.getClass().getName() + ": " + e.getMessage());
-            if (e.getCause() != null) {
-                LOG.error("Caused by: " + e.getCause().getClass().getName() + ": " + e.getCause().getMessage());
-            }
-            // Re-throw to ensure OSGi framework knows about the failure
+            LOG.error("Debug Framework activation failed", e);
             throw new RuntimeException("Debug Framework activation failed: " + e.getMessage(), e);
         }
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
-        LOG.info("=== DEBUG FRAMEWORK: OSGi component deactivated ===");
+        LOG.info("Debug Framework OSGi component deactivated");
     }
 }

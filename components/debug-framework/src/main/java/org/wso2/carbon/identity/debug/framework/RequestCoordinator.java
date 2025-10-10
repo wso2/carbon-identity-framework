@@ -3,17 +3,13 @@ package org.wso2.carbon.identity.debug.framework;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * Routes incoming authentication requests to appropriate handlers.
@@ -602,9 +598,8 @@ public class RequestCoordinator implements DebugService {
                     if (Boolean.TRUE.equals(debugProperty)) {
                         return true;
                     }
-                }
-                // Handle String type.
-                else if (debugProperty instanceof String) {
+                } else if (debugProperty instanceof String) {
+                    // Handle String type.
                     if ("true".equals(debugProperty)) {
                         return true;
                     }
