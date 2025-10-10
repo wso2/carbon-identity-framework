@@ -387,5 +387,8 @@
   "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.module_index": "59",
   "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.subscriptions": [
     "PRE_AUTHENTICATION"
-  ]
+  ],
+  "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.module_index": "60",
+  "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.subscriptions": "$ref{authentication.analytics.publish_b2b_authentication_event_types}",
+  "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.properties.enable": false
 }
