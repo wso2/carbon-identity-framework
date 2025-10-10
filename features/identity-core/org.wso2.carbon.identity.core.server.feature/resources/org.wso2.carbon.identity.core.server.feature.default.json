@@ -1485,7 +1485,7 @@
   "console.applications.sub_features.clientSecret.scopes.read": [
     "internal_application_mgt_client_secret_view"
   ],
-  "console.applications.sub_features.authenticationScript.scopes.update": [
+  "console.applications.sub_features.applicationAuthenticationScript.scopes.update": [
     "internal_application_script_update"
   ],
   "console.applicationAuthenticationScript.enabled": true,
