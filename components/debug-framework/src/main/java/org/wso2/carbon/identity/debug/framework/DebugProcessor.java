@@ -46,22 +46,12 @@ public class DebugProcessor {
      */
     public void processCallback(HttpServletRequest request, HttpServletResponse response, 
                                AuthenticationContext context) throws IOException {
-        LOG.info("Processing OAuth 2.0 callback from external IdP for session: " + context.getContextIdentifier());
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Callback request URL: " + request.getRequestURL() + "?" + request.getQueryString());
-        }
-
         try {
             // Extract callback parameters.
             String authorizationCode = request.getParameter("code");
             String state = request.getParameter("state");
             String error = request.getParameter("error");
             String errorDescription = request.getParameter("error_description");
-
-            LOG.info("Callback parameters - Code: " + (authorizationCode != null ? "[PRESENT]" : "[MISSING]") +
-                    ", State: " + (state != null ? state : "[MISSING]") +
-                    ", Error: " + (error != null ? error : "[NONE]"));
 
             // Check for error response from IdP.
             if (error != null) {
@@ -100,7 +90,6 @@ public class DebugProcessor {
             }
 
             // Exchange authorization code for tokens.
-            LOG.info("Exchanging authorization code for tokens");
             TokenResponse tokens = exchangeCodeForTokens(authorizationCode, context);
             if (tokens == null || tokens.getAccessToken() == null) {
                 LOG.error("Token exchange failed - no tokens received from IdP");
@@ -109,9 +98,6 @@ public class DebugProcessor {
                 sendProcessedResponse(response, context);
                 return;
             }
-
-            LOG.info("Token exchange successful - Access Token: [PRESENT], ID Token: " + 
-                    (tokens.getIdToken() != null ? "[PRESENT]" : "[NOT PRESENT]"));
 
             // Store token information in context for debug response
             context.setProperty("DEBUG_ACCESS_TOKEN", tokens.getAccessToken());
@@ -124,7 +110,6 @@ public class DebugProcessor {
             context.setProperty("DEBUG_TOKEN_TYPE", tokens.getTokenType());
 
             // Extract and validate claims from ID token and/or UserInfo endpoint.
-            LOG.info("Extracting user claims from tokens");
             Map<String, Object> claims = extractUserClaims(tokens, context);
             if (claims == null || claims.isEmpty()) {
                 LOG.error("Failed to extract user claims from tokens");
@@ -134,13 +119,7 @@ public class DebugProcessor {
                 return;
             }
 
-            LOG.info("Claims extraction successful - Retrieved " + claims.size() + " claims");
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Extracted claims: " + claims.keySet());
-            }
-
             // Create authenticated user object.
-            LOG.info("Creating authenticated user from claims");
             AuthenticatedUser authenticatedUser = createAuthenticatedUser(claims, context);
             if (authenticatedUser != null) {
                 context.setSubject(authenticatedUser);
@@ -148,10 +127,6 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_USER_EXISTS", true);
                 context.setProperty("DEBUG_AUTH_COMPLETED", "true");
                 context.setProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP", System.currentTimeMillis());
-
-                LOG.info("OAuth 2.0 authentication completed successfully for user: " + 
-                         authenticatedUser.getUserName() + " (Subject: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + 
-                         ", IdP: " + authenticatedUser.getFederatedIdPName() + ")");
             } else {
                 LOG.error("Failed to create authenticated user from claims");
                 context.setProperty("DEBUG_AUTH_ERROR", "Failed to create authenticated user");
@@ -163,7 +138,7 @@ public class DebugProcessor {
             sendProcessedResponse(response, context);
 
         } catch (Exception e) {
-            LOG.error("Unexpected error processing OAuth 2.0 callback: " + e.getMessage(), e);
+            LOG.error("Unexpected error processing OAuth 2.0 callback", e);
             context.setProperty("DEBUG_AUTH_ERROR", "Unexpected error: " + e.getMessage());
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
             sendProcessedResponse(response, context);
@@ -179,21 +154,14 @@ public class DebugProcessor {
      */
     private TokenResponse exchangeCodeForTokens(String authorizationCode, AuthenticationContext context) {
         try {
-            LOG.info("Initiating OAuth 2.0 token exchange for authorization code");
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Authorization code length: " + authorizationCode.length() + " characters");
-            }
-
             // Get OAuth 2.0 configuration.
             String authenticatorName = (String) context.getProperty("DEBUG_AUTHENTICATOR_NAME");
-            LOG.info("Token exchange for authenticator: " + authenticatorName);
             
             IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
             if (idp == null) {
                 LOG.error("Identity Provider configuration not found in context");
                 return null;
             }
-            LOG.info("Using Identity Provider: " + idp.getIdentityProviderName());
 
             FederatedAuthenticatorConfig authenticatorConfig = findAuthenticatorConfig(idp, authenticatorName);
             if (authenticatorConfig == null) {
@@ -208,9 +176,6 @@ public class DebugProcessor {
             // Handle Google-specific case where token endpoint might not be configured.
             if (tokenEndpoint == null && isGoogleOIDC(clientId, authenticatorConfig)) {
                 tokenEndpoint = "https://oauth2.googleapis.com/token";
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Using Google's standard token endpoint: " + tokenEndpoint);
-                }
             }
 
             if (clientId == null || clientSecret == null || tokenEndpoint == null) {
@@ -223,12 +188,6 @@ public class DebugProcessor {
             String redirectUri = buildRedirectUri(context);
 
             // Prepare token request.
-            LOG.info("Preparing token exchange request to endpoint: " + tokenEndpoint);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Token request parameters - Client ID: " + clientId + 
-                         ", Redirect URI: " + redirectUri + ", Code Verifier: [PRESENT]");
-            }
-
             String requestBody = "grant_type=authorization_code" +
                                 "&code=" + urlEncode(authorizationCode) +
                                 "&redirect_uri=" + urlEncode(redirectUri) +
@@ -236,7 +195,6 @@ public class DebugProcessor {
                                 "&code_verifier=" + urlEncode(codeVerifier);
 
             // Make token request with retry logic.
-            LOG.info("Sending token exchange HTTP request");
             HttpURLConnection connection = null;
             int responseCode = -1;
             int maxRetries = 3;
@@ -244,13 +202,10 @@ public class DebugProcessor {
             
             while (attempt <= maxRetries) {
                 try {
-                    LOG.info("Token exchange attempt " + attempt + " of " + maxRetries);
                     connection = createTokenRequest(tokenEndpoint, clientId, clientSecret, requestBody);
                     responseCode = connection.getResponseCode();
-                    LOG.info("Token endpoint response code: " + responseCode + " (attempt " + attempt + ")");
                     break; // Success - exit retry loop
                 } catch (java.net.SocketTimeoutException e) {
-                    LOG.warn("Token exchange attempt " + attempt + " timed out: " + e.getMessage());
                     if (attempt == maxRetries) {
                         LOG.error("All " + maxRetries + " token exchange attempts failed due to timeout");
                         throw e; // Re-throw on final attempt
@@ -259,7 +214,6 @@ public class DebugProcessor {
                     // Wait before retry (exponential backoff)
                     Thread.sleep(2000 * attempt);
                 } catch (Exception e) {
-                    LOG.error("Token exchange attempt " + attempt + " failed with exception: " + e.getMessage());
                     if (attempt == maxRetries) {
                         throw e; // Re-throw on final attempt
                     }
@@ -270,34 +224,18 @@ public class DebugProcessor {
 
             if (responseCode == 200) {
                 String responseBody = readResponse(connection.getInputStream());
-                LOG.info("Token exchange successful - parsing response");
-                TokenResponse tokenResponse = parseTokenResponse(responseBody);
-                
-                if (tokenResponse != null) {
-                    LOG.info("Token parsing successful - Access Token: [PRESENT], ID Token: " + 
-                            (tokenResponse.getIdToken() != null ? "[PRESENT]" : "[NOT PRESENT]"));
-                } else {
-                    LOG.error("Token response parsing failed despite successful HTTP response");
-                }
-                
-                return tokenResponse;
+                return parseTokenResponse(responseBody);
             } else {
                 String errorResponse = readResponse(connection.getErrorStream());
-                LOG.error("=== OAuth Token Exchange Failed ===");
-                LOG.error("HTTP Status Code: " + responseCode);
+                LOG.error("OAuth Token Exchange Failed - HTTP Status: " + responseCode);
                 LOG.error("Error Response: " + errorResponse);
                 LOG.error("Token Endpoint: " + tokenEndpoint);
-                LOG.error("Client ID: " + clientId);
                 LOG.error("Redirect URI: " + redirectUri);
-                LOG.error("=== End OAuth Error Details ===");
                 
                 // If callback URL mismatch, provide helpful guidance
                 if (errorResponse != null && errorResponse.contains("Callback url mismatch")) {
-                    LOG.error("CALLBACK URL MISMATCH DETECTED!");
-                    LOG.error("This error occurs when the redirect_uri in the token request doesn't match");
-                    LOG.error("the registered redirect URIs in your Asgardeo application configuration.");
-                    LOG.error("Generated redirect_uri: " + redirectUri);
-                    LOG.error("Please ensure this URL is added to your Asgardeo app's 'Allowed Grant Types' and 'Callback URLs'");
+                    LOG.error("CALLBACK URL MISMATCH - Generated redirect_uri: " + redirectUri);
+                    LOG.error("Please ensure this URL is added to your IdP application's callback URLs configuration");
                 }
                 
                 return null;

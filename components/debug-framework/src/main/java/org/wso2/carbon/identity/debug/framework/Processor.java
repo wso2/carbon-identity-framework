@@ -28,11 +28,6 @@ public class Processor {
      * @return Processed result object containing structured debug information.
      */
     public Object process(AuthenticationContext context) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Processing debug authentication results for session: " + 
-                     (context != null ? context.getContextIdentifier() : "null"));
-        }
-
         if (context == null) {
             LOG.error("Authentication context is null, cannot process results");
             return createErrorResult("INVALID_CONTEXT", "Authentication context is null");
@@ -71,14 +66,10 @@ public class Processor {
             String overallStatus = calculateOverallStatus(context, authResult, errors);
             debugResult.put("status", overallStatus);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug result processing completed successfully with status: " + overallStatus);
-            }
-
             return debugResult;
 
         } catch (Exception e) {
-            LOG.error("Error processing debug authentication results: " + e.getMessage(), e);
+            LOG.error("Error processing debug authentication results", e);
             return createErrorResult("PROCESSING_ERROR", "Error processing debug results: " + e.getMessage());
         }
     }
@@ -91,8 +82,6 @@ public class Processor {
      */
     private Map<String, Object> processAuthenticationResult(AuthenticationContext context) {
         Map<String, Object> authResult = new HashMap<>();
-        
-        LOG.error("[DEBUG-TRACE] PROCESSOR ENTRY - Context ID: " + (context != null ? context.getContextIdentifier() : "null"));
 
         try {
             // Get authentication status from simulation results (handle both String and Boolean types)

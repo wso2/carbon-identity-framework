@@ -28,7 +28,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.identity.debug.framework.RequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.DebugService;
-import org.wso2.carbon.identity.debug.framework.DebugFlowService;
 
 /**
  * OSGi service component for Debug Framework.
@@ -77,12 +76,6 @@ public class DebugServiceComponent {
             ServiceRegistration<?> coordinatorReg = bundleContext.registerService(
                 RequestCoordinator.class.getName(), debugCoordinator, null);
             LOG.info("Debug Framework: Registered RequestCoordinator - Registration: " + coordinatorReg);
-            
-            // Create and register DebugFlowService (for backward compatibility)
-            DebugFlowService debugFlowService = new DebugFlowService();
-            ServiceRegistration<?> flowServiceReg = bundleContext.registerService(
-                DebugFlowService.class.getName(), debugFlowService, null);
-            LOG.info("Debug Framework: Registered DebugFlowService - Registration: " + flowServiceReg);
             
             // Store services in data holder for authentication framework access
             DebugFrameworkServiceDataHolder.getInstance().setDebugService(debugCoordinator);

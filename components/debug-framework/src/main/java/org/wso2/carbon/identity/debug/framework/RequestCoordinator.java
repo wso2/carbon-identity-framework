@@ -81,30 +81,11 @@ public class RequestCoordinator implements DebugService {
     }
 
     public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
-        LOG.info("=== DEBUG COORDINATOR: Processing /commonauth request ===");
-        
         try {
-            // Log request details for debugging
-            LOG.info("Request URI: " + request.getRequestURI());
-            LOG.info("Query String: " + request.getQueryString());
-            
-            // Extract OAuth parameters
-            String oauthCode = request.getParameter("code");
-            String oauthState = request.getParameter("state");
-            String sessionDataKey = request.getParameter("sessionDataKey");
-            
-            LOG.info("OAuth Code: " + oauthCode);
-            LOG.info("OAuth State: " + oauthState);
-            LOG.info("Session Data Key: " + sessionDataKey);
-            
             // Check if this is a debug flow callback
-            boolean isDebugFlow = isDebugFlowCallback(request);
-            LOG.info("Is Debug Flow: " + isDebugFlow);
-            
-            if (isDebugFlow) {
+            if (isDebugFlowCallback(request)) {
                 return handleDebugFlowCallback(request, response);
             } else {
-                LOG.info("=== NOT A DEBUG FLOW - Delegating to regular authentication ===");
                 return false; // Let regular authentication handle it
             }
             
@@ -207,9 +188,6 @@ public class RequestCoordinator implements DebugService {
         // Check for explicit debug identifier parameter.
         String debugParam = request.getParameter(DEBUG_IDENTIFIER_PARAM);
         if ("true".equals(debugParam)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug flow detected via debug identifier parameter");
-            }
             return true;
         }
 
@@ -220,17 +198,11 @@ public class RequestCoordinator implements DebugService {
         if (code != null && state != null) {
             // Look for debug session information in OAuth state parameter.
             if (isDebugStateParameter(state)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug flow detected via OAuth state parameter: " + state);
-                }
                 return true;
             }
             
             // Try to find debug context by checking all possible cache entries for debug markers.
             if (checkForDebugContextByOAuthParams(code, state)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug flow detected via OAuth parameters cache lookup");
-                }
                 return true;
             }
         }
@@ -240,23 +212,13 @@ public class RequestCoordinator implements DebugService {
         if (sessionDataKey != null) {
             AuthenticationContext context = retrieveDebugContextFromCache(sessionDataKey);
             if (context != null && isDebugContext(context)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug flow detected via session context properties");
-                }
                 return true;
             }
         }
 
         // Check for debug session ID parameter (legacy).
         String debugSessionId = request.getParameter(DEBUG_SESSION_ID_PARAM);
-        if (debugSessionId != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug flow detected via debug session ID parameter");
-            }
-            return true;
-        }
-
-        return false;
+        return debugSessionId != null;
     }
 
     /**
@@ -267,27 +229,12 @@ public class RequestCoordinator implements DebugService {
      */
     private boolean isDebugStateParameter(String state) {
         if (state == null) {
-            LOG.info("DEBUG STATE CHECK: State parameter is null");
             return false;
         }
         
-        LOG.info("DEBUG STATE CHECK: Checking state parameter: " + state);
-        
         // Check for debug-specific state patterns.
-        boolean startsWithDebug = state.startsWith("debug-");
-        boolean containsDebug = state.contains("debug");
-        boolean containsDebugUpper = state.contains("DEBUG");
-        boolean containsDbg = state.contains("dbg-");
-        
-        LOG.info("DEBUG STATE CHECK: startsWith('debug-'): " + startsWithDebug);
-        LOG.info("DEBUG STATE CHECK: contains('debug'): " + containsDebug);
-        LOG.info("DEBUG STATE CHECK: contains('DEBUG'): " + containsDebugUpper);
-        LOG.info("DEBUG STATE CHECK: contains('dbg-'): " + containsDbg);
-        
-        boolean isDebug = startsWithDebug || containsDebug || containsDebugUpper || containsDbg;
-        LOG.info("DEBUG STATE CHECK: Final result: " + isDebug);
-        
-        return isDebug;
+        return state.startsWith("debug-") || state.contains("debug") || 
+               state.contains("DEBUG") || state.contains("dbg-");
     }
 
     /**
@@ -434,11 +381,6 @@ public class RequestCoordinator implements DebugService {
             String error = request.getParameter("error");
             String sessionDataKey = request.getParameter(SESSION_DATA_KEY_PARAM);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Processing debug OAuth callback - code: " + (code != null ? "present" : "null") + 
-                         ", state: " + state + ", error: " + error + ", sessionDataKey: " + sessionDataKey);
-            }
-
             // Handle OAuth error responses.
             if (error != null) {
                 LOG.error("OAuth error in debug callback: " + error);
@@ -470,9 +412,6 @@ public class RequestCoordinator implements DebugService {
             if (context == null) {
                 if (code != null && state != null) {
                     context = createDebugContextForCallback(code, state, request);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Created new debug context for OAuth callback processing");
-                    }
                 } else {
                     LOG.error("Cannot process debug callback: missing OAuth parameters and no cached context");
                     sendErrorResponse(response, "MISSING_CONTEXT_AND_PARAMS", 
@@ -499,7 +438,7 @@ public class RequestCoordinator implements DebugService {
             return true;
 
         } catch (Exception e) {
-            LOG.error("Error processing debug flow callback: " + e.getMessage(), e);
+            LOG.error("Error processing debug flow callback", e);
             sendErrorResponse(response, "DEBUG_PROCESSING_ERROR", e.getMessage());
             return false;
         }
