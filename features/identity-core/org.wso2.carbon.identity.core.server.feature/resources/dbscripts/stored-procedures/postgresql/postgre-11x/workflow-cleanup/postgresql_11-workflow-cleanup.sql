@@ -43,7 +43,7 @@ BEGIN
         RAISE NOTICE 'WSO2_WF_REQUEST_CLEANUP() STARTED...!';
         RAISE NOTICE 'Cleanup Period: % days', cleanUpRequestsTimeLimit;
         RAISE NOTICE 'Cleanup Date Limit: %', cleanUpDateTimeLimit;
-        RAISE NOTICE 'Target Statuses: APPROVED, REJECTED, FAILED';
+        RAISE NOTICE 'Target Statuses: APPROVED, REJECTED, FAILED, ABORTED';
         RAISE NOTICE '========================================';
     END IF;
 
@@ -74,7 +74,7 @@ BEGIN
             IF cusrRecord.tablename = 'wf_request' THEN
                 EXECUTE 'CREATE TABLE '||quote_ident(backupTable)||' AS 
                          SELECT * FROM '||quote_ident(cusrRecord.tablename)||' 
-                         WHERE STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'') 
+                         WHERE STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'') 
                          AND UPDATED_AT < $1' USING cleanUpDateTimeLimit;
             ELSE
                 -- For related tables, backup records that reference the requests to be deleted
@@ -87,7 +87,7 @@ BEGIN
                                  WHEN 'wf_workflow_request_relation' THEN 'REQUEST_ID'
                                  WHEN 'wf_workflow_approval_relation' THEN 'EVENT_ID'
                              END ||'
-                             AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'')
+                             AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
                              AND r.UPDATED_AT < $1
                          )' USING cleanUpDateTimeLimit;
             END IF;
@@ -116,7 +116,7 @@ BEGIN
         DROP TABLE IF EXISTS wf_request_chunk_tmp;
         CREATE TABLE wf_request_chunk_tmp AS 
             SELECT UUID FROM wf_request
-            WHERE STATUS IN ('APPROVED', 'REJECTED', 'FAILED', 'DELETED')
+            WHERE STATUS IN ('APPROVED', 'REJECTED', 'FAILED', 'DELETED', 'ABORTED')
             AND UPDATED_AT < cleanUpDateTimeLimit
             LIMIT chunkSize;
         GET DIAGNOSTICS chunkCount := ROW_COUNT;
