@@ -128,7 +128,7 @@ public class WorkflowManagementServiceImplTest {
     private static final String WORKFLOW_DESCRIPTION = "Test workflow description";
     private static final String TEMPLATE_ID = "test-template-1";
     private static final String DEFAULT_WORKFLOW_IMPL_ID = "WorkflowEngine";
-    private static final String CUSTOM_WORKFLOW_IMPL_ID = "BPSWorkflowEngine";
+    private static final String CUSTOM_WORKFLOW_IMPL_ID = "ApprovalWorkflow";
 
     private static final String EVENT_ID = "test-event-1";
     private static final String ASSOCIATION_NAME = "test-association";

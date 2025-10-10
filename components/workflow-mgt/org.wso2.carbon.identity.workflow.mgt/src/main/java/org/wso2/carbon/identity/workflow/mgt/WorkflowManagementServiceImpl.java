@@ -71,7 +71,7 @@ import javax.xml.xpath.XPathFactory;
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
     private static final int MAX_LIMIT = 1000;
-    private static final String DEFAULT_WORKFLOW_ENGINE = "WorkflowEngine";
+    private static final String BPS_BASED_WORKFLOW_ENGINE = "ApprovalWorkflow";
 
     private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
 
@@ -385,15 +385,15 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         Workflow oldWorkflow = workflowDAO.getWorkflow(workflow.getWorkflowId());
         if (oldWorkflow == null) {
             workflowDAO.addWorkflow(workflow, tenantId);
-            // The workflow role is not created for the default workflow engine.
-            if (!DEFAULT_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+            // The workflow role is created only for the BPS workflow engine.
+            if (BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
                 WorkflowManagementUtil.createAppRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
             }
         } else {
             workflowDAO.removeWorkflowParams(workflow.getWorkflowId());
             workflowDAO.updateWorkflow(workflow);
             if (!StringUtils.equals(oldWorkflow.getWorkflowName(), workflow.getWorkflowName()) &&
-                    !DEFAULT_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+                    BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
                 WorkflowManagementUtil.updateWorkflowRoleName(oldWorkflow.getWorkflowName(),
                         workflow.getWorkflowName());
             }
@@ -576,8 +576,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         requestEntityRelationshipDAO.deleteEntityRelationsByWorkflowId(workflowId);
         workflowRequestDAO.abortWorkflowRequests(workflowId);
 
-        // The workflow role is not created for the default workflow engine. Hence skipping role deletion.
-        if (!DEFAULT_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+        // The workflow role is created for the BPS workflow engine. Hence, the role is deleted only for BPS-based
+        // workflows.
+        if (BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
             WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
         }
         workflowDAO.removeWorkflowParams(workflowId);
