@@ -19,8 +19,7 @@ DECLARE
     cusrRecord record;
     
     tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
-    tablename IN ('wf_request', 'wf_request_entity_relationship', 'wf_workflow_request_relation', 
-                  'wf_workflow_approval_relation', 'wf_workflow_approval_state');
+    tablename IN ('wf_request', 'wf_workflow_request_relation', 'wf_workflow_approval_relation');
 
 BEGIN
 
@@ -85,10 +84,8 @@ BEGIN
                              SELECT 1 FROM wf_request r 
                              WHERE r.UUID = t.'||
                              CASE cusrRecord.tablename
-                                 WHEN 'wf_request_entity_relationship' THEN 'REQUEST_ID'
                                  WHEN 'wf_workflow_request_relation' THEN 'REQUEST_ID'
                                  WHEN 'wf_workflow_approval_relation' THEN 'EVENT_ID'
-                                 WHEN 'wf_workflow_approval_state' THEN 'EVENT_ID'
                              END ||'
                              AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'')
                              AND r.UPDATED_AT < $1
@@ -193,8 +190,6 @@ EXCEPTION
 END;
 $$
 LANGUAGE 'plpgsql';
-
-CALL WSO2_WF_REQUEST_CLEANUP();
 
 -- To execute the cleanup procedure
 -- CALL WSO2_WF_REQUEST_CLEANUP();

@@ -55,41 +55,6 @@ BEGIN
     END IF;
 
     -- ------------------------------------------
-    -- RESTORE WF_REQUEST_ENTITY_RELATIONSHIP TABLE
-    -- ------------------------------------------
-    SELECT COUNT(1) INTO backupTableExists 
-    FROM PG_CATALOG.PG_TABLES 
-    WHERE SCHEMANAME = CURRENT_SCHEMA() 
-    AND TABLENAME = 'wf_request_entity_relationship_backup';
-    
-    IF (backupTableExists = 1) THEN
-        IF (enableLog AND logLevel IN ('TRACE')) THEN
-            RAISE NOTICE 'RESTORATION STARTED ON WF_REQUEST_ENTITY_RELATIONSHIP TABLE...';
-        END IF;
-        
-        INSERT INTO wf_request_entity_relationship 
-        SELECT A.* 
-        FROM wf_request_entity_relationship_backup A 
-        LEFT JOIN wf_request_entity_relationship B 
-            ON A.REQUEST_ID = B.REQUEST_ID 
-            AND A.ENTITY_NAME = B.ENTITY_NAME 
-            AND A.ENTITY_TYPE = B.ENTITY_TYPE
-            AND A.TENANT_ID = B.TENANT_ID
-        WHERE B.REQUEST_ID IS NULL;
-        
-        GET DIAGNOSTICS rowcount := ROW_COUNT;
-        totalRestored := totalRestored + rowcount;
-        
-        IF (enableLog) THEN
-            RAISE NOTICE '  Restored % records to WF_REQUEST_ENTITY_RELATIONSHIP', rowcount;
-        END IF;
-    ELSE
-        IF (enableLog) THEN
-            RAISE NOTICE '  Backup table wf_request_entity_relationship_backup not found - skipping';
-        END IF;
-    END IF;
-
-    -- ------------------------------------------
     -- RESTORE WF_WORKFLOW_REQUEST_RELATION TABLE
     -- ------------------------------------------
     SELECT COUNT(1) INTO backupTableExists 
@@ -156,39 +121,6 @@ BEGIN
     END IF;
 
     -- ------------------------------------------
-    -- RESTORE WF_WORKFLOW_APPROVAL_STATE TABLE
-    -- ------------------------------------------
-    SELECT COUNT(1) INTO backupTableExists 
-    FROM PG_CATALOG.PG_TABLES 
-    WHERE SCHEMANAME = CURRENT_SCHEMA() 
-    AND TABLENAME = 'wf_workflow_approval_state_backup';
-    
-    IF (backupTableExists = 1) THEN
-        IF (enableLog AND logLevel IN ('TRACE')) THEN
-            RAISE NOTICE 'RESTORATION STARTED ON WF_WORKFLOW_APPROVAL_STATE TABLE...';
-        END IF;
-        
-        INSERT INTO wf_workflow_approval_state 
-        SELECT A.* 
-        FROM wf_workflow_approval_state_backup A 
-        LEFT JOIN wf_workflow_approval_state B 
-            ON A.EVENT_ID = B.EVENT_ID
-            AND A.WORKFLOW_ID = B.WORKFLOW_ID
-        WHERE B.EVENT_ID IS NULL;
-        
-        GET DIAGNOSTICS rowcount := ROW_COUNT;
-        totalRestored := totalRestored + rowcount;
-        
-        IF (enableLog) THEN
-            RAISE NOTICE '  Restored % records to WF_WORKFLOW_APPROVAL_STATE', rowcount;
-        END IF;
-    ELSE
-        IF (enableLog) THEN
-            RAISE NOTICE '  Backup table wf_workflow_approval_state_backup not found - skipping';
-        END IF;
-    END IF;
-
-    -- ------------------------------------------
     -- COMPLETION SUMMARY
     -- ------------------------------------------
     IF (enableLog) THEN
@@ -237,15 +169,6 @@ BEGIN
     END IF;
     
     SELECT COUNT(1) INTO tablecount FROM PG_CATALOG.PG_TABLES 
-    WHERE SCHEMANAME = CURRENT_SCHEMA() AND TABLENAME = 'wf_request_entity_relationship_backup';
-    IF (tablecount = 1) THEN
-        DROP TABLE wf_request_entity_relationship_backup;
-        IF (enableLog) THEN
-            RAISE NOTICE 'Dropped table: wf_request_entity_relationship_backup';
-        END IF;
-    END IF;
-    
-    SELECT COUNT(1) INTO tablecount FROM PG_CATALOG.PG_TABLES 
     WHERE SCHEMANAME = CURRENT_SCHEMA() AND TABLENAME = 'wf_workflow_request_relation_backup';
     IF (tablecount = 1) THEN
         DROP TABLE wf_workflow_request_relation_backup;
@@ -260,15 +183,6 @@ BEGIN
         DROP TABLE wf_workflow_approval_relation_backup;
         IF (enableLog) THEN
             RAISE NOTICE 'Dropped table: wf_workflow_approval_relation_backup';
-        END IF;
-    END IF;
-    
-    SELECT COUNT(1) INTO tablecount FROM PG_CATALOG.PG_TABLES 
-    WHERE SCHEMANAME = CURRENT_SCHEMA() AND TABLENAME = 'wf_workflow_approval_state_backup';
-    IF (tablecount = 1) THEN
-        DROP TABLE wf_workflow_approval_state_backup;
-        IF (enableLog) THEN
-            RAISE NOTICE 'Dropped table: wf_workflow_approval_state_backup';
         END IF;
     END IF;
     
