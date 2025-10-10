@@ -30,6 +30,9 @@
   "identity_mgt.analytics_login_data_publisher_v110.subscriptions": "identity_mgt.events.schemes.analyticsLoginDataPublisherV110.subscriptions",
   "identity_mgt.analytics_login_data_publisher_v110.enable": "identity_mgt.events.schemes.analyticsLoginDataPublisherV110.properties.enable",
 
+  "identity_mgt.analytics_b2b_login_data_publisher.subscriptions": "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.subscriptions",
+  "identity_mgt.analytics_b2b_login_data_publisher.enable": "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.properties.enable",
+
   "identity_mgt.analytics_session_data_publisher.subscriptions": "identity_mgt.events.schemes.analyticsSessionDataPublisher.subscriptions",
   "identity_mgt.analytics_session_data_publisher.enable": "identity_mgt.events.schemes.analyticsSessionDataPublisher.properties.enable",
 

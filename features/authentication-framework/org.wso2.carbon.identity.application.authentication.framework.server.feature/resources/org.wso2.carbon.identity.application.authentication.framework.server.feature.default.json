@@ -39,6 +39,9 @@
     "AUTHENTICATION_SUCCESS",
     "AUTHENTICATION_FAILURE"
   ],
+  "authentication.analytics.publish_b2b_authentication_event_types": [
+    "AUTHENTICATION_SUCCESS"
+  ],
   "authentication.analytics.publish_session_event_types": [
     "SESSION_CREATE",
     "SESSION_UPDATE",
