@@ -79,10 +79,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
             "var loadWithNewGlobal=function(){Log.error('loadWithNewGlobal function is restricted.')};" +
             "var $ARG=null;var $ENV=null;var $EXEC=null;" +
             "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +
-            "Object.defineProperty(this, 'engine', {});" +
-            "var Graal = {" +
-            "    toString: function() { return 'restricted'; }" +
-            "};";
+            "Object.defineProperty(this, 'engine', {});";
 
     /**
      * Returns the built graph.
