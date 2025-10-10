@@ -1081,6 +1081,9 @@
     </Resource>
 
     <!-- [Organization] Application Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
+        <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_create</Scopes>
         <Operations mandatory="true">
@@ -1102,6 +1105,11 @@
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_application_mgt_view</Scopes>
+        <Operations mandatory="true">
+            <Operation name="viewApplicationClientSecret">
+                <scope>internal_org_application_mgt_client_secret_view</scope>
+            </Operation>
+        </Operations>
     </Resource>
 
     <!-- Application API resources Management API -->
@@ -1118,6 +1126,9 @@
     </Resource>
 
     <!-- Application Management API -->
+    <Resource context="(.*)/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
+        <Scopes>internal_application_mgt_client_secret_create</Scopes>
+    </Resource>
     <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_create</Scopes>
         <Operations mandatory="true">
@@ -1139,6 +1150,11 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
         <Scopes>internal_application_mgt_view</Scopes>
+        <Operations mandatory="true">
+            <Operation name="viewApplicationClientSecret">
+                <scope>internal_application_mgt_client_secret_view</scope>
+            </Operation>
+        </Operations>
     </Resource>
 
     <!-- Admin Application Management API -->

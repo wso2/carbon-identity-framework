@@ -1299,6 +1299,7 @@
         -->
         <EnableRoleValidation>false</EnableRoleValidation>
         <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceClientSecretPermission>false</SkipEnforceClientSecretPermission>
     </ApplicationMgt>
 
     <JITProvisioning>
