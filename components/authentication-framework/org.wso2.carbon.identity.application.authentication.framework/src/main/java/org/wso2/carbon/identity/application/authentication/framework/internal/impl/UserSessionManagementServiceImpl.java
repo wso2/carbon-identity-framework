@@ -96,6 +96,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         String userId = resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         try {
+            FrameworkUtils.startTenantFlow(tenantDomain);
             if (log.isDebugEnabled()) {
                 log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
                         userStoreDomain + " in tenant: " + tenantDomain);
@@ -104,6 +105,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } catch (SessionManagementException e) {
             throw new UserSessionException("Error while terminating sessions of user:" + username +
                     " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
+        } finally {
+            FrameworkUtils.endTenantFlow();
         }
     }
 
@@ -666,10 +669,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 return true;
             }
             String loginTenantDomain = FrameworkUtils.getLoginTenantDomainFromContext();
-            boolean isOrganization = OrganizationManagementUtil.isOrganization(loginTenantDomain);
+            boolean isLoginTenantAnOrganization = OrganizationManagementUtil.isOrganization(loginTenantDomain);
+            boolean isSessionTenantAnOrganization = OrganizationManagementUtil.isOrganization(sessionTenantDomain);
             if (StringUtils.equals(sessionTenantDomain, loginTenantDomain)) {
                 // This block handles the scenario where session tenant domain and login tenant domain are equal.
-                if (isOrganization & areAllFragmentAppsInUserSession(userSession)) {
+                if (isLoginTenantAnOrganization && areAllFragmentAppsInUserSession(userSession)) {
                    /*
                    When a sub org user authenticates using a shared application, sessions are created for shared app in
                    sub organization and parent app in primary organization. In this case, the session created in primary
@@ -681,7 +685,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 }
             } else {
                 // This block handles the scenario where session tenant domain and login tenant domain are different.
-                if (isOrganization &&
+                if (isLoginTenantAnOrganization &&
                         isSessionTenantPrimaryOrgForLoginTenant(sessionTenantDomain, loginTenantDomain)) {
                     /*
                     When a sub org user authenticates using a shared application, sessions are created for shared app in
@@ -697,6 +701,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     created for that tenant domain. In this case, user should be able to see this session from the
                     user resident tenant domain. Hence, this scenario is considered as an effective session.
                      */
+                    return true;
+                }
+                /*
+                There can be a situation where the super tenant user updates the password of a root organization
+                admin user. Hence, the sessions of the root organization admin user has to be terminated. For that, we
+                validate whether the login tenant domain and session tenant domain are not organizations.
+                */
+                if (!isLoginTenantAnOrganization && !isSessionTenantAnOrganization) {
                     return true;
                 }
                 return false;
