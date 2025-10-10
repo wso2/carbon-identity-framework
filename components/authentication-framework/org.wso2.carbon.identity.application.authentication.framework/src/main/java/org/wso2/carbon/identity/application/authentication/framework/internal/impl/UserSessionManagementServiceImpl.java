@@ -100,7 +100,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
                         userStoreDomain + " in tenant: " + tenantDomain);
             }
-            terminateSessionsByUserId(userId);
+            terminateSessionsByUserId(userId, tenantDomain);
         } catch (SessionManagementException e) {
             throw new UserSessionException("Error while terminating sessions of user:" + username +
                     " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
@@ -298,6 +298,13 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
 
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return terminateSessionsByUserId(userId, tenantDomain);
+    }
+
+    @Override
+    public boolean terminateSessionsByUserId(String userId, String tenantDomain) throws SessionManagementException {
+
         List<String> sessionIdList = null;
 
         if (StringUtils.isBlank(userId)) {
@@ -307,7 +314,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         // First check whether a federated association exists for the userId.
         try {
-            int tenantId = getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            int tenantId = getTenantId(tenantDomain);
             Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap =
                     getAuthSessionUserMapFromFedAssociationMapping(tenantId, userId);
             if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
@@ -322,7 +329,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         }
 
-        List<UserSession> sessionList = getSessionsByUserId(userIdToSearch);
+        List<UserSession> sessionList = getSessionsByUserId(userIdToSearch, tenantDomain);
         sessionIdList = sessionList.stream().map(UserSession::getSessionId).collect(Collectors.toList());
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
@@ -666,10 +673,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 return true;
             }
             String loginTenantDomain = FrameworkUtils.getLoginTenantDomainFromContext();
-            boolean isOrganization = OrganizationManagementUtil.isOrganization(loginTenantDomain);
+            boolean isLoginTenantAnOrganization = OrganizationManagementUtil.isOrganization(loginTenantDomain);
+            boolean isSessionTenantAnOrganization = OrganizationManagementUtil.isOrganization(sessionTenantDomain);
             if (StringUtils.equals(sessionTenantDomain, loginTenantDomain)) {
                 // This block handles the scenario where session tenant domain and login tenant domain are equal.
-                if (isOrganization & areAllFragmentAppsInUserSession(userSession)) {
+                if (isLoginTenantAnOrganization & areAllFragmentAppsInUserSession(userSession)) {
                    /*
                    When a sub org user authenticates using a shared application, sessions are created for shared app in
                    sub organization and parent app in primary organization. In this case, the session created in primary
@@ -681,7 +689,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 }
             } else {
                 // This block handles the scenario where session tenant domain and login tenant domain are different.
-                if (isOrganization &&
+                if (isLoginTenantAnOrganization &&
                         isSessionTenantPrimaryOrgForLoginTenant(sessionTenantDomain, loginTenantDomain)) {
                     /*
                     When a sub org user authenticates using a shared application, sessions are created for shared app in
@@ -697,6 +705,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     created for that tenant domain. In this case, user should be able to see this session from the
                     user resident tenant domain. Hence, this scenario is considered as an effective session.
                      */
+                    return true;
+                }
+                /*
+                There can be a situation where the super tenant user updates the password of a root organization
+                admin user. Hence, the sessions of the root organization admin user has to be terminated. For that, we
+                validate whether the login tenant domain and session tenant domain are not organizations.
+                */
+                if (!isLoginTenantAnOrganization && !isSessionTenantAnOrganization) {
                     return true;
                 }
                 return false;

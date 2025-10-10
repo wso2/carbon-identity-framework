@@ -78,6 +78,19 @@ public interface UserSessionManagementService {
     }
 
     /**
+     * Terminate all the active sessions of the given user ID.
+     *
+     * @param userId Unique ID of the user.
+     * @param tenantDomain Tenant domain of the user.
+     * @return Whether the sessions termination is success or not.
+     * @throws SessionManagementException if the session termination fails.
+     */
+    default boolean terminateSessionsByUserId(String userId, String tenantDomain) throws SessionManagementException {
+
+        return false;
+    }
+
+    /**
      * Get a specific session of the given user ID.
      *
      * @param userId    Unique ID of the user.
