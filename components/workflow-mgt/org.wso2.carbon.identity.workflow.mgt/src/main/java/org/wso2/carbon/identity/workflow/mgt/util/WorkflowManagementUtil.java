@@ -106,7 +106,7 @@ public class WorkflowManagementUtil {
      *
      * @param oldWorkflowName Previous role name.
      * @param newWorkflowName New role name.
-     * @throws WorkflowException
+     * @throws WorkflowException if the workflow role name update fails due to a UserStoreException.
      */
     public static void updateWorkflowRoleName(String oldWorkflowName, String newWorkflowName) throws
             WorkflowException {
