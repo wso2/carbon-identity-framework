@@ -1407,8 +1407,35 @@
                 <Scope name="console:role_assignments_edit"/>
             </Feature>
             <Update>
+                <Scope name="internal_role_mgt_update"/>
                 <Scope name="internal_role_mgt_users_update"/>
                 <Scope name="internal_role_mgt_groups_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="rolePermissionAssignments" displayName="Role Permission Assignments" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:roles"/>
+                <Scope name="console:role_permission_assignments"/>
+                <Scope name="console:role_permission_assignments_view"/>
+                <Scope name="console:role_permission_assignments_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_role_mgt_update"/>
+                <Scope name="internal_role_mgt_permissions_update"/>
             </Update>
             <Delete/>
             <Create/>
@@ -1810,6 +1837,7 @@
                 <Scope name="console:org:role_assignments_edit"/>
             </Feature>
             <Update>
+                <Scope name="internal_org_role_mgt_update"/>
                 <Scope name="internal_org_role_mgt_users_update"/>
                 <Scope name="internal_org_role_mgt_groups_update"/>
             </Update>
@@ -1825,6 +1853,30 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_rolePermissionAssignments" displayName="Role Permission Assignments" type="organization">
+            <Scopes>
+                <Feature>
+                    <Scope name="console:org:roles"/>
+                    <Scope name="console:org:role_permission_assignments"/>
+                    <Scope name="console:org:role_permission_assignments_view"/>
+                    <Scope name="console:org:role_permission_assignments_edit"/>
+                </Feature>
+                <Update>
+                    <Scope name="internal_org_role_mgt_update"/>
+                    <Scope name="internal_org_role_mgt_permissions_update"/>
+                </Update>
+                <Delete/>
+                <Create/>
+                <Read>
+                    <Scope name="internal_org_role_mgt_view"/>
+                    <Scope name="internal_org_userstore_view"/>
+                    <Scope name="internal_org_application_mgt_view"/>
+                    <Scope name="internal_org_user_mgt_list"/>
+                    <Scope name="internal_org_idp_view"/>
+                    <Scope name="internal_org_api_resource_view"/>
+                </Read>
+            </Scopes>
+        </APIResourceCollection>
     <APIResourceCollection name="org_rolesV1" displayName="Roles" type="organization">
         <Scopes>
             <Feature>
