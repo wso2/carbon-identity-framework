@@ -129,7 +129,7 @@ public class WorkflowManagementUtil {
      * Generate owner role name for workflow.
      *
      * @param workflowName Workflow name.
-     * @return
+     * @return The formatted role name with internal domain prefix and domain separator, followed by the workflow name.
      */
     public static String createWorkflowRoleName(String workflowName) {
 
