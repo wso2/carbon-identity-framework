@@ -282,7 +282,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 AuthorizationDetailsType authorizationDetailsType =
                         this.buildAuthorizationDetailsTypeWithSchema(resultSet);
                 if (authorizationDetailsType != null) {
-                    authorizationDetailsTypes.add(this.buildAuthorizationDetailsTypeWithSchema(resultSet));
+                    authorizationDetailsTypes.add(authorizationDetailsType);
                 }
             }
 
