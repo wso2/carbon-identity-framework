@@ -144,7 +144,8 @@ public class WorkflowPendingUserAuthnHandler extends AbstractEventHandler {
     private boolean isWorkflowPendingUserAuthnHandlerEnabled() {
 
         if (this.configs.getModuleProperties() != null) {
-            String handlerEnabled = this.configs.getModuleProperties().getProperty(WORKFLOW_PENDING_USER_AUTHN_HANDLER_ENABLE);
+            String handlerEnabled = this.configs.getModuleProperties()
+                    .getProperty(WORKFLOW_PENDING_USER_AUTHN_HANDLER_ENABLE);
             return Boolean.parseBoolean(handlerEnabled);
         }
         return false;
