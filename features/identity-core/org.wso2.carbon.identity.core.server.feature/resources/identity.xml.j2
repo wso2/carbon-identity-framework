@@ -1309,9 +1309,8 @@
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
         <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
 
-        {% if oauth.add_tenant_domain_to_access_token is defined %}
+        <!-- Configuration for adding tenant domain info to JWT -->
         <AddTenantDomainToAccessToken>{{oauth.add_tenant_domain_to_access_token}}</AddTenantDomainToAccessToken>
-        {% endif %}
 
         <JWT>
         {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
