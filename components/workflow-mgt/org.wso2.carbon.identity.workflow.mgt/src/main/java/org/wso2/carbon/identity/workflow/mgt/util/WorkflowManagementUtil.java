@@ -97,7 +97,7 @@ public class WorkflowManagementUtil {
             CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
                     .deleteRole(roleName);
         } catch (UserStoreException e) {
-            throw new WorkflowException("Error while creating workflow", e);
+            throw new WorkflowException("Error while deleting workflow role", e);
         }
     }
 
