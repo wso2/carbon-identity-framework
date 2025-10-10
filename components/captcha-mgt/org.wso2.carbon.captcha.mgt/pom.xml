@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>captcha-mgt</artifactId>
-        <version>7.8.566</version>
+        <version>7.8.567-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
