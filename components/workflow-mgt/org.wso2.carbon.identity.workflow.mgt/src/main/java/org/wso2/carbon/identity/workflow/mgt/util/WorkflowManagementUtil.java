@@ -84,7 +84,7 @@ public class WorkflowManagementUtil {
      * Delete role created for workflow.
      *
      * @param workflowName Workflow name.
-     * @throws WorkflowException
+     * @throws WorkflowException if role deletion fails due to a UserStoreException.
      */
     public static void deleteWorkflowRole(String workflowName) throws WorkflowException {
 
