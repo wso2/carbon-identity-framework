@@ -279,7 +279,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             ResultSet resultSet = prepStmt.executeQuery();
 
             while (resultSet.next()) {
-                authorizationDetailsTypes.add(this.buildAuthorizationDetailsTypeWithSchema(resultSet));
+                AuthorizationDetailsType authorizationDetailsType =
+                        this.buildAuthorizationDetailsTypeWithSchema(resultSet);
+                if (authorizationDetailsType != null) {
+                    authorizationDetailsTypes.add(this.buildAuthorizationDetailsTypeWithSchema(resultSet));
+                }
             }
 
             return authorizationDetailsTypes;
