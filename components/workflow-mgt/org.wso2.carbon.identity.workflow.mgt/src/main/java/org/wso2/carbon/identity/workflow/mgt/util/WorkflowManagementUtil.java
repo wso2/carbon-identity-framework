@@ -59,7 +59,7 @@ public class WorkflowManagementUtil {
      * Create an internal role in the workflow domain with the same name as the workflow.
      *
      * @param workflowName Workflow name.
-     * @throws WorkflowException if an error occurs while creating the role in the user store.
+     * @throws WorkflowException if an error occurs while creating the role.
      */
     public static void createAppRole(String workflowName) throws WorkflowException {
 
@@ -77,7 +77,6 @@ public class WorkflowManagementUtil {
         } catch (UserStoreException e) {
             throw new WorkflowException("Error while creating role", e);
         }
-
     }
 
     /**
@@ -122,7 +121,6 @@ public class WorkflowManagementUtil {
         } catch (UserStoreException e) {
             throw new WorkflowException("Error while updating workflow role name.", e);
         }
-
     }
 
     /**
