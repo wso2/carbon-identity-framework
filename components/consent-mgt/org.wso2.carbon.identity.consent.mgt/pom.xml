@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>consent-mgt</artifactId>
-        <version>7.8.566-SNAPSHOT</version>
+        <version>7.8.566</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
