@@ -1473,16 +1473,16 @@
     "applications.loginFlow.legacyEditor",
     "applications.sharedAccess.status"
   ],
-  "console.applications.sub_features.businessAPIResourceAuthorization.scopes.update": [
+  "console.applications.sub_features.applicationBusinessAPIAuthorization.scopes.update": [
     "internal_application_business_api_update"
   ],
-  "console.applications.sub_features.internalAPIResourceAuthorization.scopes.update": [
+  "console.applications.sub_features.applicationInternalAPIAuthorization.scopes.update": [
     "internal_application_internal_api_update"
   ],
-  "console.applications.sub_features.clientSecret.scopes.create": [
+  "console.applications.sub_features.applicationClientSecretManagement.scopes.create": [
     "internal_application_mgt_client_secret_create"
   ],
-  "console.applications.sub_features.clientSecret.scopes.read": [
+  "console.applications.sub_features.applicationClientSecretManagement.scopes.read": [
     "internal_application_mgt_client_secret_view"
   ],
   "console.applications.sub_features.applicationAuthenticationScript.scopes.update": [
