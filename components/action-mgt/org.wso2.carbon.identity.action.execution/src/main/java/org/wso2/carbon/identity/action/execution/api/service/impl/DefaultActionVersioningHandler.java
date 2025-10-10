@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.internal.service.impl;
+package org.wso2.carbon.identity.action.execution.api.service.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;

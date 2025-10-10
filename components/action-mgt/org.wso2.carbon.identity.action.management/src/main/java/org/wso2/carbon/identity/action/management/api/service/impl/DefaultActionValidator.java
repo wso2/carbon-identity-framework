@@ -16,16 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.management.internal.util;
+package org.wso2.carbon.identity.action.management.api.service.impl;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.service.ActionValidator;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
+import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
+import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -33,7 +38,7 @@ import java.util.regex.Pattern;
 /**
  * Action validator class.
  */
-public class ActionValidator {
+public class DefaultActionValidator implements ActionValidator {
 
     private static final String ACTION_NAME_REGEX = "^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$";
     private static final String ENDPOINT_URI_REGEX = "^https?://[^\\s/$.?#]\\S*";
@@ -47,13 +52,28 @@ public class ActionValidator {
     private final Pattern headerRegexPattern = Pattern.compile(HEADER_REGEX);
     private final Pattern generalDelimiterRegex = Pattern.compile(GENERAL_DELIMITER_REGEX);
 
+    static DefaultActionValidator instance = new DefaultActionValidator();
+    private static final Log LOG = LogFactory.getLog(DefaultActionValidator.class);
+
+    public static DefaultActionValidator getInstance() {
+        return instance;
+    }
+
+    @Override
+    public ActionTypes getSupportedActionType() {
+
+         throw new UnsupportedOperationException("This method is not allowed for DefaultActionValidator.");
+    }
+
     /**
      * Perform pre validations on action model when creating an action.
      *
      * @param action Action creation model.
-     * @throws ActionMgtClientException if action model is invalid.
+     * @throws ActionMgtException if action model is invalid.
      */
-    public void doPreAddActionValidations(Action action) throws ActionMgtClientException {
+    @Override
+    public void doPreAddActionValidations(Action.ActionTypes actionType, String actionVersion, Action action)
+            throws ActionMgtException {
 
         validateForBlank(ActionMgtConstants.ACTION_NAME_FIELD, action.getName());
         validateForBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
@@ -62,6 +82,7 @@ public class ActionValidator {
         doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
         doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
         doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
+        isRulesApplicableForActionVersion(actionVersion, action);
     }
 
     /**
@@ -69,10 +90,13 @@ public class ActionValidator {
      * This is specifically used during HTTP PATCH operation and only validate non-null and non-empty fields.
      *
      * @param action Action update model.
-     * @throws ActionMgtClientException if action model is invalid.
+     * @throws ActionMgtException if action model is invalid.
      */
-    public void doPreUpdateActionValidations(Action action) throws ActionMgtClientException {
+    @Override
+    public void doPreUpdateActionValidations(Action.ActionTypes actionType, String actionVersion, Action action)
+            throws ActionMgtException {
 
+        validateActionVersion(actionType, action.getActionVersion());
         if (action.getName() != null) {
             validateActionName(action.getName());
         }
@@ -86,6 +110,7 @@ public class ActionValidator {
             doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
             doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
         }
+        isRulesApplicableForActionVersion(actionVersion, action);
     }
 
     /**
@@ -289,5 +314,21 @@ public class ActionValidator {
         }
         throw ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_VERSION_UPDATE,
                 ActionManagementConfig.getInstance().getLatestVersion(actionType));
+    }
+
+    /**
+     * Validate the action version update during an update operation to ensure only the latest version is used.
+     *
+     * @param action    Action.
+     * @throws ActionMgtException If any error occurred during resolving latest action version or provided version is
+     * not action version is not the latest
+     */
+    public void isRulesApplicableForActionVersion(String actionVersion, Action action) throws ActionMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Skipping rule revalidation as rules are already validated for the action type. If action " +
+                    "version–specific rule validation is required, it must be handled in the corresponding " +
+                    "downstream action component.");
+        }
     }
 }
