@@ -868,6 +868,7 @@
   "oauth.jwks_endpoint.add_previous_version_kid" : false,
   "oauth.jwks_endpoint.is_thumbprint_hexify_required": false,
   "oauth.global_scope_validators.role_based_scope_issuer.enable": false,
+  "oauth.add_tenant_domain_to_access_token": false,
 
   "authentication.adaptive.event_publisher.authentication_type": "basic",
   "authentication.adaptive.async_executer_pool_size": "5",
@@ -1987,7 +1988,7 @@
     "/api/users/v1/me/applications"
   ],
   "ui.is_cookie_consent_banner_enabled": true,
-  
+
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],
@@ -2059,7 +2060,7 @@
   "client_attestation.apple_attestation_revocation_check_enabled": false,
 
   "api_response.set_account_lock_auth_failure_reason": false,
-  
+
   "super_tenant.alias_in_public_url": "",
   "connector.challenge_questions.enable": false,
   "tenant_mgt.enable_email_domain": false,
@@ -2135,7 +2136,7 @@
   "console.ui.organizations.organization_display_name.enable": true,
   "console.ui.organizations.organization_handle.enable": true,
   "notification_templates.super_organization_display_name.enable": true,
-  
+
   "notificationChannel.sms.custom.connection_timeout": "5000",
   "notificationChannel.sms.custom.connection_read_timeout": "20000",
 
