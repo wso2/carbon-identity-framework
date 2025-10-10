@@ -45,10 +45,16 @@ import java.util.Map;
  */
 public class WorkflowPendingUserAuthnHandler extends AbstractEventHandler {
 
+    private static final String WORKFLOW_PENDING_USER_AUTHN_HANDLER_ENABLE = "WorkflowPendingUserAuthnHandler.enable";
+
     private static final Log log = LogFactory.getLog(WorkflowPendingUserAuthnHandler.class);
 
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
+
+        if (!isWorkflowPendingUserAuthnHandlerEnabled()) {
+            return;
+        }
 
         Map<String, Object> eventProperties = event.getEventProperties();
 
@@ -133,5 +139,14 @@ public class WorkflowPendingUserAuthnHandler extends AbstractEventHandler {
                     WorkflowErrorConstants.ErrorMessages.ERROR_CODE_USER_ACCOUNT_PENDING_APPROVAL.getCode(),
                     WorkflowErrorConstants.ErrorMessages.ERROR_CODE_USER_ACCOUNT_PENDING_APPROVAL.getMessage());
         }
+    }
+
+    private boolean isWorkflowPendingUserAuthnHandlerEnabled() {
+
+        if (this.configs.getModuleProperties() != null) {
+            String handlerEnabled = this.configs.getModuleProperties().getProperty(WORKFLOW_PENDING_USER_AUTHN_HANDLER_ENABLE);
+            return Boolean.parseBoolean(handlerEnabled);
+        }
+        return false;
     }
 }

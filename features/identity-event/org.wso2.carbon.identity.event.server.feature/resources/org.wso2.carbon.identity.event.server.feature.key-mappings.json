@@ -45,5 +45,7 @@
   "identity_mgt.oidc_logout_event_handler.subscriptions": "identity_mgt.events.schemes.OIDCLogoutEventHandler.subscriptions",
   "identity_mgt.oidc_logout_event_handler.enable": "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable",
 
-  "identity_mgt.dpop_event_handler.subscriptions": "identity_mgt.events.schemes.dpopEventHandler.subscriptions"
+  "identity_mgt.dpop_event_handler.subscriptions": "identity_mgt.events.schemes.dpopEventHandler.subscriptions",
+
+  "identity_mgt.workflow_pending_user_authn_handler.enable": "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.properties.enable"
 }

@@ -390,5 +390,10 @@
   ],
   "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.module_index": "60",
   "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.subscriptions": "$ref{authentication.analytics.publish_b2b_authentication_event_types}",
-  "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.properties.enable": false
+  "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.module_index": "61",
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.subscriptions": [
+    "PRE_AUTHENTICATE_CLAIM_WITH_ID"
+  ],
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.properties.enable": "$ref{identity_mgt.workflow_pending_user_authn_handler.enable}"
 }

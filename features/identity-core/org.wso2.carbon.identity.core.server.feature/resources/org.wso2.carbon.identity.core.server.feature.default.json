@@ -560,6 +560,8 @@
 
   "identity_mgt.enable_user_claim_input_regex_validation": true,
 
+  "identity_mgt.workflow_pending_user_authn_handler.enable": false,
+
   "scim2_multi_attribute_filtering.use_pagination" : false,
 
   "org_wise_multi_attribute_separator.enabled": false,
