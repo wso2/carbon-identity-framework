@@ -227,6 +227,7 @@
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
   "oauth.dcr.mandate_ssa": false,
+  "oauth.allow_default_requested_scopes_for_back_channel_grant": false,
   "oauth.enable_jwt_token_validation_during_introspection": true,
   "oauth.use_client_id_as_sub_claim_for_app_tokens": true,
   "oauth.remove_username_from_introspection_response_for_app_tokens": true,
@@ -584,6 +585,7 @@
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
   "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
   "authentication.jit_provisioning.enable_enhanced_feature": false,
+  "authentication.jit_provisioning.allow_non_Standard_claim_uri":false,
 
   "application_mgt.enable_role_validation": false,
   "application_mgt.trusted_app_consent_required": false,
