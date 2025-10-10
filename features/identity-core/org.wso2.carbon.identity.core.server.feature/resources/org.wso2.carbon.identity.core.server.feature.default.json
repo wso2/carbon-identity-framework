@@ -1314,7 +1314,7 @@
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": true,
   "console.ui.idp_templates.hypr.enabled": false,
-  "console.ui.i18n_configs.showLanguageSwitcher": false,
+  "console.ui.i18n_configs.showLanguageSwitcher": true,
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [
