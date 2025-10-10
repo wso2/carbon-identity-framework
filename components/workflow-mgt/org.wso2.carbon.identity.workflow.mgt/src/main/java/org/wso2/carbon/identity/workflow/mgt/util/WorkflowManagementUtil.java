@@ -56,10 +56,10 @@ public class WorkflowManagementUtil {
     private static final Log log = LogFactory.getLog(WorkflowManagementUtil.class);
 
     /**
-     * Create a internal role in workflow domain with same name as workflow.
+     * Create an internal role in the workflow domain with the same name as the workflow.
      *
      * @param workflowName Workflow name.
-     * @throws WorkflowException
+     * @throws WorkflowException if an error occurs while creating the role in the user store.
      */
     public static void createAppRole(String workflowName) throws WorkflowException {
 
