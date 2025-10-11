@@ -94,7 +94,7 @@ THEN
             COMMIT;
         END if;
 
-         -- Create backup only for records that will be deleted
+        -- Create backup only for records that will be deleted
         IF cursorTable.TABLE_NAME = 'WF_REQUEST' THEN
             EXECUTE IMMEDIATE
                 'CREATE TABLE ' || backupTable || ' AS
@@ -111,7 +111,7 @@ THEN
                      SELECT 1 FROM WF_REQUEST r
                      WHERE r.UUID = t.REQUEST_ID
                      AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
-                     AND UPDATED_AT < TO_TIMESTAMP(''' ||
+                     AND r.UPDATED_AT < TO_TIMESTAMP(''' ||
                      TO_CHAR(deleteTimeLimit, 'YYYY-MM-DD HH24:MI:SS.FF') || ''', ''YYYY-MM-DD HH24:MI:SS.FF''))';
 
         ELSIF cursorTable.TABLE_NAME = 'WF_WORKFLOW_APPROVAL_RELATION' THEN
@@ -122,7 +122,7 @@ THEN
                      SELECT 1 FROM WF_REQUEST r
                      WHERE r.UUID = t.EVENT_ID
                      AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
-                     AND UPDATED_AT < TO_TIMESTAMP(''' ||
+                     AND r.UPDATED_AT < TO_TIMESTAMP(''' ||
                      TO_CHAR(deleteTimeLimit, 'YYYY-MM-DD HH24:MI:SS.FF') || ''', ''YYYY-MM-DD HH24:MI:SS.FF''))';
         END IF;
         
