@@ -1201,6 +1201,45 @@
                    description="Manage edits of applications in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Application Internal API management feature" identifier="console:application_internal_api_management"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Internal API Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Internal API Management Feature" name="console:application_internal_api_management"
+                   description="Manage application internal APIs from the Console"/>
+            <Scope displayName="Application Internal API Management View Feature" name="console:application_internal_api_management_view"
+                   description="Manage views of application internal APIs from the Console"/>
+            <Scope displayName="Application Internal API Management Edit Feature" name="console:application_internal_api_management_edit"
+                   description="Manage edits of application internal APIs from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application client secret management feature" identifier="console:application_client_secrets"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Client Secret Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Secret Management Feature" name="console:application_client_secrets"
+                   description="Manage application client secrets from the Console"/>
+            <Scope displayName="Application Secret Management View Feature" name="console:application_client_secrets_view"
+                   description="Manage views of application client secrets from the Console"/>
+            <Scope displayName="Application Secret Management Edit Feature" name="console:application_client_secrets_edit"
+                   description="Manage edits of application client secrets from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application client secret management feature" identifier="console:org:application_client_secrets"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Client Secret Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Secret Management Feature" name="console:org:application_client_secrets"
+                   description="Manage application client secrets in the organization from the Console"/>
+            <Scope displayName="Application Secret Management View Feature" name="console:org:application_client_secrets_view"
+                   description="Manage views of application client secrets in the organization from the Console"/>
+            <Scope displayName="Application Secret Management Edit Feature" name="console:org:application_client_secrets_edit"
+                   description="Manage edits of application client secrets in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:branding"
                  requiresAuthorization="true"
                  description="Resource representation of the Branding Management Feature"
