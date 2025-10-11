@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE WSO2_WF_REQUEST_CLEANUP() AS $$
+CREATE OR REPLACE FUNCTION WSO2_WF_REQUEST_CLEANUP() RETURNS TEXT AS $$
 
 DECLARE
 
@@ -17,6 +17,7 @@ DECLARE
     cleanUpDateTimeLimit timestamp;
     backupTable text;
     cusrRecord record;
+    batchStatus VARCHAR(10) := 'CONTINUE';
     
     tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
     tablename IN ('wf_request', 'wf_workflow_request_relation', 'wf_workflow_approval_relation');
@@ -113,12 +114,12 @@ BEGIN
         END IF;
 
         -- CREATE CHUNK TABLE WITH ELIGIBLE REQUEST IDs
-        DROP TABLE IF EXISTS wf_request_chunk_tmp;
-        CREATE TABLE wf_request_chunk_tmp AS 
+        EXECUTE 'DROP TABLE IF EXISTS wf_request_chunk_tmp';
+        EXECUTE 'CREATE TABLE wf_request_chunk_tmp AS 
             SELECT UUID FROM wf_request
-            WHERE STATUS IN ('APPROVED', 'REJECTED', 'FAILED', 'DELETED', 'ABORTED')
-            AND UPDATED_AT < cleanUpDateTimeLimit
-            LIMIT chunkSize;
+            WHERE STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
+            AND UPDATED_AT < $1
+            LIMIT $2' USING cleanUpDateTimeLimit, chunkSize;
         GET DIAGNOSTICS chunkCount := ROW_COUNT;
         
         IF (enableLog) THEN
@@ -133,9 +134,9 @@ BEGIN
         batchCount := 1;
         LOOP
             -- CREATE BATCH TABLE
-            DROP TABLE IF EXISTS wf_request_batch_tmp;
-            CREATE TABLE wf_request_batch_tmp AS
-                SELECT UUID FROM wf_request_chunk_tmp LIMIT batchSize;
+            EXECUTE 'DROP TABLE IF EXISTS wf_request_batch_tmp';
+            EXECUTE 'CREATE TABLE wf_request_batch_tmp AS
+                SELECT UUID FROM wf_request_chunk_tmp LIMIT $1' USING batchSize;
             GET DIAGNOSTICS batchCount := ROW_COUNT;
             
             IF ((batchCount = 0)) THEN
@@ -147,8 +148,8 @@ BEGIN
             END IF;
 
             -- DELETE FROM WF_REQUEST (CASCADE DELETE will handle child tables automatically)
-            DELETE FROM wf_request
-            WHERE UUID IN (SELECT UUID FROM wf_request_batch_tmp);
+            EXECUTE 'DELETE FROM wf_request
+            WHERE UUID IN (SELECT UUID FROM wf_request_batch_tmp)';
             GET DIAGNOSTICS rowCount := ROW_COUNT;
             totalDeleted := totalDeleted + rowCount;
             
@@ -157,15 +158,15 @@ BEGIN
             END IF;
 
             -- DELETE FROM CHUNK
-            DELETE FROM wf_request_chunk_tmp 
-            WHERE UUID IN (SELECT UUID FROM wf_request_batch_tmp);
+            EXECUTE 'DELETE FROM wf_request_chunk_tmp 
+            WHERE UUID IN (SELECT UUID FROM wf_request_batch_tmp)';
 
         END LOOP;
     END LOOP;
 
     -- DELETE TEMP TABLES
-    DROP TABLE IF EXISTS wf_request_chunk_tmp;
-    DROP TABLE IF EXISTS wf_request_batch_tmp;
+    EXECUTE 'DROP TABLE IF EXISTS wf_request_chunk_tmp';
+    EXECUTE 'DROP TABLE IF EXISTS wf_request_batch_tmp';
 
     IF (enableLog) THEN
         RAISE NOTICE '========================================';
@@ -174,11 +175,13 @@ BEGIN
         RAISE NOTICE '========================================';
     END IF;
 
+    RETURN (batchStatus);
+
 EXCEPTION
     WHEN OTHERS THEN
         -- Cleanup temp tables in case of error
-        DROP TABLE IF EXISTS wf_request_chunk_tmp;
-        DROP TABLE IF EXISTS wf_request_batch_tmp;
+        EXECUTE 'DROP TABLE IF EXISTS wf_request_chunk_tmp';
+        EXECUTE 'DROP TABLE IF EXISTS wf_request_batch_tmp';
         
         IF (enableLog) THEN
             RAISE NOTICE 'Error occurred: %', SQLERRM;
@@ -191,5 +194,5 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
--- To execute the cleanup procedure
--- CALL WSO2_WF_REQUEST_CLEANUP();
+-- To execute the cleanup function
+-- SELECT WSO2_WF_REQUEST_CLEANUP();
