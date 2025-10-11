@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -111,14 +112,16 @@ public class CSVUserBulkImport extends UserBulkImport {
                 line = csvReader.readNext();
             }
 
-            InputStream inputStream = config.getInStream();
-            inputStream.reset();
-            JSONConverter jsonConverter = new JSONConverter();
-            String usersImported = jsonConverter.csvToJSON(inputStream);
             String summaryLog = buildBulkImportSummary();
 
-            auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser,
-                    UserMgtConstants.OPERATION_NAME, userStoreDomain, usersImported, summaryLog));
+            if (!LoggerUtils.isEnableV2AuditLogs()) {
+                InputStream inputStream = config.getInStream();
+                inputStream.reset();
+                JSONConverter jsonConverter = new JSONConverter();
+                String usersImported = jsonConverter.csvToJSON(inputStream);
+                auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser,
+                        UserMgtConstants.OPERATION_NAME, userStoreDomain, usersImported, summaryLog));
+            }
             log.info(summaryLog);
 
             if (fail || isDuplicate) {
