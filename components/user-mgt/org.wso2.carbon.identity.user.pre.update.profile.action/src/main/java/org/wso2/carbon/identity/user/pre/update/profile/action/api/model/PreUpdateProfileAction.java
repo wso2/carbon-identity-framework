@@ -142,6 +142,7 @@ public class PreUpdateProfileAction extends Action {
 
             name(action.getName());
             description(action.getDescription());
+            actionVersion(action.getActionVersion());
             endpoint(action.getEndpoint());
             rule(action.getActionRule());
         }
