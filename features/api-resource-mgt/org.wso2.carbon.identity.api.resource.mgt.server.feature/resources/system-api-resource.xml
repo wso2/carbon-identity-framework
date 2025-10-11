@@ -1526,7 +1526,7 @@
     </APIResource>
     <APIResource name="Role Permission Assignments Feature" identifier="console:org:role_permission_assignments"
                  requiresAuthorization="true"
-                 description="Resource representation of the Role Assignments Management Feature"
+                 description="Resource representation of the Role Permission Assignments Management Feature"
                  type="CONSOLE_ORG_FEATURE">
         <Scopes>
             <Scope displayName="Role Permission Assignments Feature" name="console:org:role_permission_assignments"
