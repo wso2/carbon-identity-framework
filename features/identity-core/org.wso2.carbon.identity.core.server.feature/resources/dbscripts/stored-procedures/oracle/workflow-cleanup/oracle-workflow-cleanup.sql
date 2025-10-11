@@ -96,25 +96,34 @@ THEN
 
         -- Create backup only for records that will be deleted
         IF cursorTable.TABLE_NAME = 'WF_REQUEST' THEN
-            EXECUTE IMMEDIATE 'CREATE TABLE '||backupTable||' AS (SELECT * FROM '||cursorTable.TABLE_NAME||' 
-                             WHERE STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'') 
-                             AND UPDATED_AT < :deleteLimit)' USING deleteTimeLimit;
+            EXECUTE IMMEDIATE
+                'CREATE TABLE ' || backupTable || ' AS
+                 SELECT * FROM ' || cursorTable.TABLE_NAME || '
+                 WHERE STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
+                 AND UPDATED_AT < TO_TIMESTAMP(''' ||
+                 TO_CHAR(deleteTimeLimit, 'YYYY-MM-DD HH24:MI:SS.FF') || ''', ''YYYY-MM-DD HH24:MI:SS.FF'')';
+
         ELSIF cursorTable.TABLE_NAME = 'WF_WORKFLOW_REQUEST_RELATION' THEN
-            EXECUTE IMMEDIATE 'CREATE TABLE '||backupTable||' AS (SELECT t.* FROM '||cursorTable.TABLE_NAME||' t
-                             WHERE EXISTS (
-                                 SELECT 1 FROM WF_REQUEST r 
-                                 WHERE r.UUID = t.REQUEST_ID
-                                 AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
-                                 AND r.UPDATED_AT < :deleteLimit
-                             ))' USING deleteTimeLimit;
+            EXECUTE IMMEDIATE
+                'CREATE TABLE ' || backupTable || ' AS
+                 SELECT t.* FROM ' || cursorTable.TABLE_NAME || ' t
+                 WHERE EXISTS (
+                     SELECT 1 FROM WF_REQUEST r
+                     WHERE r.UUID = t.REQUEST_ID
+                     AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
+                     AND r.UPDATED_AT < TO_TIMESTAMP(''' ||
+                     TO_CHAR(deleteTimeLimit, 'YYYY-MM-DD HH24:MI:SS.FF') || ''', ''YYYY-MM-DD HH24:MI:SS.FF''))';
+
         ELSIF cursorTable.TABLE_NAME = 'WF_WORKFLOW_APPROVAL_RELATION' THEN
-            EXECUTE IMMEDIATE 'CREATE TABLE '||backupTable||' AS (SELECT t.* FROM '||cursorTable.TABLE_NAME||' t
-                             WHERE EXISTS (
-                                 SELECT 1 FROM WF_REQUEST r 
-                                 WHERE r.UUID = t.EVENT_ID
-                                 AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
-                                 AND r.UPDATED_AT < :deleteLimit
-                             ))' USING deleteTimeLimit;
+            EXECUTE IMMEDIATE
+                'CREATE TABLE ' || backupTable || ' AS
+                 SELECT t.* FROM ' || cursorTable.TABLE_NAME || ' t
+                 WHERE EXISTS (
+                     SELECT 1 FROM WF_REQUEST r
+                     WHERE r.UUID = t.EVENT_ID
+                     AND r.STATUS IN (''APPROVED'', ''REJECTED'', ''FAILED'', ''DELETED'', ''ABORTED'')
+                     AND r.UPDATED_AT < TO_TIMESTAMP(''' ||
+                     TO_CHAR(deleteTimeLimit, 'YYYY-MM-DD HH24:MI:SS.FF') || ''', ''YYYY-MM-DD HH24:MI:SS.FF''))';
         END IF;
         
         ROWCOUNT := sql%rowcount;
