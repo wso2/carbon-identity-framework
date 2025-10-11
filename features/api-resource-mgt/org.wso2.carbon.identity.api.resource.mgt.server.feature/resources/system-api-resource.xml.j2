@@ -1534,11 +1534,11 @@
                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="Role Assignments Feature" name="console:role_assignments"
-                description="Manage Role Assignments from the Console"/>
+                description="Manage role assignments from the Console"/>
             <Scope displayName="Role Assignments View Feature" name="console:role_assignments_view"
-                description="Manage views of Role Assignments from the Console"/>
+                description="Manage views of role assignments from the Console"/>
             <Scope displayName="Role Assignments Edit Feature" name="console:role_assignments_edit"
-                description="Manage edits of Role Assignments from the Console"/>
+                description="Manage edits of role assignments from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Assignments Feature" identifier="console:org:role_assignments"
@@ -1547,11 +1547,37 @@
                 type="CONSOLE_ORG_FEATURE">
         <Scopes>
             <Scope displayName="Role Assignments Feature" name="console:org:role_assignments"
-                description="Manage Role Assignments from the Console"/>
+                description="Manage role assignments from the Console"/>
             <Scope displayName="Role Assignments View Feature" name="console:org:role_assignments_view"
-                description="Manage views of Role Assignments from the Console"/>
+                description="Manage views of role assignments from the Console"/>
             <Scope displayName="Role Assignments Edit Feature" name="console:org:role_assignments_edit"
-                description="Manage edits of Role Assignments from the Console"/>
+                description="Manage edits of role assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Permission Assignments Feature" identifier="console:role_permission_assignments"
+                requiresAuthorization="true"
+                description="Resource representation of the Role Permission Assignments Management Feature"
+                type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Permission Assignments Feature" name="console:role_permission_assignments"
+                description="Manage role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments View Feature" name="console:role_permission_assignments_view"
+                description="Manage views of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Edit Feature" name="console:role_permission_assignments_edit"
+                description="Manage edits of role permission assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Permission Assignments Feature" identifier="console:org:role_assignments"
+                requiresAuthorization="true"
+                description="Resource representation of the Role Assignments Management Feature"
+                type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Permission Assignments Feature" name="console:org:role_permission_assignments"
+                description="Manage role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments View Feature" name="console:org:role_permission_assignments_view"
+                description="Manage views of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Edit Feature" name="console:org:role_permission_assignments_edit"
+                description="Manage edits of role permission assignments from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management Feature" identifier="console:users"
