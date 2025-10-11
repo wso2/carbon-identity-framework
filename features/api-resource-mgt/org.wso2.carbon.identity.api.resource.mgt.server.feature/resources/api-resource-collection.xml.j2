@@ -944,6 +944,7 @@
                 <Scope name="console:console:application_client_secrets"/>
                 <Scope name="console:console:application_client_secrets_view"/>
                 <Scope name="console:console:application_client_secrets_edit"/>
+                <Scope name="console:applications"/>
             </Feature>
             <Update>
                <Scope name="internal_application_mgt_update"/>
@@ -978,15 +979,16 @@
                 <Scope name="console:console:application_internal_api_management"/>
                 <Scope name="console:console:application_internal_api_management_view"/>
                 <Scope name="console:console:application_internal_api_management_edit"/>
+                <Scope name="console:applications"/>
             </Feature>
             <Update>
+                <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_application_internal_api_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_application_internal_api_update"/>
             </Delete>
             <Create>
-               <Scope name="internal_application_mgt_update"/>
             </Create>
             <Read>
                 <Scope name="internal_cors_origins_view"/>
@@ -2076,6 +2078,7 @@
                 <Scope name="console:org:application_client_secrets"/>
                 <Scope name="console:org:application_client_secrets_view"/>
                 <Scope name="console:org:application_client_secrets_edit"/>
+                <Scope name="console:org:applications"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
