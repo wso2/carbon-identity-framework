@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.user.action.api.constant.UserActionError;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionClientException;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionServerException;
@@ -213,16 +214,15 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
     private Organization getUserManagedOrganization(String managedOrgId) throws UserActionExecutionServerException {
 
-        if (OrganizationManagementConstants.SUPER_ORG_ID.equals(managedOrgId)) {
-            return new Organization.Builder()
-                    .id(OrganizationManagementConstants.SUPER_ORG_ID)
-                    .name(OrganizationManagementConstants.SUPER)
-                    .orgHandle(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)
-                    .depth(0)
-                    .build();
-        }
-
         try {
+            if (OrganizationManagementConstants.SUPER_ORG_ID.equals(managedOrgId)) {
+                return new Organization.Builder()
+                        .id(OrganizationManagementConstants.SUPER_ORG_ID)
+                        .name(OrganizationManagementUtil.getSuperRootOrgName())
+                        .orgHandle(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)
+                        .depth(0)
+                        .build();
+            }
             MinimalOrganization minimalOrganization = UserActionServiceComponentHolder.getInstance().
                     getOrganizationManager().getMinimalOrganization(managedOrgId, null);
             if (minimalOrganization == null) {
