@@ -435,14 +435,47 @@
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_role_mgt_create</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_org_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_org_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_org_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PUT">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         <Scopes>internal_org_role_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_org_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_org_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_org_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PATCH">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         <Scopes>internal_org_role_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_org_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_org_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_org_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_role_mgt_delete</Scopes>
@@ -520,6 +553,17 @@
     <Resource context="(.*)/scim2/v2/Roles(.*)" secured="true" http-method="POST">
         <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
         <Scopes>internal_role_mgt_create</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/scim2/v2/Roles(.*)" secured="true" http-method="GET">
         <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
@@ -528,10 +572,32 @@
     <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="PUT">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         <Scopes>internal_role_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="PATCH">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         <Scopes>internal_role_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
         <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>

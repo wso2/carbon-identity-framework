@@ -788,6 +788,12 @@
                     description="Create new roles in the organization (root)"/>
             <Scope displayName="Update Role" name="internal_role_mgt_update" 
                     description="Update roles details in the organization (root)"/>
+            <Scope displayName="Update Permissions of Role" name="internal_role_mgt_permissions_update"
+                   description="Assign/De-assign permissions into the role in the organization (root)"/>
+            <Scope displayName="Update Users of Role" name="internal_role_mgt_users_update"
+                   description="Assign/De-assign users into the role in the organization (root)"/>
+            <Scope displayName="Update Groups of Role" name="internal_role_mgt_groups_update"
+                   description="Assign/De-assign groups into the role in the organization (root)"/>
             <Scope displayName="Delete Role" name="internal_role_mgt_delete" 
                     description="Delete roles in the organization (root)"/>
         </Scopes>
@@ -802,6 +808,12 @@
                     description="Create new roles in the organization"/>
             <Scope displayName="Update Role" name="internal_org_role_mgt_update" 
                     description="Update roles details in the organization"/>
+            <Scope displayName="Update Permissions of Role" name="internal_org_role_mgt_permissions_update"
+                   description="Assign/De-assign permissions into the role in the organization"/>
+            <Scope displayName="Update Users of Role" name="internal_org_role_mgt_users_update"
+                   description="Assign/De-assign users into the role in the organization"/>
+            <Scope displayName="Update Groups of Role" name="internal_org_role_mgt_groups_update"
+                   description="Assign/De-assign groups into the role in the organization"/>
             <Scope displayName="Delete Role" name="internal_org_role_mgt_delete"
                     description="Delete roles in the organization"/>
         </Scopes>
@@ -1471,6 +1483,58 @@
                    description="Manage views of roles in the organization from the Console"/>
             <Scope displayName="Role Edit Feature" name="console:org:roles_edit"
                    description="Manage edits of roles in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Assignments Feature" identifier="console:role_assignments"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Assignments Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Assignments Feature" name="console:role_assignments"
+                   description="Manage role assignments from the Console"/>
+            <Scope displayName="Role Assignments View Feature" name="console:role_assignments_view"
+                   description="Manage views of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Edit Feature" name="console:role_assignments_edit"
+                   description="Manage edits of role assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Assignments Feature" identifier="console:org:role_assignments"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Assignments Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Assignments Feature" name="console:org:role_assignments"
+                   description="Manage role assignments from the Console"/>
+            <Scope displayName="Role Assignments View Feature" name="console:org:role_assignments_view"
+                   description="Manage views of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Edit Feature" name="console:org:role_assignments_edit"
+                   description="Manage edits of role assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Permission Assignments Feature" identifier="console:role_permission_assignments"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Permission Assignments Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Permission Assignments Feature" name="console:role_permission_assignments"
+                   description="Manage role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments View Feature" name="console:role_permission_assignments_view"
+                   description="Manage views of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Edit Feature" name="console:role_permission_assignments_edit"
+                   description="Manage edits of role permission assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Permission Assignments Feature" identifier="console:org:role_permission_assignments"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Permission Assignments Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Permission Assignments Feature" name="console:org:role_permission_assignments"
+                   description="Manage role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments View Feature" name="console:org:role_permission_assignments_view"
+                   description="Manage views of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Edit Feature" name="console:org:role_permission_assignments_edit"
+                   description="Manage edits of role permission assignments from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management Feature" identifier="console:users"
