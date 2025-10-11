@@ -324,7 +324,6 @@
       "console.identity_providers.disabled_features": [],
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
-      "actions.types.pre_update_password.enable_in_registration_flows": false,
       "oauth.introspect.allow_cross_sub_org": true,
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
       "captcha.enable_captcha_for_local_otp_authenticators": false,
