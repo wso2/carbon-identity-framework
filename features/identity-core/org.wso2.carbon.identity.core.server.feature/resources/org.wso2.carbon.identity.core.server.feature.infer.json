@@ -309,7 +309,6 @@
       "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
-      "oauth.allow_disabled_application_credentials_for_authentication": true,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
       "oauth.authorize_internal_scopes": true
     },
@@ -350,7 +349,6 @@
       "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
-      "oauth.allow_disabled_application_credentials_for_authentication": true,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
       "oauth.authorize_internal_scopes": true
     }
