@@ -1751,6 +1751,15 @@
   ],
   "console.user_roles.scopes.update": ["internal_role_mgt_update"],
   "console.user_roles.scopes.delete": ["internal_role_mgt_delete"],
+  "console.user_roles.sub_features.roleAssignments.scopes.update": [
+    "internal_role_mgt_groups_update",
+    "internal_role_mgt_update",
+    "internal_role_mgt_users_update"
+  ],
+  "console.user_roles.sub_features.rolePermissionAssignments.scopes.update": [
+    "internal_role_mgt_permission_update",
+    "internal_role_mgt_update"
+  ],
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
