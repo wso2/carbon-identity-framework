@@ -1489,13 +1489,6 @@
   "console.applications.sub_features.applicationAuthenticationScript.scopes.update": [
     "internal_application_script_update"
   ],
-  "console.applicationAuthenticationScript.enabled": true,
-  "console.applicationAuthenticationScript.scopes.update": [
-    "internal_application_script_update"
-  ],
-  "console.applicationAuthenticationScript.scopes.feature": [
-    "console:applicationAuthenticationScript"
-  ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
   "console.approvals.enabled": false,
