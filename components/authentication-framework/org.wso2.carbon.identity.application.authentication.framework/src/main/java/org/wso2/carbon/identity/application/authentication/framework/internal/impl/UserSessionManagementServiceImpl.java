@@ -96,6 +96,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         String userId = resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         try {
+            FrameworkUtils.startTenantFlow(tenantDomain);
             if (log.isDebugEnabled()) {
                 log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
                         userStoreDomain + " in tenant: " + tenantDomain);
@@ -104,6 +105,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } catch (SessionManagementException e) {
             throw new UserSessionException("Error while terminating sessions of user:" + username +
                     " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
+        } finally {
+            FrameworkUtils.endTenantFlow();
         }
     }
 
@@ -697,6 +700,15 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     created for that tenant domain. In this case, user should be able to see this session from the
                     user resident tenant domain. Hence, this scenario is considered as an effective session.
                      */
+                    return true;
+                }
+                if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loginTenantDomain)) {
+                    /*
+                    When a super tenant user is trying to update the password of another root organization admin user,
+                    the loginTenantDomain will be the super tenant domain and sessionTenantDomain will be the root
+                    organization domain. Hence, sessions with such combination has to be considered as effective
+                    sessions.
+                    */
                     return true;
                 }
                 return false;
