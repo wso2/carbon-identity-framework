@@ -1749,6 +1749,20 @@
     "internal_role_mgt_update",
     "internal_role_mgt_users_update"
   ],
+  "console.user_roles.sub_features.roleAssignments.scopes.feature": [
+    "console:role_assignments",
+    "console:roles"
+  ],
+  "console.user_roles.sub_features.roleAssignments.scopes.read": [
+    "internal_api_resource_view",
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
   "console.user_roles.sub_features.rolePermissionAssignments.scopes.update": [
     "internal_role_mgt_permissions_update",
     "internal_role_mgt_update"
