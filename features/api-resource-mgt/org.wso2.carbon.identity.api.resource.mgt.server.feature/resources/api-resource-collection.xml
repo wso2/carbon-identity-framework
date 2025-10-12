@@ -877,12 +877,13 @@
     <APIResourceCollection name="applicationClientSecretManagement" displayName="Application client secret management" type="tenant">
         <Scopes>
             <Feature>
-                <Scope name="console:console:application_client_secrets"/>
-                <Scope name="console:console:application_client_secrets_view"/>
-                <Scope name="console:console:application_client_secrets_edit"/>
+                <Scope name="console:application_client_secrets"/>
+                <Scope name="console:application_client_secrets_view"/>
+                <Scope name="console:application_client_secrets_edit"/>
                 <Scope name="console:applications"/>
             </Feature>
             <Update>
+                <Scope name="console:applications_edit"/>
                 <Scope name="internal_application_mgt_update"/>
             </Update>
             <Delete>
@@ -891,6 +892,7 @@
                 <Scope name="internal_application_mgt_client_secret_create"/>
             </Create>
             <Read>
+                <Scope name="console:applications_view"/>
                 <Scope name="internal_application_mgt_client_secret_view"/>
                 <Scope name="internal_cors_origins_view"/>
                 <Scope name="internal_application_mgt_view"/>
@@ -909,24 +911,28 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="applicationInternalAPIAuthorization" displayName="Manage Application Internal API Authorization" type="tenant">
+    <APIResourceCollection name="applicationInternalAPIAuthorization" displayName="Application Internal API Authorization" type="tenant">
         <Scopes>
             <Feature>
-                <Scope name="console:console:application_internal_api_management"/>
-                <Scope name="console:console:application_internal_api_management_view"/>
-                <Scope name="console:console:application_internal_api_management_edit"/>
+                <Scope name="console:application_internal_api_management"/>
+                <Scope name="console:application_internal_api_management_view"/>
+                <Scope name="console:application_internal_api_management_edit"/>
                 <Scope name="console:applications"/>
             </Feature>
             <Update>
+                <Scope name="console:applications_edit"/>
                 <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_application_internal_api_update"/>
+                <Scope name="internal_application_business_api_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_application_internal_api_update"/>
+                <Scope name="internal_application_business_api_update"/>
             </Delete>
             <Create>
             </Create>
             <Read>
+                <Scope name="console:applications_view"/>
                 <Scope name="internal_cors_origins_view"/>
                 <Scope name="internal_application_mgt_view"/>
                 <Scope name="internal_claim_meta_view"/>
@@ -1897,6 +1903,7 @@
                 <Scope name="console:org:applications"/>
             </Feature>
             <Update>
+                <Scope name="console:org:applications_edit"/>
                 <Scope name="internal_org_application_mgt_update"/>
             </Update>
             <Delete>
@@ -1905,6 +1912,7 @@
                 <Scope name="internal_org_application_mgt_client_secret_create"/>
             </Create>
             <Read>
+                <Scope name="console:org:applications_view"/>
                 <Scope name="internal_org_application_mgt_client_secret_view"/>
                 <Scope name="internal_org_application_mgt_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
