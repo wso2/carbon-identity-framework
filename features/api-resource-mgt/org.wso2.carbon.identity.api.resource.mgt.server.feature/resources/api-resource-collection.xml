@@ -874,7 +874,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="applicationClientSecretManagement" displayName="Application client secret management" type="tenant">
+    <APIResourceCollection name="applicationClientSecretManagement" displayName="Application Client Secret Management" type="tenant">
         <Scopes>
             <Feature>
                 <Scope name="console:application_client_secrets"/>
@@ -1894,7 +1894,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_applicationClientSecretManagement" displayName="Application client secret management" type="organization">
+    <APIResourceCollection name="org_applicationClientSecretManagement" displayName="Application Client Secret Management" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:application_client_secrets"/>
