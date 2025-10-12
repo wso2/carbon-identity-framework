@@ -1777,7 +1777,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.9.30</carbon.kernel.version>
+        <carbon.kernel.version>4.9.31</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -1817,7 +1817,7 @@
         <carbon.base.imp.pkg.version.range>[1.0.0, 2.0.0)</carbon.base.imp.pkg.version.range>
 
         <!-- Axis2 Version -->
-        <axis2.wso2.version>1.6.1-wso2v108</axis2.wso2.version>
+        <axis2.wso2.version>1.6.1-wso2v111</axis2.wso2.version>
         <axis2.osgi.version.range>[1.6.1, 2.0.0)</axis2.osgi.version.range>
         <orbit.version.wsdl4j>1.6.2.wso2v4</orbit.version.wsdl4j>
         <orbit.version.neethi>2.0.4.wso2v5</orbit.version.neethi>
@@ -1903,7 +1903,7 @@
         <rampart.wso2.osgi.version.range>[1.6.1,2.0.0)</rampart.wso2.osgi.version.range>
 
         <!-- Balana -->
-        <balana.version>1.2.13</balana.version>
+        <balana.version>1.2.29</balana.version>
         <balana.imp.pkg.version.range>[1.1.0,2.0.0)</balana.imp.pkg.version.range>
 
         <!-- Equinox -->
