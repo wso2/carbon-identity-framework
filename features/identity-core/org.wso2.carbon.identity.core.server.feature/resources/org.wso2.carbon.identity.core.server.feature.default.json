@@ -1753,8 +1753,7 @@
     "console:role_assignments",
     "console:roles"
   ],
-  "console.user_roles.sub_features.roleAssignments.scopes.read":
-  [
+  "console.user_roles.sub_features.roleAssignments.scopes.read": [
     "internal_api_resource_view",
     "internal_application_mgt_view",
     "internal_group_mgt_view",
