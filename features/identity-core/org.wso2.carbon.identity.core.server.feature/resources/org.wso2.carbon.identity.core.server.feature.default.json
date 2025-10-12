@@ -1903,7 +1903,7 @@
   "console.ui.is_header_avatar_label_allowed": true,
   "console.get_profile_info_from_id_token": false,
   "console.super_tenant_proxy_name": "",
-  "console.role_assignments.enabled": false,
+  "console.role_assignments.enabled": true,
   "console.role_assignments.disabled_features": [],
   "console.role_assignments.scopes.create": [],
   "console.role_assignments.scopes.delete": [],
