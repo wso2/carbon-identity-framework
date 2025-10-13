@@ -95,9 +95,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             "var $ARG=null;var $ENV=null;var $EXEC=null;" +
             "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +
             "Object.defineProperty(this, 'engine', {});" +
-            "var Graal = {" +
-            "    toString: function() { return 'restricted'; }" +
-            "};";
+            "var Graal = {toString: function() { return 'restricted'; }};";
 
     /**
      * Constructs the builder with the given authentication context.
