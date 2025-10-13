@@ -7,6 +7,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
@@ -167,6 +168,9 @@ public class ContextProvider {
                 throw new RuntimeException("Identity Provider is disabled: " + idp.getIdentityProviderName());
             }
 
+            // Validate OAuth 2.0 configuration.
+            validateOAuth2Configuration(idp);
+
             // Determine authenticator to use.
             String targetAuthenticator = determineAuthenticator(idp, authenticatorName);
             if (targetAuthenticator == null) {
@@ -238,7 +242,7 @@ public class ContextProvider {
     }
     
     /**
-     * Validates OAuth2 debug request parameters.
+     * Validates OAuth2 debug request parameters for security.
      *
      * @param idpId Identity Provider resource ID to validate.
      * @throws RuntimeException if validation fails.
@@ -246,6 +250,11 @@ public class ContextProvider {
     private void validateOAuth2DebugRequest(String idpId) {
         if (idpId == null || idpId.trim().isEmpty()) {
             throw new RuntimeException("Identity Provider ID is required for OAuth2 debug");
+        }
+        
+        // Add proper UUID validation for resource IDs.
+        if (!idpId.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
+            throw new RuntimeException("Invalid Identity Provider ID format");
         }
         
         // Additional validation can be added here as needed.
@@ -328,6 +337,283 @@ public class ContextProvider {
             }
         }
         return false;
+    }
+    
+    /**
+     * Validates OAuth 2.0 configuration for the Identity Provider using executors.
+     * Uses executor pattern to validate endpoints with fallback logic.
+     *
+     * @param idp Identity Provider to validate.
+     * @throws RuntimeException if OAuth 2.0 configuration is invalid or incomplete.
+     */
+    private void validateOAuth2Configuration(IdentityProvider idp) throws RuntimeException {
+        if (idp == null) {
+            throw new RuntimeException("Identity Provider cannot be null");
+        }
+        
+        FederatedAuthenticatorConfig[] federatedConfigs = idp.getFederatedAuthenticatorConfigs();
+        if (federatedConfigs == null || federatedConfigs.length == 0) {
+            throw new RuntimeException("No federated authenticator configurations found for IdP: " + 
+                                     idp.getIdentityProviderName());
+        }
+        
+        // Find OAuth 2.0 authenticator configuration.
+        FederatedAuthenticatorConfig oauthConfig = null;
+        String executorType = null;
+        
+        for (FederatedAuthenticatorConfig config : federatedConfigs) {
+            if (config != null && config.isEnabled()) {
+                String authenticatorName = config.getName();
+                // Check for OAuth 2.0 related authenticators.
+                if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
+                    oauthConfig = config;
+                    executorType = "GoogleExecutor";
+                    break;
+                } else if ("OpenIDConnectAuthenticator".equals(authenticatorName)) {
+                    oauthConfig = config;
+                    executorType = "OpenIDConnectExecutor";
+                    break;
+                } else if ("OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
+                    oauthConfig = config;
+                    executorType = "OpenIDConnectExecutor";
+                    break;
+                }
+            }
+        }
+        
+        if (oauthConfig == null) {
+            throw new RuntimeException("No OAuth 2.0 authenticator configuration found for IdP: " + 
+                                     idp.getIdentityProviderName());
+        }
+        
+        // Convert properties to Map for executor usage.
+        java.util.Map<String, String> authenticatorProperties = new java.util.HashMap<>();
+        Property[] properties = oauthConfig.getProperties();
+        if (properties != null) {
+            for (Property property : properties) {
+                if (property != null && property.getName() != null) {
+                    authenticatorProperties.put(property.getName(), property.getValue());
+                }
+            }
+        }
+        
+        // Validate using executor pattern with fallback logic.
+        try {
+            String clientId = getClientId(authenticatorProperties);
+            String authzEndpoint = getAuthorizationServerEndpoint(executorType, authenticatorProperties);
+            String tokenEndpoint = getTokenEndpoint(executorType, authenticatorProperties);
+            
+            // Validate required properties.
+            if (clientId == null || clientId.trim().isEmpty()) {
+                throw new RuntimeException("OAuth 2.0 Client ID is missing for IdP: " + 
+                                         idp.getIdentityProviderName());
+            }
+            
+            if (authzEndpoint == null || authzEndpoint.trim().isEmpty()) {
+                throw new RuntimeException("OAuth 2.0 Authorization Endpoint is missing for IdP: " + 
+                                         idp.getIdentityProviderName());
+            }
+            
+            if (tokenEndpoint == null || tokenEndpoint.trim().isEmpty()) {
+                throw new RuntimeException("OAuth 2.0 Token Endpoint is missing for IdP: " + 
+                                         idp.getIdentityProviderName());
+            }
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("OAuth 2.0 configuration validated for IdP: " + idp.getIdentityProviderName() +
+                         " using " + executorType +
+                         " - ClientId: FOUND" +
+                         ", AuthzEndpoint: " + authzEndpoint +
+                         ", TokenEndpoint: " + tokenEndpoint);
+            }
+            
+        } catch (Exception e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("OAuth 2.0 validation failed for IdP: " + idp.getIdentityProviderName(), e);
+            }
+            throw new RuntimeException("OAuth 2.0 configuration validation failed for IdP: " + 
+                                     idp.getIdentityProviderName() + ". " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Gets the client ID from authenticator properties.
+     *
+     * @param authenticatorProperties Authenticator properties map.
+     * @return Client ID or null if not found.
+     */
+    private String getClientId(java.util.Map<String, String> authenticatorProperties) {
+        // Check common client ID property names.
+        String clientId = authenticatorProperties.get("ClientId");
+        if (clientId != null) {
+            return clientId;
+        }
+        
+        clientId = authenticatorProperties.get("client_id");
+        if (clientId != null) {
+            return clientId;
+        }
+        
+        return authenticatorProperties.get("OAuth2ClientId");
+    }
+    
+    /**
+     * Gets the authorization server endpoint using executor pattern with fallback logic.
+     * Mimics the behavior of GoogleExecutor and OpenIDConnectExecutor.
+     *
+     * @param executorType Type of executor (GoogleExecutor, OpenIDConnectExecutor).
+     * @param authenticatorProperties Authenticator properties map.
+     * @return Authorization endpoint URL.
+     */
+    private String getAuthorizationServerEndpoint(String executorType, java.util.Map<String, String> authenticatorProperties) {
+        String authzEndpoint = null;
+        
+        // First check configured properties.
+        authzEndpoint = authenticatorProperties.get("OAuth2AuthzEPUrl");
+        if (authzEndpoint != null && !authzEndpoint.trim().isEmpty()) {
+            return authzEndpoint;
+        }
+        
+        authzEndpoint = authenticatorProperties.get("AuthzEndpoint");
+        if (authzEndpoint != null && !authzEndpoint.trim().isEmpty()) {
+            return authzEndpoint;
+        }
+        
+        authzEndpoint = authenticatorProperties.get("authorization_endpoint");
+        if (authzEndpoint != null && !authzEndpoint.trim().isEmpty()) {
+            return authzEndpoint;
+        }
+        
+        // Fallback to default values based on executor type (mimics GoogleExecutor and OpenIDConnectExecutor).
+        if ("GoogleExecutor".equals(executorType)) {
+            return "https://accounts.google.com/o/oauth2/v2/auth";  // IdentityApplicationConstants.GOOGLE_OAUTH_URL
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Gets the token endpoint using executor pattern with fallback logic.
+     * Mimics the behavior of GoogleExecutor and OpenIDConnectExecutor.
+     *
+     * @param executorType Type of executor (GoogleExecutor, OpenIDConnectExecutor).
+     * @param authenticatorProperties Authenticator properties map.
+     * @return Token endpoint URL.
+     */
+    private String getTokenEndpoint(String executorType, java.util.Map<String, String> authenticatorProperties) {
+        String tokenEndpoint = null;
+        
+        // First check configured properties.
+        tokenEndpoint = authenticatorProperties.get("OAuth2TokenEPUrl");
+        if (tokenEndpoint != null && !tokenEndpoint.trim().isEmpty()) {
+            return tokenEndpoint;
+        }
+        
+        tokenEndpoint = authenticatorProperties.get("TokenEndpoint");
+        if (tokenEndpoint != null && !tokenEndpoint.trim().isEmpty()) {
+            return tokenEndpoint;
+        }
+        
+        tokenEndpoint = authenticatorProperties.get("token_endpoint");
+        if (tokenEndpoint != null && !tokenEndpoint.trim().isEmpty()) {
+            return tokenEndpoint;
+        }
+        
+        // Fallback to default values based on executor type (mimics GoogleExecutor and OpenIDConnectExecutor).
+        if ("GoogleExecutor".equals(executorType)) {
+            return "https://oauth2.googleapis.com/token";  // IdentityApplicationConstants.GOOGLE_TOKEN_URL
+        }
+        
+        // For OpenIDConnectExecutor, there's no default fallback - must be configured.
+        return null;
+    }
+    
+    /**
+     * Provides diagnostic information about OAuth 2.0 configuration for an Identity Provider.
+     * This method is useful for debugging configuration issues.
+     *
+     * @param idp Identity Provider to diagnose.
+     * @return OAuth configuration diagnostic information.
+     */
+    public String diagnoseOAuth2Configuration(IdentityProvider idp) {
+        if (idp == null) {
+            return "Identity Provider is null";
+        }
+        
+        StringBuilder diagnosis = new StringBuilder();
+        diagnosis.append("OAuth 2.0 Configuration Diagnosis for IdP: ").append(idp.getIdentityProviderName()).append("\n");
+        diagnosis.append("Enabled: ").append(idp.isEnable()).append("\n");
+        
+        FederatedAuthenticatorConfig[] federatedConfigs = idp.getFederatedAuthenticatorConfigs();
+        if (federatedConfigs == null || federatedConfigs.length == 0) {
+            diagnosis.append("No federated authenticator configurations found\n");
+            return diagnosis.toString();
+        }
+        
+        diagnosis.append("Available Authenticators: ").append(federatedConfigs.length).append("\n");
+        
+        for (FederatedAuthenticatorConfig config : federatedConfigs) {
+            if (config != null) {
+                diagnosis.append("  - ").append(config.getName())
+                         .append(" (Enabled: ").append(config.isEnabled()).append(")\n");
+                
+                Property[] properties = config.getProperties();
+                if (properties != null) {
+                    // Convert properties to Map for executor usage.
+                    java.util.Map<String, String> authenticatorProperties = new java.util.HashMap<>();
+                    for (Property property : properties) {
+                        if (property != null && property.getName() != null) {
+                            authenticatorProperties.put(property.getName(), property.getValue());
+                        }
+                    }
+                    
+                    // Determine executor type and show resolved endpoints.
+                    String executorType = null;
+                    if ("GoogleOIDCAuthenticator".equals(config.getName())) {
+                        executorType = "GoogleExecutor";
+                    } else if ("OpenIDConnectAuthenticator".equals(config.getName())) {
+                        executorType = "OpenIDConnectExecutor";
+                    }
+                    
+                    if (executorType != null) {
+                        diagnosis.append("    Executor Type: ").append(executorType).append("\n");
+                        
+                        String clientId = getClientId(authenticatorProperties);
+                        String authzEndpoint = getAuthorizationServerEndpoint(executorType, authenticatorProperties);
+                        String tokenEndpoint = getTokenEndpoint(executorType, authenticatorProperties);
+                        
+                        diagnosis.append("    Client ID: ").append(clientId != null ? "CONFIGURED" : "MISSING").append("\n");
+                        diagnosis.append("    Authorization Endpoint: ");
+                        if (authzEndpoint != null) {
+                            diagnosis.append("RESOLVED (").append(authzEndpoint).append(")");
+                        } else {
+                            diagnosis.append("MISSING");
+                        }
+                        diagnosis.append("\n");
+                        diagnosis.append("    Token Endpoint: ");
+                        if (tokenEndpoint != null) {
+                            diagnosis.append("RESOLVED (").append(tokenEndpoint).append(")");
+                        } else {
+                            diagnosis.append("MISSING");
+                        }
+                        diagnosis.append("\n");
+                    }
+                    
+                    // Show raw properties for debugging.
+                    for (Property property : properties) {
+                        if (property != null && property.getName() != null) {
+                            String name = property.getName();
+                            String value = property.getValue();
+                            diagnosis.append("    ").append(name).append(": ")
+                                    .append(value != null && !value.trim().isEmpty() ? "CONFIGURED" : "MISSING")
+                                    .append("\n");
+                        }
+                    }
+                }
+            }
+        }
+        
+        return diagnosis.toString();
     }
     
     /**

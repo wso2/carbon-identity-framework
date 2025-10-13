@@ -105,17 +105,22 @@ public class Executer {
     private String buildAuthorizationUrl(IdentityProvider idp, FederatedAuthenticatorConfig authenticatorConfig,
                                         AuthenticationContext context) {
         try {
-            // Extract OAuth 2.0 configuration from authenticator.
+            // Extract OAuth 2.0 configuration from authenticator using executor pattern with fallback.
             String clientId = getPropertyValue(authenticatorConfig, "ClientId", "client_id", "clientId");
-            String authorizationEndpoint = getPropertyValue(authenticatorConfig, 
-                "OAuth2AuthzEPUrl", "authorizationEndpoint", "authorization_endpoint");
+            String authorizationEndpoint = getAuthorizationServerEndpoint(authenticatorConfig);
 
-            if (clientId == null || authorizationEndpoint == null) {
-                LOG.error("Missing OAuth 2.0 configuration - ClientId: " + 
-                         (clientId != null ? "FOUND" : "MISSING") + 
-                         ", Authorization Endpoint: " + 
-                         (authorizationEndpoint != null ? "FOUND" : "MISSING"));
+            if (clientId == null || clientId.trim().isEmpty()) {
+                LOG.error("Missing OAuth 2.0 configuration - ClientId is required");
                 return null;
+            }
+            
+            if (authorizationEndpoint == null || authorizationEndpoint.trim().isEmpty()) {
+                LOG.error("Missing OAuth 2.0 configuration - Authorization Endpoint is required");
+                return null;
+            }
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("OAuth 2.0 configuration validated - ClientId: FOUND, Authorization Endpoint: " + authorizationEndpoint);
             }
 
             // Generate PKCE parameters.
@@ -195,6 +200,62 @@ public class Executer {
                 }
             }
         }
+        return null;
+    }
+
+    /**
+     * Gets authorization server endpoint using executor pattern with fallback logic.
+     * Mimics the behavior of GoogleExecutor and OpenIDConnectExecutor.
+     *
+     * @param config Authenticator configuration.
+     * @return Authorization endpoint URL with fallback support.
+     */
+    private String getAuthorizationServerEndpoint(FederatedAuthenticatorConfig config) {
+        String authzEndpoint = getPropertyValue(config, "OAuth2AuthzEPUrl", "authorizationEndpoint", "authorization_endpoint");
+        
+        if (authzEndpoint != null && !authzEndpoint.trim().isEmpty()) {
+            return authzEndpoint;
+        }
+        
+        // Fallback logic based on authenticator type (like GoogleExecutor).
+        String authenticatorName = config.getName();
+        if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
+            // Fallback to Google's default OAuth URL (same as GoogleExecutor).
+            return "https://accounts.google.com/o/oauth2/v2/auth";
+        } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) || 
+                  "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
+            // For OpenIDConnect, there's no default fallback - must be configured.
+            return null;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Gets token endpoint using executor pattern with fallback logic.
+     * Mimics the behavior of GoogleExecutor and OpenIDConnectExecutor.
+     *
+     * @param config Authenticator configuration.
+     * @return Token endpoint URL with fallback support.
+     */
+    private String getTokenEndpoint(FederatedAuthenticatorConfig config) {
+        String tokenEndpoint = getPropertyValue(config, "OAuth2TokenEPUrl", "tokenEndpoint", "token_endpoint");
+        
+        if (tokenEndpoint != null && !tokenEndpoint.trim().isEmpty()) {
+            return tokenEndpoint;
+        }
+        
+        // Fallback logic based on authenticator type (like GoogleExecutor).
+        String authenticatorName = config.getName();
+        if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
+            // Fallback to Google's default token URL (same as GoogleExecutor).
+            return "https://oauth2.googleapis.com/token";
+        } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) || 
+                  "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
+            // For OpenIDConnect, there's no default fallback - must be configured.
+            return null;
+        }
+        
         return null;
     }
 
