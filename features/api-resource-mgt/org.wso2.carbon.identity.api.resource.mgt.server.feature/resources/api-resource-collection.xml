@@ -1861,6 +1861,7 @@
                 <Scope name="internal_org_async_operation_status_view"/>
                 <Scope name="internal_org_secret_mgt_view"/>
                 <Scope name="internal_org_config_view"/>
+                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1891,6 +1892,7 @@
                 <Scope name="internal_org_idp_view"/>
                 <Scope name="internal_org_async_operation_status_view"/>
                 <Scope name="internal_org_secret_mgt_view"/>
+                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1922,6 +1924,7 @@
                 <Scope name="internal_org_async_operation_status_view"/>
                 <Scope name="internal_org_secret_mgt_view"/>
                 <Scope name="internal_org_config_view"/>
+                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
