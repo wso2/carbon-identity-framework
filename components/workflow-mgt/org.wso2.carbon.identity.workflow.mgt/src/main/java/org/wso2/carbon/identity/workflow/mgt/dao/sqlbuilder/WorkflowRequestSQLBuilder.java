@@ -374,11 +374,11 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
     }
 
     /**
-     * Get string from inputStream of a blob.
+     * Retrieves the string content from the given input stream of a blob.
      *
-     * @param is input stream.
-     * @return String result.
-     * @throws IOException
+     * @param is the input stream to read the blob data from.
+     * @return the string content read from the input stream.
+     * @throws IOException if an I/O error occurs while reading from the input stream or closing the reader.
      */
     private String getBlobValue(InputStream is) throws IOException {
 
@@ -389,8 +389,6 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
                 while ((line = br.readLine()) != null) {
                     sb.append(line);
                 }
-            } catch (IOException e) {
-                throw new IOException("Error in retrieving the Blob value", e);
             }
             return sb.toString();
         }
