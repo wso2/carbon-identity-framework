@@ -1317,7 +1317,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="oidcScopes" displayName="OIDC Scopes" type="organization">
+    <APIResourceCollection name="org_oidcScopes" displayName="OIDC Scopes" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:scopes:oidc"/>
@@ -2135,7 +2135,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="flows" displayName="Flows" type="organization">
+    <APIResourceCollection name="org_flows" displayName="Flows" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:flows"/>
