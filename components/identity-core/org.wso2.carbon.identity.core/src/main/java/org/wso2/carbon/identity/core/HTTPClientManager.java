@@ -20,12 +20,14 @@ package org.wso2.carbon.identity.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.wso2.carbon.base.ServerConfiguration;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
+
+import java.io.IOException;
 
 /**
  * Manage HTTP client creation with pool.
@@ -37,49 +39,55 @@ public class HTTPClientManager {
             "HttpClient.ConnectionPool.DefaultMaxConnectionsPerRoute";
     public static final String HTTP_CLIENT_ADD_KEEP_ALIVE_STRATEGY =
             "HttpClient.ConnectionPool.AddKeepAliveStrategy";
+    public static final String HTTP_CLIENT_POOL_ENABLED = "HttpClient.ConnectionPool.Enabled";
 
     private static final Log log = LogFactory.getLog(HTTPClientManager.class);
     private static final CloseableHttpClient httpClient;
-    private static final String CLIENT = "Client ";
+    private static final boolean isConnectionPoolEnabled;
 
     private HTTPClientManager() {
     }
 
     static {
 
-        String maxTotalConnectionProp = ServerConfiguration.getInstance()
-                .getFirstProperty(HTTP_CLIENT_MAX_TOTAL_CONNECTIONS);
-        String defaultMaxPerRouteProp = ServerConfiguration.getInstance()
-                .getFirstProperty(HTTP_CLIENT_DEFAULT_MAX_CONNECTIONS_PER_ROUTE);
-        String addKeepAliveStrategy = ServerConfiguration.getInstance()
-                .getFirstProperty(HTTP_CLIENT_ADD_KEEP_ALIVE_STRATEGY);
+        isConnectionPoolEnabled = Boolean.parseBoolean(
+                ServerConfiguration.getInstance().getFirstProperty(HTTP_CLIENT_POOL_ENABLED));
 
-        int maxTotalConnections = 100;
-        int defaultMaxPerRoute = 100;
+        HttpClientBuilder clientBuilder = HTTPClientUtils.createClientWithCustomHostnameVerifier();
 
-        if (maxTotalConnectionProp != null) {
-            try {
-                maxTotalConnections = Integer.parseInt(maxTotalConnectionProp);
-            } catch (NumberFormatException ignore) {
-                log.debug("Parsing issue for maxTotalConnections property: " + maxTotalConnectionProp);
+        if (isConnectionPoolEnabled) {
+
+            String maxTotalConnectionProp = ServerConfiguration.getInstance()
+                    .getFirstProperty(HTTP_CLIENT_MAX_TOTAL_CONNECTIONS);
+            String defaultMaxPerRouteProp = ServerConfiguration.getInstance()
+                    .getFirstProperty(HTTP_CLIENT_DEFAULT_MAX_CONNECTIONS_PER_ROUTE);
+            String addKeepAliveStrategy = ServerConfiguration.getInstance()
+                    .getFirstProperty(HTTP_CLIENT_ADD_KEEP_ALIVE_STRATEGY);
+
+            int maxTotalConnections = 100;
+            int defaultMaxPerRoute = 100;
+
+            if (maxTotalConnectionProp != null) {
+                try {
+                    maxTotalConnections = Integer.parseInt(maxTotalConnectionProp);
+                } catch (NumberFormatException ignore) {
+                    log.debug("Parsing issue for maxTotalConnections property: " + maxTotalConnectionProp);
+                }
             }
-        }
-        if (defaultMaxPerRouteProp != null) {
-            try {
-                maxTotalConnections = Integer.parseInt(defaultMaxPerRouteProp);
-            } catch (NumberFormatException ignore) {
-                log.debug("Parsing issue for defaultMaxPerRoute property: " + defaultMaxPerRouteProp);
+            if (defaultMaxPerRouteProp != null) {
+                try {
+                    defaultMaxPerRoute = Integer.parseInt(defaultMaxPerRouteProp);
+                } catch (NumberFormatException ignore) {
+                    log.debug("Parsing issue for defaultMaxPerRoute property: " + defaultMaxPerRouteProp);
+                }
             }
-        }
-
-        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
-        connManager.setMaxTotal(maxTotalConnections);
-        connManager.setDefaultMaxPerRoute(defaultMaxPerRoute);
-
-        HttpClientBuilder clientBuilder = HTTPClientUtils.createClientWithCustomVerifier();
-        clientBuilder.setConnectionManager(connManager);
-        if (Boolean.parseBoolean(addKeepAliveStrategy)) {
-            clientBuilder.setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy());
+            PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+            connManager.setMaxTotal(maxTotalConnections);
+            connManager.setDefaultMaxPerRoute(defaultMaxPerRoute);
+            clientBuilder.setConnectionManager(connManager);
+            if (Boolean.parseBoolean(addKeepAliveStrategy)) {
+                clientBuilder.setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy());
+            }
         }
         httpClient = clientBuilder.build();
     }
@@ -87,5 +95,63 @@ public class HTTPClientManager {
     public static CloseableHttpClient getHttpClient() {
 
         return httpClient;
+    }
+
+    /**
+     * Executes an operation with appropriate HttpClient management.
+     * Handles both pooled and non-pooled clients, ensuring proper cleanup.
+     *
+     * @param operation The operation to execute with the HttpClient
+     * @param <T>       Return type of the operation
+     * @param <E>       Exception type that the operation may throw
+     * @return Result of the operation
+     * @throws E if operation fails
+     */
+    public static <T, E extends Exception> T executeWithHttpClient(HttpClientOperation<T, E> operation)
+            throws E {
+
+        boolean usePooling = isConnectionPoolEnabled;
+        CloseableHttpClient httpClient = usePooling ? getHttpClient()
+                : HTTPClientUtils.createClientWithCustomHostnameVerifier().build();
+
+        try {
+            return operation.execute(httpClient);
+        } finally {
+            closeHttpClientIfNeeded(httpClient);
+        }
+    }
+
+    /**
+     * Closes HttpClient only if not using connection pooling.
+     *
+     * @param httpClient The client to close
+     */
+    private static void closeHttpClientIfNeeded(CloseableHttpClient httpClient) {
+
+        if (!isConnectionPoolEnabled) {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                log.debug("Failed to close non-pooled HttpClient", e);
+            }
+        }
+    }
+
+    public static boolean isConnectionPoolEnabled() {
+
+        return isConnectionPoolEnabled;
+    }
+
+    /**
+     * Functional interface for operations that use HttpClient.
+     * Generalized to work with any exception type.
+     *
+     * @param <T> Return type of the operation
+     * @param <E> Exception type that may be thrown
+     */
+    @FunctionalInterface
+    public interface HttpClientOperation<T, E extends Exception> {
+
+        T execute(CloseableHttpClient httpClient) throws E;
     }
 }

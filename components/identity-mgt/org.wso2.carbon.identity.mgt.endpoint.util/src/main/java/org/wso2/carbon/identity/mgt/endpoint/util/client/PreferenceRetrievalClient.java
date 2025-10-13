@@ -522,7 +522,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
