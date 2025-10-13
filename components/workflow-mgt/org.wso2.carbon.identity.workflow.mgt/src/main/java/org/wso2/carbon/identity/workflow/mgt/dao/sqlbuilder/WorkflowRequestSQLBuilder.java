@@ -23,6 +23,11 @@ import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.user.core.model.SqlBuilder;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -323,8 +328,12 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
         request.setUpdatedAt(rs.getTimestamp("UPDATED_AT").toInstant().toString());
         request.setStatus(rs.getString("STATUS"));
         request.setOperationType(rs.getString("OPERATION_TYPE"));
-        request.setRequestParams(rs.getString("REQUEST"));
-        return request;
+        try {
+            request.setRequestParams(getBlobValue(rs.getBinaryStream("REQUEST")));
+            return request;
+        } catch (IOException e) {
+            throw new SQLException("Error while retrieving request parameters from the database", e);
+        }
     }
 
     private boolean isValidFilter(String value) {
@@ -362,5 +371,29 @@ public class WorkflowRequestSQLBuilder extends SqlBuilder {
 
         builder = builder.setLimit(limit).setOffset(offset);
         return builder;
+    }
+
+    /**
+     * Get string from inputStream of a blob.
+     *
+     * @param is input stream.
+     * @return String result.
+     * @throws IOException
+     */
+    private String getBlobValue(InputStream is) throws IOException {
+
+        if (is != null) {
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+            } catch (IOException e) {
+                throw new IOException("Error in retrieving the Blob value", e);
+            }
+            return sb.toString();
+        }
+        return null;
     }
 }
