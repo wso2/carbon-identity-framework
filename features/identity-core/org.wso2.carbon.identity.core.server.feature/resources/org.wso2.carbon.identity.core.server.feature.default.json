@@ -255,6 +255,7 @@
 
   "oauth.oidc.id_token.signature_algorithm": "SHA256withRSA",
   "oauth.oidc.id_token.issuer": "$ref{oauth.endpoints.oauth2_token_url}",
+  "oauth.oidc.id_token.use_entityid_as_issuer": false,
   "oauth.oidc.extensions.claim_callback_handler": "org.wso2.carbon.identity.openidconnect.SAMLAssertionClaimsCallback",
   "oauth.oidc.token_validation.id_token_validity": "1h",
   "oauth.oidc.id_token.supported_encryption_algorithms": ["RSA-OAEP", "RSA1_5"],

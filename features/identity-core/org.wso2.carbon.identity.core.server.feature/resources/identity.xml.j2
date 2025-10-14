@@ -974,6 +974,7 @@
                 Default value for IDTokenIssuerID, is OAuth2TokenEPUrl.
                 If that doesn't satisfy uncomment the following config and explicitly configure the value
             -->
+            <UseEntityIdAsIssuer>{{ oauth.oidc.id_token.use_entityid_as_issuer }}</UseEntityIdAsIssuer>
             <IDTokenIssuerID>{{oauth.oidc.id_token.issuer}}</IDTokenIssuerID>
             <IDTokenCustomClaimsCallBackHandler>{{oauth.oidc.extensions.claim_callback_handler}}</IDTokenCustomClaimsCallBackHandler>
             <IDTokenExpiration>{{oauth.oidc.token_validation.id_token_validity}}</IDTokenExpiration>
