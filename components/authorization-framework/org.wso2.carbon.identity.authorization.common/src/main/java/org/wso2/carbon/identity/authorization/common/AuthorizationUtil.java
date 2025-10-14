@@ -61,8 +61,10 @@ public class AuthorizationUtil {
             }
 
             if (!allowedScopes.contains(operationScope)) {
-                LOG.warn("Operation '" + operationName + "' requires scope '" + operationScope +
-                        "' which is not in allowed scopes.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Operation '" + operationName + "' requires scope '" + operationScope +
+                            "' which is not in allowed scopes.");
+                }
                 throw new ForbiddenException("Operation is not permitted. You do not have permissions to make " +
                         "this request.");
             }

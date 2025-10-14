@@ -515,7 +515,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logErrorResponse(Action action, ActionInvocationErrorResponse errorResponse) {
 
-        DIAGNOSTIC_LOGGER.logErrorResponse(action);
+        DIAGNOSTIC_LOGGER.logErrorResponse(action, errorResponse);
         if (LOG.isDebugEnabled()) {
             try {
                 String responseBody = serializeErrorResponse(errorResponse);
@@ -536,7 +536,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logFailureResponse(Action action, ActionInvocationFailureResponse failureResponse) {
 
-        DIAGNOSTIC_LOGGER.logFailureResponse(action);
+        DIAGNOSTIC_LOGGER.logFailureResponse(action, failureResponse);
         if (LOG.isDebugEnabled()) {
             try {
                 String responseBody = serializeFailureResponse(failureResponse);

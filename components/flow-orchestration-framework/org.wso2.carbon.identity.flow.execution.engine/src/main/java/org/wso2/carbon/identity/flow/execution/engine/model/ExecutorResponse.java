@@ -28,6 +28,7 @@ public class ExecutorResponse {
 
     private String result;
     private List<String> requiredData;
+    private List<String> optionalData;
     private Map<String, Object> updatedUserClaims;
     private Map<String, char[]> userCredentials;
     private Map<String, Object> contextProperties;
@@ -62,6 +63,16 @@ public class ExecutorResponse {
     public void setRequiredData(List<String> requiredData) {
 
         this.requiredData = requiredData;
+    }
+
+    public List<String> getOptionalData() {
+
+        return optionalData;
+    }
+
+    public void setOptionalData(List<String> optionalData) {
+
+        this.optionalData = optionalData;
     }
 
     public Map<String, Object> getUpdatedUserClaims() {

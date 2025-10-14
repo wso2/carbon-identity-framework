@@ -1298,6 +1298,8 @@
         The default value of the configuration is false.
         -->
         <EnableRoleValidation>false</EnableRoleValidation>
+        <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceClientSecretPermission>false</SkipEnforceClientSecretPermission>
     </ApplicationMgt>
 
     <JITProvisioning>

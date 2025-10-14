@@ -154,6 +154,7 @@ public abstract class FrameworkConstants {
     public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";
     public static final String ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION
             = "JITProvisioning.EnableConfiguredIdpSubForFederatedUserAssociation";
+    public static final String ALLOW_NON_STANDARD_CLAIM_URI = "JITProvisioning.AllowNonStandardClaimURI";
 
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";

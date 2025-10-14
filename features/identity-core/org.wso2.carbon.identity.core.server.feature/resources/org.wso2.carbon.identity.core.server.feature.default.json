@@ -227,6 +227,7 @@
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
   "oauth.dcr.mandate_ssa": false,
+  "oauth.allow_default_requested_scopes_for_back_channel_grant": false,
   "oauth.enable_jwt_token_validation_during_introspection": true,
   "oauth.use_client_id_as_sub_claim_for_app_tokens": true,
   "oauth.remove_username_from_introspection_response_for_app_tokens": true,
@@ -409,8 +410,8 @@
   "scim2.consider_total_records_for_total_results_of_ldap": false,
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
-  "scim2.enable_scim2_roles_v3_api": true,
-  "scim2.default_role_api_version_for_ref": "v3",
+  "scim2.enable_scim2_roles_v3_api": false,
+  "scim2.default_role_api_version_for_ref": "v2",
   "scim2.return_conflict_on_claim_uniqueness_violation": true,
   "scim2.throw_userstore_exception_on_user_creation_error": true,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
@@ -561,6 +562,8 @@
 
   "identity_mgt.enable_user_claim_input_regex_validation": true,
 
+  "identity_mgt.workflow_pending_user_authn_handler.enable": false,
+
   "scim2_multi_attribute_filtering.use_pagination" : false,
 
   "org_wise_multi_attribute_separator.enabled": false,
@@ -583,6 +586,7 @@
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
   "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
   "authentication.jit_provisioning.enable_enhanced_feature": false,
+  "authentication.jit_provisioning.allow_non_Standard_claim_uri":false,
 
   "application_mgt.enable_role_validation": false,
   "application_mgt.trusted_app_consent_required": false,
@@ -865,6 +869,7 @@
   "oauth.jwks_endpoint.add_previous_version_kid" : false,
   "oauth.jwks_endpoint.is_thumbprint_hexify_required": false,
   "oauth.global_scope_validators.role_based_scope_issuer.enable": false,
+  "oauth.add_tenant_domain_to_access_token": false,
 
   "authentication.adaptive.event_publisher.authentication_type": "basic",
   "authentication.adaptive.async_executer_pool_size": "5",
@@ -1313,7 +1318,7 @@
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": true,
   "console.ui.idp_templates.hypr.enabled": false,
-  "console.ui.i18n_configs.showLanguageSwitcher": false,
+  "console.ui.i18n_configs.showLanguageSwitcher": true,
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [
@@ -1469,6 +1474,21 @@
   "console.applications.disabled_features": [
     "applications.loginFlow.legacyEditor",
     "applications.sharedAccess.status"
+  ],
+  "console.applications.sub_features.applicationBusinessAPIAuthorization.scopes.update": [
+    "internal_application_business_api_update"
+  ],
+  "console.applications.sub_features.applicationInternalAPIAuthorization.scopes.update": [
+    "internal_application_internal_api_update"
+  ],
+  "console.applications.sub_features.applicationClientSecretManagement.scopes.create": [
+    "internal_application_mgt_client_secret_create"
+  ],
+  "console.applications.sub_features.applicationClientSecretManagement.scopes.read": [
+    "internal_application_mgt_client_secret_view"
+  ],
+  "console.applications.sub_features.applicationAuthenticationScript.scopes.update": [
+    "internal_application_script_update"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
@@ -1725,6 +1745,29 @@
   ],
   "console.user_roles.scopes.update": ["internal_role_mgt_update"],
   "console.user_roles.scopes.delete": ["internal_role_mgt_delete"],
+  "console.user_roles.sub_features.roleAssignments.scopes.update": [
+    "internal_role_mgt_groups_update",
+    "internal_role_mgt_update",
+    "internal_role_mgt_users_update"
+  ],
+  "console.user_roles.sub_features.roleAssignments.scopes.feature": [
+    "console:role_assignments",
+    "console:roles"
+  ],
+  "console.user_roles.sub_features.roleAssignments.scopes.read": [
+    "internal_api_resource_view",
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.user_roles.sub_features.rolePermissionAssignments.scopes.update": [
+    "internal_role_mgt_permissions_update",
+    "internal_role_mgt_update"
+  ],
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
@@ -1875,7 +1918,7 @@
   "console.ui.is_header_avatar_label_allowed": true,
   "console.get_profile_info_from_id_token": false,
   "console.super_tenant_proxy_name": "",
-  "console.role_assignments.enabled": false,
+  "console.role_assignments.enabled": true,
   "console.role_assignments.disabled_features": [],
   "console.role_assignments.scopes.create": [],
   "console.role_assignments.scopes.delete": [],
@@ -1962,7 +2005,7 @@
     "/api/users/v1/me/applications"
   ],
   "ui.is_cookie_consent_banner_enabled": true,
-  
+
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],
@@ -2034,7 +2077,7 @@
   "client_attestation.apple_attestation_revocation_check_enabled": false,
 
   "api_response.set_account_lock_auth_failure_reason": false,
-  
+
   "super_tenant.alias_in_public_url": "",
   "connector.challenge_questions.enable": false,
   "tenant_mgt.enable_email_domain": false,
@@ -2055,8 +2098,7 @@
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
   "actions.types.pre_update_profile.version.latest": "v1",
-  "actions.types.pre_update_password.version.latest": "v1",
-  "actions.types.pre_update_password.enable_in_registration_flows": true,
+  "actions.types.pre_update_password.version.latest": "v2",
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
@@ -2110,7 +2152,7 @@
   "console.ui.organizations.organization_display_name.enable": true,
   "console.ui.organizations.organization_handle.enable": true,
   "notification_templates.super_organization_display_name.enable": true,
-  
+
   "notificationChannel.sms.custom.connection_timeout": "5000",
   "notificationChannel.sms.custom.connection_read_timeout": "20000",
 

@@ -1294,6 +1294,10 @@
         </DefaultRequestedScopes>
         {% endif %}
 
+        {% if oauth.allow_default_requested_scopes_for_back_channel_grant is defined %}
+            <EnableDefaultRequestedScopesForBackChannelGrant>{{oauth.allow_default_requested_scopes_for_back_channel_grant}}</EnableDefaultRequestedScopesForBackChannelGrant>
+        {% endif %}
+
         {% if oauth.drop_unregistered_scopes is defined %}
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
@@ -1309,6 +1313,9 @@
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
         <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
+
+        <!-- Configuration for adding tenant domain info to JWT -->
+        <AddTenantDomainToAccessToken>{{oauth.add_tenant_domain_to_access_token}}</AddTenantDomainToAccessToken>
 
         <JWT>
         {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
@@ -2169,6 +2176,7 @@
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
+        <AllowNonStandardClaimURI>{{authentication.jit_provisioning.allow_non_Standard_claim_uri}}</AllowNonStandardClaimURI>
         {% if authentication.jit_provisioning.show_failure_reason is defined %}
         <ShowFailureReason>{{authentication.jit_provisioning.show_failure_reason}}</ShowFailureReason>
         {% endif %}
@@ -2185,12 +2193,20 @@
         <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
         <TrustedAppConsentRequired>{{application_mgt.trusted_app_consent_required}}</TrustedAppConsentRequired>
         <TrustedAppMaxThumbprintCount>{{application_mgt.trusted_app_max_thumbprint_count}}</TrustedAppMaxThumbprintCount>
+        <SkipEnforceAuthorizedAPIUpdatePermission>{{operation_permission_enforcement.skip_enforce_authorized_api_update_permission}}</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceClientSecretPermission>{{operation_permission_enforcement.skip_enforce_client_secret_permission}}</SkipEnforceClientSecretPermission>
+        {% if operation_permission_enforcement.skip_enforce_script_update_permission is defined %}
+        <SkipEnforceScriptUpdatePermission>{{operation_permission_enforcement.skip_enforce_script_update_permission}}</SkipEnforceScriptUpdatePermission>
+        {% endif %}
     </ApplicationMgt>
 
     <!--Role management service configurations-->
     <RoleMgt>
         {% if role_mgt.allow_system_prefix_for_role is defined %}
         <AllowSystemPrefixForRoles>{{role_mgt.allow_system_prefix_for_role}}</AllowSystemPrefixForRoles>
+        {% endif %}
+        {% if operation_permission_enforcement.skip_enforce_role_operation_permission is defined %}
+        <SkipEnforceRoleOperationPermission>{{operation_permission_enforcement.skip_enforce_role_operation_permission}}</SkipEnforceRoleOperationPermission>
         {% endif %}
     </RoleMgt>
 
@@ -2282,7 +2298,6 @@
                     <Latest>{{actions.types.pre_update_password.version.latest}}</Latest>
                     <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
                 </Version>
-                <EnableInRegistrationFlows>{{actions.types.pre_update_password.enable_in_registration_flows}}</EnableInRegistrationFlows>
             </PreUpdatePassword>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
@@ -4869,7 +4884,7 @@
                 -->
                 <ConnectionTimeout>{{notificationChannel.sms.custom.connection_timeout}}</ConnectionTimeout>
                 <!--
-                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is 
+                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is
                     established to the custom SMS provider. A timeout of zero is interpreted as an infinite timeout.
                     Default value is 20000ms.
                     Supported versions : IS 7.2.0 onwards

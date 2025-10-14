@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.internal.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
@@ -36,7 +37,6 @@ import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementAuditLogger;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
-import org.wso2.carbon.identity.action.management.internal.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -54,7 +54,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private static final Log LOG = LogFactory.getLog(ActionManagementServiceImpl.class);
     private static final ActionManagementDAOFacade DAO_FACADE =
             new ActionManagementDAOFacade(new ActionManagementDAOImpl());
-    private static final ActionValidator ACTION_VALIDATOR = new ActionValidator();
     private static final ActionManagementAuditLogger auditLogger = new ActionManagementAuditLogger();
 
     /**
@@ -74,7 +73,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String resolvedActionType = getActionTypeFromPath(actionType);
-        ACTION_VALIDATOR.doPreAddActionValidations(action);
+        Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
+        ActionValidatorFactory.getActionValidator(castedActionType).doPreAddActionValidations(
+                castedActionType, ActionManagementConfig.getInstance().getLatestVersion(castedActionType), action);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
@@ -156,10 +157,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String resolvedActionType = getActionTypeFromPath(actionType);
-        ACTION_VALIDATOR.doPreUpdateActionValidations(action);
-        ACTION_VALIDATOR.validateActionVersion(
-                Action.ActionTypes.valueOf(resolvedActionType), action.getActionVersion());
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
+        Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
+        ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
+                castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action);
         ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action);
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
@@ -168,6 +169,15 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 null, updatedActionDTO.getUpdatedAt());
 
         return buildAction(resolvedActionType, updatedActionDTO);
+    }
+
+    private String resolveActionVersionAtUpdating(Action updatingAction, ActionDTO existingActionDTO) {
+
+        String updatingActionVersion = updatingAction.getActionVersion();
+        if (StringUtils.isNotBlank(updatingActionVersion)) {
+            return updatingActionVersion;
+        }
+        return existingActionDTO.getActionVersion();
     }
 
     /**

@@ -221,6 +221,7 @@ public class FlowExecutionEngine {
             finalDataDTO = new DataDTO.Builder()
                     .components(dataDTO.getComponents())
                     .requiredParams(nodeResponse.getRequiredData())
+                    .optionalParams(nodeResponse.getOptionalData())
                     .additionalData(nodeResponse.getAdditionalInfo())
                     .build();
             handleError(finalDataDTO, nodeResponse);
@@ -271,6 +272,7 @@ public class FlowExecutionEngine {
                         .url(redirectUrl)
                         .additionalData(nodeResponse.getAdditionalInfo())
                         .requiredParams(nodeResponse.getRequiredData())
+                        .optionalParams(nodeResponse.getOptionalData())
                         .build())
                 .build();
     }
@@ -293,6 +295,7 @@ public class FlowExecutionEngine {
                 .data(new DataDTO.Builder()
                         .webAuthnData(webAuthnData)
                         .requiredParams(nodeResponse.getRequiredData())
+                        .optionalParams(nodeResponse.getOptionalData())
                         .build())
                 .build();
     }
@@ -310,6 +313,7 @@ public class FlowExecutionEngine {
                 .data(new DataDTO.Builder()
                         .additionalData(nodeResponse.getAdditionalInfo())
                         .requiredParams(nodeResponse.getRequiredData())
+                        .optionalParams(nodeResponse.getOptionalData())
                         .build())
                 .build();
     }
