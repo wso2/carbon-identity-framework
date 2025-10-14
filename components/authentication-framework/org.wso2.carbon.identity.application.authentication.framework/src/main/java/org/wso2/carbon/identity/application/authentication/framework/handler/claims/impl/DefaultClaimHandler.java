@@ -692,7 +692,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         localToIdPClaimMap.putAll(Arrays.stream(idPClaimMappings).filter(claimMapping -> StringUtils.
                 isNotBlank(claimMapping.getDefaultValue()) && !localToIdPClaimMap.containsKey(claimMapping.
                 getLocalClaim().getClaimUri())).collect(Collectors.toMap(claimMapping -> claimMapping.getLocalClaim().
-                getClaimUri(), claimMapping->claimMapping.getRemoteClaim().getClaimUri())));
+                getClaimUri(), claimMapping -> claimMapping.getRemoteClaim().getClaimUri())));
 
         return localToIdPClaimMap;
     }
