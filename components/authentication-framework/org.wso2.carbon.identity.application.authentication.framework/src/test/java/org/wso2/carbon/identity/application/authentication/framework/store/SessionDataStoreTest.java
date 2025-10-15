@@ -25,6 +25,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionSerializerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -32,11 +33,16 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
+import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -58,6 +64,18 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
 
     @Mock
     FrameworkServiceDataHolder mockFrameworkServiceDataHolder;
+    @Mock
+    FrameworkServiceDataHolder mockFrameworkServiceDataHolder1;
+    @Mock
+    PreparedStatement mockPreparedStatement;
+    @Mock
+    ResultSet mockResultSet;
+    @Mock
+    SessionSerializer mockSessionSerializer;
+    @Mock
+    InputStream mockInputStream;
+    @Mock
+    DatabaseMetaData mockDatabaseMetaData;
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -100,6 +118,34 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
             mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
             mockDataHolder(frameworkServiceDataHolder);
             SessionDataStore.getInstance().persistSessionData(key, type, entry, nanoTime, tenantId);
+        }
+    }
+
+    @Test(dependsOnMethods = "testRemoveSessionData")
+    public void testGetSessionData() throws Exception {
+
+        String key = "1";
+        String type = "AuthCache";
+        String operation = OPERATION_STORE;
+        long nanoTime = 30000;
+        int tenantId = 1;
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+
+            Object obj = new Object();
+            SessionContextDO sessionContextDO = new SessionContextDO(key, type, obj, nanoTime, tenantId);
+
+            mockPreparedStatements( false, identityDatabaseUtil, frameworkServiceDataHolder,
+                    sessionContextDO);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            Object sessionData = SessionDataStore.getInstance().getSessionData(key, type, operation);
+            assertEquals(sessionData, obj);
         }
     }
 
@@ -219,5 +265,32 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         }
         identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getSessionDBConnection(shouldApplyTransaction))
                 .thenReturn(connection1);
+    }
+
+    private void mockPreparedStatements(Boolean shouldApplyTransaction,
+                                        MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil,
+                                        MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder,
+                                        SessionContextDO sessionContextDO
+                                       )
+            throws SQLException, SessionSerializerException {
+
+        frameworkServiceDataHolder.when(
+                FrameworkServiceDataHolder::getInstance).thenReturn(mockFrameworkServiceDataHolder1);
+        when(mockFrameworkServiceDataHolder1.getSessionSerializer()).thenReturn(mockSessionSerializer);
+        when(mockSessionSerializer.deSerializeSessionObject(any())).thenReturn(sessionContextDO.getEntry());
+        Connection connection1 = mock(Connection.class);
+        doNothing().when(connection1).close();
+
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getSessionDBConnection(shouldApplyTransaction))
+                .thenReturn(connection1);
+
+        when(connection1.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+        doNothing().when(mockPreparedStatement).setString(anyInt(), anyString());
+        when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+        when(mockResultSet.next()).thenReturn(true);
+        when(mockResultSet.getLong(anyInt())).thenReturn(1000L);
+        when(mockResultSet.getBinaryStream(anyInt())).thenReturn(mockInputStream);
+        when(connection1.getMetaData()).thenReturn(mockDatabaseMetaData);
+        when(mockDatabaseMetaData.getDriverName()).thenReturn("H2");
     }
 }
