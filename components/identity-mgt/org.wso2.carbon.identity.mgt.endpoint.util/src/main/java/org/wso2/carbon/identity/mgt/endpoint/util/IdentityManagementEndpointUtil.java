@@ -1066,6 +1066,10 @@ public class IdentityManagementEndpointUtil {
         CloseableHttpClient httpClient = HTTPClientManager.isConnectionPoolEnabled() ?
                 HTTPClientManager.getHttpClient() :
                 HTTPClientUtils.createClientWithCustomHostnameVerifier().build();
+        if (log.isDebugEnabled()) {
+            log.debug("Using " + (HTTPClientManager.isConnectionPoolEnabled() ? "pooled" : "new")
+                    + " HTTP client for request: " + request.getMethod() + " " + request.getPath());
+        }
         try {
             return httpClient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {

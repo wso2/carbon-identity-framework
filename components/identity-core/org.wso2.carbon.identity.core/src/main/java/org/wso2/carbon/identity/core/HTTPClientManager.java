@@ -41,7 +41,7 @@ public class HTTPClientManager {
             "HttpClient.ConnectionPool.AddKeepAliveStrategy";
     public static final String HTTP_CLIENT_POOL_ENABLED = "HttpClient.ConnectionPool.Enabled";
 
-    private static final Log log = LogFactory.getLog(HTTPClientManager.class);
+    private static final Log LOG = LogFactory.getLog(HTTPClientManager.class);
     private static final CloseableHttpClient httpClient;
     private static final boolean isConnectionPoolEnabled;
 
@@ -55,6 +55,9 @@ public class HTTPClientManager {
 
         HttpClientBuilder clientBuilder = HTTPClientUtils.createClientWithCustomHostnameVerifier();
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Initializing HTTPClientManager with connection pool enabled: " + isConnectionPoolEnabled);
+        }
         if (isConnectionPoolEnabled) {
 
             String maxTotalConnectionProp = ServerConfiguration.getInstance()
@@ -71,14 +74,19 @@ public class HTTPClientManager {
                 try {
                     maxTotalConnections = Integer.parseInt(maxTotalConnectionProp);
                 } catch (NumberFormatException ignore) {
-                    log.debug("Parsing issue for maxTotalConnections property: " + maxTotalConnectionProp);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Parsing issue for maxTotalConnections property: " + maxTotalConnectionProp);
+                    }
                 }
             }
             if (defaultMaxPerRouteProp != null) {
                 try {
                     defaultMaxPerRoute = Integer.parseInt(defaultMaxPerRouteProp);
                 } catch (NumberFormatException ignore) {
-                    log.debug("Parsing issue for defaultMaxPerRoute property: " + defaultMaxPerRouteProp);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Parsing issue for defaultMaxPerRoute property: " + defaultMaxPerRouteProp);
+                    }
+
                 }
             }
             PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
@@ -92,6 +100,13 @@ public class HTTPClientManager {
         httpClient = clientBuilder.build();
     }
 
+    /**
+     * Returns the configured HttpClient instance.
+     * When pooling is enabled, returns a shared pooled client.
+     * Otherwise, returns a non-pooled client that should be closed after use.
+     *
+     * @return CloseableHttpClient instance.
+     */
     public static CloseableHttpClient getHttpClient() {
 
         return httpClient;
@@ -132,11 +147,18 @@ public class HTTPClientManager {
             try {
                 httpClient.close();
             } catch (IOException e) {
-                log.debug("Failed to close non-pooled HttpClient", e);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Failed to close non-pooled HttpClient", e);
+                }
             }
         }
     }
 
+    /**
+     * Returns whether HTTP client connection pooling is enabled.
+     *
+     * @return true if connection pooling is enabled, false otherwise.
+     */
     public static boolean isConnectionPoolEnabled() {
 
         return isConnectionPoolEnabled;
