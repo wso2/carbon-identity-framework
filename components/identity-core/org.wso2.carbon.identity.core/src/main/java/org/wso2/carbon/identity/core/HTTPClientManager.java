@@ -55,6 +55,9 @@ public class HTTPClientManager {
 
         HttpClientBuilder clientBuilder = HTTPClientUtils.createClientWithCustomHostnameVerifier();
 
+        if (log.isDebugEnabled()) {
+            log.debug("Initializing HTTPClientManager with connection pool enabled: " + isConnectionPoolEnabled);
+        }
         if (isConnectionPoolEnabled) {
 
             String maxTotalConnectionProp = ServerConfiguration.getInstance()
