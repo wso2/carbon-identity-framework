@@ -140,7 +140,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
             Object obj = new Object();
             SessionContextDO sessionContextDO = new SessionContextDO(key, type, obj, nanoTime, tenantId);
 
-            mockPreparedStatements( false, identityDatabaseUtil, frameworkServiceDataHolder,
+            mockPreparedStatements(false, identityDatabaseUtil, frameworkServiceDataHolder,
                     sessionContextDO);
             mockCarbonContext(carbonContext);
             mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);

@@ -453,7 +453,8 @@ public class SessionDataStore {
     public SessionContextDO getSessionContextData(String key, String type, String operation) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type + " operation : " + operation);
+            log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type + " operation : " +
+                    operation);
         }
         if (!enablePersist) {
             return null;
