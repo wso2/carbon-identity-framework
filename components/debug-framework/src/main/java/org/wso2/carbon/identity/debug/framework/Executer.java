@@ -217,17 +217,7 @@ public class Executer {
             return authzEndpoint;
         }
         
-        // Fallback logic based on authenticator type (like GoogleExecutor).
-        String authenticatorName = config.getName();
-        if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
-            // Fallback to Google's default OAuth URL (same as GoogleExecutor).
-            return "https://accounts.google.com/o/oauth2/v2/auth";
-        } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) || 
-                  "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
-            // For OpenIDConnect, there's no default fallback - must be configured.
-            return null;
-        }
-        
+        // Do not use hardcoded endpoints. Always use endpoints from authenticator config.
         return null;
     }
     
@@ -245,17 +235,7 @@ public class Executer {
             return tokenEndpoint;
         }
         
-        // Fallback logic based on authenticator type (like GoogleExecutor).
-        String authenticatorName = config.getName();
-        if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
-            // Fallback to Google's default token URL (same as GoogleExecutor).
-            return "https://oauth2.googleapis.com/token";
-        } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) || 
-                  "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
-            // For OpenIDConnect, there's no default fallback - must be configured.
-            return null;
-        }
-        
+        // Do not use hardcoded endpoints. Always use endpoints from authenticator config.
         return null;
     }
 

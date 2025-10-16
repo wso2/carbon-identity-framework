@@ -181,40 +181,9 @@ public class RequestCoordinator implements DebugService {
      * @return true if this is a debug flow callback, false otherwise.
      */
     private boolean isDebugFlowCallback(HttpServletRequest request) {
-        // Check for explicit debug identifier parameter.
-        String debugParam = request.getParameter(DEBUG_IDENTIFIER_PARAM);
-        if ("true".equals(debugParam)) {
-            return true;
-        }
-
-        // Check for OAuth callback parameters that might indicate a debug flow.
-        String code = request.getParameter("code");
+        // state parameter for debug flow identification.
         String state = request.getParameter("state");
-        
-        if (code != null && state != null) {
-            // Look for debug session information in OAuth state parameter.
-            if (isDebugStateParameter(state)) {
-                return true;
-            }
-            
-            // Try to find debug context by checking all possible cache entries for debug markers.
-            if (checkForDebugContextByOAuthParams(code, state)) {
-                return true;
-            }
-        }
-
-        // Check session context for debug flow properties using sessionDataKey.
-        String sessionDataKey = request.getParameter(SESSION_DATA_KEY_PARAM);
-        if (sessionDataKey != null) {
-            AuthenticationContext context = retrieveDebugContextFromCache(sessionDataKey);
-            if (context != null && isDebugContext(context)) {
-                return true;
-            }
-        }
-
-        // Check for debug session ID parameter (legacy).
-        String debugSessionId = request.getParameter(DEBUG_SESSION_ID_PARAM);
-        return debugSessionId != null;
+        return state != null && isDebugStateParameter(state);
     }
 
     /**
