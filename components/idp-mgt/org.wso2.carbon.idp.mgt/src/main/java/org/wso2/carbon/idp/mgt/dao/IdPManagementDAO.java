@@ -2518,13 +2518,24 @@ public class IdPManagementDAO {
         Property property =
                 IdentityApplicationManagementUtil.getProperty(fedAuthnConfig.getProperties(), propertyName);
 
-        if (property == null || IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            // In tenant qualified mode we have to always give send the calculated URL and not the value stored in DB.
+        if (property == null) {
             property = new Property();
             property.setName(propertyName);
-            // Set the calculated SAML endpoint URL.
             property.setValue(epUrl);
         }
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            // In tenant qualified mode we have to always give send the calculated URL and not the value stored in DB.
+            String existingValue = property.getValue();
+            property = new Property();
+            property.setName(propertyName);
+            if (isUseEntityIDAsIssuerEnabled()) {
+                // If the flag to use entity ID as issuer is enabled, we give priority to the existing value in DB.
+                property.setValue(existingValue);
+            } else {
+                property.setValue(epUrl);
+            }
+        }
+
         return property;
     }
 
