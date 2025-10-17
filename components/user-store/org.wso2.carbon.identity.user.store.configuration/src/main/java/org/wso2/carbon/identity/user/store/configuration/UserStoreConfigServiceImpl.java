@@ -56,6 +56,7 @@ import javax.xml.bind.Marshaller;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostGet;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreStateChange;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStoresPostGet;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_REGEX;
@@ -115,6 +116,9 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         loadTenant();
         try {
             triggerListenersOnUserStorePreUpdate(userStoreDTO, isStateChange);
+            if (isUserStoreDisabled(userStoreDTO.getProperties())) {
+                triggerListenersOnUserStorePreStateChange(userStoreDTO.getDomainId(), true);
+            }
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
 
@@ -511,5 +515,15 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 }
             }
         }
+    }
+
+    private boolean isUserStoreDisabled(PropertyDTO[] propertyDTOS) {
+
+        for (PropertyDTO propertyDTO: propertyDTOS) {
+            if (propertyDTO.getName().equalsIgnoreCase("Disabled")) {
+                return Boolean.parseBoolean(propertyDTO.getValue());
+            }
+        }
+        return false;
     }
 }
