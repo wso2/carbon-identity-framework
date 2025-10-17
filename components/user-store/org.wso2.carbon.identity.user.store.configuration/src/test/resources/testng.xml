@@ -22,6 +22,7 @@
     <test name="org.wso2.carbon.identity.user.store.configuration.tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfiguratorTest"/>
+            <class name="org.wso2.carbon.identity.user.store.configuration.UserStoreConfigServiceImplTest"/>
         </classes>
     </test>
 </suite>
