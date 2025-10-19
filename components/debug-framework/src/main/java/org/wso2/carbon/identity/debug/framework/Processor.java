@@ -97,9 +97,9 @@ public class Processor {
             Boolean debugUserExists = getBooleanProperty(context, "DEBUG_USER_EXISTS");
             String debugAuthError = (String) context.getProperty("DEBUG_AUTH_ERROR");
             
-            LOG.error("CUSTOM DEBUG PROCESSOR: debugUserExists = " + debugUserExists);
-            LOG.error("CUSTOM DEBUG PROCESSOR: isSuccessful = " + isSuccessful);
-            LOG.error("CUSTOM DEBUG PROCESSOR: authenticatedUser = " + context.getSubject());
+            // Debug: debugUserExists = ...
+            // Debug: isSuccessful = ...
+            // Debug: authenticatedUser = ...
             
             AuthenticatedUser authenticatedUser = context.getSubject();
             if (authenticatedUser != null && isSuccessful) {
@@ -114,12 +114,12 @@ public class Processor {
                 // Add OAuth token information if available
                 addTokenInformation(authResult, context);
                 
-                LOG.error("CUSTOM DEBUG PROCESSOR: Set userExists=true (authenticated user branch)");
+                // Debug: Set userExists=true (authenticated user branch).
             } else {
                 // Use simulation results for user existence and error details
                 boolean finalUserExists = debugUserExists != null ? debugUserExists : false;
                 authResult.put("userExists", finalUserExists);
-                LOG.error("CUSTOM DEBUG PROCESSOR: Set userExists=" + finalUserExists + " (fallback branch)");
+                // Debug: Set userExists=... (fallback branch).
                 
                 if (debugAuthError != null) {
                     authResult.put("userDetails", debugAuthError);
@@ -487,14 +487,9 @@ public class Processor {
         }
         
         if (idToken != null) {
-            String maskedIdToken = maskToken(idToken);
-            tokenInfo.put("idToken", maskedIdToken);
+            // Show full idToken directly
+            tokenInfo.put("idToken", idToken);
             tokenInfo.put("idTokenLength", idToken.length());
-            
-            // Add full ID token if in debug mode
-            if (LOG.isDebugEnabled()) {
-                tokenInfo.put("fullIdToken", idToken);
-            }
         }
         
         if (refreshToken != null) {

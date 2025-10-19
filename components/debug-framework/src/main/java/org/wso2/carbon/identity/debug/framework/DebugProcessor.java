@@ -173,10 +173,7 @@ public class DebugProcessor {
             String clientSecret = getPropertyValue(authenticatorConfig, "ClientSecret", "client_secret", "clientSecret");
             String tokenEndpoint = getPropertyValue(authenticatorConfig, "OAuth2TokenEPUrl", "tokenEndpoint", "token_endpoint");
 
-            // Handle Google-specific case where token endpoint might not be configured.
-            if (tokenEndpoint == null && isGoogleOIDC(clientId, authenticatorConfig)) {
-                tokenEndpoint = "https://oauth2.googleapis.com/token";
-            }
+            // OAuth 2.0 configuration loaded.
 
             if (clientId == null || clientSecret == null || tokenEndpoint == null) {
                 LOG.error("Missing OAuth 2.0 configuration for token exchange");
@@ -329,6 +326,21 @@ public class DebugProcessor {
      * @return AuthenticatedUser object or null if creation fails.
      */
     private AuthenticatedUser createAuthenticatedUser(Map<String, Object> claims, AuthenticationContext context) {
+            // Log extracted claims for troubleshooting
+            // Always print claim diagnostics at INFO level for troubleshooting
+            LOG.info("[DEBUG] Extracted claims: " + (claims != null ? claims.keySet().toString() : "null"));
+            IdentityProvider idpLog = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            if (idpLog != null && idpLog.getClaimConfig() != null && idpLog.getClaimConfig().getClaimMappings() != null) {
+                StringBuilder mappingsLog = new StringBuilder("[DEBUG] Configured claim mappings: [");
+                for (ClaimMapping cm : idpLog.getClaimConfig().getClaimMappings()) {
+                    if (cm != null && cm.getRemoteClaim() != null && cm.getLocalClaim() != null) {
+                        mappingsLog.append("{remote: ").append(cm.getRemoteClaim().getClaimUri())
+                            .append(", local: ").append(cm.getLocalClaim().getClaimUri()).append("}, ");
+                    }
+                }
+                mappingsLog.append("]");
+                LOG.info(mappingsLog.toString());
+            }
         try {
             // Extract essential user information.
             String subject = getClaimValue(claims, "sub", "user_id", "id");
@@ -347,6 +359,28 @@ public class DebugProcessor {
                 return null;
             }
 
+            // --- Auto-map IdP claim mappings to match token claim keys (short name or URI) ---
+            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            if (idp != null && idp.getClaimConfig() != null && idp.getClaimConfig().getClaimMappings() != null) {
+                ClaimMapping[] mappings = idp.getClaimConfig().getClaimMappings();
+                for (ClaimMapping mapping : mappings) {
+                    if (mapping.getRemoteClaim() != null && mapping.getLocalClaim() != null) {
+                        String remoteUri = mapping.getRemoteClaim().getClaimUri();
+                        // If the remote URI is not found in claims, but a short name is, update the mapping for this context
+                        if (!claims.containsKey(remoteUri) && remoteUri.contains("/")) {
+                            String shortName = remoteUri.substring(remoteUri.lastIndexOf("/") + 1);
+                            if (claims.containsKey(shortName)) {
+                                // Update the remote claim URI in-memory for this mapping (for this context only)
+                                mapping.getRemoteClaim().setClaimUri(shortName);
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("Auto-mapped remote claim URI from '" + remoteUri + "' to short name '" + shortName + "' for this context.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Create federated authenticated user.
             AuthenticatedUser authenticatedUser = AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(subject);
             authenticatedUser.setUserName(username);
@@ -361,9 +395,21 @@ public class DebugProcessor {
             }
 
             // Map claims to user attributes.
+
             Map<ClaimMapping, String> userAttributes = new HashMap<>();
-            mapClaimsToAttributes(claims, userAttributes);
+            mapClaimsToAttributes(claims, userAttributes, context);
             authenticatedUser.setUserAttributes(userAttributes);
+
+            // Build mappedLocalClaims map using local claim URI as key
+            Map<String, String> mappedLocalClaims = new HashMap<>();
+            for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+                ClaimMapping mapping = entry.getKey();
+                if (mapping != null && mapping.getLocalClaim() != null) {
+                    String localClaimUri = mapping.getLocalClaim().getClaimUri();
+                    mappedLocalClaims.put(localClaimUri, entry.getValue());
+                }
+            }
+            context.setProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP", mappedLocalClaims);
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Created authenticated user: " + username + " with " + userAttributes.size() + " attributes");
@@ -439,26 +485,7 @@ public class DebugProcessor {
             }
         }
         return null;
-    }
-
-    private boolean isGoogleOIDC(String clientId, FederatedAuthenticatorConfig config) {
-        if (clientId != null && (clientId.contains("googleusercontent.com") || 
-                                (clientId.matches("\\d+") && clientId.length() > 10))) {
-            return true;
-        }
-        
-        if (config.getProperties() != null) {
-            for (org.wso2.carbon.identity.application.common.model.Property prop : config.getProperties()) {
-                if (prop.getValue() != null && 
-                    (prop.getValue().contains("googleapis.com") || 
-                     prop.getValue().contains("google.com") ||
-                     prop.getValue().toLowerCase().contains("google"))) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+         }
 
     private String buildRedirectUri(AuthenticationContext context) {
         try {
@@ -505,7 +532,6 @@ public class DebugProcessor {
         connection.setRequestProperty("Authorization", "Basic " + encodedCredentials);
 
         connection.setDoOutput(true);
-        // Increase timeouts for better reliability with Asgardeo
         connection.setConnectTimeout(30000); // 30 seconds
         connection.setReadTimeout(30000);    // 30 seconds
         
@@ -568,43 +594,29 @@ public class DebugProcessor {
     }
 
     private Map<String, Object> fetchUserInfoClaims(String accessToken, AuthenticationContext context) {
+        // Get UserInfo endpoint from configuration.
+        String authenticatorName = (String) context.getProperty("DEBUG_AUTHENTICATOR_NAME");
+        IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+        FederatedAuthenticatorConfig config = findAuthenticatorConfig(idp, authenticatorName);
+        String userInfoEndpoint = getPropertyValue(config, "UserInfoEndpoint", "userinfo_endpoint", "userInfoUrl");
+        if (userInfoEndpoint == null) {
+            return new HashMap<>();
+        }
         try {
-            // Get UserInfo endpoint from configuration.
-            String authenticatorName = (String) context.getProperty("DEBUG_AUTHENTICATOR_NAME");
-            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
-            FederatedAuthenticatorConfig config = findAuthenticatorConfig(idp, authenticatorName);
-            
-            String userInfoEndpoint = getPropertyValue(config, "UserInfoEndpoint", "userinfo_endpoint", "userInfoUrl");
-            if (userInfoEndpoint == null && isGoogleOIDC((String) context.getProperty("CLIENT_ID"), config)) {
-                userInfoEndpoint = "https://openidconnect.googleapis.com/v1/userinfo";
-            }
-
-            if (userInfoEndpoint == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("UserInfo endpoint not configured, skipping UserInfo request");
-                }
-                return new HashMap<>();
-            }
-
-            // Make UserInfo request.
             HttpURLConnection connection = (HttpURLConnection) new URL(userInfoEndpoint).openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Authorization", "Bearer " + accessToken);
             connection.setRequestProperty("Accept", "application/json");
             connection.setConnectTimeout(10000);
             connection.setReadTimeout(10000);
-
             int responseCode = connection.getResponseCode();
             if (responseCode == 200) {
                 String responseBody = readResponse(connection.getInputStream());
                 return parseJsonToClaims(responseBody);
             } else {
-                LOG.error("UserInfo request failed with status: " + responseCode);
                 return new HashMap<>();
             }
-
         } catch (Exception e) {
-            LOG.error("Error fetching UserInfo claims: " + e.getMessage(), e);
             return new HashMap<>();
         }
     }
@@ -631,42 +643,97 @@ public class DebugProcessor {
         return "FederatedIdP";
     }
 
-    private void mapClaimsToAttributes(Map<String, Object> claims, Map<ClaimMapping, String> userAttributes) {
+    private void mapClaimsToAttributes(Map<String, Object> claims, Map<ClaimMapping, String> userAttributes, AuthenticationContext context) {
         try {
-            // Create claim mappings for common claims.
-            String[][] commonMappings = {
-                {"sub", "http://wso2.org/claims/userid"},
-                {"email", "http://wso2.org/claims/emailaddress"},
-                {"name", "http://wso2.org/claims/fullname"},
-                {"given_name", "http://wso2.org/claims/givenname"},
-                {"family_name", "http://wso2.org/claims/lastname"},
-                {"preferred_username", "http://wso2.org/claims/username"}
-            };
-
-            for (String[] mapping : commonMappings) {
-                String remoteClaim = mapping[0];
-                String localClaim = mapping[1];
-                Object value = claims.get(remoteClaim);
-
-                if (value != null) {
-                    ClaimMapping claimMapping = new ClaimMapping();
-                    org.wso2.carbon.identity.application.common.model.Claim remoteCl = 
-                        new org.wso2.carbon.identity.application.common.model.Claim();
-                    remoteCl.setClaimUri(remoteClaim);
-                    
-                    org.wso2.carbon.identity.application.common.model.Claim localCl = 
-                        new org.wso2.carbon.identity.application.common.model.Claim();
-                    localCl.setClaimUri(localClaim);
-                    
-                    claimMapping.setRemoteClaim(remoteCl);
-                    claimMapping.setLocalClaim(localCl);
-                    
-                    userAttributes.put(claimMapping, value.toString());
-                }
+            // Debug: Print incoming claims map and keys
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Incoming claims map: " + (claims != null ? claims.toString() : "null"));
+                LOG.debug("Claims keys: " + (claims != null ? claims.keySet().toString() : "null"));
             }
 
+            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            ClaimMapping[] configuredMappings = null;
+            if (idp != null && idp.getClaimConfig() != null && idp.getClaimConfig().getClaimMappings() != null) {
+                configuredMappings = idp.getClaimConfig().getClaimMappings();
+            }
+
+            // If claim mappings are missing or empty, auto-map all extracted claim keys for this context only
+            if (configuredMappings == null || configuredMappings.length == 0) {
+                LOG.info("[DEBUG] No IdP claim mappings found. Auto-mapping all extracted claim keys for this authentication context.");
+                configuredMappings = new ClaimMapping[claims.size()];
+                int i = 0;
+                for (String claimKey : claims.keySet()) {
+                    ClaimMapping autoMapping = new ClaimMapping();
+                    autoMapping.setRemoteClaim(new org.wso2.carbon.identity.application.common.model.Claim());
+                    autoMapping.getRemoteClaim().setClaimUri(claimKey);
+                    autoMapping.setLocalClaim(new org.wso2.carbon.identity.application.common.model.Claim());
+                    autoMapping.getLocalClaim().setClaimUri(claimKey);
+                    configuredMappings[i++] = autoMapping;
+                }
+                LOG.info("[DEBUG] Auto-generated claim mappings: " + java.util.Arrays.toString(configuredMappings));
+            }
+
+            // Debug: Print claim mappings and remote claim URIs
+            if (LOG.isDebugEnabled()) {
+                StringBuilder mappingsLog = new StringBuilder("Configured claim mappings: [");
+                StringBuilder remoteUrisLog = new StringBuilder("Remote claim URIs: [");
+                for (ClaimMapping cm : configuredMappings) {
+                    if (cm != null && cm.getRemoteClaim() != null && cm.getLocalClaim() != null) {
+                        mappingsLog.append("{remote: ").append(cm.getRemoteClaim().getClaimUri())
+                            .append(", local: ").append(cm.getLocalClaim().getClaimUri()).append("}, ");
+                        remoteUrisLog.append(cm.getRemoteClaim().getClaimUri()).append(", ");
+                    }
+                }
+                mappingsLog.append("]");
+                remoteUrisLog.append("]");
+                LOG.debug(mappingsLog.toString());
+                LOG.debug(remoteUrisLog.toString());
+            }
+
+            // Enhanced normalization: try both URI→short name and short name→URI
+            for (ClaimMapping configuredMapping : configuredMappings) {
+                if (configuredMapping.getRemoteClaim() == null || configuredMapping.getLocalClaim() == null) {
+                    continue;
+                }
+                String remoteClaimUri = configuredMapping.getRemoteClaim().getClaimUri();
+                String localClaimUri = configuredMapping.getLocalClaim().getClaimUri();
+                Object claimValue = claims.get(remoteClaimUri);
+                String shortName = remoteClaimUri.contains("/") ? remoteClaimUri.substring(remoteClaimUri.lastIndexOf("/") + 1) : remoteClaimUri;
+                // Try short name if not found
+                if (claimValue == null && !shortName.equals(remoteClaimUri)) {
+                    claimValue = claims.get(shortName);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Mapping fallback: remoteClaimUri='" + remoteClaimUri + "', shortName='" + shortName + "', value='" + claimValue + "', localClaimUri='" + localClaimUri + "'");
+                    }
+                }
+                // Try URI if mapping uses short name but claim key is URI
+                if (claimValue == null && shortName.equals(remoteClaimUri)) {
+                    // Try all claim keys that look like URIs and end with this short name
+                    for (String claimKey : claims.keySet()) {
+                        if (claimKey.contains("/") && claimKey.endsWith("/" + shortName)) {
+                            claimValue = claims.get(claimKey);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("Reverse mapping fallback: mapping shortName='" + shortName + "', found claimKey='" + claimKey + "', value='" + claimValue + "', localClaimUri='" + localClaimUri + "'");
+                            }
+                            break;
+                        }
+                    }
+                }
+                // Debug: Print each mapping attempt
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Final mapping attempt: remoteClaimUri='" + remoteClaimUri + "', value='" + claimValue + "', localClaimUri='" + localClaimUri + "'");
+                }
+                if (claimValue != null) {
+                    // Use local claim URI as key for mapped claims
+                    userAttributes.put(configuredMapping, claimValue.toString());
+                    context.setProperty("DEBUG_MAPPED_LOCAL_CLAIMS", localClaimUri + ":" + claimValue.toString());
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Mapped remote claim '" + remoteClaimUri + "' to local claim '" + localClaimUri + "'");
+                    }
+                }
+            }
         } catch (Exception e) {
-            LOG.error("Error mapping claims to attributes: " + e.getMessage(), e);
+            LOG.error("Error mapping claims to attributes dynamically: " + e.getMessage(), e);
         }
     }
 
