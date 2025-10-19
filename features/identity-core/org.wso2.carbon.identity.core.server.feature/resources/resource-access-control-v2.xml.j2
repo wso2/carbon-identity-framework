@@ -1226,9 +1226,15 @@
         </Resource>
 
         <!-- [Organization] Application Management API -->
+        {% if operation_permission_enforcement.skip_enforce_client_secret_permission is sameas true %}
         <Resource context="(.*)/o/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
+            <Scopes>internal_org_application_mgt_create</Scopes>
+        </Resource>
+        {% else %}
+         <Resource context="(.*)/o/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
             <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
         </Resource>
+        {% endif %}
         <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_application_mgt_create</Scopes>
             <Operations mandatory="true">
@@ -1281,9 +1287,15 @@
         </Resource>
 
         <!-- Application Management API -->
+        {% if operation_permission_enforcement.skip_enforce_client_secret_permission is sameas true %}
+        <Resource context="(.*)/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
+            <Scopes>internal_application_mgt_create</Scopes>
+        </Resource>
+        {% else %}
         <Resource context="(.*)/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
             <Scopes>internal_application_mgt_client_secret_create</Scopes>
         </Resource>
+        {% endif %}
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Scopes>internal_application_mgt_create</Scopes>
             <Operations mandatory="true">
