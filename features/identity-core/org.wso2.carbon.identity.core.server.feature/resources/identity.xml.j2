@@ -4030,6 +4030,18 @@
 
     <OrgContextsToRewriteInTenantPerspective>
         <WebApp>
+        {% for org_context_in_tenant_perspective in org_context_in_tenant_perspective.rewrite %}
+        {% for base_path in org_context_in_tenant_perspective.base_path %}
+            <Context>
+                <BasePath>{{base_path}}</BasePath>
+                <SubPaths>
+                {% for sub_path in org_context_in_tenant_perspective.sub_paths %}
+                    <Path>{{sub_path}}</Path>
+                {% endfor %}
+                </SubPaths>
+            </Context>
+        {% endfor %}
+        {% endfor %}
             <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
@@ -4046,6 +4058,14 @@
                 </SubPaths>
             </Context>
         </WebApp>
+        <Servlet>
+        {% for servlet in org_context_in_tenant_perspective.rewrite.servlets %}
+            <Context>{{servlet}}</Context>
+        {% endfor %}
+        {% for servlet in org_context_in_tenant_perspective.rewrite.custom_servlets %}
+            <Context>{{servlet}}</Context>
+        {% endfor %}
+        </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
