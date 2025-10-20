@@ -2155,5 +2155,7 @@
   "notificationChannel.sms.custom.connection_timeout": "5000",
   "notificationChannel.sms.custom.connection_read_timeout": "20000",
 
-  "configs.endpoint.elevate_permission": true
+  "configs.endpoint.elevate_permission": true,
+
+  "org_context_in_tenant_perspective.authz_paths.enable": false
 }
