@@ -29,7 +29,7 @@ public final class SQLQueries {
     public static final String LIST_CONFIGS =
             "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, CREDENTIAL_SIGNING_ALG, " +
             "CREDENTIAL_TYPE, CREDENTIAL_METADATA, EXPIRY_IN_SECONDS " +
-            "FROM VC_CONFIG WHERE TENANT_ID = ? ORDER BY ID";
+            "FROM VC_CONFIG WHERE TENANT_ID = ? ORDER BY CURSOR_KEY";
 
     public static final String GET_CONFIG_BY_ID =
             "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, CREDENTIAL_SIGNING_ALG, " +
@@ -43,9 +43,9 @@ public final class SQLQueries {
             "SELECT 1 FROM VC_CONFIG WHERE TENANT_ID = ? AND CONFIGURATION_ID = ?";
 
     public static final String INSERT_CONFIG =
-            "INSERT INTO VC_CONFIG (TENANT_ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, " +
+            "INSERT INTO VC_CONFIG (ID, TENANT_ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, " +
             "CREDENTIAL_SIGNING_ALG, CREDENTIAL_TYPE, CREDENTIAL_METADATA, EXPIRY_IN_SECONDS) VALUES " +
-            "(?,?,?,?,?,?,?,?,?)";
+            "(?,?,?,?,?,?,?,?,?,?)";
 
     public static final String UPDATE_CONFIG =
             "UPDATE VC_CONFIG SET IDENTIFIER = ?, CONFIGURATION_ID = ?, SCOPE = ?, FORMAT = ?, " +

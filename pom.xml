@@ -87,6 +87,7 @@
         <module>components/input-validation-mgt</module>
         <module>components/external-api-framework</module>
         <module>components/vc-mgt</module>
+        <module>features/vc-mgt</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>

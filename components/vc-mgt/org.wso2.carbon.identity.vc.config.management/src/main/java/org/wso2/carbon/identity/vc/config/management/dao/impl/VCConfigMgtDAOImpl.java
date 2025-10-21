@@ -36,12 +36,20 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * JDBC implementation of {@link VCConfigMgtDAO}.
  */
 public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
 
+    /**
+     * List all VC credential configurations for a given tenant.
+     *
+     * @param tenantId Tenant ID.
+     * @return List of VC credential configurations.
+     * @throws VCConfigMgtException If an error occurs while retrieving configurations.
+     */
     @Override
     public List<VCCredentialConfiguration> list(int tenantId) throws VCConfigMgtException {
 
@@ -63,15 +71,22 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         return results;
     }
 
+    /**
+     * Get a VC credential configuration by resource ID for a given tenant.
+     *
+     * @param configId Resource ID of the configuration (UUID string).
+     * @param tenantId Tenant ID.
+     * @return VC credential configuration or null if not found.
+     * @throws VCConfigMgtException If an error occurs while retrieving the configuration.
+     */
     @Override
     public VCCredentialConfiguration getByConfigId(String configId, int tenantId) throws VCConfigMgtException {
 
         String sql = SQLQueries.GET_CONFIG_BY_ID;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            int configPk = parseConfigId(configId);
             ps.setInt(1, tenantId);
-            ps.setInt(2, configPk);
+            ps.setString(2, configId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return buildConfiguration(rs, conn);
@@ -85,6 +100,14 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         return null;
     }
 
+    /**
+     * Checks whether a configuration exists with the given identifier in a tenant.
+     *
+     * @param identifier Identifier string.
+     * @param tenantId   Tenant ID.
+     * @return True if exists, false otherwise.
+     * @throws VCConfigMgtException If an error occurs while checking existence.
+     */
     @Override
     public boolean existsByIdentifier(String identifier, int tenantId) throws VCConfigMgtException {
 
@@ -103,6 +126,14 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         }
     }
 
+    /**
+     * Checks whether a configuration exists with the given configurationId in a tenant.
+     *
+     * @param configurationId Configuration internal identifier.
+     * @param tenantId        Tenant ID.
+     * @return True if exists, false otherwise.
+     * @throws VCConfigMgtException If an error occurs while checking existence.
+     */
     @Override
     public boolean existsByConfigurationId(String configurationId, int tenantId) throws VCConfigMgtException {
 
@@ -121,38 +152,46 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         }
     }
 
+    /**
+     * Create a new VC credential configuration for a tenant.
+     *
+     * @param configuration Configuration payload.
+     * @param tenantId      Tenant ID.
+     * @return Persisted configuration with generated resource ID.
+     * @throws VCConfigMgtException If an error occurs while creating the configuration.
+     */
     @Override
     public VCCredentialConfiguration create(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
         String insertCfg = SQLQueries.INSERT_CONFIG;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
-             PreparedStatement ps = conn.prepareStatement(insertCfg, new String[]{"ID"})) {
+             PreparedStatement ps = conn.prepareStatement(insertCfg)) {
             try {
-                ps.setInt(1, tenantId);
-                ps.setString(2, configuration.getIdentifier());
-                ps.setString(3, configuration.getConfigurationId());
-                ps.setString(4, configuration.getScope());
-                ps.setString(5, configuration.getFormat());
-                ps.setString(6, configuration.getCredentialSigningAlgValuesSupported());
-                ps.setString(7, configuration.getCredentialType());
-                ps.setString(8, configuration.getCredentialMetadata() != null
+                String id = UUID.randomUUID().toString();
+                ps.setString(1, id);
+                ps.setInt(2, tenantId);
+                ps.setString(3, configuration.getIdentifier());
+                ps.setString(4, configuration.getConfigurationId());
+                ps.setString(5, configuration.getScope());
+                ps.setString(6, configuration.getFormat());
+                ps.setString(7, configuration.getCredentialSigningAlgValuesSupported());
+                ps.setString(8, configuration.getCredentialType());
+                ps.setString(9, configuration.getCredentialMetadata() != null
                         ? configuration.getCredentialMetadata().getDisplay() : null);
                 if (configuration.getExpiryInSeconds() != null) {
-                    ps.setInt(9, configuration.getExpiryInSeconds());
+                    ps.setInt(10, configuration.getExpiryInSeconds());
                 } else {
-                    ps.setNull(9, Types.INTEGER);
+                    ps.setNull(10, Types.INTEGER);
                 }
                 ps.executeUpdate();
 
-                int pk = getGeneratedId(ps);
-
                 if (CollectionUtils.isNotEmpty(configuration.getClaimMappings())) {
-                    addClaims(conn, pk, configuration.getClaimMappings());
+                    addClaims(conn, id, configuration.getClaimMappings());
                 }
 
                 IdentityDatabaseUtil.commitTransaction(conn);
-                return getByConfigId(String.valueOf(pk), tenantId);
+                return getByConfigId(id, tenantId);
             } catch (SQLException | VCConfigMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(conn);
                 if (e instanceof VCConfigMgtException) {
@@ -169,6 +208,15 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         }
     }
 
+    /**
+     * Update an existing VC credential configuration by resource ID.
+     *
+     * @param configId      Resource ID (UUID string).
+     * @param configuration Updated configuration payload.
+     * @param tenantId      Tenant ID.
+     * @return Updated configuration.
+     * @throws VCConfigMgtException If configuration is not found or update fails.
+     */
     @Override
     public VCCredentialConfiguration update(String configId, VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
@@ -177,7 +225,6 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(updateCfg)) {
             try {
-                int configPk = parseConfigId(configId);
                 ps.setString(1, configuration.getIdentifier());
                 ps.setString(2, configuration.getConfigurationId());
                 ps.setString(3, configuration.getScope());
@@ -192,7 +239,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                     ps.setNull(8, Types.INTEGER);
                 }
                 ps.setInt(9, tenantId);
-                ps.setInt(10, configPk);
+                ps.setString(10, configId);
                 int updated = ps.executeUpdate();
                 if (updated == 0) {
                     throw new VCConfigMgtClientException(
@@ -200,11 +247,9 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                             VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getMessage());
                 }
 
-                int pk = configPk;
-
-                deleteClaims(conn, pk);
+                deleteClaims(conn, configId);
                 if (CollectionUtils.isNotEmpty(configuration.getClaimMappings())) {
-                    addClaims(conn, pk, configuration.getClaimMappings());
+                    addClaims(conn, configId, configuration.getClaimMappings());
                 }
 
                 IdentityDatabaseUtil.commitTransaction(conn);
@@ -225,6 +270,13 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         }
     }
 
+    /**
+     * Delete a configuration by resource ID for a given tenant.
+     *
+     * @param configId Resource ID (UUID string).
+     * @param tenantId Tenant ID.
+     * @throws VCConfigMgtException If deletion fails.
+     */
     @Override
     public void delete(String configId, int tenantId) throws VCConfigMgtException {
 
@@ -233,7 +285,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
              PreparedStatement ps = conn.prepareStatement(deleteCfg)) {
             try {
                 ps.setInt(1, tenantId);
-                ps.setInt(2, parseConfigId(configId));
+                ps.setString(2, configId);
                 ps.executeUpdate();
                 IdentityDatabaseUtil.commitTransaction(conn);
             } catch (SQLException e) {
@@ -252,7 +304,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     private VCCredentialConfiguration buildConfiguration(ResultSet rs, Connection conn) throws SQLException {
 
         VCCredentialConfiguration cfg = new VCCredentialConfiguration();
-        cfg.setId(String.valueOf(rs.getInt("ID")));
+        cfg.setId(rs.getString("ID"));
         cfg.setIdentifier(rs.getString("IDENTIFIER"));
         cfg.setConfigurationId(rs.getString("CONFIGURATION_ID"));
         cfg.setScope(rs.getString("SCOPE"));
@@ -267,15 +319,15 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         if (!rs.wasNull()) {
             cfg.setExpiryInSeconds(expiry);
         }
-        cfg.setClaimMappings(getClaimsByConfigPk(conn, rs.getInt("ID")));
+        cfg.setClaimMappings(getClaimsByConfigId(conn, cfg.getId()));
         return cfg;
     }
 
-    private List<ClaimMapping> getClaimsByConfigPk(Connection conn, int configPk) throws SQLException {
+    private List<ClaimMapping> getClaimsByConfigId(Connection conn, String configId) throws SQLException {
 
         String sql = SQLQueries.LIST_CLAIMS_BY_CONFIG_PK;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, configPk);
+            ps.setString(1, configId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<ClaimMapping> list = new ArrayList<>();
                 while (rs.next()) {
@@ -289,12 +341,12 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         }
     }
 
-    private void addClaims(Connection conn, int configPk, List<ClaimMapping> claims) throws SQLException {
+    private void addClaims(Connection conn, String configId, List<ClaimMapping> claims) throws SQLException {
 
         String insert = SQLQueries.INSERT_CLAIM;
         try (PreparedStatement ps = conn.prepareStatement(insert)) {
             for (ClaimMapping cm : claims) {
-                ps.setInt(1, configPk);
+                ps.setString(1, configId);
                 ps.setString(2, cm.getClaimURI());
                 ps.setString(3, cm.getDisplay());
                 ps.addBatch();
@@ -303,32 +355,11 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         }
     }
 
-    private void deleteClaims(Connection conn, int configPk) throws SQLException {
+    private void deleteClaims(Connection conn, String configId) throws SQLException {
 
         try (PreparedStatement ps = conn.prepareStatement(SQLQueries.DELETE_CLAIMS_BY_CONFIG_PK)) {
-            ps.setInt(1, configPk);
+            ps.setString(1, configId);
             ps.executeUpdate();
-        }
-    }
-
-    private int getGeneratedId(PreparedStatement ps) throws SQLException {
-
-        try (ResultSet rs = ps.getGeneratedKeys()) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        }
-        throw new SQLException("Failed to retrieve generated key for VC_CONFIG record.");
-    }
-
-    private int parseConfigId(String configId) throws VCConfigMgtClientException {
-
-        try {
-            return Integer.parseInt(configId);
-        } catch (NumberFormatException e) {
-            throw new VCConfigMgtClientException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                    "Configuration id must be a numeric value.", e);
         }
     }
 }
