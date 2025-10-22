@@ -135,7 +135,7 @@ public class RequestCoordinator implements DebugService {
 
         } catch (Exception e) {
             LOG.error("Error coordinating debug authentication request: " + e.getMessage(), e);
-            if (response != null) {
+            if (response != null && !response.isCommitted()) {
                 try {
                     sendErrorResponse(response, "COORDINATION_ERROR", e.getMessage());
                 } catch (Exception ex) {
@@ -169,7 +169,9 @@ public class RequestCoordinator implements DebugService {
             }
         } catch (Exception e) {
             LOG.error("Error routing authentication request: " + e.getMessage(), e);
-            sendErrorResponse(response, "ROUTING_ERROR", e.getMessage());
+            if (!response.isCommitted()) {
+                sendErrorResponse(response, "ROUTING_ERROR", e.getMessage());
+            }
         }
     }
 
@@ -181,9 +183,14 @@ public class RequestCoordinator implements DebugService {
      * @return true if this is a debug flow callback, false otherwise.
      */
     private boolean isDebugFlowCallback(HttpServletRequest request) {
-        // state parameter for debug flow identification.
         String state = request.getParameter("state");
-        return state != null && isDebugStateParameter(state);
+        boolean hasDebugState = state != null && isDebugStateParameter(state);
+
+        // A true OAuth callback must have a 'code' or 'error' parameter.
+        // A request for the auth-success.jsp page will only have 'state'.
+        boolean isOAuthCallback = request.getParameter("code") != null || request.getParameter("error") != null;
+
+        return hasDebugState && isOAuthCallback;
     }
 
     /**
@@ -349,18 +356,20 @@ public class RequestCoordinator implements DebugService {
             // Handle OAuth error responses.
             if (error != null) {
                 LOG.error("OAuth error in debug callback: " + error);
-                sendErrorResponse(response, "OAUTH_ERROR", "OAuth error: " + error);
+                if (!response.isCommitted()) {
+                    sendErrorResponse(response, "OAUTH_ERROR", "OAuth error: " + error);
+                }
                 return false;
             }
 
             // Try to retrieve or create authentication context.
             AuthenticationContext context = null;
-            
+
             // First, try with sessionDataKey if available.
             if (sessionDataKey != null) {
                 context = retrieveDebugContextFromCache(sessionDataKey);
             }
-            
+
             // If not found and we have OAuth parameters, try to find context using state parameter.
             if (context == null && state != null) {
                 String debugSessionId = extractDebugSessionIdFromState(state);
@@ -372,15 +381,16 @@ public class RequestCoordinator implements DebugService {
                     }
                 }
             }
-            
+
             // If still no context found, create a new one for OAuth callback processing.
             if (context == null) {
                 if (code != null && state != null) {
                     context = createDebugContextForCallback(code, state, request);
                 } else {
                     LOG.error("Cannot process debug callback: missing OAuth parameters and no cached context");
-                    sendErrorResponse(response, "MISSING_CONTEXT_AND_PARAMS", 
-                                    "Authentication context not found and OAuth parameters missing");
+                    if (!response.isCommitted()) {
+                        sendErrorResponse(response, "MISSING_CONTEXT_AND_PARAMS", "Authentication context not found and OAuth parameters missing");
+                    }
                     return false;
                 }
             }
@@ -399,12 +409,20 @@ public class RequestCoordinator implements DebugService {
             context.setProperty("DEBUG_CALLBACK_PROCESSED", "true");
 
             // Route to DebugProcessor for OAuth code exchange and processing.
-            debugProcessor.processCallback(request, response, context);
+            if (!response.isCommitted()) {
+                debugProcessor.processCallback(request, response, context);
+            }
             return true;
 
         } catch (Exception e) {
             LOG.error("Error processing debug flow callback", e);
-            sendErrorResponse(response, "DEBUG_PROCESSING_ERROR", e.getMessage());
+            // Enhanced error logging for debugging InvocationTargetException root cause.
+            if (e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null) {
+                LOG.error("InvocationTargetException cause:", e.getCause());
+            }
+            if (!response.isCommitted()) {
+                sendErrorResponse(response, "DEBUG_PROCESSING_ERROR", e.getMessage());
+            }
             return false;
         }
     }
@@ -489,7 +507,9 @@ public class RequestCoordinator implements DebugService {
             
         } catch (Exception e) {
             LOG.error("Error delegating to regular authentication flow: " + e.getMessage(), e);
-            sendErrorResponse(response, "DELEGATION_ERROR", e.getMessage());
+            if (!response.isCommitted()) {
+                sendErrorResponse(response, "DELEGATION_ERROR", e.getMessage());
+            }
         }
     }
 

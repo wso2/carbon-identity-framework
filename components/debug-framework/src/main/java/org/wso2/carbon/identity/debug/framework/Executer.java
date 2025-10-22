@@ -8,6 +8,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.application.common.model.Property;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -233,9 +234,7 @@ public class Executer {
         
         if (tokenEndpoint != null && !tokenEndpoint.trim().isEmpty()) {
             return tokenEndpoint;
-        }
-        
-        // Do not use hardcoded endpoints. Always use endpoints from authenticator config.
+        }        
         return null;
     }
 
@@ -248,7 +247,7 @@ public class Executer {
      */
     private String getPropertyValue(FederatedAuthenticatorConfig config, String... propertyNames) {
         if (config.getProperties() != null) {
-            for (org.wso2.carbon.identity.application.common.model.Property prop : config.getProperties()) {
+            for (Property prop : config.getProperties()) {
                 for (String propName : propertyNames) {
                     if (propName.equalsIgnoreCase(prop.getName())) {
                         return prop.getValue();
@@ -362,10 +361,9 @@ public class Executer {
     private void addCustomParameters(FederatedAuthenticatorConfig config, StringBuilder urlBuilder) {
         try {
             if (config.getProperties() != null) {
-                for (org.wso2.carbon.identity.application.common.model.Property prop : config.getProperties()) {
+                for (Property prop : config.getProperties()) {
                     String propName = prop.getName();
                     String propValue = prop.getValue();
-                    
                     // Add any property that starts with "QueryParam_" as a custom parameter.
                     if (propName != null && propName.startsWith("QueryParam_") && propValue != null) {
                         String paramName = propName.substring("QueryParam_".length());

@@ -1,5 +1,4 @@
 package org.wso2.carbon.identity.debug.framework;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -7,7 +6,12 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.debug.framework.DebugResultCache;
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
@@ -16,11 +20,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Processes OAuth 2.0 Authorization Code callbacks from external IdPs.
@@ -28,6 +35,16 @@ import java.util.Map;
  */
 public class DebugProcessor {
 
+/**
+ * Processes the result and writes a self-contained HTML page directly to the response.
+ * This breaks the redirect loop and avoids JSP security issues.
+ * The result is saved to browser localStorage with a unique key based on the 'state'.
+ *
+ * @param response HttpServletResponse
+ * @param context  AuthenticationContext
+ * @param success  true if authentication succeeded
+ * @throws IOException
+ */
     private static final Log LOG = LogFactory.getLog(DebugProcessor.class);
     private final Processor processor;
 
@@ -44,30 +61,45 @@ public class DebugProcessor {
      * @param context AuthenticationContext with stored PKCE parameters.
      * @throws IOException If processing fails.
      */
-    public void processCallback(HttpServletRequest request, HttpServletResponse response, 
+    public void processCallback(HttpServletRequest request, HttpServletResponse response,
                                AuthenticationContext context) throws IOException {
+        // Extract callback parameters.
+        String authorizationCode = request.getParameter("code");
+        String state = request.getParameter("state");
+        String error = request.getParameter("error");
+        String errorDescription = request.getParameter("error_description");
         try {
-            // Extract callback parameters.
-            String authorizationCode = request.getParameter("code");
-            String state = request.getParameter("state");
-            String error = request.getParameter("error");
-            String errorDescription = request.getParameter("error_description");
+            // Prevent re-processing the same authorization code in the same session.
+            String lastProcessedCode = (String) request.getSession().getAttribute("LAST_AUTH_CODE");
+            if (authorizationCode != null && authorizationCode.equals(lastProcessedCode)) {
+                if (!response.isCommitted()) {
+                    context.setProperty("DEBUG_AUTH_ERROR", "Authorization code already used in this session. Please retry login.");
+                    context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
+                return;
+            }
+            if (authorizationCode != null) {
+                request.getSession().setAttribute("LAST_AUTH_CODE", authorizationCode);
+            }
 
-            // Check for error response from IdP.
             if (error != null) {
                 LOG.error("Authorization error from IdP: " + error + " - " + errorDescription);
                 context.setProperty("DEBUG_AUTH_ERROR", error + ": " + errorDescription);
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                sendProcessedResponse(response, context);
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
                 return;
             }
 
-            // Validate required parameters.
             if (authorizationCode == null || authorizationCode.trim().isEmpty()) {
                 LOG.error("Authorization code missing in callback");
                 context.setProperty("DEBUG_AUTH_ERROR", "Authorization code not received from IdP");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                sendProcessedResponse(response, context);
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
                 return;
             }
 
@@ -75,31 +107,34 @@ public class DebugProcessor {
                 LOG.error("State parameter missing in callback");
                 context.setProperty("DEBUG_AUTH_ERROR", "State parameter missing - possible CSRF attack");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                sendProcessedResponse(response, context);
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
                 return;
             }
 
-            // Validate state parameter (CSRF protection).
             String storedState = (String) context.getProperty("DEBUG_STATE");
             if (!state.equals(storedState)) {
                 LOG.error("State parameter mismatch - CSRF attack detected");
                 context.setProperty("DEBUG_AUTH_ERROR", "State validation failed - possible CSRF attack");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                sendProcessedResponse(response, context);
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
                 return;
             }
 
-            // Exchange authorization code for tokens.
             TokenResponse tokens = exchangeCodeForTokens(authorizationCode, context);
             if (tokens == null || tokens.getAccessToken() == null) {
                 LOG.error("Token exchange failed - no tokens received from IdP");
                 context.setProperty("DEBUG_AUTH_ERROR", "Failed to exchange authorization code for tokens");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                sendProcessedResponse(response, context);
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
                 return;
             }
 
-            // Store token information in context for debug response
             context.setProperty("DEBUG_ACCESS_TOKEN", tokens.getAccessToken());
             if (tokens.getIdToken() != null) {
                 context.setProperty("DEBUG_ID_TOKEN", tokens.getIdToken());
@@ -109,17 +144,17 @@ public class DebugProcessor {
             }
             context.setProperty("DEBUG_TOKEN_TYPE", tokens.getTokenType());
 
-            // Extract and validate claims from ID token and/or UserInfo endpoint.
             Map<String, Object> claims = extractUserClaims(tokens, context);
             if (claims == null || claims.isEmpty()) {
                 LOG.error("Failed to extract user claims from tokens");
                 context.setProperty("DEBUG_AUTH_ERROR", "Failed to extract user claims from tokens");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                sendProcessedResponse(response, context);
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
                 return;
             }
 
-            // Create authenticated user object.
             AuthenticatedUser authenticatedUser = createAuthenticatedUser(claims, context);
             if (authenticatedUser != null) {
                 context.setSubject(authenticatedUser);
@@ -127,21 +162,67 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_USER_EXISTS", true);
                 context.setProperty("DEBUG_AUTH_COMPLETED", "true");
                 context.setProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP", System.currentTimeMillis());
+
+                // Build a developer-friendly debug result
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> debugResult = new HashMap<>();
+
+                    // Authentication status
+                    debugResult.put("success", "true");
+                    debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
+                    debugResult.put("sessionId", state);
+                    debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
+                    debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
+                    debugResult.put("timestamp", context.getProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP"));
+
+                    // Incoming claims (from IdP)
+                    debugResult.put("incomingClaims", claims);
+
+                    // Mapped claims (local claims)
+                    Object mappedClaims = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
+                    debugResult.put("mappedClaims", mappedClaims);
+
+                    // User info
+                    debugResult.put("username", authenticatedUser != null ? authenticatedUser.getUserName() : null);
+                    debugResult.put("userId", authenticatedUser != null ? authenticatedUser.getUserId() : null);
+
+                    // Minimal debug metadata
+                    debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
+                    debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
+
+                    // Do NOT include tokens, secrets, or confidential config
+
+                    String resultJson = mapper.writeValueAsString(debugResult);
+                    DebugResultCache.add(state, resultJson);
+                    LOG.info("Debug result cached for session: " + state);
+                } catch (Exception cacheEx) {
+                    LOG.error("Failed to cache debug result for session: " + state, cacheEx);
+                }
+
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
             } else {
                 LOG.error("Failed to create authenticated user from claims");
                 context.setProperty("DEBUG_AUTH_ERROR", "Failed to create authenticated user");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 context.setProperty("DEBUG_USER_EXISTS", false);
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                }
             }
-
-            // Send processed response.
-            sendProcessedResponse(response, context);
-
+            return;
         } catch (Exception e) {
-            LOG.error("Unexpected error processing OAuth 2.0 callback", e);
+            LOG.error("Unexpected error processing OAuth 2.0 callback.", e);
             context.setProperty("DEBUG_AUTH_ERROR", "Unexpected error: " + e.getMessage());
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-            sendProcessedResponse(response, context);
+            if (e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null) {
+                LOG.error("InvocationTargetException cause:", e.getCause());
+            }
+            if (!response.isCommitted()) {
+                response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+            }
         }
     }
 
@@ -286,28 +367,15 @@ public class DebugProcessor {
                 } else {
                     LOG.warn("UserInfo endpoint call failed or returned no claims");
                 }
-            } else {
-                LOG.info("No Access Token available for UserInfo endpoint call");
             }
-
-            if (claims.isEmpty()) {
-                LOG.error("No claims extracted from tokens - authentication cannot proceed");
-                return null;
+            if (claims.containsKey("sub")) {
+                LOG.debug("Subject identifier: " + claims.get("sub"));
             }
-
-            LOG.info("Claims extraction completed successfully - Total claims: " + claims.size());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("All extracted claims: " + claims.keySet());
-                // Log essential identity claims if available
-                if (claims.containsKey("sub")) {
-                    LOG.debug("Subject identifier: " + claims.get("sub"));
-                }
-                if (claims.containsKey("email")) {
-                    LOG.debug("Email claim present: " + claims.get("email"));
-                }
-                if (claims.containsKey("name")) {
-                    LOG.debug("Name claim present: " + claims.get("name"));
-                }
+            if (claims.containsKey("email")) {
+                LOG.debug("Email claim present: " + claims.get("email"));
+            }
+            if (claims.containsKey("name")) {
+                LOG.debug("Name claim present: " + claims.get("name"));
             }
 
             return claims;
@@ -476,7 +544,7 @@ public class DebugProcessor {
 
     private String getPropertyValue(FederatedAuthenticatorConfig config, String... propertyNames) {
         if (config.getProperties() != null) {
-            for (org.wso2.carbon.identity.application.common.model.Property prop : config.getProperties()) {
+            for (Property prop : config.getProperties()) {
                 for (String propName : propertyNames) {
                     if (propName.equalsIgnoreCase(prop.getName())) {
                         return prop.getValue();
@@ -664,9 +732,9 @@ public class DebugProcessor {
                 int i = 0;
                 for (String claimKey : claims.keySet()) {
                     ClaimMapping autoMapping = new ClaimMapping();
-                    autoMapping.setRemoteClaim(new org.wso2.carbon.identity.application.common.model.Claim());
+                    autoMapping.setRemoteClaim(new Claim());
                     autoMapping.getRemoteClaim().setClaimUri(claimKey);
-                    autoMapping.setLocalClaim(new org.wso2.carbon.identity.application.common.model.Claim());
+                    autoMapping.setLocalClaim(new Claim());
                     autoMapping.getLocalClaim().setClaimUri(claimKey);
                     configuredMappings[i++] = autoMapping;
                 }
@@ -737,32 +805,22 @@ public class DebugProcessor {
         }
     }
 
+    /**
+     * Converts an object to a JSON string using Jackson ObjectMapper.
+     *
+     * @param obj Object to serialize.
+     * @return JSON string representation.
+     */
     private String convertToJson(Object obj) {
         if (obj == null) {
             return "null";
         }
-        
-        // Simple JSON serialization (in production, use a proper JSON library).
-        if (obj instanceof Map) {
-            StringBuilder json = new StringBuilder("{");
-            Map<?, ?> map = (Map<?, ?>) obj;
-            boolean first = true;
-            
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if (!first) {
-                    json.append(",");
-                }
-                json.append("\"").append(entry.getKey()).append("\":");
-                json.append(convertToJson(entry.getValue()));
-                first = false;
-            }
-            
-            json.append("}");
-            return json.toString();
-        } else if (obj instanceof String) {
-            return "\"" + obj.toString().replace("\"", "\\\"") + "\"";
-        } else {
-            return obj.toString();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            LOG.error("Error serializing object to JSON: " + e.getMessage(), e);
+            return "{\"error\": \"JSON serialization failed\"}";
         }
     }
 
