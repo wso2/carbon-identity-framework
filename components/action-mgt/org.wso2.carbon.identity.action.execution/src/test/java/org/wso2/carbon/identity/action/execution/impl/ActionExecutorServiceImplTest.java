@@ -397,13 +397,13 @@ public class ActionExecutorServiceImplTest {
                 actionExecutionRequest);
 
         ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
 
         String payload = getJSONRequestPayload(actionExecutionRequest);
         // Verify that the HTTP client was called with the expected request
-        verify(apiClient).callAPI(any(), any(), any(), eq(payload));
+        verify(apiClient).callAPI(any(), any(), any(), any(), eq(payload));
     }
 
     @Test
@@ -428,13 +428,13 @@ public class ActionExecutorServiceImplTest {
                 actionExecutionRequest);
 
         ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
 
         String payload = getJSONRequestPayload(actionExecutionRequest);
         // Verify that the HTTP client was called with the expected request
-        verify(apiClient).callAPI(any(), any(), any(), eq(payload));
+        verify(apiClient).callAPI(any(), any(), any(), any(), eq(payload));
     }
 
     @Test
@@ -467,7 +467,7 @@ public class ActionExecutorServiceImplTest {
 
         ActionInvocationResponse actionInvocationResponse =
                 createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
@@ -517,7 +517,7 @@ public class ActionExecutorServiceImplTest {
                 actionExecutionRequest);
 
         ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
@@ -557,7 +557,7 @@ public class ActionExecutorServiceImplTest {
 
         ActionInvocationResponse actionInvocationResponse =
                 createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
@@ -588,7 +588,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createFailureActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new FailedStatus(new Failure("Error_reason",
                 "Error_description"));
@@ -627,7 +627,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createIncompleteActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new IncompleteStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
@@ -667,7 +667,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createActionInvocationResponseWithoutAPIResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
     }
@@ -693,7 +693,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createErrorActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new ErrorStatus(new Error("Error_message",
                 "Error_description"));
