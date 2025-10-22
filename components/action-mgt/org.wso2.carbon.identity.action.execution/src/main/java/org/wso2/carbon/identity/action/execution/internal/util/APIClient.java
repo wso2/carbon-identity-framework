@@ -49,7 +49,6 @@ import org.wso2.carbon.identity.action.execution.internal.service.impl.ResponseD
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -88,21 +87,21 @@ public class APIClient {
      * @param actionType  Action type.
      * @param url         URL of the API endpoint.
      * @param authMethod  Authentication method to be used.
-     * @param headers     Headers to be included in the request.
+     * @param additionalHeaders     Headers to be included in the request.
      * @param payload     Payload to be sent in the request body.
      * @return ActionInvocationResponse containing the response or error details.
      */
     public ActionInvocationResponse callAPI(ActionType actionType, String url, AuthMethods.AuthMethod authMethod,
-                                            Map<String, String> headers, String payload) {
+                                            Map<String, String> additionalHeaders, String payload) {
 
         HttpPost httpPost = new HttpPost(url);
-        setRequestEntity(httpPost, payload, authMethod, headers);
+        setRequestEntity(httpPost, payload, authMethod, additionalHeaders);
 
         return executeRequest(actionType, httpPost);
     }
 
     private void setRequestEntity(HttpPost httpPost, String jsonRequest, AuthMethods.AuthMethod authMethod,
-                                  Map<String, String> headers) {
+                                  Map<String, String> additionalHeaders) {
 
         StringEntity entity = new StringEntity(jsonRequest, StandardCharsets.UTF_8);
         if (authMethod != null) {
@@ -111,7 +110,7 @@ public class APIClient {
         httpPost.setEntity(entity);
         httpPost.setHeader("Accept", "application/json");
         httpPost.setHeader("Content-type", "application/json");
-        for (Map.Entry<String, String> header : headers.entrySet()) {
+        for (Map.Entry<String, String> header : additionalHeaders.entrySet()) {
             httpPost.setHeader(header.getKey(), header.getValue());
         }
     }
