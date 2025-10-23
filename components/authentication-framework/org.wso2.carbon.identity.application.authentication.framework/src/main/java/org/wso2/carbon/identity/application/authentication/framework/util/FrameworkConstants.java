@@ -703,10 +703,24 @@ public abstract class FrameworkConstants {
                 "AdaptiveAuth.ExecutionSupervisor.Timeout";
         public static final String CONF_EXECUTION_SUPERVISOR_MEMORY_LIMIT =
                 "AdaptiveAuth.ExecutionSupervisor.MemoryLimit";
+        public static final String CONF_EXECUTION_SUPERVISOR_MAX_VIOLATIONS_PER_TENANT =
+                "AdaptiveAuth.ExecutionSupervisor.MaxViolationsPerTenant";
+        public static final String CONF_EXECUTION_SUPERVISOR_VIOLATION_TRACKING_WINDOW_MILLIS =
+                "AdaptiveAuth.ExecutionSupervisor.ViolationTrackingWindowInMillis";
+        public static final String CONF_EXECUTION_SUPERVISOR_BLOCK_DURATION_MILLIS =
+                "AdaptiveAuth.ExecutionSupervisor.BlockDurationInMillis";
+        public static final String CONF_EXECUTION_SUPERVISOR_CRITICAL_MEMORY_LIMIT =
+                "AdaptiveAuth.ExecutionSupervisor.CriticalMemoryLimit";
         public static final int DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT = 1;
         public static final long DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT = 500L;
         public static final boolean DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE = true;
         public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
+        public static final int DEFAULT_ALERT_MAX_VIOLATIONS_PER_TENANT = 5;
+        // Default tracking window set to 30 seconds.
+        public static final long DEFAULT_EXECUTION_SUPERVISOR_VIOLATION_TRACKING_WINDOW_MILLIS = 30000L;
+        public static final long DEFAULT_EXECUTION_SUPERVISOR_BLOCK_DURATION_MILLIS = 600000L;
+        // Critical memory limit set to 500MB by default.
+        public static final long DEFAULT_ALERT_CRITICAL_MEMORY_LIMIT = 524288000L;
         public static final String PROP_EXECUTION_SUPERVISOR_RESULT
                 = "AdaptiveAuthExecutionSupervisorResult";
         public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG

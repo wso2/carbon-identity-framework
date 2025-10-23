@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionEnforcer;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -53,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -868,6 +870,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
             }
+        }
+
+        JSExecutionEnforcer jsExecutionEnforcer =
+                FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().getExecutionEnforcer();
+        if (jsExecutionEnforcer.isTenantBlocked(PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getTenantDomain())) {
+            throw new FrameworkClientException(String.format("Authentication blocked for tenant %s due to multiple " +
+                            "adaptive script execution violations.",
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
         }
 
         List<ClaimMapping> requestedClaimsInRequest = (List<ClaimMapping>) request.getAttribute(REQUESTED_ATTRIBUTES);

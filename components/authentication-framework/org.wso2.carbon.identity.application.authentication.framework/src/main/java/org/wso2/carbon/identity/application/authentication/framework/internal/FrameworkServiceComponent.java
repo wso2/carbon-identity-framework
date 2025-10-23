@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionEnforcer;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
@@ -440,6 +441,10 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance()
                 .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeOutEnabled, timeoutInMillis,
                         memoryLimitInBytes));
+
+        // Initialize JS execution alert service.
+        JSExecutionEnforcer executionEnforcer = JSExecutionEnforcer.createFromConfiguration();
+        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().setExecutionEnforcer(executionEnforcer);
     }
 
     @Deactivate
