@@ -2018,6 +2018,7 @@
   "cors.tag_requests": false,
   "x509.request_header_name": "X-SSL-CERT",
   "x509.crl_download_timeout": "60000",
+  "x509.request_header_encoded": false,
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
   "common_auth_caller_path.enable_nested_redirect_params": false,

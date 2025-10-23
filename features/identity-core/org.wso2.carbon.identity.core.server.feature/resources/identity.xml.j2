@@ -4316,6 +4316,9 @@
         {% if x509.crl_download_timeout is defined and x509.crl_download_timeout|length %}
         <CRLDownloadTimeout>{{x509.crl_download_timeout}}</CRLDownloadTimeout>
         {% endif %}
+        {% if x509.request_header_encoded is defined %}
+        <X509RequestHeaderEncoded>{{x509.request_header_encoded}}</X509RequestHeaderEncoded>
+        {% endif %}
     </X509>
 
     <!-- This configuration specifies the claims that should be logged to "audit.log" upon changes. -->
