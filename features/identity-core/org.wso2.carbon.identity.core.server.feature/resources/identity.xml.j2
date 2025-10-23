@@ -4030,15 +4030,43 @@
 
     <OrgContextsToRewriteInTenantPerspective>
         <WebApp>
+        {% for org_context_in_tenant_perspective in org_context_in_tenant_perspective.rewrite %}
+        {% for base_path in org_context_in_tenant_perspective.base_path %}
+            <Context>
+                <BasePath>{{base_path}}</BasePath>
+                <SubPaths>
+                {% for sub_path in org_context_in_tenant_perspective.sub_paths %}
+                    <Path>{{sub_path}}</Path>
+                {% endfor %}
+                </SubPaths>
+            </Context>
+        {% endfor %}
+        {% endfor %}
             <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/identity/oauth2/dcr/</Path>
+                    {% if org_context_in_tenant_perspective.authz_paths.enable is defined && org_context_in_tenant_perspective.authz_paths.enable is sameas true %}
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/branding-preference/resolve</Path>
+                    <Path>/api/server/v1/branding-preference/text</Path>
+                    <Path>/api/server/v1/branding-preference/text/resolve</Path>
+                    <Path>/api/identity/auth/v1.1/data</Path>
+                    <Path>/api/users/v1/offline-invite-link</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/me/push/devices</Path>
+                    <Path>/api/server/v1/flow/config</Path>
+                    <Path>/api/server/v1/identity-governance/preferences</Path>
+                    <Path>/api/server/v1/identity-governance</Path>
+                    {% endif %}
                 </SubPaths>
             </Context>
             <Context>
                 <BasePath>/oauth2/</BasePath>
                 <SubPaths>
+                    {% if org_context_in_tenant_perspective.authz_paths.enable is defined && org_context_in_tenant_perspective.authz_paths.enable is sameas true %}
+                    <Path>/oauth2/authorize</Path>
+                    {% endif %}
                     <Path>/oauth2/token</Path>
                     <Path>/oauth2/introspect</Path>
                     <Path>/oauth2/revoke</Path>
@@ -4046,6 +4074,24 @@
                 </SubPaths>
             </Context>
         </WebApp>
+        <Servlet>
+        {% for servlet in org_context_in_tenant_perspective.rewrite.servlets %}
+            <Context>{{servlet}}</Context>
+        {% endfor %}
+        {% for servlet in org_context_in_tenant_perspective.rewrite.custom_servlets %}
+            <Context>{{servlet}}</Context>
+        {% endfor %}
+        {% if org_context_in_tenant_perspective.authz_paths.enable is defined && org_context_in_tenant_perspective.authz_paths.enable is sameas true %}
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
+            <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
+            <Context>/longwaitstatus(.*)</Context>
+            <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
+        {% endif %}
+        </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
