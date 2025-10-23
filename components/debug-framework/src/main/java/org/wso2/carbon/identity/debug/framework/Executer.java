@@ -35,6 +35,12 @@ public class Executer {
      * @return true if URL generation is successful, false otherwise.
      */
     public boolean execute(IdentityProvider idp, AuthenticationContext context) {
+    // Step status: connection creation started
+    context.setProperty("step_connection_status", "started");
+    // Step status: authentication started
+    context.setProperty("step_authentication_status", "started");
+    // Step status: claim mapping started
+    context.setProperty("step_claim_mapping_status", "started");
         if (LOG.isDebugEnabled()) {
             LOG.debug("Generating OAuth 2.0 Authorization URL for IdP: " + 
                      (idp != null ? idp.getIdentityProviderName() : "null"));
@@ -43,6 +49,9 @@ public class Executer {
         try {
             if (idp == null) {
                 LOG.error("Identity Provider is null, cannot generate authorization URL");
+                context.setProperty("step_connection_status", "failed");
+                context.setProperty("step_authentication_status", "failed");
+                context.setProperty("step_claim_mapping_status", "failed");
                 return false;
             }
 
@@ -50,6 +59,9 @@ public class Executer {
             String authenticatorName = (String) context.getProperty("DEBUG_AUTHENTICATOR_NAME");
             if (authenticatorName == null) {
                 LOG.error("Authenticator name not found in context");
+                context.setProperty("step_connection_status", "failed");
+                context.setProperty("step_authentication_status", "failed");
+                context.setProperty("step_claim_mapping_status", "failed");
                 return false;
             }
 
@@ -59,6 +71,9 @@ public class Executer {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Authenticator configuration not found for: " + authenticatorName);
                 }
+                context.setProperty("step_connection_status", "failed");
+                context.setProperty("step_authentication_status", "failed");
+                context.setProperty("step_claim_mapping_status", "failed");
                 return false;
             }
 
@@ -66,6 +81,9 @@ public class Executer {
             String authorizationUrl = buildAuthorizationUrl(idp, authenticatorConfig, context);
             if (authorizationUrl == null) {
                 LOG.error("Failed to build authorization URL");
+                context.setProperty("step_connection_status", "failed");
+                context.setProperty("step_authentication_status", "failed");
+                context.setProperty("step_claim_mapping_status", "failed");
                 return false;
             }
 
@@ -80,7 +98,14 @@ public class Executer {
             context.setProperty("DEBUG_STEP_AUTH_URL_GENERATED", true);
             context.setProperty("DEBUG_STEP_AUTH_URL", authorizationUrl);
             context.setProperty("DEBUG_STEP_AUTH_URL_TIMESTAMP", System.currentTimeMillis());
-            
+
+            // Step status: connection creation successful
+            context.setProperty("step_connection_status", "success");
+            // Step status: authentication successful (URL generated means ready for authentication)
+            context.setProperty("step_authentication_status", "success");
+            // Step status: claim mapping pending (will be set in claim mapping logic)
+            context.setProperty("step_claim_mapping_status", "pending");
+
             // Cache the authentication context for WSO2 framework to find during callback.
             cacheAuthenticationContext(context);
 
@@ -91,6 +116,9 @@ public class Executer {
 
         } catch (Exception e) {
             LOG.error("Error generating OAuth 2.0 Authorization URL: " + e.getMessage(), e);
+            context.setProperty("step_connection_status", "failed");
+            context.setProperty("step_authentication_status", "failed");
+            context.setProperty("step_claim_mapping_status", "failed");
             return false;
         }
     }

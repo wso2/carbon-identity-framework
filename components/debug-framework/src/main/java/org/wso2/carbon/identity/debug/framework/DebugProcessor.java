@@ -179,9 +179,16 @@ public class DebugProcessor {
                     // Incoming claims (from IdP)
                     debugResult.put("incomingClaims", claims);
 
+
                     // Mapped claims (local claims)
                     Object mappedClaims = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
                     debugResult.put("mappedClaims", mappedClaims);
+
+                    // Set claim mapping status to success if mapped claims are present
+                    if (mappedClaims != null && mappedClaims instanceof Map && !((Map<?,?>) mappedClaims).isEmpty()) {
+                        context.setProperty("step_claim_mapping_status", "success");
+                        debugResult.put("step_claim_mapping_status", "success");
+                    }
 
                     // User info
                     debugResult.put("username", authenticatedUser != null ? authenticatedUser.getUserName() : null);
@@ -191,6 +198,21 @@ public class DebugProcessor {
                     debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
                     debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
 
+                    // Add step status fields for GET endpoint enrichment
+                    debugResult.put("step_connection_status", context.getProperty("step_connection_status"));
+                    debugResult.put("step_authentication_status", context.getProperty("step_authentication_status"));
+                    // step_claim_mapping_status already set above if mapped claims present
+
+                    // User attributes: convert keys to claim URIs
+                    Map<String, Object> userAttributesMap = new HashMap<>();
+                    if (authenticatedUser != null && authenticatedUser.getUserAttributes() != null) {
+                        for (Map.Entry<org.wso2.carbon.identity.application.common.model.ClaimMapping, String> entry : authenticatedUser.getUserAttributes().entrySet()) {
+                            org.wso2.carbon.identity.application.common.model.ClaimMapping mapping = entry.getKey();
+                            String claimUri = mapping.getLocalClaim() != null ? mapping.getLocalClaim().getClaimUri() : mapping.toString();
+                            userAttributesMap.put(claimUri, entry.getValue());
+                        }
+                    }
+                    debugResult.put("userAttributes", userAttributesMap);
 
                     String resultJson = mapper.writeValueAsString(debugResult);
                     DebugResultCache.add(state, resultJson);
@@ -497,13 +519,23 @@ public class DebugProcessor {
             // Use existing Processor to generate structured response.
             Object processedResult = processor.process(context);
 
+            // Build JSON result including step status for UI
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("result", processedResult);
+            resultMap.put("step_connection_status", context.getProperty("step_connection_status"));
+            resultMap.put("step_authentication_status", context.getProperty("step_authentication_status"));
+            resultMap.put("step_claim_mapping_status", context.getProperty("step_claim_mapping_status"));
+            resultMap.put("debug_error", context.getProperty("DEBUG_AUTH_ERROR"));
+            resultMap.put("debug_success", context.getProperty("DEBUG_AUTH_SUCCESS"));
+            resultMap.put("debug_mapped_claims", context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP"));
+
             // Send JSON response.
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.setStatus(HttpServletResponse.SC_OK);
 
             // Convert processed result to JSON string.
-            String jsonResponse = convertToJson(processedResult);
+            String jsonResponse = convertToJson(resultMap);
             response.getWriter().write(jsonResponse);
             response.getWriter().flush();
 

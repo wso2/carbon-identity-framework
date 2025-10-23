@@ -40,6 +40,11 @@ public class Processor {
             debugResult.put("contextIdentifier", context.getContextIdentifier());
             debugResult.put("processedAt", System.currentTimeMillis());
 
+            // Add step status for UI consumption
+            debugResult.put("step_connection_status", context.getProperty("step_connection_status"));
+            debugResult.put("step_authentication_status", context.getProperty("step_authentication_status"));
+            debugResult.put("step_claim_mapping_status", context.getProperty("step_claim_mapping_status"));
+
             // Process authentication results.
             Map<String, Object> authResult = processAuthenticationResult(context);
             debugResult.put("authenticationResult", authResult);
