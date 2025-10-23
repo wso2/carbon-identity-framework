@@ -4480,6 +4480,13 @@
     </UserIdentifier>
     {% endif %}
 
+    <!-- Configuration for the identifier first input case sensitivity. -->
+    <IdentifierFirst>
+        <PreserveCaseSensitivity>
+            <Enabled>{{ identifier_first.preserve_case_sensitivity.enabled }}</Enabled>
+        </PreserveCaseSensitivity>
+    </IdentifierFirst>
+
     <!-- CORS -->
     <CORS>
         <AllowGenericHttpRequests>{{cors.allow_generic_http_requests}}</AllowGenericHttpRequests>
