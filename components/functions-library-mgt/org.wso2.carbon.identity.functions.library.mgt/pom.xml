@@ -81,7 +81,6 @@
                     </systemPropertyVariables>
                     <reuseForks>true</reuseForks>
                     <classpathDependencyExcludes>
-                        <classpathDependencyExclude>org.ops4j.pax.logging</classpathDependencyExclude>
                         <classpathDependencyExclude>org.wso2.org.ops4j.pax.logging</classpathDependencyExclude>
                     </classpathDependencyExcludes>
                 </configuration>
@@ -151,7 +150,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.ops4j.pax.logging</groupId>
+            <groupId>org.wso2.org.ops4j.pax.logging</groupId>
             <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
