@@ -80,7 +80,6 @@
         <module>components/system-config-mgt</module>
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
-        <module>components/debug-framework</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
@@ -147,6 +146,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Add Nashorn core dependency for Java 11+ compatibility -->
+            <dependency>
+                <groupId>org.openjdk.nashorn</groupId>
+                <artifactId>nashorn-core</artifactId>
+                <version>15.4</version>
+            </dependency>
             <!--Components Dependencies Starts-->
 
             <!-- Carbon Kernel Dependencies-->

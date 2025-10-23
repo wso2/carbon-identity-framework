@@ -44,7 +44,7 @@ public class DebugResultCache {
             return;
         }
         cache.put(key, new CacheEntry(jsonResult));
-        LOG.info("Debug result cached for session: " + key);
+        LOG.info("Debug result cached");
     }
 
     /**
@@ -57,20 +57,15 @@ public class DebugResultCache {
         if (key == null) {
             return null;
         }
-
-        CacheEntry entry = cache.remove(key); 
-
+        CacheEntry entry = cache.remove(key);
         if (entry == null) {
             LOG.warn("No debug result found in cache for session: " + key);
             return null;
         }
-
         if (entry.isExpired()) {
             LOG.warn("Debug result for session " + key + " has expired and was removed.");
             return null;
         }
-
-        LOG.info("Debug result retrieved from cache for session: " + key);
         return entry.jsonResult;
     }
 

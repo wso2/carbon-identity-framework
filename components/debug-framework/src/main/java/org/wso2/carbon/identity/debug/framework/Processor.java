@@ -505,7 +505,8 @@ public class Processor {
         // Add token info to auth result if any tokens were found
         if (!tokenInfo.isEmpty()) {
             authResult.put("tokenInfo", tokenInfo);
-            LOG.info("Added OAuth token information to debug response");
+            // Step status reporting: token info added to debug response
+            context.setProperty("DEBUG_STEP_TOKEN_INFO_ADDED", true);
         }
     }
 

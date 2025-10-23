@@ -76,16 +76,16 @@ public class Executer {
             context.setProperty(DEBUG_IDENTIFIER_PARAM, "true");
             context.setProperty("DEBUG_AUTH_URL_GENERATED", "true");
             context.setProperty("DEBUG_AUTH_URL_TIMESTAMP", System.currentTimeMillis());
+            // Step status reporting: authorization URL generated
+            context.setProperty("DEBUG_STEP_AUTH_URL_GENERATED", true);
+            context.setProperty("DEBUG_STEP_AUTH_URL", authorizationUrl);
+            context.setProperty("DEBUG_STEP_AUTH_URL_TIMESTAMP", System.currentTimeMillis());
             
             // Cache the authentication context for WSO2 framework to find during callback.
             cacheAuthenticationContext(context);
 
-            // Log the generated URL for debugging.
-            LOG.info("Generated OAuth 2.0 Authorization URL: " + authorizationUrl);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("OAuth 2.0 Authorization URL generated successfully for IdP: " + idp.getIdentityProviderName() +
-                         ", Session: " + context.getContextIdentifier());
-            }
+            // Only log essential verification for production
+            LOG.info("OAuth 2.0 Authorization URL Generated");
 
             return true;
 
@@ -306,20 +306,10 @@ public class Executer {
     private String buildDebugCallbackUrl(AuthenticationContext context) {
         try {
             String baseUrl = ServiceURLBuilder.create().build().getAbsolutePublicURL();
-            
-            // Use clean callback URL without query parameters to match registered redirect URI in Asgardeo.
-            // The sessionDataKey will be handled internally by the state parameter and context caching.
             String callbackUrl = baseUrl + DEBUG_CALLBACK_PATH;
-            
-            // Log detailed URL information for debugging OAuth callback URL mismatch issues
-            LOG.info("=== DEBUG CALLBACK URL BUILDING ===");
-            LOG.info("Base URL from ServiceURLBuilder: " + baseUrl);
-            LOG.info("Debug callback path: " + DEBUG_CALLBACK_PATH);
-            LOG.info("Final callback URL: " + callbackUrl);
-            LOG.info("Session context identifier: " + context.getContextIdentifier());
-            LOG.info("=== END CALLBACK URL INFO ===");
-            
-            context.setProperty("DEBUG_CALLBACK_URL_USED", callbackUrl);
+            // Step status reporting: callback URL built
+            context.setProperty("DEBUG_STEP_CALLBACK_URL_BUILT", true);
+            context.setProperty("DEBUG_STEP_CALLBACK_URL", callbackUrl);
             
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Debug callback URL built: " + callbackUrl + 
@@ -329,10 +319,10 @@ public class Executer {
             return callbackUrl;
         } catch (URLBuilderException e) {
             LOG.error("Error building debug callback URL: " + e.getMessage(), e);
-            // Fallback to clean URL - this should be an absolute URL for OAuth providers.
             String fallbackUrl = "https://localhost:9443/commonauth";
-            LOG.info("Using fallback callback URL: " + fallbackUrl);
-            context.setProperty("DEBUG_CALLBACK_URL_USED", fallbackUrl);
+            // Step status reporting: fallback callback URL used
+            context.setProperty("DEBUG_STEP_CALLBACK_URL_FALLBACK_USED", true);
+            context.setProperty("DEBUG_STEP_CALLBACK_URL", fallbackUrl);
             return fallbackUrl;
         }
     }

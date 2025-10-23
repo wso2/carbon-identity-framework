@@ -40,12 +40,10 @@ public class ContextProvider {
      * @return Configured AuthenticationContext.
      */
     public AuthenticationContext provideContext(HttpServletRequest request, String idpId, String authenticatorName) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Creating context for debug flow with IdP ID: " + idpId + " and authenticator: " + authenticatorName);
-        }
-
         AuthenticationContext context = new AuthenticationContext();
-        
+        // Step status reporting: context creation started
+        context.setProperty("DEBUG_STEP_CONTEXT_CREATION_STARTED", true);
+
         try {
             // Use IdP-mgt to get the IdP object.
             IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
@@ -73,7 +71,8 @@ public class ContextProvider {
                 context.setProperty("DEBUG_IDP_DESCRIPTION", idp.getIdentityProviderDescription());
                 
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Successfully configured context with IdP: " + idp.getIdentityProviderName());
+                        // Step status reporting: IdP configured
+                        context.setProperty("DEBUG_STEP_IDP_CONFIGURED", true);
                 }
             } else {
                 LOG.warn("IdP not found for ID: " + idpId + ". Continuing with basic debug context.");
@@ -308,9 +307,6 @@ public class ContextProvider {
         if (federatedConfigs != null && federatedConfigs.length > 0) {
             for (FederatedAuthenticatorConfig config : federatedConfigs) {
                 if (config != null && config.isEnabled() && config.getName() != null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Selected authenticator: " + config.getName() + " for IdP: " + idp.getIdentityProviderName());
-                    }
                     return config.getName();
                 }
             }

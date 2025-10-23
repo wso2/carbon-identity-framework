@@ -48,12 +48,13 @@ public class RequestCoordinator implements DebugService {
      */
     public String execute(org.wso2.carbon.identity.application.common.model.IdentityProvider identityProvider,
                          org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext authenticationContext) {
-        LOG.info("=== DEBUG COORDINATOR: Execute method called for OAuth URL generation ===");
+    // Step status reporting: coordinator execute called
+    authenticationContext.setProperty("DEBUG_STEP_COORDINATOR_EXECUTE_CALLED", true);
         
         try {
             if (authenticationContext == null) {
                 // This is for OAuth URL generation
-                LOG.info("Generating OAuth 2.0 authorization URL for IdP: " + identityProvider.getDisplayName());
+                authenticationContext.setProperty("DEBUG_STEP_OAUTH_URL_GENERATION_STARTED", true);
                 
                 // Delegate to the Executer class for URL generation
                 Executer executer = new Executer();
@@ -65,7 +66,7 @@ public class RequestCoordinator implements DebugService {
                 }
             } else {
                 // This is for processing an authentication context
-                LOG.info("Processing authentication context: " + authenticationContext.getContextIdentifier());
+                authenticationContext.setProperty("DEBUG_STEP_AUTH_CONTEXT_PROCESSING_STARTED", true);
                 // For now, return a success indicator
                 return "SUCCESS";
             }

@@ -191,13 +191,12 @@ public class DebugProcessor {
                     debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
                     debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
 
-                    // Do NOT include tokens, secrets, or confidential config
 
                     String resultJson = mapper.writeValueAsString(debugResult);
                     DebugResultCache.add(state, resultJson);
-                    LOG.info("Debug result cached for session: " + state);
+                    LOG.info("Debug result cached");
                 } catch (Exception cacheEx) {
-                    LOG.error("Failed to cache debug result for session: " + state, cacheEx);
+                    LOG.error("Failed to cache debug result", cacheEx);
                 }
 
                 if (!response.isCommitted()) {
@@ -334,16 +333,13 @@ public class DebugProcessor {
      */
     private Map<String, Object> extractUserClaims(TokenResponse tokens, AuthenticationContext context) {
         try {
-            LOG.info("Starting user claims extraction from tokens");
             Map<String, Object> claims = new HashMap<>();
 
             // Extract claims from ID token if available.
             if (tokens.getIdToken() != null) {
-                LOG.info("ID Token found - extracting claims from JWT");
                 Map<String, Object> idTokenClaims = parseIdTokenClaims(tokens.getIdToken());
                 if (idTokenClaims != null) {
                     claims.putAll(idTokenClaims);
-                    LOG.info("Extracted " + idTokenClaims.size() + " claims from ID Token");
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("ID Token claims: " + idTokenClaims.keySet());
                     }
@@ -351,16 +347,13 @@ public class DebugProcessor {
                     LOG.warn("Failed to parse ID Token claims");
                 }
             } else {
-                LOG.info("No ID Token available for claims extraction");
             }
 
             // Extract additional claims from UserInfo endpoint if access token is available.
             if (tokens.getAccessToken() != null) {
-                LOG.info("Access Token found - attempting UserInfo endpoint call");
                 Map<String, Object> userInfoClaims = fetchUserInfoClaims(tokens.getAccessToken(), context);
                 if (userInfoClaims != null) {
                     claims.putAll(userInfoClaims);
-                    LOG.info("Extracted " + userInfoClaims.size() + " additional claims from UserInfo endpoint");
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("UserInfo claims: " + userInfoClaims.keySet());
                     }
@@ -394,9 +387,6 @@ public class DebugProcessor {
      * @return AuthenticatedUser object or null if creation fails.
      */
     private AuthenticatedUser createAuthenticatedUser(Map<String, Object> claims, AuthenticationContext context) {
-            // Log extracted claims for troubleshooting
-            // Always print claim diagnostics at INFO level for troubleshooting
-            LOG.info("[DEBUG] Extracted claims: " + (claims != null ? claims.keySet().toString() : "null"));
             IdentityProvider idpLog = (IdentityProvider) context.getProperty("IDP_CONFIG");
             if (idpLog != null && idpLog.getClaimConfig() != null && idpLog.getClaimConfig().getClaimMappings() != null) {
                 StringBuilder mappingsLog = new StringBuilder("[DEBUG] Configured claim mappings: [");
@@ -407,7 +397,6 @@ public class DebugProcessor {
                     }
                 }
                 mappingsLog.append("]");
-                LOG.info(mappingsLog.toString());
             }
         try {
             // Extract essential user information.
@@ -565,19 +554,11 @@ public class DebugProcessor {
             // Cross-reference with authorization URL generation from Executer.buildDebugCallbackUrl()
             String contextCallbackUrl = (String) context.getProperty("DEBUG_CALLBACK_URL_USED");
             
-            LOG.info("=== TOKEN EXCHANGE REDIRECT URI ===");
-            LOG.info("Built redirect_uri: " + redirectUri);
-            LOG.info("Authorization callback URL from context: " + contextCallbackUrl);
             
             // Use the same URL as used in authorization if available from context
             if (contextCallbackUrl != null && !contextCallbackUrl.isEmpty()) {
-                LOG.info("Using authorization callback URL for consistency: " + contextCallbackUrl);
-                LOG.info("=== END REDIRECT URI INFO ===");
                 return contextCallbackUrl;
             } else {
-                LOG.info("Context callback URL not available, using generated URL");
-                LOG.info("This MUST match the redirect_uri used in authorization URL generation");
-                LOG.info("=== END REDIRECT URI INFO ===");
                 return redirectUri;
             }
         } catch (Exception e) {
@@ -600,16 +581,13 @@ public class DebugProcessor {
         connection.setRequestProperty("Authorization", "Basic " + encodedCredentials);
 
         connection.setDoOutput(true);
-        connection.setConnectTimeout(30000); // 30 seconds
-        connection.setReadTimeout(30000);    // 30 seconds
+        connection.setConnectTimeout(30000); 
+        connection.setReadTimeout(30000);    
         
-        LOG.info("OAuth token request - Connect timeout: 30s, Read timeout: 30s");
-
         // Send request body.
         try (OutputStream os = connection.getOutputStream()) {
             os.write(requestBody.getBytes(StandardCharsets.UTF_8));
             os.flush();
-            LOG.info("Token request body sent successfully");
         }
 
         return connection;
@@ -713,11 +691,8 @@ public class DebugProcessor {
 
     private void mapClaimsToAttributes(Map<String, Object> claims, Map<ClaimMapping, String> userAttributes, AuthenticationContext context) {
         try {
-            // Debug: Print incoming claims map and keys
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Incoming claims map: " + (claims != null ? claims.toString() : "null"));
-                LOG.debug("Claims keys: " + (claims != null ? claims.keySet().toString() : "null"));
-            }
+            // Step status reporting: claim mapping started
+            context.setProperty("DEBUG_STEP_CLAIM_MAPPING_STARTED", System.currentTimeMillis());
 
             IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
             ClaimMapping[] configuredMappings = null;
@@ -727,7 +702,6 @@ public class DebugProcessor {
 
             // If claim mappings are missing or empty, auto-map all extracted claim keys for this context only
             if (configuredMappings == null || configuredMappings.length == 0) {
-                LOG.info("[DEBUG] No IdP claim mappings found. Auto-mapping all extracted claim keys for this authentication context.");
                 configuredMappings = new ClaimMapping[claims.size()];
                 int i = 0;
                 for (String claimKey : claims.keySet()) {
@@ -738,24 +712,8 @@ public class DebugProcessor {
                     autoMapping.getLocalClaim().setClaimUri(claimKey);
                     configuredMappings[i++] = autoMapping;
                 }
-                LOG.info("[DEBUG] Auto-generated claim mappings: " + java.util.Arrays.toString(configuredMappings));
-            }
-
-            // Debug: Print claim mappings and remote claim URIs
-            if (LOG.isDebugEnabled()) {
-                StringBuilder mappingsLog = new StringBuilder("Configured claim mappings: [");
-                StringBuilder remoteUrisLog = new StringBuilder("Remote claim URIs: [");
-                for (ClaimMapping cm : configuredMappings) {
-                    if (cm != null && cm.getRemoteClaim() != null && cm.getLocalClaim() != null) {
-                        mappingsLog.append("{remote: ").append(cm.getRemoteClaim().getClaimUri())
-                            .append(", local: ").append(cm.getLocalClaim().getClaimUri()).append("}, ");
-                        remoteUrisLog.append(cm.getRemoteClaim().getClaimUri()).append(", ");
-                    }
-                }
-                mappingsLog.append("]");
-                remoteUrisLog.append("]");
-                LOG.debug(mappingsLog.toString());
-                LOG.debug(remoteUrisLog.toString());
+                // Step status reporting: auto-mapping used
+                context.setProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO", true);
             }
 
             // Enhanced normalization: try both URI→short name and short name→URI
@@ -770,9 +728,6 @@ public class DebugProcessor {
                 // Try short name if not found
                 if (claimValue == null && !shortName.equals(remoteClaimUri)) {
                     claimValue = claims.get(shortName);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Mapping fallback: remoteClaimUri='" + remoteClaimUri + "', shortName='" + shortName + "', value='" + claimValue + "', localClaimUri='" + localClaimUri + "'");
-                    }
                 }
                 // Try URI if mapping uses short name but claim key is URI
                 if (claimValue == null && shortName.equals(remoteClaimUri)) {
@@ -780,26 +735,18 @@ public class DebugProcessor {
                     for (String claimKey : claims.keySet()) {
                         if (claimKey.contains("/") && claimKey.endsWith("/" + shortName)) {
                             claimValue = claims.get(claimKey);
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("Reverse mapping fallback: mapping shortName='" + shortName + "', found claimKey='" + claimKey + "', value='" + claimValue + "', localClaimUri='" + localClaimUri + "'");
-                            }
                             break;
                         }
                     }
-                }
-                // Debug: Print each mapping attempt
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Final mapping attempt: remoteClaimUri='" + remoteClaimUri + "', value='" + claimValue + "', localClaimUri='" + localClaimUri + "'");
                 }
                 if (claimValue != null) {
                     // Use local claim URI as key for mapped claims
                     userAttributes.put(configuredMapping, claimValue.toString());
                     context.setProperty("DEBUG_MAPPED_LOCAL_CLAIMS", localClaimUri + ":" + claimValue.toString());
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Mapped remote claim '" + remoteClaimUri + "' to local claim '" + localClaimUri + "'");
-                    }
                 }
             }
+            // Step status reporting: claim mapping completed
+            context.setProperty("DEBUG_STEP_CLAIM_MAPPING_COMPLETED", System.currentTimeMillis());
         } catch (Exception e) {
             LOG.error("Error mapping claims to attributes dynamically: " + e.getMessage(), e);
         }
