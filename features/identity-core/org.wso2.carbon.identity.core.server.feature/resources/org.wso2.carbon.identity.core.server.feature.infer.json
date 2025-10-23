@@ -345,7 +345,8 @@
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
-      "oauth.authorize_internal_scopes": true
+      "oauth.authorize_internal_scopes": true,
+      "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": false
     }
   }
 }
