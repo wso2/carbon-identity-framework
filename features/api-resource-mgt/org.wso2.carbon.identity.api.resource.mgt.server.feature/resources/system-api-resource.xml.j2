@@ -132,6 +132,14 @@
                    description="Delete applications in the organization"/>
             <Scope displayName="Regenerate Application Secret" name="internal_org_application_mgt_client_secret_create"
                    description="Regenerate the client secret of an application in the organization"/>
+            <Scope displayName="Update authorized internal APIs of an Application"
+                   name="internal_org_application_internal_api_update"
+                   description="Allows updating authorized internal APIs of an application. Requires both this scope and
+                    the application update scope (internal_org_application_mgt_update) for fine-grained access control."/>
+            <Scope displayName="Update authorized business APIs of an Application"
+                   name="internal_org_application_business_api_update"
+                   description="Allows updating authorized business APIs of an application. Requires both this scope and
+                    the application update scope (internal_org_application_mgt_update) for fine-grained access control."/>
             <Scope displayName="View application client secret"
                    name="internal_org_application_mgt_client_secret_view"
                    description="Allows viewing the client secret of an application. Requires both this scope and
@@ -1221,6 +1229,19 @@
                     description="Manage views of application internal APIs from the Console"/>
             <Scope displayName="Application Internal API Management Edit Feature" name="console:application_internal_api_management_edit"
                     description="Manage edits of application internal APIs from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application Internal API management feature" identifier="console:org:application_internal_api_management"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Internal API Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Internal API Management Feature" name="console:org:application_internal_api_management"
+                    description="Manage application internal APIs in the organization from the Console"/>
+            <Scope displayName="Application Internal API Management View Feature" name="console:org:application_internal_api_management_view"
+                    description="Manage views of application internal APIs in the organization from the Console"/>
+            <Scope displayName="Application Internal API Management Edit Feature" name="console:org:application_internal_api_management_edit"
+                    description="Manage edits of application internal APIs in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application client secret management feature" identifier="console:application_client_secrets"
