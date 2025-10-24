@@ -54,6 +54,10 @@
            <Scopes>internal_config_update</Scopes>
         </Resource>
 
+        <!-- handling incorrect discovery requests -->
+        <Resource context="/.well-known/oauth-authorization-server/oauth2/token(.*)" secured="true" http-method="all"/>
+        <Resource context="/.well-known/openid-configuration(.*)" secured="true" http-method="all"/>
+        
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
