@@ -270,6 +270,7 @@ public class RoleManagementUtils {
      * Get the filter node as a list.
      *
      * @param filter Filter string.
+     * @return List of expression nodes.
      * @throws IdentityRoleManagementException Error when validate filters.
      */
     public static List<ExpressionNode> getExpressionNodes(String filter) throws IdentityRoleManagementException {

@@ -23,12 +23,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
-import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
-import org.wso2.carbon.identity.core.model.Node;
-import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -52,7 +48,6 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -433,11 +428,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public List<UserBasicInfo> getUserListOfRole(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
-                                                 String sortBy, String sortOrder, String tenantDomain,
-                                                 String userStoreDomain) throws IdentityRoleManagementException {
+    public List<UserBasicInfo> getUserListOfRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+                                                  String sortBy, String sortOrder, String tenantDomain,
+                                                  String userStoreDomain) throws IdentityRoleManagementException {
 
-        return roleDAO.getUserListOfRole(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain,
+        return roleDAO.getUserListOfRoles(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain,
                 userStoreDomain);
     }
 

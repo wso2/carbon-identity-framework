@@ -242,13 +242,11 @@ public interface RoleDAO {
      * @return List of users.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
+    default List<UserBasicInfo> getUserListOfRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+                                                   String sortBy, String sortOrder, String tenantDomain,
+                                                   String userStoreDomain) throws IdentityRoleManagementException {
 
-    default List<UserBasicInfo> getUserListOfRole(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
-                                                  String sortBy, String sortOrder, String tenantDomain,
-                                                  String userStoreDomain) throws IdentityRoleManagementException {
-
-        throw new NotImplementedException("getUserListOfRole method is not implemented");
-
+        throw new NotImplementedException("getUserListOfRoles method is not implemented");
     }
 
     /**

@@ -196,26 +196,11 @@ public interface RoleManagementService {
      * @return List of users.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    default List<UserBasicInfo> getUserListOfRole(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
-                                                  String sortBy, String sortOrder, String tenantDomain,
-                                                  String userStoreDomain) throws IdentityRoleManagementException {
+    default List<UserBasicInfo> getUserListOfRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+                                                   String sortBy, String sortOrder, String tenantDomain,
+                                                   String userStoreDomain) throws IdentityRoleManagementException {
 
-        throw new NotImplementedException("getUserListOfRole method is not implemented");
-    }
-
-    /**
-     * Retrieve available total user count in a role for a given specific search filter.
-     *
-     * @param expressionNodes List of expressionNodes.
-     * @param tenantDomain    Tenant domain.
-     * @param userStoreDomain User store domain.
-     * @return The list count of users.
-     * @throws IdentityRoleManagementException IdentityRoleManagementException.
-     */
-    default int getUserListOfRoleCount(List<ExpressionNode> expressionNodes, String tenantDomain,
-                                       String userStoreDomain) throws IdentityRoleManagementException {
-
-        throw new NotImplementedException("getUserListOfRoleCount method is not implemented");
+        throw new NotImplementedException("getUserListOfRoles method is not implemented");
     }
 
     /**
