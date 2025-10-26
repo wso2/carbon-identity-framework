@@ -62,6 +62,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATIO
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils.getExpressionNodes;
 
 /**
  * Implementation of the {@link RoleManagementService} interface.
@@ -429,6 +430,15 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                     getUser(tenantDomain), roleId));
         }
         return userBasicInfoList;
+    }
+
+    @Override
+    public List<UserBasicInfo> getUserListOfRole(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+                                                 String sortBy, String sortOrder, String tenantDomain,
+                                                 String userStoreDomain) throws IdentityRoleManagementException {
+
+        return roleDAO.getUserListOfRole(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain,
+                userStoreDomain);
     }
 
     @Override
@@ -1045,46 +1055,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
         arr1.removeAll(common);
         arr2.removeAll(common);
-    }
-
-    /**
-     * Get the filter node as a list.
-     *
-     * @param filter Filter string.
-     * @throws IdentityRoleManagementException Error when validate filters.
-     */
-    private List<ExpressionNode> getExpressionNodes(String filter) throws IdentityRoleManagementException {
-
-        List<ExpressionNode> expressionNodes = new ArrayList<>();
-        filter = StringUtils.isBlank(filter) ? StringUtils.EMPTY : filter;
-        try {
-            if (StringUtils.isNotBlank(filter)) {
-                FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
-                Node rootNode = filterTreeBuilder.buildTree();
-                setExpressionNodeList(rootNode, expressionNodes);
-            }
-            return expressionNodes;
-        } catch (IOException | IdentityException e) {
-            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid filter");
-        }
-    }
-
-    /**
-     * Set the node values as list of expression.
-     *
-     * @param node       filter node.
-     * @param expression list of expression.
-     */
-    private void setExpressionNodeList(Node node, List<ExpressionNode> expression) {
-
-        if (node instanceof ExpressionNode) {
-            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
-                expression.add((ExpressionNode) node);
-            }
-        } else if (node instanceof OperationNode) {
-            setExpressionNodeList(node.getLeftNode(), expression);
-            setExpressionNodeList(node.getRightNode(), expression);
-        }
     }
 
     /**

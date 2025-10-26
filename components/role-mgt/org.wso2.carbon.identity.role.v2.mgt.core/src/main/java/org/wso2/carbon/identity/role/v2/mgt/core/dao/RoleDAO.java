@@ -230,6 +230,28 @@ public interface RoleDAO {
     List<UserBasicInfo> getUserListOfRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Get user list of the given role filtered by the provided expression nodes.
+     *
+     * @param expressionNodes List of expressionNodes.
+     * @param limit           Limit value.
+     * @param offset          Offset value.
+     * @param sortBy          SortBy value.
+     * @param sortOrder       Sort order value.
+     * @param tenantDomain    Tenant domain.
+     * @param userStoreDomain User store domain.
+     * @return List of users.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+
+    default List<UserBasicInfo> getUserListOfRole(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+                                                  String sortBy, String sortOrder, String tenantDomain,
+                                                  String userStoreDomain) throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getUserListOfRole method is not implemented");
+
+    }
+
+    /**
      * Update the list of groups in the given role.
      *
      * @param roleId             Role ID.

@@ -18,12 +18,18 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
+import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -39,6 +45,8 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -47,6 +55,7 @@ import java.util.Set;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ALLOW_SYSTEM_PREFIX_FOR_ROLES;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
@@ -255,5 +264,45 @@ public class RoleManagementUtils {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage);
         }
         return removeInternalDomain(everyOneRoleName);
+    }
+
+    /**
+     * Get the filter node as a list.
+     *
+     * @param filter Filter string.
+     * @throws IdentityRoleManagementException Error when validate filters.
+     */
+    public static List<ExpressionNode> getExpressionNodes(String filter) throws IdentityRoleManagementException {
+
+        List<ExpressionNode> expressionNodes = new ArrayList<>();
+        filter = StringUtils.isBlank(filter) ? StringUtils.EMPTY : filter;
+        try {
+            if (StringUtils.isNotBlank(filter)) {
+                FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
+                Node rootNode = filterTreeBuilder.buildTree();
+                setExpressionNodeList(rootNode, expressionNodes);
+            }
+            return expressionNodes;
+        } catch (IOException | IdentityException e) {
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid filter");
+        }
+    }
+
+    /**
+     * Set the node values as list of expression.
+     *
+     * @param node       filter node.
+     * @param expression list of expression.
+     */
+    public static void setExpressionNodeList(Node node, List<ExpressionNode> expression) {
+
+        if (node instanceof ExpressionNode) {
+            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
+                expression.add((ExpressionNode) node);
+            }
+        } else if (node instanceof OperationNode) {
+            setExpressionNodeList(node.getLeftNode(), expression);
+            setExpressionNodeList(node.getRightNode(), expression);
+        }
     }
 }

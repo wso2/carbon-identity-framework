@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.role.v2.mgt.core;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
@@ -181,6 +182,41 @@ public interface RoleManagementService {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     List<UserBasicInfo> getUserListOfRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get user list of the given role filtered by the provided expression nodes.
+     *
+     * @param expressionNodes Expression nodes to filter users.
+     * @param limit           Limit value.
+     * @param offset          Offset value.
+     * @param sortBy          SortBy value.
+     * @param sortOrder       Sort order value.
+     * @param tenantDomain    Tenant domain.
+     * @param userStoreDomain User store domain.
+     * @return List of users.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<UserBasicInfo> getUserListOfRole(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+                                                  String sortBy, String sortOrder, String tenantDomain,
+                                                  String userStoreDomain) throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getUserListOfRole method is not implemented");
+    }
+
+    /**
+     * Retrieve available total user count in a role for a given specific search filter.
+     *
+     * @param expressionNodes List of expressionNodes.
+     * @param tenantDomain    Tenant domain.
+     * @param userStoreDomain User store domain.
+     * @return The list count of users.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default int getUserListOfRoleCount(List<ExpressionNode> expressionNodes, String tenantDomain,
+                                       String userStoreDomain) throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getUserListOfRoleCount method is not implemented");
+    }
 
     /**
      * Update the list of users in the given role.
