@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.role.v2.mgt.core;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
