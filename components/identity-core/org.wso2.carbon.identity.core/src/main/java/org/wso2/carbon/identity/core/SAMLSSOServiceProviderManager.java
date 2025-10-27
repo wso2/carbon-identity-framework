@@ -146,10 +146,11 @@ public class SAMLSSOServiceProviderManager {
                         serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
                         serviceProviderDO.isDoEnableEncryptedAssertion()) {
 
-                    Tenant tenant = new Tenant();
+                    Tenant tenant;
                     if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
                         tenant = IdentityTenantUtil.getTenant(tenantId);
                     } else {
+                        tenant = new Tenant();
                         tenant.setId(MultitenantConstants.SUPER_TENANT_ID);
                         tenant.setDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
                     }
