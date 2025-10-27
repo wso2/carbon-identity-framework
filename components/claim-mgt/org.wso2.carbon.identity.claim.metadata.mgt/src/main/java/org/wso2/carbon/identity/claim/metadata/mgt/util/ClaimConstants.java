@@ -45,6 +45,7 @@ public class ClaimConstants {
     public static final String CLAIM_URI_PROPERTY = "ClaimURI";
     public static final String MASKING_REGULAR_EXPRESSION_PROPERTY = "MaskingRegEx";
     public static final String CLAIM_UNIQUENESS_SCOPE_PROPERTY = "UniquenessScope";
+    public static final String USER_STORE_PERSISTENCE_ENABLED_PROPERTY = "UserStorePersistenceEnabled";
     public static final String IS_UNIQUE_CLAIM_PROPERTY = "isUnique";
     public static final String PROFILES_CLAIM_PROPERTY_PREFIX = "Profiles.";
     public static final String UNIQUENESS_VALIDATION_SCOPE = "UserClaimUpdate.UniquenessValidation.ScopeWithinUserstore";
@@ -54,6 +55,7 @@ public class ClaimConstants {
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
     public static final String EXCLUDED_USER_STORES_PROPERTY = "ExcludedUserStores";
+    public static final String COMMA_SEPARATOR = ",";
     public static final String MIN_LENGTH = "minLength";
     public static final String MAX_LENGTH = "maxLength";
     public static final String IS_SYSTEM_CLAIM = "isSystemClaim";
@@ -128,6 +130,8 @@ public class ClaimConstants {
                 "Adding claims to dialect %s is not allowed"),
         ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY("CMT-60017",
                 "Cannot change flow initiator property of the system claim: %s"),
+        ERROR_CODE_CANNOT_EXCLUDE_MANDATORY_USER_STORE_FOR_IDENTITY_CLAIMS("CMT-60018",
+                                                                       "Cannot exclude user store domain storing : %s"),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
