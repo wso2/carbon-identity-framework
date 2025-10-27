@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
@@ -42,6 +43,8 @@ import java.util.List;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 public class RoleManagementUtilsTest {
 
@@ -152,5 +155,33 @@ public class RoleManagementUtilsTest {
                 {false, scopes1, permissions2, RoleConstants.ORGANIZATION},
                 {true,  scopes1, permissions1, RoleConstants.APPLICATION},
         };
+    }
+
+    /**
+     * Test getExpressionNodes method with a complex filter using AND operator.
+     *
+     * @throws IdentityRoleManagementException If an error occurs while parsing the filter.
+     */
+    @Test
+    public void testGetExpressionNodesWithComplexFilterAnd() throws IdentityRoleManagementException {
+
+        String filter = "name eq admin and audience eq organization and " +
+                "audienceId eq a80b12a4-5168-481d-9b79-1f24bf9b883c";
+        List<ExpressionNode> expressionNodes = RoleManagementUtils.getExpressionNodes(filter);
+
+        assertNotNull(expressionNodes, "Expression nodes should not be null.");
+        assertEquals(expressionNodes.size(), 3, "Should have exactly three expression nodes.");
+
+        // Verify first expression.
+        ExpressionNode firstNode = expressionNodes.get(0);
+        assertEquals(firstNode.getAttributeValue(), "name", "First attribute should be 'name'.");
+        assertEquals(firstNode.getValue(), "admin", "First value should be 'admin'.");
+        assertEquals(firstNode.getOperation(), "eq", "First operation should be 'eq'.");
+
+        // Verify second expression.
+        ExpressionNode secondNode = expressionNodes.get(1);
+        assertEquals(secondNode.getAttributeValue(), "audience", "Second attribute should be 'audience'.");
+        assertEquals(secondNode.getValue(), "organization", "Second value should be 'organization'.");
+        assertEquals(secondNode.getOperation(), "eq", "Second operation should be 'eq'.");
     }
 }
