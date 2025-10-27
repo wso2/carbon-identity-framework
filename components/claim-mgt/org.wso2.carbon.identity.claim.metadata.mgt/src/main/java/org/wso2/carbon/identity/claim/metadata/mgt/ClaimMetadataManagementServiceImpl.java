@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServerException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
@@ -39,20 +40,30 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.ldap.ReadOnlyLDAPUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.EXCLUDED_USER_STORES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_LENGTH_LIMIT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
@@ -79,8 +90,12 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.USER_STORE_PERSISTENCE_ENABLED_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.containsIgnoreCase;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getAllowedClaimProfiles;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.isIdentityClaim;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.isUserStoreBasedIdentityDataStore;
 
 /**
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
@@ -97,6 +112,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private static final int MAX_CLAIM_PROPERTY_LENGTH = 255;
     private static final int MAX_CLAIM_PROPERTY_LENGTH_LIMIT = 1024;
     private static final int MIN_CLAIM_PROPERTY_LENGTH_LIMIT = 0;
+    private static final String STORE_IDENTITY_CLAIMS = "StoreIdentityClaims";
 
     @Override
     public List<ClaimDialect> getClaimDialects(String tenantDomain) throws ClaimMetadataException {
@@ -318,6 +334,19 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     @Override
+    public Optional<LocalClaim> getLocalClaim(String localClaimURI, String tenantDomain,
+                                               boolean includeUserStorePersistence) throws ClaimMetadataException {
+
+        Optional<LocalClaim> localClaim = getLocalClaim(localClaimURI, tenantDomain);
+        if (!includeUserStorePersistence || !localClaim.isPresent()) {
+            return localClaim;
+        }
+
+        setUserStorePersistence(localClaim.get(), tenantDomain);
+        return localClaim;
+    }
+
+    @Override
     public void addLocalClaim(LocalClaim localClaim, String tenantDomain) throws ClaimMetadataException {
 
         if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
@@ -375,6 +404,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(),
                 existingLocalClaim.get().getClaimProperties());
         validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
+        validateAndSyncUserStorePersistenceProperties(localClaim, tenantDomain);
 
         validateSharedProfileValueResolvingMethodChange(localClaim, existingLocalClaim.get(), tenantId);
 
@@ -1011,4 +1041,200 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             }
         }
     }
+
+    /**
+     * Configure user store persistence related properties for the given local claim.
+     * @param localClaim   Local claim.
+     * @param tenantDomain Tenant domain.
+     * @throws ClaimMetadataException If an error occurs while getting UserStoreManager.
+     */
+    private void setUserStorePersistence(LocalClaim localClaim, String tenantDomain)
+            throws ClaimMetadataException {
+
+        // TODO: At first stage, will only consider identity claims.
+        if (!isIdentityClaim(localClaim)) {
+            localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, Boolean.TRUE.toString());
+            return;
+        }
+
+        // If the identity data store is user store based, all the identity claims should be stored in user store.
+        if (isUserStoreBasedIdentityDataStore()) {
+            localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, Boolean.TRUE.toString());
+            return;
+        }
+
+        String userStorePersistenceEnabledValue = localClaim.getClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY);
+        if (userStorePersistenceEnabledValue == null) {
+            // Default to false if the property is not set for identity claims.
+            localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, Boolean.FALSE.toString());
+            return;
+        }
+
+        // If user store persistence is not enabled, no further processing is needed.
+        if (!Boolean.parseBoolean(userStorePersistenceEnabledValue)) {
+            return;
+        }
+
+        Set<String> excludedUserStores = getExcludedUserStoresFromClaim(localClaim);
+        excludedUserStores = processUserStoresForPersistence(excludedUserStores, tenantDomain, false);
+
+        if (!excludedUserStores.isEmpty()) {
+            localClaim.setClaimProperty(EXCLUDED_USER_STORES_PROPERTY,
+                    String.join(ClaimConstants.COMMA_SEPARATOR, excludedUserStores));
+        }
+    }
+
+    /**
+     * Validate and synchronize user store persistence properties for the given local claim during update.
+     * This method validates that mandatory user stores are not excluded and syncs the excluded list.
+     *
+     * @param localClaim   Local claim to validate.
+     * @param tenantDomain Tenant domain.
+     * @throws ClaimMetadataException If validation fails or an error occurs while getting UserStoreManager.
+     */
+    private void validateAndSyncUserStorePersistenceProperties(LocalClaim localClaim, String tenantDomain)
+            throws ClaimMetadataException {
+
+        String userStorePersistenceEnabledValue =
+                localClaim.getClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY);
+
+        if (!isIdentityClaim(localClaim)) {
+            if (userStorePersistenceEnabledValue == null) {
+                // For non-identity claims, default to true if the property is not set.
+                userStorePersistenceEnabledValue = Boolean.TRUE.toString();
+                localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, userStorePersistenceEnabledValue);
+            }
+            return;
+        } else if (userStorePersistenceEnabledValue == null) {
+            // For identity claims, default to false if the property is not set.
+            userStorePersistenceEnabledValue = Boolean.FALSE.toString();
+            localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, userStorePersistenceEnabledValue);
+            return;
+        }
+
+        boolean isUserStorePersistenceEnabled = Boolean.parseBoolean(userStorePersistenceEnabledValue);
+
+        // If user store persistence is not enabled, remove excluded user stores property.
+        if (!isUserStorePersistenceEnabled) {
+            localClaim.getClaimProperties().remove(EXCLUDED_USER_STORES_PROPERTY);
+            return;
+        }
+
+        Set<String> excludedUserStores = getExcludedUserStoresFromClaim(localClaim);
+        excludedUserStores = processUserStoresForPersistence(excludedUserStores, tenantDomain, true);
+
+        if (!excludedUserStores.isEmpty()) {
+            localClaim.setClaimProperty(EXCLUDED_USER_STORES_PROPERTY,
+                    String.join(ClaimConstants.COMMA_SEPARATOR, excludedUserStores));
+        }
+    }
+
+    /**
+     * Extract excluded user stores from the local claim property.
+     *
+     * @param localClaim Local claim containing excluded user stores property.
+     * @return Set of excluded user store domain names.
+     */
+    private Set<String> getExcludedUserStoresFromClaim(LocalClaim localClaim) {
+
+        Set<String> excludedUserStores = new LinkedHashSet<>();
+        String excludedUserStoresPropertyValue = localClaim.getClaimProperty(EXCLUDED_USER_STORES_PROPERTY);
+
+        if (StringUtils.isNotBlank(excludedUserStoresPropertyValue)) {
+            excludedUserStores.addAll(
+                    Arrays.stream(StringUtils.split(excludedUserStoresPropertyValue, ClaimConstants.COMMA_SEPARATOR))
+                            .filter(StringUtils::isNotBlank)
+                            .map(String::trim)
+                            .collect(Collectors.toList()));
+        }
+        return excludedUserStores;
+    }
+
+    /**
+     * Process user stores to determine which should be excluded from identity claim persistence.
+     *
+     * @param excludedUserStores Initial set of excluded user stores.
+     * @param tenantDomain       Tenant domain.
+     * @param validateMode       If true, validates and throws exception for mandatory stores.
+     *                           If false, automatically adds/removes stores based on configuration.
+     * @return Updated set of excluded user stores.
+     * @throws ClaimMetadataException If validation fails in validate mode or error getting UserStoreManager.
+     */
+    private Set<String> processUserStoresForPersistence(Set<String> excludedUserStores, String tenantDomain,
+                                                        boolean validateMode) throws ClaimMetadataException {
+
+        Set<String> processedExcludedStores = new LinkedHashSet<>(excludedUserStores);
+        AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) getUserStoreManager(tenantDomain);
+
+        while (userStoreManager != null) {
+            String domainName = userStoreManager.getRealmConfiguration()
+                    .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            boolean isStoreIdentityClaimsEnabled = Boolean.parseBoolean(userStoreManager.getRealmConfiguration()
+                    .getUserStoreProperty(STORE_IDENTITY_CLAIMS));
+
+            if (isReadOnlyUserStore(userStoreManager)) {
+                // Read-only stores should always be excluded.
+                processedExcludedStores.add(domainName);
+            } else if (isStoreIdentityClaimsEnabled) {
+                // Stores configured to store identity claims should not be excluded.
+                if (validateMode && containsIgnoreCase(processedExcludedStores, domainName)) {
+                    throw new ClaimMetadataClientException(
+                            ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS.getCode(),
+                            String.format(
+                                    ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS.getMessage(),
+                                    domainName));
+                }
+                processedExcludedStores.removeIf(store -> store.equalsIgnoreCase(domainName));
+            }
+
+            userStoreManager = (AbstractUserStoreManager) userStoreManager.getSecondaryUserStoreManager();
+        }
+
+        return processedExcludedStores;
+    }
+
+    /**
+     * Get UserStoreManager for the given tenant domain.
+     *
+     * @param tenantDomain Tenant domain
+     * @return UserStoreManager
+     * @throws ClaimMetadataServerException If an error occurs while getting UserStoreManager
+     */
+    private UserStoreManager getUserStoreManager(String tenantDomain) throws ClaimMetadataServerException {
+
+        UserStoreManager userStoreManager = null;
+        RealmService realmService = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService();
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+
+            UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
+            if (userRealm != null) {
+                userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+                return userStoreManager;
+            } else {
+                log.error("User realm is null for tenant : " + tenantDomain);
+            }
+        } catch (UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while getting user store manager for tenant : " + tenantDomain, e);
+            }
+            throw new ClaimMetadataServerException("ere",
+                    "Error while getting user store manager for tenant : " + tenantDomain, e);
+        }
+        return userStoreManager;
+    }
+
+    /**
+     * Check whether the given user store is a read-only user store.
+     *
+     * @param userStoreManager User store manager.
+     * @return true if the user store is read-only, false otherwise.
+     */
+    private boolean isReadOnlyUserStore(UserStoreManager userStoreManager) {
+
+        return userStoreManager instanceof ReadOnlyLDAPUserStoreManager ||
+                Boolean.parseBoolean(userStoreManager.getRealmConfiguration()
+                        .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_READ_ONLY));
+    }
+
 }

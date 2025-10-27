@@ -130,8 +130,8 @@ public class ClaimConstants {
                 "Adding claims to dialect %s is not allowed"),
         ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY("CMT-60017",
                 "Cannot change flow initiator property of the system claim: %s"),
-        ERROR_CODE_CANNOT_EXCLUDE_MANDATORY_USER_STORE_FOR_IDENTITY_CLAIMS("CMT-60018",
-                                                                       "Cannot exclude user store domain storing : %s"),
+        ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS("CMT-60018",
+                "User store '%s' cannot be excluded because it is configured to persist identity claims."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
