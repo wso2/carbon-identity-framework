@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.user.api.Tenant;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.security.cert.X509Certificate;
 
@@ -145,7 +146,14 @@ public class SAMLSSOServiceProviderManager {
                         serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
                         serviceProviderDO.isDoEnableEncryptedAssertion()) {
 
-                    Tenant tenant = IdentityTenantUtil.getTenant(tenantId);
+                    Tenant tenant = new Tenant();
+                    if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
+                        tenant = IdentityTenantUtil.getTenant(tenantId);
+                    } else {
+                        tenant.setId(MultitenantConstants.SUPER_TENANT_ID);
+                        tenant.setDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+                    }
+
                     serviceProviderDO.setX509Certificate(getApplicationCertificate(serviceProviderDO, tenant));
                 }
                 serviceProviderDO.setTenantDomain(tenantDomain);
