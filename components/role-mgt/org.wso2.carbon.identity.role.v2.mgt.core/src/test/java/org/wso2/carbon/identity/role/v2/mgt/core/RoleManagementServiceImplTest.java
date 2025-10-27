@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -35,6 +36,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -42,8 +44,11 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.lenient;
@@ -240,6 +245,22 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
                 new ArrayList<>(), audience, audienceId, tenantDomain);
 
         assertEquals(expectedRole, result);
+    }
+
+    /**
+     * Test getExpressionNodes method with a complex filter using AND operator.
+     *
+     * @throws IdentityRoleManagementException If an error occurs while parsing the filter.
+     */
+    @Test
+    public void testGetUserListOfRoleWithFilter() throws IdentityRoleManagementException {
+
+        String filter = "name eq admin and audience eq organization and " +
+                "audienceId eq a80b12a4-5168-481d-9b79-1f24bf9b883c";
+        List<UserBasicInfo> userBasicInfoList = roleManagementService.getUserListOfRoles(filter, 10, 0, null, null, tenantDomain, "PRIMARY");
+        when(roleDAO.getUserListOfRoles(any(), anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn( new ArrayList<>());
+        Assert.assertNotNull(userBasicInfoList);
     }
 
     private void mockCarbonContextForTenant() {

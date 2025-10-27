@@ -230,7 +230,7 @@ public interface RoleDAO {
     List<UserBasicInfo> getUserListOfRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
-     * Get user list of the given role filtered by the provided expression nodes.
+     * Get user list of the given role filter.
      *
      * @param expressionNodes List of expressionNodes.
      * @param limit           Limit value.

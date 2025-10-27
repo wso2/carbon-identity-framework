@@ -23,8 +23,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
+import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -48,6 +52,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +62,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATIO
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
-import static org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils.getExpressionNodes;
 
 /**
  * Implementation of the {@link RoleManagementService} interface.
@@ -428,10 +432,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public List<UserBasicInfo> getUserListOfRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+    public List<UserBasicInfo> getUserListOfRoles(String filter, Integer limit, Integer offset,
                                                   String sortBy, String sortOrder, String tenantDomain,
                                                   String userStoreDomain) throws IdentityRoleManagementException {
 
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         return roleDAO.getUserListOfRoles(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain,
                 userStoreDomain);
     }
@@ -1050,6 +1055,46 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
         arr1.removeAll(common);
         arr2.removeAll(common);
+    }
+
+    /**
+     * Get the filter node as a list.
+     *
+     * @param filter Filter string.
+     * @throws IdentityRoleManagementException Error when validate filters.
+     */
+    private List<ExpressionNode> getExpressionNodes(String filter) throws IdentityRoleManagementException {
+
+        List<ExpressionNode> expressionNodes = new ArrayList<>();
+        filter = StringUtils.isBlank(filter) ? StringUtils.EMPTY : filter;
+        try {
+            if (StringUtils.isNotBlank(filter)) {
+                FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
+                Node rootNode = filterTreeBuilder.buildTree();
+                setExpressionNodeList(rootNode, expressionNodes);
+            }
+            return expressionNodes;
+        } catch (IOException | IdentityException e) {
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid filter");
+        }
+    }
+
+    /**
+     * Set the node values as list of expression.
+     *
+     * @param node       filter node.
+     * @param expression list of expression.
+     */
+    private void setExpressionNodeList(Node node, List<ExpressionNode> expression) {
+
+        if (node instanceof ExpressionNode) {
+            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
+                expression.add((ExpressionNode) node);
+            }
+        } else if (node instanceof OperationNode) {
+            setExpressionNodeList(node.getLeftNode(), expression);
+            setExpressionNodeList(node.getRightNode(), expression);
+        }
     }
 
     /**

@@ -186,7 +186,7 @@ public interface RoleManagementService {
     /**
      * Get user list of the given role filtered by the provided expression nodes.
      *
-     * @param expressionNodes Expression nodes to filter users.
+     * @param filter          Role filter.
      * @param limit           Limit value.
      * @param offset          Offset value.
      * @param sortBy          SortBy value.
@@ -196,9 +196,9 @@ public interface RoleManagementService {
      * @return List of users.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    default List<UserBasicInfo> getUserListOfRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
-                                                   String sortBy, String sortOrder, String tenantDomain,
-                                                   String userStoreDomain) throws IdentityRoleManagementException {
+    default List<UserBasicInfo> getUserListOfRoles(String filter, Integer limit, Integer offset, String sortBy,
+                                                   String sortOrder, String tenantDomain, String userStoreDomain)
+            throws IdentityRoleManagementException {
 
         throw new NotImplementedException("getUserListOfRoles method is not implemented");
     }
