@@ -257,7 +257,8 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
 
         String filter = "name eq admin and audience eq organization and " +
                 "audienceId eq a80b12a4-5168-481d-9b79-1f24bf9b883c";
-        List<UserBasicInfo> userBasicInfoList = roleManagementService.getUserListOfRoles(filter, 10, 0, null, null, tenantDomain, "PRIMARY");
+        List<UserBasicInfo> userBasicInfoList = roleManagementService.getUserListOfRoles(filter, 10, 0,
+                null, null, tenantDomain, "PRIMARY");
         when(roleDAO.getUserListOfRoles(any(), anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString()))
                 .thenReturn( new ArrayList<>());
         Assert.assertNotNull(userBasicInfoList);
