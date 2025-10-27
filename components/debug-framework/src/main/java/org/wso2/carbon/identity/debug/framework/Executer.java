@@ -13,7 +13,6 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.UUID;
 
 /**
  * Simplified executor that generates OAuth 2.0 Authorization URLs with PKCE parameters.
@@ -249,22 +248,6 @@ public class Executer {
         // Do not use hardcoded endpoints. Always use endpoints from authenticator config.
         return null;
     }
-    
-    /**
-     * Gets token endpoint using executor pattern with fallback logic.
-     * Mimics the behavior of GoogleExecutor and OpenIDConnectExecutor.
-     *
-     * @param config Authenticator configuration.
-     * @return Token endpoint URL with fallback support.
-     */
-    private String getTokenEndpoint(FederatedAuthenticatorConfig config) {
-        String tokenEndpoint = getPropertyValue(config, "OAuth2TokenEPUrl", "tokenEndpoint", "token_endpoint");
-        
-        if (tokenEndpoint != null && !tokenEndpoint.trim().isEmpty()) {
-            return tokenEndpoint;
-        }        
-        return null;
-    }
 
     /**
      * Gets property value from authenticator configuration, trying multiple possible property names.
@@ -313,15 +296,6 @@ public class Executer {
             // Fallback to plain text (not recommended for production).
             return codeVerifier;
         }
-    }
-
-    /**
-     * Generates a unique state parameter for CSRF protection.
-     *
-     * @return UUID-based state string.
-     */
-    private String generateState() {
-        return UUID.randomUUID().toString();
     }
 
     /**

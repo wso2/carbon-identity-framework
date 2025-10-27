@@ -9,9 +9,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.debug.framework.DebugResultCache;
+
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +18,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import java.util.Base64;
@@ -68,14 +65,17 @@ public class DebugProcessor {
         String state = request.getParameter("state");
         String error = request.getParameter("error");
         String errorDescription = request.getParameter("error_description");
+        String idpId = "";
         try {
             // Prevent re-processing the same authorization code in the same session.
             String lastProcessedCode = (String) request.getSession().getAttribute("LAST_AUTH_CODE");
+            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            idpId = idp != null ? idp.getResourceId() : "";
             if (authorizationCode != null && authorizationCode.equals(lastProcessedCode)) {
                 if (!response.isCommitted()) {
                     context.setProperty("DEBUG_AUTH_ERROR", "Authorization code already used in this session. Please retry login.");
                     context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -88,7 +88,7 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", error + ": " + errorDescription);
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -98,7 +98,7 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "Authorization code not received from IdP");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -108,7 +108,7 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "State parameter missing - possible CSRF attack");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -119,7 +119,7 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "State validation failed - possible CSRF attack");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -130,7 +130,7 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "Failed to exchange authorization code for tokens");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -150,7 +150,7 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "Failed to extract user claims from tokens");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -173,7 +173,11 @@ public class DebugProcessor {
                     debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
                     debugResult.put("sessionId", state);
                     debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
-                    debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
+                        debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
+                        // Add executor class name for clarity
+                        Object executorObj = context.getProperty("DEBUG_EXECUTOR_INSTANCE");
+                        String executorClass = executorObj != null ? executorObj.getClass().getSimpleName() : "UnknownExecutor";
+                        debugResult.put("executor", executorClass);
                     debugResult.put("timestamp", context.getProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP"));
 
                     // Incoming claims (from IdP)
@@ -222,7 +226,7 @@ public class DebugProcessor {
                 }
 
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
             } else {
                 LOG.error("Failed to create authenticated user from claims");
@@ -230,7 +234,7 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 context.setProperty("DEBUG_USER_EXISTS", false);
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
                 }
             }
             return;
@@ -242,7 +246,7 @@ public class DebugProcessor {
                 LOG.error("InvocationTargetException cause:", e.getCause());
             }
             if (!response.isCommitted()) {
-                response.sendRedirect("/authenticationendpoint/authSuccess.jsp?state=" + state);
+                response.sendRedirect("/authenticationendpoint/debugError.jsp?state=" + state + "&idpId=" + idpId);
             }
         }
     }
@@ -501,55 +505,6 @@ public class DebugProcessor {
             return null;
         }
     }
-
-    /**
-     * Sends the processed response using the existing Processor.
-     *
-     * @param response HttpServletResponse.
-     * @param context AuthenticationContext with processing results.
-     * @throws IOException If response sending fails.
-     */
-    private void sendProcessedResponse(HttpServletResponse response, AuthenticationContext context) throws IOException {
-        try {
-            // Mark callback as processed.
-            context.setProperty("DEBUG_CALLBACK_PROCESSED", "true");
-            context.setProperty("DEBUG_CALLBACK_RESULT", context.getProperty("DEBUG_AUTH_SUCCESS"));
-            context.setProperty("DEBUG_CALLBACK_TIMESTAMP", System.currentTimeMillis());
-
-            // Use existing Processor to generate structured response.
-            Object processedResult = processor.process(context);
-
-            // Build JSON result including step status for UI
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("result", processedResult);
-            resultMap.put("step_connection_status", context.getProperty("step_connection_status"));
-            resultMap.put("step_authentication_status", context.getProperty("step_authentication_status"));
-            resultMap.put("step_claim_mapping_status", context.getProperty("step_claim_mapping_status"));
-            resultMap.put("debug_error", context.getProperty("DEBUG_AUTH_ERROR"));
-            resultMap.put("debug_success", context.getProperty("DEBUG_AUTH_SUCCESS"));
-            resultMap.put("debug_mapped_claims", context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP"));
-
-            // Send JSON response.
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.setStatus(HttpServletResponse.SC_OK);
-
-            // Convert processed result to JSON string.
-            String jsonResponse = convertToJson(resultMap);
-            response.getWriter().write(jsonResponse);
-            response.getWriter().flush();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug processing response sent successfully");
-            }
-
-        } catch (Exception e) {
-            LOG.error("Error sending processed response: " + e.getMessage(), e);
-            throw new IOException("Failed to send response", e);
-        }
-    }
-
-    // Utility methods
 
     private FederatedAuthenticatorConfig findAuthenticatorConfig(IdentityProvider idp, String authenticatorName) {
         FederatedAuthenticatorConfig[] configs = idp.getFederatedAuthenticatorConfigs();

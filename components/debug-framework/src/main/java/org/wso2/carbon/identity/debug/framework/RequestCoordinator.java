@@ -57,8 +57,9 @@ public class RequestCoordinator implements DebugService {
                 authenticationContext.setProperty("DEBUG_STEP_OAUTH_URL_GENERATION_STARTED", true);
                 
                 // Delegate to the Executer class for URL generation
-                Executer executer = new Executer();
-                boolean success = executer.execute(identityProvider, authenticationContext);
+                    Executer executer = new Executer();
+                    authenticationContext.setProperty("DEBUG_EXECUTOR_INSTANCE", executer);
+                    boolean success = executer.execute(identityProvider, authenticationContext);
                 if (success) {
                     return (String) authenticationContext.getProperty("DEBUG_EXTERNAL_REDIRECT_URL");
                 } else {
@@ -223,37 +224,6 @@ public class RequestCoordinator implements DebugService {
     }
 
     /**
-     * Attempts to find debug context by OAuth parameters.
-     * 
-     * @param code OAuth authorization code.
-     * @param state OAuth state parameter.
-     * @return true if a debug context is found, false otherwise.
-     */
-    private boolean checkForDebugContextByOAuthParams(String code, String state) {
-        try {
-            // Extract potential debug session ID from state parameter.
-            String debugSessionId = extractDebugSessionIdFromState(state);
-            if (debugSessionId != null) {
-                // Try to retrieve context using debug session ID as key.
-                AuthenticationContext context = retrieveDebugContextFromCache("debug-" + debugSessionId);
-                if (context != null && isDebugContext(context)) {
-                    return true;
-                }
-            }
-            
-            // If state-based lookup fails, check if we can find any debug context
-            // that matches OAuth parameters (this is a fallback for edge cases).
-            return checkForAnyDebugContextWithOAuthState(state);
-            
-        } catch (Exception e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error checking for debug context by OAuth params: " + e.getMessage());
-            }
-            return false;
-        }
-    }
-
-    /**
      * Extracts debug session ID from OAuth state parameter.
      * 
      * @param state OAuth state parameter.
@@ -284,57 +254,6 @@ public class RequestCoordinator implements DebugService {
         }
         
         return null;
-    }
-
-    /**
-     * Fallback method to check for any debug context with matching OAuth state.
-     * This is used when direct lookups fail but we suspect this might be a debug flow.
-     * 
-     * @param state OAuth state parameter.
-     * @return true if any debug context is found with matching state, false otherwise.
-     */
-    private boolean checkForAnyDebugContextWithOAuthState(String state) {
-        // This is a simplified implementation. In a production environment,
-        // you might want to implement a more sophisticated cache scanning mechanism
-        // or use additional context properties to identify debug flows.
-        
-        // For now, we'll check if the state parameter has characteristics of a debug flow.
-        return state != null && (
-            state.length() > 32 && // Typical debug session IDs are longer.
-            (state.contains("-") || state.contains("_")) && // Debug sessions often use separators.
-            !state.matches("^[a-fA-F0-9]+$") // Not a simple hex string (typical OAuth state).
-        );
-    }
-
-    /**
-     * Checks if the given authentication context is a debug context.
-     * 
-     * @param context AuthenticationContext to check.
-     * @return true if this is a debug context, false otherwise.
-     */
-    private boolean isDebugContext(AuthenticationContext context) {
-        if (context == null) {
-            return false;
-        }
-        
-        // Check for debug property markers.
-        Object debugProperty = context.getProperty(DEBUG_IDENTIFIER_PARAM);
-        if (debugProperty != null) {
-            // Handle Boolean type.
-            if (debugProperty instanceof Boolean && Boolean.TRUE.equals(debugProperty)) {
-                return true;
-            }
-            // Handle String type.
-            if (debugProperty instanceof String && "true".equals(debugProperty)) {
-                return true;
-            }
-        }
-        
-        // Check for other debug-specific properties.
-        return context.getProperty("DEBUG_SESSION_ID") != null ||
-               context.getProperty("DEBUG_IDP_RESOURCE_ID") != null ||
-               context.getProperty("DEBUG_REQUEST_TIMESTAMP") != null ||
-               context.getProperty("DEBUG_FLOW_TYPE") != null;
     }
 
     /**
@@ -499,10 +418,6 @@ public class RequestCoordinator implements DebugService {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Delegating regular authentication flow to WSO2 framework");
             }
-
-            // For now, we'll allow the request to pass through to the normal flow.
-            // In production, you would integrate with:
-            // org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler
             
             // This method should not send a response since the regular flow will handle it.
             

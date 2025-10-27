@@ -101,11 +101,7 @@ public class Processor {
             // Get authenticated user details and user existence from simulation
             Boolean debugUserExists = getBooleanProperty(context, "DEBUG_USER_EXISTS");
             String debugAuthError = (String) context.getProperty("DEBUG_AUTH_ERROR");
-            
-            // Debug: debugUserExists = ...
-            // Debug: isSuccessful = ...
-            // Debug: authenticatedUser = ...
-            
+      
             AuthenticatedUser authenticatedUser = context.getSubject();
             if (authenticatedUser != null && isSuccessful) {
                 authResult.put("userExists", true);
