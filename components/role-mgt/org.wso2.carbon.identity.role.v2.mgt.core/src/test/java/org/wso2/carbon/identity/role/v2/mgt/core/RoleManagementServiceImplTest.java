@@ -247,11 +247,6 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
         assertEquals(expectedRole, result);
     }
 
-    /**
-     * Test getExpressionNodes method with a complex filter using AND operator.
-     *
-     * @throws IdentityRoleManagementException If an error occurs while parsing the filter.
-     */
     @Test
     public void testGetUserListOfRoleWithFilter() throws IdentityRoleManagementException {
 
