@@ -58,6 +58,9 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UN
 public class ClaimMetadataUtils {
 
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
+    private static final String IDENTITY_DATA_STORE_TYPE = "IdentityDataStore.DataStoreType";
+    private static final String DEFAULT_USER_STORE_BASED_IDENTITY_DATA_STORE =
+            "org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore";
 
     private ClaimMetadataUtils() {
     }
@@ -467,5 +470,41 @@ public class ClaimMetadataUtils {
         }
 
         return Collections.unmodifiableSet(new HashSet<>(uniqueProfilesMap.values()));
+    }
+
+    /**
+     * Check whether the configured identity data store is user store based. Then all identity claim data will be
+     * stored in the user store.
+     *
+     * @return True if the configured identity data store is user store based. Else false.
+     */
+    public static boolean isUserStoreBasedIdentityDataStore() {
+
+        return StringUtils.equalsIgnoreCase(DEFAULT_USER_STORE_BASED_IDENTITY_DATA_STORE,
+                IdentityUtil.getProperty(IDENTITY_DATA_STORE_TYPE));
+    }
+
+    /**
+     * Check whether the given local claim is an identity claim.
+     *
+     * @param localClaim Local claim to be checked.
+     * @return True if the given local claim is an identity claim. Else false.
+     */
+    public static boolean isIdentityClaim(LocalClaim localClaim) {
+
+        return StringUtils.startsWith(localClaim.getClaimURI(),
+                UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI_PREFIX);
+    }
+
+    /**
+     * Check if a set contains a string in a case-insensitive manner.
+     *
+     * @param set    Set of strings to search.
+     * @param value  Value to find.
+     * @return True if the set contains the value (case-insensitive), false otherwise.
+     */
+    public static boolean containsIgnoreCase(Set<String> set, String value) {
+
+        return set.stream().anyMatch(item -> item.equalsIgnoreCase(value));
     }
 }
