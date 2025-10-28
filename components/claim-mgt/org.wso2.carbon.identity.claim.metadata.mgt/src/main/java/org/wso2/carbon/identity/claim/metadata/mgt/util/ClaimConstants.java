@@ -45,7 +45,7 @@ public class ClaimConstants {
     public static final String CLAIM_URI_PROPERTY = "ClaimURI";
     public static final String MASKING_REGULAR_EXPRESSION_PROPERTY = "MaskingRegEx";
     public static final String CLAIM_UNIQUENESS_SCOPE_PROPERTY = "UniquenessScope";
-    public static final String USER_STORE_PERSISTENCE_ENABLED_PROPERTY = "UserStorePersistenceEnabled";
+    public static final String MANAGED_IN_USER_STORE_PROPERTY = "ManagedInUserStore";
     public static final String IS_UNIQUE_CLAIM_PROPERTY = "isUnique";
     public static final String PROFILES_CLAIM_PROPERTY_PREFIX = "Profiles.";
     public static final String UNIQUENESS_VALIDATION_SCOPE = "UserClaimUpdate.UniquenessValidation.ScopeWithinUserstore";

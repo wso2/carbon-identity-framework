@@ -90,7 +90,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.USER_STORE_PERSISTENCE_ENABLED_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.containsIgnoreCase;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getAllowedClaimProfiles;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
@@ -342,7 +342,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             return localClaim;
         }
 
-        setUserStorePersistence(localClaim.get(), tenantDomain);
+        setManagedInUserStoreProperty(localClaim.get(), tenantDomain);
         return localClaim;
     }
 
@@ -404,7 +404,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(),
                 existingLocalClaim.get().getClaimProperties());
         validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
-        validateAndSyncUserStorePersistenceProperties(localClaim, tenantDomain);
+        validateAndSyncClaimStoreSettings(localClaim, tenantDomain);
 
         validateSharedProfileValueResolvingMethodChange(localClaim, existingLocalClaim.get(), tenantId);
 
@@ -1043,40 +1043,41 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     /**
-     * Configure user store persistence related properties for the given local claim.
+     * Configure managed in user store related properties for the given local claim.
+     *
      * @param localClaim   Local claim.
      * @param tenantDomain Tenant domain.
      * @throws ClaimMetadataException If an error occurs while getting UserStoreManager.
      */
-    private void setUserStorePersistence(LocalClaim localClaim, String tenantDomain)
+    private void setManagedInUserStoreProperty(LocalClaim localClaim, String tenantDomain)
             throws ClaimMetadataException {
 
         // TODO: At first stage, will only consider identity claims.
         if (!isIdentityClaim(localClaim)) {
-            localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, Boolean.TRUE.toString());
+            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.TRUE.toString());
             return;
         }
 
         // If the identity data store is user store based, all the identity claims should be stored in user store.
         if (isUserStoreBasedIdentityDataStore()) {
-            localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, Boolean.TRUE.toString());
+            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.TRUE.toString());
             return;
         }
 
-        String userStorePersistenceEnabledValue = localClaim.getClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY);
-        if (userStorePersistenceEnabledValue == null) {
+        String managedInUserStorePropertyValue = localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
+        if (managedInUserStorePropertyValue == null) {
             // Default to false if the property is not set for identity claims.
-            localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, Boolean.FALSE.toString());
+            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.FALSE.toString());
             return;
         }
 
-        // If user store persistence is not enabled, no further processing is needed.
-        if (!Boolean.parseBoolean(userStorePersistenceEnabledValue)) {
+        // If managed in user store is not enabled, no further processing is needed.
+        if (!Boolean.parseBoolean(managedInUserStorePropertyValue)) {
             return;
         }
 
         Set<String> excludedUserStores = getExcludedUserStoresFromClaim(localClaim);
-        excludedUserStores = processUserStoresForPersistence(excludedUserStores, tenantDomain, false);
+        excludedUserStores = resolveExcludedUserStoresList(excludedUserStores, tenantDomain, false);
 
         if (!excludedUserStores.isEmpty()) {
             localClaim.setClaimProperty(EXCLUDED_USER_STORES_PROPERTY,
@@ -1085,43 +1086,43 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     /**
-     * Validate and synchronize user store persistence properties for the given local claim during update.
+     * Validate and synchronize the managed in user store related properties for the given local claim.
      * This method validates that mandatory user stores are not excluded and syncs the excluded list.
      *
      * @param localClaim   Local claim to validate.
      * @param tenantDomain Tenant domain.
      * @throws ClaimMetadataException If validation fails or an error occurs while getting UserStoreManager.
      */
-    private void validateAndSyncUserStorePersistenceProperties(LocalClaim localClaim, String tenantDomain)
+    private void validateAndSyncClaimStoreSettings(LocalClaim localClaim, String tenantDomain)
             throws ClaimMetadataException {
 
-        String userStorePersistenceEnabledValue =
-                localClaim.getClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY);
+        String managedInUserStorePropertyValue =
+                localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
 
         if (!isIdentityClaim(localClaim)) {
-            if (userStorePersistenceEnabledValue == null) {
+            if (managedInUserStorePropertyValue == null) {
                 // For non-identity claims, default to true if the property is not set.
-                userStorePersistenceEnabledValue = Boolean.TRUE.toString();
-                localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, userStorePersistenceEnabledValue);
+                managedInUserStorePropertyValue = Boolean.TRUE.toString();
+                localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, managedInUserStorePropertyValue);
             }
             return;
-        } else if (userStorePersistenceEnabledValue == null) {
+        } else if (managedInUserStorePropertyValue == null) {
             // For identity claims, default to false if the property is not set.
-            userStorePersistenceEnabledValue = Boolean.FALSE.toString();
-            localClaim.setClaimProperty(USER_STORE_PERSISTENCE_ENABLED_PROPERTY, userStorePersistenceEnabledValue);
+            managedInUserStorePropertyValue = Boolean.FALSE.toString();
+            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, managedInUserStorePropertyValue);
             return;
         }
 
-        boolean isUserStorePersistenceEnabled = Boolean.parseBoolean(userStorePersistenceEnabledValue);
+        boolean isManagedInUserStore = Boolean.parseBoolean(managedInUserStorePropertyValue);
 
-        // If user store persistence is not enabled, remove excluded user stores property.
-        if (!isUserStorePersistenceEnabled) {
+        // If managed in user store is not enabled, remove excluded user stores property.
+        if (!isManagedInUserStore) {
             localClaim.getClaimProperties().remove(EXCLUDED_USER_STORES_PROPERTY);
             return;
         }
 
         Set<String> excludedUserStores = getExcludedUserStoresFromClaim(localClaim);
-        excludedUserStores = processUserStoresForPersistence(excludedUserStores, tenantDomain, true);
+        excludedUserStores = resolveExcludedUserStoresList(excludedUserStores, tenantDomain, true);
 
         if (!excludedUserStores.isEmpty()) {
             localClaim.setClaimProperty(EXCLUDED_USER_STORES_PROPERTY,
@@ -1151,7 +1152,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     /**
-     * Process user stores to determine which should be excluded from identity claim persistence.
+     * Process user stores and resolve the final excluded user stores list.
      *
      * @param excludedUserStores Initial set of excluded user stores.
      * @param tenantDomain       Tenant domain.
@@ -1160,7 +1161,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
      * @return Updated set of excluded user stores.
      * @throws ClaimMetadataException If validation fails in validate mode or error getting UserStoreManager.
      */
-    private Set<String> processUserStoresForPersistence(Set<String> excludedUserStores, String tenantDomain,
+    private Set<String> resolveExcludedUserStoresList(Set<String> excludedUserStores, String tenantDomain,
                                                         boolean validateMode) throws ClaimMetadataException {
 
         Set<String> processedExcludedStores = new LinkedHashSet<>(excludedUserStores);
