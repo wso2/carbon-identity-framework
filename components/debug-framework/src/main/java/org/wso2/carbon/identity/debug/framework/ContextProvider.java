@@ -3,7 +3,6 @@ package org.wso2.carbon.identity.debug.framework;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -13,11 +12,11 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
-import org.wso2.carbon.idp.mgt.IdpManager;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.lang.reflect.Method;
+
 
 /**
  * Provides context for debug authentication flows.
@@ -25,10 +24,31 @@ import java.lang.reflect.Method;
  * This is the proper place for business logic related to context setup.
  */
 public class ContextProvider {
-
+    
     private static final Log LOG = LogFactory.getLog(ContextProvider.class);
     private static final String DEBUG_SERVICE_PROVIDER_NAME = "DFDP_DEBUG_SP";
-    private static final String DEBUG_TENANT_DOMAIN = "carbon.super";
+
+    /**
+     * Helper to get tenant domain from request or context, fallback to carbon.super.
+     */
+    private String getTenantDomain(HttpServletRequest request, AuthenticationContext context) {
+        // Try context first
+        if (context != null && context.getTenantDomain() != null && !context.getTenantDomain().trim().isEmpty()) {
+            return context.getTenantDomain();
+        }
+        // Try request attribute or parameter
+        if (request != null) {
+            String tenantDomain = request.getParameter("tenantDomain");
+            if (tenantDomain != null && !tenantDomain.trim().isEmpty()) {
+                return tenantDomain;
+            }
+            Object attr = request.getAttribute("tenantDomain");
+            if (attr != null && attr instanceof String && !((String) attr).trim().isEmpty()) {
+                return (String) attr;
+            }
+        }
+        return "carbon.super";
+    }
 
     /**
      * Creates and configures an AuthenticationContext for debug flows.
@@ -40,88 +60,87 @@ public class ContextProvider {
      * @return Configured AuthenticationContext.
      */
     public AuthenticationContext provideContext(HttpServletRequest request, String idpId, String authenticatorName) {
-        AuthenticationContext context = new AuthenticationContext();
+        AuthenticationContext ctx = new AuthenticationContext();
         // Step status reporting: context creation started
-        context.setProperty("DEBUG_STEP_CONTEXT_CREATION_STARTED", true);
+        ctx.setProperty("DEBUG_STEP_CONTEXT_CREATION_STARTED", true);
 
         try {
             // Use IdP-mgt to get the IdP object.
             IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
             IdentityProvider idp = null;
-            
+            String tenantDomain = getTenantDomain(request, ctx);
             if (idpId != null) {
                 try {
                     // First try to get by resource ID.
-                    idp = idpManager.getIdPByResourceId(idpId, DEBUG_TENANT_DOMAIN, true);
+                    idp = idpManager.getIdPByResourceId(idpId, tenantDomain, true);
                 } catch (IdentityProviderManagementException e) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Failed to get IdP by resource ID, trying by name: " + e.getMessage());
                     }
                     // If not found by resource ID, try by name.
-                    idp = idpManager.getIdPByName(idpId, DEBUG_TENANT_DOMAIN);
+                    idp = idpManager.getIdPByName(idpId, tenantDomain);
                 }
             }
-            
             if (idp != null) {
                 // Set IdP-specific context properties.
-                // Note: setExternalIdP expects ExternalIdPConfig, not IdentityProvider
-                // context.setExternalIdP(idp);
-                context.setProperty("DEBUG_IDP_NAME", idp.getIdentityProviderName());
-                context.setProperty("DEBUG_IDP_RESOURCE_ID", idp.getResourceId());
-                context.setProperty("DEBUG_IDP_DESCRIPTION", idp.getIdentityProviderDescription());
-                
-                if (LOG.isDebugEnabled()) {
-                        // Step status reporting: IdP configured
-                        context.setProperty("DEBUG_STEP_IDP_CONFIGURED", true);
+                ctx.setProperty("DEBUG_IDP_NAME", idp.getIdentityProviderName());
+                ctx.setProperty("DEBUG_IDP_RESOURCE_ID", idp.getResourceId());
+                ctx.setProperty("DEBUG_IDP_DESCRIPTION", idp.getIdentityProviderDescription());
+
+                // Get scope from IdP authenticator config if available.
+                FederatedAuthenticatorConfig[] federatedConfigs = idp.getFederatedAuthenticatorConfigs();
+                String scope = null;
+                if (federatedConfigs != null) {
+                    for (FederatedAuthenticatorConfig config : federatedConfigs) {
+                        if (config != null && config.isEnabled() && config.getName() != null &&
+                            (authenticatorName == null || authenticatorName.equals(config.getName()))) {
+                            Property[] properties = config.getProperties();
+                            if (properties != null) {
+                                for (Property property : properties) {
+                                    if (property != null && property.getName() != null &&
+                                        ("Scope".equalsIgnoreCase(property.getName()) || "scope".equalsIgnoreCase(property.getName()))) {
+                                        scope = property.getValue();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (scope != null) break;
+                    }
+                }
+                if (scope != null && !scope.trim().isEmpty()) {
+                    ctx.setProperty("CUSTOM_SCOPE", scope);
+                }
+            }
+            // Set debug-specific properties.
+            ctx.setRequestType("DFDP_DEBUG");
+            ctx.setCallerSessionKey(java.util.UUID.randomUUID().toString());
+            ctx.setTenantDomain(tenantDomain);
+            ctx.setRelyingParty(DEBUG_SERVICE_PROVIDER_NAME);
+            ctx.setProperty("isDebugFlow", Boolean.TRUE);
+            ctx.setProperty("DEBUG_AUTHENTICATOR_NAME", authenticatorName);
+            ctx.setProperty("DEBUG_SESSION_ID", java.util.UUID.randomUUID().toString());
+            ctx.setProperty("DEBUG_TIMESTAMP", System.currentTimeMillis());
+            // Set request-specific context if available.
+            if (request != null) {
+                ctx.setProperty("DEBUG_REQUEST_URI", request.getRequestURI());
+                ctx.setProperty("DEBUG_REMOTE_ADDR", request.getRemoteAddr());
+                ctx.setProperty("DEBUG_USER_AGENT", request.getHeader("User-Agent"));
+                // Extract session data key if present.
+                String sessionDataKey = request.getParameter("sessionDataKey");
+                if (sessionDataKey != null) {
+                    ctx.setContextIdentifier(sessionDataKey);
+                } else {
+                    ctx.setContextIdentifier("debug-" + java.util.UUID.randomUUID().toString());
                 }
             } else {
-                LOG.warn("IdP not found for ID: " + idpId + ". Continuing with basic debug context.");
+                ctx.setContextIdentifier("debug-" + java.util.UUID.randomUUID().toString());
             }
-            
-        } catch (IdentityProviderManagementException e) {
-            LOG.error("Error retrieving IdP for debug context setup: " + e.getMessage(), e);
-            // Continue with basic context setup even if IdP retrieval fails.
-        }
-        
-        // Set debug-specific properties.
-        context.setRequestType("DFDP_DEBUG");
-        context.setCallerSessionKey(java.util.UUID.randomUUID().toString());
-        context.setTenantDomain(DEBUG_TENANT_DOMAIN);
-        context.setRelyingParty(DEBUG_SERVICE_PROVIDER_NAME);
-        context.setProperty("isDebugFlow", Boolean.TRUE);
-        context.setProperty("DEBUG_AUTHENTICATOR_NAME", authenticatorName);
-        context.setProperty("DEBUG_SESSION_ID", java.util.UUID.randomUUID().toString());
-        context.setProperty("DEBUG_TIMESTAMP", System.currentTimeMillis());
-        
-        // Set request-specific context if available.
-        if (request != null) {
-            context.setProperty("DEBUG_REQUEST_URI", request.getRequestURI());
-            context.setProperty("DEBUG_REMOTE_ADDR", request.getRemoteAddr());
-            context.setProperty("DEBUG_USER_AGENT", request.getHeader("User-Agent"));
-            
-            // Extract session data key if present.
-            String sessionDataKey = request.getParameter("sessionDataKey");
-            if (sessionDataKey != null) {
-                context.setContextIdentifier(sessionDataKey);
-            } else {
-                context.setContextIdentifier("debug-" + java.util.UUID.randomUUID().toString());
-            }
-        } else {
-            context.setContextIdentifier("debug-" + java.util.UUID.randomUUID().toString());
-        }
-        
-        // Configure debug service provider context.
-        try {
-            configureDebugServiceProvider(context);
+            return ctx;
         } catch (Exception e) {
-            LOG.error("Error configuring debug service provider context: " + e.getMessage(), e);
+            LOG.error("Error creating debug AuthenticationContext: " + e.getMessage(), e);
+            throw new RuntimeException("Error creating debug AuthenticationContext", e);
         }
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Debug context created successfully with context identifier: " + context.getContextIdentifier());
-        }
-        
-        return context;
     }
 
     /**
@@ -150,13 +169,14 @@ public class ContextProvider {
     public AuthenticationContext createOAuth2DebugContext(String idpId, String authenticatorName, 
                                                          String redirectUri, String scope, 
                                                          Map<String, String> additionalParams) {
+        String tenantDomain = getTenantDomain(null, null);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Creating OAuth2 debug context for IdP ID: " + idpId + " with authenticator: " + authenticatorName);
         }
 
         // Input validation.
         validateOAuth2DebugRequest(idpId);
-        
+
         try {
             // Get the IdP object using IdP management service.
             IdentityProvider idp = getIdentityProvider(idpId);
@@ -168,8 +188,8 @@ public class ContextProvider {
                 throw new RuntimeException("Identity Provider is disabled: " + idp.getIdentityProviderName());
             }
 
-            // Validate OAuth 2.0 configuration.
-            validateOAuth2Configuration(idp);
+            // Validate OAuth 2.0 configuration and resolve endpoints.
+            OAuth2ResolvedProperties resolvedProps = resolveAndValidateOAuth2Properties(idp);
 
             // Determine authenticator to use.
             String targetAuthenticator = determineAuthenticator(idp, authenticatorName);
@@ -187,7 +207,7 @@ public class ContextProvider {
             // Set core debug properties.
             context.setRequestType("DFDP_DEBUG");
             context.setCallerSessionKey(sessionDataKey);
-            context.setTenantDomain(DEBUG_TENANT_DOMAIN);
+            context.setTenantDomain(tenantDomain);
             context.setRelyingParty(DEBUG_SERVICE_PROVIDER_NAME);
             context.setProperty("isDebugFlow", Boolean.TRUE);
             context.setProperty("DEBUG_SESSION", "true");
@@ -198,8 +218,15 @@ public class ContextProvider {
             // Set IdP configuration and properties.
             context.setProperty("IDP_CONFIG", idp);
             context.setProperty("DEBUG_IDP_NAME", idp.getIdentityProviderName());
-            context.setProperty("DEBUG_IDP_RESOURCE_ID", idp.getResourceId());
+                context.setTenantDomain(getTenantDomain(null, context));
             context.setProperty("DEBUG_IDP_DESCRIPTION", idp.getIdentityProviderDescription());
+            // Store resolved OAuth2 properties in context
+            context.setProperty("DEBUG_CLIENT_ID", resolvedProps.clientId);
+            context.setProperty("DEBUG_CLIENT_SECRET", resolvedProps.clientSecret);
+            context.setProperty("DEBUG_AUTHZ_ENDPOINT", resolvedProps.authzEndpoint);
+            context.setProperty("DEBUG_TOKEN_ENDPOINT", resolvedProps.tokenEndpoint);
+            context.setProperty("DEBUG_USERINFO_ENDPOINT", resolvedProps.userInfoEndpoint);
+            context.setProperty("DEBUG_IDP_SCOPE", resolvedProps.scope); 
             
             // Add OAuth2 parameters if provided.
             if (redirectUri != null && !redirectUri.trim().isEmpty()) {
@@ -244,7 +271,7 @@ public class ContextProvider {
     /**
      * Validates OAuth2 debug request parameters for security.
      *
-     * @param idpId Identity Provider resource ID to validate.
+                    context.setTenantDomain(getTenantDomain(null, context));
      * @throws RuntimeException if validation fails.
      */
     private void validateOAuth2DebugRequest(String idpId) {
@@ -256,7 +283,6 @@ public class ContextProvider {
         if (!idpId.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
             throw new RuntimeException("Invalid Identity Provider ID format");
         }
-        
         // Additional validation can be added here as needed.
         if (idpId.trim().length() > 255) {
             throw new RuntimeException("Identity Provider ID exceeds maximum length");
@@ -277,7 +303,8 @@ public class ContextProvider {
                 throw new RuntimeException("Identity Provider Manager not available");
             }
             
-            return idpManager.getIdPByResourceId(idpId, DEBUG_TENANT_DOMAIN, true);
+            String tenantDomain = getTenantDomain(null, null);
+            return idpManager.getIdPByResourceId(idpId, tenantDomain, true);
         } catch (IdentityProviderManagementException e) {
             LOG.error("Error retrieving Identity Provider with ID: " + idpId, e);
             throw new RuntimeException("Failed to retrieve Identity Provider: " + e.getMessage(), e);
@@ -337,55 +364,49 @@ public class ContextProvider {
     }
     
     /**
-     * Validates OAuth 2.0 configuration for the Identity Provider.
-     * Validates based on property names without requiring executor classes.
+     * Resolves and validates OAuth 2.0 configuration for the Identity Provider, and returns all required endpoints and secrets.
+     * Stores all resolved values in a helper object for context population.
      *
-     * @param idp Identity Provider to validate.
+                    String tenantDomain = getTenantDomain(null, null);
+                    return idpManager.getIdPByResourceId(idpId, tenantDomain, true);
+     * @return OAuth2ResolvedProperties containing all required endpoints and secrets.
      * @throws RuntimeException if OAuth 2.0 configuration is invalid or incomplete.
      */
-    private void validateOAuth2Configuration(IdentityProvider idp) throws RuntimeException {
+    private OAuth2ResolvedProperties resolveAndValidateOAuth2Properties(IdentityProvider idp) throws RuntimeException {
         if (idp == null) {
             throw new RuntimeException("Identity Provider cannot be null");
         }
-        
+
         FederatedAuthenticatorConfig[] federatedConfigs = idp.getFederatedAuthenticatorConfigs();
         if (federatedConfigs == null || federatedConfigs.length == 0) {
-            throw new RuntimeException("No federated authenticator configurations found for IdP: " + 
-                                     idp.getIdentityProviderName());
+            throw new RuntimeException("No federated authenticator configurations found for IdP: " + idp.getIdentityProviderName());
         }
-        
-        // Find OAuth 2.0 authenticator configuration.
+
         FederatedAuthenticatorConfig oauthConfig = null;
         Object executor = null;
-        
         for (FederatedAuthenticatorConfig config : federatedConfigs) {
             if (config != null && config.isEnabled()) {
                 String authenticatorName = config.getName();
-                // Check for OAuth 2.0 related authenticators and create executor.
                 if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
                     oauthConfig = config;
                     executor = createExecutor("org.wso2.carbon.identity.application.authenticator.google.GoogleExecutor");
                     break;
-                } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) ||
-                          "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
+                } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) || "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
                     oauthConfig = config;
                     executor = createExecutor("org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectExecutor");
                     break;
-                } else if ("GitHubAuthenticator".equals(authenticatorName) || 
-                          "GithubAuthenticator".equals(authenticatorName)) {
+                } else if ("GitHubAuthenticator".equals(authenticatorName) || "GithubAuthenticator".equals(authenticatorName)) {
                     oauthConfig = config;
                     executor = createExecutor("org.wso2.carbon.identity.authenticator.github.GithubExecutor");
                     break;
                 }
             }
         }
-        
+
         if (oauthConfig == null) {
-            throw new RuntimeException("No OAuth 2.0 authenticator configuration found for IdP: " + 
-                                     idp.getIdentityProviderName());
+            throw new RuntimeException("No OAuth 2.0 authenticator configuration found for IdP: " + idp.getIdentityProviderName());
         }
-        
-        // Convert properties to Map for validation.
+
         java.util.Map<String, String> authenticatorProperties = new java.util.HashMap<>();
         Property[] properties = oauthConfig.getProperties();
         if (properties != null) {
@@ -395,47 +416,71 @@ public class ContextProvider {
                 }
             }
         }
-        
-        // Validate required properties using executor if available.
+
         try {
             String authenticatorName = oauthConfig.getName();
             String clientId = getClientIdFromExecutor(executor, authenticatorProperties);
+            String clientSecret = authenticatorProperties.get("ClientSecret");
+            if (clientSecret == null || clientSecret.trim().isEmpty()) {
+                clientSecret = authenticatorProperties.get("client_secret");
+            }
             String authzEndpoint = getAuthorizationEndpointFromExecutor(executor, authenticatorProperties, authenticatorName);
             String tokenEndpoint = getTokenEndpointFromExecutor(executor, authenticatorProperties, authenticatorName);
-            
+            String userInfoEndpoint = authenticatorProperties.get("UserInfoEndpoint");
+            if (userInfoEndpoint == null || userInfoEndpoint.trim().isEmpty()) {
+                userInfoEndpoint = authenticatorProperties.get("userinfo_endpoint");
+            }
+            String scope = authenticatorProperties.get("scope");
+            if (scope == null || scope.trim().isEmpty()) {
+                scope = authenticatorProperties.get("Scope"); 
+            }
             // Validate required properties.
             if (clientId == null || clientId.trim().isEmpty()) {
-                throw new RuntimeException("OAuth 2.0 Client ID is missing for IdP: " + 
-                                         idp.getIdentityProviderName());
+                throw new RuntimeException("OAuth 2.0 Client ID is missing for IdP: " + idp.getIdentityProviderName());
             }
-            
             if (authzEndpoint == null || authzEndpoint.trim().isEmpty()) {
-                throw new RuntimeException("OAuth 2.0 Authorization Endpoint is missing for IdP: " + 
-                                         idp.getIdentityProviderName());
+                throw new RuntimeException("OAuth 2.0 Authorization Endpoint is missing for IdP: " + idp.getIdentityProviderName());
             }
-            
             if (tokenEndpoint == null || tokenEndpoint.trim().isEmpty()) {
-                throw new RuntimeException("OAuth 2.0 Token Endpoint is missing for IdP: " + 
-                                         idp.getIdentityProviderName());
+                throw new RuntimeException("OAuth 2.0 Token Endpoint is missing for IdP: " + idp.getIdentityProviderName());
             }
-            
             // Store resolved endpoints in the authenticator properties so Executer can use them.
-            // This ensures the Executer doesn't need to resolve endpoints again.
             storeResolvedEndpoints(oauthConfig, clientId, authzEndpoint, tokenEndpoint);
-            
             if (LOG.isDebugEnabled()) {
                 LOG.debug("OAuth 2.0 configuration validated for IdP: " + idp.getIdentityProviderName() +
-                         " - ClientId: FOUND" +
-                         ", AuthzEndpoint: " + authzEndpoint +
-                         ", TokenEndpoint: " + tokenEndpoint);
+                        " - ClientId: FOUND" +
+                        ", AuthzEndpoint: " + authzEndpoint +
+                        ", TokenEndpoint: " + tokenEndpoint +
+                        ", UserInfoEndpoint: " + (userInfoEndpoint != null ? userInfoEndpoint : "MISSING"));
             }
-            
+            return new OAuth2ResolvedProperties(clientId, clientSecret, authzEndpoint, tokenEndpoint, userInfoEndpoint, scope);
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("OAuth 2.0 validation failed for IdP: " + idp.getIdentityProviderName(), e);
             }
-            throw new RuntimeException("OAuth 2.0 configuration validation failed for IdP: " + 
-                                     idp.getIdentityProviderName() + ". " + e.getMessage(), e);
+            throw new RuntimeException("OAuth 2.0 configuration validation failed for IdP: " +
+                    idp.getIdentityProviderName() + ". " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Helper class to hold resolved OAuth2 properties.
+     */
+    private static class OAuth2ResolvedProperties {
+        public final String clientId;
+        public final String clientSecret;
+        public final String authzEndpoint;
+        public final String tokenEndpoint;
+        public final String userInfoEndpoint;
+        public final String scope;
+
+        public OAuth2ResolvedProperties(String clientId, String clientSecret, String authzEndpoint, String tokenEndpoint, String userInfoEndpoint, String scope) {
+            this.clientId = clientId;
+            this.clientSecret = clientSecret;
+            this.authzEndpoint = authzEndpoint;
+            this.tokenEndpoint = tokenEndpoint;
+            this.userInfoEndpoint = userInfoEndpoint;
+            this.scope = scope;
         }
     }
     
@@ -771,7 +816,8 @@ public class ContextProvider {
             ServiceProvider serviceProvider = null;
             
             try {
-                serviceProvider = appMgtService.getServiceProvider(DEBUG_SERVICE_PROVIDER_NAME, DEBUG_TENANT_DOMAIN);
+                String tenantDomain = getTenantDomain(null, context);
+                serviceProvider = appMgtService.getServiceProvider(DEBUG_SERVICE_PROVIDER_NAME, tenantDomain);
             } catch (IdentityApplicationManagementException e) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Debug service provider not found, will use default configuration: " + e.getMessage());

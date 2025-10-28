@@ -21,7 +21,6 @@ public class RequestCoordinator implements DebugService {
     private static final Log LOG = LogFactory.getLog(RequestCoordinator.class);
     private static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
     private static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
-    private static final String DEBUG_SESSION_ID_PARAM = "debugSessionId";
 
     private final DebugProcessor debugProcessor;
 
@@ -90,90 +89,6 @@ public class RequestCoordinator implements DebugService {
         } catch (Exception e) {
             LOG.error("Error processing /commonauth request", e);
             return false; // Let regular authentication handle errors
-        }
-    }
-
-    /**
-     * Legacy method for backward compatibility.
-     * Coordinates debug authentication requests using AuthenticationContext.
-     *
-     * @param context AuthenticationContext for the debug flow.
-     * @param request HttpServletRequest (can be null for simulated flows).
-     * @param response HttpServletResponse (can be null for simulated flows).
-     */
-    public void coordinate(AuthenticationContext context, HttpServletRequest request, HttpServletResponse response) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Coordinating debug authentication request for session: " + 
-                     (context != null ? context.getContextIdentifier() : "null"));
-        }
-
-        try {
-            // Check if this is a debug flow.
-            if (!isDebugFlow(request, context)) {
-                LOG.warn("Non-debug flow detected in debug coordinator");
-                return;
-            }
-
-            // For simulated flows (when request is null), mark as callback processed.
-            if (request == null) {
-                // Simulate successful callback processing.
-                context.setProperty("DEBUG_CALLBACK_PROCESSED", "true");
-                context.setProperty("DEBUG_CALLBACK_RESULT", true);
-                context.setProperty("DEBUG_CALLBACK_TIMESTAMP", System.currentTimeMillis());
-                
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Simulated callback processing completed for session: " + 
-                             context.getContextIdentifier());
-                }
-                return;
-            }
-
-            // Handle real callback requests.
-            if (isCallbackRequest(request)) {
-                handleDebugCallback(context, request, response);
-            } else {
-                handleInitialDebugRequest(context, request, response);
-            }
-
-        } catch (Exception e) {
-            LOG.error("Error coordinating debug authentication request: " + e.getMessage(), e);
-            if (response != null && !response.isCommitted()) {
-                try {
-                    sendErrorResponse(response, "COORDINATION_ERROR", e.getMessage());
-                } catch (Exception ex) {
-                    LOG.error("Error sending error response: " + ex.getMessage(), ex);
-                }
-            }
-        }
-    }
-
-    /**
-     * Main routing method that inspects incoming /commonauth requests.
-     * Routes debug flow callbacks to DebugProcessor and regular flows to default coordinator.
-     *
-     * @param request HttpServletRequest from /commonauth endpoint.
-     * @param response HttpServletResponse.
-     * @throws IOException If an error occurs during request handling.
-     */
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Inspecting /commonauth request for debug flow routing");
-        }
-
-        try {
-            // Check if this is a debug flow callback.
-            if (isDebugFlowCallback(request)) {
-                LOG.debug("Debug flow callback detected - routing to DebugProcessor");
-                handleDebugFlowCallback(request, response);
-            } else {
-                LOG.debug("Regular authentication flow detected - delegating to default WSO2 RequestCoordinator");
-                handleRegularAuthenticationFlow(request, response);
-            }
-        } catch (Exception e) {
-            LOG.error("Error routing authentication request: " + e.getMessage(), e);
-            if (!response.isCommitted()) {
-                sendErrorResponse(response, "ROUTING_ERROR", e.getMessage());
-            }
         }
     }
 
@@ -401,35 +316,6 @@ public class RequestCoordinator implements DebugService {
     }
 
     /**
-     * Handles regular authentication flows by delegating to default WSO2 RequestCoordinator.
-     * This ensures normal authentication continues to work without disruption.
-     *
-     * @param request HttpServletRequest.
-     * @param response HttpServletResponse.
-     * @throws IOException If delegation fails.
-     */
-    private void handleRegularAuthenticationFlow(HttpServletRequest request, HttpServletResponse response) 
-            throws IOException {
-        try {
-            // Delegate to the default WSO2 authentication framework.
-            // This should be handled by the existing authentication request processor.
-            // In a real implementation, this would call the original WSO2 RequestCoordinator.
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Delegating regular authentication flow to WSO2 framework");
-            }
-            
-            // This method should not send a response since the regular flow will handle it.
-            
-        } catch (Exception e) {
-            LOG.error("Error delegating to regular authentication flow: " + e.getMessage(), e);
-            if (!response.isCommitted()) {
-                sendErrorResponse(response, "DELEGATION_ERROR", e.getMessage());
-            }
-        }
-    }
-
-    /**
      * Retrieves debug context from cache.
      *
      * @param sessionDataKey Session data key for cache lookup.
@@ -475,144 +361,6 @@ public class RequestCoordinator implements DebugService {
 
         } catch (IOException e) {
             LOG.error("Error sending error response: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Determines if this is a debug flow request (legacy method).
-     *
-     * @param request HttpServletRequest to check (can be null).
-     * @param context AuthenticationContext to check.
-     * @return true if this is a debug flow, false otherwise.
-     */
-    private boolean isDebugFlow(HttpServletRequest request, AuthenticationContext context) {
-        // Check request parameter if request is available.
-        if (request != null) {
-            String debugParam = request.getParameter(DEBUG_IDENTIFIER_PARAM);
-            if ("true".equals(debugParam)) {
-                return true;
-            }
-        }
-
-        // Check context property.
-        if (context != null) {
-            Object debugProperty = context.getProperty(DEBUG_IDENTIFIER_PARAM);
-            if (debugProperty != null) {
-                // Handle Boolean type.
-                if (debugProperty instanceof Boolean) {
-                    if (Boolean.TRUE.equals(debugProperty)) {
-                        return true;
-                    }
-                } else if (debugProperty instanceof String) {
-                    // Handle String type.
-                    if ("true".equals(debugProperty)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Determines if this is a callback request from IdP (legacy method).
-     *
-     * @param request HttpServletRequest to check.
-     * @return true if this is a callback request, false otherwise.
-     */
-    private boolean isCallbackRequest(HttpServletRequest request) {
-        if (request == null) {
-            return false;
-        }
-
-        // Check for common callback parameters.
-        String code = request.getParameter("code");
-        String state = request.getParameter("state");
-        String sessionDataKey = request.getParameter(SESSION_DATA_KEY_PARAM);
-        String debugSessionId = request.getParameter(DEBUG_SESSION_ID_PARAM);
-
-        // If we have code/state or explicit debug session parameters, it's likely a callback.
-        return (code != null && state != null) || 
-               (sessionDataKey != null && debugSessionId != null);
-    }
-
-    /**
-     * Handles initial debug authentication request (legacy method).
-     *
-     * @param context AuthenticationContext for the debug flow.
-     * @param request HttpServletRequest.
-     * @param response HttpServletResponse.
-     * @param processedResult Result from processor.
-     */
-    private void handleInitialDebugRequest(AuthenticationContext context, 
-                                         HttpServletRequest request, 
-                                         HttpServletResponse response) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Handling initial debug authentication request");
-        }
-
-        try {
-            // Store context in cache for callback handling.
-            cacheDebugContext(context);
-
-            // Set request and response in context for executer.
-            if (request != null) {
-                context.setProperty("DEBUG_HTTP_REQUEST", request);
-            }
-            if (response != null) {
-                context.setProperty("DEBUG_HTTP_RESPONSE", response);
-            }
-
-            // Mark as initial request.
-            context.setProperty("DEBUG_REQUEST_TYPE", "INITIAL");
-            context.setProperty("DEBUG_REQUEST_TIMESTAMP", System.currentTimeMillis());
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Initial debug request setup completed for session: " + context.getContextIdentifier());
-            }
-
-        } catch (Exception e) {
-            LOG.error("Error handling initial debug request: " + e.getMessage(), e);
-            context.setProperty("DEBUG_COORDINATION_ERROR", e.getMessage());
-        }
-    }
-
-    /**
-     * Handles callback from IdP after authentication (legacy method).
-     *
-     * @param context AuthenticationContext for the debug flow.
-     * @param request HttpServletRequest containing callback parameters.
-     * @param response HttpServletResponse.
-     */
-    private void handleDebugCallback(AuthenticationContext context, 
-                                   HttpServletRequest request, 
-                                   HttpServletResponse response) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Handling debug authentication callback");
-        }
-
-        try {
-            // Mark as callback request.
-            context.setProperty("DEBUG_REQUEST_TYPE", "CALLBACK");
-            context.setProperty("DEBUG_CALLBACK_TIMESTAMP", System.currentTimeMillis());
-
-            // Process using DebugProcessor if available.
-            if (debugProcessor != null) {
-                debugProcessor.processCallback(request, response, context);
-            } else {
-                // Fallback processing.
-                context.setProperty("DEBUG_CALLBACK_PROCESSED", "true");
-                context.setProperty("DEBUG_CALLBACK_RESULT", true);
-                
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug callback processed successfully using fallback");
-                }
-            }
-
-        } catch (Exception e) {
-            LOG.error("Error handling debug callback: " + e.getMessage(), e);
-            context.setProperty("DEBUG_CALLBACK_ERROR", e.getMessage());
         }
     }
 

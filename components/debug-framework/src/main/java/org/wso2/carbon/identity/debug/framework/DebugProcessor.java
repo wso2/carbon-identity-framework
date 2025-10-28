@@ -7,9 +7,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-
+import org.wso2.carbon.identity.debug.framework.Utils.DebugUtils;
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +22,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Processes OAuth 2.0 Authorization Code callbacks from external IdPs.
@@ -43,11 +40,6 @@ public class DebugProcessor {
  * @throws IOException
  */
     private static final Log LOG = LogFactory.getLog(DebugProcessor.class);
-    private final Processor processor;
-
-    public DebugProcessor() {
-        this.processor = new Processor();
-    }
 
     /**
      * Processes the OAuth 2.0 Authorization Code callback from external IdP.
@@ -269,15 +261,15 @@ public class DebugProcessor {
                 return null;
             }
 
-            FederatedAuthenticatorConfig authenticatorConfig = findAuthenticatorConfig(idp, authenticatorName);
+            FederatedAuthenticatorConfig authenticatorConfig = DebugUtils.findAuthenticatorConfig(idp, authenticatorName);
             if (authenticatorConfig == null) {
                 LOG.error("Authenticator configuration not found");
                 return null;
             }
 
-            String clientId = getPropertyValue(authenticatorConfig, "ClientId", "client_id", "clientId");
-            String clientSecret = getPropertyValue(authenticatorConfig, "ClientSecret", "client_secret", "clientSecret");
-            String tokenEndpoint = getPropertyValue(authenticatorConfig, "OAuth2TokenEPUrl", "tokenEndpoint", "token_endpoint");
+            String clientId = DebugUtils.getPropertyValue(authenticatorConfig, "ClientId", "client_id", "clientId");
+            String clientSecret = DebugUtils.getPropertyValue(authenticatorConfig, "ClientSecret", "client_secret", "clientSecret");
+            String tokenEndpoint = DebugUtils.getPropertyValue(authenticatorConfig, "OAuth2TokenEPUrl", "tokenEndpoint", "token_endpoint");
 
             // OAuth 2.0 configuration loaded.
 
@@ -428,7 +420,6 @@ public class DebugProcessor {
             // Extract essential user information.
             String subject = getClaimValue(claims, "sub", "user_id", "id");
             String email = getClaimValue(claims, "email");
-            String name = getClaimValue(claims, "name", "given_name", "family_name");
             String preferredUsername = getClaimValue(claims, "preferred_username", "username");
 
             // Use email as username if preferred_username is not available.
@@ -506,52 +497,9 @@ public class DebugProcessor {
         }
     }
 
-    private FederatedAuthenticatorConfig findAuthenticatorConfig(IdentityProvider idp, String authenticatorName) {
-        FederatedAuthenticatorConfig[] configs = idp.getFederatedAuthenticatorConfigs();
-        if (configs != null) {
-            for (FederatedAuthenticatorConfig config : configs) {
-                if (authenticatorName.equals(config.getName())) {
-                    return config;
-                }
-            }
-        }
-        return null;
-    }
-
-    private String getPropertyValue(FederatedAuthenticatorConfig config, String... propertyNames) {
-        if (config.getProperties() != null) {
-            for (Property prop : config.getProperties()) {
-                for (String propName : propertyNames) {
-                    if (propName.equalsIgnoreCase(prop.getName())) {
-                        return prop.getValue();
-                    }
-                }
-            }
-        }
-        return null;
-         }
-
     private String buildRedirectUri(AuthenticationContext context) {
-        try {
-            // IMPORTANT: Must match EXACTLY the redirect_uri used in authorization URL generation
-            // OAuth 2.0 spec requires exact match between authorization and token exchange requests
-            String baseUrl = ServiceURLBuilder.create().build().getAbsolutePublicURL();
-            String redirectUri = baseUrl + "/commonauth";
-            
-            // Cross-reference with authorization URL generation from Executer.buildDebugCallbackUrl()
-            String contextCallbackUrl = (String) context.getProperty("DEBUG_CALLBACK_URL_USED");
-            
-            
-            // Use the same URL as used in authorization if available from context
-            if (contextCallbackUrl != null && !contextCallbackUrl.isEmpty()) {
-                return contextCallbackUrl;
-            } else {
-                return redirectUri;
-            }
-        } catch (Exception e) {
-            LOG.error("Error building redirect URI: " + e.getMessage(), e);
-            return "/commonauth";
-        }
+        // Use shared utility for redirect URI generation
+        return DebugUtils.buildDebugCallbackUrl(context);
     }
 
     private HttpURLConnection createTokenRequest(String tokenEndpoint, String clientId, String clientSecret,
@@ -627,11 +575,8 @@ public class DebugProcessor {
     }
 
     private Map<String, Object> fetchUserInfoClaims(String accessToken, AuthenticationContext context) {
-        // Get UserInfo endpoint from configuration.
-        String authenticatorName = (String) context.getProperty("DEBUG_AUTHENTICATOR_NAME");
-        IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
-        FederatedAuthenticatorConfig config = findAuthenticatorConfig(idp, authenticatorName);
-        String userInfoEndpoint = getPropertyValue(config, "UserInfoEndpoint", "userinfo_endpoint", "userInfoUrl");
+        // Get UserInfo endpoint from context.
+        String userInfoEndpoint = (String) context.getProperty("DEBUG_USERINFO_ENDPOINT");
         if (userInfoEndpoint == null) {
             return new HashMap<>();
         }
@@ -736,25 +681,6 @@ public class DebugProcessor {
             context.setProperty("DEBUG_STEP_CLAIM_MAPPING_COMPLETED", System.currentTimeMillis());
         } catch (Exception e) {
             LOG.error("Error mapping claims to attributes dynamically: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Converts an object to a JSON string using Jackson ObjectMapper.
-     *
-     * @param obj Object to serialize.
-     * @return JSON string representation.
-     */
-    private String convertToJson(Object obj) {
-        if (obj == null) {
-            return "null";
-        }
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            LOG.error("Error serializing object to JSON: " + e.getMessage(), e);
-            return "{\"error\": \"JSON serialization failed\"}";
         }
     }
 

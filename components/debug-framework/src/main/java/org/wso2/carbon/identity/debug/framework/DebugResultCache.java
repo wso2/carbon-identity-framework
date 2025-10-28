@@ -35,7 +35,7 @@ public class DebugResultCache {
     }
 
     /**
-     * Adds a debug result to the cache with a 5-minute expiry.
+     * Adds a debug result to the cache with a 15-minute expiry.
      * @param key The session ID (state).
      * @param jsonResult The JSON result string.
      */

@@ -6,9 +6,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.debug.framework.Utils.DebugUtils;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -22,7 +20,6 @@ import java.util.Base64;
 public class Executer {
 
     private static final Log LOG = LogFactory.getLog(Executer.class);
-    private static final String DEBUG_CALLBACK_PATH = "/commonauth";
     private static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
 
     /**
@@ -133,140 +130,77 @@ public class Executer {
     private String buildAuthorizationUrl(IdentityProvider idp, FederatedAuthenticatorConfig authenticatorConfig,
                                         AuthenticationContext context) {
         try {
-            // Extract OAuth 2.0 configuration from authenticator using executor pattern with fallback.
-            String clientId = getPropertyValue(authenticatorConfig, "ClientId", "client_id", "clientId");
-            String authorizationEndpoint = getAuthorizationServerEndpoint(authenticatorConfig);
+            // Read resolved properties from context
+            String clientId = (String) context.getProperty("DEBUG_CLIENT_ID");
+            String authorizationEndpoint = (String) context.getProperty("DEBUG_AUTHZ_ENDPOINT");
 
             if (clientId == null || clientId.trim().isEmpty()) {
-                LOG.error("Missing OAuth 2.0 configuration - ClientId is required");
+                LOG.error("Missing OAuth 2.0 configuration - ClientId is required (from context)");
                 return null;
             }
-            
             if (authorizationEndpoint == null || authorizationEndpoint.trim().isEmpty()) {
-                LOG.error("Missing OAuth 2.0 configuration - Authorization Endpoint is required");
+                LOG.error("Missing OAuth 2.0 configuration - Authorization Endpoint is required (from context)");
                 return null;
             }
-            
             if (LOG.isDebugEnabled()) {
-                LOG.debug("OAuth 2.0 configuration validated - ClientId: FOUND, Authorization Endpoint: " + authorizationEndpoint);
+                LOG.debug("OAuth 2.0 configuration validated from context - ClientId: FOUND, Authorization Endpoint: " + authorizationEndpoint);
             }
-
             // Generate PKCE parameters.
             String codeVerifier = generateCodeVerifier();
             String codeChallenge = generateCodeChallenge(codeVerifier);
-            // Use context identifier as state parameter for session lookup during callback.
             String state = context.getContextIdentifier();
-
-            // Store PKCE parameters and state in context for callback verification.
             context.setProperty("DEBUG_CODE_VERIFIER", codeVerifier);
             context.setProperty("DEBUG_STATE", state);
-
-            // Build redirect URI pointing to WSO2 /commonauth endpoint.
-            String redirectUri = buildDebugCallbackUrl(context);
-
-            // Build authorization URL.
+            String redirectUri = DebugUtils.buildDebugCallbackUrl(context);
             StringBuilder urlBuilder = new StringBuilder();
             urlBuilder.append(authorizationEndpoint);
             urlBuilder.append("?response_type=code");
             urlBuilder.append("&client_id=").append(encodeParam(clientId));
             urlBuilder.append("&redirect_uri=").append(encodeParam(redirectUri));
-            
-            // Build scope - get from configuration or use default.
-            String scope = getPropertyValue(authenticatorConfig, "Scope", "scope");
+
+            String scope = (String) context.getProperty("CUSTOM_SCOPE"); // Priority 1: User override
             if (scope == null || scope.trim().isEmpty()) {
-                scope = "openid profile email";
+                scope = (String) context.getProperty("DEBUG_IDP_SCOPE"); // Priority 2: IdP's configured scope
+            }
+            if (scope == null || scope.trim().isEmpty()) {
+                scope = "openid"; // Priority 3: Sensible minimal default
+                LOG.warn("No custom scope or IdP-configured scope found. Falling back to 'openid'.");
             }
             urlBuilder.append("&scope=").append(encodeParam(scope));
-            
             urlBuilder.append("&state=").append(encodeParam(state));
             urlBuilder.append("&code_challenge=").append(encodeParam(codeChallenge));
             urlBuilder.append("&code_challenge_method=S256");
-
             // Add access_type for refresh token support if configured.
-            String accessType = getPropertyValue(authenticatorConfig, "AccessType", "access_type");
+            String accessType = (String) context.getProperty("DEBUG_CUSTOM_access_type");
             if (accessType != null && !accessType.trim().isEmpty()) {
                 urlBuilder.append("&access_type=").append(encodeParam(accessType));
             }
-
             // Add login hint if username is available.
             String username = (String) context.getProperty("DEBUG_USERNAME");
             if (username != null && !username.trim().isEmpty()) {
                 urlBuilder.append("&login_hint=").append(encodeParam(username));
             }
-
-            // Add any additional custom parameters from configuration.
-            addCustomParameters(authenticatorConfig, urlBuilder);
-
-            String authorizationUrl = urlBuilder.toString();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Generated OAuth 2.0 Authorization URL with PKCE for IdP: " + 
-                         idp.getIdentityProviderName());
+            // Add any additional custom parameters from context (ADDITIONAL_OAUTH_PARAMS)
+            java.util.Map<String, String> additionalParams = (java.util.Map<String, String>) context.getProperty("ADDITIONAL_OAUTH_PARAMS");
+            if (additionalParams != null) {
+                for (java.util.Map.Entry<String, String> entry : additionalParams.entrySet()) {
+                    urlBuilder.append("&").append(entry.getKey()).append("=").append(encodeParam(entry.getValue()));
+                }
             }
-
+            String authorizationUrl = urlBuilder.toString();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Generated OAuth 2.0 Authorization URL with PKCE for IdP (from context): " + idp.getIdentityProviderName());
+            }
             return authorizationUrl;
-
         } catch (Exception e) {
             LOG.error("Error building OAuth 2.0 Authorization URL: " + e.getMessage(), e);
             return null;
         }
     }
 
-    /**
-     * Finds the authenticator configuration for the specified authenticator name.
-     *
-     * @param idp Identity Provider containing authenticator configurations.
-     * @param authenticatorName Name of the authenticator to find.
-     * @return FederatedAuthenticatorConfig if found, null otherwise.
-     */
+    // Use DebugUtils static methods for authenticator config and property lookup.
     private FederatedAuthenticatorConfig findAuthenticatorConfig(IdentityProvider idp, String authenticatorName) {
-        FederatedAuthenticatorConfig[] configs = idp.getFederatedAuthenticatorConfigs();
-        if (configs != null) {
-            for (FederatedAuthenticatorConfig config : configs) {
-                if (authenticatorName.equals(config.getName())) {
-                    return config;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Gets authorization server endpoint using executor pattern with fallback logic.
-     * Mimics the behavior of GoogleExecutor and OpenIDConnectExecutor.
-     *
-     * @param config Authenticator configuration.
-     * @return Authorization endpoint URL with fallback support.
-     */
-    private String getAuthorizationServerEndpoint(FederatedAuthenticatorConfig config) {
-        String authzEndpoint = getPropertyValue(config, "OAuth2AuthzEPUrl", "authorizationEndpoint", "authorization_endpoint");
-        
-        if (authzEndpoint != null && !authzEndpoint.trim().isEmpty()) {
-            return authzEndpoint;
-        }
-        
-        // Do not use hardcoded endpoints. Always use endpoints from authenticator config.
-        return null;
-    }
-
-    /**
-     * Gets property value from authenticator configuration, trying multiple possible property names.
-     *
-     * @param config Authenticator configuration.
-     * @param propertyNames Possible property names to look for.
-     * @return Property value if found, null otherwise.
-     */
-    private String getPropertyValue(FederatedAuthenticatorConfig config, String... propertyNames) {
-        if (config.getProperties() != null) {
-            for (Property prop : config.getProperties()) {
-                for (String propName : propertyNames) {
-                    if (propName.equalsIgnoreCase(prop.getName())) {
-                        return prop.getValue();
-                    }
-                }
-            }
-        }
-        return null;
+        return DebugUtils.findAuthenticatorConfig(idp, authenticatorName);
     }
 
     /**
@@ -293,39 +227,7 @@ public class Executer {
             return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
         } catch (Exception e) {
             LOG.error("Error generating code challenge: " + e.getMessage(), e);
-            // Fallback to plain text (not recommended for production).
-            return codeVerifier;
-        }
-    }
-
-    /**
-     * Builds the debug callback URL for OAuth 2.0 redirect_uri.
-     * Uses clean URL without query parameters to match Asgardeo's registered redirect URIs.
-     *
-     * @param context AuthenticationContext for session data.
-     * @return Callback URL string.
-     */
-    private String buildDebugCallbackUrl(AuthenticationContext context) {
-        try {
-            String baseUrl = ServiceURLBuilder.create().build().getAbsolutePublicURL();
-            String callbackUrl = baseUrl + DEBUG_CALLBACK_PATH;
-            // Step status reporting: callback URL built
-            context.setProperty("DEBUG_STEP_CALLBACK_URL_BUILT", true);
-            context.setProperty("DEBUG_STEP_CALLBACK_URL", callbackUrl);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug callback URL built: " + callbackUrl + 
-                         " (sessionDataKey will be handled via state parameter: " + context.getContextIdentifier() + ")");
-            }
-            
-            return callbackUrl;
-        } catch (URLBuilderException e) {
-            LOG.error("Error building debug callback URL: " + e.getMessage(), e);
-            String fallbackUrl = "https://localhost:9443/commonauth";
-            // Step status reporting: fallback callback URL used
-            context.setProperty("DEBUG_STEP_CALLBACK_URL_FALLBACK_USED", true);
-            context.setProperty("DEBUG_STEP_CALLBACK_URL", fallbackUrl);
-            return fallbackUrl;
+            throw new RuntimeException("Failed to generate PKCE code challenge securely.", e);
         }
     }
 
@@ -340,36 +242,10 @@ public class Executer {
             return java.net.URLEncoder.encode(param, "UTF-8");
         } catch (Exception e) {
             LOG.error("Error encoding parameter: " + e.getMessage(), e);
-            return param;
+            throw new RuntimeException("Failed to URL-encode parameter.", e);
         }
     }
 
-    /**
-     * Adds custom parameters from authenticator configuration to the authorization URL.
-     *
-     * @param config Authenticator configuration.
-     * @param urlBuilder StringBuilder to append parameters to.
-     */
-    private void addCustomParameters(FederatedAuthenticatorConfig config, StringBuilder urlBuilder) {
-        try {
-            if (config.getProperties() != null) {
-                for (Property prop : config.getProperties()) {
-                    String propName = prop.getName();
-                    String propValue = prop.getValue();
-                    // Add any property that starts with "QueryParam_" as a custom parameter.
-                    if (propName != null && propName.startsWith("QueryParam_") && propValue != null) {
-                        String paramName = propName.substring("QueryParam_".length());
-                        if (!paramName.trim().isEmpty()) {
-                            urlBuilder.append("&").append(encodeParam(paramName)).append("=").append(encodeParam(propValue));
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error("Error adding custom parameters: " + e.getMessage(), e);
-        }
-    }
-    
     /**
      * Caches the authentication context using WSO2 framework utilities.
      * This ensures the context can be retrieved by DefaultRequestCoordinator during callback.
