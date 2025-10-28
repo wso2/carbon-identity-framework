@@ -329,7 +329,7 @@ public class WorkflowRequestDAO {
                 databaseType = "POSTGRESQL";
             } else if (driver.contains("oracle")) {
                 databaseType = "ORACLE";
-            } else if (driver.contains("db2")) {
+            } else if (driver.contains("db2") || connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                 databaseType = "DB2";
             } else if (driver.contains("microsoft") || driver.contains("ms sql") || driver.contains("sql server")) {
                 databaseType = "MSSQL";
