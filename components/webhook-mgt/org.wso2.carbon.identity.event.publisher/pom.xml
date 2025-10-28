@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>webhook-mgt</artifactId>
-        <version>7.8.595-SNAPSHOT</version>
+        <version>7.8.595</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
