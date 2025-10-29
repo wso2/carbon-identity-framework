@@ -3,17 +3,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.debug.framework.Utils.DebugUtils;
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +19,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.wso2.carbon.identity.debug.framework.client.OAuth2TokenClient;
+import org.wso2.carbon.identity.debug.framework.client.TokenResponse;
 
 /**
  * Processes OAuth 2.0 Authorization Code callbacks from external IdPs.
@@ -251,95 +250,8 @@ public class DebugProcessor {
      * @return TokenResponse with tokens or null if exchange fails.
      */
     private TokenResponse exchangeCodeForTokens(String authorizationCode, AuthenticationContext context) {
-        try {
-            // Get OAuth 2.0 configuration.
-            String authenticatorName = (String) context.getProperty("DEBUG_AUTHENTICATOR_NAME");
-            
-            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
-            if (idp == null) {
-                LOG.error("Identity Provider configuration not found in context");
-                return null;
-            }
-
-            FederatedAuthenticatorConfig authenticatorConfig = DebugUtils.findAuthenticatorConfig(idp, authenticatorName);
-            if (authenticatorConfig == null) {
-                LOG.error("Authenticator configuration not found");
-                return null;
-            }
-
-            String clientId = DebugUtils.getPropertyValue(authenticatorConfig, "ClientId", "client_id", "clientId");
-            String clientSecret = DebugUtils.getPropertyValue(authenticatorConfig, "ClientSecret", "client_secret", "clientSecret");
-            String tokenEndpoint = DebugUtils.getPropertyValue(authenticatorConfig, "OAuth2TokenEPUrl", "tokenEndpoint", "token_endpoint");
-
-            // OAuth 2.0 configuration loaded.
-
-            if (clientId == null || clientSecret == null || tokenEndpoint == null) {
-                LOG.error("Missing OAuth 2.0 configuration for token exchange");
-                return null;
-            }
-
-            // Get stored PKCE parameters.
-            String codeVerifier = (String) context.getProperty("DEBUG_CODE_VERIFIER");
-            String redirectUri = buildRedirectUri(context);
-
-            // Prepare token request.
-            String requestBody = "grant_type=authorization_code" +
-                                "&code=" + urlEncode(authorizationCode) +
-                                "&redirect_uri=" + urlEncode(redirectUri) +
-                                "&client_id=" + urlEncode(clientId) +
-                                "&code_verifier=" + urlEncode(codeVerifier);
-
-            // Make token request with retry logic.
-            HttpURLConnection connection = null;
-            int responseCode = -1;
-            int maxRetries = 3;
-            int attempt = 1;
-            
-            while (attempt <= maxRetries) {
-                try {
-                    connection = createTokenRequest(tokenEndpoint, clientId, clientSecret, requestBody);
-                    responseCode = connection.getResponseCode();
-                    break; // Success - exit retry loop
-                } catch (java.net.SocketTimeoutException e) {
-                    if (attempt == maxRetries) {
-                        LOG.error("All " + maxRetries + " token exchange attempts failed due to timeout");
-                        throw e; // Re-throw on final attempt
-                    }
-                    attempt++;
-                    // Wait before retry (exponential backoff)
-                    Thread.sleep(2000 * attempt);
-                } catch (Exception e) {
-                    if (attempt == maxRetries) {
-                        throw e; // Re-throw on final attempt
-                    }
-                    attempt++;
-                    Thread.sleep(1000 * attempt);
-                }
-            }
-
-            if (responseCode == 200) {
-                String responseBody = readResponse(connection.getInputStream());
-                return parseTokenResponse(responseBody);
-            } else {
-                String errorResponse = readResponse(connection.getErrorStream());
-                LOG.error("OAuth Token Exchange Failed - HTTP Status: " + responseCode);
-                LOG.error("Error Response: " + errorResponse);
-                LOG.error("Token Endpoint: " + tokenEndpoint);
-                LOG.error("Redirect URI: " + redirectUri);
-                
-                // If callback URL mismatch, provide helpful guidance
-                if (errorResponse != null && errorResponse.contains("Callback url mismatch")) {
-                    LOG.error("CALLBACK URL MISMATCH - Generated redirect_uri: " + redirectUri);
-                    LOG.error("Please ensure this URL is added to your IdP application's callback URLs configuration");
-                }
-                
-                return null;
-            }
-
-        } catch (Exception e) {
-            LOG.error("Error exchanging authorization code for tokens: " + e.getMessage(), e);
-            return null;
-        }
+        OAuth2TokenClient tokenClient = new OAuth2TokenClient();
+        return tokenClient.exchangeCodeForTokens(authorizationCode, context);
     }
 
     /**
@@ -497,64 +409,6 @@ public class DebugProcessor {
         }
     }
 
-    private String buildRedirectUri(AuthenticationContext context) {
-        // Use shared utility for redirect URI generation
-        return DebugUtils.buildDebugCallbackUrl(context);
-    }
-
-    private HttpURLConnection createTokenRequest(String tokenEndpoint, String clientId, String clientSecret,
-                                               String requestBody) throws Exception {
-        URL url = new URL(tokenEndpoint);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        connection.setRequestProperty("Accept", "application/json");
-
-        // Set Basic Authentication header.
-        String credentials = clientId + ":" + clientSecret;
-        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
-        connection.setRequestProperty("Authorization", "Basic " + encodedCredentials);
-
-        connection.setDoOutput(true);
-        connection.setConnectTimeout(30000); 
-        connection.setReadTimeout(30000);    
-        
-        // Send request body.
-        try (OutputStream os = connection.getOutputStream()) {
-            os.write(requestBody.getBytes(StandardCharsets.UTF_8));
-            os.flush();
-        }
-
-        return connection;
-    }    private String readResponse(InputStream inputStream) throws Exception {
-        if (inputStream == null) {
-            return "";
-        }
-
-        StringBuilder response = new StringBuilder();
-        byte[] buffer = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-            response.append(new String(buffer, 0, bytesRead, StandardCharsets.UTF_8));
-        }
-        return response.toString();
-    }
-
-    private TokenResponse parseTokenResponse(String responseBody) {
-        try {
-            // Simple JSON parsing for token response.
-            String accessToken = extractJsonValue(responseBody, "access_token");
-            String idToken = extractJsonValue(responseBody, "id_token");
-            String refreshToken = extractJsonValue(responseBody, "refresh_token");
-            String tokenType = extractJsonValue(responseBody, "token_type");
-            
-            return new TokenResponse(accessToken, idToken, refreshToken, tokenType);
-        } catch (Exception e) {
-            LOG.error("Error parsing token response: " + e.getMessage(), e);
-            return null;
-        }
-    }
-
     private Map<String, Object> parseIdTokenClaims(String idToken) {
         try {
             // Parse JWT ID token (simplified implementation).
@@ -684,29 +538,6 @@ public class DebugProcessor {
         }
     }
 
-    private String extractJsonValue(String json, String key) {
-        String searchKey = "\"" + key + "\"";
-        int startIndex = json.indexOf(searchKey);
-        if (startIndex == -1) {
-            return null;
-        }
-
-        startIndex = json.indexOf(":", startIndex) + 1;
-        while (startIndex < json.length() && Character.isWhitespace(json.charAt(startIndex))) {
-            startIndex++;
-        }
-
-        if (startIndex < json.length() && json.charAt(startIndex) == '"') {
-            startIndex++;
-            int endIndex = json.indexOf('"', startIndex);
-            if (endIndex != -1) {
-                return json.substring(startIndex, endIndex);
-            }
-        }
-
-        return null;
-    }
-
     private Map<String, Object> parseJsonToClaims(String json) {
         Map<String, Object> claims = new HashMap<>();
         try {
@@ -731,45 +562,27 @@ public class DebugProcessor {
         return claims;
     }
 
-    private String urlEncode(String value) {
+    private String readResponse(InputStream inputStream) {
+        if (inputStream == null) {
+            return "";
+        }
+
+        StringBuilder response = new StringBuilder();
         try {
-            return java.net.URLEncoder.encode(value, "UTF-8");
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                response.append(new String(buffer, 0, bytesRead, StandardCharsets.UTF_8));
+            }
         } catch (Exception e) {
-            LOG.error("Error encoding URL parameter: " + e.getMessage(), e);
-            return value;
+            LOG.error("Error reading response stream: " + e.getMessage(), e);
+        } finally {
+            try {
+                inputStream.close();
+            } catch (Exception ignore) {
+            }
         }
+        return response.toString();
     }
 
-    /**
-     * Simple token response holder class.
-     */
-    private static class TokenResponse {
-        private final String accessToken;
-        private final String idToken;
-        private final String refreshToken;
-        private final String tokenType;
-
-        public TokenResponse(String accessToken, String idToken, String refreshToken, String tokenType) {
-            this.accessToken = accessToken;
-            this.idToken = idToken;
-            this.refreshToken = refreshToken;
-            this.tokenType = tokenType;
-        }
-
-        public String getAccessToken() {
-            return accessToken;
-        }
-
-        public String getIdToken() {
-            return idToken;
-        }
-
-        public String getRefreshToken() {
-            return refreshToken;
-        }
-
-        public String getTokenType() {
-            return tokenType;
-        }
-    }
 }

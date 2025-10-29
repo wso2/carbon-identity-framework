@@ -37,40 +37,35 @@ public class RequestCoordinator implements DebugService {
      * @return true if request was handled by debug processor, false if it should be handled by regular flow.
      * @throws IOException If processing fails.
      */
+    
     /**
      * Execute method expected by the API layer for OAuth 2.0 authorization URL generation.
      * This method handles the initial IdP debug processing.
      *
      * @param identityProvider the identity provider configuration
-     * @param authenticationContext the authentication context (can be null for URL generation)
+     * @param authenticationContext the authentication context (it is provided by the framework)
      * @return OAuth 2.0 authorization URL or processing result
      */
     public String execute(org.wso2.carbon.identity.application.common.model.IdentityProvider identityProvider,
                          org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext authenticationContext) {
-    // Step status reporting: coordinator execute called
-    authenticationContext.setProperty("DEBUG_STEP_COORDINATOR_EXECUTE_CALLED", true);
-        
+
+        // Step status reporting: coordinator execute called
+        authenticationContext.setProperty("DEBUG_STEP_COORDINATOR_EXECUTE_CALLED", true);
+
         try {
-            if (authenticationContext == null) {
-                // This is for OAuth URL generation
-                authenticationContext.setProperty("DEBUG_STEP_OAUTH_URL_GENERATION_STARTED", true);
-                
-                // Delegate to the Executer class for URL generation
-                    Executer executer = new Executer();
-                    authenticationContext.setProperty("DEBUG_EXECUTOR_INSTANCE", executer);
-                    boolean success = executer.execute(identityProvider, authenticationContext);
-                if (success) {
-                    return (String) authenticationContext.getProperty("DEBUG_EXTERNAL_REDIRECT_URL");
-                } else {
-                    return "ERROR: Failed to generate authorization URL";
-                }
+            // This is the main URL generation path.
+            authenticationContext.setProperty("DEBUG_STEP_OAUTH_URL_GENERATION_STARTED", true);
+
+            // Delegate to the Executer class for URL generation
+            Executer executer = new Executer();
+
+            boolean success = executer.execute(identityProvider, authenticationContext);
+            if (success) {
+                return (String) authenticationContext.getProperty("DEBUG_EXTERNAL_REDIRECT_URL");
             } else {
-                // This is for processing an authentication context
-                authenticationContext.setProperty("DEBUG_STEP_AUTH_CONTEXT_PROCESSING_STARTED", true);
-                // For now, return a success indicator
-                return "SUCCESS";
+                return "ERROR: Failed to generate authorization URL";
             }
-            
+
         } catch (Exception e) {
             LOG.error("Error in execute method", e);
             throw new RuntimeException("Debug framework execution failed", e);
