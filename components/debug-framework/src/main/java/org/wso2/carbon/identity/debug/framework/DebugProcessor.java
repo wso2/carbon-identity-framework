@@ -10,9 +10,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+
 import java.nio.charset.StandardCharsets;
 
 import java.util.Base64;
@@ -281,8 +279,9 @@ public class DebugProcessor {
 
             // Extract additional claims from UserInfo endpoint if access token is available.
             if (tokens.getAccessToken() != null) {
-                Map<String, Object> userInfoClaims = fetchUserInfoClaims(tokens.getAccessToken(), context);
-                if (userInfoClaims != null) {
+                OAuth2TokenClient tokenClient = new OAuth2TokenClient();
+                Map<String, Object> userInfoClaims = tokenClient.fetchUserInfoClaims(tokens.getAccessToken(), context);
+                if (userInfoClaims != null && !userInfoClaims.isEmpty()) {
                     claims.putAll(userInfoClaims);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("UserInfo claims: " + userInfoClaims.keySet());
@@ -428,31 +427,6 @@ public class DebugProcessor {
         }
     }
 
-    private Map<String, Object> fetchUserInfoClaims(String accessToken, AuthenticationContext context) {
-        // Get UserInfo endpoint from context.
-        String userInfoEndpoint = (String) context.getProperty("DEBUG_USERINFO_ENDPOINT");
-        if (userInfoEndpoint == null) {
-            return new HashMap<>();
-        }
-        try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(userInfoEndpoint).openConnection();
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Authorization", "Bearer " + accessToken);
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setConnectTimeout(10000);
-            connection.setReadTimeout(10000);
-            int responseCode = connection.getResponseCode();
-            if (responseCode == 200) {
-                String responseBody = readResponse(connection.getInputStream());
-                return parseJsonToClaims(responseBody);
-            } else {
-                return new HashMap<>();
-            }
-        } catch (Exception e) {
-            return new HashMap<>();
-        }
-    }
-
     private String getClaimValue(Map<String, Object> claims, String... claimNames) {
         for (String claimName : claimNames) {
             Object value = claims.get(claimName);
@@ -560,29 +534,6 @@ public class DebugProcessor {
             LOG.error("Error parsing JSON to claims: " + e.getMessage(), e);
         }
         return claims;
-    }
-
-    private String readResponse(InputStream inputStream) {
-        if (inputStream == null) {
-            return "";
-        }
-
-        StringBuilder response = new StringBuilder();
-        try {
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                response.append(new String(buffer, 0, bytesRead, StandardCharsets.UTF_8));
-            }
-        } catch (Exception e) {
-            LOG.error("Error reading response stream: " + e.getMessage(), e);
-        } finally {
-            try {
-                inputStream.close();
-            } catch (Exception ignore) {
-            }
-        }
-        return response.toString();
     }
 
 }

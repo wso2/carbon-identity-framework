@@ -11,6 +11,10 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.debug.framework.Utils.DebugUtils;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+ 
 
 /**
  * Responsible for performing OAuth2 token exchanges. Isolates HTTP/network logic from higher-level processors.
@@ -73,5 +77,19 @@ public class OAuth2TokenClient {
             return null;
         }
     }
-}
 
+    /**
+     * Fetches UserInfo claims using the provided access token. Returns an empty map on failure.
+     */
+    public Map<String, Object> fetchUserInfoClaims(String accessToken, AuthenticationContext context) {
+        String userInfoEndpoint = (String) context.getProperty("DEBUG_USERINFO_ENDPOINT");
+        if (userInfoEndpoint == null) {
+            return Collections.emptyMap();
+        }
+
+        HttpFetcher fetcher = new UrlConnectionHttpFetcher();
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Authorization", "Bearer " + accessToken);
+        return fetcher.getJson(userInfoEndpoint, headers);
+    }
+}
