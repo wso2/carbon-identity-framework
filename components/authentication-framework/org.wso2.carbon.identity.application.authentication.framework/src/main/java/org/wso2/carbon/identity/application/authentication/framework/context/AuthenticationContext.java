@@ -22,6 +22,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
@@ -119,6 +120,30 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private final Map<String, List<String>> loggedOutAuthenticators = new HashMap<>();
 
     private boolean sendToMultiOptionPage;
+
+    private Map<Integer, AuthenticatorConfig> orgAuthenticatorConfigs = new HashMap<>();
+
+    public Map<Integer, AuthenticatorConfig> getOrgAuthenticatorConfigs() {
+
+        return orgAuthenticatorConfigs;
+    }
+
+    public void addOrganicAuthenticatorConfig(int orgNumber, AuthenticatorConfig authenticatorConfig) {
+
+        this.orgAuthenticatorConfigs.put(orgNumber, authenticatorConfig);
+    }
+
+    private int currentOrgNumber;
+
+    public int getCurrentOrgNumber() {
+
+        return currentOrgNumber;
+    }
+
+    public void setCurrentOrgNumber(int currentOrgNumber) {
+
+        this.currentOrgNumber = currentOrgNumber;
+    }
 
     /**
      * This attribute holds the context expiry time in epoch timestamp (nanoseconds).
