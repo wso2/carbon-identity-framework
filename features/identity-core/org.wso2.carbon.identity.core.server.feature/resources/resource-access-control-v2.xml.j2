@@ -240,7 +240,7 @@
         <Resource context="(.*)/o/api/server/v(.*)/notification-senders/(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_notification_senders_create</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/server/v(.*)/notification-senders/(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/o/api/server/v(.*)/notification-senders/(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_org_notification_senders_update</Scopes>
         </Resource>
         <Resource context="(.*)/o/api/server/v(.*)/notification-senders/(.*)" secured="true" http-method="GET">
