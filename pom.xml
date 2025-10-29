@@ -146,12 +146,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Add Nashorn core dependency for Java 11+ compatibility -->
-            <dependency>
-                <groupId>org.openjdk.nashorn</groupId>
-                <artifactId>nashorn-core</artifactId>
-                <version>15.4</version>
-            </dependency>
             <!--Components Dependencies Starts-->
 
             <!-- Carbon Kernel Dependencies-->
