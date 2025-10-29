@@ -25,7 +25,9 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -56,6 +58,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.api.AuthorizationManager;
@@ -151,11 +154,38 @@ public class RoleDAOTest {
     private MockedStatic<UserCoreUtil> userCoreUtil;
     private MockedStatic<UserRolesCache> userRolesCache;
     private MockedStatic<AuthorizationCache> authorizationCache;
+    private MockedStatic<RoleManagementUtils> roleManagementUtils;
 
     @Mock
     UserRealm mockUserRealm;
 
     MockedStatic<OrganizationManagementUtil> organizationManagementUtil;
+
+    @BeforeClass
+    public void classSetUp() {
+
+        roleManagementUtils = mockStatic(RoleManagementUtils.class);
+        roleManagementUtils.when(() -> RoleManagementUtils.getOrganizationId(SAMPLE_TENANT_DOMAIN))
+                .thenReturn(SAMPLE_ORG_ID);
+        roleManagementUtils.when(() -> RoleManagementUtils.getOrganizationId(L1_ORG_TENANT_DOMAIN))
+                .thenReturn(L1_ORG_TENANT_ORG_ID);
+        roleManagementUtils.when(() -> RoleManagementUtils.removeInternalDomain(anyString()))
+                .thenAnswer(invocation -> {
+                    String input = invocation.getArgument(0, String.class);
+                    if (input.startsWith("Internal/") || input.startsWith("INTERNAL/")) {
+                        return input.substring(input.indexOf("/") + 1);
+                    }
+                    return input;
+                });
+        roleManagementUtils.when(() -> RoleManagementUtils.getEveryOneRoleName(anyString()))
+                .thenReturn("Internal/everyone");
+    }
+
+    @AfterClass
+    public void classTearDown() {
+
+        roleManagementUtils.close();
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -1001,7 +1031,7 @@ public class RoleDAOTest {
         addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
         addRole("everyone", ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
         List<String> roles = roleDAO.getRoleIdListOfUser("userID1", SAMPLE_TENANT_DOMAIN);
-        assertEquals(roles.size(), 3);
+        assertEquals(roles.size(), 2);
     }
 
     @Test
@@ -1111,6 +1141,49 @@ public class RoleDAOTest {
         when(IdentityUtil.getMaximumUsersListPerRole()).thenReturn(1000);
         List<UserBasicInfo> users = roleDAO.getUserListOfRole(role.getId(), SAMPLE_TENANT_DOMAIN);
         assertEquals(getUserNamesList(users), userNamesList);
+    }
+
+    @Test
+    public void testGetUserListOfRoles() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityUtil.when(IdentityUtil::getDefaultItemsPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE);
+        identityUtil.when(IdentityUtil::getMaximumItemPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.addDomainToName(anyString(), anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Add roles with users.
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+
+        mockRealmConfiguration();
+
+        // Create filter expression nodes for role name filtering.
+        List<ExpressionNode> expressionNodes = getExpressionNodes("name eq " + roleNamesList.get(0));
+
+        // Test getUserListOfRoles with filter.
+        List<UserBasicInfo> users = roleDAO.getUserListOfRoles(expressionNodes, 10, 0, null, null,
+                SAMPLE_TENANT_DOMAIN, USER_DOMAIN_PRIMARY);
+
+        // Verify that the users are retrieved correctly.
+        assertNotNull(users);
+        assertEquals(users.size(), userNamesList.size());
+
+        String firstUser = users.get(0).getName();
+        String secondUser = users.get(1).getName();
+        assert userNamesList.contains(firstUser);
+        assert userNamesList.contains(secondUser);
     }
 
     @Test
@@ -1331,10 +1404,9 @@ public class RoleDAOTest {
 
         CarbonContext mockCarbonContext = mock(CarbonContext.class);
         carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
-        when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+        lenient().when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
         RealmConfiguration realmConfiguration = mock(RealmConfiguration.class);
-        when(mockUserRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
-        lenient().when(realmConfiguration.getEveryOneRoleName()).thenReturn("Internal/everyone");
+        lenient().when(mockUserRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
     }
 
     private List<String> getRoleNamesList(List<RoleBasicInfo> roles) {

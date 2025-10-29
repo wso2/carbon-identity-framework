@@ -275,6 +275,9 @@
 
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>300</AuthorizationCodeDefaultValidityPeriod>
+
+        <!-- If enabled, disabled applications will be allowed to authenticate during OAuth client authentication -->
+        <AllowDisabledApplicationCredentialsForAuthentication>false</AllowDisabledApplicationCredentialsForAuthentication>
         <!-- Default validity period for application access tokens in seconds -->
         <AccessTokenDefaultValidityPeriod>3600</AccessTokenDefaultValidityPeriod>
         <!-- Default validity period for user access tokens in seconds -->
@@ -795,6 +798,16 @@
         <Callback>
             <EnforceLiteralCharacters>true</EnforceLiteralCharacters>
         </Callback>
+        <ImpersonatedRefreshToken>
+            <Enable>false</Enable>
+        </ImpersonatedRefreshToken>
+        <!--
+            By enabling this property, the "Internal" prefix will be removed from the mapped roles attribute in the issued JWT tokens.
+            Enable this setting if your applications do not require the Internal prefix when default attribute mapping
+            for http://wso2.org/claims/roles claim is changed.
+            Default value : true
+        -->
+        <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1292,6 +1305,8 @@
         The default value of the configuration is false.
         -->
         <EnableRoleValidation>false</EnableRoleValidation>
+        <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceClientSecretPermission>false</SkipEnforceClientSecretPermission>
     </ApplicationMgt>
 
     <JITProvisioning>
@@ -1384,8 +1399,8 @@
         <EventListener id="email_domain_validation_handler"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
-                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
-                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
+                       orderId="15"
+                       enable="true"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -1562,6 +1577,9 @@
 
 
     <ResourceAccessControl default-access="deny">
+        <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" >
+            <Permissions>/</Permissions>
+        </Resource>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">

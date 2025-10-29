@@ -203,7 +203,7 @@ public class ConsoleAuthorizedAPIListenerTest {
         
         // Verify approval task API has NO_POLICY.
         AuthorizedAPI approvalTaskAPI = authorizedAPIList.stream()
-                .filter(api -> "/api/users/v1/me/approval-tasks".equals(api.getAPIIdentifier()))
+                .filter(api -> "/api/users/v2/me/approval-tasks".equals(api.getAPIIdentifier()))
                 .findFirst().orElse(null);
         assertNotNull(approvalTaskAPI);
         assertEquals(approvalTaskAPI.getPolicyId(), APIResourceManagementConstants.NO_POLICY);
@@ -289,7 +289,7 @@ public class ConsoleAuthorizedAPIListenerTest {
 
         setupMockDependencies(TENANT_DOMAIN, false);
         
-        APIResource apiResource = createTestAPIResource("api-1", "/api/users/v1/me/approval-tasks");
+        APIResource apiResource = createTestAPIResource("api-1", "/api/users/v2/me/approval-tasks");
         AuthorizedAPI inputAuthorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
                 .appId(CONSOLE_APP_ID)
                 .apiId(API_ID)
@@ -304,7 +304,7 @@ public class ConsoleAuthorizedAPIListenerTest {
         assertNotNull(result);
         assertEquals(result.getAppId(), CONSOLE_APP_ID);
         assertEquals(result.getPolicyId(), APIResourceManagementConstants.NO_POLICY);
-        assertEquals(result.getAPIIdentifier(), "/api/users/v1/me/approval-tasks");
+        assertEquals(result.getAPIIdentifier(), "/api/users/v2/me/approval-tasks");
     }
 
     @Test
@@ -412,7 +412,7 @@ public class ConsoleAuthorizedAPIListenerTest {
     private List<APIResource> createTestSystemAPIResources() {
         List<APIResource> resources = new ArrayList<>();
         
-        APIResource resource1 = createTestAPIResource("api-1", "/api/users/v1/me/approval-tasks");
+        APIResource resource1 = createTestAPIResource("api-1", "/api/users/v2/me/approval-tasks");
         APIResource resource2 = createTestAPIResource("api-2", "/other/api");
         
         resources.add(resource1);

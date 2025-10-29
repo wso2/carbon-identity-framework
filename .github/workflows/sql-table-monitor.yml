@@ -1,0 +1,150 @@
+# This workflow monitors SQL file changes and detects new table creations
+# It will comment on PRs when new tables are added, reminding to update cleanup scripts
+
+name: SQL Table Monitor
+
+on:
+  pull_request_target:
+    branches: [master, resource-cleanup-check]
+    paths:
+      - 'features/identity-core/org.wso2.carbon.identity.core.server.feature/resources/dbscripts/*.sql'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  detect-new-tables:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR changes
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Get changed SQL files
+        id: changed-files
+        run: |
+          # Get the list of changed SQL files
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          changed_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -E "features/identity-core/org\.wso2\.carbon\.identity\.core\.server\.feature/resources/dbscripts/.*\.sql$" || true)
+          
+          if [ -z "$changed_files" ]; then
+            echo "No SQL files changed"
+            echo "has_sql_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changed SQL files:"
+            echo "$changed_files"
+            echo "has_sql_changes=true" >> $GITHUB_OUTPUT
+            # Save changed files to environment
+            echo "CHANGED_SQL_FILES<<EOF" >> $GITHUB_ENV
+            echo "$changed_files" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
+
+      - name: Analyze SQL changes for new tables
+        if: steps.changed-files.outputs.has_sql_changes == 'true'
+        id: analyze-tables
+        run: |
+          new_tables_found=false
+          new_tables_list=""
+          
+          # Fetch base ref only once before processing files
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+
+          # Process each changed SQL file
+          while IFS= read -r file; do
+            if [ -n "$file" ]; then
+              echo "Analyzing file: $file"
+              
+              # Get the diff for this file
+              diff_output=$(git diff origin/${{ github.event.pull_request.base.ref }}...HEAD -- "$file" || true)
+              
+              # Look for new CREATE TABLE statements in the added lines (lines starting with +)
+              new_create_tables=$(echo "$diff_output" | grep "^+" | grep -iP "CREATE\s+TABLE" | sed 's/^+//' || true)
+              
+              if [ -n "$new_create_tables" ]; then
+                new_tables_found=true
+                echo "New tables found in $file:"
+                echo "$new_create_tables"
+                
+                # Extract table names from CREATE TABLE statements
+                while IFS= read -r create_statement; do
+                  if [ -n "$create_statement" ]; then
+                    # Extract table name using multiple patterns to handle different formats
+                    table_name=$(echo "$create_statement" | sed -n 's/.*CREATE TABLE[[:space:]]*\(IF NOT EXISTS[[:space:]]*\)\?\([A-Za-z_][A-Za-z0-9_]*\).*/\2/p' | head -n1)
+                    if [ -n "$table_name" ]; then
+                      new_tables_list="$new_tables_list\n- **$table_name** (in $file)"
+                    fi
+                  fi
+                done <<< "$new_create_tables"
+              fi
+            fi
+          done <<< "$CHANGED_SQL_FILES"
+          
+          echo "new_tables_found=$new_tables_found" >> $GITHUB_OUTPUT
+          if [ "$new_tables_found" = "true" ]; then
+            echo "NEW_TABLES_LIST<<EOF" >> $GITHUB_ENV
+            echo -e "$new_tables_list" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
+
+      - name: Comment on PR about new tables
+        if: steps.analyze-tables.outputs.new_tables_found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const newTablesList = process.env.NEW_TABLES_LIST;
+            
+            const comment = `## 🚨 New Database Tables Detected
+            
+            This PR introduces new database table(s). Please ensure that the corresponding **resource cleanup scripts** are updated accordingly.
+            
+            ### New Tables:
+            ${newTablesList}
+            
+            ### Required Actions:
+            
+            1. **Update Resource Cleanup Scripts**: Please update the cleanup scripts in the **identity-organization-resource-cleanup** repository:
+               - Repository: https://github.com/wso2-extensions/identity-organization-resource-cleanup
+               - Add cleanup logic for the new table(s) to handle data removal during organization deletion
+               - Ensure cleanup scripts support all database types (MySQL, PostgreSQL, Oracle, MS SQL Server, DB2, H2)
+            
+            2. **Test Cleanup Functionality**: 
+               - Verify that the new table data is properly cleaned up during organization resource cleanup operations
+               - Test across all supported database platforms
+               - Ensure no orphaned data remains after cleanup
+            
+            3. **Update Documentation**: If applicable, update any related documentation regarding the cleanup process for the new tables
+            
+            ### Database Support Checklist:
+            Please verify your new table(s) are compatible with all supported databases:
+            - [ ] MySQL
+            - [ ] PostgreSQL  
+            - [ ] Oracle
+            - [ ] MS SQL Server
+            - [ ] DB2
+            - [ ] H2
+            
+            ---
+            
+            *This is an automated message. If this is a false positive or if you have questions, please reach out to the maintainers.*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ steps.changed-files.outputs.has_sql_changes }}" = "false" ]; then
+            echo "✅ No SQL files were modified in this PR"
+          elif [ "${{ steps.analyze-tables.outputs.new_tables_found }}" = "false" ]; then
+            echo "✅ SQL files were modified but no new tables were detected"
+          else
+            echo "🚨 New database tables detected - PR comment posted"
+          fi

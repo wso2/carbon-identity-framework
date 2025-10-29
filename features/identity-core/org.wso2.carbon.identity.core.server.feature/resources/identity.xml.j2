@@ -440,6 +440,9 @@
 
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>{{oauth.token_validation.authorization_code_validity}}</AuthorizationCodeDefaultValidityPeriod>
+
+        <!-- If enabled, disabled applications will be allowed to authenticate during OAuth client authentication -->
+        <AllowDisabledApplicationCredentialsForAuthentication>{{oauth.allow_disabled_application_credentials_for_authentication}}</AllowDisabledApplicationCredentialsForAuthentication>
         <!-- Default validity period for application access tokens in seconds -->
         <AccessTokenDefaultValidityPeriod>{{oauth.token_validation.app_access_token_validity}}</AccessTokenDefaultValidityPeriod>
         <!-- Default validity period for user access tokens in seconds -->
@@ -1290,6 +1293,10 @@
         </DefaultRequestedScopes>
         {% endif %}
 
+        {% if oauth.allow_default_requested_scopes_for_back_channel_grant is defined %}
+            <EnableDefaultRequestedScopesForBackChannelGrant>{{oauth.allow_default_requested_scopes_for_back_channel_grant}}</EnableDefaultRequestedScopesForBackChannelGrant>
+        {% endif %}
+
         {% if oauth.drop_unregistered_scopes is defined %}
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
@@ -1305,6 +1312,9 @@
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
         <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
+
+        <!-- Configuration for adding tenant domain info to JWT -->
+        <AddTenantDomainToAccessToken>{{oauth.add_tenant_domain_to_access_token}}</AddTenantDomainToAccessToken>
 
         <JWT>
         {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
@@ -1385,6 +1395,23 @@
         <Callback>
             <EnforceLiteralCharacters>{{oauth.callback.enforce_literal_characters}}</EnforceLiteralCharacters>
         </Callback>
+        <!--
+        By enabling this config, the refresh token will be issued during impersonation flow.
+        Please note that this is not recommended to enable this in production environments.
+        Default value : false
+        -->
+        {% if oauth.impersonated_refresh_token is defined %}
+        <ImpersonatedRefreshToken>
+            <Enable>{{oauth.impersonated_refresh_token.enable}}</Enable>
+        </ImpersonatedRefreshToken>
+        {% endif %}
+        <!--
+            By enabling this property, the "Internal" prefix will be removed from the mapped roles attribute in the issued JWT tokens.
+            Enable this setting if your applications do not require the Internal prefix when default attribute mapping
+            for http://wso2.org/claims/roles claim is changed.
+            Default value : true
+        -->
+        <RemoveInternalPrefixFromMappedRolesAttributeInToken>{{oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token}}</RemoveInternalPrefixFromMappedRolesAttributeInToken>
     </OAuth>
 
     <RestApiAuthentication>
@@ -2155,6 +2182,7 @@
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
+        <AllowNonStandardClaimURI>{{authentication.jit_provisioning.allow_non_Standard_claim_uri}}</AllowNonStandardClaimURI>
         {% if authentication.jit_provisioning.show_failure_reason is defined %}
         <ShowFailureReason>{{authentication.jit_provisioning.show_failure_reason}}</ShowFailureReason>
         {% endif %}
@@ -2171,12 +2199,20 @@
         <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
         <TrustedAppConsentRequired>{{application_mgt.trusted_app_consent_required}}</TrustedAppConsentRequired>
         <TrustedAppMaxThumbprintCount>{{application_mgt.trusted_app_max_thumbprint_count}}</TrustedAppMaxThumbprintCount>
+        <SkipEnforceAuthorizedAPIUpdatePermission>{{operation_permission_enforcement.skip_enforce_authorized_api_update_permission}}</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceClientSecretPermission>{{operation_permission_enforcement.skip_enforce_client_secret_permission}}</SkipEnforceClientSecretPermission>
+        {% if operation_permission_enforcement.skip_enforce_script_update_permission is defined %}
+        <SkipEnforceScriptUpdatePermission>{{operation_permission_enforcement.skip_enforce_script_update_permission}}</SkipEnforceScriptUpdatePermission>
+        {% endif %}
     </ApplicationMgt>
 
     <!--Role management service configurations-->
     <RoleMgt>
         {% if role_mgt.allow_system_prefix_for_role is defined %}
         <AllowSystemPrefixForRoles>{{role_mgt.allow_system_prefix_for_role}}</AllowSystemPrefixForRoles>
+        {% endif %}
+        {% if operation_permission_enforcement.skip_enforce_role_operation_permission is defined %}
+        <SkipEnforceRoleOperationPermission>{{operation_permission_enforcement.skip_enforce_role_operation_permission}}</SkipEnforceRoleOperationPermission>
         {% endif %}
     </RoleMgt>
 
@@ -2222,9 +2258,17 @@
                 {% endfor %}
             </ExcludedParameters>
         </ActionRequest>
+        <!--
+            Please note that the latest_version temporary configuration is intended strictly for internal use.
+            Do not modify it for custom requirements, and it should not be recommended or exposed to customers.
+        -->
         <Types>
             <PreIssueAccessToken>
                 <Enable>{{actions.types.pre_issue_access_token.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_issue_access_token.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
+                </Version>
                 <ActionRequest>
                     <ExcludedHeaders>
                          {% for header in actions.types.pre_issue_access_token.action_request.excluded_headers %}
@@ -2250,12 +2294,23 @@
             </PreIssueAccessToken>
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_update_profile.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
+                </Version>
             </PreUpdateProfile>
             <PreUpdatePassword>
-                <EnableInRegistrationFlows>{{actions.types.pre_update_password.enable_in_registration_flows}}</EnableInRegistrationFlows>
+                <Version>
+                    <Latest>{{actions.types.pre_update_password.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
+                </Version>
             </PreUpdatePassword>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.authentication.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
+                </Version>
                 <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
             </Authentication>
         </Types>
@@ -2836,6 +2891,9 @@
 
 
     <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
+        <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" >
+            <Permissions>/</Permissions>
+        </Resource>
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}"
                 {% if resource.allowed_auth_handlers is defined %}
@@ -4265,6 +4323,9 @@
         {% if x509.crl_download_timeout is defined and x509.crl_download_timeout|length %}
         <CRLDownloadTimeout>{{x509.crl_download_timeout}}</CRLDownloadTimeout>
         {% endif %}
+        {% if x509.request_header_encoded is defined %}
+        <X509RequestHeaderEncoded>{{x509.request_header_encoded}}</X509RequestHeaderEncoded>
+        {% endif %}
     </X509>
 
     <!-- This configuration specifies the claims that should be logged to "audit.log" upon changes. -->
@@ -4832,7 +4893,7 @@
                 -->
                 <ConnectionTimeout>{{notificationChannel.sms.custom.connection_timeout}}</ConnectionTimeout>
                 <!--
-                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is 
+                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is
                     established to the custom SMS provider. A timeout of zero is interpreted as an infinite timeout.
                     Default value is 20000ms.
                     Supported versions : IS 7.2.0 onwards

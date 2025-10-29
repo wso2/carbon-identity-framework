@@ -50,7 +50,8 @@ public class AuthorizationUtil {
         if (operationScopeValidationContext != null && operationScopeValidationContext.isValidationRequired()) {
             LOG.debug("Operation scope validation is required for operation: " + operationName);
             List<String> allowedScopes = operationScopeValidationContext.getValidatedScopes();
-            Map<String, String> operationScopeMap = operationScopeValidationContext.getOperationScopeMap();
+            Map<String, String> operationScopeMap = operationScopeValidationContext.getOperationScopeSet()
+                    .getOperationScopeMap();
             String operationScope = operationScopeMap.get(operationName);
 
             if (operationScope == null) {
@@ -60,8 +61,10 @@ public class AuthorizationUtil {
             }
 
             if (!allowedScopes.contains(operationScope)) {
-                LOG.warn("Operation '" + operationName + "' requires scope '" + operationScope +
-                        "' which is not in allowed scopes.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Operation '" + operationName + "' requires scope '" + operationScope +
+                            "' which is not in allowed scopes.");
+                }
                 throw new ForbiddenException("Operation is not permitted. You do not have permissions to make " +
                         "this request.");
             }

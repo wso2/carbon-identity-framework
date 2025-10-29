@@ -4035,6 +4035,39 @@ public class FrameworkUtils {
     }
 
     /**
+     * Pre-process user's username considering authentication context.
+     * This version uses context.getTenantDomain() instead of context.getUserTenantDomain() which is used in
+     * public static String preprocessUsername(String username, AuthenticationContext context) method.
+     *
+     * @param username Username of the user.
+     * @param context  Authentication context.
+     * @return preprocessed username with context tenant domain.
+     */
+    public static String preprocessUsernameWithContextTenantDomain(String username, AuthenticationContext context) {
+
+        boolean isSaaSApp = context.getSequenceConfig().getApplicationConfig().isSaaSApp();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + context.getUserTenantDomain();
+            }
+        } else if (!username.endsWith(context.getUserTenantDomain())) {
+
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + context.getTenantDomain();
+        }
+        return username;
+    }
+
+    /**
      * Pre-process user's username considering the service provider.
      *
      * @param username Username of the user.
@@ -4321,6 +4354,17 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(IdentityUtil.
                     getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
+    }
+
+    /**
+     * Check whether non-standard claim URIs are allowed.
+     *
+     * @return true if non-standard claim URIs are allowed, false otherwise.
+     */
+    public static boolean allowNonStandardClaimUri() {
+
+        return Boolean.parseBoolean(IdentityUtil.
+                getProperty(FrameworkConstants.ALLOW_NON_STANDARD_CLAIM_URI));
     }
 
     /**

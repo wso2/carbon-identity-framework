@@ -37,6 +37,10 @@ public enum ErrorMessage {
             "One or more provided headers are not allowed by the server."),
     ERROR_NOT_ALLOWED_PARAMETER("60008", "Provided Parameters are not allowed.",
             "One or more provided parameters are not allowed by the server."),
+    ERROR_INVALID_ACTION_VERSION_UPDATE("60009", "Invalid action version update request.",
+            "Only allowed to update to the latest Action version: %s. Ensure that only the major version is provided."),
+    ERROR_INVALID_RULE_FOR_ACTION_VERSION("600010", "Invalid action rule for the action version.",
+            "An unsupported rule has been provided for action version %s."),
 
     // Server errors.
     ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",

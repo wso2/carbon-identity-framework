@@ -142,6 +142,7 @@ public class TaskExecutionNode implements Node {
                         .status(STATUS_INCOMPLETE)
                         .type(VIEW)
                         .requiredData(response.getRequiredData())
+                        .optionalData(response.getOptionalData())
                         .error(response.getErrorMessage())
                         .build();
             case STATUS_USER_INPUT_REQUIRED:
@@ -149,6 +150,7 @@ public class TaskExecutionNode implements Node {
                         .status(STATUS_INCOMPLETE)
                         .type(VIEW)
                         .requiredData(response.getRequiredData())
+                        .optionalData(response.getOptionalData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_CLIENT_INPUT_REQUIRED:
@@ -156,6 +158,7 @@ public class TaskExecutionNode implements Node {
                         .status(STATUS_INCOMPLETE)
                         .type(INTERNAL_PROMPT)
                         .requiredData(response.getRequiredData())
+                        .optionalData(response.getOptionalData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_WEBAUTHN:
@@ -163,6 +166,7 @@ public class TaskExecutionNode implements Node {
                         .status(STATUS_INCOMPLETE)
                         .type(WEBAUTHN)
                         .requiredData(response.getRequiredData())
+                        .optionalData(response.getOptionalData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_EXTERNAL_REDIRECTION:
@@ -170,6 +174,7 @@ public class TaskExecutionNode implements Node {
                         .status(STATUS_INCOMPLETE)
                         .type(REDIRECTION)
                         .requiredData(response.getRequiredData())
+                        .optionalData(response.getOptionalData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_USER_ERROR:
@@ -181,7 +186,7 @@ public class TaskExecutionNode implements Node {
                 if (response.getErrorCode() != null){
                     throw handleServerException(flowType, response);
                 }
-                throw handleServerException(flowType, ERROR_CODE_REQUEST_PROCESSING_FAILURE, response.getErrorMessage());
+                throw handleServerException(flowType, ERROR_CODE_EXECUTOR_FAILURE, response.getErrorMessage());
             default:
                 throw handleServerException(flowType, ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
         }
@@ -191,6 +196,7 @@ public class TaskExecutionNode implements Node {
                                               NodeConfig configs) {
 
         if ((response.getRequiredData() != null && !response.getRequiredData().isEmpty()) ||
+                (response.getOptionalData() != null && !response.getOptionalData().isEmpty()) ||
                 (response.getAdditionalInfo() != null && !response.getAdditionalInfo().isEmpty())) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Unhandled data from the executor " + executorName + " will be ignored.");

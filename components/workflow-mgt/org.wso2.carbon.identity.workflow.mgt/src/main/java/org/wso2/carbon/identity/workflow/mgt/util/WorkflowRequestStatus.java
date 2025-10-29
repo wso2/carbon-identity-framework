@@ -60,5 +60,10 @@ public enum WorkflowRequestStatus {
     /**
      * The request failed at the executor.
      */
-    UNDEFINED
+    UNDEFINED,
+
+    /**
+     * The request is aborted by the admin.
+     */
+    ABORTED
 }

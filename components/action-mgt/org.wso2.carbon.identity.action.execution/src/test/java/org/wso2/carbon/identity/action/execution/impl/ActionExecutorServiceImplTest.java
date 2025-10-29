@@ -112,6 +112,7 @@ public class ActionExecutorServiceImplTest {
     private ActionExecutionDiagnosticLogger actionExecutionDiagnosticLogger;
     @InjectMocks
     private ActionExecutorServiceImpl actionExecutorService;
+    private ActionExecutorConfig actionExecutorConfig;
     private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
 
     private MockedStatic<RequestFilter> requestFilter;
@@ -123,9 +124,10 @@ public class ActionExecutorServiceImplTest {
     public void setUp() throws Exception {
 
         actionExecutorConfigStatic = mockStatic(ActionExecutorConfig.class);
-        ActionExecutorConfig actionExecutorConfig = mock(ActionExecutorConfig.class);
+        actionExecutorConfig = mock(ActionExecutorConfig.class);
         actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
         when(actionExecutorConfig.getHttpConnectionPoolSize()).thenReturn(20);
+        when(actionExecutorConfig.getRetiredUpToVersion(any())).thenReturn("v0");
         MockitoAnnotations.openMocks(this);
         ActionExecutionServiceComponentHolder actionExecutionServiceComponentHolder =
                 ActionExecutionServiceComponentHolder.getInstance();
@@ -171,6 +173,7 @@ public class ActionExecutorServiceImplTest {
 
         Action action = mock(Action.class);
         when(action.getStatus()).thenReturn(Action.Status.INACTIVE);
+        when(action.getActionVersion()).thenReturn("v1");
         when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         when(actionManagementService.getActionsByActionType(Action.ActionTypes.valueOf(actionType.name()).
                 getPathParam(), "tenantDomain")).thenReturn(new LinkedList<>(Collections.singleton(action)));
@@ -196,6 +199,7 @@ public class ActionExecutorServiceImplTest {
 
         Action action = mock(Action.class);
         when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
+        when(action.getActionVersion()).thenReturn("v1");
         when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         when(action.getActionRule()).thenReturn(ActionRule.create("ruleId", "tenantDomain"));
         when(ruleEvaluationService.evaluate(any(), any(), any())).thenReturn(new RuleEvaluationResult("ruleId", false));
@@ -266,6 +270,7 @@ public class ActionExecutorServiceImplTest {
         Action action = mock(Action.class);
         when(action.getId()).thenReturn("actionId");
         when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
+        when(action.getActionVersion()).thenReturn("v1");
         when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         when(action.getActionRule()).thenReturn(ActionRule.create("ruleId", "tenantDomain"));
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -392,13 +397,13 @@ public class ActionExecutorServiceImplTest {
                 actionExecutionRequest);
 
         ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
 
         String payload = getJSONRequestPayload(actionExecutionRequest);
         // Verify that the HTTP client was called with the expected request
-        verify(apiClient).callAPI(any(), any(), any(), eq(payload));
+        verify(apiClient).callAPI(any(), any(), any(), any(), eq(payload));
     }
 
     @Test
@@ -423,13 +428,13 @@ public class ActionExecutorServiceImplTest {
                 actionExecutionRequest);
 
         ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
 
         String payload = getJSONRequestPayload(actionExecutionRequest);
         // Verify that the HTTP client was called with the expected request
-        verify(apiClient).callAPI(any(), any(), any(), eq(payload));
+        verify(apiClient).callAPI(any(), any(), any(), any(), eq(payload));
     }
 
     @Test
@@ -462,7 +467,7 @@ public class ActionExecutorServiceImplTest {
 
         ActionInvocationResponse actionInvocationResponse =
                 createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
@@ -512,7 +517,7 @@ public class ActionExecutorServiceImplTest {
                 actionExecutionRequest);
 
         ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
@@ -527,6 +532,40 @@ public class ActionExecutorServiceImplTest {
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
                 actionType, action.getId(), FlowContext.create(), "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+    expectedExceptionsMessageRegExp = "Action version is retired for action: actionId")
+    public void testActionExecuteFailureWithRetiredActionVersion() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createAction();
+
+        when(actionExecutorConfig.getRetiredUpToVersion(any())).thenReturn("v1");
+
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+        when(action.getActionRule()).thenReturn(null);
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        ActionInvocationResponse actionInvocationResponse =
+                createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+
+        ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(
+                expectedStatus);
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
+
+        actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
     }
 
     @Test
@@ -549,7 +588,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createFailureActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new FailedStatus(new Failure("Error_reason",
                 "Error_description"));
@@ -588,7 +627,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createIncompleteActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new IncompleteStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
@@ -628,7 +667,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createActionInvocationResponseWithoutAPIResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
     }
@@ -654,7 +693,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createErrorActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new ErrorStatus(new Error("Error_message",
                 "Error_description"));
@@ -783,6 +822,7 @@ public class ActionExecutorServiceImplTest {
         when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
         when(action.getId()).thenReturn("actionId");
         when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        when(action.getActionVersion()).thenReturn("v1");
 
         EndpointConfig endpointConfig = mock(EndpointConfig.class);
         when(action.getEndpoint()).thenReturn(endpointConfig);
