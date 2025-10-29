@@ -37,6 +37,8 @@ public class DebugProcessor {
  * @throws IOException
  */
     private static final Log LOG = LogFactory.getLog(DebugProcessor.class);
+    // Jackson ObjectMapper for robust JSON parsing.
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Processes the OAuth 2.0 Authorization Code callback from external IdP.
@@ -513,27 +515,17 @@ public class DebugProcessor {
     }
 
     private Map<String, Object> parseJsonToClaims(String json) {
-        Map<String, Object> claims = new HashMap<>();
         try {
-            // Simple JSON parsing (in production, use a proper JSON library).
-            json = json.trim();
-            if (json.startsWith("{") && json.endsWith("}")) {
-                json = json.substring(1, json.length() - 1);
-                
-                String[] pairs = json.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-                for (String pair : pairs) {
-                    String[] keyValue = pair.split(":", 2);
-                    if (keyValue.length == 2) {
-                        String key = keyValue[0].trim().replaceAll("^\"|\"$", "");
-                        String value = keyValue[1].trim().replaceAll("^\"|\"$", "");
-                        claims.put(key, value);
-                    }
-                }
+            if (json == null || json.trim().isEmpty()) {
+                return new HashMap<>();
             }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> claims = mapper.readValue(json, Map.class);
+            return claims != null ? claims : new HashMap<>();
         } catch (Exception e) {
             LOG.error("Error parsing JSON to claims: " + e.getMessage(), e);
+            return new HashMap<>();
         }
-        return claims;
     }
 
 }
