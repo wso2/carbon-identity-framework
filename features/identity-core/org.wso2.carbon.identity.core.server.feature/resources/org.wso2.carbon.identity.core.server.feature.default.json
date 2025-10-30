@@ -322,6 +322,9 @@
   "oauth.impersonated_refresh_token.enable": true,
   "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
 
+  "oauth.enable_legacy_session_bound_token_behaviour": false,
+  "oauth.allow_session_bound_tokens_after_session_expiry": false,
+
   "rest_api_authentication.add_realm_user_to_error": false,
 
   "saml.entity_id": "${carbon.host}",
