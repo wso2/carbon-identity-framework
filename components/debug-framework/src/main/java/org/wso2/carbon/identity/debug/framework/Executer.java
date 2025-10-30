@@ -1,3 +1,22 @@
+
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.debug.framework;
 
 import org.apache.commons.logging.Log;
@@ -6,7 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.debug.framework.Utils.DebugUtils;
+import org.wso2.carbon.identity.debug.framework.utils.DebugUtils;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -38,8 +57,9 @@ public class Executer {
     // Step status: claim mapping started
     context.setProperty("step_claim_mapping_status", "started");
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Generating OAuth 2.0 Authorization URL for IdP: " + 
-                     (idp != null ? idp.getIdentityProviderName() : "null"));
+            String idpName = idp != null ? idp.getIdentityProviderName() : "null";
+        LOG.debug("Generating OAuth 2.0 Authorization URL for IdP: "
+            + idpName);
         }
 
         try {
@@ -143,7 +163,9 @@ public class Executer {
                 return null;
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug("OAuth 2.0 configuration validated from context - ClientId: FOUND, Authorization Endpoint: " + authorizationEndpoint);
+                String authzEndpointForLog = authorizationEndpoint;
+        LOG.debug("OAuth 2.0 configuration validated from context - ClientId: FOUND, Authorization Endpoint: "
+            + authzEndpointForLog);
             }
             // Generate PKCE parameters.
             String codeVerifier = generateCodeVerifier();
@@ -181,15 +203,25 @@ public class Executer {
                 urlBuilder.append("&login_hint=").append(encodeParam(username));
             }
             // Add any additional custom parameters from context (ADDITIONAL_OAUTH_PARAMS)
-            java.util.Map<String, String> additionalParams = (java.util.Map<String, String>) context.getProperty("ADDITIONAL_OAUTH_PARAMS");
+            java.util.Map<String, String> additionalParams = null;
+            Object additionalParamsObj = context.getProperty("ADDITIONAL_OAUTH_PARAMS");
+            if (additionalParamsObj instanceof java.util.Map) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, String> temp = (java.util.Map<String, String>) additionalParamsObj;
+                additionalParams = temp;
+            }
             if (additionalParams != null) {
                 for (java.util.Map.Entry<String, String> entry : additionalParams.entrySet()) {
-                    urlBuilder.append("&").append(entry.getKey()).append("=").append(encodeParam(entry.getValue()));
+                    urlBuilder.append("&")
+                            .append(entry.getKey())
+                            .append("=")
+                            .append(encodeParam(entry.getValue()));
                 }
             }
             String authorizationUrl = urlBuilder.toString();
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Generated OAuth 2.0 Authorization URL with PKCE for IdP (from context): " + idp.getIdentityProviderName());
+                String idpNameForLog = idp != null ? idp.getIdentityProviderName() : "null";
+                LOG.debug("Generated OAuth 2.0 Authorization URL with PKCE for IdP (from context): " + idpNameForLog);
             }
             return authorizationUrl;
         } catch (Exception e) {
@@ -258,8 +290,8 @@ public class Executer {
             FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug authentication context cached successfully with identifier: " + 
-                         context.getContextIdentifier());
+                String ctxId = context.getContextIdentifier();
+                LOG.debug("Debug authentication context cached successfully with identifier: " + ctxId);
             }
         } catch (Exception e) {
             LOG.error("Error caching debug authentication context: " + e.getMessage(), e);

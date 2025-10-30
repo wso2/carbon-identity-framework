@@ -1,23 +1,40 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.debug.framework;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 import java.lang.reflect.Method;
+import java.util.Map;
 
-
+import javax.servlet.http.HttpServletRequest;
 /**
  * Provides context for debug authentication flows.
  * Centralizes context creation logic and handles IdP management integration.
@@ -93,19 +110,22 @@ public class ContextProvider {
                 if (federatedConfigs != null) {
                     for (FederatedAuthenticatorConfig config : federatedConfigs) {
                         if (config != null && config.isEnabled() && config.getName() != null &&
-                            (authenticatorName == null || authenticatorName.equals(config.getName()))) {
+                                (authenticatorName == null || authenticatorName.equals(config.getName()))) {
                             Property[] properties = config.getProperties();
                             if (properties != null) {
                                 for (Property property : properties) {
                                     if (property != null && property.getName() != null &&
-                                        ("Scope".equalsIgnoreCase(property.getName()) || "scope".equalsIgnoreCase(property.getName()))) {
+                                            ("Scope".equalsIgnoreCase(property.getName()) ||
+                                                    "scope".equalsIgnoreCase(property.getName()))) {
                                         scope = property.getValue();
                                         break;
                                     }
                                 }
                             }
                         }
-                        if (scope != null) break;
+                        if (scope != null) {
+                            break;
+                        }
                     }
                 }
                 if (scope != null && !scope.trim().isEmpty()) {
@@ -171,7 +191,8 @@ public class ContextProvider {
                                                          Map<String, String> additionalParams) {
         String tenantDomain = getTenantDomain(null, null);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Creating OAuth2 debug context for IdP ID: " + idpId + " with authenticator: " + authenticatorName);
+            LOG.debug("Creating OAuth2 debug context for IdP ID: " + idpId + " with authenticator: "
+                    + authenticatorName);
         }
 
         // Input validation.
@@ -226,7 +247,7 @@ public class ContextProvider {
             context.setProperty("DEBUG_AUTHZ_ENDPOINT", resolvedProps.authzEndpoint);
             context.setProperty("DEBUG_TOKEN_ENDPOINT", resolvedProps.tokenEndpoint);
             context.setProperty("DEBUG_USERINFO_ENDPOINT", resolvedProps.userInfoEndpoint);
-            context.setProperty("DEBUG_IDP_SCOPE", resolvedProps.scope); 
+            context.setProperty("DEBUG_IDP_SCOPE", resolvedProps.scope);
             
             // Add OAuth2 parameters if provided.
             if (redirectUri != null && !redirectUri.trim().isEmpty()) {
@@ -254,7 +275,8 @@ public class ContextProvider {
             }
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("OAuth2 debug context created successfully with context identifier: " + context.getContextIdentifier());
+                LOG.debug("OAuth2 debug context created successfully with context identifier: "
+                        + context.getContextIdentifier());
             }
             
             return context;
@@ -280,7 +302,8 @@ public class ContextProvider {
         }
         
         // Add proper UUID validation for resource IDs.
-        if (!idpId.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
+        if (!idpId.matches(
+                "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
             throw new RuntimeException("Invalid Identity Provider ID format");
         }
         // Additional validation can be added here as needed.
@@ -325,7 +348,8 @@ public class ContextProvider {
             if (authenticatorExistsInIdP(idp, requestedAuthenticator)) {
                 return requestedAuthenticator;
             } else {
-                LOG.warn("Requested authenticator '" + requestedAuthenticator + "' not found in IdP: " + idp.getIdentityProviderName());
+        LOG.warn("Requested authenticator '" + requestedAuthenticator + "' not found in IdP: "
+            + idp.getIdentityProviderName());
             }
         }
         
@@ -364,7 +388,8 @@ public class ContextProvider {
     }
     
     /**
-     * Resolves and validates OAuth 2.0 configuration for the Identity Provider, and returns all required endpoints and secrets.
+     * Resolves and validates OAuth 2.0 configuration for the Identity Provider, and returns all required
+     * endpoints and secrets.
      * Stores all resolved values in a helper object for context population.
      *
                     String tenantDomain = getTenantDomain(null, null);
@@ -379,8 +404,9 @@ public class ContextProvider {
 
         FederatedAuthenticatorConfig[] federatedConfigs = idp.getFederatedAuthenticatorConfigs();
         if (federatedConfigs == null || federatedConfigs.length == 0) {
-            throw new RuntimeException("No federated authenticator configurations found for IdP: " + idp.getIdentityProviderName());
-        }
+        throw new RuntimeException(
+            "No federated authenticator configurations found for IdP: " + idp.getIdentityProviderName());
+            }
 
         FederatedAuthenticatorConfig oauthConfig = null;
         Object executor = null;
@@ -389,13 +415,17 @@ public class ContextProvider {
                 String authenticatorName = config.getName();
                 if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
                     oauthConfig = config;
-                    executor = createExecutor("org.wso2.carbon.identity.application.authenticator.google.GoogleExecutor");
+                    executor = createExecutor(
+                            "org.wso2.carbon.identity.application.authenticator.google.GoogleExecutor");
                     break;
-                } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) || "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
+                } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) ||
+                        "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
                     oauthConfig = config;
-                    executor = createExecutor("org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectExecutor");
+                    executor = createExecutor(
+                            "org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectExecutor");
                     break;
-                } else if ("GitHubAuthenticator".equals(authenticatorName) || "GithubAuthenticator".equals(authenticatorName)) {
+                } else if ("GitHubAuthenticator".equals(authenticatorName) ||
+                        "GithubAuthenticator".equals(authenticatorName)) {
                     oauthConfig = config;
                     executor = createExecutor("org.wso2.carbon.identity.authenticator.github.GithubExecutor");
                     break;
@@ -404,8 +434,9 @@ public class ContextProvider {
         }
 
         if (oauthConfig == null) {
-            throw new RuntimeException("No OAuth 2.0 authenticator configuration found for IdP: " + idp.getIdentityProviderName());
-        }
+        throw new RuntimeException(
+            "No OAuth 2.0 authenticator configuration found for IdP: " + idp.getIdentityProviderName());
+            }
 
         java.util.Map<String, String> authenticatorProperties = new java.util.HashMap<>();
         Property[] properties = oauthConfig.getProperties();
@@ -424,7 +455,8 @@ public class ContextProvider {
             if (clientSecret == null || clientSecret.trim().isEmpty()) {
                 clientSecret = authenticatorProperties.get("client_secret");
             }
-            String authzEndpoint = getAuthorizationEndpointFromExecutor(executor, authenticatorProperties, authenticatorName);
+            String authzEndpoint =
+                    getAuthorizationEndpointFromExecutor(executor, authenticatorProperties, authenticatorName);
             String tokenEndpoint = getTokenEndpointFromExecutor(executor, authenticatorProperties, authenticatorName);
             String userInfoEndpoint = authenticatorProperties.get("UserInfoEndpoint");
             if (userInfoEndpoint == null || userInfoEndpoint.trim().isEmpty()) {
@@ -436,30 +468,34 @@ public class ContextProvider {
             }
             // Validate required properties.
             if (clientId == null || clientId.trim().isEmpty()) {
-                throw new RuntimeException("OAuth 2.0 Client ID is missing for IdP: " + idp.getIdentityProviderName());
+                throw new RuntimeException(
+                        "OAuth 2.0 Client ID is missing for IdP: " + idp.getIdentityProviderName());
             }
             if (authzEndpoint == null || authzEndpoint.trim().isEmpty()) {
-                throw new RuntimeException("OAuth 2.0 Authorization Endpoint is missing for IdP: " + idp.getIdentityProviderName());
+                throw new RuntimeException(
+                        "OAuth 2.0 Authorization Endpoint is missing for IdP: " + idp.getIdentityProviderName());
             }
             if (tokenEndpoint == null || tokenEndpoint.trim().isEmpty()) {
-                throw new RuntimeException("OAuth 2.0 Token Endpoint is missing for IdP: " + idp.getIdentityProviderName());
+                throw new RuntimeException(
+                        "OAuth 2.0 Token Endpoint is missing for IdP: " + idp.getIdentityProviderName());
             }
             // Store resolved endpoints in the authenticator properties so Executer can use them.
             storeResolvedEndpoints(oauthConfig, clientId, authzEndpoint, tokenEndpoint);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("OAuth 2.0 configuration validated for IdP: " + idp.getIdentityProviderName() +
-                        " - ClientId: FOUND" +
-                        ", AuthzEndpoint: " + authzEndpoint +
-                        ", TokenEndpoint: " + tokenEndpoint +
-                        ", UserInfoEndpoint: " + (userInfoEndpoint != null ? userInfoEndpoint : "MISSING"));
+                LOG.debug("OAuth 2.0 configuration validated for IdP: " + idp.getIdentityProviderName()
+                        + " - ClientId: FOUND"
+                        + ", AuthzEndpoint: " + authzEndpoint
+                        + ", TokenEndpoint: " + tokenEndpoint
+                        + ", UserInfoEndpoint: " + (userInfoEndpoint != null ? userInfoEndpoint : "MISSING"));
             }
-            return new OAuth2ResolvedProperties(clientId, clientSecret, authzEndpoint, tokenEndpoint, userInfoEndpoint, scope);
+            return new OAuth2ResolvedProperties(clientId, clientSecret, authzEndpoint,
+                    tokenEndpoint, userInfoEndpoint, scope);
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("OAuth 2.0 validation failed for IdP: " + idp.getIdentityProviderName(), e);
             }
-            throw new RuntimeException("OAuth 2.0 configuration validation failed for IdP: " +
-                    idp.getIdentityProviderName() + ". " + e.getMessage(), e);
+        throw new RuntimeException("OAuth 2.0 configuration validation failed for IdP: "
+            + idp.getIdentityProviderName() + ". " + e.getMessage(), e);
         }
     }
 
@@ -474,7 +510,8 @@ public class ContextProvider {
         public final String userInfoEndpoint;
         public final String scope;
 
-        public OAuth2ResolvedProperties(String clientId, String clientSecret, String authzEndpoint, String tokenEndpoint, String userInfoEndpoint, String scope) {
+        public OAuth2ResolvedProperties(String clientId, String clientSecret, String authzEndpoint,
+                String tokenEndpoint, String userInfoEndpoint, String scope) {
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.authzEndpoint = authzEndpoint;
@@ -542,7 +579,8 @@ public class ContextProvider {
      * @param authenticatorName Name of the authenticator.
      * @return Authorization endpoint URL with fallback support.
      */
-    private String getAuthorizationEndpointFromExecutor(Object executor, java.util.Map<String, String> authenticatorProperties, String authenticatorName) {
+    private String getAuthorizationEndpointFromExecutor(Object executor,
+            java.util.Map<String, String> authenticatorProperties, String authenticatorName) {
         if (executor != null) {
             try {
                 // Try getAuthorizationServerEndpoint first.
@@ -602,7 +640,8 @@ public class ContextProvider {
      * @param authenticatorName Name of the authenticator.
      * @return Token endpoint URL with fallback support.
      */
-    private String getTokenEndpointFromExecutor(Object executor, java.util.Map<String, String> authenticatorProperties, String authenticatorName) {
+    private String getTokenEndpointFromExecutor(Object executor,
+            java.util.Map<String, String> authenticatorProperties, String authenticatorName) {
         if (executor != null) {
             try {
                 // Use reflection to call getTokenEndpoint method.
@@ -660,7 +699,8 @@ public class ContextProvider {
             for (Property prop : properties) {
                 if (prop != null && prop.getName() != null) {
                     String propName = prop.getName();
-                    if ("ClientId".equals(propName) || "client_id".equals(propName) || "OAuth2ClientId".equals(propName)) {
+                    if ("ClientId".equals(propName) || "client_id".equals(propName) ||
+                            "OAuth2ClientId".equals(propName)) {
                         prop.setValue(clientId);
                         hasClientId = true;
                     } else if ("OAuth2AuthzEPUrl".equals(propName) || "AuthzEndpoint".equals(propName) || 
@@ -713,7 +753,8 @@ public class ContextProvider {
         }
         
         StringBuilder diagnosis = new StringBuilder();
-        diagnosis.append("OAuth 2.0 Configuration Diagnosis for IdP: ").append(idp.getIdentityProviderName()).append("\n");
+        diagnosis.append("OAuth 2.0 Configuration Diagnosis for IdP: ")
+                .append(idp.getIdentityProviderName()).append("\n");
         diagnosis.append("Enabled: ").append(idp.isEnable()).append("\n");
         
         FederatedAuthenticatorConfig[] federatedConfigs = idp.getFederatedAuthenticatorConfigs();
@@ -750,25 +791,33 @@ public class ContextProvider {
                         // Create executor for endpoint resolution.
                         Object executor = null;
                         if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
-                            executor = createExecutor("org.wso2.carbon.identity.application.authenticator.google.GoogleExecutor");
+                            executor = createExecutor(
+                                    "org.wso2.carbon.identity.application.authenticator.google.GoogleExecutor");
                         } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) ||
                                   "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
-                            executor = createExecutor("org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectExecutor");
+                            executor = createExecutor(
+                                    "org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectExecutor");
                         } else if ("GitHubAuthenticator".equals(authenticatorName) || 
                                   "GithubAuthenticator".equals(authenticatorName)) {
                             // Try both possible executor class paths.
-                            executor = createExecutor("org.wso2.carbon.extension.identity.authenticator.github.connector.GithubAuthenticator");
+                            executor = createExecutor(
+                                    "org.wso2.carbon.extension.identity.authenticator.github.connector." +
+                                    "GithubAuthenticator");
                             if (executor == null) {
-                                executor = createExecutor("org.wso2.carbon.identity.application.authenticator.github.GithubExecutor");
+                                executor = createExecutor(
+                                    "org.wso2.carbon.identity.application.authenticator.github.GithubExecutor");
                             }
                         }
                         
                         try {
                             String clientId = getClientIdFromExecutor(executor, authenticatorProperties);
-                            String authzEndpoint = getAuthorizationEndpointFromExecutor(executor, authenticatorProperties, authenticatorName);
-                            String tokenEndpoint = getTokenEndpointFromExecutor(executor, authenticatorProperties, authenticatorName);
+                            String authzEndpoint = getAuthorizationEndpointFromExecutor(executor,
+                                    authenticatorProperties, authenticatorName);
+                            String tokenEndpoint = getTokenEndpointFromExecutor(executor,
+                                    authenticatorProperties, authenticatorName);
                             
-                            diagnosis.append("    Client ID: ").append(clientId != null ? "CONFIGURED" : "MISSING").append("\n");
+                            diagnosis.append("    Client ID: ").append(clientId != null ? "CONFIGURED" : "MISSING")
+                                    .append("\n");
                             diagnosis.append("    Authorization Endpoint: ");
                             if (authzEndpoint != null) {
                                 diagnosis.append("RESOLVED (").append(authzEndpoint).append(")");
@@ -784,7 +833,8 @@ public class ContextProvider {
                             }
                             diagnosis.append("\n");
                         } catch (Exception e) {
-                            diagnosis.append("    ERROR: Failed to get endpoints - ").append(e.getMessage()).append("\n");
+                        diagnosis.append("    ERROR: Failed to get endpoints - ")
+                            .append(e.getMessage()).append("\n");
                         }
                     }
                     
@@ -793,9 +843,10 @@ public class ContextProvider {
                         if (property != null && property.getName() != null) {
                             String name = property.getName();
                             String value = property.getValue();
-                            diagnosis.append("    ").append(name).append(": ")
-                                    .append(value != null && !value.trim().isEmpty() ? "CONFIGURED" : "MISSING")
-                                    .append("\n");
+                diagnosis.append("    ").append(name).append(": ")
+                    .append(value != null && !value.trim().isEmpty()
+                        ? "CONFIGURED" : "MISSING")
+                    .append("\n");
                         }
                     }
                 }
@@ -838,7 +889,8 @@ public class ContextProvider {
         } catch (Exception e) {
             // Log error but continue - this is not critical for debug flow.
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Error setting up debug service provider context: " + e.getMessage());
+                LOG.debug("Error setting up debug service provider context: "
+                        + e.getMessage());
             }
         }
     }

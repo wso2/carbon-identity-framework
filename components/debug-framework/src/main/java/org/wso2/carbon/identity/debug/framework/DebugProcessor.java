@@ -1,24 +1,44 @@
+
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.debug.framework;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.debug.framework.client.OAuth2TokenClient;
+import org.wso2.carbon.identity.debug.framework.client.TokenResponse;
 
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import java.nio.charset.StandardCharsets;
-
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.wso2.carbon.identity.debug.framework.client.OAuth2TokenClient;
-import org.wso2.carbon.identity.debug.framework.client.TokenResponse;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Processes OAuth 2.0 Authorization Code callbacks from external IdPs.
@@ -64,9 +84,11 @@ public class DebugProcessor {
             idpId = idp != null ? idp.getResourceId() : "";
             if (authorizationCode != null && authorizationCode.equals(lastProcessedCode)) {
                 if (!response.isCommitted()) {
-                    context.setProperty("DEBUG_AUTH_ERROR", "Authorization code already used in this session. Please retry login.");
+                    context.setProperty("DEBUG_AUTH_ERROR",
+                        "Authorization code already used in this session. Please retry login.");
                     context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
+                        + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -79,7 +101,8 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", error + ": " + errorDescription);
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
+                        + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -89,7 +112,8 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "Authorization code not received from IdP");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
+                        + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -99,7 +123,8 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "State parameter missing - possible CSRF attack");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
+                        + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -110,7 +135,8 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "State validation failed - possible CSRF attack");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
+                        + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -121,7 +147,8 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "Failed to exchange authorization code for tokens");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
+                        + "&idpId=" + idpId);
                 }
                 return;
             }
@@ -141,7 +168,8 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_ERROR", "Failed to extract user claims from tokens");
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state +
+                        "&idpId=" + idpId);
                 }
                 return;
             }
@@ -164,23 +192,24 @@ public class DebugProcessor {
                     debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
                     debugResult.put("sessionId", state);
                     debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
-                        debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
-                        // Add executor class name for clarity
-                        Object executorObj = context.getProperty("DEBUG_EXECUTOR_INSTANCE");
-                        String executorClass = executorObj != null ? executorObj.getClass().getSimpleName() : "UnknownExecutor";
-                        debugResult.put("executor", executorClass);
+                    debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
+                    // Add executor class name for clarity
+                    Object executorObj = context.getProperty("DEBUG_EXECUTOR_INSTANCE");
+                    String executorClass = executorObj != null ? executorObj.getClass().getSimpleName()
+
+                            : "UnknownExecutor";
+                    debugResult.put("executor", executorClass);
                     debugResult.put("timestamp", context.getProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP"));
 
                     // Incoming claims (from IdP)
                     debugResult.put("incomingClaims", claims);
-
 
                     // Mapped claims (local claims)
                     Object mappedClaims = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
                     debugResult.put("mappedClaims", mappedClaims);
 
                     // Set claim mapping status to success if mapped claims are present
-                    if (mappedClaims != null && mappedClaims instanceof Map && !((Map<?,?>) mappedClaims).isEmpty()) {
+                    if (mappedClaims != null && mappedClaims instanceof Map && !((Map<?, ?>) mappedClaims).isEmpty()) {
                         context.setProperty("step_claim_mapping_status", "success");
                         debugResult.put("step_claim_mapping_status", "success");
                     }
@@ -201,9 +230,12 @@ public class DebugProcessor {
                     // User attributes: convert keys to claim URIs
                     Map<String, Object> userAttributesMap = new HashMap<>();
                     if (authenticatedUser != null && authenticatedUser.getUserAttributes() != null) {
-                        for (Map.Entry<org.wso2.carbon.identity.application.common.model.ClaimMapping, String> entry : authenticatedUser.getUserAttributes().entrySet()) {
+                        for (Map.Entry<org.wso2.carbon.identity.application.common.model.ClaimMapping,
+                                String> entry : authenticatedUser.getUserAttributes().entrySet()) {
                             org.wso2.carbon.identity.application.common.model.ClaimMapping mapping = entry.getKey();
-                            String claimUri = mapping.getLocalClaim() != null ? mapping.getLocalClaim().getClaimUri() : mapping.toString();
+                            String claimUri = mapping.getLocalClaim() != null
+                                ? mapping.getLocalClaim().getClaimUri()
+                                : mapping.toString();
                             userAttributesMap.put(claimUri, entry.getValue());
                         }
                     }
@@ -217,7 +249,8 @@ public class DebugProcessor {
                 }
 
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state +
+                        "&idpId=" + idpId);
                 }
             } else {
                 LOG.error("Failed to create authenticated user from claims");
@@ -225,7 +258,8 @@ public class DebugProcessor {
                 context.setProperty("DEBUG_AUTH_SUCCESS", "false");
                 context.setProperty("DEBUG_USER_EXISTS", false);
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state +
+                        "&idpId=" + idpId);
                 }
             }
             return;
@@ -319,7 +353,9 @@ public class DebugProcessor {
      */
     private AuthenticatedUser createAuthenticatedUser(Map<String, Object> claims, AuthenticationContext context) {
             IdentityProvider idpLog = (IdentityProvider) context.getProperty("IDP_CONFIG");
-            if (idpLog != null && idpLog.getClaimConfig() != null && idpLog.getClaimConfig().getClaimMappings() != null) {
+            if (idpLog != null && idpLog.getClaimConfig() != null &&
+
+                    idpLog.getClaimConfig().getClaimMappings() != null) {
                 StringBuilder mappingsLog = new StringBuilder("[DEBUG] Configured claim mappings: [");
                 for (ClaimMapping cm : idpLog.getClaimConfig().getClaimMappings()) {
                     if (cm != null && cm.getRemoteClaim() != null && cm.getLocalClaim() != null) {
@@ -353,14 +389,18 @@ public class DebugProcessor {
                 for (ClaimMapping mapping : mappings) {
                     if (mapping.getRemoteClaim() != null && mapping.getLocalClaim() != null) {
                         String remoteUri = mapping.getRemoteClaim().getClaimUri();
-                        // If the remote URI is not found in claims, but a short name is, update the mapping for this context
+                        // If the remote URI is not found in claims, but a short name is, update the mapping for this
+
+                        // context
                         if (!claims.containsKey(remoteUri) && remoteUri.contains("/")) {
                             String shortName = remoteUri.substring(remoteUri.lastIndexOf("/") + 1);
                             if (claims.containsKey(shortName)) {
                                 // Update the remote claim URI in-memory for this mapping (for this context only)
                                 mapping.getRemoteClaim().setClaimUri(shortName);
                                 if (LOG.isDebugEnabled()) {
-                                    LOG.debug("Auto-mapped remote claim URI from '" + remoteUri + "' to short name '" + shortName + "' for this context.");
+                                    LOG.debug("Auto-mapped remote claim URI from '" + remoteUri + "' to short name '" +
+
+                                            shortName + "' for this context.");
                                 }
                             }
                         }
@@ -369,7 +409,9 @@ public class DebugProcessor {
             }
 
             // Create federated authenticated user.
-            AuthenticatedUser authenticatedUser = AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(subject);
+            AuthenticatedUser authenticatedUser =
+
+                    AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(subject);
             authenticatedUser.setUserName(username);
             authenticatedUser.setUserId(subject);
             authenticatedUser.setAuthenticatedSubjectIdentifier(subject);
@@ -451,7 +493,9 @@ public class DebugProcessor {
         return "FederatedIdP";
     }
 
-    private void mapClaimsToAttributes(Map<String, Object> claims, Map<ClaimMapping, String> userAttributes, AuthenticationContext context) {
+    private void mapClaimsToAttributes(Map<String, Object> claims, Map<ClaimMapping, String> userAttributes,
+
+            AuthenticationContext context) {
         try {
             // Step status reporting: claim mapping started
             context.setProperty("DEBUG_STEP_CLAIM_MAPPING_STARTED", System.currentTimeMillis());
@@ -486,7 +530,9 @@ public class DebugProcessor {
                 String remoteClaimUri = configuredMapping.getRemoteClaim().getClaimUri();
                 String localClaimUri = configuredMapping.getLocalClaim().getClaimUri();
                 Object claimValue = claims.get(remoteClaimUri);
-                String shortName = remoteClaimUri.contains("/") ? remoteClaimUri.substring(remoteClaimUri.lastIndexOf("/") + 1) : remoteClaimUri;
+                String shortName = remoteClaimUri.contains("/") ?
+
+                        remoteClaimUri.substring(remoteClaimUri.lastIndexOf("/") + 1) : remoteClaimUri;
                 // Try short name if not found
                 if (claimValue == null && !shortName.equals(remoteClaimUri)) {
                     claimValue = claims.get(shortName);

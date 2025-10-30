@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.debug.framework;
 
 import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 /**
  * Service interface for the Debug Framework.
  * This interface defines the contract for handling debug authentication requests.

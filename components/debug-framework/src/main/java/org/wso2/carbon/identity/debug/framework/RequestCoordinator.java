@@ -1,16 +1,34 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.debug.framework;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 /**
  * Routes incoming authentication requests to appropriate handlers.
  * Inspects /commonauth requests to identify debug flow callbacks and routes them 
@@ -47,7 +65,8 @@ public class RequestCoordinator implements DebugService {
      * @return OAuth 2.0 authorization URL or processing result
      */
     public String execute(org.wso2.carbon.identity.application.common.model.IdentityProvider identityProvider,
-                         org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext authenticationContext) {
+                         org.wso2.carbon.identity.application.authentication.framework.context.
+                         AuthenticationContext authenticationContext) {
 
         // Step status reporting: coordinator execute called
         authenticationContext.setProperty("DEBUG_STEP_COORDINATOR_EXECUTE_CALLED", true);
@@ -187,7 +206,8 @@ public class RequestCoordinator implements DebugService {
             if (error != null) {
                 LOG.error("OAuth error in debug callback: " + error);
                 if (!response.isCommitted()) {
-                    sendErrorResponse(response, "OAUTH_ERROR", "OAuth error: " + error);
+                    sendErrorResponse(response, "OAUTH_ERROR",
+                            "OAuth error: " + error);
                 }
                 return false;
             }
@@ -219,7 +239,9 @@ public class RequestCoordinator implements DebugService {
                 } else {
                     LOG.error("Cannot process debug callback: missing OAuth parameters and no cached context");
                     if (!response.isCommitted()) {
-                        sendErrorResponse(response, "MISSING_CONTEXT_AND_PARAMS", "Authentication context not found and OAuth parameters missing");
+                        sendErrorResponse(response, "MISSING_CONTEXT_AND_PARAMS",
+
+                                "Authentication context not found and OAuth parameters missing");
                     }
                     return false;
                 }
@@ -348,7 +370,8 @@ public class RequestCoordinator implements DebugService {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
             String errorJson = "{\"error\":\"" + errorCode + "\"," +
-                             "\"message\":\"" + (errorMessage != null ? errorMessage.replace("\"", "\\\"") : "") + "\"," +
+                             "\"message\":\"" + (errorMessage != null ? errorMessage.replace("\"", "\\\"") : "") +
+                             "\"," +
                              "\"timestamp\":" + System.currentTimeMillis() + "}";
 
             response.getWriter().write(errorJson);

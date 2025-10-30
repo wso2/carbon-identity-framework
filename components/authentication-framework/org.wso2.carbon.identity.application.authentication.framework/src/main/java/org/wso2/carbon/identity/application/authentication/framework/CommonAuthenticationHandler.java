@@ -20,15 +20,14 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-
 
 import java.io.IOException;
 

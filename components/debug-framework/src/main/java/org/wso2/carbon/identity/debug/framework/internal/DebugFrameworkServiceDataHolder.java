@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.internal;
 
-import org.wso2.carbon.identity.debug.framework.RequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.DebugService;
+import org.wso2.carbon.identity.debug.framework.RequestCoordinator;
 
 /**
  * Data holder for Debug Framework Service Component.
