@@ -1412,8 +1412,18 @@
             Default value : true
         -->
         <RemoveInternalPrefixFromMappedRolesAttributeInToken>{{oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token}}</RemoveInternalPrefixFromMappedRolesAttributeInToken>
+        <!--
+            Enable this property to use legacy session-bound token behavior for OAuth tokens.
+            This may be required for backward compatibility with older applications relying on legacy session management.
+            Default value : false
+        -->
         <EnableLegacySessionBoundTokenBehaviour>{{oauth.enable_legacy_session_bound_token_behaviour}}</EnableLegacySessionBoundTokenBehaviour>
-        <AllowSessionBoundTokensAfterSessionExpiry>{{oauth.allow_session_bound_tokens_after_session_expiry}}</AllowSessionBoundTokensAfterSessionExpiry>
+        <!--
+            Allow session-bound tokens to be used even after the associated session has expired.
+            Enable this setting if your applications require tokens to remain valid beyond session expiry, which may have security implications.
+            Default value : false
+        -->
+        <AllowSessionBoundTokensAfterIdleSessionExpiry>{{oauth.allow_session_bound_tokens_after_idle_session_expiry}}</AllowSessionBoundTokensAfterIdleSessionExpiry>
     </OAuth>
 
     <RestApiAuthentication>
