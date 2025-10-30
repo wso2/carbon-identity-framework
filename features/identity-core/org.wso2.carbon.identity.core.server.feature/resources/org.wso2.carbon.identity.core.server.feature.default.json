@@ -2062,7 +2062,7 @@
   "email_templates.branding.fallbacks.button_font_color": "#FFFFFF",
   "email_templates.branding.fallbacks.light_border_color": "transparent",
   "email_templates.branding.fallbacks.dark_border_color": "#333333",
-  "email_templates.branding.fallbacks.support_mail": "support@wso2.com",
+  "email_templates.branding.fallbacks.support_mail": "",
   "authentication.enable_basic_auth_handler": true,
 
   "organization_management.self_service.system_user_name": "B2B-SS-System-User",
