@@ -66,20 +66,20 @@ public class SQLConstants {
     public static final String GET_API_RESOURCES_MSSQL = "SELECT TOP(%d) ID, CURSOR_KEY, NAME, IDENTIFIER, " +
             "DESCRIPTION, TENANT_ID, TYPE, REQUIRES_AUTHORIZATION FROM API_RESOURCE WHERE ";
     public static final String GET_API_RESOURCES_TAIL =
-            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY CURSOR_KEY %s LIMIT %d";
+            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY NAME %s LIMIT %d";
     public static final String GET_API_RESOURCES_TAIL_FOR_ORGANIZATIONS =
             " (TENANT_ID = %d OR TENANT_ID IS NULL) AND TYPE NOT IN ('TENANT', 'SYSTEM', 'CONSOLE_FEATURE') " +
-                    "ORDER BY CURSOR_KEY %s LIMIT %d";
+                    "ORDER BY NAME %s LIMIT %d";
     public static final String GET_API_RESOURCES_TAIL_MSSQL =
-            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY CURSOR_KEY %s";
+            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY NAME %s";
     public static final String GET_API_RESOURCES_TAIL_FOR_ORGANIZATIONS_MSSQL =
             " (TENANT_ID = %d OR TENANT_ID IS NULL) AND TYPE NOT IN ('TENANT', 'SYSTEM', 'CONSOLE_FEATURE') ORDER " +
-                    "BY CURSOR_KEY %s";
+                    "BY NAME %s";
     public static final String GET_API_RESOURCES_TAIL_ORACLE =
-            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY CURSOR_KEY %s FETCH FIRST %d ROWS ONLY";
+            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY NAME %s FETCH FIRST %d ROWS ONLY";
     public static final String GET_API_RESOURCES_TAIL_FOR_ORGANIZATIONS_ORACLE =
             " (TENANT_ID = %d OR TENANT_ID IS NULL) AND TYPE NOT IN ('TENANT', 'SYSTEM', 'CONSOLE_FEATURE') " +
-                    "ORDER BY CURSOR_KEY %s FETCH FIRST %d ROWS ONLY";
+                    "ORDER BY NAME %s FETCH FIRST %d ROWS ONLY";
     public static final String GET_API_RESOURCES_WITH_PROPERTIES_SELECTION = "SELECT" +
             " AR.ID AS API_RESOURCE_ID," +
             " AR.CURSOR_KEY AS CURSOR_KEY," +

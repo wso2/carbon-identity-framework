@@ -78,8 +78,8 @@ public class APIResourceManagementConstants {
     static {
         attributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
         attributeColumnMap.put(IDENTIFIER, SQLConstants.IDENTIFIER_COLUMN_NAME);
-        attributeColumnMap.put(BEFORE, SQLConstants.CURSOR_KEY_COLUMN_NAME);
-        attributeColumnMap.put(AFTER, SQLConstants.CURSOR_KEY_COLUMN_NAME);
+        attributeColumnMap.put(BEFORE, SQLConstants.NAME_COLUMN_NAME);
+        attributeColumnMap.put(AFTER, SQLConstants.NAME_COLUMN_NAME);
         attributeColumnMap.put(TYPE, SQLConstants.TYPE_COLUMN_NAME);
 
         scopeAttributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);

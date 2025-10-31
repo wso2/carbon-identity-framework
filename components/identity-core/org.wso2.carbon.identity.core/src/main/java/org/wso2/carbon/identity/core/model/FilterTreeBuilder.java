@@ -238,10 +238,10 @@ public class FilterTreeBuilder {
                 if (filterParts.length >= 2) {
                     setExpressionNodeValues(filterParts[0], " ew ", filterParts[1], expressionNode);
                 }
-            } else if (Pattern.compile(Pattern.quote(" pr"), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+            } else if (Pattern.compile(" pr$", Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
                 //with filter PR, there should not be whitespace after.
-                filterParts = trimmedFilter.split(" pr| PR| pR| Pr");
-                if (filterParts.length >= 2) {
+                filterParts = trimmedFilter.split("(?i) pr$");
+                if (filterParts.length == 1) {
                     setExpressionNodeValues(filterParts[0], " pr", null, expressionNode);
                 }
             } else if (Pattern.compile(Pattern.quote(" gt "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
@@ -309,3 +309,4 @@ public class FilterTreeBuilder {
         }
     }
 }
+
