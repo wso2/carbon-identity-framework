@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-fragment xmlns="http://java.sun.com/xml/ns/javaee"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+              http://java.sun.com/xml/ns/javaee/web-fragment_3_0.xsd"
+              version="3.0">
+
+    <name>debug-framework</name>
+
+    <!-- Debug Interceptor Filter -->
+    <filter>
+        <filter-name>DebugInterceptorFilter</filter-name>
+        <filter-class>org.wso2.carbon.identity.debug.framework.DebugInterceptorFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>DebugInterceptorFilter</filter-name>
+        <url-pattern>/commonauth/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+    <!-- Set high priority to ensure our filter runs first -->
+    <ordering>
+        <before>
+            <others/>
+        </before>
+    </ordering>
+
+</web-fragment>
