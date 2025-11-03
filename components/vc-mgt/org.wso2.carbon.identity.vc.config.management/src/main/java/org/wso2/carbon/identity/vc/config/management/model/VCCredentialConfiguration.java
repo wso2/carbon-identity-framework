@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.vc.config.management.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Model representing a VC Credential Configuration.
@@ -38,18 +37,18 @@ public class VCCredentialConfiguration {
     private String configurationId;
 
     private String scope;
-    private String format = "jwt_vc_json";
+    private String format;
 
     // Single signing algorithm supported for this configuration.
-    private String credentialSigningAlgValuesSupported;
+    private String signingAlgorithm;
 
-    private String credentialType;
+    private String type;
 
-    private CredentialMetadata credentialMetadata = new CredentialMetadata();
+    private Metadata metadata = new Metadata();
 
-    private List<ClaimMapping> claimMappings = new ArrayList<>();
+    private List<String> claims = new ArrayList<>();
 
-    private Integer expiryInSeconds;
+    private Integer expiryIn;
 
     public String getId() {
         return id;
@@ -83,20 +82,20 @@ public class VCCredentialConfiguration {
         this.format = format;
     }
 
-    public String getCredentialSigningAlgValuesSupported() {
-        return credentialSigningAlgValuesSupported;
+    public String getSigningAlgorithm() {
+        return signingAlgorithm;
     }
 
-    public void setCredentialSigningAlgValuesSupported(String credentialSigningAlgValuesSupported) {
-        this.credentialSigningAlgValuesSupported = credentialSigningAlgValuesSupported;
+    public void setSigningAlgorithm(String signingAlgorithm) {
+        this.signingAlgorithm = signingAlgorithm;
     }
 
-    public List<ClaimMapping> getClaimMappings() {
-        return claimMappings;
+    public List<String> getClaims() {
+        return claims;
     }
 
-    public void setClaimMappings(List<ClaimMapping> claimMappings) {
-        this.claimMappings = claimMappings;
+    public void setClaims(List<String> claims) {
+        this.claims = claims;
     }
 
     public String getConfigurationId() {
@@ -107,51 +106,34 @@ public class VCCredentialConfiguration {
         this.configurationId = configurationId;
     }
 
-    public String getCredentialType() {
-        return credentialType;
+    public String getType() {
+        return type;
     }
 
-    public void setCredentialType(String credentialType) {
-        this.credentialType = credentialType;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public CredentialMetadata getCredentialMetadata() {
-        return credentialMetadata;
+    public Metadata getMetadata() {
+        return metadata;
     }
 
-    public void setCredentialMetadata(CredentialMetadata credentialMetadata) {
-        this.credentialMetadata = credentialMetadata;
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
     }
 
-    public Integer getExpiryInSeconds() {
-        return expiryInSeconds;
+    public Integer getExpiryIn() {
+        return expiryIn;
     }
 
-    public void setExpiryInSeconds(Integer expiryInSeconds) {
-        this.expiryInSeconds = expiryInSeconds;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        VCCredentialConfiguration that = (VCCredentialConfiguration) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public void setExpiryIn(Integer expiryIn) {
+        this.expiryIn = expiryIn;
     }
 
     /**
      * Credential metadata payload.
      */
-    public static class CredentialMetadata {
+    public static class Metadata {
 
         private String display;
 

@@ -34,12 +34,13 @@ public class VCConfigManagementConstants {
     public enum ErrorMessages {
         // Client errors
         ERROR_CODE_CONFIG_ID_MISMATCH("VCM-4001", "Configuration id path and payload mismatch."),
-        ERROR_CODE_CONFIG_ALREADY_EXISTS("VCM-4002", "Configuration with the same id already exists."),
-        ERROR_CODE_IDENTIFIER_ALREADY_EXISTS("VCM-4003", "Configuration with the same identifier already exists."),
-        ERROR_CODE_CONFIGURATION_ID_ALREADY_EXISTS("VCM-4004",
+        ERROR_CODE_IDENTIFIER_ALREADY_EXISTS("VCM-4002",
+                "Configuration with the same identifier already exists."),
+        ERROR_CODE_CONFIGURATION_ID_ALREADY_EXISTS("VCM-4003",
                 "Configuration with the same credential_configuration_id already exists."),
-        ERROR_CODE_INVALID_REQUEST("VCM-4005", "Invalid verifiable credential configuration payload."),
-        ERROR_CODE_CONFIG_NOT_FOUND("VCM-4041", "Configuration not found."),
+        ERROR_CODE_INVALID_REQUEST("VCM-4004", "Invalid verifiable credential configuration payload."),
+        ERROR_CODE_CONFIG_NOT_FOUND("VCM-4005", "Configuration not found."),
+        ERROR_CODE_UNSUPPORTED_VC_FORMAT("VCM-4006", "Unsupported verifiable credential format."),
 
         // Server errors
         ERROR_CODE_PERSISTENCE_ERROR("VCM-5001", "Error while persisting configuration."),

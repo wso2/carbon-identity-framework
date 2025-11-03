@@ -27,14 +27,18 @@ public final class SQLQueries {
 
     // VC_CONFIG
     public static final String LIST_CONFIGS =
-            "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, CREDENTIAL_SIGNING_ALG, " +
-            "CREDENTIAL_TYPE, CREDENTIAL_METADATA, EXPIRY_IN_SECONDS " +
+            "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE " +
             "FROM VC_CONFIG WHERE TENANT_ID = ? ORDER BY CURSOR_KEY";
 
     public static final String GET_CONFIG_BY_ID =
-            "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, CREDENTIAL_SIGNING_ALG, " +
-            "CREDENTIAL_TYPE, CREDENTIAL_METADATA, EXPIRY_IN_SECONDS " +
+            "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, SIGNING_ALG, " +
+            "TYPE, METADATA, EXPIRY_IN " +
             "FROM VC_CONFIG WHERE TENANT_ID = ? AND ID = ?";
+
+    public static final String GET_CONFIG_BY_CONFIG_ID =
+            "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, SIGNING_ALG, " +
+            "TYPE, METADATA, EXPIRY_IN " +
+            "FROM VC_CONFIG WHERE TENANT_ID = ? AND CONFIGURATION_ID = ?";
 
     public static final String EXISTS_BY_IDENTIFIER =
             "SELECT 1 FROM VC_CONFIG WHERE TENANT_ID = ? AND IDENTIFIER = ?";
@@ -44,12 +48,12 @@ public final class SQLQueries {
 
     public static final String INSERT_CONFIG =
             "INSERT INTO VC_CONFIG (ID, TENANT_ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, " +
-            "CREDENTIAL_SIGNING_ALG, CREDENTIAL_TYPE, CREDENTIAL_METADATA, EXPIRY_IN_SECONDS) VALUES " +
+            "SIGNING_ALG, TYPE, METADATA, EXPIRY_IN) VALUES " +
             "(?,?,?,?,?,?,?,?,?,?)";
 
     public static final String UPDATE_CONFIG =
             "UPDATE VC_CONFIG SET IDENTIFIER = ?, CONFIGURATION_ID = ?, SCOPE = ?, FORMAT = ?, " +
-            "CREDENTIAL_SIGNING_ALG = ?, CREDENTIAL_TYPE = ?, CREDENTIAL_METADATA = ?, EXPIRY_IN_SECONDS = ? " +
+            "SIGNING_ALG = ?, TYPE = ?, METADATA = ?, EXPIRY_IN = ? " +
             "WHERE TENANT_ID = ? AND ID = ?";
 
     public static final String DELETE_CONFIG =
@@ -57,10 +61,10 @@ public final class SQLQueries {
 
     // VC_CONFIG_CLAIM
     public static final String LIST_CLAIMS_BY_CONFIG_PK =
-            "SELECT CLAIM_URI, DISPLAY FROM VC_CONFIG_CLAIM WHERE CONFIG_ID = ?";
+            "SELECT CLAIM_URI FROM VC_CONFIG_CLAIM WHERE CONFIG_ID = ?";
 
     public static final String INSERT_CLAIM =
-            "INSERT INTO VC_CONFIG_CLAIM (CONFIG_ID, CLAIM_URI, DISPLAY) VALUES (?,?,?)";
+            "INSERT INTO VC_CONFIG_CLAIM (CONFIG_ID, CLAIM_URI) VALUES (?,?)";
 
     public static final String DELETE_CLAIMS_BY_CONFIG_PK =
             "DELETE FROM VC_CONFIG_CLAIM WHERE CONFIG_ID = ?";
