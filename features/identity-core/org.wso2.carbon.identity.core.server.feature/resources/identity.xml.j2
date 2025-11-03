@@ -1742,6 +1742,17 @@
             Supported versions : IS 7.2.0 onwards
         -->
         <ThrowUserStoreExceptionOnUserCreationError>{{scim2.throw_userstore_exception_on_user_creation_error}}</ThrowUserStoreExceptionOnUserCreationError>
+
+        {% if scim2.console_roles.enable_custom_roles is defined || scim2.console_roles.require_feature_permissions %}
+        <ConsoleRoles>
+            {% if scim2.console_roles.enable_custom_roles is defined %}
+            <EnableCustomRoles>{{scim2.console_roles.enable_custom_roles}}</EnableCustomRoles>
+            {% endif %}
+            {% if scim2.console_roles.require_feature_permissions is defined %}
+            <RequireFeaturePermissions>{{scim2.console_roles.require_feature_permissions}}</RequireFeaturePermissions>
+            {% endif %}
+        </ConsoleRoles>
+        {% endif %}
     </SCIM2>
 
     <Captcha>
