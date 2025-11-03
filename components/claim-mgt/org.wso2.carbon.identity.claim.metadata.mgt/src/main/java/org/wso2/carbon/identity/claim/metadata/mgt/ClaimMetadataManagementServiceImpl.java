@@ -1054,10 +1054,21 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private void setManagedInUserStoreProperty(LocalClaim localClaim, String tenantDomain)
             throws ClaimMetadataException {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Setting managed in user store property for claim: %s in tenant: %s",
+                    localClaim.getClaimURI(), tenantDomain));
+        }
+
         String managedInUserStorePropertyValue =
                 localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
-        if (!isIdentityClaim(localClaim)) {
+        boolean isIdentityClaim = isIdentityClaim(localClaim);
+
+        if (!isIdentityClaim) {
             if (managedInUserStorePropertyValue == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Non-identity claim: %s does not have ManagedInUserStore property. " +
+                            "Defaulting to true.", localClaim.getClaimURI()));
+                }
                 // For non-identity claims, default to true if the property is not set.
                 managedInUserStorePropertyValue = Boolean.TRUE.toString();
                 localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, managedInUserStorePropertyValue);
@@ -1067,27 +1078,49 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         // If the identity data store is user store based, all the identity claims should be stored in user store.
         if (isUserStoreBasedIdentityDataStore()) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Identity data store is user store based. Setting ManagedInUserStore=true " +
+                        "for identity claim: %s", localClaim.getClaimURI()));
+            }
             localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.TRUE.toString());
             return;
         }
 
         if (managedInUserStorePropertyValue == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Identity claim: %s does not have ManagedInUserStore property. " +
+                        "Defaulting to false as identity data store is not user store based.", localClaim.getClaimURI()));
+            }
             // Default to false if the property is not set for identity claims.
             localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.FALSE.toString());
             return;
         }
 
         // If managed in user store is not enabled, no further processing is needed.
-        if (!Boolean.parseBoolean(managedInUserStorePropertyValue)) {
+        boolean isManagedInUserStore = Boolean.parseBoolean(managedInUserStorePropertyValue);
+        if (!isManagedInUserStore) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("ManagedInUserStore is false for identity claim: %s. " +
+                        "No excluded user stores processing needed.", localClaim.getClaimURI()));
+            }
             return;
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Processing excluded user stores for identity claim: %s", localClaim.getClaimURI()));
+        }
         Set<String> excludedUserStores = getExcludedUserStoresFromClaim(localClaim);
         excludedUserStores = resolveExcludedUserStoresList(excludedUserStores, tenantDomain, false);
 
         if (!excludedUserStores.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Setting excluded user stores for claim: %s. Excluded stores: %s",
+                        localClaim.getClaimURI(), String.join(", ", excludedUserStores)));
+            }
             localClaim.setClaimProperty(EXCLUDED_USER_STORES_PROPERTY,
                     String.join(ClaimConstants.COMMA_SEPARATOR, excludedUserStores));
+        } else {
+            localClaim.setClaimProperty(EXCLUDED_USER_STORES_PROPERTY, StringUtils.EMPTY);
         }
     }
 
@@ -1102,12 +1135,22 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private void validateAndSyncClaimStoreSettings(LocalClaim localClaim, String tenantDomain)
             throws ClaimMetadataException {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Validating and syncing claim store settings for claim: %s in tenant: %s",
+                    localClaim.getClaimURI(), tenantDomain));
+        }
+
         String managedInUserStorePropertyValue =
                 localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
         boolean isUserStoreBasedIdentityDataStore = isUserStoreBasedIdentityDataStore();
+        boolean isIdentityClaim = isIdentityClaim(localClaim);
 
-        if (!isIdentityClaim(localClaim)) {
+        if (!isIdentityClaim) {
             if (managedInUserStorePropertyValue == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Non-identity claim: %s does not have ManagedInUserStore property. " +
+                            "Defaulting to true.", localClaim.getClaimURI()));
+                }
                 // For non-identity claims, default to true if the property is not set.
                 managedInUserStorePropertyValue = Boolean.TRUE.toString();
                 localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, managedInUserStorePropertyValue);
@@ -1129,6 +1172,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         boolean isManagedInUserStore = Boolean.parseBoolean(managedInUserStorePropertyValue);
 
         if (isUserStoreBasedIdentityDataStore && !isManagedInUserStore) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Validation failed: Cannot set ManagedInUserStore=false for identity claim: %s " +
+                        "when identity data store is user store based.", localClaim.getClaimURI()));
+            }
             throw new ClaimMetadataClientException(
                     ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode(),
                     String.format(ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
@@ -1137,16 +1184,32 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         // If managed in user store is not enabled, remove excluded user stores property.
         if (!isManagedInUserStore) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("ManagedInUserStore is false for claim: %s. " +
+                        "Removing excluded user stores property.", localClaim.getClaimURI()));
+            }
             localClaim.getClaimProperties().remove(EXCLUDED_USER_STORES_PROPERTY);
             return;
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Validating and resolving excluded user stores for claim: %s (validation mode)",
+                    localClaim.getClaimURI()));
+        }
         Set<String> excludedUserStores = getExcludedUserStoresFromClaim(localClaim);
         excludedUserStores = resolveExcludedUserStoresList(excludedUserStores, tenantDomain, true);
 
         if (!excludedUserStores.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Setting validated excluded user stores for claim: %s. Excluded stores: %s",
+                        localClaim.getClaimURI(), String.join(", ", excludedUserStores)));
+            }
             localClaim.setClaimProperty(EXCLUDED_USER_STORES_PROPERTY,
                     String.join(ClaimConstants.COMMA_SEPARATOR, excludedUserStores));
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("No excluded user stores to set for claim: %s", localClaim.getClaimURI()));
+            }
         }
     }
 
@@ -1168,6 +1231,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                             .map(String::trim)
                             .collect(Collectors.toList()));
         }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Extracted excluded user stores from claim: %s. Excluded stores: %s",
+                    localClaim.getClaimURI(),
+                    excludedUserStores.isEmpty() ? "None" : String.join(", ", excludedUserStores)));
+        }
+
         return excludedUserStores;
     }
 
@@ -1184,28 +1254,60 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private Set<String> resolveExcludedUserStoresList(Set<String> excludedUserStores, String tenantDomain,
                                                         boolean validateMode) throws ClaimMetadataException {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Resolving excluded user stores list. Tenant: %s, Validate mode: %s, " +
+                            "Initial excluded stores: %s",
+                    tenantDomain, validateMode,
+                    excludedUserStores.isEmpty() ? "None" : String.join(", ", excludedUserStores)));
+        }
+
         Set<String> processedExcludedStores = new LinkedHashSet<>(excludedUserStores);
         AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) getUserStoreManager(tenantDomain);
 
+        int userStoreCount = 0;
         while (userStoreManager != null) {
+            userStoreCount++;
             String domainName = userStoreManager.getRealmConfiguration()
                     .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
             boolean isStoreIdentityClaimsEnabled = Boolean.parseBoolean(userStoreManager.getRealmConfiguration()
                     .getUserStoreProperty(STORE_IDENTITY_CLAIMS));
 
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Processing user store #%d: %s, StoreIdentityClaims: %s",
+                        userStoreCount, domainName, isStoreIdentityClaimsEnabled));
+            }
+
             if (isStoreIdentityClaimsEnabled) {
                 // Stores configured to store identity claims should not be excluded.
-                if (validateMode && containsIgnoreCase(processedExcludedStores, domainName)) {
+                boolean wasInExcludedList = containsIgnoreCase(processedExcludedStores, domainName);
+
+                if (validateMode && wasInExcludedList) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Validation failed: User store '%s' is configured to store " +
+                                "identity claims and cannot be excluded.", domainName));
+                    }
                     throw new ClaimMetadataClientException(
                             ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS.getCode(),
                             String.format(
                                     ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS.getMessage(),
                                     domainName));
                 }
-                processedExcludedStores.removeIf(store -> store.equalsIgnoreCase(domainName));
+
+                boolean removed = processedExcludedStores.removeIf(store -> store.equalsIgnoreCase(domainName));
+                if (removed && log.isDebugEnabled()) {
+                    log.debug(String.format("Removed user store '%s' from excluded list as it is configured to " +
+                            "store identity claims.", domainName));
+                }
             }
 
             userStoreManager = (AbstractUserStoreManager) userStoreManager.getSecondaryUserStoreManager();
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Resolved excluded user stores list. Processed %d user stores. " +
+                            "Final excluded stores: %s",
+                    userStoreCount,
+                    processedExcludedStores.isEmpty() ? "None" : String.join(", ", processedExcludedStores)));
         }
 
         return processedExcludedStores;
