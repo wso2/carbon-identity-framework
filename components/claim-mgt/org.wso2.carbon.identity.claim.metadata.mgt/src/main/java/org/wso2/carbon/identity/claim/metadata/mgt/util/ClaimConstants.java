@@ -132,6 +132,8 @@ public class ClaimConstants {
                 "Cannot change flow initiator property of the system claim: %s"),
         ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS("CMT-60018",
                 "User store '%s' cannot be excluded because it is configured to persist identity claims."),
+        ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE("CMT-60019",
+                "Identity claim '%s' must be managed in user store."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +

@@ -76,6 +76,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_ATTRIBUTE_PROFILE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI;
@@ -370,6 +371,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
 
         validateSharedProfileValueResolvingMethodValue(localClaim);
+        validateAndSyncClaimStoreSettings(localClaim, tenantDomain);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreAddLocalClaim(tenantId, localClaim);
 
@@ -1052,9 +1054,14 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private void setManagedInUserStoreProperty(LocalClaim localClaim, String tenantDomain)
             throws ClaimMetadataException {
 
-        // TODO: At first stage, will only consider identity claims.
+        String managedInUserStorePropertyValue =
+                localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
         if (!isIdentityClaim(localClaim)) {
-            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.TRUE.toString());
+            if (managedInUserStorePropertyValue == null) {
+                // For non-identity claims, default to true if the property is not set.
+                managedInUserStorePropertyValue = Boolean.TRUE.toString();
+                localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, managedInUserStorePropertyValue);
+            }
             return;
         }
 
@@ -1064,7 +1071,6 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             return;
         }
 
-        String managedInUserStorePropertyValue = localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
         if (managedInUserStorePropertyValue == null) {
             // Default to false if the property is not set for identity claims.
             localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.FALSE.toString());
@@ -1098,6 +1104,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         String managedInUserStorePropertyValue =
                 localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
+        boolean isUserStoreBasedIdentityDataStore = isUserStoreBasedIdentityDataStore();
 
         if (!isIdentityClaim(localClaim)) {
             if (managedInUserStorePropertyValue == null) {
@@ -1107,13 +1114,26 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             }
             return;
         } else if (managedInUserStorePropertyValue == null) {
-            // For identity claims, default to false if the property is not set.
-            managedInUserStorePropertyValue = Boolean.FALSE.toString();
+            // For identity claims, default to false if isUserStoreBasedIdentityDataStore is false.
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Managed in user store property is not set for identity claim: %s. " +
+                                "Setting the default value based on identity data store type, user store based: %s.",
+                        localClaim.getClaimURI(), isUserStoreBasedIdentityDataStore));
+            }
+            managedInUserStorePropertyValue = isUserStoreBasedIdentityDataStore
+                    ? Boolean.TRUE.toString() : Boolean.FALSE.toString();
             localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, managedInUserStorePropertyValue);
             return;
         }
 
         boolean isManagedInUserStore = Boolean.parseBoolean(managedInUserStorePropertyValue);
+
+        if (isUserStoreBasedIdentityDataStore && !isManagedInUserStore) {
+            throw new ClaimMetadataClientException(
+                    ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode(),
+                    String.format(ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
+                            localClaim.getClaimURI()));
+        }
 
         // If managed in user store is not enabled, remove excluded user stores property.
         if (!isManagedInUserStore) {
@@ -1173,10 +1193,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             boolean isStoreIdentityClaimsEnabled = Boolean.parseBoolean(userStoreManager.getRealmConfiguration()
                     .getUserStoreProperty(STORE_IDENTITY_CLAIMS));
 
-            if (isReadOnlyUserStore(userStoreManager)) {
-                // Read-only stores should always be excluded.
-                processedExcludedStores.add(domainName);
-            } else if (isStoreIdentityClaimsEnabled) {
+            if (isStoreIdentityClaimsEnabled) {
                 // Stores configured to store identity claims should not be excluded.
                 if (validateMode && containsIgnoreCase(processedExcludedStores, domainName)) {
                     throw new ClaimMetadataClientException(
@@ -1224,18 +1241,4 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
         return userStoreManager;
     }
-
-    /**
-     * Check whether the given user store is a read-only user store.
-     *
-     * @param userStoreManager User store manager.
-     * @return true if the user store is read-only, false otherwise.
-     */
-    private boolean isReadOnlyUserStore(UserStoreManager userStoreManager) {
-
-        return userStoreManager instanceof ReadOnlyLDAPUserStoreManager ||
-                Boolean.parseBoolean(userStoreManager.getRealmConfiguration()
-                        .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_READ_ONLY));
-    }
-
 }
