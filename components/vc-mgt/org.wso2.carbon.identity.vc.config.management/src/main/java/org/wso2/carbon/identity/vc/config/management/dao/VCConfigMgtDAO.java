@@ -28,19 +28,82 @@ import java.util.List;
  */
 public interface VCConfigMgtDAO {
 
+    /**
+     * List all VC credential configurations for a tenant.
+     *
+     * @param tenantId Tenant ID.
+     * @return List of configurations.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
     List<VCCredentialConfiguration> list(int tenantId) throws VCConfigMgtException;
 
+    /**
+     * Get a configuration by ID.
+     *
+     * @param id Unique configuration id.
+     * @param tenantId Tenant ID.
+     * @return Configuration or null if not found.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
+    VCCredentialConfiguration get(String id, int tenantId) throws VCConfigMgtException;
+
+    /**
+     * Get a configuration by configuration id.
+     *
+     * @param configId Configuration id.
+     * @param tenantId Tenant ID.
+     * @return Configuration or null if not found.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
     VCCredentialConfiguration getByConfigId(String configId, int tenantId) throws VCConfigMgtException;
 
+    /**
+     * Check existence by identifier.
+     *
+     * @param identifier Identifier.
+     * @param tenantId   Tenant ID.
+     * @return true if exists, false otherwise.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
     boolean existsByIdentifier(String identifier, int tenantId) throws VCConfigMgtException;
 
+    /**
+     * Check existence by configuration ID.
+     *
+     * @param configurationId Configuration ID.
+     * @param tenantId        Tenant ID.
+     * @return true if exists, false otherwise.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
     boolean existsByConfigurationId(String configurationId, int tenantId) throws VCConfigMgtException;
 
-    VCCredentialConfiguration create(VCCredentialConfiguration configuration, int tenantId)
+    /**
+     * Add a new configuration.
+     *
+     * @param configuration Configuration payload.
+     * @param tenantId      Tenant ID.
+     * @return Added configuration.
+     * @throws VCConfigMgtException on creation errors.
+     */
+    VCCredentialConfiguration add(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException;
 
+    /**
+     * Update an existing configuration by id.
+     * @param configId     Configuration id to update.
+     * @param configuration Updated payload.
+     * @param tenantId     Tenant ID.
+     * @return Updated configuration.
+     * @throws VCConfigMgtException on update errors.
+     */
     VCCredentialConfiguration update(String configId, VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException;
 
+    /**
+     * Delete a configuration by id.
+     * @param configId     Configuration id.
+     * @param tenantId     Tenant ID.
+     * @throws VCConfigMgtException on deletion errors.
+     */
     void delete(String configId, int tenantId) throws VCConfigMgtException;
 }

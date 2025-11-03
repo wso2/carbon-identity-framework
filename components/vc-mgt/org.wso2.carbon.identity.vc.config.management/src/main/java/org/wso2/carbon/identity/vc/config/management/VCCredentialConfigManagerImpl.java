@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.vc.config.management.dao.VCConfigMgtDAO;
 import org.wso2.carbon.identity.vc.config.management.dao.impl.VCConfigMgtDAOImpl;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtClientException;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtException;
-import org.wso2.carbon.identity.vc.config.management.model.ClaimMapping;
 import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfiguration;
 
 import java.util.List;
@@ -55,33 +54,32 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     }
 
     @Override
-    public VCCredentialConfiguration get(String configId, String tenantDomain) throws VCConfigMgtException {
+    public VCCredentialConfiguration get(String id, String tenantDomain) throws VCConfigMgtException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return dao.get(id, tenantId);
+    }
+
+    @Override
+    public VCCredentialConfiguration getByConfigId(String configId, String tenantDomain) throws VCConfigMgtException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.getByConfigId(configId, tenantId);
     }
 
     @Override
-    public VCCredentialConfiguration create(VCCredentialConfiguration configuration, String tenantDomain)
+    public VCCredentialConfiguration add(VCCredentialConfiguration configuration, String tenantDomain)
             throws VCConfigMgtException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        // Server controls the persisted id; clients must not supply it.
-        if (StringUtils.isNotBlank(configuration.getId())) {
-            throw new VCConfigMgtClientException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                    "Configuration id is server generated and cannot be set in the request body.");
-        }
-
-        validateIdentifierForCreate(configuration, tenantId);
-        validateConfigurationIdForCreate(configuration, tenantId);
-        applyFormatDefault(configuration);
-        validateSigningAlgorithm(configuration.getCredentialSigningAlgValuesSupported());
-        validateCredentialType(configuration.getCredentialType());
-        validateMetadata(configuration.getCredentialMetadata());
-        validateExpiry(configuration.getExpiryInSeconds());
-        validateClaimMappings(configuration.getClaimMappings());
-        return dao.create(configuration, tenantId);
+        checkIdentifierExists(configuration, tenantId);
+        checkConfigurationIdExists(configuration, tenantId);
+        validateFormat(configuration);
+        validateSigningAlgorithm(configuration.getSigningAlgorithm());
+        validateCredentialType(configuration.getType());
+        validateExpiry(configuration.getExpiryIn());
+        validateClaims(configuration.getClaims());
+        return dao.add(configuration, tenantId);
     }
 
     @Override
@@ -125,8 +123,8 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         normalizeSigningAlgorithmForUpdate(configuration, existing);
         normalizeCredentialTypeForUpdate(configuration, existing);
         normalizeMetadataForUpdate(configuration, existing);
-        normalizeExpiryForUpdate(configuration, existing);
-        validateClaimMappings(configuration.getClaimMappings());
+        normalizeExpiryInForUpdate(configuration, existing);
+        validateClaims(configuration.getClaims());
         return dao.update(configId, configuration, tenantId);
     }
 
@@ -137,7 +135,7 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         dao.delete(configId, tenantId);
     }
 
-    private void validateIdentifierForCreate(VCCredentialConfiguration configuration, int tenantId)
+    private void checkIdentifierExists(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
         if (StringUtils.isBlank(configuration.getIdentifier())) {
@@ -152,7 +150,7 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
-    private void validateConfigurationIdForCreate(VCCredentialConfiguration configuration, int tenantId)
+    private void checkConfigurationIdExists(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
         if (StringUtils.isBlank(configuration.getConfigurationId())) {
@@ -165,10 +163,18 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
-    private void applyFormatDefault(VCCredentialConfiguration configuration) {
+    private void validateFormat(VCCredentialConfiguration configuration) throws VCConfigMgtClientException {
 
         if (StringUtils.isBlank(configuration.getFormat())) {
             configuration.setFormat(VCConfigManagementConstants.DEFAULT_VC_FORMAT);
+        } else {
+            // Currently only default format is supported.
+            if (StringUtils.equals(configuration.getFormat(),
+                    VCConfigManagementConstants.DEFAULT_VC_FORMAT)) {
+                throw new VCConfigMgtClientException(
+                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_VC_FORMAT.getCode(),
+                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_VC_FORMAT.getMessage());
+            }
         }
     }
 
@@ -190,16 +196,6 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
-    private void validateMetadata(VCCredentialConfiguration.CredentialMetadata metadata)
-            throws VCConfigMgtClientException {
-
-        if (metadata == null || StringUtils.isBlank(metadata.getDisplay())) {
-            throw new VCConfigMgtClientException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                    "Credential metadata display payload is required.");
-        }
-    }
-
     private void validateExpiry(Integer expiryInSeconds) throws VCConfigMgtClientException {
 
         if (expiryInSeconds == null || expiryInSeconds < VCConfigManagementConstants.MIN_EXPIRY_IN_SECONDS) {
@@ -210,41 +206,38 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
-    private void validateClaimMappings(List<ClaimMapping> claimMappings)
+    private void validateClaims(List<String> claims)
             throws VCConfigMgtClientException {
 
-        if (claimMappings == null) {
-            throw new VCConfigMgtClientException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                    "Claim mappings cannot be null.");
-        }
-        for (ClaimMapping mapping : claimMappings) {
-            if (mapping == null || StringUtils.isBlank(mapping.getClaimURI()) ||
-                    StringUtils.isBlank(mapping.getDisplay())) {
-                throw new VCConfigMgtClientException(
-                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                        "Each claim mapping must contain claimURI and display values.");
+        if (claims != null && !claims.isEmpty()) {
+            for (String claim : claims) {
+                if (claim == null || StringUtils.isBlank(claim)) {
+                    // TODO : Check for valid claim URIs.
+                    throw new VCConfigMgtClientException(
+                            VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
+                            "Each claim mapping must contain claimURI and display values.");
+                }
             }
         }
     }
 
     private void normalizeFormatForUpdate(VCCredentialConfiguration configuration,
-                                          VCCredentialConfiguration existing) {
+                                          VCCredentialConfiguration existing) throws VCConfigMgtClientException {
 
         if (StringUtils.isBlank(configuration.getFormat())) {
             configuration.setFormat(existing.getFormat());
         }
-        applyFormatDefault(configuration);
+        validateFormat(configuration);
     }
 
     private void normalizeSigningAlgorithmForUpdate(VCCredentialConfiguration configuration,
                                                     VCCredentialConfiguration existing)
             throws VCConfigMgtClientException {
 
-        String algorithm = configuration.getCredentialSigningAlgValuesSupported();
+        String algorithm = configuration.getSigningAlgorithm();
         if (StringUtils.isBlank(algorithm)) {
-            algorithm = existing.getCredentialSigningAlgValuesSupported();
-            configuration.setCredentialSigningAlgValuesSupported(algorithm);
+            algorithm = existing.getSigningAlgorithm();
+            configuration.setSigningAlgorithm(algorithm);
         }
         validateSigningAlgorithm(algorithm);
     }
@@ -253,10 +246,10 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
                                                   VCCredentialConfiguration existing)
             throws VCConfigMgtClientException {
 
-        String credentialType = configuration.getCredentialType();
+        String credentialType = configuration.getType();
         if (StringUtils.isBlank(credentialType)) {
-            credentialType = existing.getCredentialType();
-            configuration.setCredentialType(credentialType);
+            credentialType = existing.getType();
+            configuration.setType(credentialType);
         }
         validateCredentialType(credentialType);
     }
@@ -264,21 +257,20 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     private void normalizeMetadataForUpdate(VCCredentialConfiguration configuration,
                                             VCCredentialConfiguration existing) throws VCConfigMgtClientException {
 
-        VCCredentialConfiguration.CredentialMetadata metadata = configuration.getCredentialMetadata();
+        VCCredentialConfiguration.Metadata metadata = configuration.getMetadata();
         if (metadata == null) {
-            metadata = existing.getCredentialMetadata();
-            configuration.setCredentialMetadata(metadata);
+            metadata = existing.getMetadata();
+            configuration.setMetadata(metadata);
         }
-        validateMetadata(metadata);
     }
 
-    private void normalizeExpiryForUpdate(VCCredentialConfiguration configuration,
+    private void normalizeExpiryInForUpdate(VCCredentialConfiguration configuration,
                                           VCCredentialConfiguration existing) throws VCConfigMgtClientException {
 
-        Integer expiry = configuration.getExpiryInSeconds();
+        Integer expiry = configuration.getExpiryIn();
         if (expiry == null) {
-            expiry = existing.getExpiryInSeconds();
-            configuration.setExpiryInSeconds(expiry);
+            expiry = existing.getExpiryIn();
+            configuration.setExpiryIn(expiry);
         }
         validateExpiry(expiry);
     }

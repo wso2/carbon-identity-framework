@@ -40,22 +40,32 @@ public interface VCCredentialConfigManager {
     /**
      * Get a configuration by ID.
      *
-     * @param configId     Unique configuration id.
+     * @param id     Unique configuration id.
      * @param tenantDomain Tenant domain.
      * @return Configuration or null if not found.
      * @throws VCConfigMgtException on retrieval errors.
      */
-    VCCredentialConfiguration get(String configId, String tenantDomain) throws VCConfigMgtException;
+    VCCredentialConfiguration get(String id, String tenantDomain) throws VCConfigMgtException;
 
     /**
-     * Create a new configuration.
+     * Get a configuration by configuration id.
+     *
+     * @param configId Configuration id.
+     * @param tenantDomain Tenant domain.
+     * @return Configuration or null if not found.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
+    VCCredentialConfiguration getByConfigId(String configId, String tenantDomain) throws VCConfigMgtException;
+
+    /**
+     * Add a new configuration.
      *
      * @param configuration Configuration payload.
      * @param tenantDomain  Tenant domain.
-     * @return Created configuration.
+     * @return Added configuration.
      * @throws VCConfigMgtException on creation errors.
      */
-    VCCredentialConfiguration create(VCCredentialConfiguration configuration, String tenantDomain)
+    VCCredentialConfiguration add(VCCredentialConfiguration configuration, String tenantDomain)
             throws VCConfigMgtException;
 
     /**
