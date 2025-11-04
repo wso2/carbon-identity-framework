@@ -60,6 +60,7 @@
   "authenticationendpoint.path": "/authenticationendpoint",
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
+  "recovery.v0_9_api.include_display_order_property_in_claims": false,
   "accounts.hostname": "$ref{server.hostname}",
   "accounts.path": "/accounts",
 
