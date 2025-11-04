@@ -77,7 +77,7 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         validateFormat(configuration);
         validateSigningAlgorithm(configuration.getSigningAlgorithm());
         validateCredentialType(configuration.getType());
-        validateExpiry(configuration.getExpiryIn());
+        validateExpiry(configuration.getExpiresIn());
         validateClaims(configuration.getClaims());
         return dao.add(configuration, tenantId);
     }
@@ -169,7 +169,7 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
             configuration.setFormat(VCConfigManagementConstants.DEFAULT_VC_FORMAT);
         } else {
             // Currently only default format is supported.
-            if (StringUtils.equals(configuration.getFormat(),
+            if (!StringUtils.equals(configuration.getFormat(),
                     VCConfigManagementConstants.DEFAULT_VC_FORMAT)) {
                 throw new VCConfigMgtClientException(
                         VCConfigManagementConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_VC_FORMAT.getCode(),
@@ -198,11 +198,11 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
 
     private void validateExpiry(Integer expiryInSeconds) throws VCConfigMgtClientException {
 
-        if (expiryInSeconds == null || expiryInSeconds < VCConfigManagementConstants.MIN_EXPIRY_IN_SECONDS) {
+        if (expiryInSeconds == null || expiryInSeconds < VCConfigManagementConstants.MIN_EXPIRES_IN_SECONDS) {
             throw new VCConfigMgtClientException(
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
                     String.format("Expiry must be at least %d seconds.",
-                            VCConfigManagementConstants.MIN_EXPIRY_IN_SECONDS));
+                            VCConfigManagementConstants.MIN_EXPIRES_IN_SECONDS));
         }
     }
 
@@ -267,10 +267,10 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     private void normalizeExpiryInForUpdate(VCCredentialConfiguration configuration,
                                           VCCredentialConfiguration existing) throws VCConfigMgtClientException {
 
-        Integer expiry = configuration.getExpiryIn();
+        Integer expiry = configuration.getExpiresIn();
         if (expiry == null) {
-            expiry = existing.getExpiryIn();
-            configuration.setExpiryIn(expiry);
+            expiry = existing.getExpiresIn();
+            configuration.setExpiresIn(expiry);
         }
         validateExpiry(expiry);
     }

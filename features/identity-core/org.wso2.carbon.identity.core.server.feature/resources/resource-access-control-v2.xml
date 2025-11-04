@@ -1881,6 +1881,20 @@
         <Scopes>internal_workflow_instance_delete</Scopes>
     </Resource>
 
+    <!-- VC Credential Configuration Management API -->
+    <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="GET">
+        <Scopes>internal_vc_credential_configuration_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="POST">
+        <Scopes>internal_vc_credential_configuration_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_vc_credential_configuration_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_vc_credential_configuration_delete</Scopes>
+    </Resource>
+
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
@@ -1954,6 +1968,8 @@
     <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
     <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
+    <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
+    <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
 
     <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
     <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">

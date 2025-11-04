@@ -26,7 +26,7 @@ public class VCConfigManagementConstants {
     private VCConfigManagementConstants() {}
 
     public static final String DEFAULT_VC_FORMAT = "jwt_vc_json";
-    public static final int MIN_EXPIRY_IN_SECONDS = 60;
+    public static final int MIN_EXPIRES_IN_SECONDS = 60;
 
     /**
      * Error message codes and default messages used in VC config management.

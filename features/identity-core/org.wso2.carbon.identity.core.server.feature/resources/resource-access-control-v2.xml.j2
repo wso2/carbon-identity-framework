@@ -128,6 +128,8 @@
         <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
         <Resource context="(.*)/accounts(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
+        <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
 
         <!-- 'Login only' mode migration configuration -->
         {% if resource_access_control.login_only_mode.enable is sameas true %}
@@ -2060,6 +2062,20 @@
           <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
               <Scopes>internal_workflow_instance_delete</Scopes>
           </Resource>
+
+          <!-- VC Credential Configuration Management API -->
+         <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="GET">
+             <Scopes>internal_vc_credential_configuration_view</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="POST">
+             <Scopes>internal_vc_credential_configuration_create</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="PATCH">
+             <Scopes>internal_vc_credential_configuration_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="DELETE">
+             <Scopes>internal_vc_credential_configuration_delete</Scopes>
+         </Resource>
 
         <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
         <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">

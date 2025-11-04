@@ -48,7 +48,7 @@ public class VCCredentialConfiguration {
 
     private List<String> claims = new ArrayList<>();
 
-    private Integer expiryIn;
+    private Integer expiresIn;
 
     public String getId() {
         return id;
@@ -122,12 +122,12 @@ public class VCCredentialConfiguration {
         this.metadata = metadata;
     }
 
-    public Integer getExpiryIn() {
-        return expiryIn;
+    public Integer getExpiresIn() {
+        return expiresIn;
     }
 
-    public void setExpiryIn(Integer expiryIn) {
-        this.expiryIn = expiryIn;
+    public void setExpiresIn(Integer expiresIn) {
+        this.expiresIn = expiresIn;
     }
 
     /**

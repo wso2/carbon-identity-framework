@@ -1674,6 +1674,27 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="vc_credential_configurations" displayName="VC Credential Configurations" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:vc_credential_configuration"/>
+                <Scope name="console:vc_credential_configuration_view"/>
+                <Scope name="console:vc_credential_configuration_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_vc_credential_configuration_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_vc_credential_configuration_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_vc_credential_configuration_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_vc_credential_configuration_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
 <!--    New Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>

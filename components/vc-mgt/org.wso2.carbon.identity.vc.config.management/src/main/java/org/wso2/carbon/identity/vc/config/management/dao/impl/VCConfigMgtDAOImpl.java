@@ -55,7 +55,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
             ps.setInt(1, tenantId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    results.add(buildConfiguration(rs, conn));
+                    results.add(buildConfigurationListItem(rs, conn));
                 }
             }
         } catch (SQLException e) {
@@ -162,7 +162,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 ps.setString(7, configuration.getSigningAlgorithm());
                 ps.setString(8, configuration.getType());
                 ps.setString(9, configuration.getMetadata() != null ? serializedMetadata : null);
-                ps.setInt(10, configuration.getExpiryIn());
+                ps.setInt(10, configuration.getExpiresIn());
                 ps.executeUpdate();
 
                 if (CollectionUtils.isNotEmpty(configuration.getClaims())) {
@@ -207,7 +207,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 ps.setString(5, configuration.getSigningAlgorithm());
                 ps.setString(6, configuration.getType());
                 ps.setString(7, configuration.getMetadata() != null ? serializedMetadata : null);
-                ps.setInt(8, configuration.getExpiryIn());
+                ps.setInt(8, configuration.getExpiresIn());
                 ps.setInt(9, tenantId);
                 ps.setString(10, configId);
                 int updated = ps.executeUpdate();
@@ -297,11 +297,29 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 throw new SQLException("Error deserializing credential metadata.", e);
             }
         }
-        int expiry = rs.getInt("EXPIRY_IN");
+        int expiresIn = rs.getInt("EXPIRES_IN");
         if (!rs.wasNull()) {
-            cfg.setExpiryIn(expiry);
+            cfg.setExpiresIn(expiresIn);
         }
         cfg.setClaims(getClaimsByConfigId(conn, cfg.getId()));
+        return cfg;
+    }
+
+    /**
+     * Build VC credential configuration from result set.
+     *
+     * @param rs Result set
+     * @param conn DB connection
+     * @return VC credential configuration
+     * @throws SQLException on SQL errors
+     */
+    private VCCredentialConfiguration buildConfigurationListItem(ResultSet rs, Connection conn) throws SQLException {
+
+        VCCredentialConfiguration cfg = new VCCredentialConfiguration();
+        cfg.setId(rs.getString("ID"));
+        cfg.setIdentifier(rs.getString("IDENTIFIER"));
+        cfg.setConfigurationId(rs.getString("CONFIGURATION_ID"));
+        cfg.setScope(rs.getString("SCOPE"));
         return cfg;
     }
 

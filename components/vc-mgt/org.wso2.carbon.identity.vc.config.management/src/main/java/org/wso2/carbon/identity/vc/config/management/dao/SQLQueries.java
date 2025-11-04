@@ -32,12 +32,12 @@ public final class SQLQueries {
 
     public static final String GET_CONFIG_BY_ID =
             "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, SIGNING_ALG, " +
-            "TYPE, METADATA, EXPIRY_IN " +
+            "TYPE, METADATA, EXPIRES_IN " +
             "FROM VC_CONFIG WHERE TENANT_ID = ? AND ID = ?";
 
     public static final String GET_CONFIG_BY_CONFIG_ID =
             "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, SIGNING_ALG, " +
-            "TYPE, METADATA, EXPIRY_IN " +
+            "TYPE, METADATA, EXPIRES_IN " +
             "FROM VC_CONFIG WHERE TENANT_ID = ? AND CONFIGURATION_ID = ?";
 
     public static final String EXISTS_BY_IDENTIFIER =
@@ -48,12 +48,12 @@ public final class SQLQueries {
 
     public static final String INSERT_CONFIG =
             "INSERT INTO VC_CONFIG (ID, TENANT_ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, " +
-            "SIGNING_ALG, TYPE, METADATA, EXPIRY_IN) VALUES " +
+            "SIGNING_ALG, TYPE, METADATA, EXPIRES_IN) VALUES " +
             "(?,?,?,?,?,?,?,?,?,?)";
 
     public static final String UPDATE_CONFIG =
             "UPDATE VC_CONFIG SET IDENTIFIER = ?, CONFIGURATION_ID = ?, SCOPE = ?, FORMAT = ?, " +
-            "SIGNING_ALG = ?, TYPE = ?, METADATA = ?, EXPIRY_IN = ? " +
+            "SIGNING_ALG = ?, TYPE = ?, METADATA = ?, EXPIRES_IN = ? " +
             "WHERE TENANT_ID = ? AND ID = ?";
 
     public static final String DELETE_CONFIG =
