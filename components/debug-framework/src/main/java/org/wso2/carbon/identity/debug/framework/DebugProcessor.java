@@ -82,437 +82,41 @@ public class DebugProcessor {
         String error = request.getParameter("error");
         String errorDescription = request.getParameter("error_description");
         String idpId = "";
+        
         try {
-            // Prevent re-processing the same authorization code in the same session.
-            String lastProcessedCode = (String) request.getSession().getAttribute("LAST_AUTH_CODE");
             IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
             idpId = idp != null ? idp.getResourceId() : "";
-            if (authorizationCode != null && authorizationCode.equals(lastProcessedCode)) {
-                if (!response.isCommitted()) {
-                    context.setProperty("DEBUG_AUTH_ERROR",
-                        "Authorization code already used in this session. Please retry login.");
-                    context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
-                        + "&idpId=" + idpId);
-                }
+            
+            // Validate OAuth callback parameters.
+            if (!validateOAuthCallback(authorizationCode, state, error, errorDescription, context, response, idpId)) {
                 return;
             }
-            if (authorizationCode != null) {
-                request.getSession().setAttribute("LAST_AUTH_CODE", authorizationCode);
-            }
-
-            if (error != null) {
-                LOG.error("Authorization error from IdP: " + error + " - " + errorDescription);
-                context.setProperty("DEBUG_AUTH_ERROR", error + ": " + errorDescription);
-                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
-                        + "&idpId=" + idpId);
-                }
+            
+            // Check for duplicate authorization code.
+            if (isAuthorizationCodeAlreadyProcessed(authorizationCode, request, context, response, state, idpId)) {
                 return;
             }
-
-            if (authorizationCode == null || authorizationCode.trim().isEmpty()) {
-                LOG.error("Authorization code missing in callback");
-                context.setProperty("DEBUG_AUTH_ERROR", "Authorization code not received from IdP");
-                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
-                        + "&idpId=" + idpId);
-                }
-                return;
-            }
-
-            if (state == null || state.trim().isEmpty()) {
-                LOG.error("State parameter missing in callback");
-                context.setProperty("DEBUG_AUTH_ERROR", "State parameter missing - possible CSRF attack");
-                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
-                        + "&idpId=" + idpId);
-                }
-                return;
-            }
-
-            String storedState = (String) context.getProperty("DEBUG_STATE");
-            if (!state.equals(storedState)) {
-                LOG.error("State parameter mismatch - CSRF attack detected");
-                context.setProperty("DEBUG_AUTH_ERROR", "State validation failed - possible CSRF attack");
-                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state
-                        + "&idpId=" + idpId);
-                }
-                return;
-            }
-
+            
+            // Exchange authorization code for tokens.
             TokenResponse tokens = exchangeCodeForTokens(authorizationCode, context);
-            if (tokens == null || tokens.getAccessToken() == null) {
-                // Check if there's error information in the token response.
-                String errorMsg = "Failed to exchange authorization code for tokens";
-                String errorDetails = "";
-                if (tokens != null && tokens.hasError()) {
-                    errorMsg = tokens.getErrorCode() + ": " + tokens.getErrorDescription();
-                    errorDetails = tokens.getErrorDetails();
-                    context.setProperty("step_connection_error_code", tokens.getErrorCode());
-                    context.setProperty("step_connection_error_description", tokens.getErrorDescription());
-                    context.setProperty("step_connection_error_details", errorDetails);
-                } else {
-                    context.setProperty("step_connection_error_code", "TOKEN_EXCHANGE_FAILED");
-                    context.setProperty("step_connection_error_description", "No tokens received from IdP");
-                }
-                
-                LOG.error("Token exchange failed - " + errorMsg);
-                context.setProperty("DEBUG_AUTH_ERROR", errorMsg);
-                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                context.setProperty("step_connection_status", "failed");
-                context.setProperty("step_connection_error", errorMsg);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Token exchange error details: " + errorDetails);
-                }
-                
-                // Build and cache error response
-                buildAndCacheTokenExchangeErrorResponse(tokens, state, context);
-                redirectToDebugSuccess(response, state, idpId);
+            if (!handleTokenExchangeResult(tokens, context, response, state, idpId)) {
                 return;
             }
-            context.setProperty("step_connection_status", "success");
-
-            context.setProperty("DEBUG_ACCESS_TOKEN", tokens.getAccessToken());
-            if (tokens.getIdToken() != null) {
-                context.setProperty("DEBUG_ID_TOKEN", tokens.getIdToken());
-            }
-            if (tokens.getRefreshToken() != null) {
-                context.setProperty("DEBUG_REFRESH_TOKEN", tokens.getRefreshToken());
-            }
-            context.setProperty("DEBUG_TOKEN_TYPE", tokens.getTokenType());
-
+            
+            // Extract user claims from tokens.
             Map<String, Object> claims = extractUserClaims(tokens, context);
-            if (claims == null || claims.isEmpty()) {
-                LOG.error("Failed to extract user claims from tokens");
-                context.setProperty("DEBUG_AUTH_ERROR", "Failed to extract user claims from tokens");
-                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                context.setProperty("step_claim_extraction_status", "failed");
-                context.setProperty("step_claim_extraction_error", "No claims found in ID token or UserInfo endpoint");
-                
-                // Cache the error result so GET endpoint can retrieve it.
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> debugResult = new HashMap<>();
-                    
-                    debugResult.put("success", "false");
-                    debugResult.put("error", "Failed to extract user claims from tokens");
-                    debugResult.put("sessionId", state);
-                    debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
-                    debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
-                    debugResult.put("timestamp", System.currentTimeMillis());
-                    
-                    // Step statuses.
-                    debugResult.put("step_connection_status", "success");
-                    debugResult.put("step_authentication_status", "failed");
-                    debugResult.put("step_claim_extraction_status", "failed");
-                    debugResult.put("step_claim_mapping_status", "not_started");
-                    
-                    // ID Token if available.
-                    String idToken = (String) context.getProperty("DEBUG_ID_TOKEN");
-                    if (idToken != null) {
-                        debugResult.put("idToken", idToken);
-                    }
-                    
-                    // Error details.
-                    Map<String, Object> extractionError = new HashMap<>();
-                    extractionError.put("error", "No claims found in ID token or UserInfo endpoint");
-                    debugResult.put("step_claim_extraction_error", extractionError);
-                    
-                    // Claim mapping diagnostics (if any)
-                    Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
-                    if (mappingDiagnostic != null) {
-                        debugResult.put("claimMappingDiagnostic", mappingDiagnostic);
-                    }
-                    
-                    debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
-                    debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
-                    
-                    String resultJson = mapper.writeValueAsString(debugResult);
-                    DebugResultCache.add(state, resultJson);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Debug error result cached for state: " + state);
-                    }
-                } catch (Exception cacheEx) {
-                    LOG.error("Failed to cache debug error result", cacheEx);
-                }
-                
-                if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state +
-                        "&idpId=" + idpId);
-                }
+            if (!handleClaimsExtractionResult(claims, context, response, state, idpId)) {
                 return;
             }
-            context.setProperty("step_claim_extraction_status", "success");
-
+            
+            // Create authenticated user and build final response.
             AuthenticatedUser authenticatedUser = createAuthenticatedUser(claims, context);
-            if (authenticatedUser != null) {
-                context.setSubject(authenticatedUser);
-                context.setProperty("DEBUG_AUTH_SUCCESS", "true");
-                context.setProperty("DEBUG_USER_EXISTS", true);
-                context.setProperty("DEBUG_AUTH_COMPLETED", "true");
-                context.setProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP", System.currentTimeMillis());
-                context.setProperty("step_authentication_status", "success");
-
-                // Build a developer-friendly debug result
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> debugResult = new HashMap<>();
-
-                    // Authentication status
-                    debugResult.put("success", "true");
-                    debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
-                    debugResult.put("sessionId", state);
-                    debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
-                    debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
-                    // Add executor class name for clarity
-                    Object executorObj = context.getProperty("DEBUG_EXECUTOR_INSTANCE");
-                    String executorClass = executorObj != null ? executorObj.getClass().getSimpleName()
-
-                            : "UnknownExecutor";
-                    debugResult.put("executor", executorClass);
-                    debugResult.put("timestamp", context.getProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP"));
-
-                    // Incoming claims (from IdP)
-                    debugResult.put("incomingClaims", claims);
-
-                    // Mapped claims (local claims) with formatted display
-                    Object mappedClaimsObj = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
-                    Map<String, String> formattedMappedClaims =
-                            formatMappedClaimsWithStandardURIs(mappedClaimsObj, context);
-                    debugResult.put("mappedClaims", formattedMappedClaims);
-
-                    // IdP configured claim mappings (for reference)
-                    Object idpConfiguredMappings = context.getProperty("DEBUG_IDP_CONFIGURED_MAPPINGS");
-                    if (idpConfiguredMappings != null) {
-                        debugResult.put("idpConfiguredClaimMappings", idpConfiguredMappings);
-                    }
-
-                    // Claim mapping diagnostics
-                    Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
-                    if (mappingDiagnostic != null) {
-                        debugResult.put("claimMappingDiagnostic", mappingDiagnostic);
-                    }
-                    if (context.getProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO_USED") != null) {
-                        debugResult.put("autoMappingUsed", context.getProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO_USED"));
-                    }
-
-                    // Set claim mapping status to success if mapped claims are present
-                    if (formattedMappedClaims != null && !formattedMappedClaims.isEmpty()) {
-                        context.setProperty("step_claim_mapping_status", "success");
-                        debugResult.put("step_claim_mapping_status", "success");
-                    } else {
-                        debugResult.put("step_claim_mapping_status", "failed");
-                    }
-
-                    // User info
-                    debugResult.put("username", authenticatedUser != null ? authenticatedUser.getUserName() : null);
-                    debugResult.put("userId", authenticatedUser != null ? authenticatedUser.getUserId() : null);
-
-                    // ID Token
-                    String idToken = (String) context.getProperty("DEBUG_ID_TOKEN");
-                    if (idToken != null) {
-                        debugResult.put("idToken", idToken);
-                    }
-
-                    // Minimal debug metadata
-                    debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
-                    debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
-
-                    // Add step status fields - use correct property keys with step_ prefix
-                    debugResult.put("step_connection_status",
-                            context.getProperty("step_connection_status"));
-                    debugResult.put("step_authentication_status",
-                            context.getProperty("step_authentication_status"));
-                    debugResult.put("step_claim_extraction_status",
-                            context.getProperty("step_claim_extraction_status"));
-                    // step_claim_mapping_status already set above if mapped claims present
-
-                    // Add step error details if any step failed
-                    if (context.getProperty("step_connection_error") != null) {
-                        Map<String, Object> connectionError = new HashMap<>();
-                        connectionError.put("error", context.getProperty("step_connection_error"));
-                        connectionError.put("errorCode",
-                                context.getProperty("step_connection_error_code"));
-                        connectionError.put("errorDescription",
-                                context.getProperty("step_connection_error_description"));
-                        if (context.getProperty("step_connection_error_details") != null) {
-                            connectionError.put("details",
-                                    context.getProperty("step_connection_error_details"));
-                        }
-                        debugResult.put("step_connection_error", connectionError);
-                    }
-                    if (context.getProperty("step_claim_extraction_error") != null) {
-                        Map<String, Object> extractionError = new HashMap<>();
-                        extractionError.put("error", context.getProperty("step_claim_extraction_error"));
-                        if (context.getProperty("step_claim_extraction_error_details") != null) {
-                            extractionError.put("details", context.getProperty("step_claim_extraction_error_details"));
-                        }
-                        debugResult.put("step_claim_extraction_error", extractionError);
-                    }
-                    if (context.getProperty("step_authentication_error") != null) {
-                        Map<String, Object> authError = new HashMap<>();
-                        authError.put("error", context.getProperty("step_authentication_error"));
-                        if (context.getProperty("step_authentication_error_details") != null) {
-                            authError.put("details", context.getProperty("step_authentication_error_details"));
-                        }
-                        debugResult.put("step_authentication_error", authError);
-                    }
-
-                    // User attributes: Only include mapped claims (cleaned up version)
-                    debugResult.put("userAttributes", formattedMappedClaims);
-
-                    // Add metadata summary
-                    Map<String, Object> metadata = new HashMap<>();
-                    metadata.put("step_connection_status", context.getProperty("step_connection_status"));
-                    metadata.put("step_authentication_status", context.getProperty("step_authentication_status"));
-                    metadata.put("step_claim_extraction_status", context.getProperty("step_claim_extraction_status"));
-                    metadata.put("step_claim_mapping_status", context.getProperty("step_claim_mapping_status"));
-                    debugResult.put("metadata", metadata);
-
-                    String resultJson = mapper.writeValueAsString(debugResult);
-                    DebugResultCache.add(state, resultJson);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Debug result cached for state: " + state);
-                    }
-                } catch (Exception cacheEx) {
-                    LOG.error("Failed to cache debug result", cacheEx);
-                }
-
-                if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state +
-                        "&idpId=" + idpId);
-                }
-            } else {
-                LOG.error("Failed to create authenticated user from claims");
-                context.setProperty("DEBUG_AUTH_ERROR", "Failed to create authenticated user");
-                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                context.setProperty("DEBUG_USER_EXISTS", false);
-                context.setProperty("step_authentication_status", "failed");
-                context.setProperty("step_authentication_error", "User creation failed: missing or invalid claims");
-
-                // Even if user creation failed, generate a detailed debug response
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> debugResult = new HashMap<>();
-
-                    // Authentication status
-                    debugResult.put("success", "false");
-                    debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
-                    debugResult.put("sessionId", state);
-                    debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
-                    debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
-                    Object executorObj = context.getProperty("DEBUG_EXECUTOR_INSTANCE");
-                    String executorClass = executorObj != null 
-                            ? executorObj.getClass().getSimpleName() 
-                            : "UnknownExecutor";
-                    debugResult.put("executor", executorClass);
-                    debugResult.put("timestamp", System.currentTimeMillis());
-
-                    // Incoming claims (from IdP)
-                    debugResult.put("incomingClaims", context.getProperty("DEBUG_INCOMING_CLAIMS"));
-
-                    // Mapped claims (local claims) if available
-                    Object mappedClaimsObj = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
-                    Map<String, String> formattedMappedClaims =
-                            formatMappedClaimsWithStandardURIs(mappedClaimsObj, context);
-                    debugResult.put("mappedClaims", formattedMappedClaims);
-
-                    // IdP configured claim mappings (for reference)
-                    Object idpConfiguredMappings = context.getProperty("DEBUG_IDP_CONFIGURED_MAPPINGS");
-                    if (idpConfiguredMappings != null) {
-                        debugResult.put("idpConfiguredClaimMappings", idpConfiguredMappings);
-                    }
-
-                    // Claim mapping diagnostics
-                    Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
-                    if (mappingDiagnostic != null) {
-                        debugResult.put("claimMappingDiagnostic", mappingDiagnostic);
-                    }
-                    if (context.getProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO_USED") != null) {
-                        debugResult.put("autoMappingUsed", context.getProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO_USED"));
-                    }
-
-                    // ID Token if available
-                    String idToken = (String) context.getProperty("DEBUG_ID_TOKEN");
-                    if (idToken != null) {
-                        debugResult.put("idToken", idToken);
-                    }
-                        
-                    // Step status fields - use correct property keys with step_ prefix
-                    debugResult.put("step_connection_status",
-                            context.getProperty("step_connection_status"));
-                    debugResult.put("step_authentication_status",
-                            context.getProperty("step_authentication_status"));
-                    debugResult.put("step_claim_extraction_status",
-                            context.getProperty("step_claim_extraction_status"));
-                    debugResult.put("step_claim_mapping_status",
-                            context.getProperty("step_claim_mapping_status") != null 
-                            ? context.getProperty("step_claim_mapping_status") 
-                            : "failed");
-
-                    // Add step error details if any step failed
-                    if (context.getProperty("step_connection_error") != null) {
-                        Map<String, Object> connectionError = new HashMap<>();
-                        connectionError.put("error", context.getProperty("step_connection_error"));
-                        connectionError.put("errorCode", context.getProperty("step_connection_error_code"));
-                        connectionError.put("errorDescription",
-                                context.getProperty("step_connection_error_description"));
-                        if (context.getProperty("step_connection_error_details") != null) {
-                            connectionError.put("details",
-                                    context.getProperty("step_connection_error_details"));
-                        }
-                        debugResult.put("step_connection_error", connectionError);
-                    }
-                    if (context.getProperty("step_claim_extraction_error") != null) {
-                        Map<String, Object> extractionError = new HashMap<>();
-                        extractionError.put("error", context.getProperty("step_claim_extraction_error"));
-                        if (context.getProperty("step_claim_extraction_error_details") != null) {
-                            extractionError.put("details", context.getProperty("step_claim_extraction_error_details"));
-                        }
-                        debugResult.put("step_claim_extraction_error", extractionError);
-                    }
-                    if (context.getProperty("step_authentication_error") != null) {
-                        Map<String, Object> authError = new HashMap<>();
-                        authError.put("error", context.getProperty("step_authentication_error"));
-                        if (context.getProperty("step_authentication_error_details") != null) {
-                            authError.put("details", context.getProperty("step_authentication_error_details"));
-                        }
-                        debugResult.put("step_authentication_error", authError);
-                    }
-
-                    // Debug metadata
-                    debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
-                    debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
-
-                    // Metadata summary
-                    Map<String, Object> metadata = new HashMap<>();
-                    metadata.put("step_connection_status", context.getProperty("step_connection_status"));
-                    metadata.put("step_authentication_status", context.getProperty("step_authentication_status"));
-                    metadata.put("step_claim_extraction_status", context.getProperty("step_claim_extraction_status"));
-                    metadata.put("step_claim_mapping_status", context.getProperty("step_claim_mapping_status"));
-                    debugResult.put("metadata", metadata);
-
-                    String resultJson = mapper.writeValueAsString(debugResult);
-                    DebugResultCache.add(state, resultJson);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Debug result cached (with authentication failure) for state: " + state);
-                    }
-                } catch (Exception cacheEx) {
-                    LOG.error("Failed to cache debug result", cacheEx);
-                }
-
-                if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state +
-                        "&idpId=" + idpId);
-                }
+            buildAndCacheDebugResult(authenticatedUser, context, state);
+            
+            if (!response.isCommitted()) {
+                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
             }
-            return;
+            
         } catch (Exception e) {
             LOG.error("Unexpected error processing OAuth 2.0 callback.", e);
             context.setProperty("DEBUG_AUTH_ERROR", "Unexpected error: " + e.getMessage());
@@ -523,6 +127,339 @@ public class DebugProcessor {
             if (!response.isCommitted()) {
                 response.sendRedirect("/authenticationendpoint/debugError.jsp?state=" + state + "&idpId=" + idpId);
             }
+        }
+    }
+
+    /**
+     * Validates OAuth callback parameters for security and completeness.
+     *
+     * @return false if validation fails and response is sent, true otherwise.
+     */
+    private boolean validateOAuthCallback(String code, String state, String error, String errorDescription,
+                                        AuthenticationContext context, HttpServletResponse response, 
+                                        String idpId) throws IOException {
+        // Handle OAuth error responses.
+        if (error != null) {
+            LOG.error("Authorization error from IdP: " + error + " - " + errorDescription);
+            context.setProperty("DEBUG_AUTH_ERROR", error + ": " + errorDescription);
+            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            if (!response.isCommitted()) {
+                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+            }
+            return false;
+        }
+
+        // Validate authorization code.
+        if (code == null || code.trim().isEmpty()) {
+            LOG.error("Authorization code missing in callback");
+            context.setProperty("DEBUG_AUTH_ERROR", "Authorization code not received from IdP");
+            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            if (!response.isCommitted()) {
+                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+            }
+            return false;
+        }
+
+        // Validate state parameter.
+        if (state == null || state.trim().isEmpty()) {
+            LOG.error("State parameter missing in callback");
+            context.setProperty("DEBUG_AUTH_ERROR", "State parameter missing - possible CSRF attack");
+            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            if (!response.isCommitted()) {
+                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+            }
+            return false;
+        }
+
+        // Validate state matches stored value.
+        String storedState = (String) context.getProperty("DEBUG_STATE");
+        if (!state.equals(storedState)) {
+            LOG.error("State parameter mismatch - CSRF attack detected");
+            context.setProperty("DEBUG_AUTH_ERROR", "State validation failed - possible CSRF attack");
+            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            if (!response.isCommitted()) {
+                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if authorization code was already processed in this session.
+     *
+     * @return true if duplicate code detected, false otherwise.
+     */
+    private boolean isAuthorizationCodeAlreadyProcessed(String authorizationCode, HttpServletRequest request,
+                                                       AuthenticationContext context, HttpServletResponse response,
+                                                       String state, String idpId) throws IOException {
+        String lastProcessedCode = (String) request.getSession().getAttribute("LAST_AUTH_CODE");
+        if (authorizationCode != null && authorizationCode.equals(lastProcessedCode)) {
+            if (!response.isCommitted()) {
+                context.setProperty("DEBUG_AUTH_ERROR",
+                    "Authorization code already used in this session. Please retry login.");
+                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+            }
+            return true;
+        }
+        
+        if (authorizationCode != null) {
+            request.getSession().setAttribute("LAST_AUTH_CODE", authorizationCode);
+        }
+        return false;
+    }
+
+    /**
+     * Handles token exchange result and sets appropriate context properties.
+     *
+     * @return true if token exchange succeeded, false otherwise.
+     */
+    private boolean handleTokenExchangeResult(TokenResponse tokens, AuthenticationContext context,
+                                            HttpServletResponse response, String state, 
+                                            String idpId) throws IOException {
+        if (tokens == null || tokens.getAccessToken() == null) {
+            String errorMsg = "Failed to exchange authorization code for tokens";
+            if (tokens != null && tokens.hasError()) {
+                errorMsg = tokens.getErrorCode() + ": " + tokens.getErrorDescription();
+                context.setProperty("step_connection_error_code", tokens.getErrorCode());
+                context.setProperty("step_connection_error_description", tokens.getErrorDescription());
+                context.setProperty("step_connection_error_details", tokens.getErrorDetails());
+            } else {
+                context.setProperty("step_connection_error_code", "TOKEN_EXCHANGE_FAILED");
+                context.setProperty("step_connection_error_description", "No tokens received from IdP");
+            }
+            
+            LOG.error("Token exchange failed - " + errorMsg);
+            context.setProperty("DEBUG_AUTH_ERROR", errorMsg);
+            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty("step_connection_status", "failed");
+            context.setProperty("step_connection_error", errorMsg);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Token exchange error details: " + (tokens != null ? tokens.getErrorDetails() : "N/A"));
+            }
+            
+            buildAndCacheTokenExchangeErrorResponse(tokens, state, context);
+            redirectToDebugSuccess(response, state, idpId);
+            return false;
+        }
+        
+        context.setProperty("step_connection_status", "success");
+        context.setProperty("DEBUG_ACCESS_TOKEN", tokens.getAccessToken());
+        if (tokens.getIdToken() != null) {
+            context.setProperty("DEBUG_ID_TOKEN", tokens.getIdToken());
+        }
+        if (tokens.getRefreshToken() != null) {
+            context.setProperty("DEBUG_REFRESH_TOKEN", tokens.getRefreshToken());
+        }
+        context.setProperty("DEBUG_TOKEN_TYPE", tokens.getTokenType());
+        
+        return true;
+    }
+
+    /**
+     * Handles claim extraction result and validates if claims were successfully extracted.
+     *
+     * @return true if claims extraction succeeded, false otherwise.
+     */
+    private boolean handleClaimsExtractionResult(Map<String, Object> claims, AuthenticationContext context,
+                                               HttpServletResponse response, String state, 
+                                               String idpId) throws IOException {
+        if (claims == null || claims.isEmpty()) {
+            LOG.error("Failed to extract user claims from tokens");
+            context.setProperty("DEBUG_AUTH_ERROR", "Failed to extract user claims from tokens");
+            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty("step_claim_extraction_status", "failed");
+            context.setProperty("step_claim_extraction_error", "No claims found in ID token or UserInfo endpoint");
+            
+            buildAndCacheClaimExtractionErrorResponse(context, state);
+            redirectToDebugSuccess(response, state, idpId);
+            return false;
+        }
+        
+        context.setProperty("step_claim_extraction_status", "success");
+        return true;
+    }
+
+    /**
+     * Builds and caches a comprehensive debug result when claim extraction fails.
+     */
+    private void buildAndCacheClaimExtractionErrorResponse(AuthenticationContext context, String state) {
+        try {
+            Map<String, Object> debugResult = new HashMap<>();
+            debugResult.put("success", "false");
+            debugResult.put("error", "Failed to extract user claims from tokens");
+            debugResult.put("sessionId", state);
+            debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
+            debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
+            debugResult.put("timestamp", System.currentTimeMillis());
+            
+            debugResult.put("step_connection_status", "success");
+            debugResult.put("step_authentication_status", "failed");
+            debugResult.put("step_claim_extraction_status", "failed");
+            debugResult.put("step_claim_mapping_status", "not_started");
+            
+            String idToken = (String) context.getProperty("DEBUG_ID_TOKEN");
+            if (idToken != null) {
+                debugResult.put("idToken", idToken);
+            }
+            
+            Map<String, Object> extractionError = new HashMap<>();
+            extractionError.put("error", "No claims found in ID token or UserInfo endpoint");
+            debugResult.put("step_claim_extraction_error", extractionError);
+            
+            Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
+            if (mappingDiagnostic != null) {
+                debugResult.put("claimMappingDiagnostic", mappingDiagnostic);
+            }
+            
+            debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
+            debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
+            
+            String resultJson = mapper.writeValueAsString(debugResult);
+            DebugResultCache.add(state, resultJson);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug error result cached for state: " + state);
+            }
+        } catch (Exception cacheEx) {
+            LOG.error("Failed to cache debug error result", cacheEx);
+        }
+    }
+
+    /**
+     * Builds and caches the final debug result after successful authentication.
+     */
+    private void buildAndCacheDebugResult(AuthenticatedUser authenticatedUser, AuthenticationContext context,
+                                        String state) {
+        if (authenticatedUser != null) {
+            buildSuccessDebugResult(authenticatedUser, context, state);
+        } else {
+            buildAuthenticationFailureDebugResult(context, state);
+        }
+    }
+
+    /**
+     * Builds debug result when user authentication succeeds.
+     */
+    private void buildSuccessDebugResult(AuthenticatedUser authenticatedUser, AuthenticationContext context,
+                                       String state) {
+        try {
+            Map<String, Object> debugResult = new HashMap<>();
+            debugResult.put("success", "true");
+            debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
+            debugResult.put("sessionId", state);
+            debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
+            debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
+            
+            Object executorObj = context.getProperty("DEBUG_EXECUTOR_INSTANCE");
+            String executorClass = executorObj != null ? executorObj.getClass().getSimpleName() : "UnknownExecutor";
+            debugResult.put("executor", executorClass);
+            debugResult.put("timestamp", context.getProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP"));
+            
+            debugResult.put("incomingClaims", context.getProperty("DEBUG_INCOMING_CLAIMS"));
+            
+            Object mappedClaimsObj = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
+            Map<String, String> formattedMappedClaims = formatMappedClaimsWithStandardURIs(mappedClaimsObj, context);
+            debugResult.put("mappedClaims", formattedMappedClaims);
+            
+            Object idpConfiguredMappings = context.getProperty("DEBUG_IDP_CONFIGURED_MAPPINGS");
+            if (idpConfiguredMappings != null) {
+                debugResult.put("idpConfiguredClaimMappings", idpConfiguredMappings);
+            }
+            
+            Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
+            if (mappingDiagnostic != null) {
+                debugResult.put("claimMappingDiagnostic", mappingDiagnostic);
+            }
+            if (context.getProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO_USED") != null) {
+                debugResult.put("autoMappingUsed", context.getProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO_USED"));
+            }
+            
+            if (formattedMappedClaims != null && !formattedMappedClaims.isEmpty()) {
+                context.setProperty("step_claim_mapping_status", "success");
+                debugResult.put("step_claim_mapping_status", "success");
+            } else {
+                debugResult.put("step_claim_mapping_status", "failed");
+            }
+            
+            debugResult.put("username", authenticatedUser.getUserName());
+            debugResult.put("userId", authenticatedUser.getUserId());
+            
+            String idToken = (String) context.getProperty("DEBUG_ID_TOKEN");
+            if (idToken != null) {
+                debugResult.put("idToken", idToken);
+            }
+            
+            debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
+            debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
+            debugResult.put("step_connection_status", context.getProperty("step_connection_status"));
+            debugResult.put("step_authentication_status", context.getProperty("step_authentication_status"));
+            debugResult.put("step_claim_extraction_status", context.getProperty("step_claim_extraction_status"));
+            debugResult.put("userAttributes", formattedMappedClaims);
+            
+            cacheDebugResult(debugResult, state);
+        } catch (Exception cacheEx) {
+            LOG.error("Failed to cache debug result", cacheEx);
+        }
+    }
+
+    /**
+     * Builds debug result when user authentication fails.
+     */
+    private void buildAuthenticationFailureDebugResult(AuthenticationContext context, String state) {
+        try {
+            Map<String, Object> debugResult = new HashMap<>();
+            debugResult.put("success", "false");
+            debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
+            debugResult.put("sessionId", state);
+            debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
+            debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
+            Object executorObj = context.getProperty("DEBUG_EXECUTOR_INSTANCE");
+            String executorClass = executorObj != null ? executorObj.getClass().getSimpleName() : "UnknownExecutor";
+            debugResult.put("executor", executorClass);
+            debugResult.put("timestamp", System.currentTimeMillis());
+            
+            debugResult.put("incomingClaims", context.getProperty("DEBUG_INCOMING_CLAIMS"));
+            
+            Object mappedClaimsObj = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
+            Map<String, String> formattedMappedClaims = formatMappedClaimsWithStandardURIs(mappedClaimsObj, context);
+            debugResult.put("mappedClaims", formattedMappedClaims);
+            
+            Object idpConfiguredMappings = context.getProperty("DEBUG_IDP_CONFIGURED_MAPPINGS");
+            if (idpConfiguredMappings != null) {
+                debugResult.put("idpConfiguredClaimMappings", idpConfiguredMappings);
+            }
+            
+            Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
+            if (mappingDiagnostic != null) {
+                debugResult.put("claimMappingDiagnostic", mappingDiagnostic);
+            }
+            if (context.getProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO_USED") != null) {
+                debugResult.put("autoMappingUsed", context.getProperty("DEBUG_STEP_CLAIM_MAPPING_AUTO_USED"));
+            }
+            
+            String idToken = (String) context.getProperty("DEBUG_ID_TOKEN");
+            if (idToken != null) {
+                debugResult.put("idToken", idToken);
+            }
+            
+            debugResult.put("step_connection_status", context.getProperty("step_connection_status"));
+            debugResult.put("step_authentication_status", context.getProperty("step_authentication_status"));
+            debugResult.put("step_claim_extraction_status", context.getProperty("step_claim_extraction_status"));
+            debugResult.put("step_claim_mapping_status", 
+                context.getProperty("step_claim_mapping_status") != null
+                ? context.getProperty("step_claim_mapping_status") 
+                : "failed");
+            
+            debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
+            debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
+            
+            cacheDebugResult(debugResult, state);
+        } catch (Exception cacheEx) {
+            LOG.error("Failed to cache debug result", cacheEx);
         }
     }
 
@@ -561,7 +498,6 @@ public class DebugProcessor {
                 } else {
                     LOG.warn("Failed to parse ID Token claims");
                 }
-            } else {
             }
 
             // Extract additional claims from UserInfo endpoint if access token is available.
@@ -577,14 +513,17 @@ public class DebugProcessor {
                     LOG.warn("UserInfo endpoint call failed or returned no claims");
                 }
             }
-            if (claims.containsKey("sub")) {
-                LOG.debug("Subject identifier: " + claims.get("sub"));
-            }
-            if (claims.containsKey("email")) {
-                LOG.debug("Email claim present: " + claims.get("email"));
-            }
-            if (claims.containsKey("name")) {
-                LOG.debug("Name claim present: " + claims.get("name"));
+            
+            if (LOG.isDebugEnabled()) {
+                if (claims.containsKey("sub")) {
+                    LOG.debug("Subject identifier: " + claims.get("sub"));
+                }
+                if (claims.containsKey("email")) {
+                    LOG.debug("Email claim present: " + claims.get("email"));
+                }
+                if (claims.containsKey("name")) {
+                    LOG.debug("Name claim present: " + claims.get("name"));
+                }
             }
 
             // Store incoming claims in context for use in debug responses.

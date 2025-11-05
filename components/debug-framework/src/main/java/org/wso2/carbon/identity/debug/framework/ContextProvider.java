@@ -789,122 +789,6 @@ public class ContextProvider {
     }
     
     /**
-     * Provides diagnostic information about OAuth 2.0 configuration for an Identity Provider.
-     * This method is useful for debugging configuration issues.
-     *
-     * @param idp Identity Provider to diagnose.
-     * @return OAuth configuration diagnostic information.
-     */
-    public String diagnoseOAuth2Configuration(IdentityProvider idp) {
-        if (idp == null) {
-            return "Identity Provider is null";
-        }
-        
-        StringBuilder diagnosis = new StringBuilder();
-        diagnosis.append("OAuth 2.0 Configuration Diagnosis for IdP: ")
-                .append(idp.getIdentityProviderName()).append("\n");
-        diagnosis.append("Enabled: ").append(idp.isEnable()).append("\n");
-        
-        FederatedAuthenticatorConfig[] federatedConfigs = idp.getFederatedAuthenticatorConfigs();
-        if (federatedConfigs == null || federatedConfigs.length == 0) {
-            diagnosis.append("No federated authenticator configurations found\n");
-            return diagnosis.toString();
-        }
-        
-        diagnosis.append("Available Authenticators: ").append(federatedConfigs.length).append("\n");
-        
-        for (FederatedAuthenticatorConfig config : federatedConfigs) {
-            if (config != null) {
-                diagnosis.append("  - ").append(config.getName())
-                         .append(" (Enabled: ").append(config.isEnabled()).append(")\n");
-                
-                Property[] properties = config.getProperties();
-                if (properties != null) {
-                    // Convert properties to Map.
-                    java.util.Map<String, String> authenticatorProperties = new java.util.HashMap<>();
-                    for (Property property : properties) {
-                        if (property != null && property.getName() != null) {
-                            authenticatorProperties.put(property.getName(), property.getValue());
-                        }
-                    }
-                    
-                    // Show resolved endpoints for OAuth 2.0 authenticators.
-                    String authenticatorName = config.getName();
-                    if ("GoogleOIDCAuthenticator".equals(authenticatorName) ||
-                        "OpenIDConnectAuthenticator".equals(authenticatorName) ||
-                        "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName) ||
-                        "GitHubAuthenticator".equals(authenticatorName) ||
-                        "GithubAuthenticator".equals(authenticatorName)) {
-                        
-                        // Create executor for endpoint resolution.
-                        Object executor = null;
-                        if ("GoogleOIDCAuthenticator".equals(authenticatorName)) {
-                            executor = createExecutor(
-                                    "org.wso2.carbon.identity.application.authenticator.google.GoogleExecutor");
-                        } else if ("OpenIDConnectAuthenticator".equals(authenticatorName) ||
-                                  "OAuth2OpenIDConnectAuthenticator".equals(authenticatorName)) {
-                            executor = createExecutor(
-                                    "org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectExecutor");
-                        } else if ("GitHubAuthenticator".equals(authenticatorName) || 
-                                  "GithubAuthenticator".equals(authenticatorName)) {
-                            // Try both possible executor class paths.
-                            executor = createExecutor(
-                                    "org.wso2.carbon.extension.identity.authenticator.github.connector." +
-                                    "GithubAuthenticator");
-                            if (executor == null) {
-                                executor = createExecutor(
-                                    "org.wso2.carbon.identity.application.authenticator.github.GithubExecutor");
-                            }
-                        }
-                        
-                        try {
-                            String clientId = getClientIdFromExecutor(executor, authenticatorProperties);
-                            String authzEndpoint = getAuthorizationEndpointFromExecutor(executor,
-                                    authenticatorProperties, authenticatorName);
-                            String tokenEndpoint = getTokenEndpointFromExecutor(executor,
-                                    authenticatorProperties, authenticatorName);
-                            
-                            diagnosis.append("    Client ID: ").append(clientId != null ? "CONFIGURED" : "MISSING")
-                                    .append("\n");
-                            diagnosis.append("    Authorization Endpoint: ");
-                            if (authzEndpoint != null) {
-                                diagnosis.append("RESOLVED (").append(authzEndpoint).append(")");
-                            } else {
-                                diagnosis.append("MISSING");
-                            }
-                            diagnosis.append("\n");
-                            diagnosis.append("    Token Endpoint: ");
-                            if (tokenEndpoint != null) {
-                                diagnosis.append("RESOLVED (").append(tokenEndpoint).append(")");
-                            } else {
-                                diagnosis.append("MISSING");
-                            }
-                            diagnosis.append("\n");
-                        } catch (Exception e) {
-                        diagnosis.append("    ERROR: Failed to get endpoints - ")
-                            .append(e.getMessage()).append("\n");
-                        }
-                    }
-                    
-                    // Show raw properties for debugging.
-                    for (Property property : properties) {
-                        if (property != null && property.getName() != null) {
-                            String name = property.getName();
-                            String value = property.getValue();
-                diagnosis.append("    ").append(name).append(": ")
-                    .append(value != null && !value.trim().isEmpty()
-                        ? "CONFIGURED" : "MISSING")
-                    .append("\n");
-                        }
-                    }
-                }
-            }
-        }
-        
-        return diagnosis.toString();
-    }
-    
-    /**
      * Configures debug service provider context properties.
      *
      * @param context AuthenticationContext to configure.
@@ -937,15 +821,14 @@ public class ContextProvider {
         } catch (Exception e) {
             // Log error but continue - this is not critical for debug flow.
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Error setting up debug service provider context: "
-                        + e.getMessage());
+                LOG.debug("Error setting up debug service provider context: " + e.getMessage());
             }
         }
     }
     
     /**
      * Extracts scope from AdditionalQueryParameters.
-     * Example: "scope=openid+email" or "scope=openid%20email"
+     * Example: "scope=openid+email" or "scope=openid%20email".
      *
      * @param queryParams Query parameters string.
      * @return Extracted scope value or null if not found.
@@ -956,12 +839,10 @@ public class ContextProvider {
         }
         
         try {
-            // Parse query parameters (format: "key=value&key2=value2").
             String[] params = queryParams.split("&");
             for (String param : params) {
                 if (param.startsWith("scope=")) {
                     String scope = param.substring("scope=".length());
-                    // Decode URL encoding (+ to space, %20 to space, etc.).
                     scope = java.net.URLDecoder.decode(scope, "UTF-8");
                     return scope;
                 }

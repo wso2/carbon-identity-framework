@@ -56,10 +56,10 @@ public class Executer {
     context.setProperty("step_authentication_status", "started");
     // Step status: claim mapping started
     context.setProperty("step_claim_mapping_status", "started");
+    
         if (LOG.isDebugEnabled()) {
             String idpName = idp != null ? idp.getIdentityProviderName() : "null";
-        LOG.debug("Generating OAuth 2.0 Authorization URL for IdP: "
-            + idpName);
+            LOG.debug("Generating OAuth 2.0 Authorization URL for IdP: " + idpName);
         }
 
         try {

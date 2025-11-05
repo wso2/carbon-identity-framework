@@ -64,6 +64,7 @@ public class RequestCoordinator implements DebugService {
      * @param authenticationContext the authentication context (it is provided by the framework)
      * @return OAuth 2.0 authorization URL or processing result
      */
+    @SuppressWarnings("unused")
     public String execute(org.wso2.carbon.identity.application.common.model.IdentityProvider identityProvider,
                          org.wso2.carbon.identity.application.authentication.framework.context.
                          AuthenticationContext authenticationContext) {
@@ -108,36 +109,19 @@ public class RequestCoordinator implements DebugService {
 
     /**
      * Determines if the incoming request is a debug flow callback.
-     * Checks for OAuth callback parameters, debug identifier parameters, and session context properties.
+     * Checks for OAuth callback parameters and debug identifier in state parameter.
      *
      * @param request HttpServletRequest to inspect.
      * @return true if this is a debug flow callback, false otherwise.
      */
     private boolean isDebugFlowCallback(HttpServletRequest request) {
         String state = request.getParameter("state");
-        boolean hasDebugState = state != null && isDebugStateParameter(state);
-
-        // A true OAuth callback must have a 'code' or 'error' parameter.
-        // A request for the auth-success.jsp page will only have 'state'.
-        boolean isOAuthCallback = request.getParameter("code") != null || request.getParameter("error") != null;
-
-        return hasDebugState && isOAuthCallback;
-    }
-
-    /**
-     * Checks if the OAuth state parameter indicates a debug flow.
-     * 
-     * @param state OAuth state parameter.
-     * @return true if this is a debug state parameter, false otherwise.
-     */
-    private boolean isDebugStateParameter(String state) {
-        if (state == null) {
+        if (state == null || !state.startsWith("debug-")) {
             return false;
         }
-        
-        // Check for debug-specific state patterns.
-        return state.startsWith("debug-") || state.contains("debug") || 
-               state.contains("DEBUG") || state.contains("dbg-");
+
+        // A true OAuth callback must have a 'code' or 'error' parameter.
+        return request.getParameter("code") != null || request.getParameter("error") != null;
     }
 
     /**
@@ -154,34 +138,15 @@ public class RequestCoordinator implements DebugService {
 
     /**
      * Extracts debug session ID from OAuth state parameter.
+     * Assumes state parameter is in format "debug-{sessionId}".
      * 
      * @param state OAuth state parameter.
      * @return Debug session ID if found, null otherwise.
      */
     private String extractDebugSessionIdFromState(String state) {
-        if (state == null) {
-            return null;
+        if (state != null && state.startsWith("debug-")) {
+            return state.substring(6);
         }
-        
-        // Handle various debug state formats.
-        if (state.startsWith("debug-")) {
-            return state.substring(6); // Remove "debug-" prefix.
-        }
-        
-        if (state.startsWith("dbg-")) {
-            return state.substring(4); // Remove "dbg-" prefix.
-        }
-        
-        // Look for debug session ID pattern in complex state parameters.
-        if (state.contains("debug")) {
-            String[] parts = state.split("[\\-_\\.]");
-            for (int i = 0; i < parts.length; i++) {
-                if ("debug".equals(parts[i]) && i + 1 < parts.length) {
-                    return parts[i + 1];
-                }
-            }
-        }
-        
         return null;
     }
 
