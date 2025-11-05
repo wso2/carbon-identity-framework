@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.debug.framework.client;
 
 /**
- * Simple holder for OAuth2 token response values.
+ * Simple holder for OAuth2 token response values and error details.
  */
 public class TokenResponse {
 
@@ -27,12 +27,34 @@ public class TokenResponse {
     private final String idToken;
     private final String refreshToken;
     private final String tokenType;
+    private final String errorCode;
+    private final String errorDescription;
+    private final String errorDetails;
 
+    /**
+     * Successful token response.
+     */
     public TokenResponse(String accessToken, String idToken, String refreshToken, String tokenType) {
         this.accessToken = accessToken;
         this.idToken = idToken;
         this.refreshToken = refreshToken;
         this.tokenType = tokenType;
+        this.errorCode = null;
+        this.errorDescription = null;
+        this.errorDetails = null;
+    }
+
+    /**
+     * Error token response with error details.
+     */
+    public TokenResponse(String errorCode, String errorDescription, String errorDetails) {
+        this.errorCode = errorCode;
+        this.errorDescription = errorDescription;
+        this.errorDetails = errorDetails;
+        this.accessToken = null;
+        this.idToken = null;
+        this.refreshToken = null;
+        this.tokenType = null;
     }
 
     public String getAccessToken() {
@@ -49,5 +71,24 @@ public class TokenResponse {
 
     public String getTokenType() {
         return tokenType;
+    }
+
+    /**
+     * Returns true if this response contains an error.
+     */
+    public boolean hasError() {
+        return errorCode != null;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public String getErrorDescription() {
+        return errorDescription;
+    }
+
+    public String getErrorDetails() {
+        return errorDetails;
     }
 }

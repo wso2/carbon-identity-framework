@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.debug.framework.internal;
 
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.DebugService;
 import org.wso2.carbon.identity.debug.framework.RequestCoordinator;
 
@@ -31,6 +32,7 @@ public class DebugFrameworkServiceDataHolder {
     
     private RequestCoordinator requestCoordinator;
     private DebugService debugService;
+    private ClaimMetadataManagementService claimMetadataManagementService;
 
     /**
      * Private constructor to prevent instantiation.
@@ -81,5 +83,23 @@ public class DebugFrameworkServiceDataHolder {
      */
     public void setDebugService(DebugService debugService) {
         this.debugService = debugService;
+    }
+
+    /**
+     * Gets the ClaimMetadataManagementService.
+     *
+     * @return the ClaimMetadataManagementService instance
+     */
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+        return claimMetadataManagementService;
+    }
+
+    /**
+     * Sets the ClaimMetadataManagementService.
+     *
+     * @param claimMetadataManagementService the ClaimMetadataManagementService instance
+     */
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 }

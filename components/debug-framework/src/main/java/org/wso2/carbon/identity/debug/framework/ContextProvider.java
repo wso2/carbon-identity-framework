@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -447,6 +448,16 @@ public class ContextProvider {
                 }
             }
         }
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("OAuth2 authenticator properties for IdP '" + idp.getIdentityProviderName() 
+                    + "': " + authenticatorProperties.keySet().toString());
+            // Log each property for detailed diagnostics.
+            for (java.util.Map.Entry<String, String> entry : authenticatorProperties.entrySet()) {
+                LOG.debug("  Property: " + entry.getKey() + " = " + 
+                         (entry.getValue() != null ? entry.getValue() : "null"));
+            }
+        }
 
         try {
             String authenticatorName = oauthConfig.getName();
@@ -462,9 +473,45 @@ public class ContextProvider {
             if (userInfoEndpoint == null || userInfoEndpoint.trim().isEmpty()) {
                 userInfoEndpoint = authenticatorProperties.get("userinfo_endpoint");
             }
-            String scope = authenticatorProperties.get("scope");
+            
+            // Extract scope from multiple possible property sources.
+            String scope = null;
+            
+            // First, check standard OIDC scope property (e.g., "Scopes").
+            scope = authenticatorProperties.get(IdentityApplicationConstants.Authenticator.OIDC.SCOPES);
+            
             if (scope == null || scope.trim().isEmpty()) {
-                scope = authenticatorProperties.get("Scope"); 
+                // Fallback to case variations for compatibility.
+                String[] scopePropertyNames = {"scope", "Scope", "SCOPE", "scopes", "requestedScope"};
+                for (String scopePropName : scopePropertyNames) {
+                    String propValue = authenticatorProperties.get(scopePropName);
+                    if (propValue != null && !propValue.trim().isEmpty()) {
+                        scope = propValue;
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Found scope in fallback property: " + scopePropName);
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            // If scope not found in standard properties, check AdditionalQueryParameters.
+            // Google OIDC stores scope as "scope=openid+email" in AdditionalQueryParameters.
+            if ((scope == null || scope.trim().isEmpty()) && 
+                authenticatorProperties.containsKey("AdditionalQueryParameters")) {
+                String additionalParams = authenticatorProperties.get("AdditionalQueryParameters");
+                if (additionalParams != null && !additionalParams.trim().isEmpty()) {
+                    scope = extractScopeFromQueryParams(additionalParams);
+                    if (scope != null && !scope.isEmpty() && LOG.isDebugEnabled()) {
+                        LOG.debug("Found scope in AdditionalQueryParameters for IdP: " + 
+                                idp.getIdentityProviderName() + " - Scope: " + scope);
+                    }
+                }
+            }
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Final extracted scope for IdP: " + idp.getIdentityProviderName() 
+                        + " - Scope: " + (scope != null && !scope.trim().isEmpty() ? scope : "NOT CONFIGURED"));
             }
             // Validate required properties.
             if (clientId == null || clientId.trim().isEmpty()) {
@@ -486,7 +533,8 @@ public class ContextProvider {
                         + " - ClientId: FOUND"
                         + ", AuthzEndpoint: " + authzEndpoint
                         + ", TokenEndpoint: " + tokenEndpoint
-                        + ", UserInfoEndpoint: " + (userInfoEndpoint != null ? userInfoEndpoint : "MISSING"));
+                        + ", UserInfoEndpoint: " + (userInfoEndpoint != null ? userInfoEndpoint : "MISSING")
+                        + ", Scope: " + (scope != null && !scope.trim().isEmpty() ? scope : "NOT CONFIGURED"));
             }
             return new OAuth2ResolvedProperties(clientId, clientSecret, authzEndpoint,
                     tokenEndpoint, userInfoEndpoint, scope);
@@ -893,5 +941,37 @@ public class ContextProvider {
                         + e.getMessage());
             }
         }
+    }
+    
+    /**
+     * Extracts scope from AdditionalQueryParameters.
+     * Example: "scope=openid+email" or "scope=openid%20email"
+     *
+     * @param queryParams Query parameters string.
+     * @return Extracted scope value or null if not found.
+     */
+    private String extractScopeFromQueryParams(String queryParams) {
+        if (queryParams == null || queryParams.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            // Parse query parameters (format: "key=value&key2=value2").
+            String[] params = queryParams.split("&");
+            for (String param : params) {
+                if (param.startsWith("scope=")) {
+                    String scope = param.substring("scope=".length());
+                    // Decode URL encoding (+ to space, %20 to space, etc.).
+                    scope = java.net.URLDecoder.decode(scope, "UTF-8");
+                    return scope;
+                }
+            }
+        } catch (Exception e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error extracting scope from AdditionalQueryParameters: " + queryParams, e);
+            }
+        }
+        
+        return null;
     }
 }

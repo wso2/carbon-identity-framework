@@ -185,8 +185,9 @@ public class Executer {
                 scope = (String) context.getProperty("DEBUG_IDP_SCOPE"); // Priority 2: IdP's configured scope
             }
             if (scope == null || scope.trim().isEmpty()) {
-                scope = "openid"; // Priority 3: Sensible minimal default
-                LOG.warn("No custom scope or IdP-configured scope found. Falling back to 'openid'.");
+                // Per requirement: do not add fallbacks. Must use the correct scopes configured in the connector.
+                throw new RuntimeException(
+                        "No scope configured for the IdP.");
             }
             urlBuilder.append("&scope=").append(encodeParam(scope));
             urlBuilder.append("&state=").append(encodeParam(state));

@@ -25,6 +25,10 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.DebugService;
 import org.wso2.carbon.identity.debug.framework.RequestCoordinator;
 
@@ -72,5 +76,36 @@ public class DebugServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
         LOG.info("Debug Framework OSGi component deactivated");
+    }
+
+    /**
+     * Sets the ClaimMetadataManagementService.
+     *
+     * @param service the ClaimMetadataManagementService instance
+     */
+    @Reference(
+            name = "claimMetadataManagementService",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService"
+    )
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService service) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("ClaimMetadataManagementService set in DebugServiceComponent");
+        }
+        DebugFrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(service);
+    }
+
+    /**
+     * Unsets the ClaimMetadataManagementService.
+     *
+     * @param claimMetadataManagementService the ClaimMetadataManagementService instance
+     */
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("ClaimMetadataManagementService unset in DebugServiceComponent");
+        }
+        DebugFrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
 }
