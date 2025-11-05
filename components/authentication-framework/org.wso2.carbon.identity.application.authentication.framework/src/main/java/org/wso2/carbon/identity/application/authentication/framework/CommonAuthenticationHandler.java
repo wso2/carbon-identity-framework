@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.debug.framework.DebugService;
 
 import java.io.IOException;
 
@@ -59,19 +60,15 @@ public class CommonAuthenticationHandler {
             if (bundleContext == null) {
                 return false;
             }
-            ServiceReference<?> serviceRef = bundleContext.getServiceReference(
-                "org.wso2.carbon.identity.debug.framework.DebugService");
+            ServiceReference<DebugService> serviceRef = bundleContext.getServiceReference(DebugService.class);
             if (serviceRef == null) {
                 return false;
             }
-            Object debugService = bundleContext.getService(serviceRef);
+            DebugService debugService = bundleContext.getService(serviceRef);
             if (debugService == null) {
                 return false;
             }
-            java.lang.reflect.Method handleMethod = debugService.getClass().getMethod(
-                "handleCommonAuthRequest", HttpServletRequest.class, HttpServletResponse.class);
-            Object result = handleMethod.invoke(debugService, request, response);
-            boolean handled = result instanceof Boolean && (Boolean) result;
+            boolean handled = debugService.handleCommonAuthRequest(request, response);
             bundleContext.ungetService(serviceRef);
             return handled;
         } catch (Exception e) {
@@ -95,7 +92,7 @@ public class CommonAuthenticationHandler {
             
             if (debugHandled) {
                 // Debug flow handled, return without proceeding to regular authentication.
-                log.info("DEBUG FLOW PROCESSED - SKIPPING REGULAR AUTH");
+                log.info("Debug flow handled by DebugService.");
                 return;
             }
 

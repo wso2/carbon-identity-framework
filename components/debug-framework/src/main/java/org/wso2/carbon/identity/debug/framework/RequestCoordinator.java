@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 
 import java.io.IOException;
 
@@ -64,10 +65,7 @@ public class RequestCoordinator implements DebugService {
      * @param authenticationContext the authentication context (it is provided by the framework)
      * @return OAuth 2.0 authorization URL or processing result
      */
-    @SuppressWarnings("unused")
-    public String execute(org.wso2.carbon.identity.application.common.model.IdentityProvider identityProvider,
-                         org.wso2.carbon.identity.application.authentication.framework.context.
-                         AuthenticationContext authenticationContext) {
+    public String execute(IdentityProvider identityProvider, AuthenticationContext authenticationContext) {
 
         // Step status reporting: coordinator execute called
         authenticationContext.setProperty("DEBUG_STEP_COORDINATOR_EXECUTE_CALLED", true);
