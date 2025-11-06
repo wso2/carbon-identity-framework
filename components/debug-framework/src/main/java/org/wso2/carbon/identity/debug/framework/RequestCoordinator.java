@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 
 import java.io.IOException;
 
@@ -56,40 +55,6 @@ public class RequestCoordinator implements DebugService {
      * @return true if request was handled by debug processor, false if it should be handled by regular flow.
      * @throws IOException If processing fails.
      */
-    
-    /**
-     * Execute method expected by the API layer for OAuth 2.0 authorization URL generation.
-     * This method handles the initial IdP debug processing.
-     *
-     * @param identityProvider the identity provider configuration
-     * @param authenticationContext the authentication context (it is provided by the framework)
-     * @return OAuth 2.0 authorization URL or processing result
-     */
-    public String execute(IdentityProvider identityProvider, AuthenticationContext authenticationContext) {
-
-        // Step status reporting: coordinator execute called
-        authenticationContext.setProperty("DEBUG_STEP_COORDINATOR_EXECUTE_CALLED", true);
-
-        try {
-            // This is the main URL generation path.
-            authenticationContext.setProperty("DEBUG_STEP_OAUTH_URL_GENERATION_STARTED", true);
-
-            // Delegate to the Executer class for URL generation
-            Executer executer = new Executer();
-
-            boolean success = executer.execute(identityProvider, authenticationContext);
-            if (success) {
-                return (String) authenticationContext.getProperty("DEBUG_EXTERNAL_REDIRECT_URL");
-            } else {
-                return "ERROR: Failed to generate authorization URL";
-            }
-
-        } catch (Exception e) {
-            LOG.error("Error in execute method", e);
-            throw new RuntimeException("Debug framework execution failed", e);
-        }
-    }
-
     public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
         try {
             // Check if this is a debug flow callback
@@ -346,7 +311,7 @@ public class RequestCoordinator implements DebugService {
     }
 
     /**
-     * Caches the debug context for callback retrieval (legacy method).
+     * Caches the debug context for callback retrieval
      *
      * @param context AuthenticationContext to cache.
      */
