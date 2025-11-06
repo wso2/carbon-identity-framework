@@ -82,6 +82,11 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         }
         // Check if the application is a main application. If not, throw a client error.
         ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        int tenantId = applicationManagementService.getTenantIdByApp(applicationId);
+        if (tenantId != IdentityTenantUtil.getTenantId(tenantDomain)) {
+            throw buildClientException(INVALID_REQUEST,
+                    "Application does not belong to the tenant domain: " + tenantDomain);
+        }
         String mainAppId = applicationManagementService.getMainAppId(applicationId);
         if (StringUtils.isNotBlank(mainAppId)) {
             throw buildClientException(INVALID_REQUEST, "Cannot add authorized APIs to a shared application.");
@@ -105,6 +110,12 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 .getAuthorizedAPIManagementListeners();
         for (AuthorizedAPIManagementListener listener : listeners) {
             listener.preDeleteAuthorizedAPI(appId, apiId, tenantDomain);
+        }
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        int tenantId = applicationManagementService.getTenantIdByApp(appId);
+        if (tenantId != IdentityTenantUtil.getTenantId(tenantDomain)) {
+            throw buildClientException(INVALID_REQUEST,
+                    "Application does not belong to the tenant domain: " + tenantDomain);
         }
         authorizedAPIDAO.deleteAuthorizedAPI(appId, apiId, IdentityTenantUtil.getTenantId(tenantDomain));
         try {
@@ -133,6 +144,11 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             }
             // Check if the application is a main application else get the main application id and main tenant id.
             ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            int tenantID = applicationManagementService.getTenantIdByApp(applicationId);
+            if (tenantID != IdentityTenantUtil.getTenantId(tenantDomain)) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Application does not belong to the tenant domain: " + tenantDomain);
+            }
             String mainAppId = applicationManagementService.getMainAppId(applicationId);
             if (StringUtils.isNotBlank(mainAppId)) {
                 applicationId = mainAppId;
@@ -190,6 +206,11 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             }
             // Check if the application is a main application else get the main application id and main tenant id.
             ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            int tenantID = applicationManagementService.getTenantIdByApp(appId);
+            if (tenantID != IdentityTenantUtil.getTenantId(tenantDomain)) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Application does not belong to the tenant domain: " + tenantDomain);
+            }
             String mainAppId = applicationManagementService.getMainAppId(appId);
             if (mainAppId != null) {
                 appId = mainAppId;
@@ -265,6 +286,11 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             }
             // Check if the application is a main application else get the main application id and main tenant id.
             ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            int tenantID = applicationManagementService.getTenantIdByApp(appId);
+            if (tenantID != IdentityTenantUtil.getTenantId(tenantDomain)) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Application does not belong to the tenant domain: " + tenantDomain);
+            }
             String mainAppId = applicationManagementService.getMainAppId(appId);
             if (mainAppId != null) {
                 apiId = mainAppId;
@@ -358,6 +384,12 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 .getAuthorizedAPIManagementListeners();
         for (AuthorizedAPIManagementListener listener : listeners) {
             listener.prePatchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, tenantDomain);
+        }
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        int tenantId = applicationManagementService.getTenantIdByApp(appId);
+        if (tenantId != IdentityTenantUtil.getTenantId(tenantDomain)) {
+            throw buildClientException(INVALID_REQUEST,
+                    "Application does not belong to the tenant domain: " + tenantDomain);
         }
         authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, addedAuthorizationDetailsTypes,
                 removedAuthorizationDetailsTypes, IdentityTenantUtil.getTenantId(tenantDomain));
