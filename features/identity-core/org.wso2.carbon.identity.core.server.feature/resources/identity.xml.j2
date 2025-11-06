@@ -2323,6 +2323,15 @@
         </Types>
     </Actions>
 
+    <ExternalAPIClient>
+        <HTTPClient>
+            <HTTPConnectionTimeout>{{external_api_client.http_client.connection_timeout}}</HTTPConnectionTimeout>
+            <HTTPReadTimeout>{{external_api_client.http_client.read_timeout}}</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>{{external_api_client.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+            <HTTPConnectionPoolSize>{{external_api_client.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
+        </HTTPClient>
+    </ExternalAPIClient>
+
     <Webhooks>
         <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
     </Webhooks>
