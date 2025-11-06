@@ -320,6 +320,10 @@
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
   "oauth.impersonated_refresh_token.enable": true,
+  "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
+
+  "oauth.enable_legacy_session_bound_token_behaviour": false,
+  "oauth.allow_session_bound_tokens_after_idle_session_expiry": false,
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -2018,6 +2022,7 @@
   "cors.tag_requests": false,
   "x509.request_header_name": "X-SSL-CERT",
   "x509.crl_download_timeout": "60000",
+  "x509.request_header_encoded": false,
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
   "common_auth_caller_path.enable_nested_redirect_params": false,
@@ -2062,6 +2067,7 @@
   "email_templates.branding.fallbacks.button_font_color": "#FFFFFF",
   "email_templates.branding.fallbacks.light_border_color": "transparent",
   "email_templates.branding.fallbacks.dark_border_color": "#333333",
+  "email_templates.branding.fallbacks.support_mail": "",
   "authentication.enable_basic_auth_handler": true,
 
   "organization_management.self_service.system_user_name": "B2B-SS-System-User",
@@ -2158,4 +2164,5 @@
   "configs.endpoint.elevate_permission": true,
 
   "identifier_first.preserve_case_sensitivity.enabled": true
+  "pastr_cookie.max_age": "-1"
 }

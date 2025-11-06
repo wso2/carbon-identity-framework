@@ -54,6 +54,10 @@
            <Scopes>internal_config_update</Scopes>
         </Resource>
 
+        <!-- handling incorrect discovery requests -->
+        <Resource context="/.well-known/oauth-authorization-server/oauth2/token(.*)" secured="true" http-method="all"/>
+        <Resource context="/.well-known/openid-configuration(.*)" secured="true" http-method="all"/>
+        
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
@@ -1259,6 +1263,19 @@
             <Operations mandatory="true">
                 <Operation name="viewApplicationClientSecret">
                     <scope>internal_org_application_mgt_client_secret_view</scope>
+                </Operation>
+            </Operations>
+        </Resource>
+
+        <!-- [Organization] Application API resources Management API -->
+        <Resource context="(.*)/o/api/server/v1/applications/(.*)/authorized-apis(.*)" secured="true" http-method="POST, DELETE, PATCH">
+            <Scopes>internal_org_application_mgt_update</Scopes>
+            <Operations mandatory="true">
+                <Operation name="updateInternalAuthorizedAPI">
+                    <scope>internal_org_application_internal_api_update</scope>
+                </Operation>
+                <Operation name="updateBusinessAuthorizedAPI">
+                    <scope>internal_org_application_business_api_update</scope>
                 </Operation>
             </Operations>
         </Resource>

@@ -1144,6 +1144,49 @@ public class RoleDAOTest {
     }
 
     @Test
+    public void testGetUserListOfRoles() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityUtil.when(IdentityUtil::getDefaultItemsPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE);
+        identityUtil.when(IdentityUtil::getMaximumItemPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.addDomainToName(anyString(), anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Add roles with users.
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+
+        mockRealmConfiguration();
+
+        // Create filter expression nodes for role name filtering.
+        List<ExpressionNode> expressionNodes = getExpressionNodes("name eq " + roleNamesList.get(0));
+
+        // Test getUserListOfRoles with filter.
+        List<UserBasicInfo> users = roleDAO.getUserListOfRoles(expressionNodes, 10, 0, null, null,
+                SAMPLE_TENANT_DOMAIN, USER_DOMAIN_PRIMARY);
+
+        // Verify that the users are retrieved correctly.
+        assertNotNull(users);
+        assertEquals(users.size(), userNamesList.size());
+
+        String firstUser = users.get(0).getName();
+        String secondUser = users.get(1).getName();
+        assert userNamesList.contains(firstUser);
+        assert userNamesList.contains(secondUser);
+    }
+
+    @Test
     void testIsValidSubOrgPermission() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
