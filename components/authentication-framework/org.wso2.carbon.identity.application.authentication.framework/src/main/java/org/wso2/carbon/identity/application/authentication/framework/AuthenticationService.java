@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
@@ -397,6 +398,16 @@ public class AuthenticationService {
 
         String clientId = getClientId(authServiceRequest.getRequest());
         String tenantDomain = getTenantDomain(authServiceRequest.getRequest());
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                tenantDomain = FrameworkUtils.resolveAppResidentTenantDomain(appResidentOrgId);
+            } catch (FrameworkException e) {
+                throw new AuthServiceException("An error occurred while resolving tenant domain for organization: "
+                        + appResidentOrgId, e);
+            }
+        }
         ServiceProvider serviceProvider = getServiceProvider(clientId, tenantDomain);
 
         if (serviceProvider == null) {

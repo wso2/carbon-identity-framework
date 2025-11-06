@@ -4728,6 +4728,16 @@ public class FrameworkUtils {
                 log.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
             }
             tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            String appResidentOrganizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .getApplicationResidentOrganizationId();
+            if (StringUtils.isNotBlank(appResidentOrganizationId)) {
+                try {
+                    tenantDomain = resolveAppResidentTenantDomain(appResidentOrganizationId);
+                } catch (FrameworkException e) {
+                    log.error("Error while resolving tenant domain from organization id: "
+                            + appResidentOrganizationId + ".", e);
+                }
+            }
             if (StringUtils.isNotBlank(tenantDomain)) {
                 return tenantDomain;
             } else {
@@ -4970,5 +4980,31 @@ public class FrameworkUtils {
         String userAssertion = contextUserAssertion != null ? contextUserAssertion.toString()
                 : request.getParameter(FrameworkConstants.USER_ASSERTION);
         return StringUtils.isNotEmpty(userAssertion);
+    }
+
+    /**
+     * Resolves application resident tenant domain from organization id.
+     *
+     * @param appResidentOrgId Organization id of the application resident tenant.
+     * @return Resolved tenant domain.
+     * @throws FrameworkException Error while resolving tenant domain.
+     */
+    public static String resolveAppResidentTenantDomain(String appResidentOrgId) throws FrameworkException {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Resolving tenant domain from organization id: " + appResidentOrgId);
+            }
+            String appResidentTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveTenantDomain(appResidentOrgId);
+            if (StringUtils.isBlank(appResidentTenantDomain)) {
+                throw new FrameworkException("Resolved tenant domain is null or empty for organization id: "
+                        + appResidentOrgId + ".");
+            }
+            return appResidentTenantDomain;
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while resolving tenant domain from organization id: "
+                    + appResidentOrgId + ".", e);
+        }
     }
 }

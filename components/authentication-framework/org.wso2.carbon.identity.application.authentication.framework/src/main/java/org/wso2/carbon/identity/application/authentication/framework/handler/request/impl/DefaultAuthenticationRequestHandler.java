@@ -390,6 +390,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             if (!sequenceConfig.getApplicationConfig().isSaaSApp()) {
                 String spTenantDomain = context.getTenantDomain();
+                String appResidentOrganizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getApplicationResidentOrganizationId();
+                if (StringUtils.isNotBlank(appResidentOrganizationId)) {
+                    spTenantDomain = FrameworkUtils.resolveAppResidentTenantDomain(appResidentOrganizationId);
+                }
                 String userTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
                 if (StringUtils.isNotEmpty(userTenantDomain)) {
                     if (StringUtils.isNotEmpty(spTenantDomain) && !spTenantDomain.equals

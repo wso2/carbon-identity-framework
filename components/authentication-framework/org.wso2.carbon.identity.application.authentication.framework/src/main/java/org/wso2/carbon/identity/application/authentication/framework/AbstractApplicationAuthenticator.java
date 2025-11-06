@@ -27,6 +27,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -127,6 +128,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
                             String userDomain = context.getSubject().getTenantDomain();
                             String tenantDomain = context.getTenantDomain();
+                            String appResidentOrganizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .getApplicationResidentOrganizationId();
+                            if (StringUtils.isNotBlank(appResidentOrganizationId)) {
+                                tenantDomain = FrameworkUtils.resolveAppResidentTenantDomain(appResidentOrganizationId);
+                            }
                             if (!StringUtils.equals(userDomain, tenantDomain)) {
                                 context.setProperty(FrameworkConstants.USER_TENANT_DOMAIN_MISMATCH, true);
                                 throw new AuthenticationFailedException(
@@ -203,6 +209,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         // multi-option are available in the step.
                         throw e;
                     }
+                } catch (FrameworkException e) {
+                    throw new AuthenticationFailedException("Error while resolving tenant domain of the application "
+                            + "resident organization: " + PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .getApplicationResidentOrganizationId() + ".", e);
                 }
             }
             // if a logout flow

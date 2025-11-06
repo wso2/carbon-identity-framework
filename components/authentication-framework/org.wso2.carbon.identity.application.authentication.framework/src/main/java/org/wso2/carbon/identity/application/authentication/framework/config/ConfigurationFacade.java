@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -136,7 +137,12 @@ public class ConfigurationFacade {
             log.debug("Trying to find the IdP for name: " + idpName);
         }
 
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
         try {
+            if (StringUtils.isNotBlank(appResidentOrgId)) {
+                tenantDomain = FrameworkUtils.resolveAppResidentTenantDomain(appResidentOrgId);
+            }
             IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
             idpDO = idpManager.getEnabledIdPByName(idpName, tenantDomain);
 
@@ -154,6 +160,9 @@ public class ConfigurationFacade {
             }
         } catch (IdentityProviderManagementException e) {
             throw new IdentityProviderManagementException("Exception while getting IdP by name", e);
+        } catch (FrameworkException e) {
+            throw new IdentityProviderManagementException("Error while resolving tenant domain for organization id: "
+                    + appResidentOrgId + ".", e);
         }
 
         return externalIdPConfig;
