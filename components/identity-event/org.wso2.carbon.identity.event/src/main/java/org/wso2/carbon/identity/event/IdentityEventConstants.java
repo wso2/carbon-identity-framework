@@ -200,6 +200,7 @@ public class IdentityEventConstants {
         public static final String POST_SELF_SIGNUP_CONFIRM = "POST_SELF_SIGNUP_CONFIRM";
         public static final String PRE_EMAIL_CHANGE_VERIFICATION = "PRE_EMAIL_CHANGE_VERIFICATION";
         public static final String POST_EMAIL_CHANGE_VERIFICATION = "POST_EMAIL_CHANGE_VERIFICATION";
+        public static final String POST_MOBILE_CHANGE_VERIFICATION = "POST_MOBILE_CHANGE_VERIFICATION";
         public static final String PRE_LOCK_ACCOUNT = "PRE_LOCK_ACCOUNT";
         public static final String POST_LOCK_ACCOUNT = "POST_LOCK_ACCOUNT";
         public static final String PRE_UNLOCK_ACCOUNT = "PRE_UNLOCK_ACCOUNT";
@@ -518,8 +519,13 @@ public class IdentityEventConstants {
 
                 public static final String POST_CREDENTIAL_UPDATE_BY_ADMIN = "POST_CREDENTIAL_UPDATE_BY_ADMIN";
                 public static final String POST_CREDENTIAL_UPDATE_BY_USER = "POST_CREDENTIAL_UPDATE_BY_USER";
+                public static final String POST_USER_PROFILE_UPDATE_BY_ADMIN = "POST_USER_PROFILE_UPDATE_BY_ADMIN";
+                public static final String POST_USER_PROFILE_UPDATE_BY_USER = "POST_USER_PROFILE_UPDATE_BY_USER";
             }
         }
+
+        public static final String IS_PASSWORD_UPDATE_ACTION = "isPasswordUpdateAction";
+        public static final String VERIFIED_BY_END_USER = "VerifiedByEndUser";
     }
 
     public class ErrorMessage {
