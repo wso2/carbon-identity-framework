@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.AttributeMappingDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimPropertyDTO;
@@ -57,6 +59,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UN
  */
 public class ClaimMetadataUtils {
 
+    private static final Log log = LogFactory.getLog(ClaimMetadataUtils.class);
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String IDENTITY_DATA_STORE_TYPE = "IdentityDataStore.DataStoreType";
     private static final String DEFAULT_USER_STORE_BASED_IDENTITY_DATA_STORE =
@@ -285,6 +288,11 @@ public class ClaimMetadataUtils {
             claim.setMultiValued(Boolean.parseBoolean(claimProperties.get(ClaimConstants.MULTI_VALUED_PROPERTY)));
         }
 
+        if (claimProperties.containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)) {
+            claim.setManagedInUserStore(
+                    Boolean.parseBoolean(claimProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)));
+        }
+
         claimMapping.setClaim(claim);
 
         List<AttributeMapping> mappedAttributes = localClaim.getMappedAttributes();
@@ -480,6 +488,7 @@ public class ClaimMetadataUtils {
      */
     public static boolean isUserStoreBasedIdentityDataStore() {
 
+        log.debug("Checking whether the configured identity data store is user store based.");
         return StringUtils.equalsIgnoreCase(DEFAULT_USER_STORE_BASED_IDENTITY_DATA_STORE,
                 IdentityUtil.getProperty(IDENTITY_DATA_STORE_TYPE));
     }
@@ -492,6 +501,9 @@ public class ClaimMetadataUtils {
      */
     public static boolean isIdentityClaim(LocalClaim localClaim) {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Checking whether the claim: %s is an identity claim.", localClaim.getClaimURI()));
+        }
         return StringUtils.startsWith(localClaim.getClaimURI(),
                 UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI_PREFIX);
     }
