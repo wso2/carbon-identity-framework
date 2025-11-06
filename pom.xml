@@ -392,6 +392,7 @@
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.fraud.detection.core.server.feature</artifactId>
                 <version>${project.version}</version>
+                <type>zip</type>
             </dependency>
 
             <dependency>
