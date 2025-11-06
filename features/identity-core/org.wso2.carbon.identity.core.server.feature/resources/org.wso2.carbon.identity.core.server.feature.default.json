@@ -1776,7 +1776,8 @@
   "console.users.enabled": true,
   "console.users.disabled_features": [
     "users.add.legacy",
-    "users.profile.legacy"
+    "users.profile.legacy",
+    "users.totalUserCount"
   ],
   "console.users.scopes.feature": ["console:users"],
   "console.users.scopes.create": ["internal_user_mgt_create", "internal_workflow_association_view"],
