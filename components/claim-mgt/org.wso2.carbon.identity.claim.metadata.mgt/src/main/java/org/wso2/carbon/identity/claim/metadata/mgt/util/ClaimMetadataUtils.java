@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.COMMA_SEPARATOR;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UNIQUENESS_VALIDATION_SCOPE;
 
@@ -291,6 +292,15 @@ public class ClaimMetadataUtils {
         if (claimProperties.containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)) {
             claim.setManagedInUserStore(
                     Boolean.parseBoolean(claimProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)));
+        } else {
+            claim.setManagedInUserStore(null);
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY)) {
+            String excludedUserStoresStr = claimProperties.get(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY);
+            Set<String> excludedUserStores =
+                    new HashSet<>(Arrays.asList(StringUtils.split(excludedUserStoresStr, COMMA_SEPARATOR)));
+            claim.setExcludedUserStores(excludedUserStores);
         }
 
         claimMapping.setClaim(claim);

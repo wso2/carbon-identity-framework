@@ -1058,6 +1058,16 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     localClaim.getClaimURI(), tenantDomain));
         }
 
+        // If the identity data store is user store based, all the claims should be stored in user store.
+        if (isUserStoreBasedIdentityDataStore()) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Identity data store is user store based. Setting ManagedInUserStore=true " +
+                        "for claim: %s", localClaim.getClaimURI()));
+            }
+            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.TRUE.toString());
+            return;
+        }
+
         String managedInUserStorePropertyValue =
                 localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
         boolean isIdentityClaim = isIdentityClaim(localClaim);
@@ -1072,16 +1082,6 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 managedInUserStorePropertyValue = Boolean.TRUE.toString();
                 localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, managedInUserStorePropertyValue);
             }
-            return;
-        }
-
-        // If the identity data store is user store based, all the identity claims should be stored in user store.
-        if (isUserStoreBasedIdentityDataStore()) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Identity data store is user store based. Setting ManagedInUserStore=true " +
-                        "for identity claim: %s", localClaim.getClaimURI()));
-            }
-            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.TRUE.toString());
             return;
         }
 
@@ -1142,8 +1142,20 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         String managedInUserStorePropertyValue =
                 localClaim.getClaimProperty(MANAGED_IN_USER_STORE_PROPERTY);
         boolean isUserStoreBasedIdentityDataStore = isUserStoreBasedIdentityDataStore();
-        boolean isIdentityClaim = isIdentityClaim(localClaim);
 
+        if (isUserStoreBasedIdentityDataStore &&
+                StringUtils.equalsIgnoreCase(managedInUserStorePropertyValue, Boolean.FALSE.toString())) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Cannot set ManagedInUserStore=false for claim: %s " +
+                        "when identity data store is user store based.", localClaim.getClaimURI()));
+            }
+            throw new ClaimMetadataClientException(
+                    ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode(),
+                    String.format(ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
+                            localClaim.getClaimURI()));
+        }
+
+        boolean isIdentityClaim = isIdentityClaim(localClaim);
         if (!isIdentityClaim) {
             if (managedInUserStorePropertyValue == null) {
                 if (log.isDebugEnabled()) {
@@ -1169,17 +1181,6 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
 
         boolean isManagedInUserStore = Boolean.parseBoolean(managedInUserStorePropertyValue);
-
-        if (isUserStoreBasedIdentityDataStore && !isManagedInUserStore) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Validation failed: Cannot set ManagedInUserStore=false for identity claim: %s " +
-                        "when identity data store is user store based.", localClaim.getClaimURI()));
-            }
-            throw new ClaimMetadataClientException(
-                    ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode(),
-                    String.format(ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
-                            localClaim.getClaimURI()));
-        }
 
         // If managed in user store is not enabled, remove excluded user stores property.
         if (!isManagedInUserStore) {
