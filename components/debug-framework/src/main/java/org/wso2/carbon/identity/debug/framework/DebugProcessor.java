@@ -213,6 +213,7 @@ public class DebugProcessor {
 
     /**
      * Handles token exchange result and sets appropriate context properties.
+     * Captures specific error codes and descriptions from the IdP response.
      *
      * @return true if token exchange succeeded, false otherwise.
      */
@@ -220,32 +221,43 @@ public class DebugProcessor {
                                             HttpServletResponse response, String state, 
                                             String idpId) throws IOException {
         if (tokens == null || tokens.getAccessToken() == null) {
-            String errorMsg = "Failed to exchange authorization code for tokens";
+            String errorCode = "TOKEN_EXCHANGE_FAILED";
+            String errorDescription = "Failed to exchange authorization code for tokens";
+            String errorDetails = "";
+            
             if (tokens != null && tokens.hasError()) {
-                errorMsg = tokens.getErrorCode() + ": " + tokens.getErrorDescription();
-                context.setProperty("step_connection_error_code", tokens.getErrorCode());
-                context.setProperty("step_connection_error_description", tokens.getErrorDescription());
-                context.setProperty("step_connection_error_details", tokens.getErrorDetails());
+                errorCode = tokens.getErrorCode();
+                errorDescription = tokens.getErrorDescription();
+                errorDetails = tokens.getErrorDetails();
+                
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Token exchange error from IdP - Code: " + errorCode + 
+                            ", Description: " + errorDescription);
+                }
             } else {
-                context.setProperty("step_connection_error_code", "TOKEN_EXCHANGE_FAILED");
-                context.setProperty("step_connection_error_description", "No tokens received from IdP");
+                errorDescription = "No tokens received from IdP. Response was null or missing access token.";
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Token exchange returned null or empty response");
+                }
             }
             
-            LOG.error("Token exchange failed - " + errorMsg);
-            context.setProperty("DEBUG_AUTH_ERROR", errorMsg);
+            // Set detailed error information in context.
+            context.setProperty("step_connection_error_code", errorCode);
+            context.setProperty("step_connection_error_description", errorDescription);
+            context.setProperty("step_connection_error_details", errorDetails);
+            context.setProperty("DEBUG_AUTH_ERROR", errorCode + ": " + errorDescription);
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
             context.setProperty("step_connection_status", "failed");
-            context.setProperty("step_connection_error", errorMsg);
+            context.setProperty("step_connection_error", errorCode + ": " + errorDescription);
             
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Token exchange error details: " + (tokens != null ? tokens.getErrorDetails() : "N/A"));
-            }
+            LOG.error("Token exchange failed with code: " + errorCode + ", description: " + errorDescription);
             
             buildAndCacheTokenExchangeErrorResponse(tokens, state, context);
             redirectToDebugSuccess(response, state, idpId);
             return false;
         }
         
+        // Token exchange successful.
         context.setProperty("step_connection_status", "success");
         context.setProperty("DEBUG_ACCESS_TOKEN", tokens.getAccessToken());
         if (tokens.getIdToken() != null) {
@@ -256,11 +268,16 @@ public class DebugProcessor {
         }
         context.setProperty("DEBUG_TOKEN_TYPE", tokens.getTokenType());
         
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Token exchange succeeded. Access token received, token type: " + tokens.getTokenType());
+        }
+        
         return true;
     }
 
     /**
      * Handles claim extraction result and validates if claims were successfully extracted.
+     * Provides detailed error messages about why claim extraction failed.
      *
      * @return true if claims extraction succeeded, false otherwise.
      */
@@ -268,15 +285,32 @@ public class DebugProcessor {
                                                HttpServletResponse response, String state, 
                                                String idpId) throws IOException {
         if (claims == null || claims.isEmpty()) {
-            LOG.error("Failed to extract user claims from tokens");
-            context.setProperty("DEBUG_AUTH_ERROR", "Failed to extract user claims from tokens");
+            String errorMsg = "Failed to extract user claims from tokens";
+            String errorDetails = "No claims were found in the ID token or returned from the UserInfo endpoint. " +
+                    "Verify that the IdP is configured to return user information and that claim mappings are correct.";
+            
+            LOG.error(errorMsg + " - " + errorDetails);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Claims extraction failed for IdP. ID token present: " + 
+                        (context.getProperty("DEBUG_ID_TOKEN") != null) + 
+                        ", AccessToken present: " + (context.getProperty("DEBUG_ACCESS_TOKEN") != null));
+            }
+            
+            context.setProperty("DEBUG_AUTH_ERROR", errorMsg);
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
             context.setProperty("step_claim_extraction_status", "failed");
-            context.setProperty("step_claim_extraction_error", "No claims found in ID token or UserInfo endpoint");
+            context.setProperty("step_claim_extraction_error", errorMsg);
+            context.setProperty("step_claim_extraction_error_details", errorDetails);
             
             buildAndCacheClaimExtractionErrorResponse(context, state);
             redirectToDebugSuccess(response, state, idpId);
             return false;
+        }
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Claims extraction successful. Extracted " + claims.size() + 
+                    " claims: " + claims.keySet());
         }
         
         context.setProperty("step_claim_extraction_status", "success");
@@ -285,6 +319,7 @@ public class DebugProcessor {
 
     /**
      * Builds and caches a comprehensive debug result when claim extraction fails.
+     * Includes detailed error information and troubleshooting hints.
      */
     private void buildAndCacheClaimExtractionErrorResponse(AuthenticationContext context, String state) {
         try {
@@ -307,7 +342,17 @@ public class DebugProcessor {
             }
             
             Map<String, Object> extractionError = new HashMap<>();
-            extractionError.put("error", "No claims found in ID token or UserInfo endpoint");
+            extractionError.put("errorCode", "CLAIMS_EXTRACTION_FAILED");
+            extractionError.put("errorDescription", "No claims found in ID token or UserInfo endpoint");
+            extractionError.put("troubleshootingHint", "Verify, IdP is configured to return user information. " +
+                    "Check if the UserInfo endpoint is properly configured and accessible. " +
+                    "Ensure the access token has sufficient scopes to retrieve user information.");
+            
+            boolean hasIdToken = idToken != null;
+            boolean hasAccessToken = context.getProperty("DEBUG_ACCESS_TOKEN") != null;
+            extractionError.put("idTokenPresent", hasIdToken);
+            extractionError.put("accessTokenPresent", hasAccessToken);
+            
             debugResult.put("step_claim_extraction_error", extractionError);
             
             Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
@@ -322,10 +367,11 @@ public class DebugProcessor {
             DebugResultCache.add(state, resultJson);
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug error result cached for state: " + state);
+                LOG.debug("Claim extraction error result cached for state: " + state + 
+                        ". IdToken present: " + hasIdToken + ", AccessToken present: " + hasAccessToken);
             }
         } catch (Exception cacheEx) {
-            LOG.error("Failed to cache debug error result", cacheEx);
+            LOG.error("Failed to cache claim extraction error result", cacheEx);
         }
     }
 
@@ -753,7 +799,9 @@ public class DebugProcessor {
             }
 
             int mappedCount = 0;
+            int notFoundCount = 0;
             Map<String, String> mappingDiagnostics = new HashMap<>();
+            Map<String, String> unmappedClaims = new HashMap<>();
 
             // Enhanced normalization: try both URI→short name and short name→URI
             for (ClaimMapping configuredMapping : configuredMappings) {
@@ -791,7 +839,7 @@ public class DebugProcessor {
                     // Use local claim URI as key for mapped claims
                     userAttributes.put(configuredMapping, claimValue.toString());
                     mappedCount++;
-                    mappingDiagnostics.put(localClaimUri, "mapped from " + remoteClaimUri);
+                    mappingDiagnostics.put(localClaimUri, "MAPPED: " + remoteClaimUri + " = " + claimValue);
                     context.setProperty("DEBUG_MAPPED_LOCAL_CLAIMS",
                             localClaimUri + ":" + claimValue.toString());
                     if (LOG.isDebugEnabled()) {
@@ -799,8 +847,14 @@ public class DebugProcessor {
                                 + " = " + claimValue);
                     }
                 } else {
-                    mappingDiagnostics.put(localClaimUri,
-                            "NOT FOUND - looked for: " + remoteClaimUri + " or " + shortName);
+                    notFoundCount++;
+                    String lookupDetails = "looked for '" + remoteClaimUri + "'";
+                    if (!shortName.equals(remoteClaimUri)) {
+                        lookupDetails += " or short name '" + shortName + "'";
+                    }
+                    mappingDiagnostics.put(localClaimUri, "NOT FOUND - " + lookupDetails);
+                    unmappedClaims.put(localClaimUri, remoteClaimUri);
+                    
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Failed to map claim: " + remoteClaimUri + " (short: " + shortName
                                 + "). Available claims: " + claims.keySet());
@@ -808,20 +862,34 @@ public class DebugProcessor {
                 }
             }
             
+            // Build comprehensive mapping diagnostic.
+            StringBuilder diagnosticMsg = new StringBuilder();
+            diagnosticMsg.append("Claim Mapping Report: ").append(mappedCount).append(" of ").
+            append(configuredMappings.length)
+                    .append(" mappings successful (").append(notFoundCount).append(" not found). ");
+            diagnosticMsg.append("Incoming claims received: ").append(claims.keySet()).append(". ");
+            
+            if (!unmappedClaims.isEmpty()) {
+                diagnosticMsg.append("Missing expected claims: ");
+                for (Map.Entry<String, String> entry : unmappedClaims.entrySet()) {
+                    diagnosticMsg.append("[").append(entry.getKey()).append(" <- ").
+                    append(entry.getValue()).append("] ");
+                }
+            }
+            
             // Store mapping diagnostics.
-            context.setProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC", 
-                    "Mapped " + mappedCount + " out of " + configuredMappings.length
-                    + " configured mappings. Details: " + mappingDiagnostics);
+            context.setProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC", diagnosticMsg.toString());
+            context.setProperty("DEBUG_CLAIM_MAPPING_DETAILS", mappingDiagnostics);
             
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Claim mapping complete: " + mappedCount
-                        + " claims mapped out of " + configuredMappings.length);
+                        + " claims mapped out of " + configuredMappings.length + ". " + diagnosticMsg.toString());
             }
             
             // Step status reporting: claim mapping completed
             context.setProperty("DEBUG_STEP_CLAIM_MAPPING_COMPLETED", System.currentTimeMillis());
         } catch (Exception e) {
-            LOG.error("Error mapping claims to attributes dynamically: " + e.getMessage(), e);
+            LOG.info("Error mapping claims to attributes dynamically: " + e.getMessage(), e);
             context.setProperty("DEBUG_CLAIM_MAPPING_ERROR", e.getMessage());
         }
     }
@@ -1015,7 +1083,8 @@ public class DebugProcessor {
     }
 
     /**
-     * Builds and caches token exchange error response.
+     * Builds and caches token exchange error response with detailed error information.
+     * Includes error code, description, and troubleshooting hints.
      *
      * @param tokens TokenResponse with error information.
      * @param state The state parameter for session identification.
@@ -1025,8 +1094,21 @@ public class DebugProcessor {
             AuthenticationContext context) {
         Map<String, Object> debugResult = new HashMap<>();
         
+        String errorCode = (String) context.getProperty("step_connection_error_code");
+        String errorDescription = (String) context.getProperty("step_connection_error_description");
+        String errorDetails = (String) context.getProperty("step_connection_error_details");
         String errorMsg = (String) context.getProperty("DEBUG_AUTH_ERROR");
-        String errorDetails = tokens != null ? tokens.getErrorDetails() : "";
+        
+        // Fallback to general error message if specific ones not set.
+        if (errorMsg == null) {
+            errorMsg = "Token exchange failed";
+        }
+        if (errorCode == null) {
+            errorCode = "TOKEN_EXCHANGE_FAILED";
+        }
+        if (errorDescription == null) {
+            errorDescription = errorMsg;
+        }
         
         debugResult.put("success", "false");
         debugResult.put("error", errorMsg);
@@ -1041,22 +1123,79 @@ public class DebugProcessor {
         debugResult.put("step_claim_extraction_status", "not_started");
         debugResult.put("step_claim_mapping_status", "not_started");
         
-        // Error details.
+        // Detailed error information.
         Map<String, Object> connectionError = new HashMap<>();
-        connectionError.put("error", errorMsg);
-        if (tokens != null && tokens.hasError()) {
-            connectionError.put("errorCode", tokens.getErrorCode());
-            connectionError.put("errorDescription", tokens.getErrorDescription());
-            if (errorDetails != null && !errorDetails.isEmpty()) {
-                connectionError.put("details", errorDetails);
-            }
+        connectionError.put("errorCode", errorCode);
+        connectionError.put("errorDescription", errorDescription);
+        connectionError.put("errorMessage", errorMsg);
+        
+        if (errorDetails != null && !errorDetails.isEmpty()) {
+            connectionError.put("errorDetails", errorDetails);
         }
+        
+        // Add troubleshooting information based on error code.
+        String troubleshooting = getTroubleshootingHint(errorCode, context);
+        if (troubleshooting != null) {
+            connectionError.put("troubleshootingHint", troubleshooting);
+        }
+        
         debugResult.put("step_connection_error", connectionError);
         
         debugResult.put("externalRedirectUrl", context.getProperty("DEBUG_EXTERNAL_REDIRECT_URL"));
         debugResult.put("callbackUrl", context.getProperty("DEBUG_CALLBACK_URL_USED"));
         
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Token exchange error result being cached - Code: " + errorCode + 
+                    ", Description: " + errorDescription);
+        }
+        
         cacheDebugResult(debugResult, state);
+    }
+
+    /**
+     * Provides troubleshooting hints based on the error code.
+     * Helps users identify and fix common configuration issues.
+     *
+     * @param errorCode The error code from token exchange failure.
+     * @param context AuthenticationContext with configuration information.
+     * @return Troubleshooting hint message.
+     */
+    private String getTroubleshootingHint(String errorCode, AuthenticationContext context) {
+        switch (errorCode) {
+            case "INVALID_CLIENT":
+                return "Verify Client ID and Client Secret are correct in the IdP authenticator configuration. " +
+                        "Check the IdP's application/client settings to ensure credentials match.";
+            case "INVALID_GRANT":
+                return "The authorization code may have expired (usually after 5-10 minutes) or was already used. " +
+                        "Start the authentication process again to get a new authorization code.";
+            case "INVALID_REQUEST":
+                return "The token request parameters may be malformed. Verify redirect URI configuration and " +
+                        "PKCE parameters if enabled. Check that the token endpoint URL is correct.";
+            case "UNAUTHORIZED":
+                return "The IdP rejected the request. Verify the client credentials and that the authenticator " +
+                        "type matches the IdP's requirements (OAuth 2.0, OIDC, etc.).";
+            case "CONFIG_MISSING":
+                return "Required OAuth 2.0 configuration is missing. Verify that Client ID, Client Secret, and " +
+                        "Token Endpoint URL are all configured in the IdP authenticator settings.";
+            case "IDP_CONFIG_MISSING":
+                return "Identity Provider configuration not found. Ensure the IdP is properly registered and " +
+                        "the authentication flow has access to the IdP configuration.";
+            case "AUTHENTICATOR_CONFIG_MISSING":
+                return "Authenticator configuration not found for the specified authenticator. Verify that the " +
+                        "authenticator is properly configured in the IdP.";
+            case "CONNECTION_ERROR":
+                return "Cannot connect to the IdP token endpoint. Verify the token endpoint URL is correct, " +
+                        "the IdP server is running, and there are no network/firewall issues.";
+            case "TIMEOUT_ERROR":
+                return "The request to the IdP token endpoint timed out. The IdP server may be slow or unresponsive. " +
+                        "Check server logs and network connectivity.";
+            case "SSL_CERTIFICATE_ERROR":
+                return "SSL certificate validation failed when connecting to the IdP. Verify the IdP's SSL " +
+                        "certificate is valid and trusted by the application server.";
+            default:
+                return "An unexpected error occurred during token exchange. Check the application server logs " +
+                        "for detailed error messages.";
+        }
     }
 
     /**

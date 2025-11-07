@@ -31,8 +31,6 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.debug.framework.utils.DebugUtils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,15 +47,19 @@ public class OAuth2TokenClient {
      * Returns TokenResponse with error details if exchange fails.
      */
     public TokenResponse exchangeCodeForTokens(String authorizationCode, AuthenticationContext context) {
+        IdentityProvider idp = null;
+        String authenticatorName = null;
+        String idpName = null;
+        
         try {
-            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
             if (idp == null) {
                 LOG.error("Identity Provider configuration not found in context");
                 return new TokenResponse("IDP_CONFIG_MISSING", "Identity Provider configuration not found in context",
                         "IDP_CONFIG was null in authentication context");
             }
 
-            String authenticatorName = (String) context.getProperty("DEBUG_AUTHENTICATOR_NAME");
+            authenticatorName = (String) context.getProperty("DEBUG_AUTHENTICATOR_NAME");
             FederatedAuthenticatorConfig authenticatorConfig =
 
                     DebugUtils.findAuthenticatorConfig(idp, authenticatorName);
@@ -96,24 +98,45 @@ public class OAuth2TokenClient {
             .setParameter("code_verifier", codeVerifier)
             .buildBodyMessage();
 
-            OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
-            OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(request);
+        // Add Accept: application/json header for GitHub token endpoint.
+        idpName = idp.getIdentityProviderName();
+        boolean isGitHub = idpName != null && idpName.toLowerCase().contains("github");
+        if (isGitHub) {
+            request.addHeader("Accept", "application/json");
+        }
 
-            String accessToken = oAuthResponse.getAccessToken();
-            String refreshToken = oAuthResponse.getRefreshToken();
-            String tokenType = oAuthResponse.getParam("token_type");
-            String idToken = oAuthResponse.getParam("id_token");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Exchanging authorization code for tokens at endpoint: " + tokenEndpoint + 
+                    " for IdP: " + idpName);
+        }
 
-            return new TokenResponse(accessToken, idToken, refreshToken, tokenType);
+        OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+        OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(request);
+
+        String accessToken = oAuthResponse.getAccessToken();
+        String refreshToken = oAuthResponse.getRefreshToken();
+        String tokenType = oAuthResponse.getParam("token_type");
+        String idToken = oAuthResponse.getParam("id_token");
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Token exchange successful for IdP: " + idpName + ", received access_token and token_type.");
+        }
+
+        return new TokenResponse(accessToken, idToken, refreshToken, tokenType);
         } catch (Exception e) {
-            // Capture detailed error information.
+            // Capture detailed error information from the exception.
             String errorMessage = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            String errorDetails = getStackTraceAsString(e);
             String errorCode = extractErrorCode(e);
+            String enhancedDetails = buildDetailedErrorDescription(e, errorCode, idp, authenticatorName);
 
-            LOG.error("Error exchanging authorization code for tokens via OAuth2TokenClient: " + errorMessage, e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Token exchange failed with error code: " + errorCode + ", message: " + errorMessage + 
+                        ". IdP: " + idpName);
+            }
+            LOG.error("Token exchange failed for IdP: " + idpName + " - Code: " + errorCode + 
+                    ", Message: " + errorMessage, e);
             
-            return new TokenResponse(errorCode, errorMessage, errorDetails);
+            return new TokenResponse(errorCode, errorMessage, enhancedDetails);
         }
     }
 
@@ -128,27 +151,82 @@ public class OAuth2TokenClient {
             return "INVALID_GRANT";
         } else if (exceptionMessage.contains("Unauthorized")) {
             return "UNAUTHORIZED";
+        } else if (exceptionMessage.contains("invalid_request")) {
+            return "INVALID_REQUEST";
+        } else if (exceptionMessage.contains("unsupported_grant_type")) {
+            return "UNSUPPORTED_GRANT_TYPE";
         } else if (exceptionMessage.contains("Connection")) {
             return "CONNECTION_ERROR";
+        } else if (exceptionMessage.contains("timeout") || exceptionMessage.contains("Timeout")) {
+            return "TIMEOUT_ERROR";
+        } else if (exceptionMessage.contains("SSL") || exceptionMessage.contains("Certificate")) {
+            return "SSL_CERTIFICATE_ERROR";
         } else {
             return "TOKEN_EXCHANGE_ERROR";
         }
     }
 
     /**
-     * Converts exception stack trace to string.
+     * Builds a detailed error description from exception details.
+     * Focuses on actionable information without verbose stack traces.
+     *
+     * @param e The exception that occurred.
+     * @param errorCode The error code extracted from the exception.
+     * @param idp The Identity Provider configuration.
+     * @param authenticatorName The name of the authenticator.
+     * @return A detailed error description with troubleshooting hints.
      */
-    private String getStackTraceAsString(Exception e) {
-        try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
-            e.printStackTrace(pw);
-            return sw.toString();
-        } catch (Exception ex) {
-            return "Failed to capture stack trace: " + ex.getMessage();
+    private String buildDetailedErrorDescription(Exception e, String errorCode, IdentityProvider idp, 
+            String authenticatorName) {
+        StringBuilder details = new StringBuilder();
+        
+        // Add context-specific troubleshooting hints.
+        switch (errorCode) {
+            case "INVALID_CLIENT":
+                details.append("Client credentials are invalid. Verify that the Client ID and Client Secret ")
+                    .append("are correct in the IdP authenticator configuration (")
+                    .append(authenticatorName).append(").");
+                break;
+            case "INVALID_GRANT":
+                details.append("The authorization code may have expired (usually after 5-10 minutes) ")
+                    .append("or was already used. Start the authentication process again to get a new ")
+                    .append("authorization code.");
+                break;
+            case "INVALID_REQUEST":
+                details.append("The token request is malformed. Verify redirect URI and PKCE parameters ")
+                    .append("are configured correctly.");
+                break;
+            case "UNAUTHORIZED":
+                details.append("The IdP rejected the request. Check that client credentials are correct ")
+                    .append("and the authenticator type matches the IdP's requirements.");
+                break;
+            case "CONFIG_MISSING":
+                details.append("Required OAuth 2.0 configuration is missing. Verify that Client ID, ")
+                    .append("Client Secret, and Token Endpoint URL are all configured in the IdP ")
+                    .append("authenticator settings.");
+                break;
+            case "CONNECTION_ERROR":
+                details.append("Cannot connect to the IdP token endpoint. Verify the token endpoint URL ")
+                    .append("is correct and the IdP server is reachable.");
+                break;
+            case "TIMEOUT_ERROR":
+                details.append("The request to the IdP token endpoint timed out. ")
+                    .append("Check if the IdP server is running and network connectivity is available.");
+                break;
+            case "SSL_CERTIFICATE_ERROR":
+                details.append("SSL certificate validation failed. Verify that the IdP's SSL certificate ")
+                    .append("is valid and trusted.");
+                break;
+            default:
+                details.append("An error occurred during token exchange.")
+                    .append(" Check the error code and message for details.").append(e.getMessage());
         }
+        
+        return details.toString();
     }
 
     /**
-     * Fetches UserInfo claims using the provided access token. Returns an empty map on failure.
+     * Fetches UserInfo claims using the provided access token. 
      */
     public Map<String, Object> fetchUserInfoClaims(String accessToken, AuthenticationContext context) {
         String userInfoEndpoint = (String) context.getProperty("DEBUG_USERINFO_ENDPOINT");
@@ -159,6 +237,10 @@ public class OAuth2TokenClient {
         HttpFetcher fetcher = new UrlConnectionHttpFetcher();
         Map<String, String> headers = new HashMap<>();
         headers.put("Authorization", "Bearer " + accessToken);
+        // Add Accept header for GitHub API if endpoint is GitHub
+        if (userInfoEndpoint.contains("api.github.com")) {
+            headers.put("Accept", "application/vnd.github.v3+json");
+        }
         return fetcher.getJson(userInfoEndpoint, headers);
     }
 }

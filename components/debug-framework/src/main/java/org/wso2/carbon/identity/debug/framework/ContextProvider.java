@@ -473,6 +473,26 @@ public class ContextProvider {
             if (userInfoEndpoint == null || userInfoEndpoint.trim().isEmpty()) {
                 userInfoEndpoint = authenticatorProperties.get("userinfo_endpoint");
             }
+            // If still not found, try to call getUserInfoEndpoint(Map<String, String>) on the executor via reflection
+            if ((userInfoEndpoint == null || userInfoEndpoint.trim().isEmpty()) && executor != null) {
+                try {
+                    java.lang.reflect.Method getUserInfoEndpointMethod = 
+                    executor.getClass().getMethod("getUserInfoEndpoint", java.util.Map.class);
+                    Object endpointObj = getUserInfoEndpointMethod.invoke(executor, authenticatorProperties);
+                    if (endpointObj instanceof String && !((String) endpointObj).trim().isEmpty()) {
+                        userInfoEndpoint = (String) endpointObj;
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("UserInfo endpoint resolved via executor: " + userInfoEndpoint);
+                        }
+                    }
+                } catch (NoSuchMethodException nsme) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Executor does not has getUserInfoEndpoint(Map): " + executor.getClass().getName());
+                    }
+                } catch (Exception ex) {
+                    LOG.warn("Failed to invoke getUserInfoEndpoint on executor: " + ex.getMessage());
+                }
+            }
             
             // Extract scope from multiple possible property sources.
             String scope = null;
@@ -511,7 +531,8 @@ public class ContextProvider {
             
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Final extracted scope for IdP: " + idp.getIdentityProviderName() 
-                        + " - Scope: " + (scope != null && !scope.trim().isEmpty() ? scope : "NOT CONFIGURED"));
+                        + " - Scope: " + 
+                (scope != null && !scope.trim().isEmpty() ? scope : "NOT CONFIGURED"));
             }
             // Validate required properties.
             if (clientId == null || clientId.trim().isEmpty()) {
