@@ -44,7 +44,6 @@
         <module>service-stubs/identity</module>
         <module>components/authentication-framework</module>
         <module>components/authorization-framework</module>
-        <module>components/debug-framework</module>
         <module>components/identity-core</module>
         <module>components/application-mgt</module>
         <module>components/user-mgt</module>
@@ -59,6 +58,7 @@
         <module>components/directory-server-manager</module>
         <module>components/security-mgt</module>
         <module>components/carbon-authenticators</module>
+        <module>components/debug-framework</module>
         <module>components/consent-mgt</module>
         <module>components/functions-library-mgt</module>
         <module>components/template-mgt</module>
