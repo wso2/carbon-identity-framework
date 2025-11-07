@@ -75,6 +75,7 @@ public interface IdentityFraudDetector {
 
     /**
      * Masks sensitive information in the request payload for logging purposes.
+     *
      * @param payload The original request payload.
      * @return The masked request payload.
      * @throws IdentityFraudDetectionException If an error occurs while masking the payload.

@@ -309,7 +309,8 @@ public class EventUtil {
         return (UserRealm) realmService.getTenantUserRealm(tenantId);
     }
 
-    /** Check if the event is a login event.
+    /**
+     * Check if the event is a login event.
      *
      * @param event Identity event.
      * @return true if it is a login event, false otherwise.
@@ -331,7 +332,8 @@ public class EventUtil {
         return false;
     }
 
-    /** Check if the event is a logout event.
+    /**
+     * Check if the event is a logout event.
      *
      * @param event Identity event.
      * @return true if it is a logout event, false otherwise.
@@ -341,7 +343,8 @@ public class EventUtil {
         return SESSION_TERMINATE.name().equals(event.getEventName());
     }
 
-    /** Check if the event is a post user creation event.
+    /**
+     * Check if the event is a post user creation event.
      *
      * @param event Identity event.
      * @return true if it is a post user creation event, false otherwise.
@@ -351,7 +354,8 @@ public class EventUtil {
         return POST_ADD_USER.equals(event.getEventName());
     }
 
-    /** Check if the event is a post password update event.
+    /**
+     * Check if the event is a post password update event.
      *
      * @param event Identity event.
      * @return true if it is a post password update event, false otherwise.
@@ -372,7 +376,8 @@ public class EventUtil {
         return false;
     }
 
-    /** Check if the event is a password update notification event.
+    /**
+     * Check if the event is a password update notification event.
      *
      * @param event Identity event.
      * @return true if it is a password update notification event, false otherwise.
@@ -386,7 +391,8 @@ public class EventUtil {
                 && (NOTIFICATION_BASED_PW_RECOVERY.equals(event.getEventProperties().get(RECOVERY_SCENARIO))));
     }
 
-    /** Check if the event is a self registration verification notification event.
+    /**
+     * Check if the event is a self registration verification notification event.
      *
      * @param event Identity event.
      * @return true if it is a self registration verification notification event, false otherwise.
@@ -402,7 +408,8 @@ public class EventUtil {
         return false;
     }
 
-    /** Check if the event is a post self registration verification event.
+    /**
+     * Check if the event is a post self registration verification event.
      *
      * @param event Identity event.
      * @return true if it is a post self registration verification event, false otherwise.
@@ -413,7 +420,8 @@ public class EventUtil {
         return POST_USER_ACCOUNT_CONFIRMATION.equals(eventName);
     }
 
-    /** Check if the event is a user attribute update verification notification event.
+    /**
+     * Check if the event is a user attribute update verification notification event.
      *
      * @param event Identity event.
      * @return true if it is a user attribute update verification notification event, false otherwise.
@@ -428,7 +436,8 @@ public class EventUtil {
         return false;
     }
 
-    /** Check if the event is a post user attribute update verification event.
+    /**
+     * Check if the event is a post user attribute update verification event.
      *
      * @param event Identity event.
      * @return true if it is a post user attribute update verification event, false otherwise.
@@ -439,7 +448,8 @@ public class EventUtil {
         return POST_EMAIL_CHANGE_VERIFICATION.equals(eventName) || POST_MOBILE_CHANGE_VERIFICATION.equals(eventName);
     }
 
-    /** Check if the event is a post user profile update event.
+    /**
+     * Check if the event is a post user profile update event.
      *
      * @param event Identity event.
      * @return true if it is a post user profile update event, false otherwise.
@@ -460,7 +470,8 @@ public class EventUtil {
         return false;
     }
 
-    /** Check if the event is an authentication step verification event.
+    /**
+     * Check if the event is an authentication step verification event.
      *
      * @param event Identity event.
      * @return true if it is an authentication step verification event, false otherwise.

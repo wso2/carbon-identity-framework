@@ -135,7 +135,7 @@ public class IdentityFraudDetectionEventHandler extends AbstractEventHandler {
             String tenantDomain = event.getEventProperties() != null &&
                     event.getEventProperties().get(TENANT_DOMAIN) != null ?
                     (String) event.getEventProperties().get(TENANT_DOMAIN) :
-                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();;
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             return fraudDetectionEvent != null && isPublishingEnabledForEvent(fraudDetectionEvent, tenantDomain);
         } catch (UnsupportedFraudDetectionEventException e) {
             if (LOG.isDebugEnabled()) {

@@ -45,9 +45,9 @@ public class HttpClientConnectionConfig {
     }
 
     /**
-     * Get a new Builder instance.
+     * Get the connection timeout.
      *
-     * @return Builder instance.
+     * @return Connection timeout in milliseconds.
      */
     public int getConnectionTimeout() {
 

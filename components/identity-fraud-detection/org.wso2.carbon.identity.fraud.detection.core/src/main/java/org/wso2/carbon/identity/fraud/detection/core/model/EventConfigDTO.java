@@ -108,6 +108,7 @@ public class EventConfigDTO implements Serializable {
      *
      * @return JSON representation of the EventConfigDTO.
      */
+    @Override
     public String toString() {
 
         return gson.toJson(this);

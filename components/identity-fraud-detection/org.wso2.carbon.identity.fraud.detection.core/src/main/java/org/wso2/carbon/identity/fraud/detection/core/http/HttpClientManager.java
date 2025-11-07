@@ -68,6 +68,10 @@ public class HttpClientManager {
      */
     public void closeHttpClient(CloseableHttpClient httpClient) {
 
+        if (httpClient == null) {
+            return;
+        }
+
         try {
             httpClient.close();
         } catch (IOException e) {

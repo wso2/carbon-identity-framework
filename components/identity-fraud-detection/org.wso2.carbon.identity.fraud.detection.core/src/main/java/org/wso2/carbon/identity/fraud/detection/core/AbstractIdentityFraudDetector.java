@@ -75,8 +75,10 @@ public abstract class AbstractIdentityFraudDetector implements IdentityFraudDete
             if (requestDTO.isLogRequestPayload()) {
                 logRequestPayload(request);
             }
-            CloseableHttpResponse response = httpClient.execute(request);
-            return handleResponse(response.getStatusLine().getStatusCode(), getResponseContent(response), requestDTO);
+            try (CloseableHttpResponse response = httpClient.execute(request)) {
+                return handleResponse(response.getStatusLine().getStatusCode(),
+                        getResponseContent(response), requestDTO);
+            }
         } catch (IdentityFraudDetectionException e) {
             return handleFraudDetectorException(e, requestDTO.getEventName());
         } catch (IOException e) {

@@ -86,11 +86,11 @@ public class FraudDetectorResponseDTO implements Serializable {
     /**
      * Sets the error type for the fraud detection response.
      *
-     * @param errorReason Type of error encountered during fraud detection.
+     * @param errorType Type of error encountered during fraud detection.
      */
-    public void setErrorType(FraudDetectionConstants.ErrorType errorReason) {
+    public void setErrorType(FraudDetectionConstants.ErrorType errorType) {
 
-        this.errorType = errorReason;
+        this.errorType = errorType;
     }
 
     /**
