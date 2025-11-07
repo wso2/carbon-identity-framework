@@ -84,7 +84,7 @@
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
         <module>components/input-validation-mgt</module>
-        <module>components/identity-fraud-detection</module>
+        <module>components/identity-fraud-detection/org.wso2.carbon.identity.fraud.detection.core</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
