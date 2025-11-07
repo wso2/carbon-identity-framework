@@ -51,6 +51,8 @@ import java.util.Stack;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
+import static org.wso2.securevault.commons.MiscellaneousUtil.resolve;
+
 public class IdentityConfigParser {
 
     private static Map<String, Object> configuration = new HashMap<String, Object>();
@@ -327,7 +329,7 @@ public class IdentityConfigParser {
                         OMElement propertyElem = propertyElements.next();
                         String propertyName = propertyElem.getAttributeValue(new QName(
                                 IdentityConstants.EVENT_LISTENER_PROPERTY_NAME));
-                        String propertyValue = propertyElem.getText();
+                        String propertyValue = resolve(propertyElem.getText(), secretResolver);
                         properties.setProperty(propertyName, propertyValue);
                     }
 
