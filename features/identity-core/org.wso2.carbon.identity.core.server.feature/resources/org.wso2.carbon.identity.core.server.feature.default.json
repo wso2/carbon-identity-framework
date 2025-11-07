@@ -294,6 +294,7 @@
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
   "oauth.oidc.enable_claims_separation_for_access_tokens": true,
 
+  "oauth.oidc.fapi.version": "1",
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
   "oauth.oidc.fapi.allowed_client_authentication_methods": ["private_key_jwt", "tls_client_auth"],
