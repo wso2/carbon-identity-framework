@@ -44,6 +44,7 @@
         <module>service-stubs/identity</module>
         <module>components/authentication-framework</module>
         <module>components/authorization-framework</module>
+        <module>components/debug-framework</module>
         <module>components/identity-core</module>
         <module>components/application-mgt</module>
         <module>components/user-mgt</module>
@@ -126,7 +127,6 @@
         <module>features/flow-orchestration-framework</module>
         <module>features/async-operation-status-mgt</module>
         <module>features/workflow-mgt</module>
-        <module>components/debug-framework</module>
     </modules>
 
 
