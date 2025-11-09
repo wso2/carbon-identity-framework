@@ -66,6 +66,14 @@ public class IdentityFraudDetectionEventHandler extends AbstractEventHandler {
             return false;
         }
 
+        if (configs == null || configs.getModuleProperties() == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Module properties are not set. Hence, cannot handle the event: "
+                        + event.getEventName());
+            }
+            return false;
+        }
+
         boolean isEnabled = Boolean.parseBoolean(configs.getModuleProperties()
                 .getProperty(ENABLE_IDENTITY_FRAUD_DETECTION_EVENT_HANDLER));
         if (!isEnabled) {
