@@ -34,7 +34,7 @@ public class VCCredentialConfiguration {
     private String identifier;
 
     // Credential configuration identifier published via issuer metadata.
-    private String configurationId;
+    private String displayName;
 
     private String scope;
     private String format;
@@ -98,12 +98,12 @@ public class VCCredentialConfiguration {
         this.claims = claims;
     }
 
-    public String getConfigurationId() {
-        return configurationId;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setConfigurationId(String configurationId) {
-        this.configurationId = configurationId;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getType() {
