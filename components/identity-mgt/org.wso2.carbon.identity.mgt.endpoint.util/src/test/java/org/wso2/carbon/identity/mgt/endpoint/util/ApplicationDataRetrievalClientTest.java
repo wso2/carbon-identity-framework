@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
-import org.locationtech.jts.util.Assert;
+import org.testng.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -60,9 +60,9 @@ public class ApplicationDataRetrievalClientTest extends RetrievalClientBaseTest 
             Set<String> configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppId(SUPER_TENANT_DOMAIN,
                     APPLICATION_IDENTIFIER);
 
-            Assert.isTrue((configuredAuthenticatorsSet.contains("BasicAuthenticator:LOCAL")), "Should contain BasicAuthenticator");
-            Assert.isTrue((configuredAuthenticatorsSet.contains("OpenIDConnectAuthenticator:Microsoft")), "Should contain OIDC Microsoft");
-            Assert.isTrue((configuredAuthenticatorsSet.contains("totp:LOCAL")), "Should contain TOTP");
+            Assert.assertTrue((configuredAuthenticatorsSet.contains("BasicAuthenticator:LOCAL")), "Should contain BasicAuthenticator");
+            Assert.assertTrue((configuredAuthenticatorsSet.contains("OpenIDConnectAuthenticator:Microsoft")), "Should contain OIDC Microsoft");
+            Assert.assertTrue((configuredAuthenticatorsSet.contains("totp:LOCAL")), "Should contain TOTP");
         }
     }
 }

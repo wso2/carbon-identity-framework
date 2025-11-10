@@ -187,14 +187,14 @@ public class AuthenticationEndpointFilter implements Filter {
                             log.debug("Retrieving authenticators for service provider ID: " + serviceProviderId + "in tenant: " + tenantDomain);
                         }
                         configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppId(tenantDomain, serviceProviderId);
-                    } else {
+                    } else if (!StringUtils.isBlank(serviceProviderName)){
                         if (log.isDebugEnabled()) {
                             log.debug("Retrieving authenticators for service provider using Service Provider Name: " + serviceProviderName + "in tenant: " + tenantDomain);
                         }
                         configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain, serviceProviderName);
                     }
                 } catch (ApplicationDataRetrievalClientException e) {
-                    log.error("error retriving authenticators from ApplicationDataRetrievalClient " + e);
+                    log.error("error retrieving authenticators from ApplicationDataRetrievalClient " + e);
                 }
             }
 
