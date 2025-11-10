@@ -546,11 +546,18 @@ public class WorkflowDAO {
         throw new InternalWorkflowException(errorMsg, e);
     }
 
+    /**
+     * Get tenant id which registered the workflow.
+     *
+     * @param workflowId Workflow Id.
+     * @return Tenant Id.
+     * @throws InternalWorkflowException
+     */
     public int getWorkRegisteredTenantId(String workflowId) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
-        ResultSet rs;
+        ResultSet rs = null;
         String query = SQLConstants.GET_WORKFLOW_REGISTERED_TENANT_ID;
         try {
             prepStmt = connection.prepareStatement(query);
@@ -563,7 +570,7 @@ public class WorkflowDAO {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);
         }
         return -1;
     }

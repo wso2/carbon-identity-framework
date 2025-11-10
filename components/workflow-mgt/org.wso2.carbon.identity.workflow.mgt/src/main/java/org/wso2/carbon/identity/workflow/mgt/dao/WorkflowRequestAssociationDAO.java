@@ -300,11 +300,18 @@ public class WorkflowRequestAssociationDAO {
         return associations;
     }
 
+    /**
+     * Get tenant id where the request is registered.
+     *
+     * @param requestId Request Id.
+     * @return Tenant Id.
+     * @throws InternalWorkflowException Error when getting the tenant id.
+     */
     public int getRequestRegisteredTenantId(String requestId) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
-        ResultSet rs;
+        ResultSet rs = null;
         String query = SQLConstants.GET_REQUEST_REGISTERED_TENANT_ID;
         try {
             prepStmt = connection.prepareStatement(query);
@@ -317,7 +324,7 @@ public class WorkflowRequestAssociationDAO {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);
         }
         return -1;
 

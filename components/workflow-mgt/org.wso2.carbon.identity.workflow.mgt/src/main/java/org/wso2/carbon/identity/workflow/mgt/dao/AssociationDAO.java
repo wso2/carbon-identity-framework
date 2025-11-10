@@ -45,7 +45,7 @@ import static org.wso2.carbon.identity.workflow.mgt.util.Utils.generatePrepStmt;
  */
 public class AssociationDAO {
 
-    private static final String errorMessage = "Error when executing the SQL query ";
+    private static final String errorMessage = "Error when executing the SQL query.";
     private static final Log log = LogFactory.getLog(AssociationDAO.class);
 
     /**
@@ -472,11 +472,18 @@ public class AssociationDAO {
         throw new InternalWorkflowException(errorMsg, e);
     }
 
+    /**
+     * Get the tenant ID associated with a given association ID.
+     *
+     * @param associationId The association ID
+     * @return The tenant ID associated with the given association ID, or -1 if not found
+     * @throws InternalWorkflowException If an error occurs during database operations
+     */
     public int getAssociationRegisteredTenantId(int associationId) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
-        ResultSet rs;
+        ResultSet rs = null;
         String query = SQLConstants.GET_ASSOCIATION_REGISTERED_TENANT_ID;
         try {
             prepStmt = connection.prepareStatement(query);
@@ -489,7 +496,7 @@ public class AssociationDAO {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);
         }
         return -1;
     }
