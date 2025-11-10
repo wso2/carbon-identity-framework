@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="TokenHandlerTestSuite">
+    <test name="ModelTests">
+        <classes>
+            <class name="org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContextTest"/>
+            <class name="org.wso2.carbon.identity.external.api.token.handler.api.model.TokenRequestContextTest"/>
+            <class name="org.wso2.carbon.identity.external.api.token.handler.api.model.TokenResponseTest"/>
+        </classes>
+    </test>
+    
+    <test name="UtilTests">
+        <classes>
+            <class name="org.wso2.carbon.identity.external.api.token.handler.internal.util.TokenRequestBuilderUtilsTestSimple"/>
+        </classes>
+    </test>
+    
+    <test name="ServiceTests">
+        <classes>
+            <class name="org.wso2.carbon.identity.external.api.token.handler.api.service.TokenAcquirerServiceTest"/>
+        </classes>
+    </test>
+</suite>
