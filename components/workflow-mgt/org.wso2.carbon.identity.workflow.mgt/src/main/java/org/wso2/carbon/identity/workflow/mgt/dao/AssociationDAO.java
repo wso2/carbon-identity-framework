@@ -474,7 +474,7 @@ public class AssociationDAO {
 
     public int getAssociationRegisteredTenantId(int associationId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
         ResultSet rs;
         String query = SQLConstants.GET_ASSOCIATION_REGISTERED_TENANT_ID;

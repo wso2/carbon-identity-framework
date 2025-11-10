@@ -863,7 +863,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                                   String condition, boolean isEnable) throws WorkflowException {
 
         validateWorkflowId(workflowId);
-        validateAssociationId(Integer.parseInt(workflowId));
+        validateAssociationId(Integer.parseInt(associationId));
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {

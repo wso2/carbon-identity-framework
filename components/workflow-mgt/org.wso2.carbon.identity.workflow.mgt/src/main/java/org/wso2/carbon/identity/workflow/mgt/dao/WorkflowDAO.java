@@ -548,7 +548,7 @@ public class WorkflowDAO {
 
     public int getWorkRegisteredTenantId(String workflowId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
         ResultSet rs;
         String query = SQLConstants.GET_WORKFLOW_REGISTERED_TENANT_ID;
