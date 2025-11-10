@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.EXCLUDED_USER_STORES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_EXCLUDE_USER_STORE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_LENGTH_LIMIT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
@@ -75,7 +75,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_ATTRIBUTE_PROFILE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI;
@@ -89,6 +89,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_SERVER_ERROR_GETTING_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.containsIgnoreCase;
@@ -342,8 +343,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             return localClaim;
         }
 
-        setManagedInUserStoreProperty(localClaim.get(), tenantDomain);
-        return localClaim;
+        LocalClaim claimCopy = copyLocalClaim(localClaim.get());
+        setManagedInUserStoreProperty(claimCopy, tenantDomain);
+        return Optional.of(claimCopy);
     }
 
     @Override
@@ -1145,8 +1147,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                         "when identity data store is user store based.", localClaim.getClaimURI()));
             }
             throw new ClaimMetadataClientException(
-                    ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode(),
-                    String.format(ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
+                    ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode(),
+                    String.format(ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
                             localClaim.getClaimURI()));
         }
 
@@ -1288,10 +1290,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                                 "identity claims and cannot be excluded for any claim.", domainName));
                     }
                     throw new ClaimMetadataClientException(
-                            ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS.getCode(),
+                            ERROR_CODE_CANNOT_EXCLUDE_USER_STORE.getCode(),
                             String.format(
-                                    ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS.getMessage(),
-                                    domainName));
+                                    ERROR_CODE_CANNOT_EXCLUDE_USER_STORE.getMessage(), domainName));
                 }
 
                 boolean removed = processedExcludedStores.removeIf(store -> store.equalsIgnoreCase(domainName));
@@ -1345,14 +1346,14 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
                 return userStoreManager;
             } else {
-                log.error("User realm is null for tenant : " + tenantDomain);
+                log.error(String.format("User realm is null for tenant : %s", tenantDomain));
             }
         } catch (UserStoreException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while getting user store manager for tenant : " + tenantDomain, e);
             }
-            throw new ClaimMetadataServerException("ere",
-                    "Error while getting user store manager for tenant : " + tenantDomain, e);
+            throw new ClaimMetadataServerException(ERROR_CODE_SERVER_ERROR_GETTING_USER_STORE_MANAGER.getCode(),
+                   String.format(ERROR_CODE_SERVER_ERROR_GETTING_USER_STORE_MANAGER.getMessage(), tenantDomain), e);
         }
         return userStoreManager;
     }

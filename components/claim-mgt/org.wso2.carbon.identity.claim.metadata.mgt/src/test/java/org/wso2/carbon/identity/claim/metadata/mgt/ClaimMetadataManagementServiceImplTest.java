@@ -62,7 +62,7 @@ import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.IS_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
@@ -1716,9 +1716,9 @@ public class ClaimMetadataManagementServiceImplTest {
             // Should not reach here.
             assertFalse(true, "Expected ClaimMetadataClientException to be thrown");
         } catch (ClaimMetadataClientException e) {
-            assertEquals(e.getErrorCode(), ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode());
+            assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode());
             assertEquals(e.getMessage(),
-                    String.format(ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
+                    String.format(ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
                             identityClaimUri));
         }
         // Verify that the claim was not added.
@@ -1758,9 +1758,9 @@ public class ClaimMetadataManagementServiceImplTest {
             // Should not reach here.
             assertFalse(true, "Expected ClaimMetadataClientException to be thrown");
         } catch (ClaimMetadataClientException e) {
-            assertEquals(e.getErrorCode(), ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode());
+            assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode());
             assertEquals(e.getMessage(),
-                    String.format(ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
+                    String.format(ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
                             identityClaimUri));
         }
         // Verify that the claim was not updated.

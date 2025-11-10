@@ -130,10 +130,10 @@ public class ClaimConstants {
                 "Adding claims to dialect %s is not allowed"),
         ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY("CMT-60017",
                 "Cannot change flow initiator property of the system claim: %s"),
-        ERROR_CODE_CANNOT_EXCLUDE_USER_STORE_FOR_IDENTITY_CLAIMS("CMT-60018",
-                "User store '%s' cannot be excluded because it is configured to persist identity claims."),
-        ERROR_CODE_IDENTITY_CLAIM_MUST_BE_MANAGED_IN_USER_STORE("CMT-60019",
-                "Identity claim '%s' must be managed in user store."),
+        ERROR_CODE_CANNOT_EXCLUDE_USER_STORE("CMT-60018",
+                "User store '%s' cannot be excluded because it is configured to manage claims."),
+        ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE("CMT-60019",
+                "Claim '%s' must be managed in user store."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
@@ -147,7 +147,9 @@ public class ClaimConstants {
         ERROR_CODE_FAILURE_IN_CHECKING_IS_TENANT_AN_ORGANIZATION("65005", "Error occurred " +
                 "while checking whether the tenant: %s is an organization"),
         ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY("65006", "Error occurred while traversing the " +
-                "organization hierarchy of tenant: %s with domain: %s");
+                "organization hierarchy of tenant: %s with domain: %s"),
+        ERROR_CODE_SERVER_ERROR_GETTING_USER_STORE_MANAGER("65007", "Server error occurred while " +
+                "getting user store manager for tenant: %s .");
 
         private final String code;
         private final String message;
