@@ -128,7 +128,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     @Override
     public boolean existsByConfigurationId(String configurationId, int tenantId) throws VCConfigMgtException {
 
-        String sql = SQLQueries.EXISTS_BY_CONFIGURATION_ID;
+        String sql = SQLQueries.EXISTS_BY_DISPLAY_NAME;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, tenantId);
@@ -156,7 +156,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 ps.setString(1, id);
                 ps.setInt(2, tenantId);
                 ps.setString(3, configuration.getIdentifier());
-                ps.setString(4, configuration.getConfigurationId());
+                ps.setString(4, configuration.getDisplayName());
                 ps.setString(5, configuration.getScope());
                 ps.setString(6, configuration.getFormat());
                 ps.setString(7, configuration.getSigningAlgorithm());
@@ -201,7 +201,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
             try {
                 String serializedMetadata = OBJECT_MAPPER.writeValueAsString(configuration.getMetadata());
                 ps.setString(1, configuration.getIdentifier());
-                ps.setString(2, configuration.getConfigurationId());
+                ps.setString(2, configuration.getDisplayName());
                 ps.setString(3, configuration.getScope());
                 ps.setString(4, configuration.getFormat());
                 ps.setString(5, configuration.getSigningAlgorithm());
@@ -281,7 +281,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         VCCredentialConfiguration cfg = new VCCredentialConfiguration();
         cfg.setId(rs.getString("ID"));
         cfg.setIdentifier(rs.getString("IDENTIFIER"));
-        cfg.setConfigurationId(rs.getString("CONFIGURATION_ID"));
+        cfg.setDisplayName(rs.getString("DISPLAY_NAME"));
         cfg.setScope(rs.getString("SCOPE"));
         cfg.setFormat(rs.getString("FORMAT"));
         cfg.setSigningAlgorithm(rs.getString("SIGNING_ALG"));
@@ -318,7 +318,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         VCCredentialConfiguration cfg = new VCCredentialConfiguration();
         cfg.setId(rs.getString("ID"));
         cfg.setIdentifier(rs.getString("IDENTIFIER"));
-        cfg.setConfigurationId(rs.getString("CONFIGURATION_ID"));
+        cfg.setDisplayName(rs.getString("DISPLAY_NAME"));
         cfg.setScope(rs.getString("SCOPE"));
         return cfg;
     }

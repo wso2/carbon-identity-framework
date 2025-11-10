@@ -27,32 +27,32 @@ public final class SQLQueries {
 
     // VC_CONFIG
     public static final String LIST_CONFIGS =
-            "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE " +
+            "SELECT ID, IDENTIFIER, DISPLAY_NAME, SCOPE " +
             "FROM VC_CONFIG WHERE TENANT_ID = ? ORDER BY CURSOR_KEY";
 
     public static final String GET_CONFIG_BY_ID =
-            "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, SIGNING_ALG, " +
+            "SELECT ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, SIGNING_ALG, " +
             "TYPE, METADATA, EXPIRES_IN " +
             "FROM VC_CONFIG WHERE TENANT_ID = ? AND ID = ?";
 
     public static final String GET_CONFIG_BY_CONFIG_ID =
-            "SELECT ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, SIGNING_ALG, " +
+            "SELECT ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, SIGNING_ALG, " +
             "TYPE, METADATA, EXPIRES_IN " +
-            "FROM VC_CONFIG WHERE TENANT_ID = ? AND CONFIGURATION_ID = ?";
+            "FROM VC_CONFIG WHERE TENANT_ID = ? AND DISPLAY_NAME = ?";
 
     public static final String EXISTS_BY_IDENTIFIER =
             "SELECT 1 FROM VC_CONFIG WHERE TENANT_ID = ? AND IDENTIFIER = ?";
 
-    public static final String EXISTS_BY_CONFIGURATION_ID =
-            "SELECT 1 FROM VC_CONFIG WHERE TENANT_ID = ? AND CONFIGURATION_ID = ?";
+    public static final String EXISTS_BY_DISPLAY_NAME =
+            "SELECT 1 FROM VC_CONFIG WHERE TENANT_ID = ? AND DISPLAY_NAME = ?";
 
     public static final String INSERT_CONFIG =
-            "INSERT INTO VC_CONFIG (ID, TENANT_ID, IDENTIFIER, CONFIGURATION_ID, SCOPE, FORMAT, " +
+            "INSERT INTO VC_CONFIG (ID, TENANT_ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, " +
             "SIGNING_ALG, TYPE, METADATA, EXPIRES_IN) VALUES " +
             "(?,?,?,?,?,?,?,?,?,?)";
 
     public static final String UPDATE_CONFIG =
-            "UPDATE VC_CONFIG SET IDENTIFIER = ?, CONFIGURATION_ID = ?, SCOPE = ?, FORMAT = ?, " +
+            "UPDATE VC_CONFIG SET IDENTIFIER = ?, DISPLAY_NAME = ?, SCOPE = ?, FORMAT = ?, " +
             "SIGNING_ALG = ?, TYPE = ?, METADATA = ?, EXPIRES_IN = ? " +
             "WHERE TENANT_ID = ? AND ID = ?";
 

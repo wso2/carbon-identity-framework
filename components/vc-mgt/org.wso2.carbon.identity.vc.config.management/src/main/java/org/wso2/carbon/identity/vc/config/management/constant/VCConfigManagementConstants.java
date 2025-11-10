@@ -27,6 +27,7 @@ public class VCConfigManagementConstants {
 
     public static final String DEFAULT_VC_FORMAT = "jwt_vc_json";
     public static final int MIN_EXPIRES_IN_SECONDS = 60;
+    public static final String DEFAULT_SIGNING_ALGORITHM = "RS256";
 
     /**
      * Error message codes and default messages used in VC config management.
@@ -36,8 +37,6 @@ public class VCConfigManagementConstants {
         ERROR_CODE_CONFIG_ID_MISMATCH("VCM-4001", "Configuration id path and payload mismatch."),
         ERROR_CODE_IDENTIFIER_ALREADY_EXISTS("VCM-4002",
                 "Configuration with the same identifier already exists."),
-        ERROR_CODE_CONFIGURATION_ID_ALREADY_EXISTS("VCM-4003",
-                "Configuration with the same credential_configuration_id already exists."),
         ERROR_CODE_INVALID_REQUEST("VCM-4004", "Invalid verifiable credential configuration payload."),
         ERROR_CODE_CONFIG_NOT_FOUND("VCM-4005", "Configuration not found."),
         ERROR_CODE_UNSUPPORTED_VC_FORMAT("VCM-4006", "Unsupported verifiable credential format."),

@@ -29,6 +29,8 @@ import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfigura
 
 import java.util.List;
 
+import static org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants.DEFAULT_SIGNING_ALGORITHM;
+
 /**
  * Implementation of {@link VCCredentialConfigManager}.
  */
@@ -73,9 +75,9 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         checkIdentifierExists(configuration, tenantId);
-        checkConfigurationIdExists(configuration, tenantId);
+        validateDisplayName(configuration, tenantId);
         validateFormat(configuration);
-        validateSigningAlgorithm(configuration.getSigningAlgorithm());
+        configuration.setSigningAlgorithm(DEFAULT_SIGNING_ALGORITHM);
         validateCredentialType(configuration.getType());
         validateExpiry(configuration.getExpiresIn());
         validateClaims(configuration.getClaims());
@@ -99,28 +101,20 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getCode(),
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getMessage());
         }
-        String newIdentifier = configuration.getIdentifier();
-        if (StringUtils.isBlank(newIdentifier)) {
-            configuration.setIdentifier(existing.getIdentifier());
-        } else if (!StringUtils.equals(newIdentifier, existing.getIdentifier()) &&
-                dao.existsByIdentifier(newIdentifier, tenantId)) {
+
+        if (!StringUtils.isBlank(configuration.getIdentifier())) {
             throw new VCConfigMgtClientException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_IDENTIFIER_ALREADY_EXISTS.getCode(),
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_IDENTIFIER_ALREADY_EXISTS.getMessage());
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
+                    "Identifier cannot be updated.");
         }
 
-        String newConfigurationId = configuration.getConfigurationId();
-        if (StringUtils.isBlank(newConfigurationId)) {
-            configuration.setConfigurationId(existing.getConfigurationId());
-        } else if (!StringUtils.equals(newConfigurationId, existing.getConfigurationId()) &&
-                dao.existsByConfigurationId(newConfigurationId, tenantId)) {
-            throw new VCConfigMgtClientException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIGURATION_ID_ALREADY_EXISTS.getCode(),
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIGURATION_ID_ALREADY_EXISTS.getMessage());
+        String newDisplayName = configuration.getDisplayName();
+        if (StringUtils.isBlank(newDisplayName)) {
+            configuration.setDisplayName(existing.getDisplayName());
         }
 
         normalizeFormatForUpdate(configuration, existing);
-        normalizeSigningAlgorithmForUpdate(configuration, existing);
+        configuration.setSigningAlgorithm(DEFAULT_SIGNING_ALGORITHM);
         normalizeCredentialTypeForUpdate(configuration, existing);
         normalizeMetadataForUpdate(configuration, existing);
         normalizeExpiryInForUpdate(configuration, existing);
@@ -150,16 +144,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
-    private void checkConfigurationIdExists(VCCredentialConfiguration configuration, int tenantId)
+    private void validateDisplayName(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
-        if (StringUtils.isBlank(configuration.getConfigurationId())) {
-            configuration.setConfigurationId(configuration.getIdentifier());
-        }
-        if (dao.existsByConfigurationId(configuration.getConfigurationId(), tenantId)) {
+        if (StringUtils.isBlank(configuration.getDisplayName())) {
             throw new VCConfigMgtClientException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIGURATION_ID_ALREADY_EXISTS.getCode(),
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIGURATION_ID_ALREADY_EXISTS.getMessage());
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
+                    "Display name cannot be empty.");
         }
     }
 
@@ -175,15 +166,6 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
                         VCConfigManagementConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_VC_FORMAT.getCode(),
                         VCConfigManagementConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_VC_FORMAT.getMessage());
             }
-        }
-    }
-
-    private void validateSigningAlgorithm(String algorithm) throws VCConfigMgtClientException {
-
-        if (StringUtils.isBlank(algorithm)) {
-            throw new VCConfigMgtClientException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                    "Credential signing algorithm value is required.");
         }
     }
 
@@ -228,18 +210,6 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
             configuration.setFormat(existing.getFormat());
         }
         validateFormat(configuration);
-    }
-
-    private void normalizeSigningAlgorithmForUpdate(VCCredentialConfiguration configuration,
-                                                    VCCredentialConfiguration existing)
-            throws VCConfigMgtClientException {
-
-        String algorithm = configuration.getSigningAlgorithm();
-        if (StringUtils.isBlank(algorithm)) {
-            algorithm = existing.getSigningAlgorithm();
-            configuration.setSigningAlgorithm(algorithm);
-        }
-        validateSigningAlgorithm(algorithm);
     }
 
     private void normalizeCredentialTypeForUpdate(VCCredentialConfiguration configuration,
