@@ -335,10 +335,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
     @Override
     public Optional<LocalClaim> getLocalClaim(String localClaimURI, String tenantDomain,
-                                               boolean includeUserStorePersistence) throws ClaimMetadataException {
+                                               boolean includeManagedInUserStoreInfo) throws ClaimMetadataException {
 
         Optional<LocalClaim> localClaim = getLocalClaim(localClaimURI, tenantDomain);
-        if (!includeUserStorePersistence || !localClaim.isPresent()) {
+        if (!includeManagedInUserStoreInfo || !localClaim.isPresent()) {
             return localClaim;
         }
 

@@ -1257,7 +1257,7 @@ public class ClaimMetadataManagementServiceImplTest {
                 false);
 
         assertTrue(result.isPresent());
-        // Should not have ManagedInUserStore property when includeUserStorePersistence is false.
+        // Should not have ManagedInUserStore property when includeManagedInUserStoreInfo is false.
         assertFalse(result.get().getClaimProperties().containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY));
     }
 
@@ -1876,7 +1876,7 @@ public class ClaimMetadataManagementServiceImplTest {
     }
 
     @Test
-    public void testGetLocalClaimWithIncludeUserStorePersistenceForIdentityClaim() throws ClaimMetadataException {
+    public void testGetLocalClaimWithManagedInUserStoreInfoForIdentityClaim() throws ClaimMetadataException {
 
         String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
         LocalClaim localClaim = new LocalClaim(identityClaimUri);
@@ -1899,7 +1899,7 @@ public class ClaimMetadataManagementServiceImplTest {
     }
 
     @Test
-    public void testGetLocalClaimWithIncludeUserStorePersistenceForNonIdentityClaim()
+    public void testGetLocalClaimWithManagedInUserStoreInfoForNonIdentityClaim()
             throws ClaimMetadataException {
 
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
@@ -1922,7 +1922,7 @@ public class ClaimMetadataManagementServiceImplTest {
     }
 
     @Test
-    public void testGetLocalClaimWithIncludeUserStorePersistenceForIdentityClaimWithUserStoreBasedDataStore()
+    public void testGetLocalClaimWithManagedInUserStoreInfoForIdentityClaimWithUserStoreBasedDataStore()
             throws ClaimMetadataException {
 
         String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
@@ -1946,10 +1946,11 @@ public class ClaimMetadataManagementServiceImplTest {
     }
 
     @Test
-    public void testGetLocalClaimWithIncludeUserStorePersistenceFalse() throws ClaimMetadataException {
+    public void testGetLocalClaimWithManagedInUserStoreInfoFalse() throws ClaimMetadataException {
 
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
-        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
         Map<String, String> claimProperties = new HashMap<>();
         claimProperties.put("DisplayName", "Username");
         localClaim.setClaimProperties(claimProperties);
@@ -1961,12 +1962,12 @@ public class ClaimMetadataManagementServiceImplTest {
 
         assertTrue(result.isPresent());
         Map<String, String> resultProperties = result.get().getClaimProperties();
-        // When includeUserStorePersistence is false, ManagedInUserStore property should not be set.
+        // When includeManagedInUserStoreInfo is false, ManagedInUserStore property should not be set.
         assertFalse(resultProperties.containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY));
     }
 
     @Test
-    public void testGetLocalClaimWithIncludeUserStorePersistenceWhenClaimNotPresent()
+    public void testGetLocalClaimWithManagedInUserStoreInfoWhenClaimNotPresent()
             throws ClaimMetadataException {
 
         when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
@@ -1981,7 +1982,8 @@ public class ClaimMetadataManagementServiceImplTest {
     public void testValidateClaimAttributeMapping() throws ClaimMetadataException {
 
         LocalClaim localClaim1 = new LocalClaim(LOCAL_CLAIM_1);
-        localClaim1.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        localClaim1.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
 
         LocalClaim localClaim2 = new LocalClaim(LOCAL_CLAIM_2);
         localClaim2.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "email")));
@@ -1999,7 +2001,8 @@ public class ClaimMetadataManagementServiceImplTest {
     public void testValidateClaimAttributeMappingWithEmptyClaimURI() {
 
         LocalClaim localClaim = new LocalClaim("");
-        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
         List<LocalClaim> localClaimList = Collections.singletonList(localClaim);
 
         assertThrows(ClaimMetadataClientException.class, () -> {
@@ -2072,7 +2075,8 @@ public class ClaimMetadataManagementServiceImplTest {
     public void testAddLocalClaimWithInvalidMinLengthProperty() throws ClaimMetadataException {
 
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
-        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
         Map<String, String> claimProperties = new HashMap<>();
         claimProperties.put(ClaimConstants.MIN_LENGTH, "invalid");
         localClaim.setClaimProperties(claimProperties);
@@ -2088,7 +2092,8 @@ public class ClaimMetadataManagementServiceImplTest {
     public void testAddLocalClaimWithMinLengthBelowLimit() throws ClaimMetadataException {
 
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
-        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
         Map<String, String> claimProperties = new HashMap<>();
         claimProperties.put(ClaimConstants.MIN_LENGTH, "-1");
         localClaim.setClaimProperties(claimProperties);
@@ -2104,7 +2109,8 @@ public class ClaimMetadataManagementServiceImplTest {
     public void testAddLocalClaimWithMaxLengthAboveLimit() throws ClaimMetadataException {
 
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
-        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
         Map<String, String> claimProperties = new HashMap<>();
         claimProperties.put(ClaimConstants.MAX_LENGTH, "2000");
         localClaim.setClaimProperties(claimProperties);
@@ -2120,7 +2126,8 @@ public class ClaimMetadataManagementServiceImplTest {
     public void testAddLocalClaimWithValidMinMaxLength() throws ClaimMetadataException {
 
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
-        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
         Map<String, String> claimProperties = new HashMap<>();
         claimProperties.put(ClaimConstants.MIN_LENGTH, "5");
         claimProperties.put(ClaimConstants.MAX_LENGTH, "100");
@@ -2138,7 +2145,8 @@ public class ClaimMetadataManagementServiceImplTest {
             throws ClaimMetadataException {
 
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
-        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
         Map<String, String> claimProperties = new HashMap<>();
         claimProperties.put("DisplayName", "Username");
         localClaim.setClaimProperties(claimProperties);
