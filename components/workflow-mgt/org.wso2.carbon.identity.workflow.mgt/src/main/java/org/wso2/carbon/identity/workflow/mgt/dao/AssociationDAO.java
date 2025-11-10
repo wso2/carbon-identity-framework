@@ -325,6 +325,7 @@ public class AssociationDAO {
         try {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setInt(1, id);
+            prepStmt.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
             prepStmt.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
