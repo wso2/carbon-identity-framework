@@ -2106,6 +2106,11 @@
   "actions.types.pre_update_profile.version.latest": "v1",
   "actions.types.pre_update_password.version.latest": "v2",
 
+  "external_api_client.http_client.connection_timeout": "2000",
+  "external_api_client.http_client.read_timeout": "2000",
+  "external_api_client.http_client.request_timeout": "2000",
+  "external_api_client.http_client.connection_pool_size": "20",
+
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
   "outbound_adapters.httppublisher.httpReadTimeout": "5000",
