@@ -801,6 +801,13 @@
         <ImpersonatedRefreshToken>
             <Enable>false</Enable>
         </ImpersonatedRefreshToken>
+        <!--
+            By enabling this property, the "Internal" prefix will be removed from the mapped roles attribute in the issued JWT tokens.
+            Enable this setting if your applications do not require the Internal prefix when default attribute mapping
+            for http://wso2.org/claims/roles claim is changed.
+            Default value : true
+        -->
+        <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1298,6 +1305,8 @@
         The default value of the configuration is false.
         -->
         <EnableRoleValidation>false</EnableRoleValidation>
+        <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceClientSecretPermission>false</SkipEnforceClientSecretPermission>
     </ApplicationMgt>
 
     <JITProvisioning>
@@ -1390,8 +1399,8 @@
         <EventListener id="email_domain_validation_handler"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
-                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
-                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
+                       orderId="15"
+                       enable="true"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -2903,5 +2912,6 @@
             </Custom>
         </SMS>
     </NotificationChannel>
+    <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
 
 </Server>

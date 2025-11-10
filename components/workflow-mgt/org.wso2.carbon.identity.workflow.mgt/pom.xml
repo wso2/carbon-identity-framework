@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>workflow-mgt</artifactId>
-        <version>7.8.554-SNAPSHOT</version>
+        <version>7.8.604-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -145,6 +145,7 @@
                             org.wso2.carbon.base; version="${carbon.base.imp.pkg.version.range}",
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.bean; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.handler; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.bean.context; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.handler; version="${carbon.identity.package.import.version.range}",

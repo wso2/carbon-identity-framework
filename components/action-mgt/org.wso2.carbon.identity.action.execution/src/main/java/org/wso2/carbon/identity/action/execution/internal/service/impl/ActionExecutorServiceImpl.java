@@ -70,7 +70,9 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -88,6 +90,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
     private static final ActionExecutorServiceImpl INSTANCE = new ActionExecutorServiceImpl();
     private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
+    private static final String API_VERSION_HEADER = "x-wso2-api-version";
     private final APIClient apiClient;
     private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(THREAD_POOL_SIZE);
 
@@ -339,9 +342,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                                  String payload) throws ActionExecutionException {
 
         String apiEndpoint = action.getEndpoint().getUri();
+        Map<String, String> headers = new HashMap<>();
+        headers.put(API_VERSION_HEADER, action.getActionVersion());
         CompletableFuture<ActionInvocationResponse> actionExecutor = CompletableFuture.supplyAsync(
                 () -> apiClient.callAPI(ActionType.valueOf(action.getType().getActionType()),
-                        apiEndpoint, authenticationMethod, payload), executorService);
+                        apiEndpoint, authenticationMethod, headers, payload), executorService);
         try {
             return actionExecutor.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -515,7 +520,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logErrorResponse(Action action, ActionInvocationErrorResponse errorResponse) {
 
-        DIAGNOSTIC_LOGGER.logErrorResponse(action);
+        DIAGNOSTIC_LOGGER.logErrorResponse(action, errorResponse);
         if (LOG.isDebugEnabled()) {
             try {
                 String responseBody = serializeErrorResponse(errorResponse);
@@ -536,7 +541,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logFailureResponse(Action action, ActionInvocationFailureResponse failureResponse) {
 
-        DIAGNOSTIC_LOGGER.logFailureResponse(action);
+        DIAGNOSTIC_LOGGER.logFailureResponse(action, failureResponse);
         if (LOG.isDebugEnabled()) {
             try {
                 String responseBody = serializeFailureResponse(failureResponse);

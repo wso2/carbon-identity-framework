@@ -51,10 +51,10 @@ import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.Utils;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
+import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -70,9 +70,9 @@ import javax.xml.xpath.XPathFactory;
  */
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm:ss.SSS");
     private static final int MAX_LIMIT = 1000;
-    
+    private static final String BPS_BASED_WORKFLOW_ENGINE = "ApprovalWorkflow";
+
     private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
 
     WorkflowDAO workflowDAO = new WorkflowDAO();
@@ -385,9 +385,18 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         Workflow oldWorkflow = workflowDAO.getWorkflow(workflow.getWorkflowId());
         if (oldWorkflow == null) {
             workflowDAO.addWorkflow(workflow, tenantId);
+            // The workflow role is created only for the BPS workflow engine.
+            if (BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+                WorkflowManagementUtil.createAppRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
+            }
         } else {
             workflowDAO.removeWorkflowParams(workflow.getWorkflowId());
             workflowDAO.updateWorkflow(workflow);
+            if (!StringUtils.equals(oldWorkflow.getWorkflowName(), workflow.getWorkflowName()) &&
+                    BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+                WorkflowManagementUtil.updateWorkflowRoleName(oldWorkflow.getWorkflowName(),
+                        workflow.getWorkflowName());
+            }
         }
         workflowDAO.addWorkflowParams(parameterList, workflow.getWorkflowId(), tenantId);
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -567,6 +576,11 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         requestEntityRelationshipDAO.deleteEntityRelationsByWorkflowId(workflowId);
         workflowRequestDAO.abortWorkflowRequests(workflowId);
 
+        // The workflow role is created for the BPS workflow engine. Hence, the role is deleted only for BPS-based
+        // workflows.
+        if (BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+            WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
+        }
         workflowDAO.removeWorkflowParams(workflowId);
         workflowDAO.removeWorkflow(workflowId);
 

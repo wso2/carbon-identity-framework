@@ -60,6 +60,26 @@
                    description="Delete shared applications"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Application Authentication Script Management API"
+                 identifier="/api/server/v1/applications/(.*)/authenticationSequence/script"
+                 requiresAuthorization="true"
+                 description="API representation of the Application Authentication Script Management API"
+                 type="TENANT">
+        <Scopes>
+            <Scope displayName="Update Application Authentication Script" name="internal_application_script_update"
+                   description="Fine-grained scope for the authentication script update of an application"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application Authentication Script Management API"
+                 identifier="/o/api/server/v1/applications/(.*)/authenticationSequence/script"
+                 requiresAuthorization="true"
+                 description="API representation of the Application Authentication Script Management API"
+                 type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Update Application Authentication Script" name="internal_org_application_script_update"
+                   description="Fine-grained scope for the authentication script update of an application in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Application Management API" identifier="/api/server/v1/applications"
                  requiresAuthorization="true"
                  description="API representation of the Application Management API" type="TENANT">
@@ -72,6 +92,20 @@
                    description="View applications"/>
             <Scope displayName="Delete Application" name="internal_application_mgt_delete"
                    description="Delete applications"/>
+            <Scope displayName="Regenerate Application Secret" name="internal_application_mgt_client_secret_create"
+                   description="Regenerate the client secret of an application"/>
+            <Scope displayName="Update authorized internal APIs of an Application"
+                   name="internal_application_internal_api_update"
+                   description="Allows updating authorized internal APIs of an application. Requires both this scope and
+                    the application update scope (internal_application_mgt_update) for fine-grained access control."/>
+            <Scope displayName="Update authorized business APIs of an Application"
+                   name="internal_application_business_api_update"
+                   description="Allows updating authorized business APIs of an application. Requires both this scope and
+                    the application update scope (internal_application_mgt_update) for fine-grained access control."/>
+            <Scope displayName="View application client secret"
+                   name="internal_application_mgt_client_secret_view"
+                   description="Allows viewing the client secret of an application. Requires both this scope and
+                    the application view scope (internal_application_mgt_view) for fine-grained access control."/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management API"
@@ -87,6 +121,20 @@
                    description="Update applications in the organization"/>
             <Scope displayName="Delete Application" name="internal_org_application_mgt_delete"
                    description="Delete applications in the organization"/>
+            <Scope displayName="Regenerate Application Secret" name="internal_org_application_mgt_client_secret_create"
+                   description="Regenerate the client secret of an application in the organization"/>
+            <Scope displayName="Update authorized internal APIs of an Application"
+                   name="internal_org_application_internal_api_update"
+                   description="Allows updating authorized internal APIs of an application. Requires both this scope and
+                    the application update scope (internal_org_application_mgt_update) for fine-grained access control."/>
+            <Scope displayName="Update authorized business APIs of an Application"
+                   name="internal_org_application_business_api_update"
+                   description="Allows updating authorized business APIs of an application. Requires both this scope and
+                    the application update scope (internal_org_application_mgt_update) for fine-grained access control."/>
+            <Scope displayName="View application client secret"
+                   name="internal_org_application_mgt_client_secret_view"
+                   description="Allows viewing the client secret of an application. Requires both this scope and
+                    the application view scope (internal_org_application_mgt_view) for fine-grained access control."/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators"
@@ -748,6 +796,12 @@
                     description="Create new roles in the organization (root)"/>
             <Scope displayName="Update Role" name="internal_role_mgt_update" 
                     description="Update roles details in the organization (root)"/>
+            <Scope displayName="Update Permissions of Role" name="internal_role_mgt_permissions_update"
+                   description="Assign/De-assign permissions into the role in the organization (root)"/>
+            <Scope displayName="Update Users of Role" name="internal_role_mgt_users_update"
+                   description="Assign/De-assign users into the role in the organization (root)"/>
+            <Scope displayName="Update Groups of Role" name="internal_role_mgt_groups_update"
+                   description="Assign/De-assign groups into the role in the organization (root)"/>
             <Scope displayName="Delete Role" name="internal_role_mgt_delete" 
                     description="Delete roles in the organization (root)"/>
         </Scopes>
@@ -762,6 +816,12 @@
                     description="Create new roles in the organization"/>
             <Scope displayName="Update Role" name="internal_org_role_mgt_update" 
                     description="Update roles details in the organization"/>
+            <Scope displayName="Update Permissions of Role" name="internal_org_role_mgt_permissions_update"
+                   description="Assign/De-assign permissions into the role in the organization"/>
+            <Scope displayName="Update Users of Role" name="internal_org_role_mgt_users_update"
+                   description="Assign/De-assign users into the role in the organization"/>
+            <Scope displayName="Update Groups of Role" name="internal_org_role_mgt_groups_update"
+                   description="Assign/De-assign groups into the role in the organization"/>
             <Scope displayName="Delete Role" name="internal_org_role_mgt_delete"
                     description="Delete roles in the organization"/>
         </Scopes>
@@ -1149,6 +1209,58 @@
                    description="Manage edits of applications in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Application Internal API management feature" identifier="console:application_internal_api_management"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Internal API Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Internal API Management Feature" name="console:application_internal_api_management"
+                   description="Manage application internal APIs from the Console"/>
+            <Scope displayName="Application Internal API Management View Feature" name="console:application_internal_api_management_view"
+                   description="Manage views of application internal APIs from the Console"/>
+            <Scope displayName="Application Internal API Management Edit Feature" name="console:application_internal_api_management_edit"
+                   description="Manage edits of application internal APIs from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application Internal API management feature" identifier="console:org:application_internal_api_management"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Internal API Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Internal API Management Feature" name="console:org:application_internal_api_management"
+                   description="Manage application internal APIs in the organization from the Console"/>
+            <Scope displayName="Application Internal API Management View Feature" name="console:org:application_internal_api_management_view"
+                   description="Manage views of application internal APIs in the organization from the Console"/>
+            <Scope displayName="Application Internal API Management Edit Feature" name="console:org:application_internal_api_management_edit"
+                   description="Manage edits of application internal APIs in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application client secret management feature" identifier="console:application_client_secrets"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Client Secret Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Secret Management Feature" name="console:application_client_secrets"
+                   description="Manage application client secrets from the Console"/>
+            <Scope displayName="Application Secret Management View Feature" name="console:application_client_secrets_view"
+                   description="Manage views of application client secrets from the Console"/>
+            <Scope displayName="Application Secret Management Edit Feature" name="console:application_client_secrets_edit"
+                   description="Manage edits of application client secrets from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application client secret management feature" identifier="console:org:application_client_secrets"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Client Secret Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Secret Management Feature" name="console:org:application_client_secrets"
+                   description="Manage application client secrets in the organization from the Console"/>
+            <Scope displayName="Application Secret Management View Feature" name="console:org:application_client_secrets_view"
+                   description="Manage views of application client secrets in the organization from the Console"/>
+            <Scope displayName="Application Secret Management Edit Feature" name="console:org:application_client_secrets_edit"
+                   description="Manage edits of application client secrets in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:branding"
                  requiresAuthorization="true"
                  description="Resource representation of the Branding Management Feature"
@@ -1431,6 +1543,58 @@
                    description="Manage views of roles in the organization from the Console"/>
             <Scope displayName="Role Edit Feature" name="console:org:roles_edit"
                    description="Manage edits of roles in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Assignments Feature" identifier="console:role_assignments"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Assignments Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Assignments Feature" name="console:role_assignments"
+                   description="Manage role assignments from the Console"/>
+            <Scope displayName="Role Assignments View Feature" name="console:role_assignments_view"
+                   description="Manage views of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Edit Feature" name="console:role_assignments_edit"
+                   description="Manage edits of role assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Assignments Feature" identifier="console:org:role_assignments"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Assignments Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Assignments Feature" name="console:org:role_assignments"
+                   description="Manage role assignments from the Console"/>
+            <Scope displayName="Role Assignments View Feature" name="console:org:role_assignments_view"
+                   description="Manage views of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Edit Feature" name="console:org:role_assignments_edit"
+                   description="Manage edits of role assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Permission Assignments Feature" identifier="console:role_permission_assignments"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Permission Assignments Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Permission Assignments Feature" name="console:role_permission_assignments"
+                   description="Manage role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments View Feature" name="console:role_permission_assignments_view"
+                   description="Manage views of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Edit Feature" name="console:role_permission_assignments_edit"
+                   description="Manage edits of role permission assignments from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Permission Assignments Feature" identifier="console:org:role_permission_assignments"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Permission Assignments Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Permission Assignments Feature" name="console:org:role_permission_assignments"
+                   description="Manage role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments View Feature" name="console:org:role_permission_assignments_view"
+                   description="Manage views of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Edit Feature" name="console:org:role_permission_assignments_edit"
+                   description="Manage edits of role permission assignments from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management Feature" identifier="console:users"

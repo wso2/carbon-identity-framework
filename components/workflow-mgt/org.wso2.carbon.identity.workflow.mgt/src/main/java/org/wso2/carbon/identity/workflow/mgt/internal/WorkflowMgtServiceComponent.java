@@ -31,9 +31,11 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImpl;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
+import org.wso2.carbon.identity.workflow.mgt.handler.WorkflowPendingUserAuthnHandler;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowAuditLogger;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorAuditLogger;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener;
@@ -64,6 +66,10 @@ public class WorkflowMgtServiceComponent {
             WorkflowManagementService workflowService = new WorkflowManagementServiceImpl();
             bundleContext.registerService(WorkflowManagementService.class, workflowService, null);
             WorkflowServiceDataHolder.getInstance().setWorkflowService(workflowService);
+
+            AbstractEventHandler workflowPendingUserAuthnHandler = new WorkflowPendingUserAuthnHandler();
+            bundleContext.registerService(AbstractEventHandler.class, workflowPendingUserAuthnHandler, null);
+
             WorkflowServiceDataHolder.getInstance().setBundleContext(bundleContext);
             ServiceRegistration serviceRegistration = context.getBundleContext()
                     .registerService(WorkflowListener.class.getName(), new WorkflowAuditLogger(), null);

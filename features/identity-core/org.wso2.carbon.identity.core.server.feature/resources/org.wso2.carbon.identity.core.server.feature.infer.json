@@ -285,8 +285,6 @@
       "organization_management.organization_versioning.new_organization_version": "v0.0.0",
       "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
       "console.identity_providers.disabled_features": [],
-      "scim2.enable_scim2_roles_v3_api": false,
-      "scim2.default_role_api_version_for_ref": "v2",
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
       "oauth.introspect.allow_cross_sub_org": true,
@@ -309,10 +307,10 @@
       "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
-      "oauth.allow_disabled_application_credentials_for_authentication": true,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
-      "configs.endpoint.elevate_permission": false,
       "oauth.authorize_internal_scopes": true,
+      "oauth.enable_legacy_session_bound_token_behaviour": true,
+      "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
       "authenticationendpoint.authenticator_validation_enabled": false
     },
     "IS_7.1.0": {
@@ -327,11 +325,8 @@
       "organization_management.organization_versioning.new_organization_version": "v0.0.0",
       "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": false,
       "console.identity_providers.disabled_features": [],
-      "scim2.enable_scim2_roles_v3_api": false,
-      "scim2.default_role_api_version_for_ref": "v2",
       "localization.prioritize_param": false,
       "attribute.return_previous_additional_properties.enable": true,
-      "actions.types.pre_update_password.enable_in_registration_flows": false,
       "oauth.introspect.allow_cross_sub_org": true,
       "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": false,
       "captcha.enable_captcha_for_local_otp_authenticators": false,
@@ -352,10 +347,11 @@
       "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": false,
       "scim2.throw_userstore_exception_on_user_creation_error": false,
       "authentication.local_authenticators.hide_user_existence": false,
-      "oauth.allow_disabled_application_credentials_for_authentication": true,
       "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": false,
-      "configs.endpoint.elevate_permission": false,
       "oauth.authorize_internal_scopes": true,
+      "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": false,
+      "oauth.enable_legacy_session_bound_token_behaviour": true,
+      "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
       "authenticationendpoint.authenticator_validation_enabled": false
     }
   }
