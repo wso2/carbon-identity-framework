@@ -37,16 +37,34 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
     private TokenRequestContext tokenRequestContext;
     private APIInvocationConfig apiInvocationConfig = new APIInvocationConfig();
 
+    /**
+     * Constructor for TokenAcquirerService.
+     *
+     * @param apiClientConfig API Client Configuration.
+     */
     public TokenAcquirerService(APIClientConfig apiClientConfig) {
 
         super(apiClientConfig);
     }
 
+    /**
+     * Set the API invocation config.
+     *
+     * @param apiInvocationConfig API invocation config.
+     */
     public void setApiInvocationConfig(APIInvocationConfig apiInvocationConfig) {
 
+        if (apiInvocationConfig == null) {
+            throw new IllegalArgumentException("API invocation config cannot be null.");
+        }
         this.apiInvocationConfig = apiInvocationConfig;
     }
 
+    /**
+     * Set the token request context.
+     *
+     * @param tokenRequestContext Token request context.
+     */
     public void setTokenRequestContext(TokenRequestContext tokenRequestContext) {
 
         this.tokenRequestContext = tokenRequestContext;

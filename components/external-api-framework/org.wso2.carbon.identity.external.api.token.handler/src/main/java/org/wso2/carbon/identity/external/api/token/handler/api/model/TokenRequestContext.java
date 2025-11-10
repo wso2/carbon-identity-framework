@@ -85,7 +85,7 @@ public class TokenRequestContext {
     }
 
     /**
-     * Builder class for APIRequestContext.
+     * Builder class for TokenRequestContext.
      */
     public static class Builder {
 

@@ -42,6 +42,14 @@ public abstract class AbstractAPIClientManager {
         this.apiClient = new APIClient(apiClientConfig);
     }
 
+    /**
+     * Call the API using the provided request context and invocation config.
+     *
+     * @param requestContext      API Request Context.
+     * @param apiInvocationConfig API Invocation Config.
+     * @return API Response.
+     * @throws APIClientException           If an error occurs while calling the API.
+     */
     public APIResponse callAPI(APIRequestContext requestContext, APIInvocationConfig apiInvocationConfig)
             throws APIClientException {
 
@@ -54,5 +62,12 @@ public abstract class AbstractAPIClientManager {
         return handleResponse(response);
     }
 
+    /**
+     * Handle the API response.
+     *
+     * @param response API Response.
+     * @return Processed API Response.
+     * @throws APIClientResponseException If an error occurs while handling the API response.
+     */
     protected abstract APIResponse handleResponse(APIResponse response) throws APIClientResponseException;
 }

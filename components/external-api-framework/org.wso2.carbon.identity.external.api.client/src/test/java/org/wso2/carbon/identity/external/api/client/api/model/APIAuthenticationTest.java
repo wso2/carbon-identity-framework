@@ -326,4 +326,270 @@ public class APIAuthenticationTest {
         assertNotNull(authentication);
         assertEquals(authentication.getType(), APIAuthentication.AuthType.BASIC);
     }
+
+    /**
+     * Test BASIC authentication with blank password throws exception.
+     */
+    @Test
+    public void testCreateBasicAuthenticationWithBlankPassword() {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.USERNAME.getName(), USERNAME);
+        authProperties.put(APIAuthentication.Property.PASSWORD.getName(), "");
+
+        try {
+            new APIAuthentication.Builder()
+                    .authType(APIAuthentication.AuthType.BASIC)
+                    .properties(authProperties)
+                    .build();
+            fail("Expected APIClientRequestException was not thrown");
+        } catch (APIClientRequestException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_BLANK_AUTH_PROPERTY.getCode());
+        }
+    }
+
+    /**
+     * Test BEARER authentication with blank access token throws exception.
+     */
+    @Test
+    public void testCreateBearerAuthenticationWithBlankToken() {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.ACCESS_TOKEN.getName(), "");
+
+        try {
+            new APIAuthentication.Builder()
+                    .authType(APIAuthentication.AuthType.BEARER)
+                    .properties(authProperties)
+                    .build();
+            fail("Expected APIClientRequestException was not thrown");
+        } catch (APIClientRequestException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_BLANK_AUTH_PROPERTY.getCode());
+        }
+    }
+
+    /**
+     * Test API_KEY authentication with missing value throws exception.
+     */
+    @Test
+    public void testCreateApiKeyAuthenticationWithMissingValue() {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.HEADER.getName(), HEADER_NAME);
+
+        try {
+            new APIAuthentication.Builder()
+                    .authType(APIAuthentication.AuthType.API_KEY)
+                    .properties(authProperties)
+                    .build();
+            fail("Expected APIClientRequestException was not thrown");
+        } catch (APIClientRequestException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_MISSING_AUTH_PROPERTY.getCode());
+        }
+    }
+
+    /**
+     * Test API_KEY authentication with blank header throws exception.
+     */
+    @Test
+    public void testCreateApiKeyAuthenticationWithBlankHeader() {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.HEADER.getName(), "");
+        authProperties.put(APIAuthentication.Property.VALUE.getName(), HEADER_VALUE);
+
+        try {
+            new APIAuthentication.Builder()
+                    .authType(APIAuthentication.AuthType.API_KEY)
+                    .properties(authProperties)
+                    .build();
+            fail("Expected APIClientRequestException was not thrown");
+        } catch (APIClientRequestException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_BLANK_AUTH_PROPERTY.getCode());
+        }
+    }
+
+    /**
+     * Test API_KEY authentication with blank value throws exception.
+     */
+    @Test
+    public void testCreateApiKeyAuthenticationWithBlankValue() {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.HEADER.getName(), HEADER_NAME);
+        authProperties.put(APIAuthentication.Property.VALUE.getName(), "");
+
+        try {
+            new APIAuthentication.Builder()
+                    .authType(APIAuthentication.AuthType.API_KEY)
+                    .properties(authProperties)
+                    .build();
+            fail("Expected APIClientRequestException was not thrown");
+        } catch (APIClientRequestException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_BLANK_AUTH_PROPERTY.getCode());
+        }
+    }
+
+    /**
+     * Test BEARER authentication with whitespace-only token throws exception.
+     */
+    @Test
+    public void testCreateBearerAuthenticationWithWhitespaceToken() {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.ACCESS_TOKEN.getName(), "   ");
+
+        try {
+            new APIAuthentication.Builder()
+                    .authType(APIAuthentication.AuthType.BEARER)
+                    .properties(authProperties)
+                    .build();
+            fail("Expected APIClientRequestException was not thrown");
+        } catch (APIClientRequestException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_BLANK_AUTH_PROPERTY.getCode());
+        }
+    }
+
+    /**
+     * Test getProperties returns an unmodifiable list.
+     */
+    @Test
+    public void testGetPropertiesReturnsUnmodifiableList() throws APIClientRequestException {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.USERNAME.getName(), USERNAME);
+        authProperties.put(APIAuthentication.Property.PASSWORD.getName(), PASSWORD);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.BASIC)
+                .properties(authProperties)
+                .build();
+
+        try {
+            authentication.getProperties().clear();
+            fail("Expected UnsupportedOperationException was not thrown");
+        } catch (UnsupportedOperationException e) {
+            // Expected behavior.
+        }
+    }
+
+    /**
+     * Test builder with empty properties map for BASIC auth throws exception.
+     */
+    @Test
+    public void testBuilderWithEmptyPropertiesMap() {
+
+        Map<String, String> authProperties = new HashMap<>();
+
+        try {
+            new APIAuthentication.Builder()
+                    .authType(APIAuthentication.AuthType.BASIC)
+                    .properties(authProperties)
+                    .build();
+            fail("Expected APIClientRequestException was not thrown");
+        } catch (APIClientRequestException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_MISSING_AUTH_PROPERTY.getCode());
+        }
+    }
+
+    /**
+     * Test authentication properties contain extra unused properties.
+     */
+    @Test
+    public void testAuthenticationPropertiesContainExtraUnusedProperties() throws APIClientRequestException {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.USERNAME.getName(), USERNAME);
+        authProperties.put(APIAuthentication.Property.PASSWORD.getName(), PASSWORD);
+        authProperties.put("extraProperty1", "extraValue1");
+        authProperties.put("extraProperty2", "extraValue2");
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.BASIC)
+                .properties(authProperties)
+                .build();
+
+        assertNotNull(authentication);
+        assertEquals(authentication.getType(), APIAuthentication.AuthType.BASIC);
+        assertEquals(authentication.getProperties().size(), 2);
+    }
+
+    /**
+     * Test get property from BASIC authentication.
+     */
+    @Test
+    public void testGetPropertyFromBasicAuth() throws APIClientRequestException {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.USERNAME.getName(), USERNAME);
+        authProperties.put(APIAuthentication.Property.PASSWORD.getName(), PASSWORD);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.BASIC)
+                .properties(authProperties)
+                .build();
+
+        APIAuthProperty usernameProperty = authentication.getProperty(APIAuthentication.Property.USERNAME);
+        assertNotNull(usernameProperty);
+        assertEquals(usernameProperty.getValue(), USERNAME);
+
+        APIAuthProperty passwordProperty = authentication.getProperty(APIAuthentication.Property.PASSWORD);
+        assertNotNull(passwordProperty);
+        assertEquals(passwordProperty.getValue(), PASSWORD);
+
+        // Test getting non-existent property.
+        APIAuthProperty tokenProperty = authentication.getProperty(APIAuthentication.Property.ACCESS_TOKEN);
+        assertNull(tokenProperty);
+    }
+
+    /**
+     * Test get property from BEARER authentication.
+     */
+    @Test
+    public void testGetPropertyFromBearerAuth() throws APIClientRequestException {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.ACCESS_TOKEN.getName(), ACCESS_TOKEN);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.BEARER)
+                .properties(authProperties)
+                .build();
+
+        APIAuthProperty tokenProperty = authentication.getProperty(APIAuthentication.Property.ACCESS_TOKEN);
+        assertNotNull(tokenProperty);
+        assertEquals(tokenProperty.getValue(), ACCESS_TOKEN);
+
+        // Test getting non-existent property.
+        APIAuthProperty usernameProperty = authentication.getProperty(APIAuthentication.Property.USERNAME);
+        assertNull(usernameProperty);
+    }
+
+    /**
+     * Test get property from API_KEY authentication.
+     */
+    @Test
+    public void testGetPropertyFromApiKeyAuth() throws APIClientRequestException {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(APIAuthentication.Property.HEADER.getName(), HEADER_NAME);
+        authProperties.put(APIAuthentication.Property.VALUE.getName(), HEADER_VALUE);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.API_KEY)
+                .properties(authProperties)
+                .build();
+
+        APIAuthProperty headerProperty = authentication.getProperty(APIAuthentication.Property.HEADER);
+        assertNotNull(headerProperty);
+        assertEquals(headerProperty.getValue(), HEADER_NAME);
+
+        APIAuthProperty valueProperty = authentication.getProperty(APIAuthentication.Property.VALUE);
+        assertNotNull(valueProperty);
+        assertEquals(valueProperty.getValue(), HEADER_VALUE);
+
+        // Test getting non-existent property.
+        APIAuthProperty usernameProperty = authentication.getProperty(APIAuthentication.Property.USERNAME);
+        assertNull(usernameProperty);
+    }
 }

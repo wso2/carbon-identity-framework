@@ -571,4 +571,182 @@ public class APIClientTest {
             assertEquals(response.getResponseBody(), RESPONSE_BODY);
         }
     }
+
+    /**
+     * Test API call with null response entity.
+     */
+    @Test
+    public void testCallAPIWithNullResponseEntity() throws Exception {
+
+        when(mockHttpClient.execute(any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(204); // No content
+        when(mockHttpResponse.getEntity()).thenReturn(null);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 204);
+        assertEquals(response.getResponseBody(), null);
+    }
+
+    /**
+     * Test API call with empty headers map.
+     */
+    @Test
+    public void testCallAPIWithEmptyHeaders() throws Exception {
+
+        APIRequestContext emptyHeadersContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(requestContext.getApiAuthentication())
+                .endpointUrl(ENDPOINT_URL)
+                .headers(new HashMap<>())
+                .payload(PAYLOAD)
+                .build();
+
+        when(mockHttpClient.execute(any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(SUCCESS_STATUS_CODE);
+        when(mockHttpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        try (MockedStatic<org.apache.http.util.EntityUtils> mockedEntityUtils = 
+             mockStatic(org.apache.http.util.EntityUtils.class)) {
+            mockedEntityUtils.when(() -> org.apache.http.util.EntityUtils.toString(mockHttpEntity))
+                    .thenReturn(RESPONSE_BODY);
+
+            APIResponse response = apiClient.callAPI(emptyHeadersContext, invocationConfig);
+
+            assertNotNull(response);
+            assertEquals(response.getStatusCode(), SUCCESS_STATUS_CODE);
+            assertEquals(response.getResponseBody(), RESPONSE_BODY);
+        }
+    }
+
+    /**
+     * Test API call with IOException on first attempt and zero retry count.
+     */
+    @Test
+    public void testCallAPIWithIOExceptionAndZeroRetryCount() throws Exception {
+
+        invocationConfig.setAllowedRetryCount(0);
+
+        // First call throws IOException
+        when(mockHttpClient.execute(any())).thenThrow(new IOException("Connection refused"));
+
+        try {
+            apiClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException was not thrown");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(), ErrorMessageConstant.ErrorMessage.ERROR_CODE_WHILE_INVOKING_API.getCode());
+        }
+    }
+
+    /**
+     * Test API call with null authentication header.
+     */
+    @Test
+    public void testCallAPIWithNullAuthenticationHeader() throws Exception {
+
+        APIAuthentication noneAuth = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext noneAuthContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(noneAuth)
+                .endpointUrl(ENDPOINT_URL)
+                .headers(new HashMap<>())
+                .payload(PAYLOAD)
+                .build();
+
+        when(mockHttpClient.execute(any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(SUCCESS_STATUS_CODE);
+        when(mockHttpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        try (MockedStatic<org.apache.http.util.EntityUtils> mockedEntityUtils = 
+             mockStatic(org.apache.http.util.EntityUtils.class)) {
+            mockedEntityUtils.when(() -> org.apache.http.util.EntityUtils.toString(mockHttpEntity))
+                    .thenReturn(RESPONSE_BODY);
+
+            APIResponse response = apiClient.callAPI(noneAuthContext, invocationConfig);
+
+            assertNotNull(response);
+            assertEquals(response.getStatusCode(), SUCCESS_STATUS_CODE);
+            assertEquals(response.getResponseBody(), RESPONSE_BODY);
+        }
+    }
+
+    /**
+     * Test API call with multiple custom headers.
+     */
+    @Test
+    public void testCallAPIWithMultipleCustomHeaders() throws Exception {
+
+        Map<String, String> multipleHeaders = new HashMap<>();
+        multipleHeaders.put("X-Custom-Header-1", "value1");
+        multipleHeaders.put("X-Custom-Header-2", "value2");
+        multipleHeaders.put("X-Custom-Header-3", "value3");
+        multipleHeaders.put("X-Request-ID", "abc-123");
+        multipleHeaders.put("X-Correlation-ID", "xyz-789");
+
+        APIRequestContext multipleHeadersContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(requestContext.getApiAuthentication())
+                .endpointUrl(ENDPOINT_URL)
+                .headers(multipleHeaders)
+                .payload(PAYLOAD)
+                .build();
+
+        when(mockHttpClient.execute(any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(SUCCESS_STATUS_CODE);
+        when(mockHttpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        try (MockedStatic<org.apache.http.util.EntityUtils> mockedEntityUtils = 
+             mockStatic(org.apache.http.util.EntityUtils.class)) {
+            mockedEntityUtils.when(() -> org.apache.http.util.EntityUtils.toString(mockHttpEntity))
+                    .thenReturn(RESPONSE_BODY);
+
+            APIResponse response = apiClient.callAPI(multipleHeadersContext, invocationConfig);
+
+            assertNotNull(response);
+            assertEquals(response.getStatusCode(), SUCCESS_STATUS_CODE);
+            assertEquals(response.getResponseBody(), RESPONSE_BODY);
+        }
+    }
+
+    /**
+     * Test API call with special characters in payload.
+     */
+    @Test
+    public void testCallAPIWithSpecialCharactersInPayload() throws Exception {
+
+        String specialPayload = "{\"data\":\"Test with special chars: äöü, ñ, 中文, 日本語, 한글, ® © ™\"}";
+
+        APIRequestContext specialCharsContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.POST)
+                .apiAuthentication(requestContext.getApiAuthentication())
+                .endpointUrl(ENDPOINT_URL)
+                .headers(new HashMap<>())
+                .payload(specialPayload)
+                .build();
+
+        when(mockHttpClient.execute(any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(SUCCESS_STATUS_CODE);
+        when(mockHttpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        try (MockedStatic<org.apache.http.util.EntityUtils> mockedEntityUtils = 
+             mockStatic(org.apache.http.util.EntityUtils.class)) {
+            mockedEntityUtils.when(() -> org.apache.http.util.EntityUtils.toString(mockHttpEntity))
+                    .thenReturn(RESPONSE_BODY);
+
+            APIResponse response = apiClient.callAPI(specialCharsContext, invocationConfig);
+
+            assertNotNull(response);
+            assertEquals(response.getStatusCode(), SUCCESS_STATUS_CODE);
+            assertEquals(response.getResponseBody(), RESPONSE_BODY);
+        }
+    }
 }

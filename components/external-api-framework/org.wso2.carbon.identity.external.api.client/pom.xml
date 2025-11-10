@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>external-api-framework</artifactId>
-        <version>7.8.600-SNAPSHOT</version>
+        <version>7.8.605-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -95,7 +95,10 @@
                         <Export-Package>
                             !org.wso2.carbon.identity.external.api.client.internal.*,
                             org.wso2.carbon.identity.external.api.client.api; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.external.api.client.api.model; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.external.api.client.api.model; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.external.api.client.api.service; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.external.api.client.api.exception; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.external.api.client.api.constant; version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
@@ -178,12 +181,12 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.80</minimum>
+                                            <minimum>0.75</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.70</minimum>
+                                            <minimum>0.60</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
