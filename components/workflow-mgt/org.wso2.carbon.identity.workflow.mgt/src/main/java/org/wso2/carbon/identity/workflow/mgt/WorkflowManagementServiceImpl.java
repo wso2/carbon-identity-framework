@@ -84,6 +84,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public Workflow getWorkflow(String workflowId) throws WorkflowException {
 
+        validateWorkflowId(workflowId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -116,6 +117,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public List<Parameter> getWorkflowParameters(String workflowId) throws WorkflowException {
 
+        validateWorkflowId(workflowId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -410,6 +412,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public void addAssociation(String associationName, String workflowId, String eventId, String condition) throws
             WorkflowException {
 
+        validateWorkflowId(workflowId);
         if (condition == null) {
             condition = WFConstant.DEFAULT_ASSOCIATION_CONDITION;
         }
@@ -560,6 +563,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void removeWorkflow(String workflowId) throws WorkflowException {
 
+        validateWorkflowId(workflowId);
         Workflow workflow = workflowDAO.getWorkflow(workflowId);
         if (workflow == null) {
             throw new WorkflowClientException("A workflow with ID: " + workflowId + " doesn't exist.");
@@ -627,6 +631,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void removeAssociation(int associationId) throws WorkflowException {
 
+        validateAssociationId(associationId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -646,6 +651,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public List<Association> getAssociationsForWorkflow(String workflowId) throws WorkflowException {
 
+        validateWorkflowId(workflowId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -778,6 +784,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      */
     public Association getAssociation(String associationId) throws WorkflowException {
 
+        validateAssociationId(Integer.parseInt(associationId));
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -821,6 +828,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void changeAssociationState(String associationId, boolean isEnable) throws WorkflowException {
 
+        validateAssociationId(Integer.parseInt(associationId));
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -854,6 +862,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public void updateAssociation(String associationId, String associationName, String workflowId, String eventId,
                                   String condition, boolean isEnable) throws WorkflowException {
 
+        validateWorkflowId(workflowId);
+        validateAssociationId(Integer.parseInt(workflowId));
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -945,6 +955,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public boolean entityHasPendingWorkflows(Entity entity) throws WorkflowException {
 
+        validateEntityTenantId(entity.getTenantId());
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -974,6 +985,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public boolean entityHasPendingWorkflowsOfType(Entity entity, String requestType) throws
             WorkflowException {
 
+        validateEntityTenantId(entity.getTenantId());
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -1085,6 +1097,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public WorkflowRequestAssociation[] getWorkflowsOfRequest(String requestId) throws WorkflowException {
 
+        validateRequestId(requestId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -1106,6 +1119,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void abortWorkflowRequest(String requestId) throws WorkflowException {
 
+        validateRequestId(requestId);
         log.info("Aborting workflow request: " + requestId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
@@ -1136,6 +1150,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void deleteWorkflowRequest(String requestId) throws WorkflowException {
 
+        validateRequestId(requestId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         String requestInitiatedUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
@@ -1175,6 +1190,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
 
+        validateRequestId(requestId);
         softDeleteWorkflowRequestByAnyUser(requestId);
     }
 
@@ -1187,6 +1203,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void permanentlyDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
 
+        validateRequestId(requestId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         WorkflowRequest workflowRequest = new WorkflowRequest();
@@ -1217,6 +1234,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void softDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
 
+        validateRequestId(requestId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         WorkflowRequest workflowRequest = new WorkflowRequest();
@@ -1348,6 +1366,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public WorkflowRequest getWorkflowRequestBean(String requestId) throws WorkflowException {
 
+        validateRequestId(requestId);
         if (requestId == null || requestId.isEmpty()) {
             throw new WorkflowClientException("Request ID cannot be null or empty.");
         }
@@ -1390,6 +1409,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest getWorkflowRequest(String requestId)
             throws WorkflowException {
 
+        validateRequestId(requestId);
         return workflowRequestDAO.retrieveWorkflow(requestId);
     }
 
@@ -1428,5 +1448,40 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 .anyMatch(association -> !StringUtils.equals(association.getAssociationId(), associationId)
                         && StringUtils.equals(association.getEventId(), eventId)
                         && StringUtils.equals(association.getCondition(), condition));
+    }
+
+    private void validateWorkflowId(String workflowId) throws WorkflowException {
+
+        int tenantId = workflowDAO.getWorkRegisteredTenantId(workflowId);
+        int currentTenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        if (tenantId != currentTenantId) {
+            throw new WorkflowClientException("Invalid workflow ID: " + workflowId);
+        }
+    }
+
+    private void validateAssociationId(int associationId) throws WorkflowException {
+
+        int tenantId = associationDAO.getAssociationRegisteredTenantId(associationId);
+        int currentTenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        if (tenantId != currentTenantId) {
+            throw new WorkflowClientException("Invalid association ID: " + associationId);
+        }
+    }
+
+    private void validateEntityTenantId(int tenantId) throws WorkflowException {
+
+        int currentTenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        if (tenantId != currentTenantId) {
+            throw new WorkflowClientException("Invalid entity tenant ID: " + tenantId);
+        }
+    }
+
+    private void validateRequestId(String requestId) throws WorkflowException {
+
+        int tenantId = workflowRequestAssociationDAO.getRequestRegisteredTenantId(requestId);
+        int currentTenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        if (tenantId != currentTenantId) {
+            throw new WorkflowClientException("Invalid request ID: " + requestId);
+        }
     }
 }

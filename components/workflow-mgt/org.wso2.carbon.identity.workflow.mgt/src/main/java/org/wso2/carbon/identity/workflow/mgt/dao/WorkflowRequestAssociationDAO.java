@@ -40,6 +40,7 @@ import java.util.List;
  */
 public class WorkflowRequestAssociationDAO {
 
+    private static final String errorMessage = "Error when executing the SQL query ";
     private static final Log log = LogFactory.getLog(WorkflowRequestAssociationDAO.class);
 
     /**
@@ -297,5 +298,28 @@ public class WorkflowRequestAssociationDAO {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return associations;
+    }
+
+    public int getRequestRegisteredTenantId(String requestId) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet rs;
+        String query = SQLConstants.GET_REQUEST_REGISTERED_TENANT_ID;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, requestId);
+            rs = prepStmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(SQLConstants.TENANT_ID_COLUMN);
+            }
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+        return -1;
+
     }
 }

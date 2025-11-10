@@ -529,6 +529,16 @@ public class SQLConstants {
 
     public static final String COUNT_WORKFLOW_REQUESTS_BASE_QUERY = "SELECT COUNT(*) FROM WF_REQUEST";
 
+    public static final String GET_WORKFLOW_REGISTERED_TENANT_ID = "SELECT TENANT_ID FROM WF_WORKFLOW " +
+            "WHERE ID = ?";
+
+    public static final String GET_ASSOCIATION_REGISTERED_TENANT_ID = "SELECT TENANT_ID FROM " +
+            "WF_WORKFLOW WHERE ID IN " +
+            "(SELECT WORKFLOW_ID FROM WF_WORKFLOW_ASSOCIATION WHERE ID = ?)";
+
+    public static final String GET_REQUEST_REGISTERED_TENANT_ID = "SELECT TENANT_ID FROM " +
+            "WF_REQUEST WHERE UUID = ?";
+
     private SQLConstants() {
 
     }

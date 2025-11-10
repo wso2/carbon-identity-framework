@@ -471,4 +471,26 @@ public class AssociationDAO {
         }
         throw new InternalWorkflowException(errorMsg, e);
     }
+
+    public int getAssociationRegisteredTenantId(int associationId) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet rs;
+        String query = SQLConstants.GET_ASSOCIATION_REGISTERED_TENANT_ID;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setInt(1, associationId);
+            rs = prepStmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(SQLConstants.TENANT_ID_COLUMN);
+            }
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+        return -1;
+    }
 }
