@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.external.api.client.api.model;
 
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientConfigException;
+import org.wso2.carbon.identity.external.api.client.internal.util.APIClientUtils;
 
 import static org.wso2.carbon.identity.external.api.client.api.constant.ErrorMessageConstant.ErrorMessage.ERROR_CODE_INVALID_RETRY_COUNT;
 
@@ -27,7 +28,7 @@ import static org.wso2.carbon.identity.external.api.client.api.constant.ErrorMes
  */
 public class APIInvocationConfig {
 
-    private int allowedRetryCount = 0;
+    private int allowedRetryCount = APIClientUtils.getDefaultRetryCount();
 
     public int getAllowedRetryCount() {
 

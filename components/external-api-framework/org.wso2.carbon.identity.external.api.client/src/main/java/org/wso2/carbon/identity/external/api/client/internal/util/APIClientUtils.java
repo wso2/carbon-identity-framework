@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.external.api.client.internal.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 /**
@@ -27,14 +25,13 @@ import org.wso2.carbon.identity.core.util.IdentityConfigParser;
  */
 public class APIClientUtils {
 
-    private static final Log LOG = LogFactory.getLog(APIClientUtils.class);
-
     private static final IdentityConfigParser identityConfigParser = IdentityConfigParser.getInstance();
     private static final int DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS;
     private static final int DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_IN_MILLIS;
     private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT_IN_MILLIS;
     private static final int DEFAULT_POOL_SIZE_TO_BE_SET;
     private static final int DEFAULT_MAX_PER_ROUTE;
+    private static final int DEFAULT_RETRY_COUNT;
 
     static {
         DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = getProperty("ExternalAPIClient.HTTPClient.HTTPReadTimeout");
@@ -44,6 +41,7 @@ public class APIClientUtils {
                 getProperty("ExternalAPIClient.HTTPClient.HTTPConnectionTimeout");
         DEFAULT_POOL_SIZE_TO_BE_SET = getProperty("ExternalAPIClient.HTTPClient.HTTPConnectionPoolSize");
         DEFAULT_MAX_PER_ROUTE = getProperty("ExternalAPIClient.HTTPClient.HTTPConnectionMaxPerRoute");
+        DEFAULT_RETRY_COUNT = getProperty("ExternalAPIClient.DefaultRetryCount");
     }
 
     /**
@@ -96,18 +94,26 @@ public class APIClientUtils {
         return DEFAULT_MAX_PER_ROUTE;
     }
 
+    /**
+     * Gets the default retry count.
+     *
+     * @return default retry count.
+     */
+    public static int getDefaultRetryCount() {
+
+        return DEFAULT_RETRY_COUNT;
+    }
+
     private static int getProperty(String propertyName) {
 
         Object configValue = identityConfigParser.getConfiguration().get(propertyName);
         try {
             if (configValue == null) {
-                LOG.error("API client configuration " + propertyName + " is missing.");
                 throw new IllegalArgumentException(
                         String.format("The API client configuration %s value must be an integer.", propertyName));
             }
             return Integer.parseInt(configValue.toString());
         } catch (NumberFormatException e) {
-            LOG.error("Invalid integer value for API client configuration " + propertyName + ": " + configValue);
             throw new IllegalArgumentException(
                 String.format("The API client configuration %s value must be an integer.", propertyName));
         }

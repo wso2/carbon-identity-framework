@@ -25,12 +25,25 @@ import org.wso2.carbon.identity.external.api.client.api.constant.ErrorMessageCon
  */
 public class APIClientInvocationException extends APIClientException {
 
+    /**
+     * Constructor with error message, description data and cause for API Client invocation exceptions.
+     *
+     * @param errorMessage    Error message enum.
+     * @param descriptionData Description data for the error.
+     * @param e               Throwable cause.
+     */
     public APIClientInvocationException(ErrorMessageConstant.ErrorMessage errorMessage, String descriptionData,
                                         Throwable e) {
 
         super(errorMessage, descriptionData, e);
     }
 
+    /**
+     * Constructor with error message and description data for API Client invocation exceptions.
+     *
+     * @param errorMessage    Error message enum.
+     * @param descriptionData Description data for the error.
+     */
     public APIClientInvocationException(ErrorMessageConstant.ErrorMessage errorMessage, String descriptionData) {
 
         super(errorMessage, descriptionData);

@@ -26,5 +26,6 @@
             <HTTPConnectionPoolSize>50</HTTPConnectionPoolSize>
             <HTTPConnectionMaxPerRoute>10</HTTPConnectionMaxPerRoute>
         </HTTPClient>
+        <DefaultRetryCount>2</DefaultRetryCount>
     </ExternalAPIClient>
 </Server>

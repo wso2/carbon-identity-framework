@@ -23,8 +23,6 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientRequestException;
 import org.wso2.carbon.identity.external.api.client.api.model.APIAuthentication;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 

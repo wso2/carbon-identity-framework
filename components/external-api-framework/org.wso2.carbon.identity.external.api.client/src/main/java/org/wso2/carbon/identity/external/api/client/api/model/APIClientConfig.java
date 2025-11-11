@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.external.api.client.api.model;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientConfigException;
 import org.wso2.carbon.identity.external.api.client.internal.util.APIClientUtils;
 
@@ -30,30 +28,19 @@ import static org.wso2.carbon.identity.external.api.client.api.constant.ErrorMes
  */
 public class APIClientConfig {
 
-    private static final Log LOG = LogFactory.getLog(APIClientConfig.class);
-
-    protected int httpReadTimeoutInMillis;
-    protected int httpConnectionRequestTimeoutInMillis;
-    protected int httpConnectionTimeoutInMillis;
-    protected int poolSizeToBeSet;
-    protected int defaultMaxPerRoute;
+    private final int httpReadTimeoutInMillis;
+    private final int httpConnectionRequestTimeoutInMillis;
+    private final int httpConnectionTimeoutInMillis;
+    private final int poolSizeToBeSet;
+    private final int maxPerRoute;
 
     public APIClientConfig(Builder builder) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Creating APIClientConfig with httpReadTimeout: %d, " +
-                            "httpConnectionRequestTimeout: %d, httpConnectionTimeout: %d, poolSize: %d",
-                    builder.httpReadTimeoutInMillis,
-                    builder.httpConnectionRequestTimeoutInMillis,
-                    builder.httpConnectionTimeoutInMillis,
-                    builder.poolSizeToBeSet
-            ));
-        }
         this.httpReadTimeoutInMillis = builder.httpReadTimeoutInMillis;
         this.httpConnectionRequestTimeoutInMillis = builder.httpConnectionRequestTimeoutInMillis;
         this.httpConnectionTimeoutInMillis = builder.httpConnectionTimeoutInMillis;
         this.poolSizeToBeSet = builder.poolSizeToBeSet;
-        this.defaultMaxPerRoute = builder.defaultMaxPerRoute;
+        this.maxPerRoute = builder.defaultMaxPerRoute;
     }
 
     /**
@@ -101,9 +88,9 @@ public class APIClientConfig {
      *
      * @return default max per route.
      */
-    public int getDefaultMaxPerRoute() {
+    public int getMaxPerRoute() {
 
-        return defaultMaxPerRoute;
+        return maxPerRoute;
     }
 
     /**
@@ -161,7 +148,6 @@ public class APIClientConfig {
         private void validateConfigurationValues(int value) throws APIClientConfigException {
 
             if (value <= 0) {
-                LOG.error(String.format("Invalid configuration value: %d. Value must be greater than 0", value));
                 throw new APIClientConfigException(ERROR_CODE_INVALID_CONFIG_VALUE, Integer.toString(value));
             }
         }

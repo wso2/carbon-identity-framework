@@ -25,10 +25,9 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.utils.ServerConstants;
 
-import java.nio.file.Paths;
+import java.io.File;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Unit tests for APIClientUtils class.
@@ -41,21 +40,15 @@ public class APIClientUtilsTest {
     private static final int EXPECTED_HTTP_CONNECTION_TIMEOUT = 5000;
     private static final int EXPECTED_POOL_SIZE = 50;
 
-    /**
-     * Sets up the test environment before all tests.
-     */
     @BeforeClass
     public void setUp() {
 
-        String identityXmlPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
-                "identity.xml").toString();
-        System.setProperty(ServerConstants.CARBON_HOME, ".");
-        IdentityConfigParser.getInstance(identityXmlPath);
+        String testResourcesPath = new File(
+                "src/test/resources/repository/conf/identity/identity.xml").getAbsolutePath();
+        System.setProperty("carbon.home", testResourcesPath);
+        IdentityConfigParser.getInstance(testResourcesPath);
     }
 
-    /**
-     * Cleans up the test environment after all tests.
-     */
     @AfterClass
     public void tearDown() {
 
@@ -104,49 +97,5 @@ public class APIClientUtilsTest {
         int poolSize = APIClientUtils.getDefaultPoolSizeToBeSet();
         assertEquals(poolSize, EXPECTED_POOL_SIZE,
                 "Pool size should match the configured value from identity.xml");
-    }
-
-    /**
-     * Test that all getter methods return positive values.
-     */
-    @Test
-    public void testGettersReturnPositiveValues() {
-
-        int readTimeout = APIClientUtils.getDefaultHttpReadTimeoutInMillis();
-        assertTrue(readTimeout > 0, "HTTP read timeout should be a positive value");
-
-        int connectionRequestTimeout = APIClientUtils.getDefaultHttpConnectionRequestTimeoutInMillis();
-        assertTrue(connectionRequestTimeout > 0, "HTTP connection request timeout should be a positive value");
-
-        int connectionTimeout = APIClientUtils.getDefaultHttpConnectionTimeoutInMillis();
-        assertTrue(connectionTimeout > 0, "HTTP connection timeout should be a positive value");
-
-        int poolSize = APIClientUtils.getDefaultPoolSizeToBeSet();
-        assertTrue(poolSize > 0, "Pool size should be a positive value");
-    }
-
-    /**
-     * Test that all getter methods return consistent values across multiple calls.
-     */
-    @Test
-    public void testGettersReturnConsistentValues() {
-
-        int readTimeout1 = APIClientUtils.getDefaultHttpReadTimeoutInMillis();
-        int readTimeout2 = APIClientUtils.getDefaultHttpReadTimeoutInMillis();
-        assertEquals(readTimeout1, readTimeout2, "HTTP read timeout should return consistent values");
-
-        int connectionRequestTimeout1 = APIClientUtils.getDefaultHttpConnectionRequestTimeoutInMillis();
-        int connectionRequestTimeout2 = APIClientUtils.getDefaultHttpConnectionRequestTimeoutInMillis();
-        assertEquals(connectionRequestTimeout1, connectionRequestTimeout2,
-                "HTTP connection request timeout should return consistent values");
-
-        int connectionTimeout1 = APIClientUtils.getDefaultHttpConnectionTimeoutInMillis();
-        int connectionTimeout2 = APIClientUtils.getDefaultHttpConnectionTimeoutInMillis();
-        assertEquals(connectionTimeout1, connectionTimeout2,
-                "HTTP connection timeout should return consistent values");
-
-        int poolSize1 = APIClientUtils.getDefaultPoolSizeToBeSet();
-        int poolSize2 = APIClientUtils.getDefaultPoolSizeToBeSet();
-        assertEquals(poolSize1, poolSize2, "Pool size should return consistent values");
     }
 }

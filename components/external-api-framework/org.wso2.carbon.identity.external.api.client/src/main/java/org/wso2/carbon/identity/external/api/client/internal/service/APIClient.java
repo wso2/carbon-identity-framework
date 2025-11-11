@@ -72,7 +72,7 @@ public class APIClient {
                 .build();
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(apiClientConfig.getPoolSizeToBeSet());
-        connectionManager.setDefaultMaxPerRoute(apiClientConfig.getDefaultMaxPerRoute());
+        connectionManager.setDefaultMaxPerRoute(apiClientConfig.getMaxPerRoute());
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setConnectionManager(connectionManager)
                 .build();
 
@@ -116,11 +116,11 @@ public class APIClient {
                 httpEntityEnclosingRequestBase = new HttpPost(requestContext.getEndpointUrl());
                 break;
             default:
-                LOG.error("Unsupported HTTP method: " + requestContext.getHttpMethod().getName());
                 throw new APIClientInvocationException(
                         ErrorMessage.ERROR_CODE_UNSUPPORTED_HTTP_METHOD, requestContext.getHttpMethod().getName());
         }
         setRequestEntity(httpEntityEnclosingRequestBase, requestContext);
+
         try {
             return executeRequest(httpEntityEnclosingRequestBase, apiInvocationConfig);
         } finally {
@@ -133,6 +133,7 @@ public class APIClient {
         StringEntity entity = new StringEntity(requestContext.getPayload(), StandardCharsets.UTF_8);
         httpRequestBase.setEntity(entity);
 
+        // only be default
         httpRequestBase.setHeader("Accept", "application/json");
         httpRequestBase.setHeader("Content-type", "application/json");
         Header authHeader = APIRequestBuildingUtils.buildAuthenticationHeader(requestContext.getApiAuthentication());
@@ -173,14 +174,14 @@ public class APIClient {
                 return handleResponse(response);
             } catch (IOException e) {
                 if (attempt >= allowedRetryCount) {
-                    LOG.error(String.format("Request to API: %s failed after %d retries. Throwing exception.",
-                            request.getURI(), attempt));
                     throw new APIClientInvocationException(
                             ErrorMessage.ERROR_CODE_WHILE_INVOKING_API, request.getURI().toString(), e);
                 }
                 int nextAttempt = attempt + 1;
-                LOG.warn(String.format("Request to API: %s failed. Retrying %d/%d",
-                        request.getURI(), nextAttempt, allowedRetryCount));
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Request to API: %s failed. Retrying %d/%d",
+                            request.getURI(), nextAttempt, allowedRetryCount));
+                }
                 attempt = nextAttempt;
             }
         }
@@ -195,7 +196,7 @@ public class APIClient {
         if (responseEntity != null) {
             responseBody = EntityUtils.toString(responseEntity);
         }
-        APIResponse.Builder apiResponseBuilder = new APIResponse.Builder(statusCode, responseBody);
-        return apiResponseBuilder.build();
+
+        return new APIResponse(statusCode, responseBody);
     }
 }

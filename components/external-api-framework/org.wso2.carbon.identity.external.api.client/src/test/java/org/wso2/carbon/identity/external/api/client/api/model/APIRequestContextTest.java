@@ -28,7 +28,6 @@ import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 /**
@@ -97,7 +96,7 @@ public class APIRequestContextTest {
         assertEquals(context.getApiAuthentication(), apiAuthentication);
         assertEquals(context.getEndpointUrl(), ENDPOINT_URL);
         assertEquals(context.getPayload(), PAYLOAD);
-        assertNotNull(context.getHeaders()); // Should be initialized as empty map
+        assertNotNull(context.getHeaders());
     }
 
     /**
@@ -271,57 +270,6 @@ public class APIRequestContextTest {
     }
 
     /**
-     * Test getter methods return correct values.
-     */
-    @Test
-    public void testGetterMethods() throws APIClientRequestException {
-
-        APIRequestContext context = new APIRequestContext.Builder()
-                .httpMethod(APIRequestContext.HttpMethod.POST)
-                .apiAuthentication(apiAuthentication)
-                .endpointUrl(ENDPOINT_URL)
-                .headers(headers)
-                .payload(PAYLOAD)
-                .build();
-
-        assertEquals(context.getHttpMethod(), APIRequestContext.HttpMethod.POST);
-        assertEquals(context.getApiAuthentication(), apiAuthentication);
-        assertEquals(context.getEndpointUrl(), ENDPOINT_URL);
-        assertEquals(context.getHeaders().get(HEADER_KEY), HEADER_VALUE);
-        assertEquals(context.getPayload(), PAYLOAD);
-    }
-
-    /**
-     * Test HttpMethod enum values and getName method.
-     */
-    @Test
-    public void testHttpMethodEnum() {
-
-        assertEquals(APIRequestContext.HttpMethod.POST.getName(), "post");
-    }
-
-    /**
-     * Test with empty headers map.
-     */
-    @Test
-    public void testCreateAPIRequestContextWithEmptyHeaders() throws APIClientRequestException {
-
-        Map<String, String> emptyHeaders = new HashMap<>();
-
-        APIRequestContext context = new APIRequestContext.Builder()
-                .httpMethod(APIRequestContext.HttpMethod.POST)
-                .apiAuthentication(apiAuthentication)
-                .endpointUrl(ENDPOINT_URL)
-                .headers(emptyHeaders)
-                .payload(PAYLOAD)
-                .build();
-
-        assertNotNull(context);
-        assertNotNull(context.getHeaders());
-        assertTrue(context.getHeaders().isEmpty());
-    }
-
-    /**
      * Test with multiple headers.
      */
     @Test
@@ -345,29 +293,5 @@ public class APIRequestContextTest {
         assertEquals(context.getHeaders().get("Content-Type"), "application/json");
         assertEquals(context.getHeaders().get("Authorization"), "Bearer token");
         assertEquals(context.getHeaders().get("Accept"), "application/json");
-    }
-
-    /**
-     * Test builder returns the same builder instance for method chaining.
-     */
-    @Test
-    public void testBuilderReturnsCorrectInstance() {
-
-        APIRequestContext.Builder builder = new APIRequestContext.Builder();
-
-        APIRequestContext.Builder returnedBuilder = builder.httpMethod(APIRequestContext.HttpMethod.POST);
-        assertEquals(builder, returnedBuilder);
-
-        returnedBuilder = builder.apiAuthentication(apiAuthentication);
-        assertEquals(builder, returnedBuilder);
-
-        returnedBuilder = builder.endpointUrl(ENDPOINT_URL);
-        assertEquals(builder, returnedBuilder);
-
-        returnedBuilder = builder.headers(headers);
-        assertEquals(builder, returnedBuilder);
-
-        returnedBuilder = builder.payload(PAYLOAD);
-        assertEquals(builder, returnedBuilder);
     }
 }

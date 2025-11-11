@@ -30,8 +30,6 @@ import static org.testng.Assert.assertNull;
 public class APIResponseTest {
 
     private static final int STATUS_CODE_200 = 200;
-    private static final int STATUS_CODE_404 = 404;
-    private static final int STATUS_CODE_500 = 500;
     private static final String RESPONSE_BODY = "{\"message\":\"success\"}";
     private static final String EMPTY_RESPONSE_BODY = "";
     private static final String NULL_RESPONSE_BODY = null;
@@ -42,7 +40,7 @@ public class APIResponseTest {
     @Test
     public void testCreateAPIResponseWithValidParameters() {
 
-        APIResponse response = new APIResponse.Builder(STATUS_CODE_200, RESPONSE_BODY).build();
+        APIResponse response = new APIResponse(STATUS_CODE_200, RESPONSE_BODY);
 
         assertNotNull(response);
         assertEquals(response.getStatusCode(), STATUS_CODE_200);
@@ -55,7 +53,7 @@ public class APIResponseTest {
     @Test
     public void testCreateAPIResponseWithEmptyResponseBody() {
 
-        APIResponse response = new APIResponse.Builder(STATUS_CODE_200, EMPTY_RESPONSE_BODY).build();
+        APIResponse response = new APIResponse(STATUS_CODE_200, EMPTY_RESPONSE_BODY);
 
         assertNotNull(response);
         assertEquals(response.getStatusCode(), STATUS_CODE_200);
@@ -68,7 +66,7 @@ public class APIResponseTest {
     @Test
     public void testCreateAPIResponseWithNullResponseBody() {
 
-        APIResponse response = new APIResponse.Builder(STATUS_CODE_200, NULL_RESPONSE_BODY).build();
+        APIResponse response = new APIResponse(STATUS_CODE_200, NULL_RESPONSE_BODY);
 
         assertNotNull(response);
         assertEquals(response.getStatusCode(), STATUS_CODE_200);
@@ -81,7 +79,7 @@ public class APIResponseTest {
     @Test
     public void testCreateAPIResponseWithZeroStatusCode() {
 
-        APIResponse response = new APIResponse.Builder(0, RESPONSE_BODY).build();
+        APIResponse response = new APIResponse(0, RESPONSE_BODY);
 
         assertNotNull(response);
         assertEquals(response.getStatusCode(), 0);
@@ -94,40 +92,10 @@ public class APIResponseTest {
     @Test
     public void testCreateAPIResponseWithNegativeStatusCode() {
 
-        APIResponse response = new APIResponse.Builder(-1, RESPONSE_BODY).build();
+        APIResponse response = new APIResponse(-1, RESPONSE_BODY);
 
         assertNotNull(response);
         assertEquals(response.getStatusCode(), -1);
-        assertEquals(response.getResponseBody(), RESPONSE_BODY);
-    }
-
-    /**
-     * Test builder constructor requires both parameters.
-     */
-    @Test
-    public void testBuilderConstructorWithBothParameters() {
-
-        APIResponse.Builder builder = new APIResponse.Builder(STATUS_CODE_200, RESPONSE_BODY);
-        APIResponse response = builder.build();
-
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), STATUS_CODE_200);
-        assertEquals(response.getResponseBody(), RESPONSE_BODY);
-    }
-
-    /**
-     * Test builder method chaining.
-     */
-    @Test
-    public void testBuilderMethodChaining() {
-
-        APIResponse response = new APIResponse.Builder(STATUS_CODE_404, "Not Found")
-                .statusCode(STATUS_CODE_200)
-                .responseBody(RESPONSE_BODY)
-                .build();
-
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), STATUS_CODE_200);
         assertEquals(response.getResponseBody(), RESPONSE_BODY);
     }
 }

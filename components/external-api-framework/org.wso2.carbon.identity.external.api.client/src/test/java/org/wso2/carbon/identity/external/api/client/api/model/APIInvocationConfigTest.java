@@ -18,18 +18,37 @@
 
 package org.wso2.carbon.identity.external.api.client.api.model;
 
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientConfigException;
+import org.wso2.carbon.utils.ServerConstants;
+
+import java.io.File;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertThrows;
 
 /**
  * Unit tests for APIInvocationConfig class.
  */
+@WithCarbonHome
 public class APIInvocationConfigTest {
+
+    @BeforeClass
+    public void setUp() {
+
+        String testResourcesPath = new File(
+                "src/test/resources/repository/conf/identity/identity.xml").getAbsolutePath();
+        System.setProperty("carbon.home", testResourcesPath);
+        IdentityConfigParser.getInstance(testResourcesPath);
+    }
+
+    @AfterClass
+    public void tearDown() {
+        System.clearProperty(ServerConstants.CARBON_HOME);
+    }
 
     /**
      * Test typical use case scenarios.
@@ -39,8 +58,8 @@ public class APIInvocationConfigTest {
 
         APIInvocationConfig config = new APIInvocationConfig();
         
-        // Scenario 1: No retries (default)
-        assertEquals(config.getAllowedRetryCount(), 0);
+        // Scenario 1: Default value from configuration (2 retries as per identity.xml)
+        assertEquals(config.getAllowedRetryCount(), 2);
         
         // Scenario 2: Enable retries for resilience
         config.setAllowedRetryCount(3);
@@ -50,7 +69,7 @@ public class APIInvocationConfigTest {
         config.setAllowedRetryCount(10);
         assertEquals(config.getAllowedRetryCount(), 10);
         
-        // Scenario 4: Disable retries again
+        // Scenario 4: Disable retries
         config.setAllowedRetryCount(0);
         assertEquals(config.getAllowedRetryCount(), 0);
     }

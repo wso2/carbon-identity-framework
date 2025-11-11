@@ -44,7 +44,9 @@ public class APIRequestBuildingUtils {
     public static Header buildAuthenticationHeader(APIAuthentication apiAuthentication) {
 
         if (apiAuthentication == null || apiAuthentication.getType() == null) {
-            LOG.warn("API authentication or authentication type is null. Skipping header construction.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("API authentication or authentication type is null. Skipping header construction.");
+            }
             return null;
         }
 

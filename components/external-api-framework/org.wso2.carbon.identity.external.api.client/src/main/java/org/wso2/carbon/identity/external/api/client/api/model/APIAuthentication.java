@@ -44,8 +44,7 @@ public class APIAuthentication {
     public APIAuthentication(Builder builder) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Creating APIAuthentication with auth type: %s, properties count: %d",
-                    builder.authType, builder.resolvedAuthProperties.size()));
+            LOG.debug(String.format("Creating APIAuthentication with auth type: %s", builder.authType));
         }
 
         this.authType = builder.authType;
@@ -149,10 +148,8 @@ public class APIAuthentication {
                     }
                     return new APIAuthProperty.Builder(propertyName, propValue).build();
                 }
-                LOG.error("Authentication property " + propertyName + " is blank.");
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_BLANK_AUTH_PROPERTY, propertyName);
             }
-            LOG.error("Authentication property " + propertyName + " is missing.");
             throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_AUTH_PROPERTY, propertyName);
         }
     }
@@ -204,4 +201,3 @@ public class APIAuthentication {
         }
     }
 }
-

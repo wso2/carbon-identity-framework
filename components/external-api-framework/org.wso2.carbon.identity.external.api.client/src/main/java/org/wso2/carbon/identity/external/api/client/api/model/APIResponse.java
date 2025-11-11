@@ -31,15 +31,15 @@ public class APIResponse {
     private final int statusCode;
     private final String responseBody;
 
-    public APIResponse(Builder builder) {
+    public APIResponse(int statusCode, String responseBody) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Creating APIResponse with status code: %d, response body length: %d",
-                    builder.statusCode, builder.responseBody != null ? builder.responseBody.length() : 0));
+                    statusCode, responseBody != null ? responseBody.length() : 0));
         }
 
-        this.statusCode = builder.statusCode;
-        this.responseBody = builder.responseBody;
+        this.statusCode = statusCode;
+        this.responseBody = responseBody;
     }
 
     /**
@@ -60,37 +60,5 @@ public class APIResponse {
     public String getResponseBody() {
 
         return responseBody;
-    }
-
-    /**
-     * Builder class for APIResponse.
-     */
-    public static class Builder {
-
-        private int statusCode;
-        private String responseBody;
-
-        public Builder(int statusCode, String responseBody) {
-
-            this.statusCode = statusCode;
-            this.responseBody = responseBody;
-        }
-
-        public Builder statusCode(int statusCode) {
-
-            this.statusCode = statusCode;
-            return this;
-        }
-
-        public Builder responseBody(String responseBody) {
-
-            this.responseBody = responseBody;
-            return this;
-        }
-
-        public APIResponse build() {
-
-            return new APIResponse(this);
-        }
     }
 }

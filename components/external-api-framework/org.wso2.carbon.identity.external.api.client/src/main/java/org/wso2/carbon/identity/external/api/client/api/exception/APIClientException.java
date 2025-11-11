@@ -28,6 +28,13 @@ public class APIClientException extends Exception {
     private final ErrorMessage errorMessage;
     private final String descriptionData;
 
+    /**
+     * Constructor with error message, description data and cause.
+     *
+     * @param errorMessage    Error message enum.
+     * @param descriptionData Description data for the error.
+     * @param e               Throwable cause.
+     */
     public APIClientException(ErrorMessage errorMessage, String descriptionData,  Throwable e) {
 
         super(e);
@@ -35,16 +42,16 @@ public class APIClientException extends Exception {
         this.descriptionData = descriptionData;
     }
 
+    /**
+     * Constructor with error message and description data.
+     *
+     * @param errorMessage    Error message enum.
+     * @param descriptionData Description data for the error.
+     */
     public APIClientException(ErrorMessage errorMessage, String descriptionData) {
 
         this.errorMessage = errorMessage;
         this.descriptionData = descriptionData;
-    }
-
-    public APIClientException(ErrorMessage errorMessage) {
-
-        this.errorMessage = errorMessage;
-        this.descriptionData = null;
     }
 
     /**

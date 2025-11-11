@@ -131,26 +131,21 @@ public class APIRequestContext {
             }
 
             if (httpMethod == null) {
-                LOG.error("HTTP Method is missing in APIRequestContext build.");
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "HTTP Method");
             }
             if (headers == null) {
-                LOG.error("HTTP header cannot be set to null.");
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "HTTP headers");
             }
             if (apiAuthentication == null) {
-                LOG.error("Authentication is missing in APIRequestContext build.");
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "authentication");
             }
             if (endpointUrl == null || StringUtils.isBlank(endpointUrl)) {
-                LOG.error("Endpoint URL is missing or blank in APIRequestContext build.");
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "endpoint URL");
             }
             /* Todo: Payload can be optional for certain HTTP methods like GET.
                      Adjust validation accordingly when introducing new HTTP Method supports
              */
             if (payload == null || StringUtils.isBlank(payload)) {
-                LOG.error("Payload is missing or blank in APIRequestContext build.");
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "payload");
             }
 

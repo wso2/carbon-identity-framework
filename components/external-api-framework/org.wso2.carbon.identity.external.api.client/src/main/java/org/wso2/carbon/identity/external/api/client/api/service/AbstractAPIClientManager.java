@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.external.api.client.api.service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientException;
-import org.wso2.carbon.identity.external.api.client.api.exception.APIClientResponseException;
 import org.wso2.carbon.identity.external.api.client.api.model.APIClientConfig;
 import org.wso2.carbon.identity.external.api.client.api.model.APIInvocationConfig;
 import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
@@ -37,6 +36,11 @@ public abstract class AbstractAPIClientManager {
 
     private final APIClient apiClient;
 
+    /**
+     * Constructor to initialize the API Client with the provided configuration.
+     *
+     * @param apiClientConfig API Client Configuration.
+     */
     protected AbstractAPIClientManager(APIClientConfig apiClientConfig) {
 
         this.apiClient = new APIClient(apiClientConfig);
