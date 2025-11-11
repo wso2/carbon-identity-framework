@@ -88,6 +88,7 @@ public abstract class FrameworkConstants {
     public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
     public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
+    public static final String ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM = "AddUserStoreDomainToGroupClaims";
     public static final String IS_OTP_VERIFICATION_TRIGGERED = "isOtpVerificationTriggered";
     public static final String OTP_VERIFICATION_PENDING_CLAIM = "otpVerificationPendingClaim";
     public static final String CLAIM_FOR_PENDING_OTP_VERIFICATION = "claimForPendingOtpVerification";

@@ -2837,6 +2837,8 @@
         <DataStoreType>org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</DataStoreType>
     </IdentityDataStore>
 
+    <AddUserStoreDomainToGroupClaims>true</AddUserStoreDomainToGroupClaims>
+
     <UserProfileExport>
         <AdditionalClaims>
         </AdditionalClaims>
