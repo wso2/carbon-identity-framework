@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.endpoint.util.client.
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationErrorResponse;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationResponse;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationSuccessResponse;
+import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.BufferedReader;
@@ -81,8 +82,14 @@ public class AuthAPIServiceClient {
         HttpPost httpPostRequest = new HttpPost(endpointURL);
         httpPostRequest.setHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader(username, password));
         httpPostRequest.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        return HTTPClientManager.executeWithHttpClient(httpClient ->
+                authenticate(httpClient, httpPostRequest, endpointURL));
+    }
 
-        try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+    private AuthenticationResponse authenticate(CloseableHttpClient httpClient, HttpPost httpPostRequest,
+                                                String endpointURL) throws ServiceClientException {
+
+        try {
             return httpClient.execute(httpPostRequest, response -> {
 
                 String responseString;
