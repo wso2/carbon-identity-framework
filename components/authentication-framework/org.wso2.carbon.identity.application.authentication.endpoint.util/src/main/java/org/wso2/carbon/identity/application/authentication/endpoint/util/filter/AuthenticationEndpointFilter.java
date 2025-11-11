@@ -225,6 +225,11 @@ public class AuthenticationEndpointFilter implements Filter {
                                     idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
                                 }
                             }
+                            else {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Removing authenticator: " + authenticatorIDP + " from the map as it is not configured for the application.");
+                                }
+                            }
                         } else {
                             if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                                 idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);
