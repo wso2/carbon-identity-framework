@@ -353,6 +353,9 @@
       "oauth.enable_legacy_session_bound_token_behaviour": true,
       "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
       "authenticationendpoint.authenticator_validation_enabled": false
+    },
+    "IS_7.2.0": {
+      "authenticationendpoint.authenticator_validation_enabled": false
     }
   }
 }
