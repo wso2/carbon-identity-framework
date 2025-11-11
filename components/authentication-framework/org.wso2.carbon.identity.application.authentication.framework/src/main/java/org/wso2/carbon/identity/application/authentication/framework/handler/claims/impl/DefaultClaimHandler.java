@@ -1373,6 +1373,9 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         if (!IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() ||
                 !Boolean.parseBoolean(IdentityUtil.getProperty(ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM))) {
+            if (log.isDebugEnabled()) {
+                log.debug("Appending user store for groups claim is skipped: feature disabled or property not set.");
+            }
             return;
         }
 
@@ -1385,15 +1388,18 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (resolvePrimaryUserStoreDomainName().equals(userStoreDomain)) {
             return;
         }
-        String domainPrefix = context.getLastAuthenticatedUser().getUserStoreDomain() + "/";
+        String domainPrefix = userStoreDomain + "/";
         String[] groups = mappedAttrs.get(UserCoreConstants.USER_STORE_GROUPS_CLAIM)
-                .split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
+                .split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator(userStoreDomain)));
 
         List<String> groupList = Arrays.stream(groups).map(group -> domainPrefix + group)
                 .collect(Collectors.toList());
         mappedAttrs.put(UserCoreConstants.USER_STORE_GROUPS_CLAIM,
-                String.join(FrameworkUtils.getMultiAttributeSeparator(), groupList));
-
+                String.join(FrameworkUtils.getMultiAttributeSeparator(userStoreDomain), groupList));
+        if (log.isDebugEnabled()) {
+            log.debug("Updated group claim with user store domain prefix for user: " +
+                    context.getLastAuthenticatedUser().getLoggableMaskedUserId() + ", domain: " + userStoreDomain);
+        }
     }
 
     /**
