@@ -58,6 +58,7 @@ public class Constants {
     public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL";
     public static final String ENABLE_AUTHENTICATION_WITH_REST_API = "EnableAuthenticationWithAuthenticationRESTAPI";
     public static final String AUTHENTICATION_REST_ENDPOINT_URL = "AuthenticationRESTEndpointURL";
+    public static final String AUTHENTICATOR_VALIDATION_ENABLED = "AuthenticatorValidationEnabled";
 
 
     public static final String HTTPS_URL = "https://";
