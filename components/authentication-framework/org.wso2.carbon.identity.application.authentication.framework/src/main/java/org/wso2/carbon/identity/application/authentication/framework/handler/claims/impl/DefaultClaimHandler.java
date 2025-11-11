@@ -1392,7 +1392,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         String[] groups = mappedAttrs.get(UserCoreConstants.USER_STORE_GROUPS_CLAIM)
                 .split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator(userStoreDomain)));
 
-        List<String> groupList = Arrays.stream(groups).map(group -> domainPrefix + group)
+        List<String> groupList = Arrays.stream(groups)
+                .filter(group -> !group.trim().isEmpty())
+                .map(group -> domainPrefix + group)
                 .collect(Collectors.toList());
         mappedAttrs.put(UserCoreConstants.USER_STORE_GROUPS_CLAIM,
                 String.join(FrameworkUtils.getMultiAttributeSeparator(userStoreDomain), groupList));
