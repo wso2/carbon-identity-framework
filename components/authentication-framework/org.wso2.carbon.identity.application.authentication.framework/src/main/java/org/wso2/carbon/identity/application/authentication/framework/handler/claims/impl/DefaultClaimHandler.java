@@ -1385,7 +1385,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
         String userStoreDomain = context.getLastAuthenticatedUser().getUserStoreDomain();
-        if (resolvePrimaryUserStoreDomainName().equals(userStoreDomain)) {
+        if (IdentityUtil.getPrimaryDomainName().equals(userStoreDomain)) {
             return;
         }
         String domainPrefix = userStoreDomain + "/";
@@ -1436,16 +1436,5 @@ public class DefaultClaimHandler implements ClaimHandler {
         ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityApplicationRolesResolver();
         return (appRolesResolver != null);
-    }
-
-    private String resolvePrimaryUserStoreDomainName() {
-
-        RealmConfiguration realmConfiguration = FrameworkServiceDataHolder.getInstance().getRealmService()
-                .getBootstrapRealmConfiguration();
-        if (realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME) != null) {
-            return realmConfiguration.getUserStoreProperty(
-                    UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME).toUpperCase();
-        }
-        return UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
     }
 }
