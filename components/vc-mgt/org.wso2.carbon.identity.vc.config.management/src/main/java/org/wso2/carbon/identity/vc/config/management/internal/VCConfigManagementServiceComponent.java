@@ -31,6 +31,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.vc.config.management.VCCredentialConfigManager;
 import org.wso2.carbon.identity.vc.config.management.VCCredentialConfigManagerImpl;
+import org.wso2.carbon.identity.vc.config.management.VCOfferManager;
+import org.wso2.carbon.identity.vc.config.management.VCOfferManagerImpl;
 
 /**
  * Service component for the API resource management.
@@ -50,6 +52,8 @@ public class VCConfigManagementServiceComponent {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(VCCredentialConfigManager.class,
                     VCCredentialConfigManagerImpl.getInstance(), null);
+            bundleCtx.registerService(VCOfferManager.class,
+                    VCOfferManagerImpl.getInstance(), null);
             LOG.debug("VC config management bundle is activated");
         } catch (Throwable e) {
             LOG.error("Error while initializing VC config management component.", e);
@@ -62,6 +66,7 @@ public class VCConfigManagementServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.ungetService(bundleCtx.getServiceReference(VCCredentialConfigManager.class));
+            bundleCtx.ungetService(bundleCtx.getServiceReference(VCOfferManager.class));
             LOG.debug("VC config management bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating VC config management component.", e);
