@@ -1389,15 +1389,12 @@ public class DefaultClaimHandler implements ClaimHandler {
             return;
         }
         String domainPrefix = userStoreDomain + "/";
-        String[] groups = mappedAttrs.get(UserCoreConstants.USER_STORE_GROUPS_CLAIM)
-                .split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator(userStoreDomain)));
+        String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
+        String[] groups = mappedAttrs.get(UserCoreConstants.USER_STORE_GROUPS_CLAIM).split(multiAttributeSeparator);
 
-        List<String> groupList = Arrays.stream(groups)
-                .filter(group -> !group.trim().isEmpty())
-                .map(group -> domainPrefix + group)
-                .collect(Collectors.toList());
-        mappedAttrs.put(UserCoreConstants.USER_STORE_GROUPS_CLAIM,
-                String.join(FrameworkUtils.getMultiAttributeSeparator(userStoreDomain), groupList));
+        List<String> groupList = Arrays.stream(groups).filter(group -> !group.trim().isEmpty())
+                .map(group -> domainPrefix + group).collect(Collectors.toList());
+        mappedAttrs.put(UserCoreConstants.USER_STORE_GROUPS_CLAIM, String.join(multiAttributeSeparator, groupList));
         if (log.isDebugEnabled()) {
             log.debug("Updated group claim with user store domain prefix for user: " +
                     context.getLastAuthenticatedUser().getLoggableMaskedUserId() + ", domain: " + userStoreDomain);
