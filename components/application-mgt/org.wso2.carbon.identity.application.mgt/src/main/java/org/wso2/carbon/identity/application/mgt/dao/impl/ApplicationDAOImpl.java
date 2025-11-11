@@ -2420,7 +2420,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 return null;
             }
             // Check if the application belongs to the requesting tenant.
-            if (!tenantDomain.equals(serviceProvider.getTenantDomain())) {
+            if (StringUtils.isNotBlank(tenantDomain)
+                    && !StringUtils.equals(tenantDomain, serviceProvider.getTenantDomain())) {
                 throw new IdentityApplicationManagementClientException(
                         String.format("Application with ID : %s not found in tenant : %s.", applicationResourceId,
                                 tenantDomain));
