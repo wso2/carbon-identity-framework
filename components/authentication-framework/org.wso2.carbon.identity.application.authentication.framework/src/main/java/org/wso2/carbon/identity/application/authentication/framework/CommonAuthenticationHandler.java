@@ -28,9 +28,10 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.debug.framework.DebugService;
+import org.wso2.carbon.identity.debug.framework.core.DebugService;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -60,19 +61,47 @@ public class CommonAuthenticationHandler {
             if (bundleContext == null) {
                 return false;
             }
-            ServiceReference<DebugService> serviceRef = bundleContext.getServiceReference(DebugService.class);
-            if (serviceRef == null) {
+            
+            // Try to get DebugService implementations
+            Collection<ServiceReference<DebugService>> serviceRefs = 
+                    bundleContext.getServiceReferences(DebugService.class, null);
+            
+            if (serviceRefs == null || serviceRefs.isEmpty()) {
                 return false;
             }
-            DebugService debugService = bundleContext.getService(serviceRef);
-            if (debugService == null) {
-                return false;
+            
+            // Try each registered DebugService implementation
+            for (ServiceReference<DebugService> serviceRef : serviceRefs) {
+                DebugService debugService = bundleContext.getService(serviceRef);
+                if (debugService == null) {
+                    continue;
+                }
+                
+                try {
+                    // Check if this service can handle the request
+                    if (debugService.isDebugFlow(request)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Debug flow detected, attempting to handle with: " + 
+                                    debugService.getClass().getSimpleName());
+                        }
+                        
+                        // Try to handle the request
+                        boolean handled = debugService.handleCommonAuthRequest(request, response);
+                        if (handled) {
+                            if (log.isInfoEnabled()) {
+                                log.info("Debug flow successfully handled");
+                            }
+                            return true;
+                        }
+                    }
+                } finally {
+                    bundleContext.ungetService(serviceRef);
+                }
             }
-            boolean handled = debugService.handleCommonAuthRequest(request, response);
-            bundleContext.ungetService(serviceRef);
-            return handled;
+            
+            return false;
         } catch (Exception e) {
-            log.error("Error handling debug flow via OSGi service lookup: " + e.getMessage(), e);
+            log.error("Error handling debug flow: " + e.getMessage(), e);
             return false;
         }
     }

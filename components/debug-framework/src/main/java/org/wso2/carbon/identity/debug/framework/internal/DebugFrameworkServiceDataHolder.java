@@ -19,8 +19,6 @@
 package org.wso2.carbon.identity.debug.framework.internal;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.debug.framework.DebugService;
-import org.wso2.carbon.identity.debug.framework.RequestCoordinator;
 
 /**
  * Data holder for Debug Framework Service Component.
@@ -30,8 +28,6 @@ public class DebugFrameworkServiceDataHolder {
 
     private static final DebugFrameworkServiceDataHolder instance = new DebugFrameworkServiceDataHolder();
     
-    private RequestCoordinator requestCoordinator;
-    private DebugService debugService;
     private ClaimMetadataManagementService claimMetadataManagementService;
 
     /**
@@ -47,42 +43,6 @@ public class DebugFrameworkServiceDataHolder {
      */
     public static DebugFrameworkServiceDataHolder getInstance() {
         return instance;
-    }
-
-    /**
-     * Gets the RequestCoordinator service.
-     *
-     * @return the RequestCoordinator instance
-     */
-    public RequestCoordinator getRequestCoordinator() {
-        return requestCoordinator;
-    }
-
-    /**
-     * Sets the RequestCoordinator service.
-     *
-     * @param requestCoordinator the RequestCoordinator instance
-     */
-    public void setRequestCoordinator(RequestCoordinator requestCoordinator) {
-        this.requestCoordinator = requestCoordinator;
-    }
-
-    /**
-     * Gets the DebugService.
-     *
-     * @return the DebugService instance
-     */
-    public DebugService getDebugService() {
-        return debugService;
-    }
-
-    /**
-     * Sets the DebugService.
-     *
-     * @param debugService the DebugService instance
-     */
-    public void setDebugService(DebugService debugService) {
-        this.debugService = debugService;
     }
 
     /**
