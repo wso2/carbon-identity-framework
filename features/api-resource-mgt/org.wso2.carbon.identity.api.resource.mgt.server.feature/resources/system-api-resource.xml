@@ -2110,18 +2110,32 @@
                    description="Delete workflow instance"/>
         </Scopes>
     </APIResource>
-    <APIResource name="VC Credential Configurations Management API" identifier="/o/api/server/v1/vc-credential-configurations"
+    <APIResource name="VC Credential Configurations Management API" identifier="/o/api/server/v1/vc/credential-configurations"
                  requiresAuthorization="true"
                  description="API representation of the VC Credential Configurations Management API" type="TENANT">
         <Scopes>
-            <Scope displayName="View VC Credential Configurations" name="internal_vc_credential_configuration_view"
+            <Scope displayName="View VC Credential Configurations" name="internal_vc_credential_config_view"
                    description="View VC Credential Configurations"/>
-            <Scope displayName="Create VC Credential Configuration" name="internal_vc_credential_configuration_create"
+            <Scope displayName="Create VC Credential Configuration" name="internal_vc_credential_config_create"
                    description="Create new VC Credential Configuration"/>
-            <Scope displayName="Update VC Credential Configuration" name="internal_vc_credential_configuration_update"
+            <Scope displayName="Update VC Credential Configuration" name="internal_vc_credential_config_update"
                    description="Update VC Credential Configuration"/>
-            <Scope displayName="Delete VC Credential Configuration" name="internal_vc_credential_configuration_delete"
+            <Scope displayName="Delete VC Credential Configuration" name="internal_vc_credential_config_delete"
                    description="Delete VC Credential Configuration"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="VC Offer Management API" identifier="/o/api/server/v1/vc/offers"
+                 requiresAuthorization="true"
+                 description="API representation of the VC Offer Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View VC Offers" name="internal_vc_offer_view"
+                   description="View VC Offers"/>
+            <Scope displayName="Create VC Offers" name="internal_vc_offer_create"
+                   description="Create new VC Offers"/>
+            <Scope displayName="Update VC Offers" name="internal_vc_offer_update"
+                   description="Update VC Offers"/>
+            <Scope displayName="Delete VC Offers" name="internal_vc_offer_delete"
+                   description="Delete VC Offers"/>
         </Scopes>
     </APIResource>
 </APIResources>

@@ -1882,17 +1882,30 @@
     </Resource>
 
     <!-- VC Credential Configuration Management API -->
-    <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="GET">
-        <Scopes>internal_vc_credential_configuration_view</Scopes>
+    <Resource context="(.*)/api/server/v1/vc/credential-configurations(.*)" secured="true" http-method="GET">
+        <Scopes>internal_vc_credential_config_view</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="POST">
-        <Scopes>internal_vc_credential_configuration_create</Scopes>
+    <Resource context="(.*)/api/server/v1/vc/credential-configurations(.*)" secured="true" http-method="POST">
+        <Scopes>internal_vc_credential_config_create</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_vc_credential_configuration_update</Scopes>
+    <Resource context="(.*)/api/server/v1/vc/credential-configurations(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_vc_credential_config_update</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/vc-credential-configurations(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_vc_credential_configuration_delete</Scopes>
+    <Resource context="(.*)/api/server/v1/vc/credential-configurations(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_vc_credential_config_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/server/v1/vc/offers(.*)" secured="true" http-method="GET">
+        <Scopes>internal_vc_credential_config_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc/offers(.*)" secured="true" http-method="POST">
+        <Scopes>internal_vc_credential_config_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc/offers(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_vc_credential_config_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc/offers(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_vc_credential_config_delete</Scopes>
     </Resource>
 
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>

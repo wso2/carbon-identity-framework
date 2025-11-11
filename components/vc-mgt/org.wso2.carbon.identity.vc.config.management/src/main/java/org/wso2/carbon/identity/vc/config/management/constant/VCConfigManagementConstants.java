@@ -40,6 +40,8 @@ public class VCConfigManagementConstants {
         ERROR_CODE_INVALID_REQUEST("VCM-4004", "Invalid verifiable credential configuration payload."),
         ERROR_CODE_CONFIG_NOT_FOUND("VCM-4005", "Configuration not found."),
         ERROR_CODE_UNSUPPORTED_VC_FORMAT("VCM-4006", "Unsupported verifiable credential format."),
+        ERROR_CODE_OFFER_ID_MISMATCH("VCM-4007", "Offer id path and payload mismatch."),
+        ERROR_CODE_OFFER_NOT_FOUND("VCM-4008", "Offer not found."),
 
         // Server errors
         ERROR_CODE_PERSISTENCE_ERROR("VCM-5001", "Error while persisting configuration."),
