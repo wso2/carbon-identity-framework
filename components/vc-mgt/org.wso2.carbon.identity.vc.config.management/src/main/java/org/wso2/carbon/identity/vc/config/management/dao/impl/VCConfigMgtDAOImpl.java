@@ -128,7 +128,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     @Override
     public boolean existsByConfigurationId(String configurationId, int tenantId) throws VCConfigMgtException {
 
-        String sql = SQLQueries.EXISTS_BY_DISPLAY_NAME;
+        String sql = SQLQueries.EXISTS_BY_IDENTIFIER;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, tenantId);
@@ -170,7 +170,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 }
 
                 IdentityDatabaseUtil.commitTransaction(conn);
-                return getByConfigId(id, tenantId);
+                return get(id, tenantId);
             } catch (SQLException | VCConfigMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(conn);
                 if (e instanceof VCConfigMgtException) {
@@ -192,7 +192,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     }
 
     @Override
-    public VCCredentialConfiguration update(String configId, VCCredentialConfiguration configuration, int tenantId)
+    public VCCredentialConfiguration update(String id, VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
         String updateCfg = SQLQueries.UPDATE_CONFIG;
@@ -209,7 +209,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 ps.setString(7, configuration.getMetadata() != null ? serializedMetadata : null);
                 ps.setInt(8, configuration.getExpiresIn());
                 ps.setInt(9, tenantId);
-                ps.setString(10, configId);
+                ps.setString(10, id);
                 int updated = ps.executeUpdate();
                 if (updated == 0) {
                     throw new VCConfigMgtClientException(
@@ -217,13 +217,13 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                             VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getMessage());
                 }
 
-                deleteClaims(conn, configId);
+                deleteClaims(conn, id);
                 if (CollectionUtils.isNotEmpty(configuration.getClaims())) {
-                    addClaims(conn, configId, configuration.getClaims());
+                    addClaims(conn, id, configuration.getClaims());
                 }
 
                 IdentityDatabaseUtil.commitTransaction(conn);
-                return getByConfigId(configId, tenantId);
+                return get(id, tenantId);
             } catch (SQLException | VCConfigMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(conn);
                 if (e instanceof VCConfigMgtException) {

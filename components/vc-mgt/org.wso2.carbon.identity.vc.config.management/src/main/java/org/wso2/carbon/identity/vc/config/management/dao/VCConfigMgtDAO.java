@@ -90,13 +90,13 @@ public interface VCConfigMgtDAO {
 
     /**
      * Update an existing configuration by id.
-     * @param configId     Configuration id to update.
+     * @param id     Configuration id to update.
      * @param configuration Updated payload.
      * @param tenantId     Tenant ID.
      * @return Updated configuration.
      * @throws VCConfigMgtException on update errors.
      */
-    VCCredentialConfiguration update(String configId, VCCredentialConfiguration configuration, int tenantId)
+    VCCredentialConfiguration update(String id, VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException;
 
     /**

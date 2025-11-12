@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -19,4 +19,12 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.vc.config.management">
+    <test name="vc-config-mgt-tests" preserve-order="true" parallel="false">
+        <classes>
+            <class name="org.wso2.carbon.identity.vc.config.management.dao.VCConfigMgtDAOTest"/>
+            <class name="org.wso2.carbon.identity.vc.config.management.dao.VCOfferDAOTest"/>
+            <class name="org.wso2.carbon.identity.vc.config.management.VCCredentialConfigManagerImplTest"/>
+            <class name="org.wso2.carbon.identity.vc.config.management.VCOfferManagerTest"/>
+        </classes>
+    </test>
 </suite>
