@@ -38,13 +38,10 @@ public final class SQLQueries {
     public static final String GET_CONFIG_BY_CONFIG_ID =
             "SELECT ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, SIGNING_ALG, " +
             "TYPE, METADATA, EXPIRES_IN " +
-            "FROM VC_CONFIG WHERE TENANT_ID = ? AND DISPLAY_NAME = ?";
+            "FROM VC_CONFIG WHERE TENANT_ID = ? AND IDENTIFIER = ?";
 
     public static final String EXISTS_BY_IDENTIFIER =
             "SELECT 1 FROM VC_CONFIG WHERE TENANT_ID = ? AND IDENTIFIER = ?";
-
-    public static final String EXISTS_BY_DISPLAY_NAME =
-            "SELECT 1 FROM VC_CONFIG WHERE TENANT_ID = ? AND DISPLAY_NAME = ?";
 
     public static final String INSERT_CONFIG =
             "INSERT INTO VC_CONFIG (ID, TENANT_ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, " +

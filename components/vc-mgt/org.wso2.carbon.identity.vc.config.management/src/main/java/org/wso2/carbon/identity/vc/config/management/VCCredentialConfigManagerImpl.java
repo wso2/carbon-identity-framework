@@ -85,17 +85,17 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     }
 
     @Override
-    public VCCredentialConfiguration update(String configId, VCCredentialConfiguration configuration,
+    public VCCredentialConfiguration update(String id, VCCredentialConfiguration configuration,
                                             String tenantDomain) throws VCConfigMgtException {
 
-        if (configuration.getId() != null && !StringUtils.equals(configId, configuration.getId())) {
+        if (configuration.getId() != null && !StringUtils.equals(id, configuration.getId())) {
             throw new VCConfigMgtClientException(
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_ID_MISMATCH.getCode(),
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_ID_MISMATCH.getMessage());
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         // Validate identifier uniqueness if changed.
-        VCCredentialConfiguration existing = dao.getByConfigId(configId, tenantId);
+        VCCredentialConfiguration existing = dao.get(id, tenantId);
         if (existing == null) {
             throw new VCConfigMgtClientException(
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getCode(),
@@ -108,18 +108,22 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
                     "Identifier cannot be updated.");
         }
 
+        // Preserve identifier from existing configuration.
+        configuration.setIdentifier(existing.getIdentifier());
+
         String newDisplayName = configuration.getDisplayName();
         if (StringUtils.isBlank(newDisplayName)) {
             configuration.setDisplayName(existing.getDisplayName());
         }
 
+        normalizeScopeForUpdate(configuration, existing);
         normalizeFormatForUpdate(configuration, existing);
         configuration.setSigningAlgorithm(DEFAULT_SIGNING_ALGORITHM);
         normalizeCredentialTypeForUpdate(configuration, existing);
         normalizeMetadataForUpdate(configuration, existing);
         normalizeExpiryInForUpdate(configuration, existing);
         validateClaims(configuration.getClaims());
-        return dao.update(configId, configuration, tenantId);
+        return dao.update(id, configuration, tenantId);
     }
 
     @Override
@@ -200,6 +204,14 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
                             "Each claim mapping must contain claimURI and display values.");
                 }
             }
+        }
+    }
+
+    private void normalizeScopeForUpdate(VCCredentialConfiguration configuration,
+                                          VCCredentialConfiguration existing) throws VCConfigMgtClientException {
+
+        if (StringUtils.isBlank(configuration.getScope())) {
+            configuration.setScope(existing.getScope());
         }
     }
 
