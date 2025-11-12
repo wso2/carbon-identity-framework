@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.external.api.token.handler.api.model;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
@@ -45,10 +45,6 @@ public class TokenRequestContext {
         this.tokenEndpointUrl = builder.endpointUrl;
         this.headers = builder.headers;
         this.payload = builder.payload;
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("TokenRequestContext created successfully for endpoint: " + tokenEndpointUrl);
-        }
     }
 
     /**
@@ -90,7 +86,7 @@ public class TokenRequestContext {
     public void setPayLoad(String payload) throws TokenRequestException {
 
         if (StringUtils.isBlank(payload)) {
-            throw new TokenRequestException("Payload cannot be null or empty.");
+            throw new TokenRequestException("Payload cannot be null or blank.");
         }
         this.payload = payload;
     }
@@ -114,7 +110,7 @@ public class TokenRequestContext {
     public void setRefreshGrantPayload(String refreshGrantPayload) throws TokenRequestException {
 
         if (StringUtils.isBlank(refreshGrantPayload)) {
-            throw new TokenRequestException("Payload cannot be null or empty.");
+            throw new TokenRequestException("Payload cannot be null or blank.");
         }
         this.refreshGrantPayload = refreshGrantPayload;
     }
@@ -199,7 +195,7 @@ public class TokenRequestContext {
                 throw new TokenRequestException("Grant context cannot be null.");
             }
             if (StringUtils.isBlank(endpointUrl)) {
-                throw new TokenRequestException("Endpoint URL cannot be null or empty.");
+                throw new TokenRequestException("Endpoint URL cannot be null or blank.");
             }
             return new TokenRequestContext(this);
         }

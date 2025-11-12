@@ -23,11 +23,22 @@ package org.wso2.carbon.identity.external.api.token.handler.api.exception;
  */
 public class TokenHandlerException extends Exception {
 
+    /**
+     * Constructor with message.
+     *
+     * @param message Error message.
+     */
     public TokenHandlerException(String message) {
 
         super(message);
     }
 
+    /**
+     * Constructor with message and cause.
+     *
+     * @param message Error message.
+     * @param cause   Throwable cause.
+     */
     public TokenHandlerException(String message, Throwable cause) {
 
         super(message, cause);

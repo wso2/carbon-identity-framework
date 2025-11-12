@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.external.api.token.handler.api.service;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpStatus;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientException;
 import org.wso2.carbon.identity.external.api.client.api.model.APIClientConfig;
 import org.wso2.carbon.identity.external.api.client.api.model.APIInvocationConfig;
@@ -91,11 +92,7 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
         try {
             APIRequestContext apiRequestContext = TokenRequestBuilderUtils.buildAPIRequestContext(tokenRequestContext);
             APIResponse apiResponse = callAPI(apiRequestContext, apiInvocationConfig);
-            TokenResponse tokenResponse = handleResponse(apiResponse);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully acquired new access token.");
-            }
-            return tokenResponse;
+            return handleResponse(apiResponse);
         } catch (APIClientException e) {
             throw new TokenHandlerException("Error occurred while acquiring access token", e);
         }
@@ -110,10 +107,6 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
      */
     public TokenResponse getNewAccessTokenFromRefreshGrant(String refreshToken) throws TokenHandlerException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Attempting to acquire new access token using refresh token grant.");
-        }
-
         if (tokenRequestContext == null) {
             throw new TokenHandlerException("Token request context is not initialized.");
         }
@@ -125,11 +118,7 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
             APIRequestContext apiRequestContext = TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
                     tokenRequestContext, refreshToken);
             APIResponse apiResponse = callAPI(apiRequestContext, apiInvocationConfig);
-            TokenResponse tokenResponse = handleResponse(apiResponse);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully acquired new access token from refresh token grant.");
-            }
-            return tokenResponse;
+            return handleResponse(apiResponse);
         } catch (APIClientException e) {
             throw new TokenHandlerException("Error occurred while acquiring access token from refresh grant", e);
         }
@@ -137,19 +126,16 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
 
     private TokenResponse handleResponse(APIResponse response) throws TokenHandlerException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Handling token response from the token endpoint.");
+        if (response == null) {
+            throw new TokenHandlerException("Error occurred. The API Response the token endpoint is null.");
         }
 
-        if (response == null) {
-            throw new TokenHandlerException("Error occured. The API Response the token endpoint is null.");
-        }
-        if (response.getStatusCode() != 200) {
+        if (response.getStatusCode() != HttpStatus.SC_OK) {
+            LOG.error("Error response received from the token endpoint. Status Code: " + response.getStatusCode());
             throw new TokenHandlerException(
                     "Error response received from the token endpoint. Status Code: " + response.getStatusCode());
         }
 
-        TokenResponse tokenResponse = new TokenResponse.Builder(response).build();
-        return tokenResponse;
+        return new TokenResponse(response);
     }
 }

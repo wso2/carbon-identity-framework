@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContex
 import org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContext.Property;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenRequestContext;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,14 +39,15 @@ public class TokenRequestBuilderUtils {
 
     private static final Log LOG = LogFactory.getLog(TokenRequestBuilderUtils.class);
 
+    private TokenRequestBuilderUtils() {
+    }
+
     /**
-     * Builds an APIRequestContext for acquiring an access token using the grant type specified in the provided
-     * TokenRequestContext. This method prepares the request context with the appropriate payload and authentication
-     * details required for the token endpoint.
+     * Builds an APIRequestContext for acquiring an access token.
      *
-     * @param requestContext The context containing grant type and related properties for the token request.
+     * @param requestContext The context containing details of the token request.
      * @return An APIRequestContext configured for the token request.
-     * @throws TokenRequestException If an error occurs while building the request context.
+     * @throws TokenRequestException If an error occurs while building the APIRequestContext.
      */
     public static APIRequestContext buildAPIRequestContext(TokenRequestContext requestContext)
             throws TokenRequestException {
@@ -54,10 +56,10 @@ public class TokenRequestBuilderUtils {
     }
 
     /**
-     * Builds an APIRequestContext for acquiring an access token using the refresh token grant type.
+     * Builds an APIRequestContext for acquiring an access token using a refresh token.
      *
      * @param requestContext The context containing details of the token request.
-     * @param refreshToken   The refresh token to be used for obtaining a new access token.
+     * @param refreshToken   The refresh token to be used for acquiring a new access token.
      * @return An APIRequestContext configured for the refresh token grant.
      * @throws TokenRequestException If an error occurs while building the APIRequestContext.
      */
@@ -110,14 +112,14 @@ public class TokenRequestBuilderUtils {
         try {
             switch (grantContext.getGrantType()) {
                 case CLIENT_CREDENTIAL:
+                    Map<String, String> authProperties = new HashMap<>();
+                    authProperties.put(APIAuthentication.Property.USERNAME.getName(),
+                            grantContext.getProperty(Property.CLIENT_ID.getName()));
+                    authProperties.put(APIAuthentication.Property.PASSWORD.getName(),
+                            grantContext.getProperty(Property.CLIENT_SECRET.getName()));
                     APIAuthentication authentication = new APIAuthentication.Builder()
                             .authType(APIAuthentication.AuthType.BASIC)
-                            .properties(Map.of(
-                                    APIAuthentication.Property.USERNAME.getName(),
-                                    grantContext.getProperty(Property.CLIENT_ID.getName()),
-                                    APIAuthentication.Property.PASSWORD.getName(),
-                                    grantContext.getProperty(Property.CLIENT_SECRET.getName())
-                            ))
+                            .properties(authProperties)
                             .build();
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Successfully built API authentication for CLIENT_CREDENTIAL grant type.");

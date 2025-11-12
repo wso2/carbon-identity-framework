@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenHa
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 /**
  * Model class for Grant Type Context.
@@ -38,13 +37,10 @@ public class GrantContext {
     private final GrantType grantType;
     private final Map<String, String> properties;
 
-    public GrantContext(GrantContext.Builder builder) {
+    private GrantContext(GrantContext.Builder builder) {
 
         this.grantType = builder.grantType;
         this.properties = Collections.unmodifiableMap(new HashMap<>(builder.resolvedGrantProperties));
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("GrantContext created successfully for grant type: " + grantType);
-        }
     }
 
     /**
@@ -122,8 +118,8 @@ public class GrantContext {
                     resolvedGrantProperties.put(Property.SCOPE.getName(), getProperty(Property.SCOPE.getName()));
                     break;
                 default:
-                    throw new IllegalArgumentException(String.format("An invalid authentication type '%s' is " +
-                            "provided for the authentication configuration of the endpoint.", grantType.name()));
+                    throw new TokenHandlerException(String.format("An invalid grant type '%s' is " +
+                            "provided for the grant configuration.", grantType.name()));
             }
             return new GrantContext(this);
         }
