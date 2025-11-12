@@ -556,6 +556,8 @@
     "http://wso2.org/claims/identity/usedTOTPTimeWindows"
   ],
 
+  "identity_mgt.claims.add_userstore_domain_to_group_claims": false,
+
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
 
