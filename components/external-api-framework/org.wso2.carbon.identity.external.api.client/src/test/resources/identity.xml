@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Server xmlns="http://wso2.org/projects/carbon/carbon.xml">
+    <HTTPClient>
+        <HTTPConnectionTimeout>10000</HTTPConnectionTimeout>
+        <HTTPReadTimeout>30000</HTTPReadTimeout>
+        <HTTPConnectionRequestTimeout>15000</HTTPConnectionRequestTimeout>
+        <HTTPConnectionPoolSize>20</HTTPConnectionPoolSize>
+    </HTTPClient>
+</Server>
