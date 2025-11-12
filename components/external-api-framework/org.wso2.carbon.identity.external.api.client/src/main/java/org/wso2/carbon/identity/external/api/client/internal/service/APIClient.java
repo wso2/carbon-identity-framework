@@ -27,6 +27,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -50,6 +51,9 @@ import java.util.Map;
 public class APIClient {
 
     private static final Log LOG = LogFactory.getLog(APIClient.class);
+    private static final String ACCEPT_HEADER = "Accept";
+    private static final String CONTENT_TYPE_HEADER = "Content-Type";
+
     private final CloseableHttpClient httpClient;
 
     /**
@@ -110,39 +114,55 @@ public class APIClient {
             ));
         }
 
-        HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase;
+        HttpRequestBase httpRequestBase;
         switch (requestContext.getHttpMethod()) {
             case POST:
-                httpEntityEnclosingRequestBase = new HttpPost(requestContext.getEndpointUrl());
+                HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase =
+                        new HttpPost(requestContext.getEndpointUrl());
+                StringEntity entity = new StringEntity(requestContext.getPayload(), StandardCharsets.UTF_8);
+                httpEntityEnclosingRequestBase.setEntity(entity);
+                httpRequestBase = httpEntityEnclosingRequestBase;
+                break;
+            case GET:
+                httpRequestBase = new HttpPost(requestContext.getEndpointUrl());
                 break;
             default:
                 throw new APIClientInvocationException(
                         ErrorMessage.ERROR_CODE_UNSUPPORTED_HTTP_METHOD, requestContext.getHttpMethod().getName());
         }
-        setRequestEntity(httpEntityEnclosingRequestBase, requestContext);
+        setRequestHeaders(httpRequestBase, requestContext);
 
         try {
-            return executeRequest(httpEntityEnclosingRequestBase, apiInvocationConfig);
+            return executeRequest(httpRequestBase, apiInvocationConfig);
         } finally {
-            httpEntityEnclosingRequestBase.releaseConnection();
+            httpRequestBase.releaseConnection();
         }
     }
 
-    private void setRequestEntity(HttpEntityEnclosingRequestBase httpRequestBase, APIRequestContext requestContext) {
+    private void setRequestHeaders(HttpRequestBase httpRequestBase, APIRequestContext requestContext) {
 
-        StringEntity entity = new StringEntity(requestContext.getPayload(), StandardCharsets.UTF_8);
-        httpRequestBase.setEntity(entity);
-
-        // only be default
-        httpRequestBase.setHeader("Accept", "application/json");
-        httpRequestBase.setHeader("Content-type", "application/json");
+        boolean isAcceptHeaderExists = false;
+        boolean isContentTypeHeaderExists = false;
         Header authHeader = APIRequestBuildingUtils.buildAuthenticationHeader(requestContext.getApiAuthentication());
         if (authHeader != null) {
             httpRequestBase.setHeader(authHeader);
         }
         for (Map.Entry<String, String> header : requestContext.getHeaders().entrySet()) {
+            if (header.getKey().equalsIgnoreCase(ACCEPT_HEADER)) {
+                isAcceptHeaderExists = true;
+            }
+            if (header.getKey().equalsIgnoreCase(CONTENT_TYPE_HEADER)) {
+                isContentTypeHeaderExists = true;
+            }
             httpRequestBase.setHeader(header.getKey(), header.getValue());
         }
+        if (!isAcceptHeaderExists) {
+            httpRequestBase.setHeader(ACCEPT_HEADER, "application/json");
+        }
+        if (!isContentTypeHeaderExists) {
+            httpRequestBase.setHeader(CONTENT_TYPE_HEADER, "application/json");
+        }
+
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Request entity configured successfully for endpoint: %s with payload length: " +
                             "%d and headers count: %d",
@@ -153,38 +173,34 @@ public class APIClient {
         }
     }
 
-    private APIResponse executeRequest(HttpEntityEnclosingRequestBase request, APIInvocationConfig apiInvocationConfig)
+    private APIResponse executeRequest(HttpRequestBase request, APIInvocationConfig apiInvocationConfig)
             throws APIClientInvocationException {
 
 
         int allowedRetryCount = apiInvocationConfig.getAllowedRetryCount();
-        int attempt = 0;
-        while (true) {
+        for (int reTryAttempt = 0; reTryAttempt <= allowedRetryCount; reTryAttempt++) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Executing request to URI: %s, retry attempt: %d/%d",
-                        request.getURI(), attempt, apiInvocationConfig.getAllowedRetryCount()
+                LOG.debug(String.format("Executing request to URI: %s, attempt: %d/%d",
+                        request.getURI(), reTryAttempt - 1, allowedRetryCount
                 ));
             }
 
             try (CloseableHttpResponse response = httpClient.execute(request)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format("Request executed successfully to URI: %s, response status: %d",
-                            request.getURI(), response.getStatusLine().getStatusCode()));
+                            request.getURI(), response.getStatusLine().getStatusCode()
+                    ));
                 }
                 return handleResponse(response);
             } catch (IOException e) {
-                if (attempt >= allowedRetryCount) {
-                    throw new APIClientInvocationException(
-                            ErrorMessage.ERROR_CODE_WHILE_INVOKING_API, request.getURI().toString(), e);
+                if (reTryAttempt == allowedRetryCount) {
+                    throw new APIClientInvocationException(ErrorMessage.ERROR_CODE_WHILE_INVOKING_API,
+                            request.getURI().toString(), e
+                    );
                 }
-                int nextAttempt = attempt + 1;
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Request to API: %s failed. Retrying %d/%d",
-                            request.getURI(), nextAttempt, allowedRetryCount));
-                }
-                attempt = nextAttempt;
             }
         }
+        throw new APIClientInvocationException(ErrorMessage.ERROR_CODE_WHILE_INVOKING_API, request.getURI().toString());
     }
 
     private APIResponse handleResponse(HttpResponse response) throws IOException {

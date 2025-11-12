@@ -44,9 +44,7 @@ public class APIRequestBuildingUtils {
     public static Header buildAuthenticationHeader(APIAuthentication apiAuthentication) {
 
         if (apiAuthentication == null || apiAuthentication.getType() == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("API authentication or authentication type is null. Skipping header construction.");
-            }
+            LOG.debug("API authentication or authentication type is null. Skipping header construction.");
             return null;
         }
 
@@ -60,24 +58,18 @@ public class APIRequestBuildingUtils {
                 byte[] encodedBytes = Base64.getEncoder().encode(credentials.getBytes(StandardCharsets.UTF_8));
                 Header basicHeader = new BasicHeader(AUTHORIZATION_HEADER,
                         "Basic " + new String(encodedBytes, StandardCharsets.UTF_8));
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Basic authentication header created successfully.");
-                }
+                LOG.debug("Basic authentication header created successfully.");
                 return basicHeader;
             case BEARER:
                 Header bearerHeader = new BasicHeader(AUTHORIZATION_HEADER,
                         "Bearer " + apiAuthentication.getProperty(APIAuthentication.Property.ACCESS_TOKEN).getValue());
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Bearer authentication header created successfully.");
-                }
+                LOG.debug("Bearer authentication header created successfully.");
                 return bearerHeader;
             case API_KEY:
                 Header apiKeyHeader = new BasicHeader(
                         apiAuthentication.getProperty(APIAuthentication.Property.HEADER).getValue(),
                         apiAuthentication.getProperty(APIAuthentication.Property.VALUE).getValue());
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("API Key authentication header created successfully.");
-                }
+                LOG.debug("API Key authentication header created successfully.");
                 return apiKeyHeader;
             default:
                 if (LOG.isDebugEnabled()) {

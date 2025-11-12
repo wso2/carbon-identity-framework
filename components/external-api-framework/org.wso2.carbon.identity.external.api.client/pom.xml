@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -89,11 +89,7 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.external.api.client.internal.*,
-                            org.wso2.carbon.identity.external.api.client.api; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.external.api.client.api.model; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.external.api.client.api.service; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.external.api.client.api.exception; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.external.api.client.api.constant; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.external.api.client.api.*; version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",

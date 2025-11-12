@@ -126,9 +126,7 @@ public class APIRequestContext {
 
         public APIRequestContext build() throws APIClientRequestException {
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Building APIRequestContext with validation checks.");
-            }
+            LOG.debug("Building APIRequestContext with validation checks.");
 
             if (httpMethod == null) {
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "HTTP Method");
@@ -145,7 +143,7 @@ public class APIRequestContext {
             /* Todo: Payload can be optional for certain HTTP methods like GET.
                      Adjust validation accordingly when introducing new HTTP Method supports
              */
-            if (payload == null || StringUtils.isBlank(payload)) {
+            if (httpMethod == HttpMethod.POST && (payload == null || StringUtils.isBlank(payload))) {
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "payload");
             }
 
@@ -158,7 +156,8 @@ public class APIRequestContext {
      */
     public enum HttpMethod {
 
-        POST("post");
+        POST("post"),
+        GET("get");
 
         private final String name;
 
