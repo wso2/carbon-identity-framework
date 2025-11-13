@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.osgi.annotation.bundle.Capability;
+
 /**
  * This empty service can be used to guarantee the order of activation ( No need to have empty service if
  * there is a valid service).
@@ -25,6 +27,12 @@ package org.wso2.carbon.identity.core.util;
  * can refer to this empty service which will guarantee that, org.wso2.carbon.identity.core will activated
  * before that.
  */
-
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent",
+                "service.scope=singleton"
+        }
+)
 public class IdentityCoreInitializedEventImpl implements IdentityCoreInitializedEvent {
 }
