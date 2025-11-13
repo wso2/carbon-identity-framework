@@ -58,8 +58,10 @@
   "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
+  "authenticationendpoint.authenticator_validation_enabled": true,
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
+  "recovery.v0_9_api.include_display_order_property_in_claims": false,
   "accounts.hostname": "$ref{server.hostname}",
   "accounts.path": "/accounts",
 
@@ -553,6 +555,8 @@
     "http://wso2.org/claims/identity/verifyMobile",
     "http://wso2.org/claims/identity/usedTOTPTimeWindows"
   ],
+
+  "identity_mgt.claims.add_userstore_domain_to_group_claims": false,
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
@@ -2105,6 +2109,11 @@
   "actions.types.pre_update_profile.enable": true,
   "actions.types.pre_update_profile.version.latest": "v1",
   "actions.types.pre_update_password.version.latest": "v2",
+
+  "external_api_client.http_client.connection_timeout": "2000",
+  "external_api_client.http_client.read_timeout": "2000",
+  "external_api_client.http_client.request_timeout": "2000",
+  "external_api_client.http_client.connection_pool_size": "20",
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",

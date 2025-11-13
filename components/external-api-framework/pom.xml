@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.8.605-SNAPSHOT</version>
+        <version>7.8.611-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -37,6 +37,5 @@
 
     <modules>
         <module>org.wso2.carbon.identity.external.api.client</module>
-        <module>org.wso2.carbon.identity.external.api.token.handler</module>
     </modules>
 </project>
