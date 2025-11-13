@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.notification.mgt;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.notification.mgt.bean.PublisherEvent;
 
 import java.util.List;
@@ -29,6 +30,13 @@ import java.util.List;
  * modules on a publisher invocation of invoke method.
  */
 
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.notification.mgt.NotificationSender",
+                "service.scope=singleton"
+        }
+)
 @SuppressWarnings("unused")
 public class NotificationSender {
 
