@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.framework.async.operation.status.mgt.internal.s
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
@@ -67,6 +68,14 @@ import static org.wso2.carbon.identity.framework.async.operation.status.mgt.inte
  * This service interacts with the {@link AsyncOperationStatusMgtDAO} to perform persistence operations and
  * uses an in-memory buffer to temporarily store unit operation records before batch processing.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.framework.async.operation.status.mgt.api.service." +
+                        "AsyncOperationStatusMgtService",
+                "service.scope=singleton"
+        }
+)
 public class AsyncOperationStatusMgtServiceImpl implements AsyncOperationStatusMgtService {
 
     private static final Log LOG = LogFactory.getLog(AsyncOperationStatusMgtServiceImpl.class);
