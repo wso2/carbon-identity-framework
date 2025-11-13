@@ -66,9 +66,7 @@ public class TokenRequestBuilderUtils {
     public static APIRequestContext buildAPIRequestContextForRefreshGrant(
             TokenRequestContext requestContext, String refreshToken) throws TokenRequestException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Building APIRequestContext for refresh token grant.");
-        }
+        LOG.debug("Building APIRequestContext for refresh token grant.");
         JsonObject json = new JsonObject();
         json.addProperty("grant_type", "refresh_token");
         json.addProperty("refresh_token", refreshToken);
@@ -93,9 +91,7 @@ public class TokenRequestBuilderUtils {
                     .apiAuthentication(authentication)
                     .payload(payload);
             APIRequestContext context = requestContextBuilder.build();
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully built APIRequestContext for token request.");
-            }
+            LOG.debug("Successfully built APIRequestContext for token request.");
             return context;
         } catch (APIClientRequestException e) {
             throw new TokenRequestException("Error building API Request Context for token request.", e);
@@ -106,9 +102,6 @@ public class TokenRequestBuilderUtils {
             throws TokenRequestException {
 
         GrantContext grantContext = requestContext.getGrantContext();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Building API authentication for grant type: " + grantContext.getGrantType());
-        }
         try {
             switch (grantContext.getGrantType()) {
                 case CLIENT_CREDENTIAL:
@@ -137,9 +130,6 @@ public class TokenRequestBuilderUtils {
     private static String buildTokenRequestPayload(TokenRequestContext requestContext) throws TokenRequestException {
 
         GrantContext grantContext = requestContext.getGrantContext();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Building token request payload for grant type: " + grantContext.getGrantType());
-        }
         switch (grantContext.getGrantType()) {
             case CLIENT_CREDENTIAL:
                 JsonObject json = new JsonObject();
@@ -148,9 +138,7 @@ public class TokenRequestBuilderUtils {
                 json.addProperty("client_secret", grantContext.getProperty(Property.CLIENT_SECRET.getName()));
                 json.addProperty("scope", grantContext.getProperty(Property.SCOPE.getName()));
                 String payload = json.toString();
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Successfully built token request payload for CLIENT_CREDENTIAL grant type.");
-                }
+                LOG.debug("Successfully built token request payload for CLIENT_CREDENTIAL grant type.");
                 return payload;
             default:
                 throw new TokenRequestException("Unsupported authentication type: " + grantContext.getGrantType());

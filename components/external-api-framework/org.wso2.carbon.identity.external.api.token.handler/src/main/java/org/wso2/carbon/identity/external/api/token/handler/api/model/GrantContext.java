@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.external.api.token.handler.api.model;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenHandlerException;

@@ -43,7 +43,7 @@ public class TokenRequestContext {
 
         this.grantContext = builder.grantContext;
         this.tokenEndpointUrl = builder.endpointUrl;
-        this.headers = builder.headers;
+        this.headers = Collections.unmodifiableMap(new HashMap<>(builder.headers));
         this.payload = builder.payload;
     }
 
@@ -193,6 +193,9 @@ public class TokenRequestContext {
 
             if (grantContext == null) {
                 throw new TokenRequestException("Grant context cannot be null.");
+            }
+            if (StringUtils.isBlank(endpointUrl)) {
+                throw new TokenRequestException("Endpoint URL cannot be null or blank.");
             }
             if (StringUtils.isBlank(endpointUrl)) {
                 throw new TokenRequestException("Endpoint URL cannot be null or blank.");
