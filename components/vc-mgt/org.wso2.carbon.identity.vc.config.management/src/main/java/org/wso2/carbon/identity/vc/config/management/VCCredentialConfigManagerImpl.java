@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.vc.config.management;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.model.APIResource;
@@ -49,6 +51,7 @@ import static org.wso2.carbon.identity.vc.config.management.constant.VCConfigMan
  */
 public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager {
 
+    private static final Log LOG = LogFactory.getLog(VCCredentialConfigManagerImpl.class);
     private static final VCCredentialConfigManager INSTANCE = new VCCredentialConfigManagerImpl();
     private final VCConfigMgtDAO dao = new VCConfigMgtDAOImpl();
 
@@ -64,6 +67,9 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     @Override
     public List<VCCredentialConfiguration> list(String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving VC credential configurations for tenant: %s", tenantDomain));
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.list(tenantId);
     }
@@ -71,6 +77,10 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     @Override
     public VCCredentialConfiguration get(String id, String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving VC credential configuration with id: %s for tenant: %s", id,
+                    tenantDomain));
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.get(id, tenantId);
     }
@@ -78,6 +88,10 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     @Override
     public VCCredentialConfiguration getByConfigId(String configId, String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving VC credential configuration with config id: %s for tenant: %s",
+                    configId, tenantDomain));
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.getByConfigId(configId, tenantId);
     }
@@ -86,6 +100,9 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     public VCCredentialConfiguration add(VCCredentialConfiguration configuration, String tenantDomain)
             throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Adding new VC credential configuration for tenant: %s", tenantDomain));
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         checkIdentifierExists(configuration, tenantId);
         validateDisplayName(configuration, tenantId);
@@ -102,6 +119,10 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     public VCCredentialConfiguration update(String id, VCCredentialConfiguration configuration,
                                             String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Updating VC credential configuration with id: %s for tenant: %s", id,
+                    tenantDomain));
+        }
         if (configuration.getId() != null && !StringUtils.equals(id, configuration.getId())) {
             throw new VCConfigMgtClientException(
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_ID_MISMATCH.getCode(),
@@ -145,10 +166,21 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     @Override
     public void delete(String configId, String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Deleting VC credential configuration with id: %s for tenant: %s", configId,
+                    tenantDomain));
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         dao.delete(configId, tenantId);
     }
 
+    /**
+     * Check if a configuration with the given identifier already exists.
+     *
+     * @param configuration VC credential configuration.
+     * @param tenantId      Tenant ID.
+     * @throws VCConfigMgtException on validation errors.
+     */
     private void checkIdentifierExists(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
@@ -164,6 +196,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
+    /**
+     * Validate display name.
+     *
+     * @param configuration VC credential configuration.
+     * @param tenantId      Tenant ID.
+     * @throws VCConfigMgtException on validation errors.
+     */
     private void validateDisplayName(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
@@ -174,6 +213,12 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
+    /**
+     * Validate format.
+     *
+     * @param configuration VC credential configuration.
+     * @throws VCConfigMgtClientException on validation errors.
+     */
     private void validateFormat(VCCredentialConfiguration configuration) throws VCConfigMgtClientException {
 
         if (StringUtils.isBlank(configuration.getFormat())) {
@@ -189,6 +234,12 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
+    /**
+     * Validate credential type.
+     *
+     * @param credentialType Credential type.
+     * @throws VCConfigMgtClientException on validation errors.
+     */
     private void validateCredentialType(String credentialType) throws VCConfigMgtClientException {
 
         if (StringUtils.isBlank(credentialType)) {
@@ -198,6 +249,12 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
+    /**
+     * Validate expiry.
+     *
+     * @param expiryInSeconds Expiry in seconds.
+     * @throws VCConfigMgtClientException on validation errors.
+     */
     private void validateExpiry(Integer expiryInSeconds) throws VCConfigMgtClientException {
 
         if (expiryInSeconds == null || expiryInSeconds < VCConfigManagementConstants.MIN_EXPIRES_IN_SECONDS) {
@@ -249,6 +306,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
+    /**
+     * Validate claims.
+     *
+     * @param claims       List of claim URIs.
+     * @param tenantDomain Tenant domain.
+     * @throws VCConfigMgtException on validation errors.
+     */
     private void validateClaims(List<String> claims, String tenantDomain) throws VCConfigMgtException {
 
         if (claims != null && !claims.isEmpty()) {
@@ -278,6 +342,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
+    /**
+     * Normalize scope for update.
+     *
+     * @param configuration VC credential configuration.
+     * @param existing      Existing configuration.
+     * @throws VCConfigMgtClientException on validation errors.
+     */
     private void normalizeScopeForUpdate(VCCredentialConfiguration configuration,
                                           VCCredentialConfiguration existing) throws VCConfigMgtClientException {
 
@@ -286,6 +357,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
+    /**
+     * Normalize scope for update.
+     *
+     * @param configuration VC credential configuration.
+     * @param existing      Existing configuration.
+     * @throws VCConfigMgtClientException on validation errors.
+     */
     private void normalizeFormatForUpdate(VCCredentialConfiguration configuration,
                                           VCCredentialConfiguration existing) throws VCConfigMgtClientException {
 
@@ -295,6 +373,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         validateFormat(configuration);
     }
 
+    /**
+     * Normalize credential type for update.
+     *
+     * @param configuration VC credential configuration.
+     * @param existing      Existing configuration.
+     * @throws VCConfigMgtClientException on validation errors.
+     */
     private void normalizeCredentialTypeForUpdate(VCCredentialConfiguration configuration,
                                                   VCCredentialConfiguration existing)
             throws VCConfigMgtClientException {
@@ -307,6 +392,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         validateCredentialType(credentialType);
     }
 
+    /**
+     * Normalize metadata for update.
+     *
+     * @param configuration VC credential configuration.
+     * @param existing      Existing configuration.
+     * @throws VCConfigMgtClientException on validation errors.
+     */
     private void normalizeMetadataForUpdate(VCCredentialConfiguration configuration,
                                             VCCredentialConfiguration existing) throws VCConfigMgtClientException {
 
@@ -317,6 +409,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
+    /**
+     * Normalize expiry for update.
+     *
+     * @param configuration VC credential configuration.
+     * @param existing      Existing configuration.
+     * @throws VCConfigMgtClientException on validation errors.
+     */
     private void normalizeExpiryInForUpdate(VCCredentialConfiguration configuration,
                                           VCCredentialConfiguration existing) throws VCConfigMgtClientException {
 
@@ -328,6 +427,12 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         validateExpiry(expiry);
     }
 
+    /**
+     * Normalize claims for update.
+     *
+     * @param configuration VC credential configuration.
+     * @param existing      Existing configuration.
+     */
     private void normalizeClaimsForUpdate(VCCredentialConfiguration configuration,
                                          VCCredentialConfiguration existing) {
 

@@ -57,6 +57,9 @@ public class VCOfferManagerImpl implements VCOfferManager {
     @Override
     public List<VCOffer> list(String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Listing VC offers for tenant: " + tenantDomain);
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.list(tenantId);
     }
@@ -64,6 +67,9 @@ public class VCOfferManagerImpl implements VCOfferManager {
     @Override
     public VCOffer get(String offerId, String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Getting VC offer with ID: " + offerId + " for tenant: " + tenantDomain);
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.get(offerId, tenantId);
     }
@@ -71,6 +77,9 @@ public class VCOfferManagerImpl implements VCOfferManager {
     @Override
     public VCOffer add(VCOffer offer, String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Adding new VC offer for tenant: " + tenantDomain);
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         validateDisplayName(offer);
         validateCredentialConfigurationIds(offer);
@@ -80,6 +89,9 @@ public class VCOfferManagerImpl implements VCOfferManager {
     @Override
     public VCOffer update(String offerId, VCOffer offer, String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Updating VC offer with ID: " + offerId + " for tenant: " + tenantDomain);
+        }
         if (offer.getOfferId() != null && !StringUtils.equals(offerId, offer.getOfferId())) {
             throw new VCConfigMgtClientException(
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_OFFER_ID_MISMATCH.getCode(),
@@ -110,6 +122,9 @@ public class VCOfferManagerImpl implements VCOfferManager {
     @Override
     public void delete(String offerId, String tenantDomain) throws VCConfigMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Deleting VC offer with ID: " + offerId + " for tenant: " + tenantDomain);
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         dao.delete(offerId, tenantId);
     }
