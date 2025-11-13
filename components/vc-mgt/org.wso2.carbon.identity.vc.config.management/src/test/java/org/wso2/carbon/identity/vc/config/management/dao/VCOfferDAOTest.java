@@ -348,18 +348,46 @@ public class VCOfferDAOTest {
     @Test(dataProvider = "updateVCOfferData", priority = 6)
     public void testUpdateVCOffer(String displayName, int tenantId, boolean shouldSucceed) throws Exception {
 
-        // Step 1: Create an offer first.
+        // Step 1: Create credential configurations first.
+        String initialConfigId = "InitialConfig-" + System.currentTimeMillis();
+        String updatedConfig1Id = "UpdatedConfig1-" + System.currentTimeMillis();
+        String updatedConfig2Id = "UpdatedConfig2-" + System.currentTimeMillis();
+        String updatedConfig3Id = "UpdatedConfig3-" + System.currentTimeMillis();
+
+        List<String> claims = Arrays.asList("email", "name");
+
+        VCCredentialConfiguration initialConfig = createVCCredentialConfiguration(
+                initialConfigId, "jwt_vc_json", "initial_scope", claims);
+        VCCredentialConfiguration createdInitialConfig = vcConfigMgtDAOImpl.add(initialConfig, tenantId);
+
+        VCCredentialConfiguration updatedConfig1 = createVCCredentialConfiguration(
+                updatedConfig1Id, "jwt_vc_json", "updated_scope_1", claims);
+        VCCredentialConfiguration createdUpdatedConfig1 = vcConfigMgtDAOImpl.add(updatedConfig1, tenantId);
+
+        VCCredentialConfiguration updatedConfig2 = createVCCredentialConfiguration(
+                updatedConfig2Id, "jwt_vc_json", "updated_scope_2", claims);
+        VCCredentialConfiguration createdUpdatedConfig2 = vcConfigMgtDAOImpl.add(updatedConfig2, tenantId);
+
+        VCCredentialConfiguration updatedConfig3 = createVCCredentialConfiguration(
+                updatedConfig3Id, "jwt_vc_json", "updated_scope_3", claims);
+        VCCredentialConfiguration createdUpdatedConfig3 = vcConfigMgtDAOImpl.add(updatedConfig3, tenantId);
+
+        // Step 2: Create an offer with the initial config.
         String uniqueDisplayName = displayName + "-" + System.currentTimeMillis();
-        List<String> initialConfigIds = Arrays.asList("initial_config_1");
+        List<String> initialConfigIds = Collections.singletonList(createdInitialConfig.getId());
         VCOffer initialOffer = createVCOffer(uniqueDisplayName, initialConfigIds);
 
         VCOffer createdOffer = vcOfferDAOImpl.add(initialOffer, tenantId);
         Assert.assertNotNull(createdOffer, "Initial offer should be created.");
         String offerId = createdOffer.getOfferId();
 
-        // Step 2: Update the offer.
+        // Step 3: Update the offer with new configs.
         String updatedDisplayName = "Updated-" + uniqueDisplayName;
-        List<String> updatedConfigIds = Arrays.asList("updated_config_1", "updated_config_2", "updated_config_3");
+        List<String> updatedConfigIds = Arrays.asList(
+                createdUpdatedConfig1.getId(),
+                createdUpdatedConfig2.getId(),
+                createdUpdatedConfig3.getId()
+        );
         VCOffer updatePayload = createVCOffer(updatedDisplayName, updatedConfigIds);
 
         VCOffer updatedOffer = vcOfferDAOImpl.update(offerId, updatePayload, tenantId);
@@ -371,7 +399,7 @@ public class VCOfferDAOTest {
                     "Display name should be updated.");
             Assert.assertEquals(updatedOffer.getCredentialConfigurationIds().size(), 3,
                     "Should have 3 credential configurations after update.");
-            Assert.assertTrue(updatedOffer.getCredentialConfigurationIds().contains("updated_config_2"),
+            Assert.assertTrue(updatedOffer.getCredentialConfigurationIds().contains(createdUpdatedConfig2.getId()),
                     "Should contain updated configuration IDs.");
         }
     }
@@ -397,23 +425,30 @@ public class VCOfferDAOTest {
     @Test(dataProvider = "deleteVCOfferData", priority = 7)
     public void testDeleteVCOffer(String displayName, int tenantId, boolean shouldSucceed) throws Exception {
 
-        // Step 1: Create an offer first.
+        // Step 1: Create a credential configuration first.
+        String configId = "DeleteTestConfig-" + System.currentTimeMillis();
+        List<String> claims = Arrays.asList("email", "name");
+        VCCredentialConfiguration config = createVCCredentialConfiguration(
+                configId, "jwt_vc_json", "delete_scope", claims);
+        VCCredentialConfiguration createdConfig = vcConfigMgtDAOImpl.add(config, tenantId);
+
+        // Step 2: Create an offer with the credential configuration.
         String uniqueDisplayName = displayName + "-" + System.currentTimeMillis();
-        List<String> configIds = Arrays.asList("delete_config_1");
+        List<String> configIds = Collections.singletonList(createdConfig.getId());
         VCOffer offer = createVCOffer(uniqueDisplayName, configIds);
 
         VCOffer createdOffer = vcOfferDAOImpl.add(offer, tenantId);
         Assert.assertNotNull(createdOffer, "Offer should be created.");
         String offerId = createdOffer.getOfferId();
 
-        // Step 2: Verify the offer exists.
+        // Step 3: Verify the offer exists.
         boolean existsBefore = vcOfferDAOImpl.existsByOfferId(offerId, tenantId);
         Assert.assertTrue(existsBefore, "Offer should exist before deletion.");
 
-        // Step 3: Delete the offer.
+        // Step 4: Delete the offer.
         vcOfferDAOImpl.delete(offerId, tenantId);
 
-        // Step 4: Verify the offer no longer exists.
+        // Step 5: Verify the offer no longer exists.
         if (shouldSucceed) {
             boolean existsAfter = vcOfferDAOImpl.existsByOfferId(offerId, tenantId);
             Assert.assertFalse(existsAfter, "Offer should not exist after deletion.");
@@ -421,6 +456,215 @@ public class VCOfferDAOTest {
             VCOffer deletedOffer = vcOfferDAOImpl.get(offerId, tenantId);
             Assert.assertNull(deletedOffer, "Should not be able to retrieve deleted offer.");
         }
+    }
+
+    /**
+     * Security test: Validate database-level tenant isolation using composite foreign keys.
+     * This test ensures that the database schema enforces tenant isolation by preventing
+     * cross-tenant associations between VC_OFFER and VC_CONFIG tables.
+     * The composite foreign keys (OFFER_ID, TENANT_ID) and (CONFIG_ID, TENANT_ID) should
+     * prevent inserting records where the TENANT_ID doesn't match between tables.
+     * Vulnerability: Broken Access Control - Cross-tenant data association at DB level.
+     * Risk: Without proper DB constraints, application bugs could allow cross-tenant data mixing.
+     * Suggestion: Database-level constraints provide defense-in-depth security.
+     *
+     * @throws Exception If an error occurs during test execution.
+     */
+    @Test(priority = 8, expectedExceptions = Exception.class)
+    public void testDatabaseLevelTenantIsolationConstraint() throws Exception {
+
+        // Step 1: Create a VC config in TENANT_ID.
+        String tenant1ConfigId = "Tenant1Config-" + System.currentTimeMillis();
+        List<String> claims = Arrays.asList("email", "name", "tenant1_data");
+        VCCredentialConfiguration tenant1Config = createVCCredentialConfiguration(
+                tenant1ConfigId, "jwt_vc_json", "tenant1_scope", claims);
+        VCCredentialConfiguration createdTenant1Config = vcConfigMgtDAOImpl.add(tenant1Config, TENANT_ID);
+        String configIdTenant1 = createdTenant1Config.getId();
+
+        // Step 2: Create a VC config in ATTACKER_TENANT_ID.
+        String tenant2ConfigId = "Tenant2Config-" + System.currentTimeMillis();
+        VCCredentialConfiguration tenant2Config = createVCCredentialConfiguration(
+                tenant2ConfigId, "jwt_vc_json", "tenant2_scope", claims);
+        VCCredentialConfiguration createdTenant2Config = vcConfigMgtDAOImpl.add(tenant2Config, ATTACKER_TENANT_ID);
+        String configIdTenant2 = createdTenant2Config.getId();
+
+        // Step 3: Create a VC offer in TENANT_ID.
+        String offerDisplayName = "CrossTenantOffer-" + System.currentTimeMillis();
+        VCOffer offer = createVCOffer(offerDisplayName, Collections.singletonList(configIdTenant1));
+        VCOffer createdOffer = vcOfferDAOImpl.add(offer, TENANT_ID);
+        Assert.assertNotNull(createdOffer, "Offer should be created in TENANT_ID.");
+
+        // Step 4: Attempt to update the offer with a config from ATTACKER_TENANT_ID.
+        // This should FAIL due to composite foreign key constraint: FK_VC_OFFER_CONFIG_CONFIG (CONFIG_ID, TENANT_ID).
+        // The database will reject the insert because (configIdTenant2, TENANT_ID) doesn't exist in VC_CONFIG.
+        String updatedDisplayName = "Updated-" + offerDisplayName;
+        List<String> crossTenantConfigIds = Arrays.asList(configIdTenant1, configIdTenant2);
+        VCOffer updatePayload = createVCOffer(updatedDisplayName, crossTenantConfigIds);
+
+        // This should throw an exception due to foreign key constraint violation.
+        vcOfferDAOImpl.update(createdOffer.getOfferId(), updatePayload, TENANT_ID);
+
+        // If we reach here, the test has failed - the database did not enforce tenant isolation.
+        Assert.fail("DATABASE SECURITY VIOLATION: Database should have rejected cross-tenant CONFIG_ID " +
+                "association. Config " + configIdTenant2 + " from tenant " + ATTACKER_TENANT_ID +
+                " should NOT be associable with offer from tenant " + TENANT_ID);
+    }
+
+    /**
+     * Security test: Validate that adding an offer with cross-tenant configs fails at database level.
+     * This test ensures that when creating a new offer, the database enforces that all referenced
+     * credential configurations belong to the same tenant as the offer.
+     * Vulnerability: Broken Access Control - Cross-tenant data association during creation.
+     * Risk: Application layer bugs could bypass tenant checks, but DB constraints provide protection.
+     * Suggestion: Composite foreign keys ensure data integrity at the lowest level.
+     *
+     * @throws Exception If an error occurs during test execution.
+     */
+    @Test(priority = 9, expectedExceptions = Exception.class)
+    public void testDatabaseLevelTenantIsolationOnCreate() throws Exception {
+
+        // Step 1: Create credential configurations in two different tenants.
+        String tenant1ConfigId = "CreateTestConfig1-" + System.currentTimeMillis();
+        List<String> claims = Arrays.asList("email", "name");
+        VCCredentialConfiguration config1 = createVCCredentialConfiguration(
+                tenant1ConfigId, "jwt_vc_json", "scope1", claims);
+        VCCredentialConfiguration createdConfig1 = vcConfigMgtDAOImpl.add(config1, TENANT_ID);
+
+        String tenant2ConfigId = "CreateTestConfig2-" + System.currentTimeMillis();
+        VCCredentialConfiguration config2 = createVCCredentialConfiguration(
+                tenant2ConfigId, "jwt_vc_json", "scope2", claims);
+        VCCredentialConfiguration createdConfig2 = vcConfigMgtDAOImpl.add(config2, ATTACKER_TENANT_ID);
+
+        // Step 2: Attempt to create an offer in TENANT_ID with a config from ATTACKER_TENANT_ID.
+        // This should FAIL due to composite foreign key constraint.
+        String offerDisplayName = "CrossTenantCreateOffer-" + System.currentTimeMillis();
+        List<String> crossTenantConfigIds = Arrays.asList(
+                createdConfig1.getId(),  // From TENANT_ID - valid.
+                createdConfig2.getId()   // From ATTACKER_TENANT_ID - invalid!
+        );
+        VCOffer offer = createVCOffer(offerDisplayName, crossTenantConfigIds);
+
+        // This should throw an exception due to foreign key constraint violation.
+        vcOfferDAOImpl.add(offer, TENANT_ID);
+
+        // If we reach here, the test has failed.
+        Assert.fail("DATABASE SECURITY VIOLATION: Database should have rejected creating an offer in tenant " +
+                TENANT_ID + " with CONFIG_ID " + createdConfig2.getId() + " from tenant " + ATTACKER_TENANT_ID);
+    }
+
+    /**
+     * Positive test: Validate that offers can be created and updated with configs from the same tenant.
+     * This test ensures that legitimate operations within the same tenant work correctly.
+     *
+     * @throws Exception If an error occurs during test execution.
+     */
+    @Test(priority = 10)
+    public void testSameTenantConfigAssociationSuccess() throws Exception {
+
+        // Step 1: Create multiple credential configurations in the same tenant.
+        String config1Id = "SameTenantConfig1-" + System.currentTimeMillis();
+        String config2Id = "SameTenantConfig2-" + System.currentTimeMillis();
+        String config3Id = "SameTenantConfig3-" + System.currentTimeMillis();
+
+        List<String> claims = Arrays.asList("email", "name", "role");
+
+        VCCredentialConfiguration config1 = createVCCredentialConfiguration(
+                config1Id, "jwt_vc_json", "scope1", claims);
+        VCCredentialConfiguration createdConfig1 = vcConfigMgtDAOImpl.add(config1, TENANT_ID);
+
+        VCCredentialConfiguration config2 = createVCCredentialConfiguration(
+                config2Id, "jwt_vc_json", "scope2", claims);
+        VCCredentialConfiguration createdConfig2 = vcConfigMgtDAOImpl.add(config2, TENANT_ID);
+
+        VCCredentialConfiguration config3 = createVCCredentialConfiguration(
+                config3Id, "jwt_vc_json", "scope3", claims);
+        VCCredentialConfiguration createdConfig3 = vcConfigMgtDAOImpl.add(config3, TENANT_ID);
+
+        // Step 2: Create an offer with configs from the same tenant - should succeed.
+        String offerDisplayName = "SameTenantOffer-" + System.currentTimeMillis();
+        List<String> sameTenantConfigIds = Arrays.asList(
+                createdConfig1.getId(),
+                createdConfig2.getId()
+        );
+        VCOffer offer = createVCOffer(offerDisplayName, sameTenantConfigIds);
+
+        VCOffer createdOffer = vcOfferDAOImpl.add(offer, TENANT_ID);
+        Assert.assertNotNull(createdOffer, "Offer should be created successfully with same-tenant configs.");
+        Assert.assertEquals(createdOffer.getCredentialConfigurationIds().size(), 2,
+                "Offer should have 2 credential configurations.");
+
+        // Step 3: Update the offer with another config from the same tenant - should succeed.
+        String updatedDisplayName = "Updated-" + offerDisplayName;
+        List<String> updatedConfigIds = Arrays.asList(
+                createdConfig1.getId(),
+                createdConfig2.getId(),
+                createdConfig3.getId()
+        );
+        VCOffer updatePayload = createVCOffer(updatedDisplayName, updatedConfigIds);
+
+        VCOffer updatedOffer = vcOfferDAOImpl.update(createdOffer.getOfferId(), updatePayload, TENANT_ID);
+        Assert.assertNotNull(updatedOffer, "Offer should be updated successfully with same-tenant configs.");
+        Assert.assertEquals(updatedOffer.getCredentialConfigurationIds().size(), 3,
+                "Updated offer should have 3 credential configurations.");
+        Assert.assertTrue(updatedOffer.getCredentialConfigurationIds().contains(createdConfig3.getId()),
+                "Updated offer should contain the newly added config.");
+    }
+
+    /**
+     * Security test: Validate that cascade delete works correctly and doesn't allow orphaned cross-tenant references.
+     * This test ensures that when a VC_CONFIG is deleted, all associated VC_OFFER_CREDENTIAL_CONFIG records
+     * are automatically deleted due to the ON DELETE CASCADE constraint.
+     * Vulnerability: Data integrity - orphaned references.
+     * Risk: Without cascade delete, deleting a config could leave invalid references.
+     * Suggestion: ON DELETE CASCADE maintains referential integrity automatically.
+     *
+     * @throws Exception If an error occurs during test execution.
+     */
+    @Test(priority = 11)
+    public void testCascadeDeleteMaintainsTenantIsolation() throws Exception {
+
+        // Step 1: Create credential configurations for the test.
+        String config1Id = "CascadeTestConfig1-" + System.currentTimeMillis();
+        String config2Id = "CascadeTestConfig2-" + System.currentTimeMillis();
+
+        List<String> claims = Arrays.asList("email", "name");
+
+        VCCredentialConfiguration config1 = createVCCredentialConfiguration(
+                config1Id, "jwt_vc_json", "cascade_scope1", claims);
+        VCCredentialConfiguration createdConfig1 = vcConfigMgtDAOImpl.add(config1, TENANT_ID);
+
+        VCCredentialConfiguration config2 = createVCCredentialConfiguration(
+                config2Id, "jwt_vc_json", "cascade_scope2", claims);
+        VCCredentialConfiguration createdConfig2 = vcConfigMgtDAOImpl.add(config2, TENANT_ID);
+
+        // Step 2: Create an offer with these configs.
+        String offerDisplayName = "CascadeDeleteOffer-" + System.currentTimeMillis();
+        List<String> configIds = Arrays.asList(createdConfig1.getId(), createdConfig2.getId());
+        VCOffer offer = createVCOffer(offerDisplayName, configIds);
+
+        VCOffer createdOffer = vcOfferDAOImpl.add(offer, TENANT_ID);
+        Assert.assertNotNull(createdOffer, "Offer should be created successfully.");
+        Assert.assertEquals(createdOffer.getCredentialConfigurationIds().size(), 2,
+                "Offer should have 2 credential configurations.");
+
+        // Step 3: Delete one of the credential configurations.
+        vcConfigMgtDAOImpl.delete(createdConfig1.getId(), TENANT_ID);
+
+        // Step 4: Verify that the offer still exists but only has the remaining config.
+        VCOffer retrievedOffer = vcOfferDAOImpl.get(createdOffer.getOfferId(), TENANT_ID);
+        Assert.assertNotNull(retrievedOffer, "Offer should still exist after config deletion.");
+        Assert.assertEquals(retrievedOffer.getCredentialConfigurationIds().size(), 1,
+                "Offer should have only 1 credential configuration after cascade delete.");
+        Assert.assertTrue(retrievedOffer.getCredentialConfigurationIds().contains(createdConfig2.getId()),
+                "Offer should still contain the non-deleted config.");
+        Assert.assertFalse(retrievedOffer.getCredentialConfigurationIds().contains(createdConfig1.getId()),
+                "Offer should not contain the deleted config (cascade delete worked).");
+
+        // Step 5: Delete the offer itself and verify cascade.
+        vcOfferDAOImpl.delete(createdOffer.getOfferId(), TENANT_ID);
+
+        VCOffer deletedOffer = vcOfferDAOImpl.get(createdOffer.getOfferId(), TENANT_ID);
+        Assert.assertNull(deletedOffer, "Offer should be completely deleted.");
     }
 
     /**

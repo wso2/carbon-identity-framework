@@ -55,7 +55,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
             ps.setInt(1, tenantId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    results.add(buildConfigurationListItem(rs, conn));
+                    results.add(buildConfigurationListItem(rs));
                 }
             }
         } catch (SQLException e) {
@@ -245,14 +245,14 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     }
 
     @Override
-    public void delete(String configId, int tenantId) throws VCConfigMgtException {
+    public void delete(String id, int tenantId) throws VCConfigMgtException {
 
         String deleteCfg = SQLQueries.DELETE_CONFIG;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(deleteCfg)) {
             try {
                 ps.setInt(1, tenantId);
-                ps.setString(2, configId);
+                ps.setString(2, id);
                 ps.executeUpdate();
                 IdentityDatabaseUtil.commitTransaction(conn);
             } catch (SQLException e) {
@@ -309,11 +309,10 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
      * Build VC credential configuration from result set.
      *
      * @param rs Result set
-     * @param conn DB connection
      * @return VC credential configuration
      * @throws SQLException on SQL errors
      */
-    private VCCredentialConfiguration buildConfigurationListItem(ResultSet rs, Connection conn) throws SQLException {
+    private VCCredentialConfiguration buildConfigurationListItem(ResultSet rs) throws SQLException {
 
         VCCredentialConfiguration cfg = new VCCredentialConfiguration();
         cfg.setId(rs.getString("ID"));
