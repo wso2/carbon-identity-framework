@@ -117,7 +117,7 @@ public class VCConfigMgtDAOTest {
     public void testGetVCCredentialConfigurationByIdentifier(int tenantId, String identifier, boolean shouldExist)
             throws Exception {
 
-        VCCredentialConfiguration config = vcConfigMgtDAOImpl.getByConfigId(identifier, tenantId);
+        VCCredentialConfiguration config = vcConfigMgtDAOImpl.getByIdentifier(identifier, tenantId);
 
         if (shouldExist) {
             Assert.assertNotNull(config, "Configuration should exist for identifier: " + identifier);
@@ -184,7 +184,7 @@ public class VCConfigMgtDAOTest {
         vcConfigMgtDAOImpl.add(ownerConfig, ownerTenantId);
 
         // Fetch the created configuration using the identifier.
-        VCCredentialConfiguration createdConfig = vcConfigMgtDAOImpl.getByConfigId(uniqueIdentifier, ownerTenantId);
+        VCCredentialConfiguration createdConfig = vcConfigMgtDAOImpl.getByIdentifier(uniqueIdentifier, ownerTenantId);
         Assert.assertNotNull(createdConfig, "Configuration should be created for owner tenant.");
         Assert.assertNotNull(createdConfig.getId(), "Configuration ID (UUID) should not be null.");
 

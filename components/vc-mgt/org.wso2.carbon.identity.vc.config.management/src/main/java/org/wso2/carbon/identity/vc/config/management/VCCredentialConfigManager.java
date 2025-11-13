@@ -48,14 +48,14 @@ public interface VCCredentialConfigManager {
     VCCredentialConfiguration get(String id, String tenantDomain) throws VCConfigMgtException;
 
     /**
-     * Get a configuration by configuration id.
+     * Get a configuration by identifier.
      *
-     * @param configId Configuration id.
+     * @param identifier Identifier of the configuration.
      * @param tenantDomain Tenant domain.
      * @return Configuration or null if not found.
      * @throws VCConfigMgtException on retrieval errors.
      */
-    VCCredentialConfiguration getByConfigId(String configId, String tenantDomain) throws VCConfigMgtException;
+    VCCredentialConfiguration getByIdentifier(String identifier, String tenantDomain) throws VCConfigMgtException;
 
     /**
      * Add a new configuration.

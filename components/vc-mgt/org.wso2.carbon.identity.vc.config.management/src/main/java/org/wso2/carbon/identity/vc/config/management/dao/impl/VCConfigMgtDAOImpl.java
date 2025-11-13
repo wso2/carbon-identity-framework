@@ -88,12 +88,12 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     }
 
     @Override
-    public VCCredentialConfiguration getByConfigId(String configId, int tenantId) throws VCConfigMgtException {
-        String sql = SQLQueries.GET_CONFIG_BY_CONFIG_ID;
+    public VCCredentialConfiguration getByIdentifier(String identifier, int tenantId) throws VCConfigMgtException {
+        String sql = SQLQueries.GET_CONFIG_BY_IDENTIFIER;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, tenantId);
-            ps.setString(2, configId);
+            ps.setString(2, identifier);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return buildConfiguration(rs, conn);

@@ -280,7 +280,7 @@ public class VCCredentialConfigManagerImplTest {
     @Test(priority = 9)
     public void testGetConfigurationByConfigId() throws VCConfigMgtException {
 
-        VCCredentialConfiguration retrieved = configManager.getByConfigId(
+        VCCredentialConfiguration retrieved = configManager.getByIdentifier(
                 sampleConfig.getIdentifier(), TENANT_DOMAIN);
 
         Assert.assertNotNull(retrieved, "Retrieved configuration should not be null.");

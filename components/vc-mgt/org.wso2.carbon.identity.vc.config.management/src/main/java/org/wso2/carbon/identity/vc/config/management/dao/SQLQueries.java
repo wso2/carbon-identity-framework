@@ -35,7 +35,7 @@ public final class SQLQueries {
             "TYPE, METADATA, EXPIRES_IN " +
             "FROM VC_CONFIG WHERE TENANT_ID = ? AND ID = ?";
 
-    public static final String GET_CONFIG_BY_CONFIG_ID =
+    public static final String GET_CONFIG_BY_IDENTIFIER =
             "SELECT ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, SIGNING_ALG, " +
             "TYPE, METADATA, EXPIRES_IN " +
             "FROM VC_CONFIG WHERE TENANT_ID = ? AND IDENTIFIER = ?";
