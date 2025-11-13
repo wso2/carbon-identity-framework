@@ -48,14 +48,14 @@ public interface VCConfigMgtDAO {
     VCCredentialConfiguration get(String id, int tenantId) throws VCConfigMgtException;
 
     /**
-     * Get a configuration by configuration id.
+     * Get a configuration by Identifier.
      *
-     * @param configId Configuration id.
+     * @param identifier Identifier of the configuration.
      * @param tenantId Tenant ID.
      * @return Configuration or null if not found.
      * @throws VCConfigMgtException on retrieval errors.
      */
-    VCCredentialConfiguration getByConfigId(String configId, int tenantId) throws VCConfigMgtException;
+    VCCredentialConfiguration getByIdentifier(String identifier, int tenantId) throws VCConfigMgtException;
 
     /**
      * Check existence by identifier.

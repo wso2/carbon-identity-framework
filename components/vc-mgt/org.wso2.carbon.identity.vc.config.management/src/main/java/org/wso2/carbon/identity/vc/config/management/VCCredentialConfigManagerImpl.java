@@ -86,14 +86,15 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     }
 
     @Override
-    public VCCredentialConfiguration getByConfigId(String configId, String tenantDomain) throws VCConfigMgtException {
+    public VCCredentialConfiguration getByIdentifier(String identifier, String tenantDomain)
+            throws VCConfigMgtException {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Retrieving VC credential configuration with config id: %s for tenant: %s",
-                    configId, tenantDomain));
+            LOG.debug(String.format("Retrieving VC credential configuration with identifier: %s for tenant: %s",
+                    identifier, tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        return dao.getByConfigId(configId, tenantId);
+        return dao.getByIdentifier(identifier, tenantId);
     }
 
     @Override
