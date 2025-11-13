@@ -289,7 +289,7 @@ public class VCConfigMgtDAOTest {
     public void testVCCredentialConfigurationExists(int tenantId, String identifier, boolean shouldExist)
             throws Exception {
 
-        boolean exists = vcConfigMgtDAOImpl.existsByConfigurationId(identifier, tenantId);
+        boolean exists = vcConfigMgtDAOImpl.existsByIdentifier(identifier, tenantId);
 
         Assert.assertEquals(exists, shouldExist,
                 "Configuration existence check failed for identifier: " + identifier +

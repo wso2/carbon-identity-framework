@@ -67,15 +67,6 @@ public interface VCConfigMgtDAO {
      */
     boolean existsByIdentifier(String identifier, int tenantId) throws VCConfigMgtException;
 
-    /**
-     * Check existence by configuration ID.
-     *
-     * @param configurationId Configuration ID.
-     * @param tenantId        Tenant ID.
-     * @return true if exists, false otherwise.
-     * @throws VCConfigMgtException on retrieval errors.
-     */
-    boolean existsByConfigurationId(String configurationId, int tenantId) throws VCConfigMgtException;
 
     /**
      * Add a new configuration.
