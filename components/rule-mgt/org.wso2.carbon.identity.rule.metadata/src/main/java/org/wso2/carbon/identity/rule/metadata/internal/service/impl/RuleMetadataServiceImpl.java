@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.rule.metadata.internal.service.impl;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.FlowType;
@@ -30,6 +31,13 @@ import java.util.List;
  * Rule metadata service implementation.
  * This class is responsible for providing the rule metadata for the given flow type.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService",
+                "service.scope=singleton"
+        }
+)
 public class RuleMetadataServiceImpl implements RuleMetadataService {
 
     private final RuleMetadataManager ruleMetadataManager;

@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.secret.mgt.core;
 
 import org.apache.commons.codec.Charsets;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
@@ -29,6 +30,13 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
 
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager",
+                "service.scope=singleton"
+        }
+)
 public class SecretResolveManagerImpl implements SecretResolveManager {
 
     private final SecretManager secretManager;
