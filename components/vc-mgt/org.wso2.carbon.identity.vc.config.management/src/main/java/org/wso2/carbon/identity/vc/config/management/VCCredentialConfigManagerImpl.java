@@ -164,14 +164,14 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     }
 
     @Override
-    public void delete(String configId, String tenantDomain) throws VCConfigMgtException {
+    public void delete(String id, String tenantDomain) throws VCConfigMgtException {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Deleting VC credential configuration with id: %s for tenant: %s", configId,
+            LOG.debug(String.format("Deleting VC credential configuration with id: %s for tenant: %s", id,
                     tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        dao.delete(configId, tenantId);
+        dao.delete(id, tenantId);
     }
 
     /**

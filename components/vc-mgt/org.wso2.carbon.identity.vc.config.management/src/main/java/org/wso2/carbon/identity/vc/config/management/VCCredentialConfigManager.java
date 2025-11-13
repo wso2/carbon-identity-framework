@@ -71,22 +71,22 @@ public interface VCCredentialConfigManager {
     /**
      * Update an existing configuration by id.
      *
-     * @param configId      Configuration id to update.
+     * @param id      Configuration id to update.
      * @param configuration Updated payload.
      * @param tenantDomain  Tenant domain.
      * @return Updated configuration.
      * @throws VCConfigMgtException on update errors.
      */
-    VCCredentialConfiguration update(String configId, VCCredentialConfiguration configuration, String tenantDomain)
+    VCCredentialConfiguration update(String id, VCCredentialConfiguration configuration, String tenantDomain)
             throws VCConfigMgtException;
 
     /**
      * Delete a configuration by id.
      *
-     * @param configId     Configuration id.
+     * @param id     Configuration id.
      * @param tenantDomain Tenant domain.
      * @throws VCConfigMgtException on deletion errors.
      */
-    void delete(String configId, String tenantDomain) throws VCConfigMgtException;
+    void delete(String id, String tenantDomain) throws VCConfigMgtException;
 }
 

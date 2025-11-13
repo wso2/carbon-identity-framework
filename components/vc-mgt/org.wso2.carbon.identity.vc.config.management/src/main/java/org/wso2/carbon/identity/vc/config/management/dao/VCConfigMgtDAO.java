@@ -101,9 +101,9 @@ public interface VCConfigMgtDAO {
 
     /**
      * Delete a configuration by id.
-     * @param configId     Configuration id.
+     * @param id     Configuration id.
      * @param tenantId     Tenant ID.
      * @throws VCConfigMgtException on deletion errors.
      */
-    void delete(String configId, int tenantId) throws VCConfigMgtException;
+    void delete(String id, int tenantId) throws VCConfigMgtException;
 }

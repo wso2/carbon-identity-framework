@@ -55,7 +55,7 @@ public class VCOfferDAOImpl implements VCOfferDAO {
             ps.setInt(1, tenantId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    results.add(buildOfferListItem(rs, conn));
+                    results.add(buildOfferListItem(rs, conn, tenantId));
                 }
             }
         } catch (SQLException e) {
@@ -76,7 +76,7 @@ public class VCOfferDAOImpl implements VCOfferDAO {
             ps.setString(2, offerId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return buildOffer(rs, conn);
+                    return buildOffer(rs, conn, tenantId);
                 }
             }
         } catch (SQLException e) {
@@ -119,7 +119,7 @@ public class VCOfferDAOImpl implements VCOfferDAO {
                 ps.executeUpdate();
 
                 if (CollectionUtils.isNotEmpty(offer.getCredentialConfigurationIds())) {
-                    addCredentialConfigurations(conn, id, offer.getCredentialConfigurationIds());
+                    addCredentialConfigurations(conn, id, offer.getCredentialConfigurationIds(), tenantId);
                 }
 
                 IdentityDatabaseUtil.commitTransaction(conn);
@@ -157,9 +157,9 @@ public class VCOfferDAOImpl implements VCOfferDAO {
                             VCConfigManagementConstants.ErrorMessages.ERROR_CODE_OFFER_NOT_FOUND.getMessage());
                 }
 
-                deleteCredentialConfigurations(conn, offerId);
+                deleteCredentialConfigurations(conn, offerId, tenantId);
                 if (CollectionUtils.isNotEmpty(offer.getCredentialConfigurationIds())) {
-                    addCredentialConfigurations(conn, offerId, offer.getCredentialConfigurationIds());
+                    addCredentialConfigurations(conn, offerId, offer.getCredentialConfigurationIds(), tenantId);
                 }
 
                 IdentityDatabaseUtil.commitTransaction(conn);
@@ -212,12 +212,12 @@ public class VCOfferDAOImpl implements VCOfferDAO {
      * @return VC offer.
      * @throws SQLException on SQL errors.
      */
-    private VCOffer buildOffer(ResultSet rs, Connection conn) throws SQLException {
+    private VCOffer buildOffer(ResultSet rs, Connection conn, int tenantId) throws SQLException {
 
         VCOffer offer = new VCOffer();
         offer.setOfferId(rs.getString("OFFER_ID"));
         offer.setDisplayName(rs.getString("DISPLAY_NAME"));
-        offer.setCredentialConfigurationIds(getCredentialConfigurationsByOfferId(conn, offer.getOfferId()));
+        offer.setCredentialConfigurationIds(getCredentialConfigurationsByOfferId(conn, offer.getOfferId(), tenantId));
         return offer;
     }
 
@@ -229,12 +229,12 @@ public class VCOfferDAOImpl implements VCOfferDAO {
      * @return VC offer.
      * @throws SQLException on SQL errors.
      */
-    private VCOffer buildOfferListItem(ResultSet rs, Connection conn) throws SQLException {
+    private VCOffer buildOfferListItem(ResultSet rs, Connection conn, int tenantId) throws SQLException {
 
         VCOffer offer = new VCOffer();
         offer.setOfferId(rs.getString("OFFER_ID"));
         offer.setDisplayName(rs.getString("DISPLAY_NAME"));
-        offer.setCredentialConfigurationIds(getCredentialConfigurationsByOfferId(conn, offer.getOfferId()));
+        offer.setCredentialConfigurationIds(getCredentialConfigurationsByOfferId(conn, offer.getOfferId(), tenantId));
         return offer;
     }
 
@@ -243,14 +243,17 @@ public class VCOfferDAOImpl implements VCOfferDAO {
      *
      * @param conn    DB connection.
      * @param offerId Offer ID.
+     * @param tenantId Tenant ID.
      * @return List of credential configuration IDs.
      * @throws SQLException on SQL errors.
      */
-    private List<String> getCredentialConfigurationsByOfferId(Connection conn, String offerId) throws SQLException {
+    private List<String> getCredentialConfigurationsByOfferId(Connection conn, String offerId, int tenantId)
+            throws SQLException {
 
         String sql = SQLQueries.LIST_CREDENTIAL_CONFIGS_BY_OFFER_ID;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, offerId);
+            ps.setInt(2, tenantId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<String> list = new ArrayList<>();
                 while (rs.next()) {
@@ -267,16 +270,19 @@ public class VCOfferDAOImpl implements VCOfferDAO {
      * @param conn                       DB connection.
      * @param offerId                    Offer ID.
      * @param credentialConfigurationIds List of credential configuration IDs.
+     * @param tenantId                   Tenant ID.
      * @throws SQLException on SQL errors.
      */
     private void addCredentialConfigurations(Connection conn, String offerId,
-                                             List<String> credentialConfigurationIds) throws SQLException {
+                                             List<String> credentialConfigurationIds, int tenantId)
+            throws SQLException {
 
         String insert = SQLQueries.INSERT_OFFER_CREDENTIAL_CONFIG;
         try (PreparedStatement ps = conn.prepareStatement(insert)) {
             for (String configId : credentialConfigurationIds) {
                 ps.setString(1, offerId);
                 ps.setString(2, configId);
+                ps.setInt(3, tenantId);
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -288,12 +294,14 @@ public class VCOfferDAOImpl implements VCOfferDAO {
      *
      * @param conn    DB connection.
      * @param offerId Offer ID.
+     * @param tenantId Tenant ID.
      * @throws SQLException on SQL errors.
      */
-    private void deleteCredentialConfigurations(Connection conn, String offerId) throws SQLException {
+    private void deleteCredentialConfigurations(Connection conn, String offerId, int tenantId) throws SQLException {
 
         try (PreparedStatement ps = conn.prepareStatement(SQLQueries.DELETE_OFFER_CREDENTIAL_CONFIGS_BY_OFFER_ID)) {
             ps.setString(1, offerId);
+            ps.setInt(2, tenantId);
             ps.executeUpdate();
         }
     }
