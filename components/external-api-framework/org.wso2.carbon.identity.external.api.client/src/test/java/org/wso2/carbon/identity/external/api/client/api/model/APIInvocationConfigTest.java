@@ -73,4 +73,14 @@ public class APIInvocationConfigTest {
         config.setAllowedRetryCount(0);
         assertEquals(config.getAllowedRetryCount(), 0);
     }
+
+    /**
+     * Test that setting a negative retry count throws an exception.
+     */
+    @Test(expectedExceptions = APIClientConfigException.class)
+    public void testSetNegativeRetryCountThrowsException() throws APIClientConfigException {
+
+        APIInvocationConfig config = new APIInvocationConfig();
+        config.setAllowedRetryCount(-1);
+    }
 }

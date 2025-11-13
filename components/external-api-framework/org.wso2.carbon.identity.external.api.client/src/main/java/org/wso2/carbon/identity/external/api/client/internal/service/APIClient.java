@@ -26,6 +26,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
@@ -124,7 +125,7 @@ public class APIClient {
                 httpRequestBase = httpEntityEnclosingRequestBase;
                 break;
             case GET:
-                httpRequestBase = new HttpPost(requestContext.getEndpointUrl());
+                httpRequestBase = new HttpGet(requestContext.getEndpointUrl());
                 break;
             default:
                 throw new APIClientInvocationException(
@@ -177,11 +178,11 @@ public class APIClient {
             throws APIClientInvocationException {
 
 
-        int allowedRetryCount = apiInvocationConfig.getAllowedRetryCount();
-        for (int reTryAttempt = 0; reTryAttempt <= allowedRetryCount; reTryAttempt++) {
+        int allowedAttemptCount = apiInvocationConfig.getAllowedRetryCount() + 1;
+        for (int attempt = 1; attempt <= allowedAttemptCount; attempt++) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Executing request to URI: %s, attempt: %d/%d",
-                        request.getURI(), reTryAttempt - 1, allowedRetryCount
+                        request.getURI(), attempt , allowedAttemptCount
                 ));
             }
 
@@ -193,7 +194,7 @@ public class APIClient {
                 }
                 return handleResponse(response);
             } catch (IOException e) {
-                if (reTryAttempt == allowedRetryCount) {
+                if (attempt == allowedAttemptCount) {
                     throw new APIClientInvocationException(ErrorMessage.ERROR_CODE_WHILE_INVOKING_API,
                             request.getURI().toString(), e
                     );

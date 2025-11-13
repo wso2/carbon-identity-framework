@@ -114,7 +114,7 @@ public class APIRequestContext {
 
         public APIRequestContext.Builder headers(Map<String, String> headers) {
 
-            this.headers = headers;
+            this.headers = headers != null ? new HashMap<>(headers) : new HashMap<>();
             return this;
         }
 
@@ -130,9 +130,6 @@ public class APIRequestContext {
 
             if (httpMethod == null) {
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "HTTP Method");
-            }
-            if (headers == null) {
-                throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "HTTP headers");
             }
             if (apiAuthentication == null) {
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "authentication");

@@ -102,7 +102,7 @@ public class APIAuthentication {
 
         public Builder properties(Map<String, String> authPropertiesMap) {
 
-            this.authPropertiesMap = authPropertiesMap;
+            this.authPropertiesMap = authPropertiesMap != null ? new HashMap<>(authPropertiesMap) : new HashMap<>();
             return this;
         }
 
@@ -140,7 +140,7 @@ public class APIAuthentication {
 
         private APIAuthProperty buildAuthProperty(String propertyName) throws APIClientRequestException {
 
-            if (authPropertiesMap != null && authPropertiesMap.containsKey(propertyName)) {
+            if (authPropertiesMap.containsKey(propertyName)) {
                 String propValue = authPropertiesMap.get(propertyName);
                 if (StringUtils.isNotBlank(propValue)) {
                     if (LOG.isDebugEnabled()) {
