@@ -82,7 +82,7 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
     public TokenResponse getNewAccessToken() throws TokenHandlerException {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Attempting to acquire new access token.");
+            LOG.debug("Attempting to get a new access token.");
         }
 
         if (tokenRequestContext == null) {
@@ -127,7 +127,7 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
     private TokenResponse handleResponse(APIResponse response) throws TokenHandlerException {
 
         if (response == null) {
-            throw new TokenHandlerException("Error occurred. The API Response the token endpoint is null.");
+            throw new TokenHandlerException("Error occurred. The API response from the token endpoint is null.");
         }
 
         if (response.getStatusCode() != HttpStatus.SC_OK) {

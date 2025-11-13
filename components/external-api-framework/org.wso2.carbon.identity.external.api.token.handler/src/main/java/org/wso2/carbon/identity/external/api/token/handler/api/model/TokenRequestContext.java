@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public class TokenRequestContext {
 
         this.grantContext = builder.grantContext;
         this.tokenEndpointUrl = builder.endpointUrl;
-        this.headers = builder.headers;
+        this.headers = Collections.unmodifiableMap(new HashMap<>(builder.headers));
         this.payload = builder.payload;
     }
 
