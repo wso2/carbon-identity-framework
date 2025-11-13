@@ -126,24 +126,6 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     }
 
     @Override
-    public boolean existsByConfigurationId(String configurationId, int tenantId) throws VCConfigMgtException {
-
-        String sql = SQLQueries.EXISTS_BY_IDENTIFIER;
-        try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, tenantId);
-            ps.setString(2, configurationId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            throw new VCConfigMgtServerException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_RETRIEVAL_ERROR.getCode(),
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_RETRIEVAL_ERROR.getMessage(), e);
-        }
-    }
-
-    @Override
     public VCCredentialConfiguration add(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
