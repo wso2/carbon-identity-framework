@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.ap
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
@@ -66,6 +67,14 @@ import static org.wso2.carbon.user.mgt.UserMgtConstants.INTERNAL_ROLE;
 /**
  * Application associated roles resolver implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.approles." +
+                        "ApplicationRolesResolver",
+                "service.scope=singleton"
+        }
+)
 public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver {
 
     @Override

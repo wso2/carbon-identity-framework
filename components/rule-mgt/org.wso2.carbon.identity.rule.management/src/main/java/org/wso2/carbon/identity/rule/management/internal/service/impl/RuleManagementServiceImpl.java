@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.rule.management.internal.service.impl;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementClientException;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
@@ -30,6 +31,13 @@ import org.wso2.carbon.identity.rule.management.internal.dao.impl.RuleManagement
 /**
  * Implementation of Rule Management Service.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.rule.management.api.service.RuleManagementService",
+                "service.scope=singleton"
+        }
+)
 public class RuleManagementServiceImpl implements RuleManagementService {
 
     private static final RuleManagementServiceImpl ruleManagementService = new RuleManagementServiceImpl();

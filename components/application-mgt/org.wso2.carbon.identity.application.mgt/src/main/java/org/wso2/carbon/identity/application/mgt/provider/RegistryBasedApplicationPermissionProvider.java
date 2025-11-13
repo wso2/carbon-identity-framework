@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -51,6 +52,13 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.PATH_C
 /**
  * Registry based application permission provider class.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider",
+                "service.scope=singleton"
+        }
+)
 public class RegistryBasedApplicationPermissionProvider implements ApplicationPermissionProvider {
 
     private static final int MAX_RETRY_ATTEMPTS = 3;
