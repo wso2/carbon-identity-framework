@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.json.JSONObject;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
@@ -38,6 +39,14 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 /**
  * A service to terminate the sessions of federated users.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework." +
+                        "ServerSessionManagementService",
+                "service.scope=singleton"
+        }
+)
 public class ServerSessionManagementServiceImpl implements ServerSessionManagementService {
 
     private static Log log = LogFactory.getLog(ServerSessionManagementServiceImpl.class);

@@ -41,8 +41,6 @@ public class JsWrapperFactoryProvider {
         } else if (FrameworkServiceDataHolder.getInstance()
                 .getJsGenericGraphBuilderFactory() instanceof JsGraalGraphBuilderFactory) {
             jsWrapperBaseFactory = new JsGraalWrapperFactory();
-        } else {
-            jsWrapperBaseFactory = new JsWrapperFactory();
         }
     }
 

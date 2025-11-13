@@ -134,8 +134,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.2</version>
+                <version>3.5.0</version>
                 <configuration>
                     <warName>api#identity#entitlement</warName>
                 </configuration>

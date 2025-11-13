@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.trusted.app.mgt.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -33,13 +32,6 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.trusted.app.mgt.services.TrustedAppMgtService;
 import org.wso2.carbon.identity.trusted.app.mgt.services.TrustedAppMgtServiceImpl;
-import org.wso2.carbon.identity.trusted.app.mgt.servlet.AndroidTrustedAppDiscoveryServlet;
-import org.wso2.carbon.identity.trusted.app.mgt.servlet.IosTrustedAppDiscoveryServlet;
-
-import javax.servlet.Servlet;
-
-import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.CP_ANDROID_TRUSTED_APPS;
-import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.CP_IOS_TRUSTED_APPS;
 
 /**
  * Trusted App Management Service Component.
@@ -64,26 +56,8 @@ public class TrustedAppMgtServiceComponent {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("TrustedAppMgtServiceComponent is activated.");
             }
-
-            HttpService httpService = TrustedAppMgtDataHolder.getInstance().getHttpService();
-
-            Servlet androidTrustedAppDiscoveryServlet = new ContextPathServletAdaptor(new
-                    AndroidTrustedAppDiscoveryServlet(), CP_ANDROID_TRUSTED_APPS);
-            httpService.registerServlet(CP_ANDROID_TRUSTED_APPS, androidTrustedAppDiscoveryServlet, null, null);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Registering Android Trusted App Discovery Servlet via the HttpService to " +
-                        CP_ANDROID_TRUSTED_APPS);
-            }
-
-            Servlet iosTrustedAppDiscoveryServlet = new ContextPathServletAdaptor(new
-                    IosTrustedAppDiscoveryServlet(), CP_IOS_TRUSTED_APPS);
-            httpService.registerServlet(CP_IOS_TRUSTED_APPS, iosTrustedAppDiscoveryServlet, null, null);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Registering iOS Trusted App Discovery Servlet via the HttpService to " +
-                        CP_IOS_TRUSTED_APPS);
-            }
         } catch (Throwable e) {
-            LOG.error("Error while activating the ss", e);
+            LOG.error("Error while activating the TrustedAppMgtServiceComponent.", e);
         }
     }
 
