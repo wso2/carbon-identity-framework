@@ -19,20 +19,38 @@
 package org.wso2.carbon.identity.vc.config.management;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
+import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtClientException;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtException;
+import org.wso2.carbon.identity.vc.config.management.internal.VCConfigManagementServiceDataHolder;
 import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfiguration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Test class for VCCredentialConfigManagerImpl.
@@ -54,10 +72,55 @@ public class VCCredentialConfigManagerImplTest {
     private VCCredentialConfigManager configManager;
     private VCCredentialConfiguration sampleConfig;
 
+    private MockedStatic<ClaimMetadataHandler> claimMetadataHandlerMock;
+
     @BeforeClass
-    public void setUpClass() {
+    public void setUpClass() throws Exception {
+
+        // Initialize Mockito annotations before using @Mock fields.
+        MockitoAnnotations.openMocks(this);
 
         configManager = VCCredentialConfigManagerImpl.getInstance();
+
+        // Setup API Resource mocks for scope validation.
+        Scope testScope = new Scope(TEST_SCOPE, TEST_SCOPE, TEST_SCOPE,
+                TEST_SCOPE,
+                "test_api", "test_org");
+        APIResource testApiResource = new APIResource.APIResourceBuilder()
+                .id("test_api")
+                .name("Test API Resource")
+                .type("VC")
+                .identifier("test_api")
+                .description("API Resource for testing")
+                .requiresAuthorization(false).build();
+        APIResourceManager apiResourceManager = mock(APIResourceManager.class);
+        VCConfigManagementServiceDataHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        when(apiResourceManager.getScopeByName(any(), any())).thenReturn(testScope);
+        when(apiResourceManager.getAPIResourceById(any(), any())).thenReturn(testApiResource);
+
+        ClaimMetadataHandler mockClaimMetadataHandler = mock(ClaimMetadataHandler.class);
+        claimMetadataHandlerMock = mockStatic(ClaimMetadataHandler.class);
+        claimMetadataHandlerMock.when(ClaimMetadataHandler::getInstance).thenReturn(mockClaimMetadataHandler);
+
+        // Create a set of ExternalClaim objects for mocking.
+        Set<ExternalClaim> vcClaims = new HashSet<>();
+        vcClaims.add(new ExternalClaim("http://wso2.org/vc", "email", "http://wso2.org/claims/emailaddress"));
+        vcClaims.add(new ExternalClaim("http://wso2.org/vc", "name", "http://wso2.org/claims/fullname"));
+        vcClaims.add(new ExternalClaim("http://wso2.org/vc", "employee_id", "http://wso2.org/claims/employeeid"));
+        vcClaims.add(new ExternalClaim("http://wso2.org/vc", "department", "http://wso2.org/claims/department"));
+        vcClaims.add(new ExternalClaim("http://wso2.org/vc", "valid_claim", "http://wso2.org/claims/validclaim"));
+        vcClaims.add(new ExternalClaim("http://wso2.org/vc", "another_claim", "http://wso2.org/claims/anotherclaim"));
+
+        when(mockClaimMetadataHandler.getMappingsFromOtherDialectToCarbon(
+                anyString(), isNull(), anyString())).thenReturn(vcClaims);
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+
+        if (claimMetadataHandlerMock != null) {
+            claimMetadataHandlerMock.close();
+        }
     }
 
     @Test(priority = 1)

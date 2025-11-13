@@ -116,6 +116,7 @@ public class APIResourceManagementConstants {
         public static final String BUSINESS = "BUSINESS";
         public static final String SYSTEM = "SYSTEM";
         public static final String MCP = "MCP";
+        public static final String VC = "VC";
         public static final String TENANT = "TENANT";
         public static final String ORGANIZATION = "ORGANIZATION";
         public static final String CONSOLE_FEATURE = "CONSOLE_FEATURE";

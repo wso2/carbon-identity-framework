@@ -19,17 +19,30 @@
 package org.wso2.carbon.identity.vc.config.management;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants;
 import org.wso2.carbon.identity.vc.config.management.dao.VCConfigMgtDAO;
 import org.wso2.carbon.identity.vc.config.management.dao.impl.VCConfigMgtDAOImpl;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtClientException;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtException;
+import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtServerException;
+import org.wso2.carbon.identity.vc.config.management.internal.VCConfigManagementServiceDataHolder;
 import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfiguration;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.APIResourceTypes.VC;
 import static org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants.DEFAULT_SIGNING_ALGORITHM;
+import static org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants.VC_DIALECT;
 
 /**
  * Implementation of {@link VCCredentialConfigManager}.
@@ -80,7 +93,8 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         configuration.setSigningAlgorithm(DEFAULT_SIGNING_ALGORITHM);
         validateCredentialType(configuration.getType());
         validateExpiry(configuration.getExpiresIn());
-        validateClaims(configuration.getClaims());
+        validateScope(configuration.getScope(), tenantDomain);
+        validateClaims(configuration.getClaims(), tenantDomain);
         return dao.add(configuration, tenantId);
     }
 
@@ -116,13 +130,15 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
             configuration.setDisplayName(existing.getDisplayName());
         }
 
-        normalizeScopeForUpdate(configuration, existing);
         normalizeFormatForUpdate(configuration, existing);
         configuration.setSigningAlgorithm(DEFAULT_SIGNING_ALGORITHM);
         normalizeCredentialTypeForUpdate(configuration, existing);
         normalizeMetadataForUpdate(configuration, existing);
         normalizeExpiryInForUpdate(configuration, existing);
-        validateClaims(configuration.getClaims());
+        normalizeScopeForUpdate(configuration, existing);
+        validateScope(configuration.getScope(), tenantDomain);
+        normalizeClaimsForUpdate(configuration, existing);
+        validateClaims(configuration.getClaims(), tenantDomain);
         return dao.update(id, configuration, tenantId);
     }
 
@@ -192,16 +208,71 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
-    private void validateClaims(List<String> claims)
-            throws VCConfigMgtClientException {
+    /**
+     * Validate that the scope exists and belongs to a VC-type API resource.
+     *
+     * @param scope        Scope name to validate.
+     * @param tenantDomain Tenant domain.
+     * @throws VCConfigMgtException on validation errors.
+     */
+    private void validateScope(String scope, String tenantDomain) throws VCConfigMgtException {
+
+
+        if (StringUtils.isBlank(scope)) {
+            throw new VCConfigMgtClientException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
+                    "Scope cannot be empty.");
+        }
+
+        APIResourceManager apiResourceManager = VCConfigManagementServiceDataHolder.getInstance()
+                .getAPIResourceManager();
+        try {
+            Scope existingScope = apiResourceManager.getScopeByName(scope, tenantDomain);
+            if (existingScope == null) {
+                throw new VCConfigMgtClientException(
+                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
+                        "Scope does not exist: " + scope);
+            }
+
+            // Verify the scope belongs to a VC resource type
+            APIResource apiResource = apiResourceManager.getAPIResourceById(existingScope.getApiID(),
+                    tenantDomain);
+            if (apiResource == null || !VC.equals(apiResource.getType())) {
+                throw new VCConfigMgtClientException(
+                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
+                        "Scope must belong to a VC resource type: " + scope);
+            }
+        } catch (APIResourceMgtException e) {
+            throw new VCConfigMgtServerException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
+                    "Error while validating scope: " + scope, e);
+        }
+    }
+
+    private void validateClaims(List<String> claims, String tenantDomain) throws VCConfigMgtException {
 
         if (claims != null && !claims.isEmpty()) {
+            Set<ExternalClaim> vcClaims;
+            try {
+                vcClaims = ClaimMetadataHandler.getInstance()
+                        .getMappingsFromOtherDialectToCarbon(VC_DIALECT, null, tenantDomain);
+            } catch (ClaimMetadataException e) {
+                throw new VCConfigMgtServerException(
+                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
+                        "Error while validating claims.");
+            }
+
+            // Build a map for efficient claim lookup.
+            List<String> vcClaimURIs = new ArrayList<>();
+            for (ExternalClaim externalClaim : vcClaims) {
+                vcClaimURIs.add(externalClaim.getClaimURI());
+            }
+
             for (String claim : claims) {
-                if (claim == null || StringUtils.isBlank(claim)) {
-                    // TODO : Check for valid claim URIs.
+                if (StringUtils.isBlank(claim) || !vcClaimURIs.contains(claim)) {
                     throw new VCConfigMgtClientException(
                             VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                            "Each claim mapping must contain claimURI and display values.");
+                            "Invalid claim: " + claim);
                 }
             }
         }
@@ -255,5 +326,14 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
             configuration.setExpiresIn(expiry);
         }
         validateExpiry(expiry);
+    }
+
+    private void normalizeClaimsForUpdate(VCCredentialConfiguration configuration,
+                                         VCCredentialConfiguration existing) {
+
+        List<String> claims = configuration.getClaims();
+        if (claims == null || claims.isEmpty()) {
+            configuration.setClaims(existing.getClaims());
+        }
     }
 }
