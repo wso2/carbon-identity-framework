@@ -85,6 +85,7 @@
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
         <module>components/input-validation-mgt</module>
+        <module>components/external-api-framework</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
@@ -128,6 +129,7 @@
         <module>features/async-operation-status-mgt</module>
         <module>features/workflow-mgt</module>
         <module>features/identity-fraud-detection</module>
+        <module>features/external-api-framework</module>
     </modules>
 
 
@@ -2002,6 +2004,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.framework.async.operation.status.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.external.api.client</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
