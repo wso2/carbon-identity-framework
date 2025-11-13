@@ -133,7 +133,8 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(insertCfg)) {
             try {
-                String serializedMetadata = OBJECT_MAPPER.writeValueAsString(configuration.getMetadata());
+                String serializedMetadata = configuration.getMetadata() != null ?
+                        OBJECT_MAPPER.writeValueAsString(configuration.getMetadata()) : null;
                 String id = UUID.randomUUID().toString();
                 ps.setString(1, id);
                 ps.setInt(2, tenantId);
@@ -143,7 +144,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 ps.setString(6, configuration.getFormat());
                 ps.setString(7, configuration.getSigningAlgorithm());
                 ps.setString(8, configuration.getType());
-                ps.setString(9, configuration.getMetadata() != null ? serializedMetadata : null);
+                ps.setString(9, serializedMetadata);
                 ps.setInt(10, configuration.getExpiresIn());
                 ps.executeUpdate();
 

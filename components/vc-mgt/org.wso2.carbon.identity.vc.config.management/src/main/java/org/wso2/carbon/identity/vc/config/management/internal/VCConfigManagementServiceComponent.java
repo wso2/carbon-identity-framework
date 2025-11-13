@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.vc.config.management.VCOfferManager;
 import org.wso2.carbon.identity.vc.config.management.VCOfferManagerImpl;
 
 /**
- * Service component for the API resource management.
+ * Service component for the VC config management.
  */
 @Component(
         name = "vc.config.mgt.service.component",
