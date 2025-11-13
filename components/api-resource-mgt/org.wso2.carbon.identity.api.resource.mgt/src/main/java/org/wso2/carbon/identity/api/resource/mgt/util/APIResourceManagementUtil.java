@@ -207,7 +207,8 @@ public class APIResourceManagementUtil {
 
         return !APIResourceManagementConstants.APIResourceTypes.BUSINESS.equalsIgnoreCase(type)
                 && !APIResourceManagementConstants.APIResourceTypes.SYSTEM.equalsIgnoreCase(type)
-                && !APIResourceManagementConstants.APIResourceTypes.MCP.equalsIgnoreCase(type);
+                && !APIResourceManagementConstants.APIResourceTypes.MCP.equalsIgnoreCase(type)
+                && !APIResourceManagementConstants.APIResourceTypes.VC.equalsIgnoreCase(type);
     }
 
     /**

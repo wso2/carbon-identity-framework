@@ -28,6 +28,7 @@ public class VCConfigManagementConstants {
     public static final String DEFAULT_VC_FORMAT = "jwt_vc_json";
     public static final int MIN_EXPIRES_IN_SECONDS = 60;
     public static final String DEFAULT_SIGNING_ALGORITHM = "RS256";
+    public static final String VC_DIALECT = "http://wso2.org/vc/claim";
 
     /**
      * Error message codes and default messages used in VC config management.

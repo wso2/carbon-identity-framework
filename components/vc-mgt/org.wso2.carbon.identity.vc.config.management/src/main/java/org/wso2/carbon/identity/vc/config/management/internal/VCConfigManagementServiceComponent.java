@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,7 +28,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.vc.config.management.VCCredentialConfigManager;
 import org.wso2.carbon.identity.vc.config.management.VCCredentialConfigManagerImpl;
 import org.wso2.carbon.identity.vc.config.management.VCOfferManager;
@@ -74,17 +74,21 @@ public class VCConfigManagementServiceComponent {
     }
 
     @Reference(
-            name = "identityCoreInitializedEventService",
-            service = IdentityCoreInitializedEvent.class,
+            name = "api.resource.mgt.service.component",
+            service = APIResourceManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdentityCoreInitializedEventService"
-    )
-    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        // Ensure this component waits until identity core is started.
+            unbind = "unsetAPIResourceManager")
+    protected void setAPIResourceManager(APIResourceManager apiResourceManager) {
+
+        VCConfigManagementServiceDataHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        LOG.debug("APIResourceManager set in to bundle");
     }
 
-    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        // Ensure this component waits until identity core is started.
+    protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
+
+        VCConfigManagementServiceDataHolder.getInstance().setAPIResourceManager(null);
+        LOG.debug("APIResourceManager unset in to bundle");
     }
+
 }
