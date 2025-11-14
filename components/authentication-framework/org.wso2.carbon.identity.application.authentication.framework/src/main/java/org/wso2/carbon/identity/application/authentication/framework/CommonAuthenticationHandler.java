@@ -20,18 +20,13 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.debug.framework.core.DebugService;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -49,7 +44,9 @@ public class CommonAuthenticationHandler {
     }
 
     /**
-     * Handles debug flow using OSGi service lookup.
+     * Handles debug flow by loading DebugRequestCoordinator via reflection.
+     * This avoids hard dependency on debug-framework module while allowing
+     * debug flow processing if the framework is available.
      * 
      * @param request HttpServletRequest.
      * @param response HttpServletResponse.
@@ -57,51 +54,46 @@ public class CommonAuthenticationHandler {
      */
     private boolean handleDebugFlow(HttpServletRequest request, HttpServletResponse response) {        
         try {
-            BundleContext bundleContext = IdentityTenantUtil.getBundleContext();
-            if (bundleContext == null) {
-                return false;
-            }
+            // Load DebugRequestCoordinator via reflection to avoid hard dependency
+            Class<?> debugCoordinatorClass = Class.forName(
+                    "org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator");
             
-            // Try to get DebugService implementations
-            Collection<ServiceReference<DebugService>> serviceRefs = 
-                    bundleContext.getServiceReferences(DebugService.class, null);
+            // Create instance of DebugRequestCoordinator
+            Object debugCoordinator = debugCoordinatorClass.getDeclaredConstructor().newInstance();
             
-            if (serviceRefs == null || serviceRefs.isEmpty()) {
-                return false;
-            }
+            // Get the handleCommonAuthRequest method
+            java.lang.reflect.Method handleMethod = debugCoordinatorClass.getMethod(
+                    "handleCommonAuthRequest",
+                    HttpServletRequest.class,
+                    HttpServletResponse.class);
             
-            // Try each registered DebugService implementation
-            for (ServiceReference<DebugService> serviceRef : serviceRefs) {
-                DebugService debugService = bundleContext.getService(serviceRef);
-                if (debugService == null) {
-                    continue;
+            // Invoke the method and get result
+            Object result = handleMethod.invoke(debugCoordinator, request, response);
+            
+            if (result instanceof Boolean) {
+                boolean handled = (Boolean) result;
+                if (handled && log.isDebugEnabled()) {
+                    log.debug("Debug flow callback processed by DebugRequestCoordinator");
                 }
-                
-                try {
-                    // Check if this service can handle the request
-                    if (debugService.isDebugFlow(request)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Debug flow detected, attempting to handle with: " + 
-                                    debugService.getClass().getSimpleName());
-                        }
-                        
-                        // Try to handle the request
-                        boolean handled = debugService.handleCommonAuthRequest(request, response);
-                        if (handled) {
-                            if (log.isInfoEnabled()) {
-                                log.info("Debug flow successfully handled");
-                            }
-                            return true;
-                        }
-                    }
-                } finally {
-                    bundleContext.ungetService(serviceRef);
-                }
+                return handled;
             }
             
             return false;
+            
+        } catch (ClassNotFoundException e) {
+            // Debug framework not available - this is OK, debug flows won't be supported
+            if (log.isDebugEnabled()) {
+                log.debug("DebugRequestCoordinator not available (debug-framework not deployed)");
+            }
+            return false;
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            // Exception in debug processing
+            log.error("Error in debug flow processing: " + 
+                (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
+                e.getCause() != null ? e.getCause() : e);
+            return false;
         } catch (Exception e) {
-            log.error("Error handling debug flow: " + e.getMessage(), e);
+            log.error("Error discovering/invoking DebugRequestCoordinator: " + e.getMessage(), e);
             return false;
         }
     }

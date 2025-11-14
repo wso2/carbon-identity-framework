@@ -81,6 +81,9 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
     public static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
     public static final String DEBUG_FLOW_CALLBACK_PATH = "/commonauth";
+    
+    // Request Completion Flag - Signals to CommonAuthenticationHandler that debug flow handled the request.
+    public static final String DEBUG_REQUEST_HANDLED = "debugRequestHandled";
 
     // IDP Configuration Property Keys.
     public static final String IDP_CONFIG = "IDP_CONFIG";
@@ -172,5 +175,33 @@ public final class DebugFrameworkConstants {
             "OAuth 2.0 validation failed for IdP: %s";
     public static final String LOG_OAUTH2_AUTH_URL_GENERATED =
             "OAuth 2.0 Authorization URL Generated";
+
+    // Debug Result Context Properties.
+    public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
+    public static final String DEBUG_AUTH_SUCCESS = "DEBUG_AUTH_SUCCESS";
+    public static final String DEBUG_OAUTH_CODE = "DEBUG_OAUTH_CODE";
+    public static final String DEBUG_OAUTH_STATE = "DEBUG_OAUTH_STATE";
+    public static final String DEBUG_SESSION_DATA_KEY = "DEBUG_SESSION_DATA_KEY";
+    public static final String DEBUG_CALLBACK_TIMESTAMP = "DEBUG_CALLBACK_TIMESTAMP";
+    public static final String DEBUG_CALLBACK_PROCESSED = "DEBUG_CALLBACK_PROCESSED";
+    public static final String DEBUG_ACCESS_TOKEN = "DEBUG_ACCESS_TOKEN";
+    public static final String DEBUG_ID_TOKEN = "DEBUG_ID_TOKEN";
+    public static final String DEBUG_TOKEN_TYPE = "DEBUG_TOKEN_TYPE";
+    public static final String DEBUG_INCOMING_CLAIMS = "DEBUG_INCOMING_CLAIMS";
+    public static final String DEBUG_MAPPED_LOCAL_CLAIMS_MAP = "DEBUG_MAPPED_LOCAL_CLAIMS_MAP";
+    public static final String DEBUG_IDP_CONFIGURED_MAPPINGS = "DEBUG_IDP_CONFIGURED_MAPPINGS";
+    public static final String DEBUG_CLAIM_MAPPING_DIAGNOSTIC = "DEBUG_CLAIM_MAPPING_DIAGNOSTIC";
+    public static final String DEBUG_STEP_CLAIM_MAPPING_AUTO_USED = "DEBUG_STEP_CLAIM_MAPPING_AUTO_USED";
+    public static final String DEBUG_CALLBACK_URL = "DEBUG_CALLBACK_URL";
+    public static final String DEBUG_CALLBACK_URL_USED = "DEBUG_CALLBACK_URL_USED";
+
+    // Step Status Constants.
+    public static final String STEP_CLAIM_EXTRACTION_STATUS = "step_claim_extraction_status";
+
+    // Common Parameter Values.
+    public static final String DEBUG_PREFIX = "debug-";
+    public static final String FAILURE_STATUS = "failed";
+    public static final String TRUE_STRING = "true";
+    public static final String FALSE_STRING = "false";
 
 }
