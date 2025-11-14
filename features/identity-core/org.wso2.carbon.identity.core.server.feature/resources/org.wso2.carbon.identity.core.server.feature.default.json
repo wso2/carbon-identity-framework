@@ -2174,5 +2174,12 @@
   "configs.endpoint.elevate_permission": true,
 
   "identifier_first.preserve_case_sensitivity.enabled": true,
-  "pastr_cookie.max_age": "-1"
+  "pastr_cookie.max_age": "-1",
+  "admin_service.deny_list": [
+    "CarbonAppUploader",
+    "WebappAdmin",
+    "FileDownloadService",
+    "FileUploadService",
+    "LoginStatisticsAdmin"
+  ]
 }
