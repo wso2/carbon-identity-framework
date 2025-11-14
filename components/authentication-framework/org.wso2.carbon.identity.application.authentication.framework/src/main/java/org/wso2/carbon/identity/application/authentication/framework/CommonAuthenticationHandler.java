@@ -20,11 +20,15 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.debug.framework.DebugService;
 
 import java.io.IOException;
 
@@ -43,6 +47,36 @@ public class CommonAuthenticationHandler {
         ConfigurationFacade.getInstance();
     }
 
+    /**
+     * Handles debug flow using OSGi service lookup.
+     * 
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @return true if debug flow was handled, false otherwise.
+     */
+    private boolean handleDebugFlow(HttpServletRequest request, HttpServletResponse response) {        
+        try {
+            BundleContext bundleContext = IdentityTenantUtil.getBundleContext();
+            if (bundleContext == null) {
+                return false;
+            }
+            ServiceReference<DebugService> serviceRef = bundleContext.getServiceReference(DebugService.class);
+            if (serviceRef == null) {
+                return false;
+            }
+            DebugService debugService = bundleContext.getService(serviceRef);
+            if (debugService == null) {
+                return false;
+            }
+            boolean handled = debugService.handleCommonAuthRequest(request, response);
+            bundleContext.ungetService(serviceRef);
+            return handled;
+        } catch (Exception e) {
+            log.error("Error handling debug flow via OSGi service lookup: " + e.getMessage(), e);
+            return false;
+        }
+    }
+
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doPost(request, response);
@@ -50,12 +84,19 @@ public class CommonAuthenticationHandler {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         if (FrameworkUtils.getMaxInactiveInterval() == 0) {
             FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());
         }
-
         try {
+            boolean debugHandled = handleDebugFlow(request, response);
+            
+            if (debugHandled) {
+                // Debug flow handled, return without proceeding to regular authentication.
+                log.info("Debug flow handled by DebugService.");
+                return;
+            }
+
+            // If not a debug flow, proceed with regular WSO2 authentication.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (CookieValidationFailedException e) {
 
@@ -67,6 +108,11 @@ public class CommonAuthenticationHandler {
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (UserAssertionFailedException e) {
 
+            FrameworkUtils.getRequestCoordinator().handle(request, response);
+        } catch (Exception e) {
+            // Handle any exceptions from debug coordinator.
+            log.error("Exception in CommonAuthenticationHandler: " + e.getMessage(), e);
+            // Fallback to regular authentication if debug processing fails.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
     }
