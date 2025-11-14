@@ -56,6 +56,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_INTERNAL_SCOPES;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
@@ -400,10 +401,12 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                                       ApplicationManagementService applicationManagementService)
             throws IdentityApplicationManagementServerException, IdentityApplicationManagementClientException {
 
-        int tenantId = applicationManagementService.getTenantIdByApp(applicationId);
-        if (tenantId != IdentityTenantUtil.getTenantId(tenantDomain)) {
-            throw buildClientException(INVALID_REQUEST,
-                    "Application does not belong to the tenant domain: " + tenantDomain);
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY))) {
+            int tenantId = applicationManagementService.getTenantIdByApp(applicationId);
+            if (tenantId != IdentityTenantUtil.getTenantId(tenantDomain)) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Application does not belong to the tenant domain: " + tenantDomain);
+            }
         }
     }
 }
