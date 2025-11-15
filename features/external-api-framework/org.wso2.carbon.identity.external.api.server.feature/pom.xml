@@ -37,6 +37,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.external.api.client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.external.api.token.handler</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -63,6 +67,9 @@
                             <bundles>
                                 <bundleDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.external.api.client
+                                </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.external.api.token.handler
                                 </bundleDef>
                             </bundles>
                         </configuration>
