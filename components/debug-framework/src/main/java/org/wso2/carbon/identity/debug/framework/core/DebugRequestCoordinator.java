@@ -155,7 +155,8 @@ public class DebugRequestCoordinator implements DebugService {
                 context = retrieveOAuth2DebugContext(state);
                 
                 if (context != null && LOG.isDebugEnabled()) {
-                    LOG.debug("Retrieved OAuth2 debug context from cache for state: " + state);
+                    LOG.debug("Retrieved OAuth2 debug context from cache for state: " + 
+                        (state.length() > 50 ? state.substring(0, 50) + "..." : state));
                 }
             }
 
@@ -301,6 +302,11 @@ public class DebugRequestCoordinator implements DebugService {
      */
     private void invokeProcessorCallback(Object processor, HttpServletRequest request, 
                                         HttpServletResponse response, AuthenticationContext context) throws Exception {
+        // Null check for processor.
+        if (processor == null) {
+            throw new Exception("DebugProcessor is null");
+        }
+        
         try {
             Class<?> processorClass = processor.getClass();
             java.lang.reflect.Method processCallbackMethod = processorClass.getMethod(
@@ -317,10 +323,15 @@ public class DebugRequestCoordinator implements DebugService {
             }
             
         } catch (java.lang.reflect.InvocationTargetException e) {
-            LOG.error("Error in processor callback - actual error: " + 
-                (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()), 
-                e.getCause() != null ? e.getCause() : e);
-            throw new Exception("Processor callback failed", e.getCause() != null ? e.getCause() : e);
+            Throwable cause = e.getCause();
+            String errorMsg = "Error in processor callback";
+            if (cause != null) {
+                errorMsg += " - actual error: " + cause.getMessage();
+                LOG.error(errorMsg, cause);
+            } else {
+                LOG.error(errorMsg, e);
+            }
+            throw new Exception(errorMsg, cause != null ? cause : e);
         } catch (NoSuchMethodException e) {
             LOG.error("processCallback method not found on processor: " + e.getMessage(), e);
             throw new Exception("processCallback method not found", e);
@@ -339,6 +350,10 @@ public class DebugRequestCoordinator implements DebugService {
      * @return AuthenticationContext if found in OAuth2 cache, null otherwise.
      */
     private AuthenticationContext retrieveOAuth2DebugContext(String state) {
+        if (state == null) {
+            return null;
+        }
+        
         try {
             // Use reflection to access OAuth2UrlBuilder's DebugSessionCache
             // (OAuth2UrlBuilder is in an optional dependency)
@@ -355,13 +370,20 @@ public class DebugRequestCoordinator implements DebugService {
             java.lang.reflect.Method getInstanceMethod = debugSessionCacheClass.getMethod("getInstance");
             Object cacheInstance = getInstanceMethod.invoke(null);
             
+            if (cacheInstance == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("OAuth2 DebugSessionCache instance is null");
+                }
+                return null;
+            }
+            
             // Get get() method to retrieve the context map
             java.lang.reflect.Method getMethod = debugSessionCacheClass.getMethod("get", String.class);
             Object cachedContextMap = getMethod.invoke(cacheInstance, state);
             
             if (cachedContextMap == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("No OAuth2 debug context found in cache for state: " + state);
+                    LOG.debug("No OAuth2 debug context found in cache for state");
                 }
                 return null;
             }
@@ -371,7 +393,7 @@ public class DebugRequestCoordinator implements DebugService {
             Map<String, Object> contextMap = (Map<String, Object>) cachedContextMap;
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Retrieved context map from cache with keys: " + contextMap.keySet());
+                LOG.debug("Retrieved context map from cache with " + contextMap.size() + " properties");
             }
             
             // Create new AuthenticationContext from cached values
@@ -387,13 +409,15 @@ public class DebugRequestCoordinator implements DebugService {
             
             // Copy all properties from the cached map to the context
             for (Map.Entry<String, Object> entry : contextMap.entrySet()) {
-                context.setProperty(entry.getKey(), entry.getValue());
+                if (entry.getKey() != null) {
+                    context.setProperty(entry.getKey(), entry.getValue());
+                }
             }
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully retrieved OAuth2 debug context from cache for state: " + state +
-                         ", context identifier set to: " + context.getContextIdentifier() +
-                         ", total properties transferred: " + contextMap.size());
+                LOG.debug("Successfully retrieved OAuth2 debug context from cache, " +
+                         "context identifier: " + context.getContextIdentifier() +
+                         ", properties transferred: " + contextMap.size());
             }
             
             return context;
@@ -499,8 +523,12 @@ public class DebugRequestCoordinator implements DebugService {
             response.setCharacterEncoding("UTF-8");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
-            String errorJson = "{\"error\":\"" + errorCode + "\"," +
-                             "\"message\":\"" + (errorMessage != null ? errorMessage.replace("\"", "\\\"") : "") +
+            // Safely escape error message to prevent JSON injection.
+            String escapedCode = escapeJsonString(errorCode);
+            String escapedMessage = escapeJsonString(errorMessage != null ? errorMessage : "");
+            
+            String errorJson = "{\"error\":\"" + escapedCode + "\"," +
+                             "\"message\":\"" + escapedMessage +
                              "\"," +
                              "\"timestamp\":" + System.currentTimeMillis() + "}";
 
@@ -510,6 +538,26 @@ public class DebugRequestCoordinator implements DebugService {
         } catch (IOException e) {
             LOG.error("Error sending error response: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Escapes a string for safe inclusion in JSON.
+     * Prevents JSON injection by escaping special characters.
+     *
+     * @param input String to escape.
+     * @return Escaped string safe for JSON.
+     */
+    private String escapeJsonString(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replace("\\", "\\\\")
+                   .replace("\"", "\\\"")
+                   .replace("\b", "\\b")
+                   .replace("\f", "\\f")
+                   .replace("\n", "\\n")
+                   .replace("\r", "\\r")
+                   .replace("\t", "\\t");
     }
 
     /**

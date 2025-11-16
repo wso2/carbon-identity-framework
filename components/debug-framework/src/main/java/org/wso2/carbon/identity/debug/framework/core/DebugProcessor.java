@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.debug.framework.core.cache.DebugResultCache;
 import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,9 +103,7 @@ public abstract class DebugProcessor {
             if (!exchangeAuthorizationForTokens(request, context, response, state, idpId)) {
                 // Token exchange failed - error details already cached by subclass (e.g., OAuth2DebugProcessor).
                 // Just redirect to success page to display the cached error result.
-                if (!response.isCommitted()) {
-                    response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
-                }
+                redirectToDebugSuccess(response, state, idpId);
                 return;
             }
             
@@ -118,20 +117,18 @@ public abstract class DebugProcessor {
             AuthenticatedUser authenticatedUser = createAuthenticatedUser(claims, context);
             buildAndCacheDebugResult(authenticatedUser, context, state);
             
-            if (!response.isCommitted()) {
-                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
-            }
+            redirectToDebugSuccess(response, state, idpId);
             
         } catch (Exception e) {
             LOG.error("Unexpected error processing OAuth 2.0 callback.", e);
             context.setProperty("DEBUG_AUTH_ERROR", "Unexpected error: " + e.getMessage());
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
             if (e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null) {
-                LOG.error("InvocationTargetException cause:", e.getCause());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("InvocationTargetException cause:", e.getCause());
+                }
             }
-            if (!response.isCommitted()) {
-                response.sendRedirect("/authenticationendpoint/debugError.jsp?state=" + state + "&idpId=" + idpId);
-            }
+            redirectToDebugSuccess(response, state, idpId);
         }
     }
 
@@ -158,12 +155,12 @@ public abstract class DebugProcessor {
 
         // Handle OAuth error responses.
         if (error != null) {
-            LOG.error("Authorization error from IdP: " + error + " - " + errorDescription);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Authorization error from IdP: " + error + " - " + errorDescription);
+            }
             context.setProperty("DEBUG_AUTH_ERROR", error + ": " + errorDescription);
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-            if (!response.isCommitted()) {
-                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
-            }
+            redirectToDebugSuccess(response, state, idpId);
             return false;
         }
 
@@ -172,9 +169,7 @@ public abstract class DebugProcessor {
             LOG.error("Authorization code missing in callback");
             context.setProperty("DEBUG_AUTH_ERROR", "Authorization code not received from IdP");
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-            if (!response.isCommitted()) {
-                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
-            }
+            redirectToDebugSuccess(response, state, idpId);
             return false;
         }
 
@@ -183,9 +178,7 @@ public abstract class DebugProcessor {
             LOG.error("State parameter missing in callback");
             context.setProperty("DEBUG_AUTH_ERROR", "State parameter missing - possible CSRF attack");
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-            if (!response.isCommitted()) {
-                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
-            }
+            redirectToDebugSuccess(response, state, idpId);
             return false;
         }
 
@@ -195,9 +188,7 @@ public abstract class DebugProcessor {
             LOG.error("State parameter mismatch - CSRF attack detected");
             context.setProperty("DEBUG_AUTH_ERROR", "State validation failed - possible CSRF attack");
             context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-            if (!response.isCommitted()) {
-                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
-            }
+            redirectToDebugSuccess(response, state, idpId);
             return false;
         }
 
@@ -237,6 +228,7 @@ public abstract class DebugProcessor {
     /**
      * Checks if authorization code was already processed in this session.
      * Used to detect and prevent authorization code replay attacks.
+     * Validates authorization code format before storing in session.
      *
      * @param authorizationCode The authorization code from the callback.
      * @param request HttpServletRequest.
@@ -249,20 +241,26 @@ public abstract class DebugProcessor {
     private boolean isAuthorizationCodeAlreadyProcessed(String authorizationCode, HttpServletRequest request,
                                                        AuthenticationContext context, HttpServletResponse response,
                                                        String state, String idpId) throws IOException {
+        // Validate authorization code format before processing.
+        if (authorizationCode == null || authorizationCode.trim().isEmpty() || authorizationCode.length() > 2000) {
+            LOG.error("Invalid authorization code: null, empty, or exceeds maximum length");
+            context.setProperty("DEBUG_AUTH_ERROR", "Invalid authorization code format");
+            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            redirectToDebugSuccess(response, state, idpId);
+            return true;
+        }
+
         String lastProcessedCode = (String) request.getSession().getAttribute("LAST_AUTH_CODE");
-        if (authorizationCode != null && authorizationCode.equals(lastProcessedCode)) {
-            if (!response.isCommitted()) {
-                context.setProperty("DEBUG_AUTH_ERROR",
-                    "Authorization code already used in this session. Please retry login.");
-                context.setProperty("DEBUG_AUTH_SUCCESS", "false");
-                response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
-            }
+        if (authorizationCode.equals(lastProcessedCode)) {
+            context.setProperty("DEBUG_AUTH_ERROR",
+                "Authorization code already used in this session. Please retry login.");
+            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            redirectToDebugSuccess(response, state, idpId);
             return true;
         }
         
-        if (authorizationCode != null) {
-            request.getSession().setAttribute("LAST_AUTH_CODE", authorizationCode);
-        }
+        // Store the authorization code in session for replay attack detection.
+        request.getSession().setAttribute("LAST_AUTH_CODE", authorizationCode);
         return false;
     }
 
@@ -396,15 +394,26 @@ public abstract class DebugProcessor {
             debugResult.put("executor", executorClass);
             debugResult.put("timestamp", context.getProperty("DEBUG_AUTH_COMPLETION_TIMESTAMP"));
             
-            debugResult.put("incomingClaims", context.getProperty("DEBUG_INCOMING_CLAIMS"));
+            // Get incoming claims for building mapped claims array
+            Map<String, Object> incomingClaimsObj = (Map<String, Object>) context.getProperty("DEBUG_INCOMING_CLAIMS");
             
             Object mappedClaimsObj = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
             Map<String, String> formattedMappedClaims = formatMappedClaimsWithStandardURIs(mappedClaimsObj, context);
-            debugResult.put("mappedClaims", formattedMappedClaims);
             
+            // Convert mapped claims to array format with mapping status
+            List<Map<String, Object>> mappedClaimsArray = buildMappedClaimsArray(
+                formattedMappedClaims, incomingClaimsObj, context);
+            debugResult.put("mappedClaims", mappedClaimsArray);
+            
+            // Convert idp configured mappings to array format for frontend
             Object idpConfiguredMappings = context.getProperty("DEBUG_IDP_CONFIGURED_MAPPINGS");
-            if (idpConfiguredMappings != null) {
-                debugResult.put("idpConfiguredClaimMappings", idpConfiguredMappings);
+            if (idpConfiguredMappings != null && idpConfiguredMappings instanceof Map) {
+                Map<String, Map<String, String>> mappingsMap = (Map<String, Map<String, String>>) idpConfiguredMappings;
+                List<Map<String, String>> mappingsArray = new java.util.ArrayList<>();
+                for (Map.Entry<String, Map<String, String>> entry : mappingsMap.entrySet()) {
+                    mappingsArray.add(entry.getValue());
+                }
+                debugResult.put("idpConfiguredClaimMappings", mappingsArray);
             }
             
             Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
@@ -459,15 +468,26 @@ public abstract class DebugProcessor {
             debugResult.put("executor", executorClass);
             debugResult.put("timestamp", System.currentTimeMillis());
             
-            debugResult.put("incomingClaims", context.getProperty("DEBUG_INCOMING_CLAIMS"));
+            // Get incoming claims for building mapped claims array
+            Map<String, Object> incomingClaimsObj = (Map<String, Object>) context.getProperty("DEBUG_INCOMING_CLAIMS");
             
             Object mappedClaimsObj = context.getProperty("DEBUG_MAPPED_LOCAL_CLAIMS_MAP");
             Map<String, String> formattedMappedClaims = formatMappedClaimsWithStandardURIs(mappedClaimsObj, context);
-            debugResult.put("mappedClaims", formattedMappedClaims);
             
+            // Convert mapped claims to array format with mapping status
+            List<Map<String, Object>> mappedClaimsArray = buildMappedClaimsArray(
+                formattedMappedClaims, incomingClaimsObj, context);
+            debugResult.put("mappedClaims", mappedClaimsArray);
+            
+            // Convert idp configured mappings to array format for frontend
             Object idpConfiguredMappings = context.getProperty("DEBUG_IDP_CONFIGURED_MAPPINGS");
-            if (idpConfiguredMappings != null) {
-                debugResult.put("idpConfiguredClaimMappings", idpConfiguredMappings);
+            if (idpConfiguredMappings != null && idpConfiguredMappings instanceof Map) {
+                Map<String, Map<String, String>> mappingsMap = (Map<String, Map<String, String>>) idpConfiguredMappings;
+                List<Map<String, String>> mappingsArray = new java.util.ArrayList<>();
+                for (Map.Entry<String, Map<String, String>> entry : mappingsMap.entrySet()) {
+                    mappingsArray.add(entry.getValue());
+                }
+                debugResult.put("idpConfiguredClaimMappings", mappingsArray);
             }
             
             Object mappingDiagnostic = context.getProperty("DEBUG_CLAIM_MAPPING_DIAGNOSTIC");
@@ -797,7 +817,7 @@ public abstract class DebugProcessor {
     /**
      * Formats mapped claims with standard claim URIs using ClaimMetadataManagementService.
      * Converts raw claim keys to standard WSO2 claim URIs for better readability.
-     * Maps short claim names to standard WSO2 claim URIs based on the system configuration.
+     * Safely validates type before unchecked cast to prevent ClassCastException.
      *
      * @param mappedClaimsObj Object containing mapped claims (typically a Map).
      * @param context AuthenticationContext to retrieve tenant information.
@@ -807,7 +827,16 @@ public abstract class DebugProcessor {
             AuthenticationContext context) {
         Map<String, String> formattedClaims = new HashMap<>();
 
-        if (mappedClaimsObj == null || !(mappedClaimsObj instanceof Map)) {
+        // Safely validate type before unchecked cast.
+        if (mappedClaimsObj == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Mapped claims object is null");
+            }
+            return formattedClaims;
+        }
+
+        if (!(mappedClaimsObj instanceof Map)) {
+            LOG.warn("Mapped claims object is not a Map. Actual type: " + mappedClaimsObj.getClass().getName());
             return formattedClaims;
         }
 
@@ -816,7 +845,7 @@ public abstract class DebugProcessor {
 
         // Get tenant domain from context.
         String tenantDomain = (String) context.getProperty("DEBUG_TENANT_DOMAIN");
-        if (tenantDomain == null) {
+        if (tenantDomain == null || tenantDomain.isEmpty()) {
             tenantDomain = "carbon.super";
         }
 
@@ -827,6 +856,13 @@ public abstract class DebugProcessor {
             String claimKey = entry.getKey();
             String claimValue = entry.getValue();
 
+            if (claimKey == null || claimKey.isEmpty()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Skipping null or empty claim key");
+                }
+                continue;
+            }
+
             // Get the standard claim URI or use the original key if not found.
             String standardClaimUri = claimUriMapping.getOrDefault(claimKey, claimKey);
 
@@ -834,7 +870,7 @@ public abstract class DebugProcessor {
             formattedClaims.put(standardClaimUri, claimValue);
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Formatted claim mapping: " + standardClaimUri + " = " + claimValue);
+                LOG.debug("Formatted claim mapping: " + standardClaimUri);
             }
         }
 
@@ -948,6 +984,91 @@ public abstract class DebugProcessor {
         }
         // Fallback to explicit URI if pattern extraction fails.
         return "http://wso2.org/claims/" + claimShortName;
+    }
+
+    /**
+     * Converts incoming claims map to array format for frontend display.
+     * Transforms both object and array formats into array of {claim, value} objects.
+     *
+     * @param claimsData The incoming claims map or array.
+     * @return List of claim objects with claim name and value properties.
+     */
+    /**
+     * Builds mapped claims array with mapping status for frontend display.
+     * Merges mapped claims with incoming claims to show both successful and failed mappings.
+     *
+     * @param mappedClaims Map of successfully mapped local claim URIs to values.
+     * @param incomingClaims Map of incoming claims from IdP.
+     * @param context AuthenticationContext containing IdP configuration.
+     * @return List of claim mappings with status showing which claims were successfully mapped.
+     */
+    private List<Map<String, Object>> buildMappedClaimsArray(
+            Map<String, String> mappedClaims,
+            Map<String, Object> incomingClaims,
+            AuthenticationContext context) {
+        
+        List<Map<String, Object>> mappingsArray = new java.util.ArrayList<>();
+        
+        if (mappedClaims == null) {
+            mappedClaims = new HashMap<>();
+        }
+        
+        // Get IdP configured mappings
+        Object idpConfiguredMappings = context.getProperty("DEBUG_IDP_CONFIGURED_MAPPINGS");
+        Map<String, Map<String, String>> configuredMappings = new HashMap<>();
+        
+        if (idpConfiguredMappings instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Map<String, String>> mappingsMap = (Map<String, Map<String, String>>) idpConfiguredMappings;
+            configuredMappings = mappingsMap;
+        }
+        
+        // Create reverse mapping: local claim URI -> remote claim name
+        Map<String, String> localToRemoteMapping = new HashMap<>();
+        for (Map.Entry<String, Map<String, String>> entry : configuredMappings.entrySet()) {
+            Map<String, String> mapping = entry.getValue();
+            if (mapping != null && mapping.containsKey("local") && mapping.containsKey("remote")) {
+                localToRemoteMapping.put(mapping.get("local"), mapping.get("remote"));
+            }
+        }
+        
+        // Track which incoming claims have been mapped
+        java.util.Set<String> mappedIncomingClaims = new java.util.HashSet<>();
+        
+        // First, add successfully mapped claims
+        for (Map.Entry<String, String> entry : mappedClaims.entrySet()) {
+            String localClaimUri = entry.getKey();
+            String remoteClaimName = localToRemoteMapping.getOrDefault(localClaimUri, localClaimUri);
+            
+            Map<String, Object> mapping = new HashMap<>();
+            mapping.put("idpClaim", remoteClaimName); // remote claim name from IdP
+            mapping.put("isClaim", localClaimUri); // local claim URI
+            mapping.put("value", entry.getValue());
+            mapping.put("status", "Successful");
+            mapping.put("localClaimUri", localClaimUri);
+            mappingsArray.add(mapping);
+            
+            mappedIncomingClaims.add(remoteClaimName);
+        }
+        
+        // Then, add unmapped incoming claims
+        if (incomingClaims != null && !incomingClaims.isEmpty()) {
+            for (Map.Entry<String, Object> entry : incomingClaims.entrySet()) {
+                String incomingClaimKey = entry.getKey();
+                
+                // Check if this incoming claim was mapped
+                if (!mappedIncomingClaims.contains(incomingClaimKey)) {
+                    Map<String, Object> unmappedClaim = new HashMap<>();
+                    unmappedClaim.put("idpClaim", incomingClaimKey);
+                    unmappedClaim.put("isClaim", "-");
+                    unmappedClaim.put("value", entry.getValue());
+                    unmappedClaim.put("status", "Not mapped");
+                    mappingsArray.add(unmappedClaim);
+                }
+            }
+        }
+        
+        return mappingsArray;
     }
 
     /**
@@ -1075,6 +1196,7 @@ public abstract class DebugProcessor {
 
     /**
      * Redirects to the debug success page after processing.
+     * Properly URL-encodes parameters to prevent XSS and injection attacks.
      *
      * @param response HttpServletResponse for sending the redirect.
      * @param state The state parameter for session identification.
@@ -1084,7 +1206,30 @@ public abstract class DebugProcessor {
     private void redirectToDebugSuccess(HttpServletResponse response, String state, String idpId)
             throws IOException {
         if (!response.isCommitted()) {
-            response.sendRedirect("/authenticationendpoint/debugSuccess.jsp?state=" + state + "&idpId=" + idpId);
+            String encodedState = encodeForUrl(state);
+            String encodedIdpId = encodeForUrl(idpId);
+            String redirectUrl = "/authenticationendpoint/debugSuccess.jsp?state=" + encodedState + 
+                                 "&idpId=" + encodedIdpId;
+            response.sendRedirect(redirectUrl);
+        }
+    }
+
+    /**
+     * URL-encodes a parameter for safe use in HTTP redirects.
+     * Prevents XSS and injection vulnerabilities.
+     *
+     * @param param Parameter to encode.
+     * @return URL-encoded parameter.
+     */
+    private String encodeForUrl(String param) {
+        if (param == null || param.isEmpty()) {
+            return "";
+        }
+        try {
+            return URLEncoder.encode(param, "UTF-8");
+        } catch (Exception e) {
+            LOG.warn("Error encoding URL parameter: " + e.getMessage());
+            return "";
         }
     }
 

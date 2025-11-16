@@ -81,6 +81,7 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
     public static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
     public static final String DEBUG_FLOW_CALLBACK_PATH = "/commonauth";
+    public static final String DEBUG_CONTEXT_ID = "DEBUG_CONTEXT_ID";
     
     // Request Completion Flag - Signals to CommonAuthenticationHandler that debug flow handled the request.
     public static final String DEBUG_REQUEST_HANDLED = "debugRequestHandled";

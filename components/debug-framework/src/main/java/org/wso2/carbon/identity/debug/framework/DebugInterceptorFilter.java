@@ -65,9 +65,11 @@ public class DebugInterceptorFilter implements Filter {
 
                 // Check if this looks like a debug callback (state parameter starts with "debug-")
                 if (state != null && state.startsWith("debug-")) {
-                    LOG.info("DebugInterceptorFilter: Potential debug callback detected - State: " + state +
-                            " | Code: " + (code != null ? "present" : "absent") +
-                            " | Error: " + (error != null ? error : "none"));
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("DebugInterceptorFilter: Potential debug callback detected - State: " + state +
+                                " | Code: " + (code != null ? "present" : "absent") +
+                                " | Error: " + (error != null ? error : "none"));
+                    }
                 } else if (LOG.isDebugEnabled()) {
                     if (state != null || code != null || error != null) {
                         LOG.debug("DebugInterceptorFilter: Non-debug callback - State: " + state +
@@ -89,10 +91,25 @@ public class DebugInterceptorFilter implements Filter {
             // Continue to next filter/servlet in the chain
             chain.doFilter(request, response);
 
+        } catch (IOException e) {
+            LOG.error("IOException in DebugInterceptorFilter: " + e.getMessage(), e);
+            // Re-throw IOException as it's part of normal filter operation
+            throw e;
+        } catch (ServletException e) {
+            LOG.error("ServletException in DebugInterceptorFilter: " + e.getMessage(), e);
+            // Re-throw ServletException as it's part of normal filter operation
+            throw e;
         } catch (Exception e) {
-            LOG.error("Error in DebugInterceptorFilter: " + e.getMessage(), e);
-            // Continue to next filter/servlet even if there's an error
-            chain.doFilter(request, response);
+            LOG.error("Unexpected error in DebugInterceptorFilter: " + e.getMessage(), e);
+            // Log but attempt to continue to next filter/servlet
+            // This prevents a single filter error from breaking the entire request pipeline
+            try {
+                chain.doFilter(request, response);
+            } catch (Exception chainException) {
+                LOG.error("Error continuing filter chain after DebugInterceptorFilter exception: " + 
+                        chainException.getMessage(), chainException);
+                throw new ServletException("DebugInterceptorFilter encountered an error", chainException);
+            }
         }
     }
 
