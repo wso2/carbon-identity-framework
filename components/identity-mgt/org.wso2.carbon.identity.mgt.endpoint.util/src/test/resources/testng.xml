@@ -36,6 +36,7 @@
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.AuthenticatorDataRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.SelfRegisterApiTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ClaimRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.ApplicationDataRetrievalClientTest"/>
         </classes>
     </test>
 </suite>

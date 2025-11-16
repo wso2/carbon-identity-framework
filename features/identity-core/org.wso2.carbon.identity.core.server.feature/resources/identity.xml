@@ -1307,6 +1307,7 @@
         <EnableRoleValidation>false</EnableRoleValidation>
         <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
         <SkipEnforceClientSecretPermission>false</SkipEnforceClientSecretPermission>
+        <EnableCrossTenantAuthorizedApiValidation>true</EnableCrossTenantAuthorizedApiValidation>
     </ApplicationMgt>
 
     <JITProvisioning>
@@ -2837,6 +2838,8 @@
         <DataStoreType>org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</DataStoreType>
     </IdentityDataStore>
 
+    <AddUserStoreDomainToGroupClaims>false</AddUserStoreDomainToGroupClaims>
+
     <UserProfileExport>
         <AdditionalClaims>
         </AdditionalClaims>
@@ -2912,5 +2915,6 @@
             </Custom>
         </SMS>
     </NotificationChannel>
+    <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
 
 </Server>

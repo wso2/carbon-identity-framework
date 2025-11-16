@@ -56,6 +56,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_INTERNAL_SCOPES;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
@@ -72,6 +73,9 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     public void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        validateTenantDomain(applicationId, tenantDomain, applicationManagementService);
+
         ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
                 ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
         publisherProxy.publishPreAddAuthorizedAPIForApplication(applicationId, authorizedAPI, tenantDomain);
@@ -81,7 +85,6 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             listener.preAddAuthorizedAPI(applicationId, authorizedAPI, tenantDomain);
         }
         // Check if the application is a main application. If not, throw a client error.
-        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
         String mainAppId = applicationManagementService.getMainAppId(applicationId);
         if (StringUtils.isNotBlank(mainAppId)) {
             throw buildClientException(INVALID_REQUEST, "Cannot add authorized APIs to a shared application.");
@@ -97,6 +100,9 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     @Override
     public void deleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
             throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        validateTenantDomain(appId, tenantDomain, applicationManagementService);
 
         ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
                 ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
@@ -126,13 +132,14 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             throws IdentityApplicationManagementException {
 
         try {
+            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            validateTenantDomain(applicationId, tenantDomain, applicationManagementService);
             Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
                     .getAuthorizedAPIManagementListeners();
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.preGetAuthorizedAPIs(applicationId, tenantDomain);
             }
             // Check if the application is a main application else get the main application id and main tenant id.
-            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
             String mainAppId = applicationManagementService.getMainAppId(applicationId);
             if (StringUtils.isNotBlank(mainAppId)) {
                 applicationId = mainAppId;
@@ -183,13 +190,14 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             throws IdentityApplicationManagementException {
 
         try {
+            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            validateTenantDomain(appId, tenantDomain, applicationManagementService);
             Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
                     .getAuthorizedAPIManagementListeners();
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.preGetAuthorizedScopes(appId, tenantDomain);
             }
             // Check if the application is a main application else get the main application id and main tenant id.
-            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
             String mainAppId = applicationManagementService.getMainAppId(appId);
             if (mainAppId != null) {
                 appId = mainAppId;
@@ -258,13 +266,14 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             throws IdentityApplicationManagementException {
 
         try {
+            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+            validateTenantDomain(appId, tenantDomain, applicationManagementService);
             Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
                     .getAuthorizedAPIManagementListeners();
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.preGetAuthorizedAPI(appId, apiId, tenantDomain);
             }
             // Check if the application is a main application else get the main application id and main tenant id.
-            ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
             String mainAppId = applicationManagementService.getMainAppId(appId);
             if (mainAppId != null) {
                 apiId = mainAppId;
@@ -350,6 +359,8 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                                    List<String> removedAuthorizationDetailsTypes, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        validateTenantDomain(appId, tenantDomain, applicationManagementService);
         ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
                 ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
         publisherProxy.publishPreUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
@@ -375,6 +386,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
 
         // Check if the application is a main application else get the main application id and main tenant id.
         ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        validateTenantDomain(appId, tenantDomain, applicationManagementService);
         String mainAppId = applicationManagementService.getMainAppId(appId);
         if (mainAppId != null) {
             appId = mainAppId;
@@ -383,5 +395,18 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
 
         return this.authorizedAPIDAO
                 .getAuthorizedAuthorizationDetailsTypes(appId, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    private void validateTenantDomain(String applicationId, String tenantDomain,
+                                      ApplicationManagementService applicationManagementService)
+            throws IdentityApplicationManagementServerException, IdentityApplicationManagementClientException {
+
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY))) {
+            int tenantId = applicationManagementService.getTenantIdByApp(applicationId);
+            if (tenantId != IdentityTenantUtil.getTenantId(tenantDomain)) {
+                throw buildClientException(INVALID_REQUEST,
+                        "Application does not belong to the tenant domain: " + tenantDomain);
+            }
+        }
     }
 }
