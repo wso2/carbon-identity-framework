@@ -59,7 +59,6 @@
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
   "authenticationendpoint.authenticator_validation_enabled": false,
-  "authenticationendpoint.default_authenticators": "IdentifierExecutor:LOCAL",
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
   "recovery.v0_9_api.include_display_order_property_in_claims": false,
