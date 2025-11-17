@@ -217,7 +217,9 @@ public class AuthenticationEndpointFilter implements Filter {
                             if (log.isDebugEnabled()) {
                                 log.debug("Checking authenticator: " + authenticatorIDP + ", exists: " + authenticatorExists);
                             }
-                            if (authenticatorExists) {
+                            //Whitelisting Identifier First Authenticator in the case it is added automatically for Email OTP/ SMS OTP / Magic Link first step.
+                            if (authenticatorExists ||
+                                    authenticatorIDP.equals(Constants.IDF_AUTHENTICATOR_NAME)) {
                                 if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                                     idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
                                             idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);

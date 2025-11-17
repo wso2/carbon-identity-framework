@@ -73,6 +73,7 @@ public class Constants {
     public static final String CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS = "google.social.onetap.restricted_browsers";
     public static final String CONFIG_HOSTNAME_VERIFICATION_ENABLED = "hostname.verification.enabled";
     public static final String SERVICE_CONTEXT_PATH = "/services";
+    public static final String IDF_AUTHENTICATOR_NAME = "IdentifierExecutor:LOCAL";
 
     private Constants() {
 
