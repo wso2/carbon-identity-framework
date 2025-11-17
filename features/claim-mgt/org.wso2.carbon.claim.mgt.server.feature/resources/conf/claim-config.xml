@@ -690,6 +690,24 @@
 				<dataType>integer</dataType>
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/claims/identity/smsOtpResendAttempts</ClaimURI>
+                <DisplayName>SMS OTP Resend Attempts</DisplayName>
+                <!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+                <AttributeID>smsOtpResendAttempts</AttributeID>
+                <Description>Claim to store SMS OTP resend attempts of the user</Description>
+                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/claims/identity/smsOtpLastSentTime</ClaimURI>
+                <DisplayName>SMS OTP Last Sent Time</DisplayName>
+                <!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+                <AttributeID>smsOtpLastSentTime</AttributeID>
+                <Description>Claim to store SMS OTP last sent time of the user</Description>
+                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+            </Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedEmailOtpAttempts</ClaimURI>
 				<DisplayName>Failed Email OTP Attempts</DisplayName>
