@@ -7,24 +7,10 @@
 
     <name>debug-framework</name>
 
-    <!-- Debug Interceptor Filter -->
-    <filter>
-        <filter-name>DebugInterceptorFilter</filter-name>
-        <filter-class>org.wso2.carbon.identity.debug.framework.DebugInterceptorFilter</filter-class>
-    </filter>
+    <!-- Debug routing is handled by DebugRequestCoordinator 
+         which is invoked from the CommonAuthenticationHandler.
+         No servlet filter needed. -->
 
-    <filter-mapping>
-        <filter-name>DebugInterceptorFilter</filter-name>
-        <url-pattern>/commonauth/*</url-pattern>
-        <dispatcher>REQUEST</dispatcher>
-        <dispatcher>FORWARD</dispatcher>
-    </filter-mapping>
 
-    <!-- Set high priority to ensure our filter runs first -->
-    <ordering>
-        <before>
-            <others/>
-        </before>
-    </ordering>
 
 </web-fragment>
