@@ -19,8 +19,6 @@
 package org.wso2.carbon.identity.external.api.token.handler.api.model;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
 
 import java.util.Collections;
@@ -93,7 +91,7 @@ public class GrantContext {
          */
         public Builder properties(Map<String, String> properties) {
 
-            this.propertyMap = properties;
+            this.propertyMap = properties != null ? new HashMap<>(properties) : new HashMap<>();
             return this;
         }
 

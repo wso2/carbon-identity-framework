@@ -200,23 +200,22 @@ public class TokenRequestBuilderUtilsTest {
     }
 
     /**
-     * Test building APIRequestContext with null headers should throw exception.
+     * Test building APIRequestContext with null headers should handle gracefully.
+     * Null headers are converted to empty map by the builder.
      */
     @Test
-    public void testBuildAPIRequestContextWithNullHeaders() {
+    public void testBuildAPIRequestContextWithNullHeaders() throws Exception {
 
-        try {
-            TokenRequestContext requestContext = new TokenRequestContext.Builder()
-                    .grantContext(clientCredentialGrantContext)
-                    .endpointUrl(TEST_TOKEN_ENDPOINT)
-                    .headers(null)
-                    .build();
+        TokenRequestContext requestContext = new TokenRequestContext.Builder()
+                .grantContext(clientCredentialGrantContext)
+                .endpointUrl(TEST_TOKEN_ENDPOINT)
+                .headers(null)
+                .build();
 
-            TokenRequestBuilderUtils.buildAPIRequestContext(requestContext);
-            fail("Expected exception for null headers was not thrown.");
-        } catch (Exception e) {
-            // Expected exception.
-        }
+        APIRequestContext apiRequestContext = TokenRequestBuilderUtils.buildAPIRequestContext(requestContext);
+        
+        assertNotNull(apiRequestContext);
+        assertNotNull(apiRequestContext.getHeaders());
     }
 
     /**

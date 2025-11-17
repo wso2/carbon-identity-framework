@@ -45,7 +45,7 @@ public class TokenResponseTest {
                         "\"token_type\":\"Bearer\",\"expires_in\":3600}", ACCESS_TOKEN, REFRESH_TOKEN);
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, ACCESS_TOKEN, REFRESH_TOKEN);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -64,7 +64,7 @@ public class TokenResponseTest {
                 ACCESS_TOKEN);
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, ACCESS_TOKEN, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -82,7 +82,7 @@ public class TokenResponseTest {
                 REFRESH_TOKEN);
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, REFRESH_TOKEN);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -99,7 +99,7 @@ public class TokenResponseTest {
         String responseBody = "{\"token_type\":\"Bearer\",\"expires_in\":3600}";
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -115,7 +115,7 @@ public class TokenResponseTest {
 
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, null);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -133,7 +133,7 @@ public class TokenResponseTest {
         String responseBody = "This is not a valid JSON";
         APIResponse apiResponse = new APIResponse(ERROR_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), ERROR_STATUS_CODE);
@@ -151,7 +151,7 @@ public class TokenResponseTest {
         String responseBody = "{}";
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -168,7 +168,7 @@ public class TokenResponseTest {
         String responseBody = "{\"access_token\":null,\"refresh_token\":null}";
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -185,7 +185,7 @@ public class TokenResponseTest {
         String responseBody = "[\"value1\",\"value2\"]";
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -202,7 +202,7 @@ public class TokenResponseTest {
         String responseBody = "{\"access_token\":\"" + ACCESS_TOKEN + "\",\"refresh_token\":";
         APIResponse apiResponse = new APIResponse(ERROR_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), ERROR_STATUS_CODE);
@@ -219,7 +219,7 @@ public class TokenResponseTest {
         String responseBody = "";
         APIResponse apiResponse = new APIResponse(ERROR_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), ERROR_STATUS_CODE);
@@ -237,7 +237,7 @@ public class TokenResponseTest {
         String responseBody = "{\"error\":\"invalid_client\",\"error_description\":\"Client authentication failed\"}";
         APIResponse apiResponse = new APIResponse(ERROR_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, null, null);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), ERROR_STATUS_CODE);
@@ -257,7 +257,7 @@ public class TokenResponseTest {
                         "\"custom_field\":\"custom_value\"}", ACCESS_TOKEN, REFRESH_TOKEN);
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, ACCESS_TOKEN, REFRESH_TOKEN);
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -274,7 +274,7 @@ public class TokenResponseTest {
         String responseBody = "{\"access_token\":\"\",\"refresh_token\":\"\"}";
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, "", "");
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -291,7 +291,7 @@ public class TokenResponseTest {
         String responseBody = "{\"access_token\":\"   \",\"refresh_token\":\"   \"}";
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, "   ", "   ");
 
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getStatusCode(), SUCCESS_STATUS_CODE);
@@ -308,7 +308,7 @@ public class TokenResponseTest {
         String responseBody = String.format("{\"access_token\":\"%s\"}", ACCESS_TOKEN);
         APIResponse apiResponse = new APIResponse(SUCCESS_STATUS_CODE, responseBody);
 
-        TokenResponse tokenResponse = new TokenResponse(apiResponse);
+        TokenResponse tokenResponse = new TokenResponse(apiResponse, ACCESS_TOKEN, null);
 
         assertNotNull(tokenResponse);
         // Verify inherited methods work correctly.

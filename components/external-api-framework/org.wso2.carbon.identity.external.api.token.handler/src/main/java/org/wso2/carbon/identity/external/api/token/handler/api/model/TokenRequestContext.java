@@ -113,7 +113,7 @@ public class TokenRequestContext {
     public void setRefreshGrantPayload(String refreshGrantPayload) throws TokenRequestException {
 
         if (StringUtils.isBlank(refreshGrantPayload)) {
-            throw new TokenRequestException(ErrorMessage.ERROR_CODE_INVALID_PAYLOAD, "Refresh");
+            throw new TokenRequestException(ErrorMessage.ERROR_CODE_INVALID_PAYLOAD, "refresh grant");
         }
         this.refreshGrantPayload = refreshGrantPayload;
     }
@@ -129,7 +129,7 @@ public class TokenRequestContext {
     }
 
     /**
-     * Builder class for APIRequestContext.
+     * Builder class for TokenRequestContext.
      */
     public static class Builder {
 
@@ -198,7 +198,7 @@ public class TokenRequestContext {
                 throw new TokenRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "grant context");
             }
             if (StringUtils.isBlank(endpointUrl)) {
-                throw new TokenRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, " token endpoint url");
+                throw new TokenRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "token endpoint url");
             }
             return new TokenRequestContext(this);
         }

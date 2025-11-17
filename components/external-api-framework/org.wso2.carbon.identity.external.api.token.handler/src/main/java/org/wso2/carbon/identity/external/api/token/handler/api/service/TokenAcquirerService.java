@@ -133,7 +133,8 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
         }
 
         if (response.getStatusCode() != HttpStatus.SC_OK) {
-            throw new TokenHandlerException(ErrorMessage.ERROR_CODE_UNACCEPTABLE_STATUS_CODE, null);
+            throw new TokenHandlerException(
+                    ErrorMessage.ERROR_CODE_UNEXPECTED_STATUS_CODE, String.valueOf(response.getStatusCode()));
         }
 
         return new TokenInvocationResult.Builder().apiResponse(response).build();

@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
 import org.wso2.carbon.identity.external.api.token.handler.api.constant.ErrorMessageConstant.ErrorMessage;
+import org.wso2.carbon.identity.external.api.token.handler.api.model.OperationResult.OperationType;
 
 /**
  * Model class for Token Invocation Result.
@@ -101,24 +102,22 @@ public class TokenInvocationResult {
                     if (element.isJsonObject()) {
                         JsonObject jsonObject = element.getAsJsonObject();
 
-                        String accessTokenName = OperationType.ACCESS_TOKEN_PARSING.tokenName;
+                        String accessTokenName = OperationType.ACCESS_TOKEN_PARSING.getTokenName();
                         if (jsonObject.has(accessTokenName) && !jsonObject.get(accessTokenName).isJsonNull()) {
                             accessToken = jsonObject.get(accessTokenName).getAsString();
-                            accessTokenParsingResult = new OperationResult(OperationType.ACCESS_TOKEN_PARSING,
-                                    true, null, null, null);
+                            accessTokenParsingResult = OperationResult.success(OperationType.ACCESS_TOKEN_PARSING);
                         } else {
-                            accessTokenParsingResult = new OperationResult(OperationType.ACCESS_TOKEN_PARSING,
-                                    false, ErrorMessage.ERROR_CODE_TOKEN_NOT_FOUND, accessTokenName, null);
+                            accessTokenParsingResult = OperationResult.failure(OperationType.ACCESS_TOKEN_PARSING,
+                                    ErrorMessage.ERROR_CODE_TOKEN_NOT_FOUND, accessTokenName, null);
                         }
 
-                        String refreshTokenName = OperationType.REFRESH_TOKEN_PARSING.tokenName;
+                        String refreshTokenName = OperationType.REFRESH_TOKEN_PARSING.getTokenName();
                         if (jsonObject.has(refreshTokenName) && !jsonObject.get(refreshTokenName).isJsonNull()) {
                             refreshToken = jsonObject.get(refreshTokenName).getAsString();
-                            refreshTokenParsingResult = new OperationResult(OperationType.REFRESH_TOKEN_PARSING,
-                                    true, null, null, null);
+                            refreshTokenParsingResult = OperationResult.success(OperationType.REFRESH_TOKEN_PARSING);
                         } else {
-                            refreshTokenParsingResult = new OperationResult(OperationType.REFRESH_TOKEN_PARSING,
-                                    false, ErrorMessage.ERROR_CODE_TOKEN_NOT_FOUND, refreshTokenName, null);
+                            refreshTokenParsingResult = OperationResult.failure(OperationType.REFRESH_TOKEN_PARSING,
+                                    ErrorMessage.ERROR_CODE_TOKEN_NOT_FOUND, refreshTokenName, null);
                         }
                     } else {
                         LOG.debug("Response body contains invalid JSON object. " +
@@ -146,7 +145,9 @@ public class TokenInvocationResult {
                 return;
             }
 
-            if (tokenResponse.getAccessToken() != null && tokenResponse.getRefreshToken() != null) {
+            /* As per the OAuth 2.0 specification, the refresh token is option in the token response, only checking
+            access token is properly set. */
+            if (tokenResponse.getAccessToken() != null) {
                 status = Status.SUCCESS;
                 return;
             }
@@ -156,106 +157,10 @@ public class TokenInvocationResult {
         private void buildOperationFailureResult(ErrorMessage errorMessage, Throwable e) {
 
             status = Status.ERROR;
-            accessTokenParsingResult = new OperationResult(OperationType.ACCESS_TOKEN_PARSING, false,
+            accessTokenParsingResult = OperationResult.failure(OperationType.ACCESS_TOKEN_PARSING,
                     errorMessage, OperationType.ACCESS_TOKEN_PARSING.getTokenName(), e);
-            refreshTokenParsingResult = new OperationResult(OperationType.REFRESH_TOKEN_PARSING, false,
+            refreshTokenParsingResult = OperationResult.failure(OperationType.REFRESH_TOKEN_PARSING,
                     errorMessage, OperationType.REFRESH_TOKEN_PARSING.getTokenName(), e);
-        }
-    }
-
-    /**
-     * Model class for Operation Result.
-     */
-    public static class OperationResult {
-
-        private final OperationType operationType;
-        private final boolean isSuccess;
-        private final Error error;
-
-        public OperationResult(
-                OperationType operationType, boolean isSuccess, ErrorMessage errorMessage, String data, Throwable e) {
-
-            this.operationType = operationType;
-            this.isSuccess = isSuccess;
-            this.error = new Error(errorMessage, data, e);
-        }
-
-        public OperationType getOperationType() {
-
-            return operationType;
-        }
-
-        public boolean isSuccess() {
-
-            return isSuccess;
-        }
-
-        public Error getError() {
-
-            return error;
-        }
-    }
-
-    /**
-     * Model class for Error.
-     */
-    public static class Error {
-
-        private final String errorCode;
-        private final String errorMessage;
-        private final String errorDescription;
-        private final Throwable throwable;
-
-        public Error(ErrorMessage error, String descriptionData, Throwable e) {
-
-            if (error == null) {
-                throw new IllegalArgumentException("The Error message cannot be null.");
-            }
-            errorCode = error.getCode();
-            errorMessage = error.getMessage();
-            errorDescription = String.format(error.getDescription(), descriptionData);
-            throwable = e;
-        }
-
-        public String getErrorCode() {
-
-            return errorCode;
-        }
-
-        public String getErrorMessage() {
-
-            return errorMessage;
-        }
-
-        public String getErrorDescription() {
-
-            return errorDescription;
-        }
-
-        public Throwable getThrowable() {
-
-            return throwable;
-        }
-    }
-
-    /**
-     * Enum for Operation Types.
-     */
-    public enum OperationType {
-
-        ACCESS_TOKEN_PARSING("access_token"),
-        REFRESH_TOKEN_PARSING("refresh_token");
-
-        private final String tokenName;
-
-        OperationType(String tokenName) {
-
-            this.tokenName = tokenName;
-        }
-
-        public String getTokenName() {
-
-            return tokenName;
         }
     }
 

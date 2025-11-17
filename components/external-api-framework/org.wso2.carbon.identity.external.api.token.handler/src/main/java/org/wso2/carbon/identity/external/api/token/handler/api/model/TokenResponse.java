@@ -18,20 +18,12 @@
 
 package org.wso2.carbon.identity.external.api.token.handler.api.model;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
 
 /**
  * Model class for Token Response.
  */
 public class TokenResponse extends APIResponse {
-
-    private static final Log LOG = LogFactory.getLog(TokenResponse.class);
 
     private String accessToken = null;
     private String refreshToken = null;

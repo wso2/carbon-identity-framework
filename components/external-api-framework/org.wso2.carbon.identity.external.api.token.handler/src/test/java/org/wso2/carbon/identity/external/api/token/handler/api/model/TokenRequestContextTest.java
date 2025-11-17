@@ -136,7 +136,9 @@ public class TokenRequestContextTest {
                     .build();
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Grant context cannot be null.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65005");
+            assertEquals(e.getDescription(),
+                    "The field grant context must be included in the token request context.");
         }
     }
 
@@ -153,7 +155,9 @@ public class TokenRequestContextTest {
                     .build();
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Endpoint URL cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65005");
+            assertEquals(e.getDescription(),
+                    "The field token endpoint url must be included in the token request context.");
         }
     }
 
@@ -171,7 +175,9 @@ public class TokenRequestContextTest {
                     .build();
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Endpoint URL cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65005");
+            assertEquals(e.getDescription(),
+                    "The field token endpoint url must be included in the token request context.");
         }
     }
 
@@ -189,7 +195,9 @@ public class TokenRequestContextTest {
                     .build();
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Endpoint URL cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65005");
+            assertEquals(e.getDescription(),
+                    "The field token endpoint url must be included in the token request context.");
         }
     }
 
@@ -225,7 +233,8 @@ public class TokenRequestContextTest {
             context.setPayLoad(null);
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Payload cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65004");
+            assertEquals(e.getDescription(), "The token payload must be non-blank payload.");
         }
     }
 
@@ -244,7 +253,8 @@ public class TokenRequestContextTest {
             context.setPayLoad("");
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Payload cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65004");
+            assertEquals(e.getDescription(), "The token payload must be non-blank payload.");
         }
     }
 
@@ -263,7 +273,8 @@ public class TokenRequestContextTest {
             context.setPayLoad("   ");
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Payload cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65004");
+            assertEquals(e.getDescription(), "The token payload must be non-blank payload.");
         }
     }
 
@@ -300,7 +311,8 @@ public class TokenRequestContextTest {
             context.setRefreshGrantPayload(null);
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Payload cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65004");
+            assertEquals(e.getDescription(), "The refresh grant payload must be non-blank payload.");
         }
     }
 
@@ -319,7 +331,8 @@ public class TokenRequestContextTest {
             context.setRefreshGrantPayload("");
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Payload cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65004");
+            assertEquals(e.getDescription(), "The refresh grant payload must be non-blank payload.");
         }
     }
 
@@ -338,7 +351,8 @@ public class TokenRequestContextTest {
             context.setRefreshGrantPayload("   ");
             fail("Expected TokenRequestException was not thrown.");
         } catch (TokenRequestException e) {
-            assertEquals(e.getMessage(), "Payload cannot be null or blank.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65004");
+            assertEquals(e.getDescription(), "The refresh grant payload must be non-blank payload.");
         }
     }
 

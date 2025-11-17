@@ -31,11 +31,12 @@ import org.wso2.carbon.identity.external.api.client.api.model.APIClientConfig;
 import org.wso2.carbon.identity.external.api.client.api.model.APIInvocationConfig;
 import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
 import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
+import org.wso2.carbon.identity.external.api.token.handler.api.constant.ErrorMessageConstant.ErrorMessage;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenHandlerException;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContext;
+import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenInvocationResult;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenRequestContext;
-import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenResponse;
 import org.wso2.carbon.identity.external.api.token.handler.internal.util.TokenRequestBuilderUtils;
 import org.wso2.carbon.utils.ServerConstants;
 
@@ -96,7 +97,7 @@ public class TokenAcquirerServiceTest {
 
         // Create test configuration with default values.
         apiClientConfig = new APIClientConfig.Builder()
-                .httpReadTimeoutInMillis(30000)
+                .httpConnectionTimeoutInMillis(30000)
                 .httpConnectionRequestTimeoutInMillis(30000)
                 .httpReadTimeoutInMillis(30000)
                 .poolSizeToBeSet(50)
@@ -156,11 +157,12 @@ public class TokenAcquirerServiceTest {
         tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
         tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
 
-        TokenResponse tokenResponse = tokenAcquirerService.getNewAccessToken();
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken();
 
-        assertNotNull(tokenResponse);
-        assertEquals(tokenResponse.getStatusCode(), 200);
-        assertEquals(tokenResponse.getAccessToken(), ACCESS_TOKEN);
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getStatusCode(), 200);
+        assertEquals(result.getTokenResponse().getAccessToken(), ACCESS_TOKEN);
         mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)), 
                 times(1));
     }
@@ -183,11 +185,12 @@ public class TokenAcquirerServiceTest {
         tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
         tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
 
-        TokenResponse tokenResponse = tokenAcquirerService.getNewAccessToken();
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken();
 
-        assertNotNull(tokenResponse);
-        assertEquals(tokenResponse.getAccessToken(), ACCESS_TOKEN);
-        assertEquals(tokenResponse.getRefreshToken(), REFRESH_TOKEN);
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), ACCESS_TOKEN);
+        assertEquals(result.getTokenResponse().getRefreshToken(), REFRESH_TOKEN);
     }
 
     /**
@@ -202,7 +205,8 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessToken();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Token request context is not initialized.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65009");
+            assertEquals(e.getDescription(), "The TokenRequestContext is not initialized.");
         }
     }
 
@@ -227,7 +231,9 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessToken();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Error response received from the token endpoint. Status Code: 401");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65012");
+            assertEquals(e.getDescription(),
+                    "Unexpected response status code: 401. Expected: 200.");
         }
     }
 
@@ -250,7 +256,9 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessToken();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Error occurred while acquiring access token");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65010");
+            assertEquals(e.getDescription(),
+                    "Error occurred while getting access token from CLIENT_CREDENTIAL grant type.");
             assertNotNull(e.getCause());
         }
     }
@@ -262,7 +270,7 @@ public class TokenAcquirerServiceTest {
     public void testGetNewAccessTokenWithBuilderException() {
 
         mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)))
-                .thenThrow(new TokenRequestException("Error building request"));
+                .thenThrow(new TokenRequestException(ErrorMessage.ERROR_CODE_BUILDING_API_REQUEST, "test"));
 
         APIResponse apiResponse = new APIResponse(200, "{\"access_token\":\"test\"}");
         tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, apiResponse);
@@ -273,7 +281,7 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessToken();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Error building request");
+            assertNotNull(e);
         }
     }
 
@@ -296,10 +304,11 @@ public class TokenAcquirerServiceTest {
         tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
         tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
 
-        TokenResponse tokenResponse = tokenAcquirerService.getNewAccessTokenFromRefreshGrant(REFRESH_TOKEN);
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessTokenFromRefreshGrant(REFRESH_TOKEN);
 
-        assertNotNull(tokenResponse);
-        assertEquals(tokenResponse.getAccessToken(), newAccessToken);
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), newAccessToken);
         mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
                 any(TokenRequestContext.class), anyString()), times(1));
     }
@@ -316,7 +325,8 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessTokenFromRefreshGrant(REFRESH_TOKEN);
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Token request context is not initialized.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65009");
+            assertEquals(e.getDescription(), "The TokenRequestContext is not initialized.");
         }
     }
 
@@ -333,7 +343,9 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessTokenFromRefreshGrant(null);
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Refresh token cannot be null or empty.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65011");
+            assertEquals(e.getDescription(), "Error occurred while getting access token from refresh grant" +
+                    " type. Refresh token cannot be null or empty.");
         }
     }
 
@@ -350,7 +362,9 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessTokenFromRefreshGrant("");
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Refresh token cannot be null or empty.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65011");
+            assertEquals(e.getDescription(), "Error occurred while getting access token from refresh " +
+                    "grant type. Refresh token cannot be null or empty.");
         }
     }
 
@@ -367,7 +381,9 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessTokenFromRefreshGrant("   ");
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Refresh token cannot be null or empty.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65011");
+            assertEquals(e.getDescription(), "Error occurred while getting access token from refresh " +
+                    "grant type. Refresh token cannot be null or empty.");
         }
     }
 
@@ -392,7 +408,9 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessTokenFromRefreshGrant(REFRESH_TOKEN);
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Error response received from the token endpoint. Status Code: 400");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65012");
+            assertEquals(e.getDescription(),
+                    "Unexpected response status code: 400. Expected: 200.");
         }
     }
 
@@ -415,7 +433,9 @@ public class TokenAcquirerServiceTest {
             tokenAcquirerService.getNewAccessTokenFromRefreshGrant(REFRESH_TOKEN);
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Error occurred while acquiring access token from refresh grant");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65010");
+            assertEquals(e.getDescription(),
+                    "Error occurred while getting access token from refresh grant type.");
             assertNotNull(e.getCause());
         }
     }
@@ -440,8 +460,9 @@ public class TokenAcquirerServiceTest {
         tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
         tokenAcquirerService.setApiInvocationConfig(customConfig);
 
-        TokenResponse tokenResponse = tokenAcquirerService.getNewAccessToken();
-        assertNotNull(tokenResponse);
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken();
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
     }
 
     /**

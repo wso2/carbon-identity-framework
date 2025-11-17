@@ -77,7 +77,8 @@ public class GrantContextTest {
                     .build();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), "Grant type must be provided for the grant context configuration.");
+            assertEquals(e.getErrorCode(), "TOKENMGT-65001");
+            assertEquals(e.getDescription(), "The grant type must be provided for the GrantContext builder.");
         }
     }
 
@@ -98,9 +99,9 @@ public class GrantContextTest {
                     .build();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), String.format("The property %s must be provided as a property for the " +
-                    "%s grant type.", GrantContext.Property.CLIENT_ID.getName(),
-                    GrantContext.GrantType.CLIENT_CREDENTIAL));
+            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
+            assertEquals(
+                    e.getDescription(), "The property client_id must be included as an authentication property.");
         }
     }
 
@@ -121,9 +122,9 @@ public class GrantContextTest {
                     .build();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), String.format("The property %s must be provided as a property for the " +
-                    "%s grant type.", GrantContext.Property.CLIENT_SECRET.getName(),
-                    GrantContext.GrantType.CLIENT_CREDENTIAL));
+            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
+            assertEquals(
+                    e.getDescription(), "The property client_secret must be included as an authentication property.");
         }
     }
 
@@ -144,9 +145,8 @@ public class GrantContextTest {
                     .build();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), String.format("The property %s must be provided as a property for the " +
-                    "%s grant type.", GrantContext.Property.SCOPE.getName(),
-                    GrantContext.GrantType.CLIENT_CREDENTIAL));
+            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
+            assertEquals(e.getDescription(), "The property scope must be included as an authentication property.");
         }
     }
 
@@ -168,8 +168,8 @@ public class GrantContextTest {
                     .build();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), String.format("The Property %s cannot be blank.",
-                    GrantContext.Property.CLIENT_ID.getName()));
+            assertEquals(e.getErrorCode(), "TOKENMGT-65002");
+            assertEquals(e.getDescription(), "The property client_id cannot be blank or empty.");
         }
     }
 
@@ -191,8 +191,8 @@ public class GrantContextTest {
                     .build();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), String.format("The Property %s cannot be blank.",
-                    GrantContext.Property.CLIENT_SECRET.getName()));
+            assertEquals(e.getErrorCode(), "TOKENMGT-65002");
+            assertEquals(e.getDescription(), "The property client_secret cannot be blank or empty.");
         }
     }
 
@@ -214,8 +214,8 @@ public class GrantContextTest {
                     .build();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), String.format("The Property %s cannot be blank.",
-                    GrantContext.Property.SCOPE.getName()));
+            assertEquals(e.getErrorCode(), "TOKENMGT-65002");
+            assertEquals(e.getDescription(), "The property scope cannot be blank or empty.");
         }
     }
 
@@ -232,9 +232,9 @@ public class GrantContextTest {
                     .build();
             fail("Expected TokenHandlerException was not thrown.");
         } catch (TokenHandlerException e) {
-            assertEquals(e.getMessage(), String.format("The property %s must be provided as a property for the " +
-                    "%s grant type.", GrantContext.Property.CLIENT_ID.getName(),
-                    GrantContext.GrantType.CLIENT_CREDENTIAL));
+            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
+            assertEquals(
+                    e.getDescription(), "The property client_id must be included as an authentication property.");
         }
     }
 
