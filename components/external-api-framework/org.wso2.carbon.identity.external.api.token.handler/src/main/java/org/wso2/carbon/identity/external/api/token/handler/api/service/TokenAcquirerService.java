@@ -28,9 +28,10 @@ import org.wso2.carbon.identity.external.api.client.api.model.APIInvocationConfi
 import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
 import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
 import org.wso2.carbon.identity.external.api.client.api.service.AbstractAPIClientManager;
+import org.wso2.carbon.identity.external.api.token.handler.api.constant.ErrorMessageConstant.ErrorMessage;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenHandlerException;
+import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenInvocationResult;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenRequestContext;
-import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenResponse;
 import org.wso2.carbon.identity.external.api.token.handler.internal.util.TokenRequestBuilderUtils;
 
 /**
@@ -79,14 +80,14 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
      * @return Token response.
      * @throws TokenHandlerException TokenHandlerException.
      */
-    public TokenResponse getNewAccessToken() throws TokenHandlerException {
+    public TokenInvocationResult getNewAccessToken() throws TokenHandlerException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Attempting to get a new access token.");
         }
 
         if (tokenRequestContext == null) {
-            throw new TokenHandlerException("Token request context is not initialized.");
+            throw new TokenHandlerException(ErrorMessage.ERROR_CODE_UNINITIALIZED_TOKEN_REQUEST, null);
         }
 
         try {
@@ -94,7 +95,8 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
             APIResponse apiResponse = callAPI(apiRequestContext, apiInvocationConfig);
             return handleResponse(apiResponse);
         } catch (APIClientException e) {
-            throw new TokenHandlerException("Error occurred while acquiring access token", e);
+            throw new TokenHandlerException(ErrorMessage.ERROR_CODE_GETTING_ACCESS_TOKEN,
+                    tokenRequestContext.getGrantContext().getGrantType().name(), e);
         }
     }
 
@@ -105,13 +107,13 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
      * @return Token response.
      * @throws TokenHandlerException TokenHandlerException.
      */
-    public TokenResponse getNewAccessTokenFromRefreshGrant(String refreshToken) throws TokenHandlerException {
+    public TokenInvocationResult getNewAccessTokenFromRefreshGrant(String refreshToken) throws TokenHandlerException {
 
         if (tokenRequestContext == null) {
-            throw new TokenHandlerException("Token request context is not initialized.");
+            throw new TokenHandlerException(ErrorMessage.ERROR_CODE_UNINITIALIZED_TOKEN_REQUEST, null);
         }
         if (StringUtils.isBlank(refreshToken)) {
-            throw new TokenHandlerException("Refresh token cannot be null or empty.");
+            throw new TokenHandlerException(ErrorMessage.ERROR_CODE_NULL_REFRESH_TOKEN_PROVIDED, null);
         }
 
         try {
@@ -120,22 +122,20 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
             APIResponse apiResponse = callAPI(apiRequestContext, apiInvocationConfig);
             return handleResponse(apiResponse);
         } catch (APIClientException e) {
-            throw new TokenHandlerException("Error occurred while acquiring access token from refresh grant", e);
+            throw new TokenHandlerException(ErrorMessage.ERROR_CODE_GETTING_ACCESS_TOKEN, "refresh", e);
         }
     }
 
-    private TokenResponse handleResponse(APIResponse response) throws TokenHandlerException {
+    private TokenInvocationResult handleResponse(APIResponse response) throws TokenHandlerException {
 
         if (response == null) {
-            throw new TokenHandlerException("Error occurred. The API response from the token endpoint is null.");
+            throw new TokenHandlerException(ErrorMessage.ERROR_CODE_NULL_API_RESPONSE, null);
         }
 
         if (response.getStatusCode() != HttpStatus.SC_OK) {
-            LOG.error("Error response received from the token endpoint. Status Code: " + response.getStatusCode());
-            throw new TokenHandlerException(
-                    "Error response received from the token endpoint. Status Code: " + response.getStatusCode());
+            throw new TokenHandlerException(ErrorMessage.ERROR_CODE_UNACCEPTABLE_STATUS_CODE, null);
         }
 
-        return new TokenResponse(response);
+        return new TokenInvocationResult.Builder().apiResponse(response).build();
     }
 }

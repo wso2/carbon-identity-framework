@@ -21,18 +21,18 @@ package org.wso2.carbon.identity.external.api.token.handler.api.model;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenHandlerException;
+import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.external.api.token.handler.api.constant.ErrorMessageConstant.ErrorMessage;
+
 /**
  * Model class for Grant Type Context.
  */
 public class GrantContext {
-
-    private static final Log LOG = LogFactory.getLog(GrantContext.class);
 
     private final GrantType grantType;
     private final Map<String, String> properties;
@@ -101,12 +101,12 @@ public class GrantContext {
          * Build GrantContext.
          *
          * @return GrantContext.
-         * @throws TokenHandlerException TokenHandlerException.
+         * @throws TokenRequestException TokenHandlerException.
          */
-        public GrantContext build() throws TokenHandlerException {
+        public GrantContext build() throws TokenRequestException {
 
             if (grantType == null) {
-                throw new TokenHandlerException("Grant type must be provided for the grant context configuration.");
+                throw new TokenRequestException(ErrorMessage.ERROR_CODE_MISSING_GRANT_TYPE, null);
             }
 
             switch (grantType) {
@@ -117,28 +117,21 @@ public class GrantContext {
                             Property.CLIENT_SECRET.getName(), getProperty(Property.CLIENT_SECRET.getName()));
                     resolvedGrantProperties.put(Property.SCOPE.getName(), getProperty(Property.SCOPE.getName()));
                     break;
-                default:
-                    throw new TokenHandlerException(String.format("An invalid grant type '%s' is " +
-                            "provided for the grant configuration.", grantType.name()));
             }
             return new GrantContext(this);
         }
 
-        private String getProperty(String propertyName) throws TokenHandlerException {
+        private String getProperty(String propertyName) throws TokenRequestException {
 
             if (propertyMap != null && propertyMap.containsKey(propertyName)) {
                 String propValue = propertyMap.get(propertyName);
                 if (StringUtils.isNotBlank(propValue)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Property '" + propertyName + "' retrieved successfully.");
-                    }
                     return propValue;
                 }
-                throw new TokenHandlerException(String.format("The Property %s cannot be blank.", propertyName));
+                throw new TokenRequestException(ErrorMessage.ERROR_CODE_BLANK_AUTH_PROPERTY, propertyName);
             }
 
-            throw new TokenHandlerException(String.format("The property %s must be provided as a property for the " +
-                    "%s grant type.", propertyName, grantType));
+            throw new TokenRequestException(ErrorMessage.ERROR_CODE_MISSING_AUTH_PROPERTY, propertyName);
         }
     }
 

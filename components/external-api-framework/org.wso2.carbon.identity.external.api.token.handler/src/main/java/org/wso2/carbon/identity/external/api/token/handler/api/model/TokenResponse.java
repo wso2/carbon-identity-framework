@@ -32,34 +32,15 @@ import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
 public class TokenResponse extends APIResponse {
 
     private static final Log LOG = LogFactory.getLog(TokenResponse.class);
-    private static final String ACCESS_TOKEN = "access_token";
-    private static final String REFRESH_TOKEN = "refresh_token";
 
     private String accessToken = null;
     private String refreshToken = null;
 
-    public TokenResponse(APIResponse response) {
+    public TokenResponse(APIResponse response, String accessToken, String refreshToken) {
 
         super(response.getStatusCode(), response.getResponseBody());
-
-        String responseBody = response.getResponseBody();
-        if (responseBody != null) {
-            try {
-                JsonElement element = JsonParser.parseString(responseBody);
-                if (element.isJsonObject()) {
-                    JsonObject jsonObject = element.getAsJsonObject();
-                    accessToken = extractToken(jsonObject, ACCESS_TOKEN);
-                    refreshToken = extractToken(jsonObject, REFRESH_TOKEN);
-                } else {
-                    LOG.debug("Response body is not a valid JSON object. Tokens will remain unset.");
-                }
-            } catch (JsonSyntaxException e) {
-                // Leave tokens unset when the payload is not valid JSON.
-                LOG.debug("Failed to parse response body as JSON. Tokens will remain unset.", e);
-            }
-        } else {
-            LOG.debug("Response body is null. Cannot extract tokens.");
-        }
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 
     /**
@@ -80,21 +61,5 @@ public class TokenResponse extends APIResponse {
     public String getRefreshToken() {
 
         return refreshToken;
-    }
-
-    private String extractToken(JsonObject jsonObject, String tokenName) {
-
-        String token = null;
-        if (jsonObject.has(tokenName) && !jsonObject.get(tokenName).isJsonNull()) {
-            token = jsonObject.get(tokenName).getAsString();
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("The %s extracted successfully from response.", tokenName));
-            }
-        } else {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("The %s not found in the token response.", tokenName));
-            }
-        }
-        return token;
     }
 }

@@ -18,29 +18,70 @@
 
 package org.wso2.carbon.identity.external.api.token.handler.api.exception;
 
+import org.wso2.carbon.identity.external.api.token.handler.api.constant.ErrorMessageConstant.ErrorMessage;
+
 /**
  * Exception class for Token Handler related exceptions.
  */
 public class TokenHandlerException extends Exception {
 
-    /**
-     * Constructor with message.
-     *
-     * @param message Error message.
-     */
-    public TokenHandlerException(String message) {
+    private final ErrorMessage errorMessage;
+    private final String descriptionData;
 
-        super(message);
+    /**
+     * Constructor with error message, description data and cause.
+     *
+     * @param errorMessage    Error message enum.
+     * @param descriptionData Description data for the error.
+     * @param e               Throwable cause.
+     */
+    public TokenHandlerException(ErrorMessage errorMessage, String descriptionData, Throwable e) {
+
+        super(e);
+        this.errorMessage = errorMessage;
+        this.descriptionData = descriptionData;
     }
 
     /**
-     * Constructor with message and cause.
+     * Constructor with error message and description data.
      *
-     * @param message Error message.
-     * @param cause   Throwable cause.
+     * @param errorMessage    Error message enum.
+     * @param descriptionData Description data for the error.
      */
-    public TokenHandlerException(String message, Throwable cause) {
+    public TokenHandlerException(ErrorMessage errorMessage, String descriptionData) {
 
-        super(message, cause);
+        this.errorMessage = errorMessage;
+        this.descriptionData = descriptionData;
+    }
+
+    /**
+     * Get the error code.
+     *
+     * @return Error code.
+     */
+    public String getErrorCode() {
+
+        return errorMessage.getCode();
+    }
+
+    /**
+     * Get the error message.
+     *
+     * @return Error message.
+     */
+    @Override
+    public String getMessage() {
+
+        return errorMessage.getMessage();
+    }
+
+    /**
+     * Get the error description.
+     *
+     * @return Error description.
+     */
+    public String getDescription() {
+
+        return String.format(errorMessage.getDescription(), descriptionData);
     }
 }

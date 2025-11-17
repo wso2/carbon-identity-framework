@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.external.api.token.handler.api.model;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.external.api.token.handler.api.constant.ErrorMessageConstant.ErrorMessage;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
 
 import java.util.Collections;
@@ -44,7 +45,8 @@ public class TokenRequestContext {
 
         this.grantContext = builder.grantContext;
         this.tokenEndpointUrl = builder.endpointUrl;
-        this.headers = Collections.unmodifiableMap(new HashMap<>(builder.headers));
+        this.headers = Collections.unmodifiableMap(
+                new HashMap<>(builder.headers != null ? builder.headers : Collections.emptyMap()));
         this.payload = builder.payload;
     }
 
@@ -87,7 +89,7 @@ public class TokenRequestContext {
     public void setPayLoad(String payload) throws TokenRequestException {
 
         if (StringUtils.isBlank(payload)) {
-            throw new TokenRequestException("Payload cannot be null or blank.");
+            throw new TokenRequestException(ErrorMessage.ERROR_CODE_INVALID_PAYLOAD, "token");
         }
         this.payload = payload;
     }
@@ -111,7 +113,7 @@ public class TokenRequestContext {
     public void setRefreshGrantPayload(String refreshGrantPayload) throws TokenRequestException {
 
         if (StringUtils.isBlank(refreshGrantPayload)) {
-            throw new TokenRequestException("Payload cannot be null or blank.");
+            throw new TokenRequestException(ErrorMessage.ERROR_CODE_INVALID_PAYLOAD, "Refresh");
         }
         this.refreshGrantPayload = refreshGrantPayload;
     }
@@ -168,7 +170,7 @@ public class TokenRequestContext {
          */
         public Builder headers(Map<String, String> headers) {
 
-            this.headers = headers;
+            this.headers = headers != null ? new HashMap<>(headers) : new HashMap<>();
             return this;
         }
 
@@ -193,10 +195,10 @@ public class TokenRequestContext {
         public TokenRequestContext build() throws TokenRequestException {
 
             if (grantContext == null) {
-                throw new TokenRequestException("Grant context cannot be null.");
+                throw new TokenRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "grant context");
             }
             if (StringUtils.isBlank(endpointUrl)) {
-                throw new TokenRequestException("Endpoint URL cannot be null or blank.");
+                throw new TokenRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, " token endpoint url");
             }
             return new TokenRequestContext(this);
         }

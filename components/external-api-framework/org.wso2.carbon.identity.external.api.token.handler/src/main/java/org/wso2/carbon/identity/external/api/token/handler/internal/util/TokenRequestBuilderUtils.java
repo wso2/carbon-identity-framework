@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientRequestException;
 import org.wso2.carbon.identity.external.api.client.api.model.APIAuthentication;
 import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
+import org.wso2.carbon.identity.external.api.token.handler.api.constant.ErrorMessageConstant.ErrorMessage;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContext;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContext.Property;
@@ -94,7 +95,7 @@ public class TokenRequestBuilderUtils {
             LOG.debug("Successfully built APIRequestContext for token request.");
             return context;
         } catch (APIClientRequestException e) {
-            throw new TokenRequestException("Error building API Request Context for token request.", e);
+            throw new TokenRequestException(ErrorMessage.ERROR_CODE_BUILDING_API_REQUEST, null, e);
         }
     }
 
@@ -119,11 +120,11 @@ public class TokenRequestBuilderUtils {
                     }
                     return authentication;
                 default:
-                    throw new TokenRequestException("Unsupported authentication type: " + grantContext.getGrantType());
+                    throw new TokenRequestException(
+                            ErrorMessage.ERROR_CODE_UNSUPPORTED_GRANT_TYPE, grantContext.getGrantType().name());
             }
         } catch (APIClientRequestException e) {
-            throw new TokenRequestException("Error building API Authentication for grant type: " +
-                    grantContext.getGrantType(), e);
+            throw new TokenRequestException(ErrorMessage.ERROR_CODE_BUILDING_API_AUTH, null, e);
         }
     }
 
@@ -141,7 +142,8 @@ public class TokenRequestBuilderUtils {
                 LOG.debug("Successfully built token request payload for CLIENT_CREDENTIAL grant type.");
                 return payload;
             default:
-                throw new TokenRequestException("Unsupported authentication type: " + grantContext.getGrantType());
+                throw new TokenRequestException(
+                        ErrorMessage.ERROR_CODE_UNSUPPORTED_GRANT_TYPE, grantContext.getGrantType().name());
         }
     }
 }
