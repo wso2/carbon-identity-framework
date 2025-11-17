@@ -24,6 +24,8 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2DebugProcessor;
+import org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2UrlBuilder;
 
 import java.io.IOException;
 import java.util.Map;
@@ -198,7 +200,7 @@ public class DebugRequestCoordinator implements DebugService {
                 context.setProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, sessionDataKey);
             }
             context.setProperty(DebugFrameworkConstants.DEBUG_CALLBACK_TIMESTAMP, System.currentTimeMillis());
-            context.setProperty(DebugFrameworkConstants.DEBUG_CALLBACK_PROCESSED, DebugFrameworkConstants.TRUE_STRING);
+            context.setProperty(DebugFrameworkConstants.DEBUG_CALLBACK_PROCESSED, DebugFrameworkConstants.TRUE);
 
             // Route to protocol-specific DebugProcessor implementation via reflection.
             // This ensures protocol-agnostic processing without hard dependency on specific protocol implementations.
@@ -236,19 +238,16 @@ public class DebugRequestCoordinator implements DebugService {
             String code = request.getParameter(DebugFrameworkConstants.OAUTH2_CODE_PARAM);
             if (code != null) {
                 // This is likely an OAuth2 callback
-                String oauth2DebugProcessorClass = 
-                        "org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2DebugProcessor";
+                String oauth2DebugProcessorClass = OAuth2DebugProcessor.class.getName();
                 return loadProcessorByClass(oauth2DebugProcessorClass);
             }
 
-            // Try to load SAMLDebugProcessor via reflection from SAML connector if available
-            String samlResponse = request.getParameter("SAMLResponse");
-            if (samlResponse != null) {
-                // This is likely a SAML callback
-                String samlDebugProcessorClass =
-                        "org.wso2.carbon.identity.application.authenticator.saml.debug.SAMLDebugProcessor";
-                return loadProcessorByClass(samlDebugProcessorClass);
-            }
+            // // Try to load SAMLDebugProcessor via reflection from SAML connector if available
+            // String samlResponse = request.getParameter("SAMLResponse");
+            // if (samlResponse != null) {
+            //     String samlDebugProcessorClass ="SAMLDebugProcessor";
+            //     return loadProcessorByClass(samlDebugProcessorClass);
+            // }
 
             // Default fallback - log and return null
             if (LOG.isDebugEnabled()) {
@@ -357,13 +356,12 @@ public class DebugRequestCoordinator implements DebugService {
         try {
             // Use reflection to access OAuth2UrlBuilder's DebugSessionCache
             // (OAuth2UrlBuilder is in an optional dependency)
-            String oauth2UrlBuilderClassName =
-                    "org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2UrlBuilder";
+            String oauth2UrlBuilderClassName = OAuth2UrlBuilder.class.getName();
             Class.forName(oauth2UrlBuilderClassName);
             
-            // Get the DebugSessionCache inner class
-            String debugSessionCacheClassName = 
-                    "org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2UrlBuilder$DebugSessionCache";
+            // Get the DebugSessionCache inner class using reflection
+            // Inner class name format: OuterClass$InnerClass
+            String debugSessionCacheClassName = oauth2UrlBuilderClassName + "$DebugSessionCache";
             Class<?> debugSessionCacheClass = Class.forName(debugSessionCacheClassName);
             
             // Get getInstance() method
@@ -454,11 +452,11 @@ public class DebugRequestCoordinator implements DebugService {
         }
         
         // Mark as debug flow.
-        context.setProperty(DebugFrameworkConstants.DEBUG_IDENTIFIER_PARAM, DebugFrameworkConstants.TRUE_STRING);
+        context.setProperty(DebugFrameworkConstants.DEBUG_IDENTIFIER_PARAM, DebugFrameworkConstants.TRUE);
         context.setProperty("DEBUG_FLOW_TYPE", "OAUTH_CALLBACK");
         context.setProperty(DebugFrameworkConstants.DEBUG_OAUTH_CODE, code);
         context.setProperty(DebugFrameworkConstants.DEBUG_OAUTH_STATE, state);
-        context.setProperty("DEBUG_CONTEXT_CREATED", DebugFrameworkConstants.TRUE_STRING);
+        context.setProperty("DEBUG_CONTEXT_CREATED", DebugFrameworkConstants.TRUE);
         context.setProperty("DEBUG_CREATION_TIMESTAMP", System.currentTimeMillis());
         
         // Set request information if available.

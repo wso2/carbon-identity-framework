@@ -199,10 +199,47 @@ public final class DebugFrameworkConstants {
     // Step Status Constants.
     public static final String STEP_CLAIM_EXTRACTION_STATUS = "step_claim_extraction_status";
 
+    // Debug Result Map Property Keys.
+    public static final String SESSION_ID_PARAM = "sessionId";
+    public static final String ERROR_PARAM = "error";
+    public static final String IDP_NAME_PARAM = "idpName";
+    public static final String SUCCESS_RESULT_PARAM = "success";
+    public static final String AUTHENTICATOR_PARAM = "authenticator";
+    public static final String TIMESTAMP_PARAM = "timestamp";
+    public static final String STEP_CONNECTION_STATUS_PARAM = "step_connection_status";
+    public static final String STEP_AUTHENTICATION_STATUS_PARAM = "step_authentication_status";
+    public static final String STEP_CLAIM_MAPPING_STATUS_PARAM = "step_claim_mapping_status";
+    public static final String STATUS_NOT_STARTED = "not_started";
+
     // Common Parameter Values.
     public static final String DEBUG_PREFIX = "debug-";
     public static final String FAILURE_STATUS = "failed";
-    public static final String TRUE_STRING = "true";
-    public static final String FALSE_STRING = "false";
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
+    
+    // Error Details Keys.
+    public static final String ERROR_CODE_KEY = "errorCode";
+    public static final String ERROR_DESCRIPTION_KEY = "errorDescription";
+    public static final String ERROR_MESSAGE_KEY = "errorMessage";
+    public static final String ERROR_DETAILS_KEY = "errorDetails";
+    public static final String TROUBLESHOOTING_HINT_KEY = "troubleshootingHint";
+    public static final String STEP_CONNECTION_ERROR_KEY = "step_connection_error";
+    public static final String STEP_CLAIM_EXTRACTION_ERROR_KEY = "step_claim_extraction_error";
+    public static final String EXTERNAL_REDIRECT_URL_KEY = "externalRedirectUrl";
+    public static final String CALLBACK_URL_KEY = "callbackUrl";
+    public static final String ID_TOKEN_KEY = "idToken";
+    public static final String ID_TOKEN_PRESENT_KEY = "idTokenPresent";
+    public static final String ACCESS_TOKEN_PRESENT_KEY = "accessTokenPresent";
+    public static final String CLAIM_MAPPING_DIAGNOSTIC_KEY = "claimMappingDiagnostic";
+    public static final String CLAIM_MAPPING_AUTO_KEY = "claim_mapping_auto";
+    public static final String IDPCLAIM_KEY = "idpClaim";
+    public static final String IS_CLAIM_KEY = "isClaim";
+    public static final String VALUE_KEY = "value";
+    public static final String STATUS_KEY = "status";
+    public static final String LOCAL_CLAIM_URI_KEY = "localClaimUri";
+    public static final String SUCCESSFUL_STATUS = "Successful";
+    
+    // Error Codes.
+    public static final String ERROR_CODE_CLAIMS_EXTRACTION_FAILED = "CLAIMS_EXTRACTION_FAILED";
 
 }

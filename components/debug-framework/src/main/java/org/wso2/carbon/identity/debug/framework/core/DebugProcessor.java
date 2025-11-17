@@ -86,7 +86,7 @@ public abstract class DebugProcessor {
         String idpId = "";
         
         try {
-            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            IdentityProvider idp = (IdentityProvider) context.getProperty(DebugFrameworkConstants.IDP_CONFIG);
             idpId = idp != null ? idp.getResourceId() : "";
             
             // Validate OAuth callback parameters (protocol-specific).
@@ -121,8 +121,8 @@ public abstract class DebugProcessor {
             
         } catch (Exception e) {
             LOG.error("Unexpected error processing OAuth 2.0 callback.", e);
-            context.setProperty("DEBUG_AUTH_ERROR", "Unexpected error: " + e.getMessage());
-            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Unexpected error: " + e.getMessage());
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
             if (e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("InvocationTargetException cause:", e.getCause());
@@ -158,8 +158,8 @@ public abstract class DebugProcessor {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Authorization error from IdP: " + error + " - " + errorDescription);
             }
-            context.setProperty("DEBUG_AUTH_ERROR", error + ": " + errorDescription);
-            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, error + ": " + errorDescription);
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
             redirectToDebugSuccess(response, state, idpId);
             return false;
         }
@@ -167,8 +167,8 @@ public abstract class DebugProcessor {
         // Validate authorization code.
         if (code == null || code.trim().isEmpty()) {
             LOG.error("Authorization code missing in callback");
-            context.setProperty("DEBUG_AUTH_ERROR", "Authorization code not received from IdP");
-            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Authorization code not received from IdP");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
             redirectToDebugSuccess(response, state, idpId);
             return false;
         }
@@ -176,8 +176,8 @@ public abstract class DebugProcessor {
         // Validate state parameter.
         if (state == null || state.trim().isEmpty()) {
             LOG.error("State parameter missing in callback");
-            context.setProperty("DEBUG_AUTH_ERROR", "State parameter missing - possible CSRF attack");
-            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "State parameter missing.");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
             redirectToDebugSuccess(response, state, idpId);
             return false;
         }
@@ -186,8 +186,8 @@ public abstract class DebugProcessor {
         String storedState = (String) context.getProperty("DEBUG_STATE");
         if (storedState != null && !state.equals(storedState)) {
             LOG.error("State parameter mismatch - CSRF attack detected");
-            context.setProperty("DEBUG_AUTH_ERROR", "State validation failed - possible CSRF attack");
-            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "State validation failed.");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
             redirectToDebugSuccess(response, state, idpId);
             return false;
         }
@@ -244,17 +244,17 @@ public abstract class DebugProcessor {
         // Validate authorization code format before processing.
         if (authorizationCode == null || authorizationCode.trim().isEmpty() || authorizationCode.length() > 2000) {
             LOG.error("Invalid authorization code: null, empty, or exceeds maximum length");
-            context.setProperty("DEBUG_AUTH_ERROR", "Invalid authorization code format");
-            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Invalid authorization code format");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
             redirectToDebugSuccess(response, state, idpId);
             return true;
         }
 
         String lastProcessedCode = (String) request.getSession().getAttribute("LAST_AUTH_CODE");
         if (authorizationCode.equals(lastProcessedCode)) {
-            context.setProperty("DEBUG_AUTH_ERROR",
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR,
                 "Authorization code already used in this session. Please retry login.");
-            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
             redirectToDebugSuccess(response, state, idpId);
             return true;
         }
@@ -285,9 +285,9 @@ public abstract class DebugProcessor {
                         (context.getProperty("DEBUG_ID_TOKEN") != null) + 
                         ", AccessToken present: " + (context.getProperty("DEBUG_ACCESS_TOKEN") != null));
             }
-            
-            context.setProperty("DEBUG_AUTH_ERROR", errorMsg);
-            context.setProperty("DEBUG_AUTH_SUCCESS", "false");
+
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, errorMsg);
+            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
             context.setProperty("step_claim_extraction_status", "failed");
             context.setProperty("step_claim_extraction_error", errorMsg);
             context.setProperty("step_claim_extraction_error_details", errorDetails);
@@ -313,18 +313,18 @@ public abstract class DebugProcessor {
     private void buildAndCacheClaimExtractionErrorResponse(AuthenticationContext context, String state) {
         try {
             Map<String, Object> debugResult = new HashMap<>();
-            debugResult.put("success", "false");
+            debugResult.put("success", DebugFrameworkConstants.FALSE);
             debugResult.put("error", "Failed to extract user claims from tokens");
             debugResult.put("sessionId", state);
             debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
             debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
             debugResult.put("timestamp", System.currentTimeMillis());
             
-            debugResult.put("step_connection_status", "success");
-            debugResult.put("step_authentication_status", "failed");
-            debugResult.put("step_claim_extraction_status", "failed");
-            debugResult.put("step_claim_mapping_status", "not_started");
-            
+            debugResult.put(DebugFrameworkConstants.STEP_CONNECTION_STATUS, "success");
+            debugResult.put(DebugFrameworkConstants.STEP_AUTHENTICATION_STATUS, "failed");
+            debugResult.put(DebugFrameworkConstants.STEP_CLAIM_EXTRACTION_STATUS, "failed");
+            debugResult.put(DebugFrameworkConstants.STEP_CLAIM_MAPPING_STATUS, "not_started");
+
             String idToken = (String) context.getProperty("DEBUG_ID_TOKEN");
             if (idToken != null) {
                 debugResult.put("idToken", idToken);
@@ -384,10 +384,10 @@ public abstract class DebugProcessor {
         try {
             Map<String, Object> debugResult = new HashMap<>();
             debugResult.put("success", "true");
-            debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
+            debugResult.put("error", context.getProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR));
             debugResult.put("sessionId", state);
-            debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
-            debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
+            debugResult.put("idpName", context.getProperty(DebugFrameworkConstants.DEBUG_IDP_NAME));
+            debugResult.put("authenticator", context.getProperty(DebugFrameworkConstants.DEBUG_AUTHENTICATOR_NAME));
             
             Object executorObj = context.getProperty("DEBUG_EXECUTOR_INSTANCE");
             String executorClass = executorObj != null ? executorObj.getClass().getSimpleName() : "UnknownExecutor";
@@ -458,8 +458,8 @@ public abstract class DebugProcessor {
     private void buildAuthenticationFailureDebugResult(AuthenticationContext context, String state) {
         try {
             Map<String, Object> debugResult = new HashMap<>();
-            debugResult.put("success", "false");
-            debugResult.put("error", context.getProperty("DEBUG_AUTH_ERROR"));
+            debugResult.put("success", DebugFrameworkConstants.FALSE);
+            debugResult.put("error", context.getProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR));
             debugResult.put("sessionId", state);
             debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
             debugResult.put("authenticator", context.getProperty("DEBUG_AUTHENTICATOR_NAME"));
@@ -520,8 +520,6 @@ public abstract class DebugProcessor {
         }
     }
 
-
-
     /**
      * Creates an AuthenticatedUser object from extracted claims.
      *
@@ -530,7 +528,7 @@ public abstract class DebugProcessor {
      * @return AuthenticatedUser object or null if creation fails.
      */
     private AuthenticatedUser createAuthenticatedUser(Map<String, Object> claims, AuthenticationContext context) {
-            IdentityProvider idpLog = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            IdentityProvider idpLog = (IdentityProvider) context.getProperty(DebugFrameworkConstants.IDP_CONFIG);
             if (idpLog != null && idpLog.getClaimConfig() != null &&
 
                     idpLog.getClaimConfig().getClaimMappings() != null) {
@@ -579,7 +577,7 @@ public abstract class DebugProcessor {
             }
 
             // --- Auto-map IdP claim mappings to match token claim keys (short name or URI) ---
-            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            IdentityProvider idp = (IdentityProvider) context.getProperty(DebugFrameworkConstants.IDP_CONFIG);
             if (idp != null && idp.getClaimConfig() != null && idp.getClaimConfig().getClaimMappings() != null) {
                 ClaimMapping[] mappings = idp.getClaimConfig().getClaimMappings();
                 for (ClaimMapping mapping : mappings) {
@@ -658,7 +656,7 @@ public abstract class DebugProcessor {
 
     private String getIdpName(AuthenticationContext context) {
         try {
-            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            IdentityProvider idp = (IdentityProvider) context.getProperty(DebugFrameworkConstants.IDP_CONFIG);
             if (idp != null) {
                 return idp.getIdentityProviderName();
             }
@@ -675,7 +673,7 @@ public abstract class DebugProcessor {
             // Step status reporting: claim mapping started
             context.setProperty("DEBUG_STEP_CLAIM_MAPPING_STARTED", System.currentTimeMillis());
 
-            IdentityProvider idp = (IdentityProvider) context.getProperty("IDP_CONFIG");
+            IdentityProvider idp = (IdentityProvider) context.getProperty(DebugFrameworkConstants.IDP_CONFIG);
             ClaimMapping[] configuredMappings = null;
             if (idp != null && idp.getClaimConfig() != null && idp.getClaimConfig().getClaimMappings() != null) {
                 configuredMappings = idp.getClaimConfig().getClaimMappings();
@@ -1106,7 +1104,7 @@ public abstract class DebugProcessor {
         
         String errorMsg = errorCode + ": " + errorDescription;
         
-        debugResult.put("success", "false");
+        debugResult.put("success", DebugFrameworkConstants.FALSE);
         debugResult.put("error", errorMsg);
         debugResult.put("sessionId", state);
         debugResult.put("idpName", context.getProperty("DEBUG_IDP_NAME"));
@@ -1114,11 +1112,11 @@ public abstract class DebugProcessor {
         debugResult.put("timestamp", System.currentTimeMillis());
         
         // Step statuses.
-        debugResult.put("step_connection_status", "failed");
-        debugResult.put("step_authentication_status", "not_started");
-        debugResult.put("step_claim_extraction_status", "not_started");
-        debugResult.put("step_claim_mapping_status", "not_started");
-        
+        debugResult.put(DebugFrameworkConstants.STEP_CONNECTION_STATUS, "failed");
+        debugResult.put(DebugFrameworkConstants.STEP_AUTHENTICATION_STATUS, "not_started");
+        debugResult.put(DebugFrameworkConstants.STEP_CLAIM_EXTRACTION_STATUS, "not_started");
+        debugResult.put(DebugFrameworkConstants.STEP_CLAIM_MAPPING_STATUS, "not_started");
+
         // Detailed error information.
         Map<String, Object> connectionError = new HashMap<>();
         connectionError.put("errorCode", errorCode);
