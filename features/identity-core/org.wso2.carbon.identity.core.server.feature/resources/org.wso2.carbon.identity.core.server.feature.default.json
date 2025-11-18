@@ -58,7 +58,7 @@
   "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
-  "authenticationendpoint.authenticator_validation_enabled": true,
+  "authenticationendpoint.authenticator_validation_enabled": false,
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
   "recovery.v0_9_api.include_display_order_property_in_claims": false,
@@ -598,6 +598,7 @@
   "application_mgt.enable_role_validation": false,
   "application_mgt.trusted_app_consent_required": false,
   "application_mgt.trusted_app_max_thumbprint_count": "20",
+  "application_mgt.enable_cross_tenant_authorized_api_validation": true,
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,

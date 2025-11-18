@@ -617,6 +617,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FEDERATED_IDP = "federated";
         public static final String JS_COMMON_OPTIONS = "common";
         public static final String JS_OPTIONS_USERNAME = "username";
+        public static final String JS_IDENTIFIER_FIRST_USER_INPUT = "identifierFirstUserInput";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
         public static final String PROP_USERNAME_UPDATED_EXTERNALLY = "usernameUpdatedExternally";

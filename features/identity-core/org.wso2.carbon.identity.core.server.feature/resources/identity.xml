@@ -1307,6 +1307,7 @@
         <EnableRoleValidation>false</EnableRoleValidation>
         <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
         <SkipEnforceClientSecretPermission>false</SkipEnforceClientSecretPermission>
+        <EnableCrossTenantAuthorizedApiValidation>true</EnableCrossTenantAuthorizedApiValidation>
     </ApplicationMgt>
 
     <JITProvisioning>

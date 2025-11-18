@@ -311,7 +311,8 @@
       "oauth.authorize_internal_scopes": true,
       "oauth.enable_legacy_session_bound_token_behaviour": true,
       "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
-      "authenticationendpoint.authenticator_validation_enabled": false
+      "authenticationendpoint.authenticator_validation_enabled": false,
+      "application_mgt.enable_cross_tenant_authorized_api_validation": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -353,10 +354,12 @@
       "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": false,
       "oauth.enable_legacy_session_bound_token_behaviour": true,
       "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
-      "authenticationendpoint.authenticator_validation_enabled": false
+      "authenticationendpoint.authenticator_validation_enabled": false,
+      "application_mgt.enable_cross_tenant_authorized_api_validation": false
     },
     "IS_7.2.0": {
-      "authenticationendpoint.authenticator_validation_enabled": false
+      "authenticationendpoint.authenticator_validation_enabled": false,
+      "application_mgt.enable_cross_tenant_authorized_api_validation": false
     }
   }
 }
