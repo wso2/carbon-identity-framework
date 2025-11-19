@@ -182,7 +182,11 @@ public class ConfigurationConstants {
         ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS("CONFIGM_00046", "Resource with the id: %s does not exists."),
         ERROR_CODE_INVALID_RESOURCE_ID("CONFIGM_00047", "Invalid resource id: %s."),
         ERROR_CODE_DELETE_RESOURCE("CONFIGM_00048", "Error while deleting the resource: %s."),
-        ERROR_CODE_CHECK_DB_METADATA("CONFIGM_00049", "Error occurred while checking the DB metadata.");
+        ERROR_CODE_CHECK_DB_METADATA("CONFIGM_00049", "Error occurred while checking the DB metadata."),
+        ERROR_CODE_RESOLVING_TENANT_DOMAIN("CONFIGM_00050", "Error occurred while resolving the tenant domain " +
+                "for the organization id: %s."),
+        ERROR_CODE_RESOLVING_TENANT_ID("CONFIGM_00051", "Error occurred while resolving the tenant id " +
+                "for the organization id: %s.");
 
 
         private final String code;
