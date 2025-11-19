@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -161,7 +162,11 @@ public class AuthenticationEndpointFilter implements Filter {
 
             Set<String> configuredAuthenticatorsSet = new HashSet<>();
             String defaultAuthenticatorsValue = context.getInitParameter(Constants.DEFAULT_AUTHENTICATORS);
-            Set<String> defaultAuthenticatorsSet = new HashSet<>(Arrays.asList((defaultAuthenticatorsValue).split(";")));
+            Set<String> defaultAuthenticatorsSet = Collections.emptySet();
+            if (defaultAuthenticatorsValue != null) {
+                defaultAuthenticatorsSet = new HashSet<>(
+                        Arrays.asList(defaultAuthenticatorsValue.split(",")));
+            }
             String serviceProviderId = servletRequest.getParameter(FrameworkConstants.REQUEST_PARAM_SP_UUID);
             String tenantDomain;
 
