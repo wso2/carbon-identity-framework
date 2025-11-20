@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.core.context.model;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * This class models the Header.
  * Header is the entity that represents additional headers sent in the request.
@@ -25,9 +28,9 @@ package org.wso2.carbon.identity.core.context.model;
 public class Header {
 
     private final String name;
-    private final String[] value;
+    private final List<String> value;
 
-    public Header(String name, String[] value) {
+    public Header(String name, List<String> value) {
 
         this.name = name;
         this.value = value;
@@ -38,8 +41,8 @@ public class Header {
         return name;
     }
 
-    public String[] getValue() {
+    public List<String> getValue() {
 
-        return value;
+        return Collections.unmodifiableList(value);
     }
 }

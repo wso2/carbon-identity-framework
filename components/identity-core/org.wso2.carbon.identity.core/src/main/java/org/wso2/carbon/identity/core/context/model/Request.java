@@ -80,7 +80,7 @@ public class Request {
                 }
 
                 List<String> values = Collections.list(headerValues);
-                this.headers.add(new Header(headerName, values.toArray(new String[0])));
+                this.headers.add(new Header(headerName, values));
             }
         }
     }
