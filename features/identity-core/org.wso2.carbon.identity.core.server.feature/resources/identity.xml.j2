@@ -158,6 +158,10 @@
         <HostName>{{recoveryendpoint.hostname}}</HostName>
         <Path>{{recoveryendpoint.path}}</Path>
     </RecoveryEndpoint>
+    <Accounts>
+        <HostName>{{accounts.hostname}}</HostName>
+        <Path>{{accounts.path}}</Path>
+    </Accounts>
 
     <Identity>
         <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
@@ -436,6 +440,9 @@
 
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>{{oauth.token_validation.authorization_code_validity}}</AuthorizationCodeDefaultValidityPeriod>
+
+        <!-- If enabled, disabled applications will be allowed to authenticate during OAuth client authentication -->
+        <AllowDisabledApplicationCredentialsForAuthentication>{{oauth.allow_disabled_application_credentials_for_authentication}}</AllowDisabledApplicationCredentialsForAuthentication>
         <!-- Default validity period for application access tokens in seconds -->
         <AccessTokenDefaultValidityPeriod>{{oauth.token_validation.app_access_token_validity}}</AccessTokenDefaultValidityPeriod>
         <!-- Default validity period for user access tokens in seconds -->
@@ -709,6 +716,9 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
                 <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
+                {% if oauth.grant_type.organization_switch.allow_refresh_tokens is defined %}
+                <IsRefreshTokenAllowed>{{oauth.grant_type.organization_switch.allow_refresh_tokens}}</IsRefreshTokenAllowed>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
@@ -973,6 +983,7 @@
             <UserInfoEndpointAccessTokenValidator>{{oauth.oidc.extensions.user_info_access_token_validator}}</UserInfoEndpointAccessTokenValidator>
             <UserInfoMultiValueSupportEnabled>{{oauth.oidc.user_info.enable_multi_value_support}}</UserInfoMultiValueSupportEnabled>
             <UserInfoRemoveInternalPrefixFromRoles>{{oauth.oidc.user_info.remove_internal_prefix_from_roles}}</UserInfoRemoveInternalPrefixFromRoles>
+            <ReturnOnlyAppAssociatedRolesInUserInfo>{{oauth.oidc.user_info.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInUserInfo>
             {% if oauth.oidc.extensions.user_info_response_builder is defined %}
             <UserInfoEndpointResponseBuilder>{{oauth.oidc.extensions.user_info_response_builder}}</UserInfoEndpointResponseBuilder>
             {% else %}
@@ -1282,6 +1293,10 @@
         </DefaultRequestedScopes>
         {% endif %}
 
+        {% if oauth.allow_default_requested_scopes_for_back_channel_grant is defined %}
+            <EnableDefaultRequestedScopesForBackChannelGrant>{{oauth.allow_default_requested_scopes_for_back_channel_grant}}</EnableDefaultRequestedScopesForBackChannelGrant>
+        {% endif %}
+
         {% if oauth.drop_unregistered_scopes is defined %}
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
@@ -1296,9 +1311,13 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+        <AllowCrossTenantIntrospectionForSubOrgTokens>{{oauth.introspect.allow_cross_sub_org}}</AllowCrossTenantIntrospectionForSubOrgTokens>
 
-        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
+        <!-- Configuration for adding tenant domain info to JWT -->
+        <AddTenantDomainToAccessToken>{{oauth.add_tenant_domain_to_access_token}}</AddTenantDomainToAccessToken>
+
         <JWT>
+        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
             <RenewTokenWithoutRevokingExisting>
                 <Enable>{{oauth.jwt.renew_token_without_revoking_existing.enable}}</Enable>
                 {% if oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types is defined %}
@@ -1309,8 +1328,10 @@
                 </AllowedGrantTypes>
                 {% endif %}
             </RenewTokenWithoutRevokingExisting>
-        </JWT>
         {% endif %}
+            <MaximumAllowedDepth>{{oauth.jwt.maximum_allowed_depth}}</MaximumAllowedDepth>
+            <EnableDepthValidation>{{oauth.jwt.enable_depth_validation}}</EnableDepthValidation>
+        </JWT>
 
         {% if oauth.restricted_scopes is defined %}
         <RestrictedScopes>
@@ -1361,6 +1382,7 @@
         </RestrictedQueryParameters>
 
         <AuthorizeAllScopes>{{oauth.authorize_all_scopes}}</AuthorizeAllScopes>
+        <AuthorizeInternalScopes>{{oauth.authorize_internal_scopes}}</AuthorizeInternalScopes>
 
         <!--
             When this configuration is enabled, the system supports the features defined in RFC9396,
@@ -1368,6 +1390,36 @@
             Default value : false
         -->
         <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
+        <ReturnSpIdToApplication>{{oauth.return_sp_id_to_apps}}</ReturnSpIdToApplication>
+        <ReturnOnlyAppAssociatedRolesInJWTToken>{{oauth.jwt.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInJWTToken>
+        <Callback>
+            <EnforceLiteralCharacters>{{oauth.callback.enforce_literal_characters}}</EnforceLiteralCharacters>
+            <RestrictFragmentComponents>{{oauth.callback.restrict_fragment_components}}</RestrictFragmentComponents>
+        </Callback>
+        <!--
+        By enabling this config, the refresh token will be issued during impersonation flow.
+        Please note that this is not recommended to enable this in production environments.
+        Default value : false
+        -->
+        {% if oauth.impersonated_refresh_token is defined %}
+        <ImpersonatedRefreshToken>
+            <Enable>{{oauth.impersonated_refresh_token.enable}}</Enable>
+        </ImpersonatedRefreshToken>
+        {% endif %}
+        <!--
+            By enabling this property, the "Internal" prefix will be removed from the mapped roles attribute in the issued JWT tokens.
+            Enable this setting if your applications do not require the Internal prefix when default attribute mapping
+            for http://wso2.org/claims/roles claim is changed.
+            Default value : true
+        -->
+        <RemoveInternalPrefixFromMappedRolesAttributeInToken>{{oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token}}</RemoveInternalPrefixFromMappedRolesAttributeInToken>
+        <!--
+            Enable this property to use legacy session-bound token behavior for OAuth tokens.
+            This may be required for backward compatibility with older applications relying on legacy session management.
+            Default value : false
+        -->
+        <EnableLegacySessionBoundTokenBehaviour>{{oauth.enable_legacy_session_bound_token_behaviour}}</EnableLegacySessionBoundTokenBehaviour>
+        <AllowSessionBoundTokensAfterIdleSessionExpiry>{{oauth.allow_session_bound_tokens_after_idle_session_expiry}}</AllowSessionBoundTokensAfterIdleSessionExpiry>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1450,6 +1502,7 @@
             <SeparateMultiAttributesFromIdP>{{saml.separate_multi_attributes_from_idp}}</SeparateMultiAttributesFromIdP>
         {% endif %}
         <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
+        <SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>{{saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert}}</SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>
     </SSOService>
 
     <Consent>
@@ -1485,6 +1538,7 @@
         <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
         <EnableLogoutWreplyValidation>{{passive_sts.enable_logout_wreply_validation}}</EnableLogoutWreplyValidation>
+        <SOAPEnabled>{{passive_sts.soap_enabled}}</SOAPEnabled>
     </PassiveSTS>
 
     <UserAccountAssociation>
@@ -1547,6 +1601,9 @@
             -->
             <ComplexMultiValuedAttributeSupportEnabled>{{scim.enable_complex_multivalued_attribute_support}}</ComplexMultiValuedAttributeSupportEnabled>
         </SCIMAuthenticators>
+
+        <!-- Restrict federated users from accessing the endpoint -->
+        <RestrictFederatedUserAccess>{{scim.restrict_federated_user_access}}</RestrictFederatedUserAccess>
     </SCIM>
 
     <SCIM2>
@@ -1661,7 +1718,47 @@
         {% endif %}
 
         <EnableScim2RolesV3Api>{{scim2.enable_scim2_roles_v3_api}}</EnableScim2RolesV3Api>
+        <!--
+            This configuration is used to mention the preferred role api version for 'ref'
+            attribute of the 'roles' attribute in the SCIM 2.0 User resource and Group resource.
+            Default value : v3
+            Applicable values : v1, v2, v3
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <DefaultRoleAPIVersionForRef>{{scim2.default_role_api_version_for_ref}}</DefaultRoleAPIVersionForRef>
+
+        <!--
+            If you want to return a 409 Conflict response (recommended) instead of a 400 Bad Request
+            when duplicate claims (excluding username) are encountered during SCIM2 user operations,
+            then enable this property value.
+            Default value: true
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <ReturnConflictOnClaimUniquenessViolation>{{scim2.return_conflict_on_claim_uniqueness_violation}}</ReturnConflictOnClaimUniquenessViolation>
+
+        <!--
+            If you want to throw a UserStoreException in case of user creation failures, then enable this
+            property value.
+            Default value: true
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <ThrowUserStoreExceptionOnUserCreationError>{{scim2.throw_userstore_exception_on_user_creation_error}}</ThrowUserStoreExceptionOnUserCreationError>
+
+        {% if scim2.console_roles.enable_custom_roles is defined || scim2.console_roles.require_feature_permissions is defined %}
+        <ConsoleRoles>
+            {% if scim2.console_roles.enable_custom_roles is defined %}
+            <EnableCustomRoles>{{scim2.console_roles.enable_custom_roles}}</EnableCustomRoles>
+            {% endif %}
+            {% if scim2.console_roles.require_feature_permissions is defined %}
+            <RequireFeaturePermissions>{{scim2.console_roles.require_feature_permissions}}</RequireFeaturePermissions>
+            {% endif %}
+        </ConsoleRoles>
+        {% endif %}
     </SCIM2>
+
+    <Captcha>
+        <EnableCaptchaForLocalOTPAuthenticators>{{captcha.enable_captcha_for_local_otp_authenticators}}</EnableCaptchaForLocalOTPAuthenticators>
+    </Captcha>
 
       <PasswordPolicy>
           <MaxPasswordAllowedLength>{{identity_mgt.password_policy.max_password_allowed_length}}</MaxPasswordAllowedLength>
@@ -1782,6 +1879,9 @@
         <AutoLogin>
             <Enable>{{identity_mgt.recovery.enable_auto_login}}</Enable>
         </AutoLogin>
+        <V09Api>
+            <IncludeDisplayOrderPropertyInClaims>{{recovery.v0_9_api.include_display_order_property_in_claims}}</IncludeDisplayOrderPropertyInClaims>
+        </V09Api>
     </Recovery>
 
     <AccountLock>
@@ -1959,9 +2059,9 @@
         <!-- Enable support for storing multiple email addresses and mobile numbers per user. -->
         <EnableMultipleEmailsAndMobileNumbers>{{identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers}}</EnableMultipleEmailsAndMobileNumbers>
 
-        <!-- 
+        <!--
             Defines the scope for which claim uniqueness validation should happen, this can be either within userstore
-            or across userstore. This config is already defined in the EventListener with 
+            or across userstore. This config is already defined in the EventListener with
             id="unique_claim_user_operation_event_listener" of type "UserOperationEventListener".
         -->
         <UniquenessValidation>
@@ -2104,6 +2204,7 @@
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
+        <AllowNonStandardClaimURI>{{authentication.jit_provisioning.allow_non_Standard_claim_uri}}</AllowNonStandardClaimURI>
         {% if authentication.jit_provisioning.show_failure_reason is defined %}
         <ShowFailureReason>{{authentication.jit_provisioning.show_failure_reason}}</ShowFailureReason>
         {% endif %}
@@ -2120,12 +2221,21 @@
         <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
         <TrustedAppConsentRequired>{{application_mgt.trusted_app_consent_required}}</TrustedAppConsentRequired>
         <TrustedAppMaxThumbprintCount>{{application_mgt.trusted_app_max_thumbprint_count}}</TrustedAppMaxThumbprintCount>
+        <SkipEnforceAuthorizedAPIUpdatePermission>{{operation_permission_enforcement.skip_enforce_authorized_api_update_permission}}</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceClientSecretPermission>{{operation_permission_enforcement.skip_enforce_client_secret_permission}}</SkipEnforceClientSecretPermission>
+        {% if operation_permission_enforcement.skip_enforce_script_update_permission is defined %}
+        <SkipEnforceScriptUpdatePermission>{{operation_permission_enforcement.skip_enforce_script_update_permission}}</SkipEnforceScriptUpdatePermission>
+        {% endif %}
+        <EnableCrossTenantAuthorizedApiValidation>{{application_mgt.enable_cross_tenant_authorized_api_validation}}</EnableCrossTenantAuthorizedApiValidation>
     </ApplicationMgt>
 
     <!--Role management service configurations-->
     <RoleMgt>
         {% if role_mgt.allow_system_prefix_for_role is defined %}
         <AllowSystemPrefixForRoles>{{role_mgt.allow_system_prefix_for_role}}</AllowSystemPrefixForRoles>
+        {% endif %}
+        {% if operation_permission_enforcement.skip_enforce_role_operation_permission is defined %}
+        <SkipEnforceRoleOperationPermission>{{operation_permission_enforcement.skip_enforce_role_operation_permission}}</SkipEnforceRoleOperationPermission>
         {% endif %}
     </RoleMgt>
 
@@ -2171,9 +2281,17 @@
                 {% endfor %}
             </ExcludedParameters>
         </ActionRequest>
+        <!--
+            Please note that the latest_version temporary configuration is intended strictly for internal use.
+            Do not modify it for custom requirements, and it should not be recommended or exposed to customers.
+        -->
         <Types>
             <PreIssueAccessToken>
                 <Enable>{{actions.types.pre_issue_access_token.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_issue_access_token.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
+                </Version>
                 <ActionRequest>
                     <ExcludedHeaders>
                          {% for header in actions.types.pre_issue_access_token.action_request.excluded_headers %}
@@ -2199,20 +2317,46 @@
             </PreIssueAccessToken>
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_update_profile.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
+                </Version>
             </PreUpdateProfile>
             <PreUpdatePassword>
-                <EnableInRegistrationFlows>{{actions.types.pre_update_password.enable_in_registration_flows}}</EnableInRegistrationFlows>
+                <Version>
+                    <Latest>{{actions.types.pre_update_password.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
+                </Version>
             </PreUpdatePassword>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.authentication.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_update_password.version.retired_up_to}}</RetiredUpTo>
+                </Version>
                 <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
             </Authentication>
         </Types>
     </Actions>
 
+    <ExternalAPIClient>
+        <HTTPClient>
+            <HTTPConnectionTimeout>{{external_api_client.http_client.connection_timeout}}</HTTPConnectionTimeout>
+            <HTTPReadTimeout>{{external_api_client.http_client.read_timeout}}</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>{{external_api_client.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+            <HTTPConnectionPoolSize>{{external_api_client.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
+            <HTTPConnectionMaxPerRoute>{{external_api_client.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
+        </HTTPClient>
+        <DefaultRetryCount>{{external_api_client.retry_count}}</DefaultRetryCount>
+    </ExternalAPIClient>
+
     <Webhooks>
         <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
     </Webhooks>
+
+    <LocalAuthenticators>
+        <HideUserExistenceOnAuthFlow>{{authentication.local_authenticators.hide_user_existence}}</HideUserExistenceOnAuthFlow>
+    </LocalAuthenticators>
 
     <EventListeners>
         <EventListener id="input_validation"
@@ -2781,6 +2925,9 @@
 
 
     <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
+        <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" >
+            <Permissions>/</Permissions>
+        </Resource>
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}"
                 {% if resource.allowed_auth_handlers is defined %}
@@ -2889,23 +3036,6 @@
         <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
-        </Resource>
-
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/secretmgt/add</Permissions>
-            <Scopes>internal_secret_mgt_add</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/secretmgt/update</Permissions>
-            <Scopes>internal_secret_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/secretmgt/view</Permissions>
-            <Scopes>internal_secret_mgt_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
-            <Scopes>internal_secret_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
@@ -3323,8 +3453,7 @@
             <Scopes>internal_identity_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
-            <Scopes>internal_user_mgt_create</Scopes>
+            <Scopes>internal_offline_invite</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
@@ -3946,6 +4075,7 @@
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/identity/oauth2/dcr/</Path>
+                    <Path>/api/identity/auth/v1.1/data</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3955,9 +4085,33 @@
                     <Path>/oauth2/introspect</Path>
                     <Path>/oauth2/revoke</Path>
                     <Path>/oauth2/userinfo</Path>
+                    <Path>/oauth2/authorize</Path>
+                    <Path>/oauth2/jwks</Path>
                 </SubPaths>
             </Context>
+            <Context>
+                <BasePath>/authenticationendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accounts/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/.well-known/</BasePath>
+            </Context>
         </WebApp>
+        <Servlet>
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
+            <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
+            <Context>/longwaitstatus(.*)</Context>
+            <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
+        </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
@@ -3985,6 +4139,7 @@
                     <Path>/api/users/v1/offline-invite-link</Path>
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/me/push/devices</Path>
+                    <Path>/api/server/v1/flow/execute</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3995,6 +4150,9 @@
             </Context>
             <Context>
                 <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accounts/</BasePath>
             </Context>
         </WebApp>
         <Servlet>
@@ -4094,6 +4252,7 @@
         <ExecutionSupervisor>
             <Enable>{{authentication.adaptive.execution_supervisor.enable}}</Enable>
             <ThreadCount>{{authentication.adaptive.execution_supervisor.thread_count}}</ThreadCount>
+            <TimeoutEnable>{{authentication.adaptive.execution_supervisor.timeout_enable}}</TimeoutEnable>
             <Timeout>{{authentication.adaptive.execution_supervisor.timeout}}</Timeout>
             {% if authentication.adaptive.execution_supervisor.memory_limit is defined %}
             <MemoryLimit>{{authentication.adaptive.execution_supervisor.memory_limit}}</MemoryLimit>
@@ -4128,6 +4287,8 @@
         <GraalJS>
             <ScriptStatementsLimit>{{authentication.adaptive.graaljs.script_statements_limit}}</ScriptStatementsLimit>
         </GraalJS>
+
+        <AllowUpdatingAuthenticatedSubject>{{authentication.adaptive.allow_updating_authenticated_subject}}</AllowUpdatingAuthenticatedSubject>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
@@ -4145,6 +4306,41 @@
             {% endfor %}
         </ExemptContext>
     </IntermediateCertValidation>
+
+    {% set cfg = client_certificate_based_authentication or {} %}
+        <ClientCertBasedAuthentication enable="{{ cfg.enable | default(false) | string | lower }}">
+
+        {% if cfg.user_thumbprint_mapping %}
+        <UserThumbprintMappings>
+            {% for m in cfg.user_thumbprint_mapping %}
+            <Mapping>
+            <TrustedIssuer>{{ m.trusted_issuer }}</TrustedIssuer>
+            <CertThumbprint>{{ m.cert_thumbprint }}</CertThumbprint>
+            {% if m.allowed_username is string %}
+                <AllowedUsername>{{ m.allowed_username }}</AllowedUsername>
+            {% elif m.allowed_username is sequence %}
+                {% for u in m.allowed_username %}
+                <AllowedUsername>{{ u }}</AllowedUsername>
+                {% endfor %}
+            {% else %}
+            {% endif %}
+            </Mapping>
+            {% endfor %}
+        </UserThumbprintMappings>
+        {% endif %}
+
+        {% if cfg.system_thumbprint_mapping %}
+        <SystemThumbprintMappings>
+            {% for m in cfg.system_thumbprint_mapping %}
+            <Mapping>
+            <TrustedIssuer>{{ m.trusted_issuer }}</TrustedIssuer>
+            <CertThumbprint>{{ m.cert_thumbprint }}</CertThumbprint>
+            <AllowedSystemUser>{{ m.allowed_system_user }}</AllowedSystemUser>
+            </Mapping>
+            {% endfor %}
+        </SystemThumbprintMappings>
+        {% endif %}
+        </ClientCertBasedAuthentication>
 
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
@@ -4171,6 +4367,10 @@
      </FIdPRoleBasedAuthzApplications>
      {% endif %}
 
+     {% if federated.authenticator.max_property_limit is defined %}
+     <MaxFederatedAuthenticatorPropertiesPerIdP>{{federated.authenticator.max_property_limit}}</MaxFederatedAuthenticatorPropertiesPerIdP>
+     {% endif %}
+
     <!--This configuration is used for X509 Certificate based authentication. -->
 
     <X509>
@@ -4181,6 +4381,9 @@
         {% endif %}
         {% if x509.crl_download_timeout is defined and x509.crl_download_timeout|length %}
         <CRLDownloadTimeout>{{x509.crl_download_timeout}}</CRLDownloadTimeout>
+        {% endif %}
+        {% if x509.request_header_encoded is defined %}
+        <X509RequestHeaderEncoded>{{x509.request_header_encoded}}</X509RequestHeaderEncoded>
         {% endif %}
     </X509>
 
@@ -4346,6 +4549,13 @@
     </UserIdentifier>
     {% endif %}
 
+    <!-- Configuration for the identifier first input case sensitivity. -->
+    <IdentifierFirst>
+        <PreserveCaseSensitivity>
+            <Enabled>{{ identifier_first.preserve_case_sensitivity.enabled }}</Enabled>
+        </PreserveCaseSensitivity>
+    </IdentifierFirst>
+
     <!-- CORS -->
     <CORS>
         <AllowGenericHttpRequests>{{cors.allow_generic_http_requests}}</AllowGenericHttpRequests>
@@ -4411,6 +4621,7 @@
 
     <CommonAuthCallerPath>
         <EnableValidation>{{common_auth_caller_path.enable_common_auth_caller_path_validation}}</EnableValidation>
+        <EnableNestedRedirectParams>{{common_auth_caller_path.enable_nested_redirect_params}}</EnableNestedRedirectParams>
         {% if common_auth_caller_path.default_url is defined %}
         <DefaultUrl>{{common_auth_caller_path.default_url}}</DefaultUrl>
         {% endif %}
@@ -4522,6 +4733,8 @@
         <DataStoreType>{{identity_datastore.datastore_type}}</DataStoreType>
     </IdentityDataStore>
 
+    <AddUserStoreDomainToGroupClaims>{{identity_mgt.claims.add_userstore_domain_to_group_claims}}</AddUserStoreDomainToGroupClaims>
+
     <UserProfileExport>
         <AdditionalClaims>
             {% for item in user_profile_export.additional_claims %}
@@ -4632,6 +4845,18 @@
             </GetPolicyDoc>
         </PolicyEditorService>
         {% endif %}
+        <TOTPAdminService>
+            <SelfOperations>
+                <Enabled>{{totp_admin_service.self_operations.enabled | default('false')}}</Enabled>
+            </SelfOperations>
+            <Permission>{{totp_admin_service.permission | default('/permission/admin/manage/identity/usermgt/update')}}</Permission>
+        </TOTPAdminService>
+        <ApplicationMgtAdminService>
+            <IdpSecretsRetrievalPermission>{{appmgt_admin_service.idp_secrets_retrieval_permission | default('/permission/admin/manage/identity/idpmgt/view')}}</IdpSecretsRetrievalPermission>
+        </ApplicationMgtAdminService>
+        <UserManagementWorkflowService>
+            <WorkflowServicePermission>{{ user_management_workflow_service.permission | default('/permission/admin/manage/identity/workflow/association/view') }}</WorkflowServicePermission>
+        </UserManagementWorkflowService>
     </AdminServices>
 
     <AIServices>
@@ -4665,12 +4890,20 @@
         </FlowAI>
     </AIServices>
 
+    <TokenExchange>
+        <ImplicitAssociation>
+            <IncludePrimaryWhenSecondaryPresent>{{token_exchange.implicit_association.include_primary_when_secondary_present}}</IncludePrimaryWhenSecondaryPresent>
+        </ImplicitAssociation>
+    </TokenExchange>
+
     <!-- This configuration is to indicate whether the user session management APIs should return entries filtered by unique session IDs. -->
     <FilterByUniqueSessionIdForUser>{{session_management.filter_by_unique_session_id_for_user}}</FilterByUniqueSessionIdForUser>
 
     <AgentIdentity>
         <Enabled>{{agent_identity.enabled}}</Enabled>
         <Userstore>{{agent_identity.userstore}}</Userstore>
+        <Datasource>{{agent_identity.datasource}}</Datasource>
+        <UserstoreManagerClass>{{agent_identity.userstore_manager_class}}</UserstoreManagerClass>
     </AgentIdentity>
 
     {% if platform_idp is defined %}
@@ -4688,6 +4921,11 @@
         <EnableDataPersistence>{{async_operation_status.enable_data_persistence}}</EnableDataPersistence>
     </AsyncOperationStatus>
 
+    <BrandingConfiguration>
+        <CustomContent>
+            <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
+        </CustomContent>
+    </BrandingConfiguration>
     <FlowExecution>
         {% if flow_execution.excluded_userstores is defined %}
         <ExcludedUserstores>
@@ -4705,6 +4943,33 @@
             <FlowTypeTTL type="{{flow_type}}">{{ttl}}</FlowTypeTTL>
             {% endfor %}
         </FlowTypeTTLs>
+        <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
+        <Registration>
+            <DisplayClaimAvailability>{{flow_execution.registration.display_claim_availability}}</DisplayClaimAvailability>
+            <DefaultUserStore>{{flow_execution.registration.default_user_store}}</DefaultUserStore>
+        </Registration>
     </FlowExecution>
+
+    <NotificationChannel>
+        <SMS>
+            <Custom>
+                <!--
+                    Specifies the connection timeout in milliseconds when connecting to the custom SMS provider.
+                    A timeout of zero is interpreted as an infinite timeout.
+                    Default value is 5000ms.
+                    Supported versions : IS 7.2.0 onwards
+                -->
+                <ConnectionTimeout>{{notificationChannel.sms.custom.connection_timeout}}</ConnectionTimeout>
+                <!--
+                    Specifies the read timeout in milliseconds when reading from an input stream after a connection is
+                    established to the custom SMS provider. A timeout of zero is interpreted as an infinite timeout.
+                    Default value is 20000ms.
+                    Supported versions : IS 7.2.0 onwards
+                -->
+                <ConnectionReadTimeout>{{notificationChannel.sms.custom.connection_read_timeout}}</ConnectionReadTimeout>
+            </Custom>
+        </SMS>
+    </NotificationChannel>
+    <PASTRCookieMaxAge>{{pastr_cookie.max_age}}</PASTRCookieMaxAge>
 
 </Server>

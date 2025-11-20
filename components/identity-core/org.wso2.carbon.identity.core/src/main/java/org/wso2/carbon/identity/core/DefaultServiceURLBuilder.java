@@ -112,6 +112,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String authenticationEndpointPath = fetchAuthenticationEndpointPath();
         String recoveryEndpointHostName = fetchRecoveryEndpointHostName();
         String recoveryEndpointPath = fetchRecoveryEndpointPath();
+        String accountsHostName = fetchAccountsHostName();
+        String accountsPath = fetchAccountsPath();
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
         String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
@@ -136,6 +138,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
                     urlPathForPublicUrl.contains(recoveryEndpointPath)) {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         recoveryEndpointHostName, proxyPort);
+            }
+            if (accountsHostName != null && accountsPath != null &&
+                    urlPathForPublicUrl.contains(accountsPath)) {
+                absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
+                        accountsHostName, proxyPort);
             }
         }
         String absolutePublicURL = fetchAbsolutePublicUrl(absolutePublicUrlWithoutURLPath, relativePublicUrl);
@@ -386,6 +393,20 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String recoveryEndpointPath = IdentityUtil
                 .getProperty(IdentityCoreConstants.RECOVERY_ENDPOINT_PATH);
         return preprocessEndpointPath(recoveryEndpointPath);
+    }
+
+    protected String fetchAccountsHostName() throws URLBuilderException {
+
+        String accountsHostName = IdentityUtil.
+                getProperty(IdentityCoreConstants.ACCOUNTS_HOST_NAME);
+        return resolveHostName(accountsHostName);
+    }
+
+    protected String fetchAccountsPath() {
+
+        String accountsPath = IdentityUtil
+                .getProperty(IdentityCoreConstants.ACCOUNTS_PATH);
+        return preprocessEndpointPath(accountsPath);
     }
 
     protected String preprocessEndpointPath(String endpointPath) {

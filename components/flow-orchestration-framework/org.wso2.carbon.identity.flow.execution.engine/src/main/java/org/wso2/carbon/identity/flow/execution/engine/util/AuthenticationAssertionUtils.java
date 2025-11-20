@@ -19,17 +19,19 @@
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
 import com.nimbusds.jwt.JWTClaimsSet;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.UserAssertionUtils;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.AuthenticationExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -68,7 +70,7 @@ public class AuthenticationAssertionUtils {
             JWTClaimsSet claims = buildUserAssertionClaimSet(context);
             return UserAssertionUtils.generateSignedUserAssertion(claims, context.getTenantDomain());
         } catch (FrameworkException e) {
-            throw FlowExecutionEngineUtils.handleServerException(
+            throw FlowExecutionEngineUtils.handleServerException(context.getFlowType(),
                     ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE, e, context.getContextIdentifier());
         }
     }
@@ -76,36 +78,51 @@ public class AuthenticationAssertionUtils {
     private static JWTClaimsSet buildUserAssertionClaimSet(FlowExecutionContext context)
             throws FlowEngineServerException {
 
-        if (context.getFlowUser() == null) {
-            throw FlowExecutionEngineUtils.handleServerException(ERROR_CODE_FLOW_USER_NOT_FOUND,
-                    context.getContextIdentifier());
+        try {
+            if (context.getFlowUser() == null) {
+                throw FlowExecutionEngineUtils.handleServerException(context.getFlowType(),
+                        ERROR_CODE_FLOW_USER_NOT_FOUND, context.getContextIdentifier());
+            }
+            long now = System.currentTimeMillis();
+            Date issueTime = new Date(now);
+            Date expirationTime = calculateUserAssertionExpiryTime(now);
+            String serverURL = ServiceURLBuilder.create().build(IdentityUtil.getHostName()).getAbsolutePublicURL();
+            String username = context.getFlowUser().getUsername();
+            String userId = context.getFlowUser().getUserId();
+
+            List<String> amrValues = context.getCompletedNodes().stream()
+                    .map(node -> node.getExecutorConfig().getName())
+                    .map(FlowExecutionEngineDataHolder.getInstance().getExecutors()::get)
+                    .filter(AuthenticationExecutor.class::isInstance)
+                    .map(executor -> ((AuthenticationExecutor) executor).getAMRValue())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            String fullQualifiedUsername = getFullQualifiedUsername(context, username);
+            return new JWTClaimsSet.Builder()
+                    .issuer(serverURL)
+                    .audience(serverURL)
+                    .subject(fullQualifiedUsername)
+                    .issueTime(issueTime)
+                    .notBeforeTime(issueTime)
+                    .expirationTime(expirationTime)
+                    .jwtID(UUID.randomUUID().toString())
+                    .claim(FrameworkConstants.AMR, amrValues)
+                    .claim(USER_ID_CLAIM, userId)
+                    .claim(FrameworkConstants.USERNAME_CLAIM, username)
+                    .build();
+        } catch (URLBuilderException e) {
+            throw FlowExecutionEngineUtils.handleServerException(ERROR_CODE_AUTHENTICATION_ASSERTION_GENERATION_FAILURE,
+                    e, context.getContextIdentifier());
         }
-        long now = System.currentTimeMillis();
-        Date issueTime = new Date(now);
-        Date expirationTime = calculateUserAssertionExpiryTime(now);
-        String serverURL = IdentityUtil.getServerURL(StringUtils.EMPTY, true, true);
-        String username = context.getFlowUser().getUsername();
-        String userId = context.getFlowUser().getUserId();
+    }
 
-        List<String> amrValues = context.getCompletedNodes().stream()
-                .map(node -> node.getExecutorConfig().getName())
-                .map(FlowExecutionEngineDataHolder.getInstance().getExecutors()::get)
-                .filter(AuthenticationExecutor.class::isInstance)
-                .map(executor -> ((AuthenticationExecutor) executor).getAMRValue())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+    private static String getFullQualifiedUsername(FlowExecutionContext context, String username) {
 
-        return new JWTClaimsSet.Builder()
-                .issuer(serverURL)
-                .subject(username)
-                .issueTime(issueTime)
-                .notBeforeTime(issueTime)
-                .expirationTime(expirationTime)
-                .jwtID(UUID.randomUUID().toString())
-                .claim(FrameworkConstants.AMR, amrValues)
-                .claim(USER_ID_CLAIM, userId)
-                .claim(FrameworkConstants.USERNAME_CLAIM, username)
-                .build();
+        String fullQualifiedUsername = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
+        fullQualifiedUsername = UserCoreUtil.addDomainToName(fullQualifiedUsername,
+                context.getFlowUser().getUserStoreDomain());
+        return fullQualifiedUsername;
     }
 
     private static Date calculateUserAssertionExpiryTime(long currentTimeMillis) {
@@ -120,7 +137,6 @@ public class AuthenticationAssertionUtils {
             LOG.warn(String.format("Invalid value for authentication assertion lifetime. Falling back to default %d ms",
                     DEFAULT_ASSERTION_LIFETIME_MS));
         }
-
         long expiryTime = currentTimeMillis + configuredLifetime;
         return new Date(expiryTime);
     }

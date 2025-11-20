@@ -18,11 +18,13 @@
 
 package org.wso2.carbon.identity.action.management.internal.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
@@ -33,8 +35,8 @@ import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManage
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementAuditLogger;
+import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
-import org.wso2.carbon.identity.action.management.internal.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -52,7 +54,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private static final Log LOG = LogFactory.getLog(ActionManagementServiceImpl.class);
     private static final ActionManagementDAOFacade DAO_FACADE =
             new ActionManagementDAOFacade(new ActionManagementDAOImpl());
-    private static final ActionValidator ACTION_VALIDATOR = new ActionValidator();
     private static final ActionManagementAuditLogger auditLogger = new ActionManagementAuditLogger();
 
     /**
@@ -70,18 +71,22 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Adding Action for Action Type: %s.", actionType));
         }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String resolvedActionType = getActionTypeFromPath(actionType);
-        ACTION_VALIDATOR.doPreAddActionValidations(action);
+        Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
+        ActionValidatorFactory.getActionValidator(castedActionType).doPreAddActionValidations(
+                castedActionType, ActionManagementConfig.getInstance().getLatestVersion(castedActionType), action);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
-        ActionDTO creatingActionDTO = buildActionDTO(resolvedActionType, generatedActionId, action);
+        ActionDTO creatingActionDTO = buildActionDTOForCreation(resolvedActionType, generatedActionId, action);
 
-        DAO_FACADE.addAction(creatingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-        Action createdAction = getActionByActionId(actionType, generatedActionId, tenantDomain);
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, creatingActionDTO);
+        DAO_FACADE.addAction(creatingActionDTO, tenantId);
+        ActionDTO createdActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, generatedActionId, tenantId);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, creatingActionDTO,
+                createdActionDTO.getCreatedAt(), createdActionDTO.getUpdatedAt());
 
-        return createdAction;
+        return buildAction(resolvedActionType, createdActionDTO);
     }
 
     /**
@@ -150,14 +155,29 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating Action for Action Type: %s and Action ID: %s.", actionType, actionId));
         }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String resolvedActionType = getActionTypeFromPath(actionType);
-        ACTION_VALIDATOR.doPreUpdateActionValidations(action);
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
+        Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
+        ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
+                castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action);
+        ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action);
 
-        DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, updatingActionDTO);
-        return getActionByActionId(actionType, actionId, tenantDomain);
+        DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
+        ActionDTO updatedActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, actionId, tenantId);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, updatingActionDTO,
+                null, updatedActionDTO.getUpdatedAt());
+
+        return buildAction(resolvedActionType, updatedActionDTO);
+    }
+
+    private String resolveActionVersionAtUpdating(Action updatingAction, ActionDTO existingActionDTO) {
+
+        String updatingActionVersion = updatingAction.getActionVersion();
+        if (StringUtils.isNotBlank(updatingActionVersion)) {
+            return updatingActionVersion;
+        }
+        return existingActionDTO.getActionVersion();
     }
 
     /**
@@ -174,10 +194,11 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Deleting Action for Action Type: %s and Action ID: %s", actionType, actionId));
         }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         ActionDTO existingActionDTO = DAO_FACADE.getActionByActionId(getActionTypeFromPath(actionType), actionId,
-                IdentityTenantUtil.getTenantId(tenantDomain));
+                tenantId);
         if (existingActionDTO != null) {
-            DAO_FACADE.deleteAction(existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
+            DAO_FACADE.deleteAction(existingActionDTO, tenantId);
             auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId);
         }
     }
@@ -201,7 +222,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         ActionDTO activatedActionDTO = DAO_FACADE.activateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, actionType, actionId);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, actionType, actionId,
+                activatedActionDTO.getUpdatedAt());
         return buildBasicAction(activatedActionDTO);
     }
 
@@ -225,7 +247,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         ActionDTO deactivatedActionDTO = DAO_FACADE.deactivateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, actionType, actionId);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, actionType, actionId,
+                deactivatedActionDTO.getUpdatedAt());
         return buildBasicAction(deactivatedActionDTO);
     }
 
@@ -329,8 +352,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     /**
-     * Builds an `ActionDTO` object based on the provided action type, action ID, and action model.
-     * This method resolves the action type and status, applies necessary transformations, and constructs
+     * For action creation operation, builds an `ActionDTO` object based on the provided action type, action ID, and
+     * action model. This method resolves the action type and status, applies necessary transformations, and constructs
      * the `ActionDTO` object using the provided data.
      *
      * @param actionType The type of the action.
@@ -338,11 +361,14 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param action The action model containing details for the action.
      * @return The constructed `ActionDTO` object.
      */
-    private ActionDTO buildActionDTO(String actionType, String actionId, Action action) {
+    private ActionDTO buildActionDTOForCreation(String actionType, String actionId, Action action)
+            throws ActionMgtServerException {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
         Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.IN_FLOW ?
                 Action.Status.ACTIVE : Action.Status.INACTIVE;
+
+        String actionVersion = ActionManagementConfig.getInstance().getLatestVersion(resolvedActionType);
 
         ActionConverter actionConverter =
                 ActionConverterFactory.getActionConverter(Action.ActionTypes.valueOf(actionType));
@@ -353,6 +379,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                     .id(actionId)
                     .type(resolvedActionType)
                     .status(resolvedStatus)
+                    .actionVersion(actionVersion)
                     .build();
         }
 
@@ -360,6 +387,41 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .id(actionId)
                 .type(resolvedActionType)
                 .status(resolvedStatus)
+                .actionVersion(actionVersion)
+                .build();
+    }
+
+    /**
+     * For action update operation, builds an `ActionDTO` object based on the provided action type, action ID, and
+     * action model. This method resolves the action type and status, applies necessary transformations, and constructs
+     * the `ActionDTO` object using the provided data.
+     *
+     * @param actionType The type of the action.
+     * @param actionId The unique identifier for the action.
+     * @param action The action model containing details for the action.
+     * @return The constructed `ActionDTO` object.
+     */
+    private ActionDTO buildActionDTOForUpdate(String actionType, String actionId, Action action) {
+
+        Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
+        String actionVersion = action.getActionVersion();
+
+        ActionConverter actionConverter =
+                ActionConverterFactory.getActionConverter(Action.ActionTypes.valueOf(actionType));
+        if (actionConverter != null) {
+            ActionDTO actionDTO = actionConverter.buildActionDTO(action);
+
+            return new ActionDTOBuilder(actionDTO)
+                    .id(actionId)
+                    .type(resolvedActionType)
+                    .actionVersion(actionVersion)
+                    .build();
+        }
+
+        return new ActionDTOBuilder(action)
+                .id(actionId)
+                .type(resolvedActionType)
+                .actionVersion(actionVersion)
                 .build();
     }
 
@@ -375,6 +437,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .name(actionDTO.getName())
                 .description(actionDTO.getDescription())
                 .status(actionDTO.getStatus())
+                .actionVersion(actionDTO.getActionVersion())
                 .createdAt(actionDTO.getCreatedAt())
                 .updatedAt(actionDTO.getUpdatedAt())
                 .build();
@@ -398,6 +461,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .name(actionDTO.getName())
                 .description(actionDTO.getDescription())
                 .status(actionDTO.getStatus())
+                .actionVersion(actionDTO.getActionVersion())
                 .createdAt(actionDTO.getCreatedAt())
                 .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())

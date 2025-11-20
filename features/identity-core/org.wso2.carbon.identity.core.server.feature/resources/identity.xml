@@ -275,6 +275,9 @@
 
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>300</AuthorizationCodeDefaultValidityPeriod>
+
+        <!-- If enabled, disabled applications will be allowed to authenticate during OAuth client authentication -->
+        <AllowDisabledApplicationCredentialsForAuthentication>false</AllowDisabledApplicationCredentialsForAuthentication>
         <!-- Default validity period for application access tokens in seconds -->
         <AccessTokenDefaultValidityPeriod>3600</AccessTokenDefaultValidityPeriod>
         <!-- Default validity period for user access tokens in seconds -->
@@ -791,6 +794,20 @@
         </RestrictedQueryParameters>
 
         <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
+        <ReturnSpIdToApplication>true</ReturnSpIdToApplication>
+        <Callback>
+            <EnforceLiteralCharacters>true</EnforceLiteralCharacters>
+        </Callback>
+        <ImpersonatedRefreshToken>
+            <Enable>false</Enable>
+        </ImpersonatedRefreshToken>
+        <!--
+            By enabling this property, the "Internal" prefix will be removed from the mapped roles attribute in the issued JWT tokens.
+            Enable this setting if your applications do not require the Internal prefix when default attribute mapping
+            for http://wso2.org/claims/roles claim is changed.
+            Default value : true
+        -->
+        <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
     </OAuth>
 
     <RestApiAuthentication>
@@ -888,6 +905,7 @@
         <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>true</EnableDefaultSignatureAndDigestAlgorithm>
         <EnableLogoutWreplyValidation>true</EnableLogoutWreplyValidation>
+        <SOAPEnabled>false</SOAPEnabled>
     </PassiveSTS>
 
     <UserAccountAssociation>
@@ -1046,7 +1064,32 @@
         -->
         <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
 
-        <EnableScim2RolesV3Api>false</EnableScim2RolesV3Api>
+        <EnableScim2RolesV3Api>true</EnableScim2RolesV3Api>
+        <!--
+            This configuration is used to mention the preferred role api version for 'ref'
+            attribute of the 'roles' attribute in the SCIM 2.0 User resource and Group resource.
+            Default value : v3
+            Applicable values : v1, v2, v3
+            Supported versions : IS 7.2.0 onwards
+        -->
+        <DefaultRoleAPIVersionForRef>v3</DefaultRoleAPIVersionForRef>
+
+        <!--
+            If you want to return a 409 Conflict response (recommended) instead of a 400 Bad Request
+            when duplicate claims (excluding username) are encountered during SCIM2 user operations,
+            then enable this property value.
+            Default value: true
+            Supported versions: IS 7.2.0 onwards
+        -->
+        <ReturnConflictOnClaimUniquenessViolation>true</ReturnConflictOnClaimUniquenessViolation>
+
+        <!--
+           If you want to throw a UserStoreException in case of user creation failures due to, then enable this
+           property value.
+           Default value: true
+           Supported versions : IS 7.2.0 onwards
+        -->
+        <ThrowUserStoreExceptionOnUserCreationError>true</ThrowUserStoreExceptionOnUserCreationError>
     </SCIM2>
 
     <PasswordPolicy>
@@ -1262,6 +1305,9 @@
         The default value of the configuration is false.
         -->
         <EnableRoleValidation>false</EnableRoleValidation>
+        <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
+        <SkipEnforceClientSecretPermission>false</SkipEnforceClientSecretPermission>
+        <EnableCrossTenantAuthorizedApiValidation>true</EnableCrossTenantAuthorizedApiValidation>
     </ApplicationMgt>
 
     <JITProvisioning>
@@ -1281,6 +1327,10 @@
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
     </Webhooks>
+
+    <LocalAuthenticators>
+        <HideUserExistenceOnAuthFlow>true</HideUserExistenceOnAuthFlow>
+    </LocalAuthenticators>
 
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -1350,8 +1400,8 @@
         <EventListener id="email_domain_validation_handler"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
-                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
-                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
+                       orderId="15"
+                       enable="true"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -1528,6 +1578,9 @@
 
 
     <ResourceAccessControl default-access="deny">
+        <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" >
+            <Permissions>/</Permissions>
+        </Resource>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
@@ -1614,23 +1667,6 @@
         <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
-        </Resource>
-
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/secretmgt/add</Permissions>
-            <Scopes>internal_secret_mgt_add</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/secretmgt/update</Permissions>
-            <Scopes>internal_secret_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/secretmgt/view</Permissions>
-            <Scopes>internal_secret_mgt_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
-            <Scopes>internal_secret_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
@@ -1995,8 +2031,7 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
-            <Scopes>internal_user_mgt_create</Scopes>
+            <Scopes>internal_offline_invite</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
@@ -2552,6 +2587,7 @@
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/identity/oauth2/dcr/</Path>
+                    <Path>/api/identity/auth/v1.1/data</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2561,9 +2597,33 @@
                     <Path>/oauth2/introspect</Path>
                     <Path>/oauth2/revoke</Path>
                     <Path>/oauth2/userinfo</Path>
+                    <Path>/oauth2/authorize</Path>
+                    <Path>/oauth2/jwks</Path>
                 </SubPaths>
             </Context>
+            <Context>
+                <BasePath>/authenticationendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accounts/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/.well-known/</BasePath>
+            </Context>
         </WebApp>
+        <Servlet>
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
+            <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
+            <Context>/longwaitstatus(.*)</Context>
+            <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
+        </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
@@ -2672,6 +2732,8 @@
         <AuthenticatorNameInAuthConfig>
             <Enable>true</Enable>
         </AuthenticatorNameInAuthConfig>
+
+        <AllowUpdatingAuthenticatedSubject>{{authentication.adaptive.allow_updating_authenticated_subject}}</AllowUpdatingAuthenticatedSubject>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
@@ -2801,6 +2863,8 @@
         <DataStoreType>org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</DataStoreType>
     </IdentityDataStore>
 
+    <AddUserStoreDomainToGroupClaims>false</AddUserStoreDomainToGroupClaims>
+
     <UserProfileExport>
         <AdditionalClaims>
         </AdditionalClaims>
@@ -2840,8 +2904,42 @@
         </OnInitialUse>
     </OnDemandConfig>
 
+    <BrandingConfiguration>
+        <CustomContent>
+            <MaxFileSize>1048576</MaxFileSize>
+        </CustomContent>
+    </BrandingConfiguration>
     <AgentIdentity>
         <Enabled>true</Enabled>
+        <Userstore>AGENT</Userstore>
+        <Datasource>jdbc/AgentIdentity</Datasource>
+        <UserstoreManagerClass>org.wso2.carbon.identity.agent.manager.AgentUserStoreManager</UserstoreManagerClass>
     </AgentIdentity>
+
+    <FlowExecution>
+        <UserAssertion>
+            <ExpiryTime>2000</ExpiryTime>
+        </UserAssertion>
+        <DefaultTTL>30</DefaultTTL>
+        <FlowTypeTTLs>
+            <FlowTypeTTL type="REGISTRATION">30</FlowTypeTTL>
+            <FlowTypeTTL type="PASSWORD_RECOVERY">30</FlowTypeTTL>
+            <FlowTypeTTL type="INVITED_USER_REGISTRATION">30</FlowTypeTTL>
+        </FlowTypeTTLs>
+        <EnableLegacyFlows>false</EnableLegacyFlows>
+        <Registration>
+            <DisplayClaimAvailability>false</DisplayClaimAvailability>
+        </Registration>
+    </FlowExecution>
+
+    <NotificationChannel>
+        <SMS>
+            <Custom>
+                <ConnectionTimeout>5000</ConnectionTimeout>
+                <ConnectionReadTimeout>20000</ConnectionReadTimeout>
+            </Custom>
+        </SMS>
+    </NotificationChannel>
+    <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
 
 </Server>

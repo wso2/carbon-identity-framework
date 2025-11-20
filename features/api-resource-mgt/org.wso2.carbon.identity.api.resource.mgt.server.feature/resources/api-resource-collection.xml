@@ -138,6 +138,7 @@
             <Update>
                 <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_user_mgt_update"/>
+                <Scope name="internal_shared_application_create"/>
             </Update>
             <Delete>
             </Delete>
@@ -154,6 +155,8 @@
                 <Scope name="internal_group_mgt_view"/>
                 <Scope name="internal_session_view"/>
                 <Scope name="internal_governance_view"/>
+                <Scope name="internal_shared_application_view"/>
+                <Scope name="internal_organization_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -446,7 +449,15 @@
             </Delete>
             <Create>
                 <Scope name="internal_user_mgt_create"/>
-                <Scope name="internal_bulk_resource_create"/>
+                <Scope name="internal_bulk_user_create"/>
+                <Scope name="internal_bulk_user_update"/>
+                <Scope name="internal_bulk_user_delete"/>
+                <Scope name="internal_bulk_group_create"/>
+                <Scope name="internal_bulk_group_update"/>
+                <Scope name="internal_bulk_group_delete"/>
+                <Scope name="internal_bulk_role_create"/>
+                <Scope name="internal_bulk_role_update"/>
+                <Scope name="internal_bulk_role_delete"/>
                 <Scope name="internal_offline_invite"/>
             </Create>
             <Read>
@@ -552,7 +563,15 @@
             <Create>
                 <Scope name="internal_org_user_mgt_create"/>
                 <Scope name="internal_org_guest_mgt_invite_add"/>
-                <Scope name="internal_org_bulk_resource_create"/>
+                <Scope name="internal_org_bulk_user_create"/>
+                <Scope name="internal_org_bulk_user_update"/>
+                <Scope name="internal_org_bulk_user_delete"/>
+                <Scope name="internal_org_bulk_group_create"/>
+                <Scope name="internal_org_bulk_group_update"/>
+                <Scope name="internal_org_bulk_group_delete"/>
+                <Scope name="internal_org_bulk_role_create"/>
+                <Scope name="internal_org_bulk_role_update"/>
+                <Scope name="internal_org_bulk_role_delete"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>
@@ -768,6 +787,23 @@
             </Delete>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="applicationAuthenticationScript" displayName="Application Authentication Script" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:applicationAuthenticationScript"/>
+                <Scope name="console:applicationAuthenticationScript_view"/>
+                <Scope name="console:applicationAuthenticationScript_edit"/>
+                <Scope name="console:applications"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_application_script_update"/>
+                <Scope name="console:applications_edit"/>
+            </Update>
+            <Read>
+                <Scope name="console:applications_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="applications" displayName="Applications" type="tenant">
         <Scopes>
             <Feature>
@@ -778,6 +814,7 @@
             <Update>
                 <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_secret_mgt_update"/>
+                <Scope name="internal_application_business_api_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_application_mgt_delete"/>
@@ -805,6 +842,43 @@
                 <Scope name="internal_shared_application_view"/>
                 <Scope name="internal_secret_mgt_view"/>
                 <Scope name="internal_async_operation_status_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="applicationClientSecretManagement" displayName="Application Client Secret Management" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:application_client_secrets"/>
+                <Scope name="console:application_client_secrets_view"/>
+                <Scope name="console:application_client_secrets_edit"/>
+                <Scope name="console:applications"/>
+            </Feature>
+            <Update>
+                <Scope name="console:applications_edit"/>
+            </Update>
+            <Create>
+                <Scope name="internal_application_mgt_client_secret_create"/>
+            </Create>
+            <Read>
+                <Scope name="console:applications_view"/>
+                <Scope name="internal_application_mgt_client_secret_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="applicationInternalAPIAuthorization" displayName="Application Internal API Authorization" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:application_internal_api_management"/>
+                <Scope name="console:application_internal_api_management_view"/>
+                <Scope name="console:application_internal_api_management_edit"/>
+                <Scope name="console:applications"/>
+            </Feature>
+            <Update>
+                <Scope name="console:applications_edit"/>
+                <Scope name="internal_application_internal_api_update"/>
+            </Update>
+            <Read>
+                <Scope name="console:applications_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -851,16 +925,21 @@
             <Read>
                 <Scope name="internal_workflow_view"/>
                 <Scope name="internal_workflow_association_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_role_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="workflowInstances" displayName="Workflow Instances" type="tenant">
+    <APIResourceCollection name="workflowInstances" displayName="Workflow Requests" type="tenant">
         <Scopes>
             <Feature>
                 <Scope name="console:workflowInstances"/>
                 <Scope name="console:workflowInstances_view"/>
                 <Scope name="console:workflowInstances_edit"/>
             </Feature>
+            <Update>
+                <Scope name="internal_workflow_instance_update"/>
+            </Update>
             <Delete>
                 <Scope name="internal_workflow_instance_delete"/>
             </Delete>
@@ -924,6 +1003,7 @@
             <Update>
                 <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_user_mgt_update"/>
+                <Scope name="internal_shared_application_create"/>
             </Update>
             <Delete>
             </Delete>
@@ -940,6 +1020,8 @@
                 <Scope name="internal_group_mgt_view"/>
                 <Scope name="internal_session_view"/>
                 <Scope name="internal_governance_view"/>
+                <Scope name="internal_shared_application_view"/>
+                <Scope name="internal_organization_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1167,6 +1249,17 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_oidcScopes" displayName="OIDC Scopes" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:scopes:oidc"/>
+                <Scope name="console:org:scopes:oidc_view"/>
+            </Feature>
+            <Read>
+                <Scope name="internal_org_oidc_scope_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="organizations" displayName="Organizations" type="tenant">
         <Scopes>
             <Feature>
@@ -1308,8 +1401,17 @@
             </Delete>
             <Create>
                 <Scope name="internal_user_mgt_create"/>
-                <Scope name="internal_bulk_resource_create"/>
+                <Scope name="internal_bulk_user_create"/>
+                <Scope name="internal_bulk_user_update"/>
+                <Scope name="internal_bulk_user_delete"/>
+                <Scope name="internal_bulk_group_create"/>
+                <Scope name="internal_bulk_group_update"/>
+                <Scope name="internal_bulk_group_delete"/>
+                <Scope name="internal_bulk_role_create"/>
+                <Scope name="internal_bulk_role_update"/>
+                <Scope name="internal_bulk_role_delete"/>
                 <Scope name="internal_offline_invite"/>
+                <Scope name="internal_workflow_association_view"/>
             </Create>
             <Read>
                 <Scope name="internal_userstore_view"/>
@@ -1451,12 +1553,16 @@
                 <Scope name="console:flows_edit"/>
             </Feature>
             <Update>
+                <Scope name="internal_flow_update"/>
+                <Scope name="internal_governance_update"/>
             </Update>
             <Delete>
             </Delete>
             <Create>
             </Create>
             <Read>
+                <Scope name="internal_flow_view"/>
+                <Scope name="internal_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1540,6 +1646,7 @@
                 <Scope name="internal_org_user_mgt_create"/>
                 <Scope name="internal_org_guest_mgt_invite_add"/>
                 <Scope name="internal_org_bulk_resource_create"/>
+                <Scope name="internal_org_workflow_association_view"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>
@@ -1654,6 +1761,23 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_applicationAuthenticationScript" displayName="Application Authentication Script" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:applicationAuthenticationScript"/>
+                <Scope name="console:org:applicationAuthenticationScript_view"/>
+                <Scope name="console:org:applicationAuthenticationScript_edit"/>
+                <Scope name="console:org:applications"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_application_script_update"/>
+                <Scope name="console:org:applications_edit"/>
+            </Update>
+            <Read>
+                <Scope name="console:org:applications_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="org_applications" displayName="Applications" type="organization">
         <Scopes>
             <Feature>
@@ -1663,12 +1787,16 @@
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
+                <Scope name="internal_org_secret_mgt_update"/>
+                <Scope name="internal_org_application_business_api_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_org_application_mgt_delete"/>
+                <Scope name="internal_org_secret_mgt_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_application_mgt_create"/>
+                <Scope name="internal_org_secret_mgt_add"/>
             </Create>
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
@@ -1677,6 +1805,45 @@
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
                 <Scope name="internal_org_async_operation_status_view"/>
+                <Scope name="internal_org_secret_mgt_view"/>
+                <Scope name="internal_org_governance_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_applicationInternalAPIAuthorization" displayName="Application Internal API Authorization" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:application_internal_api_management"/>
+                <Scope name="console:org:application_internal_api_management_view"/>
+                <Scope name="console:org:application_internal_api_management_edit"/>
+                <Scope name="console:org:applications"/>
+            </Feature>
+            <Update>
+                <Scope name="console:org:applications_edit"/>
+                <Scope name="internal_org_application_internal_api_update"/>
+            </Update>
+            <Read>
+                <Scope name="console:org:applications_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_applicationClientSecretManagement" displayName="Application Client Secret Management" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:application_client_secrets"/>
+                <Scope name="console:org:application_client_secrets_view"/>
+                <Scope name="console:org:application_client_secrets_edit"/>
+                <Scope name="console:org:applications"/>
+            </Feature>
+            <Update>
+                <Scope name="console:org:applications_edit"/>
+            </Update>
+            <Create>
+                <Scope name="internal_org_application_mgt_client_secret_create"/>
+            </Create>
+            <Read>
+                <Scope name="console:org:applications_view"/>
+                <Scope name="internal_org_application_mgt_client_secret_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1723,16 +1890,21 @@
             <Read>
                 <Scope name="internal_org_workflow_view"/>
                 <Scope name="internal_org_workflow_association_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_role_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_workflowInstances" displayName="Workflow Instances" type="organization">
+    <APIResourceCollection name="org_workflowInstances" displayName="Workflow Requests" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:workflowInstances"/>
                 <Scope name="console:org:workflowInstances_view"/>
                 <Scope name="console:org:workflowInstances_edit"/>
             </Feature>
+            <Update>
+                <Scope name="internal_org_workflow_instance_update"/>
+            </Update>
             <Delete>
                 <Scope name="internal_org_workflow_instance_delete"/>
             </Delete>
@@ -1879,6 +2051,28 @@
                 <Scope name="internal_org_rule_metadata_view"/>
                 <Scope name="internal_org_application_mgt_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_flows" displayName="Flows" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:flows"/>
+                <Scope name="console:org:flows_view"/>
+                <Scope name="console:org:flows_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_flow_update"/>
+                <Scope name="internal_org_governance_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_flow_delete"/>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+                <Scope name="internal_org_flow_view"/>
+                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

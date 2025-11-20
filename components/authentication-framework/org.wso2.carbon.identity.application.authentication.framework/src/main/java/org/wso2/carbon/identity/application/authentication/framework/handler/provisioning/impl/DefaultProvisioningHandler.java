@@ -274,12 +274,21 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     for (Claim claim : toBeDeletedFromExistingUserClaims) {
                         toBeDeletedUserClaims.add(claim.getClaimUri());
                     }
+                    // If claim is not modified, remove it from userClaims to avoid unnecessary updates.
+                    for (Claim claim : existingUserClaimList) {
+                        if (userClaims.containsKey(claim.getClaimUri()) &&
+                                userClaims.get(claim.getClaimUri()).equals(claim.getValue())) {
+                            userClaims.remove(claim.getClaimUri());
+                        }
+                    }
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 userClaims.remove(USERNAME_CLAIM);
                 userClaims.remove(USER_ID_CLAIM);
-                userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                if (!userClaims.isEmpty()) {
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                }
                     /*
                     Since the user is exist following code is get all active claims of user and crosschecking against
                     tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
@@ -663,19 +672,26 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     }
 
     private Map<String, String> prepareClaimMappings(Map<String, String> attributes) {
+
         Map<String, String> userClaims = new HashMap<>();
+        boolean allowNonStandardClaimUri = FrameworkUtils.allowNonStandardClaimUri();
         if (attributes != null && !attributes.isEmpty()) {
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String claimURI = entry.getKey();
                 String claimValue = entry.getValue();
-                /*
-                 For claimValues not mapped to local claim dialect uris, need to skip to prevent user provision failure.
-                 Password is a different case where we have to keep for password provisioning.
-                 */
-                if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue)) &&
-                        (claimURI.equals(FrameworkConstants.PASSWORD) ||
+                if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue))) {
+                    if (allowNonStandardClaimUri) {
+                        userClaims.put(claimURI, claimValue);
+                    } else {
+                        /*
+                         For claimValues not mapped to local claim dialect URIs, need to skip to prevent user provision
+                         failure. Password is a different case where we have to keep for password provisioning.
+                         */
+                        if ((claimURI.equals(FrameworkConstants.PASSWORD) ||
                                 claimURI.contains(LOCAL_DEFAULT_CLAIM_DIALECT))) {
-                    userClaims.put(claimURI, claimValue);
+                            userClaims.put(claimURI, claimValue);
+                        }
+                    }
                 }
             }
         }

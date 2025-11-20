@@ -96,6 +96,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         String userId = resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         try {
+            FrameworkUtils.startTenantFlow(tenantDomain);
             if (log.isDebugEnabled()) {
                 log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
                         userStoreDomain + " in tenant: " + tenantDomain);
@@ -104,6 +105,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } catch (SessionManagementException e) {
             throw new UserSessionException("Error while terminating sessions of user:" + username +
                     " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
+        } finally {
+            FrameworkUtils.endTenantFlow();
         }
     }
 
@@ -278,8 +281,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
                 String fedAssociatedUserId = authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.USER_ID);
                 if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
-                    userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
-                    addAssociatedFedUserIdSessions(userSessions, fedAssociatedUserId, authSessionUserMap);
+                    userSessions = getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
+                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
+                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME));
+                    addAssociatedAssociatedLocalUserIdSessions(userSessions, userId);
                 } else {
                     userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
                 }
@@ -319,7 +324,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
             }
         }
-        sessionIdList = getSessionIdListByUserId(userIdToSearch);
+
+        List<UserSession> sessionList = getSessionsByUserId(userIdToSearch);
+        sessionIdList = sessionList.stream().map(UserSession::getSessionId).collect(Collectors.toList());
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
                 Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
@@ -695,6 +702,15 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                      */
                     return true;
                 }
+                if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loginTenantDomain)) {
+                    /*
+                    When a super tenant user is trying to update the password of another root organization admin user,
+                    the loginTenantDomain will be the super tenant domain and sessionTenantDomain will be the root
+                    organization domain. Hence, sessions with such combination has to be considered as effective
+                    sessions.
+                    */
+                    return true;
+                }
                 return false;
             }
         } catch (OrganizationManagementException | IdentityApplicationManagementException e) {
@@ -946,26 +962,23 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         return idpManagementService;
     }
 
-    private void addAssociatedFedUserIdSessions(List<UserSession> userSessions, String fedAssociatedUserId,
-                                                Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap)
-            throws SessionManagementServerException {
+    private void addAssociatedAssociatedLocalUserIdSessions(List<UserSession> userSessions,
+            String associatedLocalUserId) throws SessionManagementServerException {
 
         /* If the `FilterByUniqueSessionIdForUser` property is set to true, the `getSessionsByUserId` method will return
          entries with unique session IDs. If set to false, it will return duplicate entries with corresponding idpId and
          idpName for associated federated user. */
         if (!Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.FILER_BY_SESSION_ID_FOR_USER))) {
-            userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
-                    authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
-                    authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME)));
+            userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(associatedLocalUserId), null, null));
             return;
         }
 
-        List<UserSession> associatedFedUserIdSessions =
-                getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId), null, null);
-        for (UserSession associatedFedUserIdSession : associatedFedUserIdSessions) {
+        List<UserSession> associatedLocalUserIdSessions =
+                getActiveSessionList(getSessionIdListByUserId(associatedLocalUserId), null, null);
+        for (UserSession associatedLocalUserIdSession : associatedLocalUserIdSessions) {
             if (userSessions.stream().noneMatch(userSession ->
-                    StringUtils.equals(userSession.getSessionId(), associatedFedUserIdSession.getSessionId()))) {
-                userSessions.add(associatedFedUserIdSession);
+                    StringUtils.equals(userSession.getSessionId(), associatedLocalUserIdSession.getSessionId()))) {
+                userSessions.add(associatedLocalUserIdSession);
             }
         }
     }

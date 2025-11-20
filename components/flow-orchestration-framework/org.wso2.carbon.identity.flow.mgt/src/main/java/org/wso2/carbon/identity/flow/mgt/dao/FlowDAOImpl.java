@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.EXECUTION;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.DELETE_FLOW;
@@ -69,7 +70,6 @@ import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT;
-import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_METADATA_NAME;
 import static org.wso2.carbon.identity.flow.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_METADATA_VALUE;
@@ -255,6 +255,22 @@ public class FlowDAOImpl implements FlowDAO {
     }
 
     @Override
+    public void deleteFlow(String flowType, int tenantId) throws FlowMgtFrameworkException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_FLOW,
+                    preparedStatement -> {
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setBoolean(2, true);
+                        preparedStatement.setString(3, flowType);
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DELETE_FLOW, e, tenantId);
+        }
+    }
+
+    @Override
     public GraphConfig getGraphConfig(String flowType, int tenantId) throws FlowMgtFrameworkException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -305,7 +321,6 @@ public class FlowDAOImpl implements FlowDAO {
             row.put(DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE, resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE));
             row.put(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME, resultSet.getString(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME));
             row.put(DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID, resultSet.getInt(DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID));
-            row.put(DB_SCHEMA_COLUMN_NAME_IDP_NAME, resultSet.getString(DB_SCHEMA_COLUMN_NAME_IDP_NAME));
             row.put(DB_SCHEMA_ALIAS_NEXT_NODE_ID, resultSet.getString(DB_SCHEMA_ALIAS_NEXT_NODE_ID));
             row.put(DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT, resultSet.getString(DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT));
             return row;
@@ -348,6 +363,19 @@ public class FlowDAOImpl implements FlowDAO {
             preparedStatement.setString(1, flowId);
             preparedStatement.setString(2, EXECUTION);
         });
+
+        jdbcTemplate.executeQuery(GET_VIEW_PAGES_IN_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
+            StepDTO stepDTO = new StepDTO.Builder()
+                    .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
+                    .type(END)
+                    .build();
+            resolvePageContent(stepDTO, resultSet.getBytes(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+            nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
+            return null;
+        })), preparedStatement -> {
+            preparedStatement.setString(1, flowId);
+            preparedStatement.setString(2, END);
+        });
         return nodePageMappings;
     }
 
@@ -379,13 +407,6 @@ public class FlowDAOImpl implements FlowDAO {
                 // Fetch executor metadata.
                 Map<String, String> metadata = getExecutorMetadata(jdbcTemplate,
                         (Integer) row.get(DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID));
-
-                // Check if IDP name is present in the row and add it to metadata.
-                if (row.get(DB_SCHEMA_COLUMN_NAME_IDP_NAME) != null &&
-                        !metadata.containsKey(Constants.IDP_NAME)) {
-                    // Add IDP name to metadata if not already present.
-                    metadata.put(Constants.IDP_NAME, (String) row.get(DB_SCHEMA_COLUMN_NAME_IDP_NAME));
-                }
                 executorDTO.setMetadata(metadata);
                 nodeConfig.setExecutorConfig(executorDTO);
             }

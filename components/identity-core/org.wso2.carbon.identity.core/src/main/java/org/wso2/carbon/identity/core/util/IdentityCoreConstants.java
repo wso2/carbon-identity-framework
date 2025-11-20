@@ -32,6 +32,8 @@ public class IdentityCoreConstants {
     public static final String AUTHENTICATION_ENDPOINT_PATH = "AuthenticationEndpoint.Path";
     public static final String RECOVERY_ENDPOINT_HOST_NAME = "RecoveryEndpoint.HostName";
     public static final String RECOVERY_ENDPOINT_PATH = "RecoveryEndpoint.Path";
+    public static final String ACCOUNTS_HOST_NAME = "Accounts.HostName";
+    public static final String ACCOUNTS_PATH = "Accounts.Path";
     public static final String FILE_NAME_REGEX = "FileNameRegEx";
     public static final String PORTS_OFFSET = "Ports.Offset";
 
@@ -89,6 +91,7 @@ public class IdentityCoreConstants {
     public static final String USER_EMAIL_NOT_VERIFIED_ERROR_CODE = "17012";
     public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_ERROR_CODE = "17013";
     public static final String ASK_PASSWORD_SET_PASSWORD_VIA_OTP_MISMATCHED_ERROR_CODE = "17014";
+    public static final String USER_EMAIL_OTP_NOT_VERIFIED_ERROR_CODE = "17015";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 
@@ -135,6 +138,8 @@ public class IdentityCoreConstants {
     public static final String AGENT_IDENTITY_ENABLE = "AgentIdentity.Enabled";
     public static final String AGENT_IDENTITY_USERSTORE_NAME = "AgentIdentity.Userstore";
     public static final String DEFAULT_AGENT_IDENTITY_USERSTORE_NAME = "AGENT";
+
+    public static final int MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH = 255;
 
     public static class Filter {
 

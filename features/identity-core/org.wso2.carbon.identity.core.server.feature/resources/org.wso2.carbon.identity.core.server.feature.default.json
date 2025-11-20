@@ -52,11 +52,18 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
+  "localization.prioritize_param": "true",
+
   "server.internal_hostname": "localhost",
+  "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
+  "authenticationendpoint.authenticator_validation.enabled": false,
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
+  "recovery.v0_9_api.include_display_order_property_in_claims": false,
+  "accounts.hostname": "$ref{server.hostname}",
+  "accounts.path": "/accounts",
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
@@ -89,6 +96,7 @@
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
   "oauth.introspect.allow_cross_tenant": false,
+  "oauth.introspect.allow_cross_sub_org": false,
 
   "oauth.token.validation.include_validation_context_as_jwt_in_reponse": false,
   "oauth.extensions.token_context_generator": "org.wso2.carbon.identity.oauth2.authcontext.JWTTokenGenerator",
@@ -98,7 +106,11 @@
   "oauth.token.validation.validation_response_jwt_validity": "15m",
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
   "oauth.token_persistence.enable": true,
+  "oauth.jwt.return_only_app_associated_roles": true,
   "oauth.revoked_token_headers_in_response.enable": false,
+  "oauth.return_sp_id_to_apps": false,
+  "oauth.jwt.maximum_allowed_depth": "255",
+  "oauth.jwt.enable_depth_validation": true,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
   "oauth.enable_sha256": true,
@@ -212,11 +224,12 @@
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
-  "oauth.dcrm.return_null_fields_in_response": true,
+  "oauth.dcrm.return_null_fields_in_response": false,
   "oauth.dcr.enable_fapi_enforcement": false,
   "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.dcr.authentication_required": true,
   "oauth.dcr.mandate_ssa": false,
+  "oauth.allow_default_requested_scopes_for_back_channel_grant": false,
   "oauth.enable_jwt_token_validation_during_introspection": true,
   "oauth.use_client_id_as_sub_claim_for_app_tokens": true,
   "oauth.remove_username_from_introspection_response_for_app_tokens": true,
@@ -269,14 +282,15 @@
   "oauth.oidc.extensions.user_info_request_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator",
   "oauth.oidc.extensions.user_info_access_token_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator",
   "oauth.oidc.user_info.enable_multi_value_support": true,
-  "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
+  "oauth.oidc.user_info.return_only_app_associated_roles": true,
+  "oauth.oidc.user_info.remove_internal_prefix_from_roles": true,
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
   "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
   "oauth.oidc.token_endpoint.signing_algorithms": ["PS256", "ES256", "ES384", "RS384", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
-  "oauth.oidc.id_token.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
+  "oauth.oidc.id_token.signing_algorithms": ["PS256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
@@ -305,8 +319,14 @@
 
   "oauth.drop_unregistered_scopes": true,
   "oauth.allowed_scopes": ["^device_.*"],
-
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
+  "oauth.callback.enforce_literal_characters": true,
+  "oauth.callback.restrict_fragment_components": true,
+  "oauth.impersonated_refresh_token.enable": true,
+  "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
+
+  "oauth.enable_legacy_session_bound_token_behaviour": false,
+  "oauth.allow_session_bound_tokens_after_idle_session_expiry": false,
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -315,6 +335,7 @@
   "saml.slo.retry_attempts": "5",
   "saml.slo.retry_interval": "1m",
   "saml.slo.host_name_verification": true,
+  "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": true,
   "saml.response.validity": "5m",
   "saml.artifact.validity": "4m",
   "saml.use_tenant_key_of": "user",
@@ -361,6 +382,7 @@
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
+  "passive_sts.soap_enabled": false,
 
   "user_account_association.enable_sha256": true,
   "federated_user_account_association.max_bulk_operations": 1000,
@@ -378,6 +400,7 @@
   "scim.authentication_handler.oauth.properties.Priority": "10",
   "scim.authentication_handler.oauth.properties.AuthorizationServer": "local://services",
   "scim.enable_complex_multivalued_attribute_support": false,
+  "scim.restrict_federated_user_access": true,
   "scim2.endpoints.users_endpoint": "$ref{server.base_path}/scim2/Users",
   "scim2.endpoints.groups_endpoint": "$ref{server.base_path}/scim2/Groups",
   "scim2.enable_complex_multivalued_attribute_support": false,
@@ -393,7 +416,10 @@
   "scim2.consider_total_records_for_total_results_of_ldap": false,
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
-  "scim2.enable_scim2_roles_v3_api": true,
+  "scim2.enable_scim2_roles_v3_api": false,
+  "scim2.default_role_api_version_for_ref": "v2",
+  "scim2.return_conflict_on_claim_uniqueness_violation": true,
+  "scim2.throw_userstore_exception_on_user_creation_error": true,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -459,7 +485,7 @@
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
-  "identity_mgt.login_identifiers.enable_identifier_as_display_username": false,
+  "identity_mgt.login_identifiers.enable_identifier_as_display_username": true,
 
   "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
@@ -527,8 +553,11 @@
     "http://wso2.org/claims/identity/verifySecretkey",
     "http://wso2.org/claims/identity/backupCodes",
     "http://wso2.org/claims/identity/verifyEmail",
-    "http://wso2.org/claims/identity/verifyMobile"
+    "http://wso2.org/claims/identity/verifyMobile",
+    "http://wso2.org/claims/identity/usedTOTPTimeWindows"
   ],
+
+  "identity_mgt.claims.add_userstore_domain_to_group_claims": false,
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
@@ -540,6 +569,8 @@
   "identity_mgt_account_suspension.execute_task_on_master_node": false,
 
   "identity_mgt.enable_user_claim_input_regex_validation": true,
+
+  "identity_mgt.workflow_pending_user_authn_handler.enable": false,
 
   "scim2_multi_attribute_filtering.use_pagination" : false,
 
@@ -563,10 +594,12 @@
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
   "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
   "authentication.jit_provisioning.enable_enhanced_feature": false,
+  "authentication.jit_provisioning.allow_non_Standard_claim_uri":false,
 
   "application_mgt.enable_role_validation": false,
   "application_mgt.trusted_app_consent_required": false,
   "application_mgt.trusted_app_max_thumbprint_count": "20",
+  "application_mgt.enable_cross_tenant_authorized_api_validation": true,
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,
@@ -809,7 +842,8 @@
     "/lsp/",
     "/emailotpauthenticationendpoint/",
     "/smsotpauthenticationendpoint/",
-    "/totpauthenticationendpoint/"
+    "/totpauthenticationendpoint/",
+    "/accounts/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -844,6 +878,7 @@
   "oauth.jwks_endpoint.add_previous_version_kid" : false,
   "oauth.jwks_endpoint.is_thumbprint_hexify_required": false,
   "oauth.global_scope_validators.role_based_scope_issuer.enable": false,
+  "oauth.add_tenant_domain_to_access_token": false,
 
   "authentication.adaptive.event_publisher.authentication_type": "basic",
   "authentication.adaptive.async_executer_pool_size": "5",
@@ -862,9 +897,12 @@
   "authentication.adaptive.long_wait.prompt": false,
   "authentication.adaptive.execution_supervisor.enable": false,
   "authentication.adaptive.execution_supervisor.thread_count": "1",
+  "authentication.adaptive.execution_supervisor.timeout_enable": true,
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
+  "authentication.adaptive.allow_updating_authenticated_subject": false,
   "authentication.adaptive.graaljs.script_statements_limit": "0",
+  "authentication.adaptive.shared_applications.enable": false,
   "AdaptiveAuth.ScriptEngine": "graaljs",
 
   "federated.idp.role_claim_value_attribute_separator": ",",
@@ -968,11 +1006,6 @@
       "description": "This email notifies the user that password reset is successfully completed"
     },
     {
-      "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
-      "displayName": "Admin-Requested Password Reset",
-      "description": "This email notifies the user that the organization admin has requested a password reset."
-    },
-    {
       "id": "VW5zZWVuRGV2aWNlTG9naW4",
       "displayName": "New Device Login",
       "description": "This email notifies the user that a login from a new device is detected"
@@ -1025,12 +1058,12 @@
     {
       "id": "QWNjb3VudExvY2tGYWlsZWRBdHRlbXB0",
       "displayName": "Account Locked By Failed Attempts",
-      "description": "This email notifies the user that the account is locked by due to too many failed login attempts"
+      "description": "This email notifies the user that the account is locked due to too many failed login attempts"
     },
     {
       "id": "YWNjb3VudExvY2tGYWlsZWRBdHRlbXB0VW50aWxBZG1pblVubG9jaw",
       "displayName": "Account Locked By Failed Attempts Until Admin Unlocks",
-      "description": "This email notifies the user that the account is locked by due to too many failed login attempts until admin unlocks"
+      "description": "This email notifies the user that the account is locked due to too many failed login attempts until an admin unlocks it."
     },
     {
       "id": "QWNjb3VudEVuYWJsZQ",
@@ -1082,19 +1115,24 @@
       "description": "This email is sent when the organization admin re-initiates the request for a new user password."
     },
     {
+      "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
+      "displayName": "Admin Initiated Password Reset",
+      "description": "This email notifies the user that the organization admin has initiated a password reset."
+    },
+    {
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
-      "displayName": "Resend Admin-Requested Forced Password Reset",
-      "description": "This email is sent when the organization admin re-initiates the forced password reset for a user"
+      "displayName": "Resend Admin Initiated Password Reset",
+      "description": "This email notifies the user that the organization admin has reinitiated a password reset."
     },
     {
       "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
-      "displayName": "Admin Forced Password Reset with OTP",
-      "description": "This email is sent when the organization admin initiates the forced password reset for a user with OTP"
+      "displayName": "Admin Initiated Password Reset with OTP",
+      "description": "This email is sent when the organization admin initiates the password reset for a user with OTP."
     },
     {
       "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
-      "displayName": "Resend Admin Forced Password Reset with OTP",
-      "description": "This email is sent when the organization admin reinitiates the forced password reset for a user with OTP"
+      "displayName": "Resend Admin Initiated Password Reset with OTP",
+      "description": "This email is sent when the organization admin reinitiates the password reset for a user with OTP."
     },
     {
       "id": "YWNjb3VudEFjdGl2YXRpb25TdWNjZXNz",
@@ -1182,19 +1220,34 @@
       "id": "T3JjaGVzdHJhdGVkUmVzZW5kQXNrUGFzc3dvcmQ"
     },
     {
-      "description": "This email OTP is sent to the user to set their password",
-      "displayName": "Invite user to set password via Email OTP",
+      "description": "This email OTP is sent to sign in and complete registration.",
+      "displayName": "Email OTP for Invited User Registration",
       "id": "QXNrUGFzc3dvcmRFbWFpbE9UUA"
     },
     {
-      "description": "This email is resent to the user to set their password via Email OTP",
-      "displayName": "Resend invite user to set password via Email OTP",
+      "description": "This email OTP is resent to sign in and complete registration.",
+      "displayName": "Resend Email OTP for Invited User Registration",
       "id": "QXNrUGFzc3dvcmRSZXNlbmRFbWFpbE9UUA"
     },
     {
-      "description": "This email is sent to confirm the user email address via Email OTP",
+      "description": "This email is sent to confirm the user's email address via Email OTP",
       "displayName": "Confirm Email Address via Email OTP",
       "id": "RW1haWxDb25maXJtV2l0aE9UUA"
+    },
+    {
+      "description": "This email is sent to the user to set their password using a magic link",
+      "displayName": "Magic Link Password Recovery",
+      "id": "bWFnaWNMaW5rUGFzc3dvcmRSZWNvdmVyeQ"
+    },
+    {
+      "description": "This email is sent to the user during signing up using magic link",
+      "displayName": "Magic Link Sign Up",
+      "id": "bWFnaWNMaW5rU2lnblVw"
+    },
+    {
+      "description": "This email is sent to the user for Email OTP based verification",
+      "displayName": "Email OTP Verification",
+      "id": "RW1haWxPVFBWZXJpZmljYXRpb24"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1234,18 +1287,28 @@
       "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
     },
     {
-      "description": "This SMS is sent to send the OTP for setting a password.",
-      "displayName": "Send Password Setup OTP",
+      "description": "This SMS is sent to provide a one-time password when admin initiates a password reset for a user",
+      "displayName": "Admin Initiated Password Reset",
+      "id": "YWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0"
+    },
+    {
+      "description": "This SMS is sent to provide a one-time password when admin resends a password reset request",
+      "displayName": "Admin Resend Initiated Password Reset",
+      "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0"
+    },
+    {
+      "description": "This SMS OTP is sent to sign in and complete registration.",
+      "displayName": "SMS OTP for Invited User Registration",
       "id": "YXNrUGFzc3dvcmRTTVNPVFA"
     },
     {
-      "description": "This SMS is sent to resend the OTP for setting a password.",
-      "displayName": "Resend Password Setup OTP",
+      "description": "This SMS OTP is resent to sign in and complete registration.",
+      "displayName": "Resend SMS OTP for Invited User Registration",
       "id": "YXNrUGFzc3dvcmRSZXNlbmRTTVNPVFA"
     },
     {
-      "description": "This SMS is sent to notify the user that their account is now unlocked.",
-      "displayName": "Password Setup Success",
+      "description": "This SMS is sent to notify the user that their account has been set up successfully.",
+      "displayName": "Invited User Registration Success",
       "id": "YXNrUGFzc3dvcmRTZXRTdWNjZXNz"
     }
   ],
@@ -1264,7 +1327,7 @@
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": true,
   "console.ui.idp_templates.hypr.enabled": false,
-  "console.ui.i18n_configs.showLanguageSwitcher": false,
+  "console.ui.i18n_configs.showLanguageSwitcher": true,
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [
@@ -1274,42 +1337,44 @@
   "console.ui.hiddenConnectionTemplates": [
     "swe-idp"
   ],
-  "console.ui.hiddenApplicationTemplates": [],
+  "console.ui.hiddenApplicationTemplates": [
+    "microsoft-365"
+  ],
   "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
   "console.ui.isXacmlConnectorEnabled": false,
-  "console.ui.routes.organizationEnabledRoutes": [
-    "accountSecurity",
-    "actions",
-    "admin-forced-password-reset",
-    "apiResources",
-    "applications",
-    "approvalWorkflows",
-    "approvals",
-    "attributeDialects",
-    "branding",
-    "consoleSettings",
-    "emailTemplates",
-    "gettingStarted",
-    "governanceConnectors",
-    "groups",
-    "identityProviders",
-    "loginAndRegistration",
-    "organizations",
-    "password-recovery",
-    "roles",
-    "self-registration-connector",
-    "smsTemplates",
-    "user-email-verification",
-    "userRoles",
-    "userStores",
-    "username-recovery",
-    "users",
-    "workflowInstanceDetails",
-    "workflowInstances"
-  ],
+  "console.ui.routes.organizationEnabledRoutes.accountSecurity": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.actions": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.admin-forced-password-reset": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.apiResources": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.applications": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.approvals": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.attributeDialects": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.branding": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.consoleSettings": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.emailTemplates": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.flows": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.gettingStarted": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.governanceConnectors": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.groups": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.identityProviders": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.loginAndRegistration": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.oidcScopes": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.organizations": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.password-recovery": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.roles": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.self-registration-connector": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.smsTemplates": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.user-email-verification": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.userRoles": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.userStores": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.username-recovery": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.users": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.workflowInstanceDetails": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.workflowInstances": "v0.0.0",
   "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
@@ -1354,21 +1419,23 @@
   "console.webhooks.disabled_features": [
     "webhooks.settings"
   ],
-  "console.agents.enabled": true,
-  "console.agents.disabled_features": [],
-  "console.agents.scopes.feature": ["console:users"],
-  "console.agents.scopes.create": ["internal_user_mgt_create"],
+  "console.agents.disabled_features": [
+    "agents.disable",
+    "agents.groups"
+  ],
+  "console.agents.scopes.feature": ["console:agents"],
+  "console.agents.scopes.create": ["internal_agent_mgt_create"],
   "console.agents.scopes.read": [
+    "internal_agent_mgt_list",
+    "internal_agent_mgt_view",
     "internal_governance_view",
     "internal_group_mgt_view",
     "internal_login",
     "internal_role_mgt_view",
-    "internal_user_mgt_list",
-    "internal_user_mgt_view",
     "internal_userstore_view"
   ],
-  "console.agents.scopes.update": ["internal_user_mgt_update"],
-  "console.agents.scopes.delete": ["internal_user_mgt_delete"],
+  "console.agents.scopes.update": ["internal_agent_mgt_update"],
+  "console.agents.scopes.delete": ["internal_agent_mgt_delete"],
   "console.webhooks.scopes.feature": ["console:webhooks"],
   "console.webhooks.scopes.create": ["internal_webhook_mgt_create"],
   "console.webhooks.scopes.read": [
@@ -1385,7 +1452,7 @@
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.disabled_features": ["ai.flows.types.list.registration"],
+  "console.ai.disabled_features": [],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
   "console.ai.scopes.read": [],
@@ -1417,21 +1484,37 @@
     "applications.loginFlow.legacyEditor",
     "applications.sharedAccess.status"
   ],
+  "console.applications.sub_features.applicationBusinessAPIAuthorization.scopes.update": [
+    "internal_application_business_api_update"
+  ],
+  "console.applications.sub_features.applicationInternalAPIAuthorization.scopes.update": [
+    "internal_application_internal_api_update"
+  ],
+  "console.applications.sub_features.applicationClientSecretManagement.scopes.create": [
+    "internal_application_mgt_client_secret_create"
+  ],
+  "console.applications.sub_features.applicationClientSecretManagement.scopes.read": [
+    "internal_application_mgt_client_secret_view"
+  ],
+  "console.applications.sub_features.applicationAuthenticationScript.scopes.update": [
+    "internal_application_script_update"
+  ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
-  "console.approvals.enabled": true,
+  "console.approvals.enabled": false,
   "console.approvals.scopes.feature": ["console:users"],
   "console.approvals.scopes.read": ["internal_approval_task_view"],
   "console.approvals.scopes.update": ["internal_approval_task_update"],
   "console.approvalWorkflows.enabled": true,
   "console.approvalWorkflows.scopes.feature": ["console:approvalWorkflows"],
   "console.approvalWorkflows.scopes.create": ["internal_workflow_create", "internal_workflow_association_create"],
-  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view"],
+  "console.approvalWorkflows.scopes.read": ["internal_workflow_view", "internal_workflow_association_view", "internal_user_mgt_list", "internal_role_mgt_view"],
   "console.approvalWorkflows.scopes.update": ["internal_workflow_update", "internal_workflow_association_update"],
   "console.approvalWorkflows.scopes.delete": ["internal_workflow_delete", "internal_workflow_association_delete"],
   "console.workflowInstances.enabled": true,
   "console.workflowInstances.scopes.feature": ["console:workflowInstances"],
   "console.workflowInstances.scopes.read": ["internal_workflow_instance_view"],
+  "console.workflowInstances.scopes.update": ["internal_workflow_instance_update"],
   "console.workflowInstances.scopes.delete": ["internal_workflow_instance_delete"],
   "console.attribute_dialects.enabled": true,
   "console.attribute_dialects.scopes.feature": ["console:attributes"],
@@ -1467,8 +1550,8 @@
   "console.flows.scopes.feature": ["console:flows"],
   "console.flows.disabled_features": [],
   "console.flows.scopes.create": [],
-  "console.flows.scopes.read": [],
-  "console.flows.scopes.update": [],
+  "console.flows.scopes.read": ["internal_flow_view", "internal_governance_view"],
+  "console.flows.scopes.update": ["internal_flow_update", "internal_governance_update"],
   "console.flows.scopes.delete": [],
   "console.certificates.enabled": true,
   "console.certificates.scopes.feature": ["console:certificates"],
@@ -1671,12 +1754,39 @@
   ],
   "console.user_roles.scopes.update": ["internal_role_mgt_update"],
   "console.user_roles.scopes.delete": ["internal_role_mgt_delete"],
+  "console.user_roles.sub_features.roleAssignments.scopes.update": [
+    "internal_role_mgt_groups_update",
+    "internal_role_mgt_update",
+    "internal_role_mgt_users_update"
+  ],
+  "console.user_roles.sub_features.roleAssignments.scopes.feature": [
+    "console:role_assignments",
+    "console:roles"
+  ],
+  "console.user_roles.sub_features.roleAssignments.scopes.read": [
+    "internal_api_resource_view",
+    "internal_application_mgt_view",
+    "internal_group_mgt_view",
+    "internal_idp_view",
+    "internal_role_mgt_view",
+    "internal_user_mgt_list",
+    "internal_user_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.user_roles.sub_features.rolePermissionAssignments.scopes.update": [
+    "internal_role_mgt_permissions_update",
+    "internal_role_mgt_update"
+  ],
   "console.saml2_configuration.enabled": true,
   "console.session_management.enabled": true,
   "console.users.enabled": true,
-  "console.users.disabled_features": ["users.profile.legacy"],
+  "console.users.disabled_features": [
+    "users.add.legacy",
+    "users.profile.legacy",
+    "users.totalUserCount"
+  ],
   "console.users.scopes.feature": ["console:users"],
-  "console.users.scopes.create": ["internal_user_mgt_create"],
+  "console.users.scopes.create": ["internal_user_mgt_create", "internal_workflow_association_view"],
   "console.users.scopes.read": [
       "internal_userstore_view",
       "internal_role_mgt_view",
@@ -1786,9 +1896,23 @@
     "internal_group_mgt_view",
     "internal_idp_view",
     "internal_session_view",
-    "internal_governance_view"
+    "internal_governance_view",
+    "internal_claim_meta_view"
   ],
   "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
+  "console.dynamic_client_registration.enabled": true,
+  "console.dynamic_client_registration.disabled_features": [],
+  "console.dynamic_client_registration.scopes.feature": [
+    "console:applications"
+  ],
+  "console.dynamic_client_registration.scopes.create": [],
+  "console.dynamic_client_registration.scopes.delete": [],
+  "console.dynamic_client_registration.scopes.read": [
+    "internal_config_view"
+  ],
+  "console.dynamic_client_registration.scopes.update": [
+    "internal_config_update"
+  ],
   "console.guest_user.enabled": true,
   "console.guest_user.scopes.create": ["internal_guest_mgt_invite_add"],
   "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
@@ -1804,7 +1928,7 @@
   "console.ui.is_header_avatar_label_allowed": true,
   "console.get_profile_info_from_id_token": false,
   "console.super_tenant_proxy_name": "",
-  "console.role_assignments.enabled": false,
+  "console.role_assignments.enabled": true,
   "console.role_assignments.disabled_features": [],
   "console.role_assignments.scopes.create": [],
   "console.role_assignments.scopes.delete": [],
@@ -1862,7 +1986,7 @@
   "myaccount.personal_info.enabled": true,
   "myaccount.personal_info.disabled_features": ["profileInfo.profile.legacy"],
   "myaccount.security.enabled": true,
-  "myaccount.approvals.enabled": false,
+  "myaccount.approvals.enabled": true,
   "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
   "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
   "myaccount.operations.scopes.create": [],
@@ -1891,7 +2015,7 @@
     "/api/users/v1/me/applications"
   ],
   "ui.is_cookie_consent_banner_enabled": true,
-  
+
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],
@@ -1905,8 +2029,10 @@
   "cors.tag_requests": false,
   "x509.request_header_name": "X-SSL-CERT",
   "x509.crl_download_timeout": "60000",
+  "x509.request_header_encoded": false,
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
+  "common_auth_caller_path.enable_nested_redirect_params": false,
   "authentication.skip_local_user_search_for_authentication_flow_handlers": true,
   "axis2.transport_sender.local.name": "local",
   "axis2.transport_sender.local.class": "org.apache.axis2.transport.local.LocalTransportSender",
@@ -1948,6 +2074,7 @@
   "email_templates.branding.fallbacks.button_font_color": "#FFFFFF",
   "email_templates.branding.fallbacks.light_border_color": "transparent",
   "email_templates.branding.fallbacks.dark_border_color": "#333333",
+  "email_templates.branding.fallbacks.support_mail": "",
   "authentication.enable_basic_auth_handler": true,
 
   "organization_management.self_service.system_user_name": "B2B-SS-System-User",
@@ -1956,13 +2083,13 @@
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
   "organization_management.organization_versioning.new_organization_version": "v1.0.0",
-  "organization_discovery.default_param": "orgName",
+  "organization_discovery.default_param": "orgHandle",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
 
   "api_response.set_account_lock_auth_failure_reason": false,
-  
+
   "super_tenant.alias_in_public_url": "",
   "connector.challenge_questions.enable": false,
   "tenant_mgt.enable_email_domain": false,
@@ -1977,10 +2104,20 @@
   "actions.http_client.retry_count": "2",
   "actions.maximum_actions_per_action_type": "1",
   "actions.types.pre_issue_access_token.enable": true,
+  "actions.types.pre_issue_access_token.version.latest": "v1",
   "actions.types.authentication.enable": true,
+  "actions.types.authentication.version.latest": "v1",
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
-  "actions.types.pre_update_password.enable_in_registration_flows": true,
+  "actions.types.pre_update_profile.version.latest": "v1",
+  "actions.types.pre_update_password.version.latest": "v2",
+
+  "external_api_client.http_client.connection_timeout": "2000",
+  "external_api_client.http_client.read_timeout": "2000",
+  "external_api_client.http_client.request_timeout": "2000",
+  "external_api_client.http_client.connection_pool_size": "20",
+  "external_api_client.http_client.max_connection_per_route": "3",
+  "external_api_client.retry_count": "0",
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
@@ -1989,11 +2126,17 @@
   "outbound_adapters.httppublisher.connectionHandshakeTimeout": "5000",
   "outbound_adapters.httppublisher.defaultMaxConnections": "20",
   "outbound_adapters.httppublisher.defaultMaxConnectionsPerRoute": "20",
+  "outbound_adapters.httppublisher.maxRetries": "2",
+  "outbound_adapters.httppublisher.ioThreadCount": "5",
+  "outbound_adapters.httppublisher.executorCorePoolSize": "5",
+  "outbound_adapters.httppublisher.executorMaxPoolSize": "15",
+  "outbound_adapters.httppublisher.executorQueueCapacity": "150",
   "outbound_adapters.httppublisher.type": "Publisher",
 
   "webhooks.maximum_webhooks_per_tenant": "10",
 
   "oauth.authorize_all_scopes": false,
+  "oauth.authorize_internal_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
 
   "system_applications.system_portals": ["Console", "My Account"],
@@ -2002,11 +2145,16 @@
 
   "account.lock.handler.enable_admin_unlock_email_template_for_failed_attempts": true,
 
+  "token_exchange.implicit_association.include_primary_when_secondary_present": true,
+
   "attribute.return_previous_additional_properties.enabled": false,
 
-  "agent_identity.enabled": false,
+  "agent_identity.enabled": true,
+  "agent_identity.userstore": "AGENT",
+  "agent_identity.datasource": "jdbc/AgentIdentity",
+  "agent_identity.userstore_manager_class": "org.wso2.carbon.identity.agent.manager.AgentUserStoreManager",
 
-  "session_management.filter_by_unique_session_id_for_user": false,
+  "session_management.filter_by_unique_session_id_for_user": true,
 
   "flow_execution.user_assertion.expiry_time": "2000",
   "flow_execution.default_ttl": "30",
@@ -2014,6 +2162,21 @@
     "REGISTRATION": "30",
     "PASSWORD_RECOVERY": "30",
     "INVITED_USER_REGISTRATION": "30"
-  }
-}
+  },
+  "flow_execution.enable_legacy_flows": false,
+  "flow_execution.registration.display_claim_availability": false,
+  "branding_configuration.custom_content.max_file_size": "1048576",
+  "captcha.enable_captcha_for_local_otp_authenticators": true,
 
+  "console.ui.organizations.organization_display_name.enable": true,
+  "console.ui.organizations.organization_handle.enable": true,
+  "notification_templates.super_organization_display_name.enable": true,
+
+  "notificationChannel.sms.custom.connection_timeout": "5000",
+  "notificationChannel.sms.custom.connection_read_timeout": "20000",
+
+  "configs.endpoint.elevate_permission": true,
+
+  "identifier_first.preserve_case_sensitivity.enabled": true,
+  "pastr_cookie.max_age": "-1"
+}

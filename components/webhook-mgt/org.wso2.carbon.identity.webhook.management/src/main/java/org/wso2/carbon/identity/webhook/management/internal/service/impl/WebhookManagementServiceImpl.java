@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagemen
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.CacheBackedWebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOFacade;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.WebhookManagementDAOImpl;
+import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementAuditLogger;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookManagementExceptionHandler;
 import org.wso2.carbon.identity.webhook.management.internal.util.WebhookValidator;
 
@@ -51,6 +52,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
             new WebhookManagementServiceImpl();
     private final WebhookManagementDAO daoFACADE;
     private static final WebhookValidator WEBHOOK_VALIDATOR = new WebhookValidator();
+    private static final WebhookManagementAuditLogger auditLogger = new WebhookManagementAuditLogger();
 
     private WebhookManagementServiceImpl() {
 
@@ -95,6 +97,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                 .build();
 
         daoFACADE.createWebhook(webhookToCreate, tenantId);
+        auditLogger.printAuditLog(WebhookManagementAuditLogger.Operation.ADD, webhookToCreate);
         return daoFACADE.getWebhook(webhookToCreate.getId(), tenantId);
     }
 
@@ -137,6 +140,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
         }
         doPreUpdateWebhookValidations(webhook);
         daoFACADE.updateWebhook(webhook, tenantId);
+        auditLogger.printAuditLog(WebhookManagementAuditLogger.Operation.UPDATE, webhook);
         return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
@@ -153,6 +157,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
         daoFACADE.deleteWebhook(webhookId, tenantId);
+        auditLogger.printAuditLog(WebhookManagementAuditLogger.Operation.DELETE, webhookId);
     }
 
     @Override
@@ -180,6 +185,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
         daoFACADE.activateWebhook(existingWebhook, tenantId);
+        auditLogger.printAuditLog(WebhookManagementAuditLogger.Operation.ACTIVATE, webhookId);
         return daoFACADE.getWebhook(webhookId, tenantId);
     }
 
@@ -197,6 +203,7 @@ public class WebhookManagementServiceImpl implements WebhookManagementService {
                     ErrorMessage.ERROR_CODE_WEBHOOK_NOT_FOUND, webhookId);
         }
         daoFACADE.deactivateWebhook(existingWebhook, tenantId);
+        auditLogger.printAuditLog(WebhookManagementAuditLogger.Operation.DEACTIVATE, webhookId);
         return daoFACADE.getWebhook(webhookId, tenantId);
     }
 

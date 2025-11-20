@@ -27,6 +27,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -53,11 +55,17 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.claim.ClaimManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.lang.reflect.InvocationTargetException;
@@ -76,8 +84,10 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -92,7 +102,11 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
+import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+import static org.wso2.carbon.user.core.UserCoreConstants.USER_STORE_GROUPS_CLAIM;
 
 public class DefaultStepBasedSequenceHandlerTest {
 
@@ -128,6 +142,12 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Mock
     private RealmService mockRealmService;
+
+    @Mock
+    private TenantManager mockTenantManager;
+
+    @Mock
+    private ClaimManager mockClaimManager;
 
     @Mock
     private RealmConfiguration mockRealmConfiguration;
@@ -341,6 +361,122 @@ public class DefaultStepBasedSequenceHandlerTest {
 
             assertNotNull(claims);
             assertEquals(claims.size(), 0);
+        }
+    }
+
+    /**
+     * Tests that user store domain is correctly appended to groups claim based on configuration.
+     * 
+     * This test verifies two scenarios:
+     * 1. When the configuration is disabled, the groups claim should not be modified.
+     * 2. When the configuration is enabled, the user store domain should be prepended to group names.
+     *
+     * @throws Exception If an error occurs during claim handling.
+     */
+    @Test
+    public void testAppendUserStoreDomainToGroupsClaim() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ClaimMetadataHandler> claimMetadataHandler = mockStatic(ClaimMetadataHandler.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+
+            // Constants for test.
+            final String testUserId = "12345";
+            final String secondaryUserStore = "SECONDARY";
+            final String groupsClaimValue = "role1,role2,role3";
+            final String commaSeparator = ",";
+
+            // Setup static mocks.
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN_NAME))
+                    .thenReturn(SUPER_TENANT_ID);
+            identityUtil.when(IdentityUtil::isGroupsVsRolesSeparationImprovementsEnabled).thenReturn(true);
+            identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(PRIMARY_DEFAULT_DOMAIN_NAME);
+
+            // Setup authentication context and configs.
+            AuthenticationContext authenticationContext = mock(AuthenticationContext.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+            StepConfig stepConfig = mock(StepConfig.class);
+            UserRealm userRealm = mock(UserRealm.class);
+
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+            authenticatedUser.setUserId(testUserId);
+            authenticatedUser.setUserStoreDomain(secondaryUserStore);
+
+            when(authenticationContext.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(authenticationContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+            when(authenticationContext.getLastAuthenticatedUser()).thenReturn(authenticatedUser);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+            when(stepConfig.getAuthenticatedUser()).thenReturn(authenticatedUser);
+
+            Map<String, String> claimMap = new HashMap<>();
+            claimMap.put(USER_STORE_GROUPS_CLAIM, USER_STORE_GROUPS_CLAIM);
+            when(applicationConfig.getRequestedClaimMappings()).thenReturn(claimMap);
+
+            // Setup realm service and user store manager.
+            FrameworkServiceDataHolder.getInstance().setRealmService(mockRealmService);
+            when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+            when(mockTenantManager.getTenantId(SUPER_TENANT_DOMAIN_NAME)).thenReturn(SUPER_TENANT_ID);
+            when(mockRealmService.getTenantUserRealm(SUPER_TENANT_ID)).thenReturn(userRealm);
+            when(userRealm.getClaimManager()).thenReturn(mockClaimManager);
+
+            AbstractUserStoreManager mockAbstractUserStoreManager = mock(AbstractUserStoreManager.class);
+            when(userRealm.getUserStoreManager()).thenReturn(mockAbstractUserStoreManager);
+
+            Map<String, String> claimValues = new HashMap<>();
+            claimValues.put(USER_STORE_GROUPS_CLAIM, groupsClaimValue);
+            doReturn(claimValues).when(mockAbstractUserStoreManager).getUserClaimValuesWithID(anyString(),
+                    any(String[].class), nullable(String.class));
+
+            when(mockAbstractUserStoreManager.getSecondaryUserStoreManager(anyString()))
+                    .thenReturn(mockAbstractUserStoreManager);
+            when(mockAbstractUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+            when(mockRealmConfiguration.getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR))
+                    .thenReturn(commaSeparator);
+
+            org.wso2.carbon.user.api.ClaimMapping[] claimMappings = new org.wso2.carbon.user.api.ClaimMapping[0];
+            when(mockClaimManager.getAllClaimMappings(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT))
+                    .thenReturn(claimMappings);
+
+            ClaimMetadataHandler mockClaimMetadataHandlerInstance = mock(ClaimMetadataHandler.class);
+            claimMetadataHandler.when(ClaimMetadataHandler::getInstance).thenReturn(mockClaimMetadataHandlerInstance);
+            when(mockClaimMetadataHandlerInstance.getMappingsMapFromOtherDialectToCarbon(
+                    anyString(), any(), anyString(), anyBoolean())).thenReturn(claimMap);
+
+            // Test scenario 1: Configuration is disabled, groups claim should not be modified.
+            Map<String, String> claimsWithoutAppending = stepBasedSequenceHandler.handleClaimMappings(
+                    stepConfig,
+                    authenticationContext,
+                    new HashMap<>(),
+                    false);
+            assertNotNull(claimsWithoutAppending, "Claims map should not be null.");
+            assertNotNull(claimsWithoutAppending.get(USER_STORE_GROUPS_CLAIM),
+                    "Groups claim should be present in the claims map.");
+            assertFalse(claimsWithoutAppending.get(USER_STORE_GROUPS_CLAIM).contains(secondaryUserStore + "/"),
+                    "User store domain should not be appended to groups when configuration is disabled.");
+
+            // Setup for scenario 2.
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUserRealm()).thenReturn(userRealm);
+
+            // Test scenario 2: Configuration is enabled, groups claim should be modified.
+            identityUtil.when(() -> IdentityUtil.getProperty(ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM))
+                    .thenReturn("true");
+            Map<String, String> claimsWithAppending = stepBasedSequenceHandler.handleClaimMappings(
+                    stepConfig,
+                    authenticationContext,
+                    new HashMap<>(),
+                    false);
+            assertNotNull(claimsWithAppending, "Claims map should not be null.");
+            assertNotNull(claimsWithAppending.get(USER_STORE_GROUPS_CLAIM),
+                    "Groups claim should be present in the claims map.");
+            assertTrue(claimsWithAppending.get(USER_STORE_GROUPS_CLAIM).contains(secondaryUserStore + "/"),
+                    "User store domain should be appended to groups when configuration is enabled.");
         }
     }
 

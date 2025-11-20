@@ -178,7 +178,25 @@ public interface ConfigurationManager {
      * @return 200 ok. Returns {@link Resource} requested.
      * @throws ConfigurationManagementException Resource management exception.
      */
+    @Deprecated
     Resource getResource(String resourceTypeName, String resourceName) throws ConfigurationManagementException;
+
+    /**
+     * This API is used to retrieve the given resource. You can specify whether to get the inherited resource
+     * from the organization hierarchy. Even if specified as true, the resource is not inherited if the organization
+     * version is v0.0.0 or if the resource type is not allowed to be inherited.
+     *
+     * @param resourceTypeName        Name of the {@link ResourceType}.
+     * @param resourceName            Name of the {@link Resource}.
+     * @param getInheritedResource    Whether to get the inherited resource.
+     * @return {@link Resource} requested.
+     * @throws ConfigurationManagementException When an error occurs while retrieving the resource.
+     */
+    default Resource getResource(String resourceTypeName, String resourceName, boolean getInheritedResource)
+            throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to retrieve the given resource by the tenant ID.

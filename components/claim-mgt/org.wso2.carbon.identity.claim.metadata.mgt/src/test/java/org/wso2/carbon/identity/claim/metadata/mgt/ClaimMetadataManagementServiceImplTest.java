@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -58,8 +59,10 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.IS_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
@@ -91,6 +94,7 @@ public class ClaimMetadataManagementServiceImplTest {
 
     private ClaimMetadataManagementService service;
     private UnifiedClaimMetadataManager unifiedClaimMetadataManager;
+    private ReadOnlyClaimMetadataManager systemDefaultClaimMetadataManager;
     private MockedStatic<IdentityClaimManagementServiceDataHolder> dataHolderStaticMock;
     private MockedStatic<IdentityUtil> identityUtilStaticMock;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
@@ -106,8 +110,10 @@ public class ClaimMetadataManagementServiceImplTest {
         dataHolderStaticMock.when(IdentityClaimManagementServiceDataHolder::getInstance).thenReturn(dataHolder);
 
         unifiedClaimMetadataManager = Mockito.mock(UnifiedClaimMetadataManager.class);
+        systemDefaultClaimMetadataManager = Mockito.mock(ReadOnlyClaimMetadataManager.class);
         service = new ClaimMetadataManagementServiceImpl();
         setInternalState(service, "unifiedClaimMetadataManager", unifiedClaimMetadataManager);
+        setInternalState(service, "systemDefaultClaimMetadataManager", systemDefaultClaimMetadataManager);
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         claimMetadataEventPublisherProxy = mockStatic(ClaimMetadataEventPublisherProxy.class);
@@ -243,6 +249,8 @@ public class ClaimMetadataManagementServiceImplTest {
                 "http://wso2.org/claims/testclaim6 http://wso2.org/claims/testclaim7 http://wso2.org/claims/testclaim8 " +
                 "http://wso2.org/claims/testclaim9 http://wso2.org/claims/testclaim10 http://wso2.org/claims/testclaim11" +
                 " http://wso2.org/claims/testclaim12");
+        claimProperties.put("canonicalValues", "[{\"label\":\"north\",\"value\":\"NORTHERN\"}, " +
+                "{\"label\":\"west\",\"value\":\"WEST\"}]");
         localClaimToBeAdded.setClaimProperties(claimProperties);
 
         when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
@@ -443,6 +451,16 @@ public class ClaimMetadataManagementServiceImplTest {
         existingClaim.getClaimProperties().put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
         when(unifiedClaimMetadataManager.getLocalClaim(claimToBeUpdated.getClaimURI(), SUPER_TENANT_ID))
                 .thenReturn(Optional.of(existingClaim));
+
+        // Mock system default claim with FROM_ORIGIN as the default value
+        LocalClaim systemDefaultClaim = new LocalClaim(claimToBeUpdated.getClaimURI());
+        Map<String, String> systemDefaultProperties = new HashMap<>();
+        systemDefaultProperties.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
+        systemDefaultClaim.setClaimProperties(systemDefaultProperties);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(claimToBeUpdated.getClaimURI(), SUPER_TENANT_ID))
+                .thenReturn(Optional.of(systemDefaultClaim));
+
         try {
             service.updateLocalClaim(claimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
             if (isValidationSuccess) {
@@ -1222,5 +1240,929 @@ public class ClaimMetadataManagementServiceImplTest {
                 .filter(claim -> claim.getClaimURI().equals(uri))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @Test
+    public void testGetLocalClaimWithoutManagedInUserStoreProperty() throws ClaimMetadataException {
+
+        LocalClaim mockLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        Map<String, String> properties = new HashMap<>();
+        properties.put("DisplayName", "Username");
+        mockLocalClaim.setClaimProperties(properties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        Optional<LocalClaim> result = service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME,
+                false);
+
+        assertTrue(result.isPresent());
+        // Should not have ManagedInUserStore property when includeManagedInUserStoreInfo is false.
+        assertFalse(result.get().getClaimProperties().containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY));
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreForNonIdentityClaim()
+            throws ClaimMetadataException {
+
+        LocalClaim mockLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        Map<String, String> properties = new HashMap<>();
+        properties.put("DisplayName", "Username");
+        mockLocalClaim.setClaimProperties(properties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        Optional<LocalClaim> result = service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME,
+                true);
+
+        assertTrue(result.isPresent());
+        // Non-identity claim should have ManagedInUserStore=true by default.
+        assertEquals(result.get().getClaimProperties().get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY),
+                "true");
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreForIdentityClaim()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim mockLocalClaim = new LocalClaim(identityClaimUri);
+        Map<String, String> properties = new HashMap<>();
+        properties.put("DisplayName", "Account Locked");
+        mockLocalClaim.setClaimProperties(properties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        Optional<LocalClaim> result = service.getLocalClaim(identityClaimUri, SUPER_TENANT_DOMAIN_NAME,
+                true);
+
+        assertTrue(result.isPresent());
+        // Identity claim should have ManagedInUserStore=false by default when not user-store based.
+        assertEquals(result.get().getClaimProperties().get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY),
+                "false");
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreWhenClaimNotFound()
+            throws ClaimMetadataException {
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.empty());
+
+        Optional<LocalClaim> result = service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME,
+                true);
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreForIdentityClaimWithUserStoreBasedDataStore()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim mockLocalClaim = new LocalClaim(identityClaimUri);
+        Map<String, String> properties = new HashMap<>();
+        properties.put("DisplayName", "Account Locked");
+        mockLocalClaim.setClaimProperties(properties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn("org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore");
+
+        Optional<LocalClaim> result = service.getLocalClaim(identityClaimUri, SUPER_TENANT_DOMAIN_NAME,
+                true);
+
+        assertTrue(result.isPresent());
+        // Identity claim should have ManagedInUserStore=true when identity data store is user-store based.
+        assertEquals(result.get().getClaimProperties().get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY),
+                "true");
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStorePreservesExistingPropertyForNonIdentityClaim()
+            throws ClaimMetadataException {
+
+        LocalClaim mockLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        Map<String, String> properties = new HashMap<>();
+        properties.put("DisplayName", "Username");
+        properties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        mockLocalClaim.setClaimProperties(properties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        Optional<LocalClaim> result = service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME, true);
+
+        assertTrue(result.isPresent());
+        // Should preserve existing ManagedInUserStore property for non-identity claim.
+        assertEquals(result.get().getClaimProperties().get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStorePreservesExistingPropertyForIdentityClaim()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim mockLocalClaim = new LocalClaim(identityClaimUri);
+        Map<String, String> properties = new HashMap<>();
+        properties.put("DisplayName", "Account Locked");
+        properties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        mockLocalClaim.setClaimProperties(properties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        Optional<LocalClaim> result = service.getLocalClaim(identityClaimUri, SUPER_TENANT_DOMAIN_NAME, true);
+
+        assertTrue(result.isPresent());
+        // Should preserve existing ManagedInUserStore property for identity claim.
+        assertEquals(result.get().getClaimProperties().get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+        // When managed in user store is false, should not have excluded user stores property.
+        assertFalse(result.get().getClaimProperties().containsKey(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY));
+    }
+
+    @Test
+    public void testUpdateLocalClaimForNonIdentityClaimWithoutManagedInUserStoreProperty()
+            throws ClaimMetadataException {
+
+        LocalClaim existingLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> existingProperties = new HashMap<>();
+        existingProperties.put("DisplayName", "Username");
+        existingLocalClaim.setClaimProperties(existingProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim updatedLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        updatedLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> updatedProperties = new HashMap<>();
+        updatedProperties.put("DisplayName", "Username Updated");
+        updatedLocalClaim.setClaimProperties(updatedProperties);
+
+        service.updateLocalClaim(updatedLocalClaim, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .updateLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Non-identity claim should have ManagedInUserStore=true by default.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "true");
+    }
+
+    @Test
+    public void testUpdateLocalClaimForIdentityClaimWithoutManagedInUserStoreProperty()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim existingLocalClaim = new LocalClaim(identityClaimUri);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> existingProperties = new HashMap<>();
+        existingProperties.put("DisplayName", "Account Locked");
+        existingLocalClaim.setClaimProperties(existingProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim updatedLocalClaim = new LocalClaim(identityClaimUri);
+        updatedLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> updatedProperties = new HashMap<>();
+        updatedProperties.put("DisplayName", "Account Locked Updated");
+        updatedLocalClaim.setClaimProperties(updatedProperties);
+
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        service.updateLocalClaim(updatedLocalClaim, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .updateLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Identity claim should have ManagedInUserStore=false by default when not user-store based.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testUpdateLocalClaimForIdentityClaimWithManagedInUserStoreFalse()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim existingLocalClaim = new LocalClaim(identityClaimUri);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> existingProperties = new HashMap<>();
+        existingProperties.put("DisplayName", "Account Locked");
+        existingLocalClaim.setClaimProperties(existingProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim updatedLocalClaim = new LocalClaim(identityClaimUri);
+        updatedLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> updatedProperties = new HashMap<>();
+        updatedProperties.put("DisplayName", "Account Locked Updated");
+        updatedProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        updatedProperties.put(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY, "PRIMARY,SECONDARY");
+        updatedLocalClaim.setClaimProperties(updatedProperties);
+
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        service.updateLocalClaim(updatedLocalClaim, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .updateLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // When ManagedInUserStore is false, ExcludedUserStores should be removed.
+        assertFalse(capturedProperties.containsKey(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY));
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testUpdateLocalClaimForNonIdentityClaimWithManagedInUserStoreProperty()
+            throws ClaimMetadataException {
+
+        LocalClaim existingLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> existingProperties = new HashMap<>();
+        existingProperties.put("DisplayName", "Username");
+        existingLocalClaim.setClaimProperties(existingProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim updatedLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        updatedLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> updatedProperties = new HashMap<>();
+        updatedProperties.put("DisplayName", "Username Updated");
+        updatedProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        updatedLocalClaim.setClaimProperties(updatedProperties);
+
+        service.updateLocalClaim(updatedLocalClaim, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .updateLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Should preserve the ManagedInUserStore property value provided.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testAddLocalClaimForNonIdentityClaimWithoutManagedInUserStoreProperty()
+            throws ClaimMetadataException {
+
+        LocalClaim localClaimToBeAdded = new LocalClaim(LOCAL_CLAIM_1);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Username");
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .addLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Non-identity claim should have ManagedInUserStore=true by default.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "true");
+    }
+
+    @Test
+    public void testAddLocalClaimForIdentityClaimWithoutManagedInUserStoreProperty()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim localClaimToBeAdded = new LocalClaim(identityClaimUri);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked"));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Account Locked");
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .addLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Identity claim should have ManagedInUserStore=false by default when not user-store based
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testAddLocalClaimForIdentityClaimDefaultsToFalse()
+            throws ClaimMetadataException {
+
+        // Note: validateAndSyncClaimStoreSettings in addLocalClaim doesn't check for user-store based
+        // identity data store. It simply defaults identity claims to false if not explicitly set.
+        // The user-store based check is only in setManagedInUserStoreProperty used by getLocalClaim.
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim localClaimToBeAdded = new LocalClaim(identityClaimUri);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked"));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Account Locked");
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .addLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Identity claim should default to ManagedInUserStore=false in addLocalClaim.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testAddLocalClaimForNonIdentityClaimWithManagedInUserStoreProperty()
+            throws ClaimMetadataException {
+
+        LocalClaim localClaimToBeAdded = new LocalClaim(LOCAL_CLAIM_1);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Username");
+        claimProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .addLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Should preserve the ManagedInUserStore property value provided.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testAddLocalClaimForIdentityClaimExplicitlySetToFalse()
+            throws ClaimMetadataException {
+
+        // When ManagedInUserStore is explicitly set to false for an identity claim,
+        // it should be preserved and not trigger user store validation.
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim localClaimToBeAdded = new LocalClaim(identityClaimUri);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked"));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Account Locked");
+        claimProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .addLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Should preserve the ManagedInUserStore=false property value.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testAddLocalClaimForIdentityClaimWithManagedInUserStoreFalse()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim localClaimToBeAdded = new LocalClaim(identityClaimUri);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked"));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Account Locked");
+        claimProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        claimProperties.put(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY, "PRIMARY,SECONDARY");
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .addLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // When ManagedInUserStore is false, ExcludedUserStores should be removed.
+        assertFalse(capturedProperties.containsKey(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY));
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testAddLocalClaimForIdentityClaimThrowsErrorWhenManagedInUserStoreFalseWithUserStoreBasedDataStore()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim localClaimToBeAdded = new LocalClaim(identityClaimUri);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked"));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Account Locked");
+        claimProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+        // Mock user store based identity data store.
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn("org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore");
+
+        try {
+            service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+            // Should not reach here.
+            assertFalse(true, "Expected ClaimMetadataClientException to be thrown");
+        } catch (ClaimMetadataClientException e) {
+            assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode());
+            assertEquals(e.getMessage(),
+                    String.format(ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
+                            identityClaimUri));
+        }
+        // Verify that the claim was not added.
+        verify(unifiedClaimMetadataManager, times(0)).addLocalClaim(any(), anyInt());
+    }
+
+    @Test
+    public void testUpdateLocalClaimForIdentityClaimThrowsErrorWhenManagedInUserStoreFalseWithUserStoreBasedDataStore()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim existingLocalClaim = new LocalClaim(identityClaimUri);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> existingProperties = new HashMap<>();
+        existingProperties.put("DisplayName", "Account Locked");
+        existingProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "true");
+        existingLocalClaim.setClaimProperties(existingProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim updatedLocalClaim = new LocalClaim(identityClaimUri);
+        updatedLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> updatedProperties = new HashMap<>();
+        updatedProperties.put("DisplayName", "Account Locked Updated");
+        updatedProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        updatedLocalClaim.setClaimProperties(updatedProperties);
+
+        // Mock user store based identity data store.
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn("org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore");
+
+        try {
+            service.updateLocalClaim(updatedLocalClaim, SUPER_TENANT_DOMAIN_NAME);
+            // Should not reach here.
+            assertFalse(true, "Expected ClaimMetadataClientException to be thrown");
+        } catch (ClaimMetadataClientException e) {
+            assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getCode());
+            assertEquals(e.getMessage(),
+                    String.format(ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE.getMessage(),
+                            identityClaimUri));
+        }
+        // Verify that the claim was not updated.
+        verify(unifiedClaimMetadataManager, times(0)).updateLocalClaim(any(), anyInt());
+    }
+
+    @Test
+    public void testAddLocalClaimForIdentityClaimWithUserStoreBasedDataStoreDefaultsToTrue()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim localClaimToBeAdded = new LocalClaim(identityClaimUri);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked"));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Account Locked");
+        // Not setting ManagedInUserStore property.
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+        // Mock user store based identity data store.
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn("org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore");
+
+        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .addLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // When identity data store is user store based, identity claims should default to ManagedInUserStore=true.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "true");
+    }
+
+    @Test
+    public void testUpdateLocalClaimForIdentityClaimWithUserStoreBasedDataStoreDefaultsToTrue()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim existingLocalClaim = new LocalClaim(identityClaimUri);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> existingProperties = new HashMap<>();
+        existingProperties.put("DisplayName", "Account Locked");
+        existingLocalClaim.setClaimProperties(existingProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim updatedLocalClaim = new LocalClaim(identityClaimUri);
+        updatedLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> updatedProperties = new HashMap<>();
+        updatedProperties.put("DisplayName", "Account Locked Updated");
+        // Not setting ManagedInUserStore property.
+        updatedLocalClaim.setClaimProperties(updatedProperties);
+
+        // Mock user store based identity data store.
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn("org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore");
+
+        service.updateLocalClaim(updatedLocalClaim, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .updateLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // When identity data store is user store based, identity claims should default to ManagedInUserStore=true.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "true");
+    }
+
+    @Test
+    public void testUpdateLocalClaimForIdentityClaimRemovesExcludedUserStoresWhenManagedInUserStoreFalse()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim existingLocalClaim = new LocalClaim(identityClaimUri);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> existingProperties = new HashMap<>();
+        existingProperties.put("DisplayName", "Account Locked");
+        existingProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "true");
+        existingProperties.put(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY, "SECONDARY");
+        existingLocalClaim.setClaimProperties(existingProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim updatedLocalClaim = new LocalClaim(identityClaimUri);
+        updatedLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> updatedProperties = new HashMap<>();
+        updatedProperties.put("DisplayName", "Account Locked Updated");
+        updatedProperties.put(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY, "false");
+        updatedProperties.put(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY, "SECONDARY,TERTIARY");
+        updatedLocalClaim.setClaimProperties(updatedProperties);
+
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        service.updateLocalClaim(updatedLocalClaim, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .updateLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // When ManagedInUserStore is false, ExcludedUserStores should be removed.
+        assertFalse(capturedProperties.containsKey(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY));
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreInfoForIdentityClaim() throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim localClaim = new LocalClaim(identityClaimUri);
+        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Account Locked");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(localClaim));
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        Optional<LocalClaim> result = service.getLocalClaim(identityClaimUri, SUPER_TENANT_DOMAIN_NAME, true);
+
+        assertTrue(result.isPresent());
+        Map<String, String> resultProperties = result.get().getClaimProperties();
+        // Identity claim should default to ManagedInUserStore=false when identity data store is not user store based.
+        assertEquals(resultProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "false");
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreInfoForNonIdentityClaim()
+            throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Username");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(localClaim));
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        Optional<LocalClaim> result = service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME, true);
+
+        assertTrue(result.isPresent());
+        Map<String, String> resultProperties = result.get().getClaimProperties();
+        // Non-identity claim should default to ManagedInUserStore=true.
+        assertEquals(resultProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "true");
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreInfoForIdentityClaimWithUserStoreBasedDataStore()
+            throws ClaimMetadataException {
+
+        String identityClaimUri = "http://wso2.org/claims/identity/accountLocked";
+        LocalClaim localClaim = new LocalClaim(identityClaimUri);
+        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "accountLocked")));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Account Locked");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(identityClaimUri, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(localClaim));
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn("org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore");
+
+        Optional<LocalClaim> result = service.getLocalClaim(identityClaimUri, SUPER_TENANT_DOMAIN_NAME, true);
+
+        assertTrue(result.isPresent());
+        Map<String, String> resultProperties = result.get().getClaimProperties();
+        // When identity data store is user store based, all claims should be ManagedInUserStore=true.
+        assertEquals(resultProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "true");
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreInfoFalse() throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Username");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(localClaim));
+
+        Optional<LocalClaim> result = service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME, false);
+
+        assertTrue(result.isPresent());
+        Map<String, String> resultProperties = result.get().getClaimProperties();
+        // When includeManagedInUserStoreInfo is false, ManagedInUserStore property should not be set.
+        assertFalse(resultProperties.containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY));
+    }
+
+    @Test
+    public void testGetLocalClaimWithManagedInUserStoreInfoWhenClaimNotPresent()
+            throws ClaimMetadataException {
+
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.empty());
+
+        Optional<LocalClaim> result = service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME, true);
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testValidateClaimAttributeMapping() throws ClaimMetadataException {
+
+        LocalClaim localClaim1 = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim1.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+
+        LocalClaim localClaim2 = new LocalClaim(LOCAL_CLAIM_2);
+        localClaim2.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, "email")));
+
+        List<LocalClaim> localClaimList = Arrays.asList(localClaim1, localClaim2);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt()))
+                .thenReturn(Arrays.asList(new LocalClaim(LOCAL_CLAIM_1), new LocalClaim(LOCAL_CLAIM_2)));
+
+        // Should not throw exception for valid claims.
+        service.validateClaimAttributeMapping(localClaimList, SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    @Test
+    public void testValidateClaimAttributeMappingWithEmptyClaimURI() {
+
+        LocalClaim localClaim = new LocalClaim("");
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        List<LocalClaim> localClaimList = Collections.singletonList(localClaim);
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.validateClaimAttributeMapping(localClaimList, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testValidateClaimAttributeMappingWithNullClaim() {
+
+        List<LocalClaim> localClaimList = Collections.singletonList(null);
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.validateClaimAttributeMapping(localClaimList, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testValidateClaimAttributeMappingWithEmptyMappedAttributes() {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(new ArrayList<>());
+        List<LocalClaim> localClaimList = Collections.singletonList(localClaim);
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.validateClaimAttributeMapping(localClaimList, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testValidateClaimAttributeMappingWithNonExistingLocalClaim() throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        List<LocalClaim> localClaimList = Collections.singletonList(localClaim);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.validateClaimAttributeMapping(localClaimList, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testGetMaskingRegexForLocalClaim() throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.MASKING_REGULAR_EXPRESSION_PROPERTY, "^(.{2})(.*)(.{2})$");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(Collections.singletonList(localClaim));
+
+        String maskingRegex = service.getMaskingRegexForLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME);
+
+        assertEquals(maskingRegex, "^(.{2})(.*)(.{2})$");
+    }
+
+    @Test
+    public void testGetMaskingRegexForNonExistingLocalClaim() throws ClaimMetadataException {
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        String maskingRegex = service.getMaskingRegexForLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME);
+
+        assertNull(maskingRegex);
+    }
+
+    @Test
+    public void testAddLocalClaimWithInvalidMinLengthProperty() throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.MIN_LENGTH, "invalid");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.addLocalClaim(localClaim, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testAddLocalClaimWithMinLengthBelowLimit() throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.MIN_LENGTH, "-1");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.addLocalClaim(localClaim, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testAddLocalClaimWithMaxLengthAboveLimit() throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.MAX_LENGTH, "2000");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.addLocalClaim(localClaim, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testAddLocalClaimWithValidMinMaxLength() throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.MIN_LENGTH, "5");
+        claimProperties.put(ClaimConstants.MAX_LENGTH, "100");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        service.addLocalClaim(localClaim, SUPER_TENANT_DOMAIN_NAME);
+
+        verify(unifiedClaimMetadataManager, times(1)).addLocalClaim(any(), anyInt());
+    }
+
+    @Test
+    public void testAddLocalClaimForNonIdentityClaimDefaultsToManagedInUserStoreTrue()
+            throws ClaimMetadataException {
+
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        localClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("DisplayName", "Username");
+        localClaim.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty("IdentityDataStore.DataStoreType"))
+                .thenReturn(null);
+
+        service.addLocalClaim(localClaim, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .addLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedProperties = capturedLocalClaim.getValue().getClaimProperties();
+        // Non-identity claim should default to ManagedInUserStore=true.
+        assertEquals(capturedProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY), "true");
     }
 }

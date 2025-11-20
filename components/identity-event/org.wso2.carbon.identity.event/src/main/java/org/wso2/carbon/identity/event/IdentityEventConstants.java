@@ -172,6 +172,7 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID = "POST_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID";
         public static final String PRE_DELETE_USER_WITH_ID = "PRE_DELETE_USER_WITH_ID";
         public static final String POST_DELETE_USER_WITH_ID = "POST_DELETE_USER_WITH_ID";
+        public static final String POST_DELETE_MAIN_APPLICATION_WITH_ID = "POST_DELETE_MAIN_APPLICATION_WITH_ID";
         public static final String PRE_SET_USER_CLAIM_VALUE_WITH_ID = "PRE_SET_USER_CLAIM_VALUE_WITH_ID";
         public static final String POST_SET_USER_CLAIM_VALUE_WITH_ID = "POST_SET_USER_CLAIM_VALUE_WITH_ID";
         public static final String PRE_SET_USER_CLAIM_VALUES_WITH_ID = "PRE_SET_USER_CLAIM_VALUES_WITH_ID";
@@ -199,6 +200,7 @@ public class IdentityEventConstants {
         public static final String POST_SELF_SIGNUP_CONFIRM = "POST_SELF_SIGNUP_CONFIRM";
         public static final String PRE_EMAIL_CHANGE_VERIFICATION = "PRE_EMAIL_CHANGE_VERIFICATION";
         public static final String POST_EMAIL_CHANGE_VERIFICATION = "POST_EMAIL_CHANGE_VERIFICATION";
+        public static final String POST_MOBILE_CHANGE_VERIFICATION = "POST_MOBILE_CHANGE_VERIFICATION";
         public static final String PRE_LOCK_ACCOUNT = "PRE_LOCK_ACCOUNT";
         public static final String POST_LOCK_ACCOUNT = "POST_LOCK_ACCOUNT";
         public static final String PRE_UNLOCK_ACCOUNT = "PRE_UNLOCK_ACCOUNT";
@@ -403,6 +405,7 @@ public class IdentityEventConstants {
         public static final String PROFILE_NAME = "PROFILE_NAME";
         public static final String VERIFIED_CHANNEL = "VERIFIED_CHANNEL";
         public static final String VERIFIED_EMAIL = "VERIFIED_EMAIL";
+        public static final String VERIFIED_MOBILE = "VERIFIED_MOBILE";
         public static final String RECOVERY_SCENARIO = "RECOVERY_SCENARIO";
         public static final String USER_RECOVERY_DATA = "USER_RECOVERY_DATA";
         public static final String GET_USER_RECOVERY_DATA_SCENARIO = "GET_USER_RECOVERY_DATA_SCENARIO";
@@ -508,14 +511,22 @@ public class IdentityEventConstants {
 
         public static final String CONSUMER_KEYS = "CONSUMER_KEYS";
 
+        public static final String IS_ORGANIZATION_USER = "IS_ORGANIZATION_USER";
+        public static final String USER_RESIDENT_ORGANIZATION_ID = "USER_RESIDENT_ORGANIZATION_ID";
+
         public class Scenario {
 
             public class ScenarioTypes {
 
                 public static final String POST_CREDENTIAL_UPDATE_BY_ADMIN = "POST_CREDENTIAL_UPDATE_BY_ADMIN";
                 public static final String POST_CREDENTIAL_UPDATE_BY_USER = "POST_CREDENTIAL_UPDATE_BY_USER";
+                public static final String POST_USER_PROFILE_UPDATE_BY_ADMIN = "POST_USER_PROFILE_UPDATE_BY_ADMIN";
+                public static final String POST_USER_PROFILE_UPDATE_BY_USER = "POST_USER_PROFILE_UPDATE_BY_USER";
             }
         }
+
+        public static final String IS_PASSWORD_UPDATE_ACTION = "isPasswordUpdateAction";
+        public static final String VERIFIED_BY_END_USER = "VerifiedByEndUser";
     }
 
     public class ErrorMessage {

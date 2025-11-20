@@ -39,6 +39,9 @@
     "AUTHENTICATION_SUCCESS",
     "AUTHENTICATION_FAILURE"
   ],
+  "authentication.analytics.publish_b2b_authentication_event_types": [
+    "AUTHENTICATION_SUCCESS"
+  ],
   "authentication.analytics.publish_session_event_types": [
     "SESSION_CREATE",
     "SESSION_UPDATE",
@@ -204,6 +207,7 @@
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
   "authentication.authenticator.totp.parameters.EnableAccountLockingForFailedAttempts": true,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
+  "authentication.authenticator.totp.parameters.PreventTOTPCodeReuse": true,
 
   "authentication.authenticator.backup_code.name": "backup-code-authenticator",
   "authentication.authenticator.backup_code.enable": true,
@@ -226,6 +230,7 @@
 
   "authentication.authenticator.office365.name": "Office365Authenticator",
   "authentication.authenticator.office365.parameters.Tags": "OIDC",
+  "authentication.authenticator.office365.parameters.UseOrgSpecificCommonAuthURL": true,
 
   "authentication.authenticator.iwa_kerberos.name": "IWAKerberosAuthenticator",
   "authentication.authenticator.iwa_kerberos.parameters.Tags": "Enterprise",
@@ -241,6 +246,7 @@
   "authentication.authenticator.sms_otp_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.sms_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp_local.parameters.enableRetryFromAuthenticator": true,
+  "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": true,
 
   "authentication.authenticator.push_local.name": "push-notification-authenticator",
   "authentication.authenticator.push_local.enable": true,
@@ -248,11 +254,13 @@
   "authentication.authenticator.push_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.push_local.parameters.enableRetryFromAuthenticator": true,
 
+  "authentication.local_authenticators.hide_user_existence": true,
+
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
   "authorization_control.skip_authorization.client_authentication.name":"ClientAuthentication",
-  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*),(.*)/api/users/v2/recovery/username/(.*),(.*)/api/server/v(.*)/organization-configs/discovery(.*),(.*)/api/server/v(.*)/configs/authenticators(.*),(.*)/api/server/v1/flow/config(.*),(.*)/api/server/v1/flow/configs(.*)",
+  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*),(.*)/api/users/v2/recovery/username/(.*),(.*)/api/server/v(.*)/organization-configs/discovery(.*),(.*)/api/server/v(.*)/configs/authenticators(.*),(.*)/api/server/v1/flow/config(.*),(.*)/api/server/v1/flow/configs(.*),(.*)/api/server/v1/claim-dialects/local/claims(.*)",
 
   "jit_provisioning.indelible_claims.claim_uris": [
     "http://wso2.org/claims/userid",
@@ -269,18 +277,24 @@
     "console",
     "SYSTEM"
   ],
+
+  "oauth.allow_disabled_application_credentials_for_authentication": false,
   "authentication.jit_provisioning.associating_to_existing_user": false,
   "authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association": false,
 
   "ai_services.token_endpoint": "https://api.asgardeo.io/t/wso2devtools/oauth2/token",
-  "ai_services.branding_ai.endpoint": "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/iam-ai-us/branding-ai/v1.0",
+  "ai_services.branding_ai.endpoint": "https://dev-tools.wso2.com/iam-ai-services/v1/branding-ai",
   "ai_services.branding_ai.generate_request_path": "/api/server/v1/branding-preference/generate",
   "ai_services.branding_ai.status_request_path": "/api/server/v1/branding-preference/status",
   "ai_services.branding_ai.result_request_path": "/api/server/v1/branding-preference/result",
-  "ai_services.login_flow_ai.endpoint": "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/iam-ai-us/loginflow-ai/v1.0",
+  "ai_services.login_flow_ai.endpoint": "https://dev-tools.wso2.com/iam-ai-us/iam-ai-services/v1.0",
   "ai_services.login_flow_ai.generate_request_path": "/api/server/v1/applications/loginflow/generate",
   "ai_services.login_flow_ai.status_request_path": "/api/server/v1/applications/loginflow/status",
   "ai_services.login_flow_ai.result_request_path": "/api/server/v1/applications/loginflow/result",
+  "ai_services.flow_ai.endpoint": "https://dev-tools.wso2.com/iam-ai-us/iam-ai-services/v1.0",
+  "ai_services.flow_ai.generate_request_path": "/api/server/v1/flow/generate",
+  "ai_services.flow_ai.status_request_path": "/api/server/v1/flow/status",
+  "ai_services.flow_ai.result_request_path": "/api/server/v1/flow/result",
 
   "async_operation_status.enable_data_persistence": false
 }

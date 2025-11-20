@@ -38,11 +38,9 @@ public class Constants {
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
     public static final String WEBAUTHN_DATA = "webAuthnData";
+    public static final String OTFI = "OTFI";
 
     public static final String USER_ASSERTION_EXPIRY_PROPERTY = "FlowExecution.UserAssertion.ExpiryTime";
-
-    // Constants for self registration configurations.
-    public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
 
     // Constants related for OTP field length handling.
     public static final String OTP_LENGTH = "otpLength";
@@ -50,8 +48,6 @@ public class Constants {
     public static final String LENGTH_CONFIG = "length";
 
     public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
-
-    public static final String REGISTRATION_FLOW_TYPE = "REGISTRATION";
 
     private Constants() {
 
@@ -188,6 +184,9 @@ public class Constants {
         ERROR_CODE_FLOW_TYPE_NOT_PROVIDED("60011",
                 "Flow type is not provided.",
                 "Flow type not provided in the request."),
+        ERROR_CODE_PRE_UPDATE_PASSWORD_ACTION_VALIDATION_FAILURE("60012",
+                "%s",
+                "%s")
         ;
 
         private static final String ERROR_PREFIX = "FE";
@@ -232,14 +231,11 @@ public class Constants {
         public static final String STATUS_USER_INPUT_REQUIRED = "USER_INPUT_REQUIRED";
         public static final String STATUS_EXTERNAL_REDIRECTION = "EXTERNAL_REDIRECTION";
         public static final String STATUS_WEBAUTHN = "WEBAUTHN";
-        public static final String STATUS_USER_CREATED = "USER_CREATED";
         public static final String STATUS_COMPLETE = "COMPLETE";
         public static final String STATUS_RETRY = "RETRY";
         public static final String STATUS_ERROR = "ERROR";
         public static final String STATUS_USER_ERROR = "USER_ERROR";
         public static final String STATUS_CLIENT_INPUT_REQUIRED = "CLIENT_INPUT_REQUIRED";
-        // User store manager related statuses.
-        public static final String USER_ALREADY_EXISTING_USERNAME = "UserAlreadyExistingUsername";
 
         private ExecutorStatus() {
 

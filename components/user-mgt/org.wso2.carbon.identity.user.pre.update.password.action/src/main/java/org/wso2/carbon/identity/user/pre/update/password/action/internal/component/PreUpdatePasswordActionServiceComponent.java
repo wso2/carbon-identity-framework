@@ -31,18 +31,22 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
+import org.wso2.carbon.identity.action.execution.api.service.ActionVersioningHandler;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.action.management.api.service.ActionValidator;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionExecutor;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionVersioningHandler;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordRequestBuilder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordResponseProcessor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionConverter;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionDTOModelResolver;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionValidator;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -63,6 +67,9 @@ public class PreUpdatePasswordActionServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
 
+            bundleCtx.registerService(ActionValidator.class, new PreUpdatePasswordActionValidator(), null);
+            LOG.debug("Pre Update Password Action Validator is enabled");
+
             bundleCtx.registerService(ActionConverter.class, new PreUpdatePasswordActionConverter(), null);
             LOG.debug("Pre Update Password Action Converter is enabled");
 
@@ -80,6 +87,10 @@ public class PreUpdatePasswordActionServiceComponent {
 
             bundleCtx.registerService(UserActionExecutor.class, new PreUpdatePasswordActionExecutor(), null);
             LOG.debug("User Pre Update Password Action Executor is enabled");
+
+            bundleCtx.registerService(ActionVersioningHandler.class,
+                    new PreUpdatePasswordActionVersioningHandler(), null);
+            LOG.debug("Pre Update Password Action Versioning Handler is enabled");
 
             bundleCtx.registerService(RuleEvaluationDataProvider.class,
                     new PreUpdatePasswordActionRuleEvaluationDataProvider(), null);

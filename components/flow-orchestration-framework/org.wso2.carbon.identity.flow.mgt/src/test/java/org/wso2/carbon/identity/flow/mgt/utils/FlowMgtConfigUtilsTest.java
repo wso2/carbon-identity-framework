@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
@@ -41,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -62,6 +64,8 @@ public class FlowMgtConfigUtilsTest {
     private MockedStatic<FlowMgtServiceDataHolder> flowMgtServiceDataHolderMock;
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String FLOW_TYPE_REGISTRATION = "REGISTRATION";
+    private static final String FLOW_TYPE_PASSWORD_RECOVERY = "PASSWORD_RECOVERY";
+    private static final String FLOW_TYPE_INVITED_USER_REGISTRATION = "INVITED_USER_REGISTRATION";
 
     @BeforeMethod
     public void setUp() {
@@ -89,7 +93,7 @@ public class FlowMgtConfigUtilsTest {
         FlowConfigDTO flowConfigDTO = createSampleFlowConfig();
         Resource newResource = createSampleResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(null);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
         when(configurationManager.addResource(eq(RESOURCE_TYPE), any(Resource.class))).thenReturn(newResource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.addFlowConfig(flowConfigDTO, TENANT_DOMAIN);
@@ -97,7 +101,8 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertTrue(result.getIsEnabled());
-        Assert.assertTrue(result.getIsAutoLoginEnabled());
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         verify(configurationManager).addResource(eq(RESOURCE_TYPE), any(Resource.class));
     }
 
@@ -108,7 +113,7 @@ public class FlowMgtConfigUtilsTest {
         Resource existingResource = createSampleResource();
         Resource updatedResource = createSampleResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(existingResource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(existingResource);
         when(configurationManager.replaceResource(eq(RESOURCE_TYPE), any(Resource.class))).thenReturn(updatedResource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.addFlowConfig(flowConfigDTO, TENANT_DOMAIN);
@@ -123,7 +128,7 @@ public class FlowMgtConfigUtilsTest {
         FlowConfigDTO flowConfigDTO = createSampleFlowConfig();
         Resource newResource = createSampleResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(null);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
         when(configurationManager.addResource(eq(RESOURCE_TYPE), any(Resource.class)))
                 .thenThrow(new ConfigurationManagementException("Resource type does not exist",
                         ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode()))
@@ -142,27 +147,73 @@ public class FlowMgtConfigUtilsTest {
 
         Resource resource = createSampleResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(resource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertTrue(result.getIsEnabled());
-        Assert.assertTrue(result.getIsAutoLoginEnabled());
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
-    public void testGetFlowConfigReturnsDefault() throws Exception {
+    public void testGetFlowConfigReturnsDefaultRegistrationFlow() throws Exception {
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(null);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(result.getIsAutoLoginEnabled());
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                        Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
+    }
+
+    @Test
+    public void testGetFlowConfigReturnsDefaultPasswordRecoveryFlow() throws Exception {
+
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
+
+        FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_PASSWORD_RECOVERY, TENANT_DOMAIN);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getFlowType(), FLOW_TYPE_PASSWORD_RECOVERY);
+        Assert.assertFalse(result.getIsEnabled());
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
+    }
+
+    @Test
+    public void testGetFlowConfigReturnsDefaultInvitedUserRegistrationFlow() throws Exception {
+
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
+
+        FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_INVITED_USER_REGISTRATION, TENANT_DOMAIN);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getFlowType(), FLOW_TYPE_INVITED_USER_REGISTRATION);
+        Assert.assertFalse(result.getIsEnabled());
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -195,8 +246,27 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.size(), 3);
         for (FlowConfigDTO config : result) {
+
             Assert.assertFalse(config.getIsEnabled());
-            Assert.assertFalse(config.getIsAutoLoginEnabled());
+            Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+            switch (config.getFlowType()) {
+                case FLOW_TYPE_REGISTRATION:
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
+                    break;
+                case FLOW_TYPE_PASSWORD_RECOVERY:
+                case FLOW_TYPE_INVITED_USER_REGISTRATION:
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
+                    break;
+                default:
+                    Assert.fail("Unexpected flow type: " + config.getFlowType());
+            }
         }
     }
 
@@ -226,14 +296,32 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertEquals(result.size(), 3);
         for (FlowConfigDTO config : result) {
             Assert.assertFalse(config.getIsEnabled());
-            Assert.assertFalse(config.getIsAutoLoginEnabled());
+            Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+            switch (config.getFlowType()) {
+                case FLOW_TYPE_REGISTRATION:
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
+                    break;
+                case FLOW_TYPE_PASSWORD_RECOVERY:
+                case FLOW_TYPE_INVITED_USER_REGISTRATION:
+                    Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                            Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
+                    break;
+                default:
+                    Assert.fail("Unexpected flow type: " + config.getFlowType());
+            }
         }
     }
 
     @Test
     public void testGetFlowConfigHandlesException() throws Exception {
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString()))
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean()))
                 .thenThrow(new ConfigurationManagementException("Resource type does not exist",
                         ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode()));
 
@@ -242,7 +330,14 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(result.getIsAutoLoginEnabled());
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -250,7 +345,7 @@ public class FlowMgtConfigUtilsTest {
 
         FlowConfigDTO flowConfigDTO = createSampleFlowConfig();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(null);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(null);
         when(configurationManager.addResource(eq(RESOURCE_TYPE), any(Resource.class)))
                 .thenThrow(new ConfigurationManagementException("Resource type does not exist",
                         ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode()));
@@ -275,14 +370,21 @@ public class FlowMgtConfigUtilsTest {
         resource.setResourceType(RESOURCE_TYPE);
         resource.setAttributes(Collections.emptyList());
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(resource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(result.getIsAutoLoginEnabled());
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -293,14 +395,21 @@ public class FlowMgtConfigUtilsTest {
         resource.setResourceType(RESOURCE_TYPE);
         resource.setAttributes(null);
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(resource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertFalse(result.getIsEnabled());
-        Assert.assertFalse(result.getIsAutoLoginEnabled());
+        Assert.assertFalse(Boolean.parseBoolean(
+                result.getFlowCompletionConfig(Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -308,14 +417,45 @@ public class FlowMgtConfigUtilsTest {
 
         Resource resource = createCompleteResource();
 
-        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString())).thenReturn(resource);
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
 
         FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
         Assert.assertTrue(result.getIsEnabled());
-        Assert.assertTrue(result.getIsAutoLoginEnabled());
+        Assert.assertTrue(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertTrue(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+        Assert.assertTrue(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertTrue(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
+    }
+
+    @Test
+    public void testBuildFlowConfigFromResourceWithMissingAttributes() throws Exception {
+
+        Resource resource = createResourceWithMissingAttributes();
+
+        when(configurationManager.getResource(eq(RESOURCE_TYPE), anyString(), anyBoolean())).thenReturn(resource);
+
+        FlowConfigDTO result = FlowMgtConfigUtils.getFlowConfig(FLOW_TYPE_REGISTRATION, TENANT_DOMAIN);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getFlowType(), FLOW_TYPE_REGISTRATION);
+        Assert.assertTrue(result.getIsEnabled());
+
+        // Missing attributes should take default values.
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED)));
+        Assert.assertFalse(Boolean.parseBoolean(result.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED)));
     }
 
     @Test
@@ -332,7 +472,8 @@ public class FlowMgtConfigUtilsTest {
         Assert.assertEquals(result.size(), 3);
         for (FlowConfigDTO config : result) {
             Assert.assertFalse(config.getIsEnabled());
-            Assert.assertFalse(config.getIsAutoLoginEnabled());
+            Assert.assertFalse(Boolean.parseBoolean(config.getFlowCompletionConfig(
+                Constants.FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED)));
         }
     }
 
@@ -373,7 +514,7 @@ public class FlowMgtConfigUtilsTest {
         FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
         flowConfigDTO.setFlowType(FLOW_TYPE_REGISTRATION);
         flowConfigDTO.setIsEnabled(true);
-        flowConfigDTO.setIsAutoLoginEnabled(true);
+        flowConfigDTO.addAllFlowCompletionConfigs(Constants.FlowTypes.REGISTRATION.getSupportedFlowCompletionConfigs());
         return flowConfigDTO;
     }
 
@@ -387,12 +528,15 @@ public class FlowMgtConfigUtilsTest {
         Resource resource = new Resource();
         resource.setResourceName(RESOURCE_NAME_PREFIX + flowType);
         resource.setResourceType(RESOURCE_TYPE);
+        resource.setTenantDomain(TENANT_DOMAIN);
 
         List<Attribute> attributes = new ArrayList<>();
         attributes.add(new Attribute(FLOW_TYPE, flowType));
         attributes.add(new Attribute(IS_ENABLED, "true"));
-        attributes.add(new Attribute(IS_AUTO_LOGIN_ENABLED, "true"));
-
+        for (Constants.FlowCompletionConfig property : Constants.FlowTypes
+                .valueOf(flowType).getSupportedFlowCompletionConfigs()) {
+            attributes.add(new Attribute(property.getConfig(), property.getDefaultValue()));
+        }
         resource.setAttributes(attributes);
         return resource;
     }
@@ -407,7 +551,29 @@ public class FlowMgtConfigUtilsTest {
         attributes.add(new Attribute(FLOW_TYPE, FLOW_TYPE_REGISTRATION));
         attributes.add(new Attribute(IS_ENABLED, "true"));
         attributes.add(new Attribute(IS_AUTO_LOGIN_ENABLED, "true"));
+        attributes.add(new Attribute(Constants.FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED.getConfig(), "true"));
+        attributes.add(new Attribute(
+                Constants.FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED.getConfig(), "true"));
+        attributes.add(new Attribute(
+                Constants.FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED.getConfig(), "true"));
+        resource.setAttributes(attributes);
+        return resource;
+    }
 
+    private Resource createResourceWithMissingAttributes() {
+
+        return createResourceWithMissingAttributes(FLOW_TYPE_REGISTRATION);
+    }
+
+    private Resource createResourceWithMissingAttributes(String flowType) {
+
+        Resource resource = new Resource();
+        resource.setResourceName(RESOURCE_NAME_PREFIX + flowType);
+        resource.setResourceType(RESOURCE_TYPE);
+
+        List<Attribute> attributes = new ArrayList<>();
+        attributes.add(new Attribute(FLOW_TYPE, flowType));
+        attributes.add(new Attribute(IS_ENABLED, "true"));
         resource.setAttributes(attributes);
         return resource;
     }

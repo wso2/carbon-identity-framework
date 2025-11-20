@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.ibm.wsdl.util.xml.DOM2Writer;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
@@ -73,6 +75,8 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URLEncoder;
@@ -87,6 +91,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -1779,6 +1784,22 @@ public class IdentityUtil {
      */
     public static Map<String, Set<String>> getSystemRolesWithScopes() {
 
+        return getSystemRolesWithScopes(true);
+    }
+
+    /**
+     * This will return a map of system roles and the list of scopes configured for each system role
+     * in original case.
+     *
+     * @return A map of system roles against the scopes list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithScopesInOriginalCase() {
+
+        return getSystemRolesWithScopes(false);
+    }
+
+    private static Map<String, Set<String>> getSystemRolesWithScopes(boolean requireLowerCaseScopes) {
+
         Map<String, Set<String>> systemRolesWithScopes = new HashMap<>(Collections.emptyMap());
         IdentityConfigParser configParser = IdentityConfigParser.getInstance();
         OMElement systemRolesConfig = configParser
@@ -1817,7 +1838,7 @@ public class IdentityUtil {
                 OMElement scopeIdentifierConfig = (OMElement) scopeIdentifierIterator.next();
                 String scopeName = scopeIdentifierConfig.getText();
                 if (StringUtils.isNotBlank(scopeName)) {
-                    scopes.add(scopeName.trim().toLowerCase());
+                    scopes.add(requireLowerCaseScopes ? scopeName.trim().toLowerCase() : scopeName.trim());
                 }
             }
             if (StringUtils.isNotBlank(roleName)) {
@@ -2253,5 +2274,101 @@ public class IdentityUtil {
             userStoreName = DEFAULT_AGENT_IDENTITY_USERSTORE_NAME;
         }
         return userStoreName;
+    }
+
+    /**
+     * Check whether the JWT exceeds the allowed depth. This only validates the depth of the payload part of the JWT.
+     *
+     * @param jwt JWT string to check.
+     * @throws  ParseException If the JWT exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJWTDepth(String jwt) throws ParseException {
+
+        log.debug("Initiating JWT depth validation.");
+
+        if (StringUtils.isBlank(jwt)) {
+            log.debug("JWT is blank, skipping depth validation.");
+            return;
+        }
+
+        // Extract and decode JWT payload.
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            log.debug("Invalid JWT format. Skipping depth validation.");
+            return;
+        }
+
+        byte[] payloadBytes;
+        try {
+            payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+        } catch (IllegalArgumentException e) {
+            log.debug("Invalid Base64 encoding in JWT payload.");
+            return;
+        }
+        String jsonPayload = new String(payloadBytes, StandardCharsets.UTF_8);
+
+        validateJsonDepth(jsonPayload, IdentityCoreConstants.MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH);
+    }
+
+    /**
+     * Check whether the JWT payload exceeds the allowed depth. This only validates the depth
+     * of the payload part of the JWT.
+     * @param payload JWT payload(JSON) string to check.
+     * @throws ParseException If the JWT payload exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJWTDepthOfJWTPayload(String payload) throws ParseException {
+
+        log.debug("Checking JWT payload depth validation");
+
+        if (StringUtils.isBlank(payload)) {
+            log.debug("JWT payload is blank, skipping depth validation");
+            return;
+        }
+        validateJsonDepth(payload, IdentityCoreConstants.MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH);
+    }
+
+    /**
+     * Check whether the JSON exceeds the allowed depth.
+     *
+     * @param json JSON String to check.
+     * @throws  ParseException If the JSON exceeds the allowed depth or if an error occurs during parsing.
+     */
+    public static void validateJsonDepth(String json, int maxDepth) throws ParseException {
+
+        try (JsonReader reader = new JsonReader(new StringReader(json))) {
+            int depth = 0;
+
+            while (reader.hasNext()) {
+                JsonToken token = reader.peek();
+
+                if (token == JsonToken.BEGIN_OBJECT) {
+                    depth++;
+                    if (depth > maxDepth) {
+                        log.error("Maximum allowed JSON depth exceeded.");
+                        throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    }
+                    reader.beginObject();
+                } else if (token == JsonToken.BEGIN_ARRAY) {
+                    depth++;
+                    if (depth > maxDepth) {
+                        log.error("Maximum allowed JSON depth exceeded.");
+                        throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    }
+                    reader.beginArray();
+                } else if (token == JsonToken.END_OBJECT) {
+                    depth--;
+                    reader.endObject();
+                } else if (token == JsonToken.END_ARRAY) {
+                    depth--;
+                    reader.endArray();
+                } else {
+                    reader.skipValue();
+                }
+            }
+        } catch (IOException e) {
+            log.debug("Error occurred while validating JSON depth.", e);
+            return;
+        }
+        log.debug("Validated JSON depth successfully.");
     }
 }

@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -605,6 +606,20 @@ public interface IdpManager {
             throws IdentityProviderManagementException {
 
         return null;
+    }
+
+    /**
+     Get all user defined federated authenticators of the tenant domain.
+     *
+     * @param tenantDomain  Tenant Domain.
+     * @return All user defined federated authenticators.
+     * @throws IdentityProviderManagementException  If an error occurred while getting all user defined federated
+     * authenticator.
+     */
+    default List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return new ArrayList<>();
     }
 
     /**

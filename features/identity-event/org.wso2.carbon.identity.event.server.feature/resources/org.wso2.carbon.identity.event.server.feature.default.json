@@ -74,7 +74,6 @@
   "identity_mgt.events.schemes.adminForcedPasswordReset.module_index": "9",
   "identity_mgt.events.schemes.adminForcedPasswordReset.subscriptions": [
     "PRE_SET_USER_CLAIMS",
-    "PRE_AUTHENTICATION",
     "POST_UPDATE_CREDENTIAL_BY_ADMIN"
   ],
   "identity_mgt.events.schemes.'suspension.notification'.module_index": "10",
@@ -117,7 +116,8 @@
   "identity_mgt.events.schemes.failLoginAttemptValidator.properties.enable": true,
   "identity_mgt.events.schemes.SAMLLogoutHandler.module_index": "17",
   "identity_mgt.events.schemes.SAMLLogoutHandler.subscriptions": [
-    "SESSION_TERMINATE"
+    "SESSION_TERMINATE",
+    "SESSION_EXPIRE"
   ],
   "identity_mgt.events.schemes.SAMLLogoutHandler.properties.enable": true,
   "identity_mgt.events.schemes.confirmationCodesInvalidate.module_index": "18",
@@ -247,7 +247,6 @@
   ],
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
-    "POST_ADD_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.OrgClaimMgtHandler.module_index": "38",
   "identity_mgt.events.schemes.OrgClaimMgtHandler.subscriptions": [
@@ -291,7 +290,8 @@
   "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.module_index": "44",
   "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.subscriptions": [
     "POST_DELETE_ROLE_V2_EVENT",
-    "POST_DELETE_USER_WITH_ID"
+    "POST_DELETE_USER_WITH_ID",
+    "POST_DELETE_MAIN_APPLICATION_WITH_ID"
   ],
   "identity_mgt.events.schemes.OrganizationUserSharingHandler.module_index": "45",
   "identity_mgt.events.schemes.OrganizationUserSharingHandler.subscriptions": [
@@ -350,7 +350,7 @@
     "USER_REGISTRATION_INVITE_WITH_PASSWORD"
     ],
   "identity_mgt.events.schemes.SessionEventHook.module_index": "53",
-  "identity_mgt.events.schemes.SessionEventHook.properties.enable": false,
+  "identity_mgt.events.schemes.SessionEventHook.properties.enable": true,
   "identity_mgt.events.schemes.SessionEventHook.subscriptions": [
     "SESSION_TERMINATE_V2",
     "SESSION_EXPIRE",
@@ -367,12 +367,33 @@
   "identity_mgt.events.schemes.askPasswordBasedPasswordSetup.module_index": "55",
   "identity_mgt.events.schemes.askPasswordBasedPasswordSetup.subscriptions": [
     "PRE_ADD_USER",
-    "POST_ADD_USER",
-    "PRE_AUTHENTICATION"
+    "POST_ADD_USER"
   ],
   "identity_mgt.events.schemes.OrganizationVersionHandler.module_index": "56",
   "identity_mgt.events.schemes.OrganizationVersionHandler.subscriptions": [
     "PRE_UPDATE_ORGANIZATION",
     "PRE_PATCH_ORGANIZATION"
-  ]
+  ],
+  "identity_mgt.events.schemes.TokenEventHook.module_index": "57",
+  "identity_mgt.events.schemes.TokenEventHook.properties.enable": true,
+  "identity_mgt.events.schemes.TokenEventHook.subscriptions": [
+    "POST_ISSUE_ACCESS_TOKEN_V2",
+    "TOKEN_REVOKED"
+  ],
+  "identity_mgt.events.schemes.FlowRegistrationCompletionHandler.module_index": "58",
+  "identity_mgt.events.schemes.FlowRegistrationCompletionHandler.subscriptions": [
+    "POST_ADD_USER"
+  ],
+  "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.module_index": "59",
+  "identity_mgt.events.schemes.otpBasedTemporaryLoginHandler.subscriptions": [
+    "PRE_AUTHENTICATION"
+  ],
+  "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.module_index": "60",
+  "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.subscriptions": "$ref{authentication.analytics.publish_b2b_authentication_event_types}",
+  "identity_mgt.events.schemes.analyticsB2BLoginDataPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.module_index": "61",
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.subscriptions": [
+    "PRE_AUTHENTICATE_CLAIM_WITH_ID"
+  ],
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.properties.enable": "$ref{identity_mgt.workflow_pending_user_authn_handler.enable}"
 }

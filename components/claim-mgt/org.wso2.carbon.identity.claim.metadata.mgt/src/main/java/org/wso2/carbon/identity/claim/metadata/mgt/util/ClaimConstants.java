@@ -45,6 +45,7 @@ public class ClaimConstants {
     public static final String CLAIM_URI_PROPERTY = "ClaimURI";
     public static final String MASKING_REGULAR_EXPRESSION_PROPERTY = "MaskingRegEx";
     public static final String CLAIM_UNIQUENESS_SCOPE_PROPERTY = "UniquenessScope";
+    public static final String MANAGED_IN_USER_STORE_PROPERTY = "ManagedInUserStore";
     public static final String IS_UNIQUE_CLAIM_PROPERTY = "isUnique";
     public static final String PROFILES_CLAIM_PROPERTY_PREFIX = "Profiles.";
     public static final String UNIQUENESS_VALIDATION_SCOPE = "UserClaimUpdate.UniquenessValidation.ScopeWithinUserstore";
@@ -54,6 +55,7 @@ public class ClaimConstants {
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
     public static final String EXCLUDED_USER_STORES_PROPERTY = "ExcludedUserStores";
+    public static final String COMMA_SEPARATOR = ",";
     public static final String MIN_LENGTH = "minLength";
     public static final String MAX_LENGTH = "maxLength";
     public static final String IS_SYSTEM_CLAIM = "isSystemClaim";
@@ -65,6 +67,7 @@ public class ClaimConstants {
     public static final String MULTI_VALUED_PROPERTY = "multiValued";
     public static final String SUB_ATTRIBUTES_PROPERTY = "subAttributes";
     public static final String SUB_ATTRIBUTE_PREFIX = "subAttribute.";
+    public static final String CANONICAL_VALUE_PREFIX = "canonicalValue.";
 
     /**
      * Enum for error messages.
@@ -127,6 +130,10 @@ public class ClaimConstants {
                 "Adding claims to dialect %s is not allowed"),
         ERROR_CODE_CANNOT_MODIFY_FLOW_INITIATOR_CLAIM_PROPERTY("CMT-60017",
                 "Cannot change flow initiator property of the system claim: %s"),
+        ERROR_CODE_CANNOT_EXCLUDE_USER_STORE("CMT-60018",
+                "User store '%s' cannot be excluded because it is configured to manage claims."),
+        ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE("CMT-60019",
+                "Claim '%s' must be managed in user store."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
@@ -140,7 +147,9 @@ public class ClaimConstants {
         ERROR_CODE_FAILURE_IN_CHECKING_IS_TENANT_AN_ORGANIZATION("65005", "Error occurred " +
                 "while checking whether the tenant: %s is an organization"),
         ERROR_CODE_FAILURE_IN_TRAVERSING_HIERARCHY("65006", "Error occurred while traversing the " +
-                "organization hierarchy of tenant: %s with domain: %s");
+                "organization hierarchy of tenant: %s with domain: %s"),
+        ERROR_CODE_SERVER_ERROR_GETTING_USER_STORE_MANAGER("65007", "Server error occurred while " +
+                "getting user store manager for tenant: %s .");
 
         private final String code;
         private final String message;

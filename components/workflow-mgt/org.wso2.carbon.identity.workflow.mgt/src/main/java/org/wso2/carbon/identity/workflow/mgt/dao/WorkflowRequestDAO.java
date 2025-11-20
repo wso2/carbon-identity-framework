@@ -244,6 +244,25 @@ public class WorkflowRequestDAO {
         }
     }
 
+    public void deleteRequest(String requestId) throws InternalWorkflowException {
+
+        log.info("Deleting workflow request with ID: " + requestId);
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.DELETE_REQUEST;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, requestId);
+            prepStmt.execute();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
     /**
      * Get requests of a given user.
      *
@@ -310,7 +329,7 @@ public class WorkflowRequestDAO {
                 databaseType = "POSTGRESQL";
             } else if (driver.contains("oracle")) {
                 databaseType = "ORACLE";
-            } else if (driver.contains("db2")) {
+            } else if (driver.contains("db2") || connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                 databaseType = "DB2";
             } else if (driver.contains("microsoft") || driver.contains("ms sql") || driver.contains("sql server")) {
                 databaseType = "MSSQL";
@@ -736,8 +755,10 @@ public class WorkflowRequestDAO {
 
                 requestDTO.setRequestId(resultSet.getString(SQLConstants.REQUEST_UUID_COLUMN));
                 requestDTO.setOperationType(resultSet.getString(SQLConstants.REQUEST_OPERATION_TYPE_COLUMN));
-                requestDTO.setCreatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toString());
-                requestDTO.setUpdatedAt(resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toString());
+                requestDTO.setCreatedAt(
+                        resultSet.getTimestamp(SQLConstants.REQUEST_CREATED_AT_COLUMN).toInstant().toString());
+                requestDTO.setUpdatedAt(
+                        resultSet.getTimestamp(SQLConstants.REQUEST_UPDATED_AT_COLUMN).toInstant().toString());
                 requestDTO.setStatus(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
                 requestDTO.setCreatedBy(resultSet.getString(SQLConstants.CREATED_BY_COLUMN));
 
@@ -748,6 +769,7 @@ public class WorkflowRequestDAO {
                 }
                 if (workflowRequest != null) {
                     requestDTO.setRequestParams(workflowRequest.getRequestParameterAsString());
+                    requestDTO.setRequestParameters(workflowRequest.getRequestParameters());
                 }
 
                 return requestDTO;
@@ -762,6 +784,38 @@ public class WorkflowRequestDAO {
                     "Error when deserializing the workflow request. requestId = " + requestId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
+        }
+    }
+
+    /**
+     * Abort all pending workflow requests of a given workflow.
+     *
+     * @param workflowId ID of the workflow to abort requests of.
+     * @throws InternalWorkflowException If a database error occurs while aborting workflow requests for the given
+     * workflow ID.
+     */
+    public void abortWorkflowRequests(String workflowId) throws InternalWorkflowException {
+
+        log.info("Aborting workflow requests for workflow ID: " + workflowId);
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.ABORT_WORKFLOW_REQUEST_BY_WORKFLOW_ID;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            prepStmt.setString(2, workflowId);
+            prepStmt.execute();
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully aborted workflow requests for workflow: " + workflowId);
+            }
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException("Error when aborting workflow requests for workflow id: " +
+                    workflowId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
     }
 }

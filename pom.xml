@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.407-SNAPSHOT</version>
+    <version>7.8.622-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -69,7 +69,6 @@
         <module>components/multi-attribute-login</module>
         <module>components/secret-mgt</module>
         <module>components/central-logger</module>
-        <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
@@ -81,9 +80,12 @@
         <module>components/system-config-mgt</module>
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
+        <module>components/identity-fraud-detection</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
+        <module>components/input-validation-mgt</module>
+        <module>components/external-api-framework</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
@@ -126,6 +128,8 @@
         <module>features/flow-orchestration-framework</module>
         <module>features/async-operation-status-mgt</module>
         <module>features/workflow-mgt</module>
+        <module>features/identity-fraud-detection</module>
+        <module>features/external-api-framework</module>
     </modules>
 
 
@@ -379,6 +383,18 @@
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.fraud.detection.core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.fraud.detection.core.server.feature</artifactId>
+                <version>${project.version}</version>
+                <type>zip</type>
             </dependency>
 
             <dependency>
@@ -1051,6 +1067,11 @@
                 <artifactId>org.wso2.carbon.identity.authorization.framework</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.authorization.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!--OpenSAML3 dependencies-->
             <dependency>
@@ -1271,6 +1292,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.organization.management</groupId>
                 <artifactId>org.wso2.carbon.identity.organization.resource.sharing.policy.management</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.management.organization.user.sharing</artifactId>
                 <version>${org.wso2.carbon.identity.organization.management.version}</version>
             </dependency>
 
@@ -1980,6 +2006,16 @@
                 <artifactId>org.wso2.carbon.identity.framework.async.operation.status.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.external.api.client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.external.api.token.handler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -2005,7 +2041,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.55</carbon.kernel.version>
+        <carbon.kernel.version>4.10.107</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -2033,7 +2069,7 @@
         <org.bouncycastle.imp.pkg.version.range>[0.0.0,2.0.0)</org.bouncycastle.imp.pkg.version.range>
         <org.wso2.carbon.identity.organization.management.core.version>1.1.48
         </org.wso2.carbon.identity.organization.management.core.version>
-        <org.wso2.carbon.identity.organization.management.version>2.0.8</org.wso2.carbon.identity.organization.management.version>
+        <org.wso2.carbon.identity.organization.management.version>2.0.33</org.wso2.carbon.identity.organization.management.version>
         <org.wso2.carbon.identity.organization.management.version.range>[2.0.0, 3.0.0)</org.wso2.carbon.identity.organization.management.version.range>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>

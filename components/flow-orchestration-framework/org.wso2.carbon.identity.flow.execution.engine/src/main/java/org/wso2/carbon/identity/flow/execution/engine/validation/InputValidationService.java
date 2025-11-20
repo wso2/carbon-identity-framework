@@ -96,8 +96,12 @@ public class InputValidationService {
             return;
         }
 
+        String flowType = context.getFlowType();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Validating inputs for flow type: %s with action ID: %s", flowType, actionId));
+        }
         if (context.getCurrentStepInputs().get(actionId) == null) {
-            throw FlowExecutionEngineUtils.handleClientException(ERROR_CODE_INVALID_ACTION_ID, actionId);
+            throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_ACTION_ID, actionId);
         }
 
         // Fail if required inputs are not there.
@@ -105,7 +109,8 @@ public class InputValidationService {
             for (String requiredInput : context.getCurrentRequiredInputs().get(actionId)) {
                 if (context.getUserInputData().get(requiredInput) == null ||
                         context.getUserInputData().get(requiredInput).isEmpty()) {
-                    throw FlowExecutionEngineUtils.handleClientException(ERROR_CODE_INVALID_USER_INPUT, context.getFlowType());
+                    throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_USER_INPUT,
+                            flowType);
                 }
             }
         }
@@ -113,7 +118,7 @@ public class InputValidationService {
         // Fail if extra inputs are there.
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
             if (!context.getCurrentStepInputs().get(actionId).contains(userInput.getKey())) {
-                throw FlowExecutionEngineUtils.handleClientException(ERROR_CODE_INVALID_USER_INPUT, context.getFlowType());
+                throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_USER_INPUT, flowType);
             }
         }
     }
@@ -238,6 +243,8 @@ public class InputValidationService {
                 context.getCurrentStepInputs().isEmpty()) {
             handleRequiredInputs(dataDTO, context);
         }
+
+        handleOptionalInputs(dataDTO, context);
     }
 
     /**
@@ -250,6 +257,27 @@ public class InputValidationService {
 
         context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
         context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
+    }
+
+    /**
+     * Handle optional inputs by adding them to the current step inputs in the context.
+     *
+     * @param dataDTO Data transfer object containing components and optional parameters.
+     * @param context Flow context.
+     */
+    private static void handleOptionalInputs(DataDTO dataDTO, FlowExecutionContext context) {
+
+        if (dataDTO.getOptionalParams() == null || dataDTO.getOptionalParams().isEmpty()) {
+            return;
+        }
+
+        if (context.getCurrentStepInputs().isEmpty()) {
+            context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>());
+        }
+
+        for (Map.Entry<String, Set<String>> entry : context.getCurrentStepInputs().entrySet()) {
+            entry.getValue().addAll(dataDTO.getOptionalParams());
+        }
     }
 
 

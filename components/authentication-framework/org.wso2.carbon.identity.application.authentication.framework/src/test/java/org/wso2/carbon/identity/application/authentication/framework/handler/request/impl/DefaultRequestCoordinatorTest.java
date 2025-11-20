@@ -48,12 +48,16 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.UserActor;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,6 +70,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -108,11 +113,14 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     public void setUp() throws Exception {
 
         requestCoordinator = new DefaultRequestCoordinator();
+        addActorToIdentityContext();
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        IdentityContext.destroyCurrentContext();
+        IdentityUtil.threadLocalProperties.remove();
     }
 
     @AfterClass
@@ -199,6 +207,44 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
+    @DataProvider(name = "preserveNestedRedirectParamsProvider")
+    public Object[][] preserveNestedRedirectParamsProvider() {
+        return new Object[][]{
+                { false, "/commonauth", "true",  false }, // 1) Config disabled -> false.
+                { true,  "/oauth2/authorize", "true",  false }, // 2) Config enabled, NOT /commonauth endpoint -> false.
+                { true,  "/commonauth", "false", false }, // 3) Config enabled, /commonauth, logout != true -> false.
+                { true,  "/commonauth", "true",  true }, // 4) Config enabled, /commonauth, logout=true -> true.
+                { true,  null, "true",  false } // 5) Config enabled, null URI (can happen in some mocks) -> false.
+        };
+    }
+
+    @Test(dataProvider = "preserveNestedRedirectParamsProvider")
+    public void testShouldPreserveNestedRedirectParamsInCommonAuthLogout(boolean configEnabled,
+                                                                         String uri,
+                                                                         String logoutParam,
+                                                                         boolean expected) throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            // Stub the new config accessor.
+            frameworkUtils.when(FrameworkUtils::isNestedRedirectParamsInLogoutReturnUrlEnabled)
+                    .thenReturn(configEnabled);
+
+            // Mock request.
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getRequestURI()).thenReturn(uri);
+            when(request.getParameter(LOGOUT)).thenReturn(logoutParam);
+
+            // Invoke the private method via reflection.
+            Method m = DefaultRequestCoordinator.class.getDeclaredMethod(
+                    "shouldPreserveNestedRedirectParamsInCommonAuthLogout", HttpServletRequest.class);
+            m.setAccessible(true);
+            boolean result = (boolean) m.invoke(requestCoordinator, request);
+
+            assertEquals(result, expected);
+        }
+    }
+
+
     @DataProvider(name = "contextDataProvider")
     public Object[][] contextData() {
 
@@ -268,6 +314,26 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
+    @Test(description = "Test for generic exception in handle method")
+    public void testHandleWithGenericException() throws FrameworkException, IOException {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getParameter("sessionDataKey")).thenReturn("sdKey");
+            when(request.getParameter("type")).thenReturn("sso");
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any()))
+                    .thenAnswer(invocation -> {
+                        ((HttpServletResponse) invocation.getArgument(1)).sendRedirect("dummyUrl");
+                        return null;
+                    });
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticationRequestFromCache(anyString()))
+                    .thenReturn(null);
+            DefaultRequestCoordinator coordinator = new DefaultRequestCoordinator();
+            coordinator.handle(request, response);
+            verify(response, atLeastOnce()).sendRedirect(anyString());
+        }
+    }
     @Test
     public void testApplicationDisabled() {
 
@@ -669,5 +735,14 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             queryPairs.put(key, value);
         }
         return queryPairs;
+    }
+
+
+    private void addActorToIdentityContext() {
+
+        UserActor userActor = new UserActor.Builder()
+                .username("username")
+                .build();
+        IdentityContext.getThreadLocalIdentityContext().setActor(userActor);
     }
 }

@@ -88,6 +88,7 @@ public abstract class FrameworkConstants {
     public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
     public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
+    public static final String ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM = "AddUserStoreDomainToGroupClaims";
     public static final String IS_OTP_VERIFICATION_TRIGGERED = "isOtpVerificationTriggered";
     public static final String OTP_VERIFICATION_PENDING_CLAIM = "otpVerificationPendingClaim";
     public static final String CLAIM_FOR_PENDING_OTP_VERIFICATION = "claimForPendingOtpVerification";
@@ -146,6 +147,7 @@ public abstract class FrameworkConstants {
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
     public static final String ALLOW_LOGIN_TO_IDP = "JITProvisioning.AllowLoginToIDP";
     public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
+    public static final String USED_TIME_WINDOWS = "http://wso2.org/claims/identity/usedTOTPTimeWindows";
     public static final String ENABLE_ENCRYPTION = "EnableEncryption";
     public static final String TOTP_KEY = "CryptoService.TotpSecret";
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
@@ -153,6 +155,7 @@ public abstract class FrameworkConstants {
     public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";
     public static final String ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION
             = "JITProvisioning.EnableConfiguredIdpSubForFederatedUserAssociation";
+    public static final String ALLOW_NON_STANDARD_CLAIM_URI = "JITProvisioning.AllowNonStandardClaimURI";
 
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";
@@ -545,7 +548,9 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT = "/authenticationendpoint/dynamic_prompt.do";
         public static final String AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT = "/authenticationendpoint/claims.do";
         public static final String ACCOUNT_RECOVERY_ENDPOINT_PATH = "/accountrecoveryendpoint";
-
+        public static final String ACCOUNT_RECOVERY_CONFIRM_RECOVERY_ENDPOINT =
+                "accountrecoveryendpoint/confirmrecovery.do";
+        public static final String ORCHESTRATED_INVITED_USER_REGISTRATION_ENDPOINT = "/accounts/register";
     }
 
     /**
@@ -612,8 +617,10 @@ public abstract class FrameworkConstants {
         public static final String JS_FEDERATED_IDP = "federated";
         public static final String JS_COMMON_OPTIONS = "common";
         public static final String JS_OPTIONS_USERNAME = "username";
+        public static final String JS_IDENTIFIER_FIRST_USER_INPUT = "identifierFirstUserInput";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
+        public static final String PROP_USERNAME_UPDATED_EXTERNALLY = "usernameUpdatedExternally";
 
         public static final String JS_FUNC_ON_LOGIN_REQUEST = "onLoginRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
@@ -692,17 +699,22 @@ public abstract class FrameworkConstants {
                 "AdaptiveAuth.ExecutionSupervisor.Enable";
         public static final String CONF_EXECUTION_SUPERVISOR_THREAD_COUNT =
                 "AdaptiveAuth.ExecutionSupervisor.ThreadCount";
+        public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE =
+                "AdaptiveAuth.ExecutionSupervisor.TimeoutEnable";
         public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT =
                 "AdaptiveAuth.ExecutionSupervisor.Timeout";
         public static final String CONF_EXECUTION_SUPERVISOR_MEMORY_LIMIT =
                 "AdaptiveAuth.ExecutionSupervisor.MemoryLimit";
         public static final int DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT = 1;
         public static final long DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT = 500L;
+        public static final boolean DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE = true;
         public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
         public static final String PROP_EXECUTION_SUPERVISOR_RESULT
                 = "AdaptiveAuthExecutionSupervisorResult";
         public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
                 = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
+        public static final String ALLOW_AUTHENTICATED_SUB_UPDATE =
+                "AdaptiveAuth.AllowUpdatingAuthenticatedSubject";
         public static final String GRAALJS_SCRIPT_STATEMENTS_LIMIT
                 = "AdaptiveAuth.GraalJS.ScriptStatementsLimit";
         public static final int DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT = 0;

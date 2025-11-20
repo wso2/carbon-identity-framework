@@ -2419,6 +2419,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (serviceProvider == null) {
                 return null;
             }
+            // Check if the application belongs to the requesting tenant.
+            if (StringUtils.isNotBlank(tenantDomain)
+                    && !StringUtils.equals(tenantDomain, serviceProvider.getTenantDomain())) {
+                throw new IdentityApplicationManagementClientException(
+                        String.format("Application with ID : %s not found in tenant : %s.", applicationResourceId,
+                                tenantDomain));
+            }
             tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
             return getLocalAndOutboundAuthenticationConfig(applicationId, connection, tenantID, null);
         } catch (SQLException | IdentityRuntimeException e) {
@@ -6258,8 +6265,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public String getSPPropertyValueByPropertyKey(String applicationId, String propertyName, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        int appId = getAppIdUsingResourceId(applicationId, tenantDomain);
-        return getSPPropertyValueByPropertyKey(appId, propertyName);
+        return getSPPropertyValueByPropertyKey(applicationId, propertyName);
     }
 
     @Override
@@ -6295,14 +6301,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    private String getSPPropertyValueByPropertyKey(int applicationId, String propertyName)
+    private String getSPPropertyValueByPropertyKey(String applicationId, String propertyName)
             throws IdentityApplicationManagementException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                      isH2DB() ? ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY_H2 :
                              ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY)) {
-            statement.setInt(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SP_ID, applicationId);
+            statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
             statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NAME, propertyName);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {

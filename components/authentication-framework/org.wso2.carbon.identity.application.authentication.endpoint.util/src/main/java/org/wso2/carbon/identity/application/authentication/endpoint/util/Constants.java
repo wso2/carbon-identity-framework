@@ -58,7 +58,8 @@ public class Constants {
     public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL";
     public static final String ENABLE_AUTHENTICATION_WITH_REST_API = "EnableAuthenticationWithAuthenticationRESTAPI";
     public static final String AUTHENTICATION_REST_ENDPOINT_URL = "AuthenticationRESTEndpointURL";
-
+    public static final String AUTHENTICATOR_VALIDATION_ENABLED = "AuthenticatorValidationEnabled";
+    public static final String DEFAULT_AUTHENTICATORS = "DefaultAuthenticators";
 
     public static final String HTTPS_URL = "https://";
     public static final String HOST = "identity.server.host";
@@ -72,6 +73,7 @@ public class Constants {
     public static final String CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS = "google.social.onetap.restricted_browsers";
     public static final String CONFIG_HOSTNAME_VERIFICATION_ENABLED = "hostname.verification.enabled";
     public static final String SERVICE_CONTEXT_PATH = "/services";
+    public static final String IDF_AUTHENTICATOR_NAME = "IdentifierExecutor:LOCAL";
 
     private Constants() {
 

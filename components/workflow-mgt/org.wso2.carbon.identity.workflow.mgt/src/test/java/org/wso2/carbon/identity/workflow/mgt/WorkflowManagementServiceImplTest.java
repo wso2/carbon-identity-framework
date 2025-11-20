@@ -25,9 +25,13 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
+import org.wso2.carbon.identity.workflow.mgt.bean.Property;
+import org.wso2.carbon.identity.workflow.mgt.bean.RequestParameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
@@ -51,8 +55,12 @@ import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
+import org.wso2.carbon.identity.workflow.mgt.util.WorkflowDataType;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -63,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -118,7 +127,9 @@ public class WorkflowManagementServiceImplTest {
     private static final String WORKFLOW_NAME = "Test Workflow";
     private static final String WORKFLOW_DESCRIPTION = "Test workflow description";
     private static final String TEMPLATE_ID = "test-template-1";
-    private static final String WORKFLOW_IMPL_ID = "test-impl-1";
+    private static final String DEFAULT_WORKFLOW_IMPL_ID = "WorkflowEngine";
+    private static final String CUSTOM_WORKFLOW_IMPL_ID = "ApprovalWorkflow";
+
     private static final String EVENT_ID = "test-event-1";
     private static final String ASSOCIATION_NAME = "test-association";
     private static final String ASSOCIATION_ID = "1";
@@ -428,11 +439,11 @@ public class WorkflowManagementServiceImplTest {
     public void testListWorkflowImpls() throws WorkflowException {
 
         Map<String, AbstractWorkflow> workflowImplMap = new HashMap<>();
-        workflowImplMap.put(WORKFLOW_IMPL_ID, mockAbstractWorkflow);
+        workflowImplMap.put(DEFAULT_WORKFLOW_IMPL_ID, mockAbstractWorkflow);
         Map<String, Map<String, AbstractWorkflow>> workflowImpls = new HashMap<>();
         workflowImpls.put(TEMPLATE_ID, workflowImplMap);
         when(mockWorkflowServiceDataHolder.getWorkflowImpls()).thenReturn(workflowImpls);
-        when(mockAbstractWorkflow.getWorkflowImplId()).thenReturn(WORKFLOW_IMPL_ID);
+        when(mockAbstractWorkflow.getWorkflowImplId()).thenReturn(DEFAULT_WORKFLOW_IMPL_ID);
         when(mockAbstractWorkflow.getWorkflowImplName()).thenReturn("Workflow Impl Name");
         when(mockAbstractWorkflow.getParametersMetaData()).thenReturn(new ParametersMetaData());
         when(mockAbstractWorkflow.getTemplateId()).thenReturn(TEMPLATE_ID);
@@ -441,7 +452,7 @@ public class WorkflowManagementServiceImplTest {
 
         assertNotNull(result);
         assertEquals(result.size(), 1);
-        assertEquals(result.get(0).getWorkflowImplId(), WORKFLOW_IMPL_ID);
+        assertEquals(result.get(0).getWorkflowImplId(), DEFAULT_WORKFLOW_IMPL_ID);
         verify(mockWorkflowListener).doPreListWorkflowImpls(TEMPLATE_ID);
         verify(mockWorkflowListener).doPostListWorkflowImpls(TEMPLATE_ID, result);
     }
@@ -450,38 +461,59 @@ public class WorkflowManagementServiceImplTest {
     public void testGetWorkflowImpl() throws WorkflowException {
 
         Map<String, AbstractWorkflow> workflowImplMap = new HashMap<>();
-        workflowImplMap.put(WORKFLOW_IMPL_ID, mockAbstractWorkflow);
+        workflowImplMap.put(DEFAULT_WORKFLOW_IMPL_ID, mockAbstractWorkflow);
         Map<String, Map<String, AbstractWorkflow>> workflowImpls = new HashMap<>();
         workflowImpls.put(TEMPLATE_ID, workflowImplMap);
         when(mockWorkflowServiceDataHolder.getWorkflowImpls()).thenReturn(workflowImpls);
-        when(mockAbstractWorkflow.getWorkflowImplId()).thenReturn(WORKFLOW_IMPL_ID);
+        when(mockAbstractWorkflow.getWorkflowImplId()).thenReturn(DEFAULT_WORKFLOW_IMPL_ID);
         when(mockAbstractWorkflow.getWorkflowImplName()).thenReturn("Workflow Impl Name");
         when(mockAbstractWorkflow.getParametersMetaData()).thenReturn(new ParametersMetaData());
         when(mockAbstractWorkflow.getTemplateId()).thenReturn(TEMPLATE_ID);
 
-        WorkflowImpl result = workflowManagementService.getWorkflowImpl(TEMPLATE_ID, WORKFLOW_IMPL_ID);
+        WorkflowImpl result = workflowManagementService.getWorkflowImpl(TEMPLATE_ID, DEFAULT_WORKFLOW_IMPL_ID);
 
         assertNotNull(result);
-        assertEquals(result.getWorkflowImplId(), WORKFLOW_IMPL_ID);
-        verify(mockWorkflowListener).doPreGetWorkflowImpl(TEMPLATE_ID, WORKFLOW_IMPL_ID);
-        verify(mockWorkflowListener).doPostGetWorkflowImpl(TEMPLATE_ID, WORKFLOW_IMPL_ID, result);
+        assertEquals(result.getWorkflowImplId(), DEFAULT_WORKFLOW_IMPL_ID);
+        verify(mockWorkflowListener).doPreGetWorkflowImpl(TEMPLATE_ID, DEFAULT_WORKFLOW_IMPL_ID);
+        verify(mockWorkflowListener).doPostGetWorkflowImpl(TEMPLATE_ID, DEFAULT_WORKFLOW_IMPL_ID, result);
     }
 
-    @Test
-    public void testAddWorkflow() throws WorkflowException {
+    @DataProvider
+    public Object[][] workflowImplementations() {
+
+        return new Object[][]{
+                {DEFAULT_WORKFLOW_IMPL_ID},
+                {CUSTOM_WORKFLOW_IMPL_ID}
+        };
+    }
+
+    @Test(dataProvider = "workflowImplementations")
+    public void testAddWorkflow(String workflowImplementation) throws WorkflowException, UserStoreException {
 
         Workflow workflow = createTestWorkflow();
+        workflow.setWorkflowImplId(workflowImplementation);
+
         List<Parameter> parameters = createTestParameters();
 
         Map<String, AbstractWorkflow> workflowImplMap = new HashMap<>();
-        workflowImplMap.put(WORKFLOW_IMPL_ID, mockAbstractWorkflow);
+        workflowImplMap.put(workflowImplementation, mockAbstractWorkflow);
         Map<String, Map<String, AbstractWorkflow>> workflowImpls = new HashMap<>();
         workflowImpls.put(TEMPLATE_ID, workflowImplMap);
         when(mockWorkflowServiceDataHolder.getWorkflowImpls()).thenReturn(workflowImpls);
 
         when(mockWorkflowDAO.getWorkflow(WORKFLOW_ID)).thenReturn(null); // First time creation
 
-        workflowManagementService.addWorkflow(workflow, parameters, TENANT_ID);
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            UserRealm mockUserRealm = mock(UserRealm.class);
+            UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
+
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+            when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+
+            workflowManagementService.addWorkflow(workflow, parameters, TENANT_ID);
+        }
 
         verify(mockAbstractWorkflow).deploy(any());
         verify(mockWorkflowDAO).addWorkflow(eq(workflow), eq(TENANT_ID));
@@ -490,23 +522,35 @@ public class WorkflowManagementServiceImplTest {
         verify(mockWorkflowListener).doPostAddWorkflow(eq(workflow), any(), eq(TENANT_ID));
     }
 
-    @Test
-    public void testAddWorkflowUpdate() throws WorkflowException {
+    @Test(dataProvider = "workflowImplementations")
+    public void testAddWorkflowUpdate(String workflowImplementation) throws WorkflowException, UserStoreException {
 
         Workflow workflow = createTestWorkflow();
+        workflow.setWorkflowImplId(workflowImplementation);
+
         Workflow existingWorkflow = createTestWorkflow();
         existingWorkflow.setWorkflowName("Old Name");
         List<Parameter> parameters = createTestParameters();
 
         Map<String, AbstractWorkflow> workflowImplMap = new HashMap<>();
-        workflowImplMap.put(WORKFLOW_IMPL_ID, mockAbstractWorkflow);
+        workflowImplMap.put(workflowImplementation, mockAbstractWorkflow);
         Map<String, Map<String, AbstractWorkflow>> workflowImpls = new HashMap<>();
         workflowImpls.put(TEMPLATE_ID, workflowImplMap);
         when(mockWorkflowServiceDataHolder.getWorkflowImpls()).thenReturn(workflowImpls);
 
         when(mockWorkflowDAO.getWorkflow(WORKFLOW_ID)).thenReturn(existingWorkflow);
 
-        workflowManagementService.addWorkflow(workflow, parameters, TENANT_ID);
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            UserRealm mockUserRealm = mock(UserRealm.class);
+            UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
+
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+            when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+
+            workflowManagementService.addWorkflow(workflow, parameters, TENANT_ID);
+        }
 
         verify(mockAbstractWorkflow).deploy(any());
         verify(mockWorkflowDAO).removeWorkflowParams(WORKFLOW_ID);
@@ -579,6 +623,187 @@ public class WorkflowManagementServiceImplTest {
                 workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, ""));
     }
 
+    /**
+     * Test addAssociation with duplicate association detection - should throw WorkflowClientException.
+     */
+    @Test
+    public void testAddAssociationDuplicateDetection() throws WorkflowException {
+
+        // Create existing association with same event and condition
+        Association existingAssociation = new Association();
+        existingAssociation.setEventId(EVENT_ID);
+        existingAssociation.setCondition(CONDITION);
+        existingAssociation.setWorkflowId(WORKFLOW_ID);
+
+        List<Association> existingAssociations = Arrays.asList(existingAssociation);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Attempt to add duplicate association should throw exception
+        assertThrows(WorkflowClientException.class, () ->
+                workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION));
+
+        // Verify that the duplicate was detected before any DAO operations
+        verify(mockAssociationDAO).listAssociationsForWorkflow(WORKFLOW_ID);
+        verify(mockAssociationDAO, times(0)).addAssociation(any(), any(), any(), any());
+    }
+
+    /**
+     * Test addAssociation with null existing associations list.
+     */
+    @Test
+    public void testAddAssociationWithNullExistingAssociations() throws WorkflowException {
+
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(null);
+
+        // Should succeed when no existing associations
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+    }
+
+    /**
+     * Test addAssociation with empty existing associations list.
+     */
+    @Test
+    public void testAddAssociationWithEmptyExistingAssociations() throws WorkflowException {
+
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(Collections.emptyList());
+
+        // Should succeed when no existing associations
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+    }
+
+    /**
+     * Test addAssociation with different event ID should succeed.
+     */
+    @Test
+    public void testAddAssociationDifferentEventId() throws WorkflowException {
+
+        // Create existing association with different event ID
+        Association existingAssociation = new Association();
+        existingAssociation.setEventId("different-event-id");
+        existingAssociation.setCondition(CONDITION);
+        existingAssociation.setWorkflowId(WORKFLOW_ID);
+
+        List<Association> existingAssociations = Arrays.asList(existingAssociation);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Should succeed with different event ID
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+    }
+
+    /**
+     * Test addAssociation with different condition should succeed.
+     */
+    @Test
+    public void testAddAssociationDifferentCondition() throws WorkflowException {
+
+        // Create existing association with different condition
+        Association existingAssociation = new Association();
+        existingAssociation.setEventId(EVENT_ID);
+        existingAssociation.setCondition("//different[@condition='test']");
+        existingAssociation.setWorkflowId(WORKFLOW_ID);
+
+        List<Association> existingAssociations = Arrays.asList(existingAssociation);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Should succeed with different condition
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION);
+    }
+
+    /**
+     * Test addAssociation with null association in existing list.
+     */
+    @Test
+    public void testAddAssociationWithNullAssociationInList() throws WorkflowException {
+
+        // Create list with null association
+        List<Association> existingAssociations = new ArrayList<>();
+        existingAssociations.add(null);
+        existingAssociations.add(createTestAssociation());
+
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Should succeed as null associations are filtered out
+        workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, "different-event", CONDITION);
+
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, "different-event", CONDITION);
+    }
+
+    /**
+     * Test updateAssociation with duplicate detection for new values.
+     */
+    @Test
+    public void testUpdateAssociationDuplicateDetection() throws WorkflowException {
+
+        Association currentAssociation = createTestAssociation();
+        currentAssociation.setAssociationId("1");
+
+        // Create another existing association that would conflict with update.
+        Association conflictingAssociation = new Association();
+        conflictingAssociation.setAssociationId("2");
+        conflictingAssociation.setEventId("ADD_USER");
+        conflictingAssociation.setCondition(WFConstant.DEFAULT_ASSOCIATION_CONDITION);
+        conflictingAssociation.setWorkflowId(WORKFLOW_ID);
+
+        List<Association> existingAssociations = Arrays.asList(currentAssociation, conflictingAssociation);
+
+        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(currentAssociation);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
+
+        // Attempt to update to conflicting values should throw exception.
+        assertThrows(WorkflowClientException.class, () ->
+                workflowManagementService.updateAssociation(ASSOCIATION_ID, "New Name", WORKFLOW_ID,
+                        "ADD_USER", WFConstant.DEFAULT_ASSOCIATION_CONDITION, true));
+
+        verify(mockAssociationDAO).getAssociation(ASSOCIATION_ID);
+        verify(mockAssociationDAO).listAssociationsForWorkflow(WORKFLOW_ID);
+        verify(mockAssociationDAO, times(0)).updateAssociation(any());
+    }
+
+    /**
+     * Test updateAssociation succeeds when no duplicates exist.
+     */
+    @Test
+    public void testUpdateAssociationNoDuplicates() throws WorkflowException {
+
+        Association association = createTestAssociation();
+
+        // Empty existing associations list - no conflicts.
+        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(association);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(Collections.emptyList());
+
+        workflowManagementService.updateAssociation(ASSOCIATION_ID, "New Name", WORKFLOW_ID,
+                "new-event-id", WFConstant.DEFAULT_ASSOCIATION_CONDITION, false);
+
+        verify(mockAssociationDAO).updateAssociation(association);
+        assertEquals(association.getAssociationName(), "New Name");
+        assertEquals(association.getEventId(), "new-event-id");
+        assertFalse(association.isEnabled());
+    }
+
+    /**
+     * Test addAssociation with invalid XPath expression should throw WorkflowRuntimeException.
+     */
+    @Test
+    public void testAddAssociationInvalidXPath() throws WorkflowException {
+
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(Collections.emptyList());
+
+        String invalidXPath = "//invalid[xpath expression";
+
+        assertThrows(WorkflowRuntimeException.class, () ->
+                workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, invalidXPath));
+
+        verify(mockAssociationDAO, times(0)).addAssociation(any(), any(), any(), any());
+    }
+
     @Test
     public void testListPaginatedWorkflows() throws WorkflowException {
 
@@ -631,16 +856,28 @@ public class WorkflowManagementServiceImplTest {
         int result = workflowManagementService.getWorkflowsCount(TENANT_ID, null);
 
         assertEquals(result, 5);
+        verify(mockWorkflowDAO).getWorkflowsCount(TENANT_ID, WFConstant.DEFAULT_FILTER);
     }
 
-    @Test
-    public void testRemoveWorkflow() throws WorkflowException {
+    @Test(dataProvider = "workflowImplementations")
+    public void testRemoveWorkflow(String workflowImplementation) throws WorkflowException, UserStoreException {
 
         Workflow workflow = createTestWorkflow();
+        workflow.setWorkflowImplId(workflowImplementation);
+
         when(mockWorkflowDAO.getWorkflow(WORKFLOW_ID)).thenReturn(workflow);
 
-        workflowManagementService.removeWorkflow(WORKFLOW_ID);
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            UserRealm mockUserRealm = mock(UserRealm.class);
+            UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
 
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
+            when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+
+            workflowManagementService.removeWorkflow(WORKFLOW_ID);
+        }
         verify(mockWorkflowDAO).removeWorkflowParams(WORKFLOW_ID);
         verify(mockWorkflowDAO).removeWorkflow(WORKFLOW_ID);
         verify(mockWorkflowListener).doPreDeleteWorkflow(workflow);
@@ -670,28 +907,27 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testRemoveAssociation() throws WorkflowException {
 
-        int associationId = 1;
+        workflowManagementService.removeAssociation(Integer.parseInt(ASSOCIATION_ID));
 
-        workflowManagementService.removeAssociation(associationId);
-
-        verify(mockAssociationDAO).removeAssociation(associationId);
-        verify(mockWorkflowListener).doPreRemoveAssociation(associationId);
-        verify(mockWorkflowListener).doPostRemoveAssociation(associationId);
+        verify(mockAssociationDAO).removeAssociation(Integer.parseInt(ASSOCIATION_ID));
+        verify(mockWorkflowListener).doPreRemoveAssociation(Integer.parseInt(ASSOCIATION_ID));
+        verify(mockWorkflowListener).doPostRemoveAssociation(Integer.parseInt(ASSOCIATION_ID));
     }
 
     @Test
     public void testGetAssociationsForWorkflow() throws WorkflowException {
 
-        List<Association> expectedAssociations = Arrays.asList(createTestAssociation());
-        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(expectedAssociations);
+        Association association = createTestAssociation();
+        List<Association> associations = Arrays.asList(association);
+        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(associations);
         when(mockWorkflowServiceDataHolder.getRequestHandler(EVENT_ID)).thenReturn(mockWorkflowRequestHandler);
-        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Event Friendly Name");
+        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Friendly Name");
 
         List<Association> result = workflowManagementService.getAssociationsForWorkflow(WORKFLOW_ID);
 
         assertNotNull(result);
         assertEquals(result.size(), 1);
-        assertEquals(result.get(0).getEventName(), "Event Friendly Name");
+        assertEquals(result.get(0).getEventName(), "Friendly Name");
         verify(mockWorkflowListener).doPreGetAssociationsForWorkflow(WORKFLOW_ID);
         verify(mockWorkflowListener).doPostGetAssociationsForWorkflow(WORKFLOW_ID, result);
     }
@@ -699,11 +935,12 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testListPaginatedAssociations() throws WorkflowException {
 
-        List<Association> expectedAssociations = Arrays.asList(createTestAssociation());
+        Association association = createTestAssociation();
+        List<Association> associations = Arrays.asList(association);
         when(mockAssociationDAO.listPaginatedAssociations(TENANT_ID, WFConstant.DEFAULT_FILTER, 0, 10))
-                .thenReturn(expectedAssociations);
+                .thenReturn(associations);
         when(mockWorkflowServiceDataHolder.getRequestHandler(EVENT_ID)).thenReturn(mockWorkflowRequestHandler);
-        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Event Friendly Name");
+        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Friendly Name");
 
         List<Association> result = workflowManagementService.listPaginatedAssociations(TENANT_ID, 10, 0, null);
 
@@ -715,12 +952,27 @@ public class WorkflowManagementServiceImplTest {
     }
 
     @Test
+    public void testListPaginatedAssociationsInvalidLimit() {
+
+        assertThrows(WorkflowClientException.class, () ->
+                workflowManagementService.listPaginatedAssociations(TENANT_ID, -1, 0, null));
+    }
+
+    @Test
+    public void testListPaginatedAssociationsInvalidOffset() {
+
+        assertThrows(WorkflowClientException.class, () ->
+                workflowManagementService.listPaginatedAssociations(TENANT_ID, 10, -1, null));
+    }
+
+    @Test
     public void testListAllAssociations() throws WorkflowException {
 
-        List<Association> expectedAssociations = Arrays.asList(createTestAssociation());
-        when(mockAssociationDAO.listAssociations(TENANT_ID)).thenReturn(expectedAssociations);
+        Association association = createTestAssociation();
+        List<Association> associations = Arrays.asList(association);
+        when(mockAssociationDAO.listAssociations(TENANT_ID)).thenReturn(associations);
         when(mockWorkflowServiceDataHolder.getRequestHandler(EVENT_ID)).thenReturn(mockWorkflowRequestHandler);
-        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Event Friendly Name");
+        when(mockWorkflowRequestHandler.getFriendlyName()).thenReturn("Friendly Name");
 
         List<Association> result = workflowManagementService.listAllAssociations(TENANT_ID);
 
@@ -733,8 +985,8 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testGetAssociation() throws WorkflowException {
 
-        Association expectedAssociation = createTestAssociation();
-        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(expectedAssociation);
+        Association association = createTestAssociation();
+        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(association);
 
         Association result = workflowManagementService.getAssociation(ASSOCIATION_ID);
 
@@ -761,6 +1013,7 @@ public class WorkflowManagementServiceImplTest {
         int result = workflowManagementService.getAssociationsCount(TENANT_ID, null);
 
         assertEquals(result, 3);
+        verify(mockAssociationDAO).getAssociationsCount(TENANT_ID, WFConstant.DEFAULT_FILTER);
     }
 
     @Test
@@ -973,6 +1226,9 @@ public class WorkflowManagementServiceImplTest {
         verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(REQUEST_ID,
                 WFConstant.HT_STATE_SKIPPED);
         verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(REQUEST_ID);
+
+        workflowManagementService.permanentlyDeleteWorkflowRequestByAnyUser(REQUEST_ID);
+
     }
 
     @Test
@@ -1036,6 +1292,41 @@ public class WorkflowManagementServiceImplTest {
         assertEquals(result, expectedRequest);
     }
 
+    /**
+     * Test abortWorkflowRequest - happy path.
+     * Verifies that workflow request is properly aborted with correct status updates and relationship deletions.
+     */
+    @Test
+    public void testAbortWorkflowRequest() throws WorkflowException {
+
+        String testRequestId = "test-request-abort-1";
+
+        // Mock the workflow listener.
+        List<WorkflowListener> workflowListeners = Arrays.asList(mockWorkflowListener);
+        when(mockWorkflowServiceDataHolder.getWorkflowListenerList()).thenReturn(workflowListeners);
+        when(mockWorkflowListener.isEnable()).thenReturn(true);
+
+        // Execute the method.
+        workflowManagementService.abortWorkflowRequest(testRequestId);
+
+        // Verify pre-update listener is called.
+        verify(mockWorkflowListener).doPreUpdateWorkflowRequest(any(WorkflowRequest.class));
+
+        // Verify DAO methods are called with correct parameters.
+        verify(mockWorkflowRequestDAO).updateStatusOfRequest(
+                eq(testRequestId),
+                eq(WorkflowRequestStatus.ABORTED.toString())
+        );
+        verify(mockWorkflowRequestAssociationDAO).updateStatusOfRelationshipsOfPendingRequest(
+                eq(testRequestId),
+                eq(WFConstant.HT_STATE_SKIPPED)
+        );
+        verify(mockRequestEntityRelationshipDAO).deleteRelationshipsOfRequest(eq(testRequestId));
+
+        // Verify post-update listener is called.
+        verify(mockWorkflowListener).doPostUpdateWorkflowRequest(any(WorkflowRequest.class));
+    }
+
     // Helper methods for creating test objects
     private Workflow createTestWorkflow() {
 
@@ -1044,7 +1335,7 @@ public class WorkflowManagementServiceImplTest {
         workflow.setWorkflowName(WORKFLOW_NAME);
         workflow.setWorkflowDescription(WORKFLOW_DESCRIPTION);
         workflow.setTemplateId(TEMPLATE_ID);
-        workflow.setWorkflowImplId(WORKFLOW_IMPL_ID);
+        workflow.setWorkflowImplId(DEFAULT_WORKFLOW_IMPL_ID);
         return workflow;
     }
 
@@ -1080,5 +1371,185 @@ public class WorkflowManagementServiceImplTest {
         request.setRequestId(REQUEST_ID);
         request.setCreatedBy(USER_NAME);
         return request;
+    }
+
+    @Test
+    public void testGetWorkflowRequestBeanWithClaimsProcessing() throws Exception {
+
+        WorkflowRequest mockWorkflowRequest = createWorkflowRequestWithClaims();
+        when(mockDAO.getWorkflowRequest(REQUEST_ID)).thenReturn(mockWorkflowRequest);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        List<LocalClaim> mockLocalClaims = createMockLocalClaims();
+        when(mockClaimService.getLocalClaims(anyString())).thenReturn(mockLocalClaims);
+
+        WorkflowServiceDataHolder mockHolder = mock(WorkflowServiceDataHolder.class);
+        when(mockHolder.getClaimMetadataManagementService()).thenReturn(mockClaimService);
+        List<WorkflowListener> listeners = Arrays.asList(mockWorkflowListener);
+        when(mockHolder.getWorkflowListenerList()).thenReturn(listeners);
+
+        try (MockedStatic<CarbonContext> mockedCarbonContext = mockStatic(CarbonContext.class)) {
+            mockedDataHolder.when(WorkflowServiceDataHolder::getInstance).thenReturn(mockHolder);
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            mockedCarbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getTenantDomain()).thenReturn("carbon.super");
+
+            WorkflowRequest result = service.getWorkflowRequestBean(REQUEST_ID);
+
+            assertNotNull(result, "Result should not be null");
+            assertEquals(result.getRequestId(), REQUEST_ID);
+            assertNotNull(result.getProperties(), "Properties should not be null after processing");
+            assertTrue(result.getProperties().size() > 0, "Should have processed properties");
+
+            // Verify that claims were processed correctly
+            boolean foundEmailProperty = false;
+            boolean foundFirstNameProperty = false;
+
+            for (Property property : result.getProperties()) {
+                if ("Email".equals(property.getKey())) {
+                    foundEmailProperty = true;
+                    assertEquals(property.getValue(), "test@example.com");
+                } else if ("First Name".equals(property.getKey())) {
+                    foundFirstNameProperty = true;
+                    assertEquals(property.getValue(), "John");
+                }
+            }
+
+            assertTrue(foundEmailProperty, "Should find processed email property");
+            assertTrue(foundFirstNameProperty, "Should find processed first name property");
+            verify(mockClaimService).getLocalClaims("carbon.super");
+        }
+
+        verify(mockDAO).getWorkflowRequest(REQUEST_ID);
+    }
+
+    @Test
+    public void testGetWorkflowRequestBeanWithCredentialFiltering() throws Exception {
+
+        WorkflowRequest mockWorkflowRequest = createWorkflowRequestWithCredentials();
+        when(mockDAO.getWorkflowRequest(REQUEST_ID)).thenReturn(mockWorkflowRequest);
+
+        // Use existing mock infrastructure
+        WorkflowServiceDataHolder mockHolder = mock(WorkflowServiceDataHolder.class);
+        List<WorkflowListener> listeners = Arrays.asList(mockWorkflowListener);
+        when(mockHolder.getWorkflowListenerList()).thenReturn(listeners);
+
+        mockedDataHolder.when(WorkflowServiceDataHolder::getInstance).thenReturn(mockHolder);
+
+        WorkflowRequest result = service.getWorkflowRequestBean(REQUEST_ID);
+
+        assertNotNull(result);
+        assertNotNull(result.getProperties());
+        // Should have only 1 property (username), credential should be filtered out
+        assertEquals(result.getProperties().size(), 1);
+        assertEquals(result.getProperties().get(0).getKey(), "username");
+        assertEquals(result.getProperties().get(0).getValue(), "testuser");
+
+        verify(mockDAO).getWorkflowRequest(REQUEST_ID);
+    }
+
+    @Test
+    public void testGetWorkflowRequestBeanWithEmptyProperties() throws Exception {
+
+        WorkflowRequest mockWorkflowRequest = createWorkflowRequestWithEmptyProperties();
+        when(mockDAO.getWorkflowRequest(REQUEST_ID)).thenReturn(mockWorkflowRequest);
+
+        // Use existing mock infrastructure
+        WorkflowServiceDataHolder mockHolder = mock(WorkflowServiceDataHolder.class);
+        List<WorkflowListener> listeners = Arrays.asList(mockWorkflowListener);
+        when(mockHolder.getWorkflowListenerList()).thenReturn(listeners);
+
+        mockedDataHolder.when(WorkflowServiceDataHolder::getInstance).thenReturn(mockHolder);
+
+        WorkflowRequest result = service.getWorkflowRequestBean(REQUEST_ID);
+
+        assertNotNull(result);
+        assertEquals(result.getRequestId(), REQUEST_ID);
+        assertNotNull(result.getProperties());
+        assertEquals(result.getProperties().size(), 0);
+
+        verify(mockDAO).getWorkflowRequest(REQUEST_ID);
+    }
+
+    // Helper methods for creating test data
+
+    private WorkflowRequest createWorkflowRequestWithClaims() {
+
+        WorkflowRequest request = new WorkflowRequest();
+        request.setRequestId(REQUEST_ID);
+        request.setCreatedBy("testuser");
+
+        List<RequestParameter> parameters = new ArrayList<>();
+
+        // Add claims parameter
+        Map<String, String> claimsMap = new HashMap<>();
+        claimsMap.put("http://wso2.org/claims/emailaddress", "test@example.com");
+        claimsMap.put("http://wso2.org/claims/givenname", "John");
+
+        RequestParameter claimsParam = new RequestParameter();
+        claimsParam.setName(WFConstant.CLAIMS_PROPERTY_NAME);
+        claimsParam.setValue(claimsMap);
+        claimsParam.setValueType(WorkflowDataType.STRING_STRING_MAP_TYPE);
+        parameters.add(claimsParam);
+
+        // Add regular parameter
+        RequestParameter regularParam = new RequestParameter();
+        regularParam.setName("username");
+        regularParam.setValue("testuser");
+        regularParam.setValueType(WorkflowDataType.STRING_TYPE);
+        parameters.add(regularParam);
+
+        request.setRequestParameters(parameters);
+        return request;
+    }
+
+    private WorkflowRequest createWorkflowRequestWithCredentials() {
+
+        WorkflowRequest request = new WorkflowRequest();
+        request.setRequestId(REQUEST_ID);
+        request.setCreatedBy("testuser");
+
+        List<RequestParameter> parameters = new ArrayList<>();
+
+        RequestParameter credentialParam = new RequestParameter();
+        credentialParam.setName(WFConstant.CREDENTIAL);
+        credentialParam.setValue("secret");
+        credentialParam.setValueType(WorkflowDataType.STRING_TYPE);
+        parameters.add(credentialParam);
+
+        RequestParameter regularParam = new RequestParameter();
+        regularParam.setName("username");
+        regularParam.setValue("testuser");
+        regularParam.setValueType(WorkflowDataType.STRING_TYPE);
+        parameters.add(regularParam);
+
+        request.setRequestParameters(parameters);
+        return request;
+    }
+
+    private WorkflowRequest createWorkflowRequestWithEmptyProperties() {
+
+        WorkflowRequest request = new WorkflowRequest();
+        request.setRequestId(REQUEST_ID);
+        request.setCreatedBy("testuser");
+        request.setRequestParameters(new ArrayList<>());
+        return request;
+    }
+
+    private List<LocalClaim> createMockLocalClaims() {
+
+        List<LocalClaim> localClaims = new ArrayList<>();
+
+        LocalClaim emailClaim = mock(LocalClaim.class);
+        when(emailClaim.getClaimURI()).thenReturn("http://wso2.org/claims/emailaddress");
+        when(emailClaim.getClaimProperty("DisplayName")).thenReturn("Email");
+        localClaims.add(emailClaim);
+
+        LocalClaim firstNameClaim = mock(LocalClaim.class);
+        when(firstNameClaim.getClaimURI()).thenReturn("http://wso2.org/claims/givenname");
+        when(firstNameClaim.getClaimProperty("DisplayName")).thenReturn("First Name");
+        localClaims.add(firstNameClaim);
+
+        return localClaims;
     }
 }

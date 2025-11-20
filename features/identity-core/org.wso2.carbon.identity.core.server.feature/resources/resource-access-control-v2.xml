@@ -18,9 +18,19 @@
   -->
 
 <ResourceAccessControl xmlns="http://wso2.org/projects/carbon/carbon.xml" default-access="deny">
+    <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" />
     <Resource context="(.*)/lsp/(.*)" secured="true" http-method="all"/>
     <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
     <Resource context="/" secured="false" http-method="GET"/>
+
+    <Resource context="(.*)/o/api/server/v1/configs/authentication/inbound/passivests(.*)" secured="true"
+              http-method="PATCH">
+        <Scopes>internal_org_config_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/configs/authentication/inbound/passivests(.*)" secured="true"
+              http-method="PATCH">
+        <Scopes>internal_config_update</Scopes>
+    </Resource>
 
     <!-- [Organization] User Code Management API -->
     <Resource context="(.*)/o/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
@@ -194,18 +204,18 @@
         <Scopes>internal_webhook_mgt_delete</Scopes>
     </Resource>
 
-    <!-- Secret Type Management API -->
-    <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
-        <Scopes>internal_secret_type_mgt_add</Scopes>
+    <!-- [Organization] Secret Management API -->
+    <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_secret_mgt_add</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_secret_type_mgt_update</Scopes>
+    <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="PATCH, PUT">
+        <Scopes>internal_org_secret_mgt_update</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
-        <Scopes>internal_secret_type_mgt_view</Scopes>
+    <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_secret_mgt_view</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_secret_type_mgt_delete</Scopes>
+    <Resource context="(.*)/o/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_secret_mgt_delete</Scopes>
     </Resource>
 
     <!-- Secret Management API -->
@@ -425,46 +435,49 @@
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_role_mgt_create</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_org_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_org_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_org_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PUT">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         <Scopes>internal_org_role_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_org_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_org_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_org_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PATCH">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         <Scopes>internal_org_role_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_org_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_org_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_org_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_org_role_mgt_delete</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles/.search" secured="true" http-method="POST">
-        <Scopes>internal_org_role_mgt_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles(.*)" secured="true" http-method="POST">
-        <Scopes>internal_org_role_mgt_meta_create</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles(.*)" secured="true" http-method="GET">
-        <Scopes>internal_org_role_mgt_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PUT">
-        <Scopes>internal_org_role_mgt_users_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PATCH">
-        <Scopes>internal_org_role_mgt_users_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Groups" secured="true" http-method="PUT">
-        <Scopes>internal_org_role_mgt_groups_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles/(.*)/Groups" secured="true" http-method="PATCH">
-        <Scopes>internal_org_role_mgt_groups_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles/(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_org_role_mgt_meta_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles/(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_org_role_mgt_meta_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/v3/Roles/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_role_mgt_delete</Scopes>
     </Resource>
 
@@ -540,6 +553,17 @@
     <Resource context="(.*)/scim2/v2/Roles(.*)" secured="true" http-method="POST">
         <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
         <Scopes>internal_role_mgt_create</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/scim2/v2/Roles(.*)" secured="true" http-method="GET">
         <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
@@ -548,43 +572,35 @@
     <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="PUT">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         <Scopes>internal_role_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="PATCH">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         <Scopes>internal_role_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateRolePermissions">
+                <scope>internal_role_mgt_permissions_update</scope>
+            </Operation>
+            <Operation name="updateRoleMembers">
+                <scope>internal_role_mgt_users_update</scope>
+            </Operation>
+            <Operation name="updateRoleGroups">
+                <scope>internal_role_mgt_groups_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
         <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
-        <Scopes>internal_role_mgt_delete</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles/.search" secured="true" http-method="POST">
-        <Scopes>internal_role_mgt_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles(.*)" secured="true" http-method="POST">
-        <Scopes>internal_role_mgt_meta_create</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles(.*)" secured="true" http-method="GET">
-        <Scopes>internal_role_mgt_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PUT">
-        <Scopes>internal_role_mgt_users_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles/(.*)/Users" secured="true" http-method="PATCH">
-        <Scopes>internal_role_mgt_users_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles/(.*)/Groups" secured="true" http-method="PUT">
-        <Scopes>internal_role_mgt_groups_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles/(.*)/Groups" secured="true" http-method="PATCH">
-        <Scopes>internal_role_mgt_groups_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles/(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_role_mgt_meta_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles/(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_role_mgt_meta_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/v3/Roles/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_role_mgt_delete</Scopes>
     </Resource>
 
@@ -619,11 +635,69 @@
     <!-- [Organization] SCIM2 Bulk API -->
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_bulk_resource_create</Scopes>
+        <Operations mandatory="false">
+            <Operation name="createRole">
+                <scope>internal_org_bulk_role_create</scope>
+            </Operation>
+            <Operation name="updateRole">
+                <scope>internal_org_bulk_role_update</scope>
+            </Operation>
+            <Operation name="deleteRole">
+                <scope>internal_org_bulk_role_delete</scope>
+            </Operation>
+            <Operation name="createUser">
+                <scope>internal_org_bulk_user_create</scope>
+            </Operation>
+            <Operation name="updateUser">
+                <scope>internal_org_bulk_user_update</scope>
+            </Operation>
+            <Operation name="deleteUser">
+                <scope>internal_org_bulk_user_delete</scope>
+            </Operation>
+            <Operation name="createGroup">
+                <scope>internal_org_bulk_group_create</scope>
+            </Operation>
+            <Operation name="updateGroup">
+                <scope>internal_org_bulk_group_update</scope>
+            </Operation>
+            <Operation name="deleteGroup">
+                <scope>internal_org_bulk_group_delete</scope>
+            </Operation>
+        </Operations>
     </Resource>
 
     <!-- SCIM2 Bulk API -->
     <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
         <Scopes>internal_bulk_resource_create</Scopes>
+        <Operations mandatory="false">
+            <Operation name="createRole">
+                <scope>internal_bulk_role_create</scope>
+            </Operation>
+            <Operation name="updateRole">
+                <scope>internal_bulk_role_update</scope>
+            </Operation>
+            <Operation name="deleteRole">
+                <scope>internal_bulk_role_delete</scope>
+            </Operation>
+            <Operation name="createUser">
+                <scope>internal_bulk_user_create</scope>
+            </Operation>
+            <Operation name="updateUser">
+                <scope>internal_bulk_user_update</scope>
+            </Operation>
+            <Operation name="deleteUser">
+                <scope>internal_bulk_user_delete</scope>
+            </Operation>
+            <Operation name="createGroup">
+                <scope>internal_bulk_group_create</scope>
+            </Operation>
+            <Operation name="updateGroup">
+                <scope>internal_bulk_group_update</scope>
+            </Operation>
+            <Operation name="deleteGroup">
+                <scope>internal_bulk_group_delete</scope>
+            </Operation>
+        </Operations>
     </Resource>
 
     <!-- [Organization] Authentication Data APIs -->
@@ -669,18 +743,18 @@
     </Resource>
 
     <!-- [Organization] Approval Tasks -->
-    <Resource context="(.*)/o/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
+    <Resource context="(.*)/o/api/users/v2/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
         <Scopes>internal_org_approval_task_view</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
+    <Resource context="(.*)/o/api/users/v2/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
         <Scopes>internal_org_approval_task_update</Scopes>
     </Resource>
 
     <!-- Approval Tasks -->
-    <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
+    <Resource context="(.*)/api/users/v2/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD">
         <Scopes>internal_approval_task_view</Scopes>
     </Resource>
-    <Resource context="(.*)/api/users/v1/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
+    <Resource context="(.*)/api/users/v2/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
         <Scopes>internal_approval_task_update</Scopes>
     </Resource>
 
@@ -974,6 +1048,18 @@
     <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="PATCH">
         <Scopes>internal_shared_application_create</Scopes>
     </Resource>
+    <Resource context="(.*)/api/server/v1/applications/share" secured="true" http-method="POST">
+        <Scopes>internal_shared_application_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/share-with-all" secured="true" http-method="POST">
+        <Scopes>internal_shared_application_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/unshare" secured="true" http-method="POST">
+        <Scopes>internal_shared_application_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/unshare-with-all" secured="true" http-method="POST">
+        <Scopes>internal_shared_application_delete</Scopes>
+    </Resource>
     <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="GET">
         <Scopes>internal_shared_application_view</Scopes>
     </Resource>
@@ -990,32 +1076,104 @@
         <Scopes>internal_shared_application_delete</Scopes>
     </Resource>
 
+    <!-- [Organization] Application Authentication Script Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/authenticationSequence/script" secured="true" http-method="PUT">
+        <Scopes>internal_org_application_script_update</Scopes>
+    </Resource>
+
+    <!-- Application Authentication Script Management API -->
+    <Resource context="(.*)/api/server/v1/applications/(.*)/authenticationSequence/script" secured="true" http-method="PUT">
+        <Scopes>internal_application_script_update</Scopes>
+    </Resource>
+
     <!-- [Organization] Application Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
+        <Scopes>internal_org_application_mgt_client_secret_create</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_application_mgt_create</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateAuthenticationScript">
+                <scope>internal_org_application_script_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_org_application_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateAuthenticationScript">
+                <scope>internal_org_application_script_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_application_mgt_delete</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_application_mgt_view</Scopes>
+        <Operations mandatory="true">
+            <Operation name="viewApplicationClientSecret">
+                <scope>internal_org_application_mgt_client_secret_view</scope>
+            </Operation>
+        </Operations>
+    </Resource>
+
+    <!-- [Organization] Application API resources Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/authorized-apis(.*)" secured="true" http-method="POST, DELETE, PATCH">
+        <Scopes>internal_org_application_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateInternalAuthorizedAPI">
+                <scope>internal_org_application_internal_api_update</scope>
+            </Operation>
+            <Operation name="updateBusinessAuthorizedAPI">
+                <scope>internal_org_application_business_api_update</scope>
+            </Operation>
+        </Operations>
+    </Resource>
+
+    <!-- Application API resources Management API -->
+    <Resource context="(.*)/api/server/v1/applications/(.*)/authorized-apis(.*)" secured="true" http-method="POST, DELETE, PATCH">
+        <Scopes>internal_application_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateInternalAuthorizedAPI">
+                <scope>internal_application_internal_api_update</scope>
+            </Operation>
+            <Operation name="updateBusinessAuthorizedAPI">
+                <scope>internal_application_business_api_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
 
     <!-- Application Management API -->
+    <Resource context="(.*)/api/server/v1/applications/(.*)/regenerate-secret" secured="true" http-method="POST">
+        <Scopes>internal_application_mgt_client_secret_create</Scopes>
+    </Resource>
     <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
         <Scopes>internal_application_mgt_create</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateAuthenticationScript">
+                <scope>internal_application_script_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="PUT, PATCH">
         <Scopes>internal_application_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateAuthenticationScript">
+                <scope>internal_application_script_update</scope>
+            </Operation>
+        </Operations>
     </Resource>
     <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_application_mgt_delete</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
         <Scopes>internal_application_mgt_view</Scopes>
+        <Operations mandatory="true">
+            <Operation name="viewApplicationClientSecret">
+                <scope>internal_application_mgt_client_secret_view</scope>
+            </Operation>
+        </Operations>
     </Resource>
 
     <!-- Admin Application Management API -->
@@ -1261,6 +1419,9 @@
     </Resource>
     <Resource context="(.*)/o/api/server/v1/configs/authentication/inbound/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_config_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/configs/impersonation(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_config_delete</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/configs(.*)" secured="true" http-method="PATCH">
         <Scopes>internal_org_config_update</Scopes>
@@ -1573,6 +1734,17 @@
     <!-- Flow execution API -->
     <Resource context="(.*)/api/server/v1/flow/(.*)" secured="false" http-method="POST" />
 
+    <!-- Organization Flow management API -->
+    <Resource context="(.*)/o/api/server/v1/flow(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_flow_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/flow(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_org_flow_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/flow(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_flow_delete</Scopes>
+    </Resource>
+
     <!-- Flow management API -->
     <Resource context="(.*)/api/server/v1/flow(.*)" secured="true" http-method="GET">
         <Scopes>internal_flow_view</Scopes>
@@ -1691,6 +1863,9 @@
     <Resource context="(.*)/o/api/server/v1/workflow-instances(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_workflow_instance_view</Scopes>
     </Resource>
+    <Resource context="(.*)/o/api/server/v1/workflow-instances/(.*)/abort" secured="true" http-method="POST">
+        <Scopes>internal_org_workflow_instance_update</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_workflow_instance_delete</Scopes>
     </Resource>
@@ -1698,6 +1873,9 @@
     <!-- Workflow Instance Management API -->
     <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="GET">
         <Scopes>internal_workflow_instance_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/workflow-instances/(.*)/abort" secured="true" http-method="POST">
+        <Scopes>internal_workflow_instance_update</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_workflow_instance_delete</Scopes>
