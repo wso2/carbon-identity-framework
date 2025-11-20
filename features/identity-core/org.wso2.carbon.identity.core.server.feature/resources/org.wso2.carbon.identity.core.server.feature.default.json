@@ -321,6 +321,7 @@
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
+  "oauth.callback.restrict_fragment_components": true,
   "oauth.impersonated_refresh_token.enable": true,
   "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
 
