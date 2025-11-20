@@ -798,38 +798,9 @@
             <Update>
                 <Scope name="internal_application_script_update"/>
                 <Scope name="console:applications_edit"/>
-                <Scope name="internal_application_mgt_update"/>
-                <Scope name="internal_secret_mgt_update"/>
-                <Scope name="internal_application_business_api_update"/>
             </Update>
-            <Delete>
-                <Scope name="internal_application_mgt_delete"/>
-                <Scope name="internal_shared_application_delete"/>
-                <Scope name="internal_secret_mgt_delete"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_application_mgt_create"/>
-                <Scope name="internal_shared_application_create"/>
-                <Scope name="internal_secret_mgt_add"/>
-            </Create>
             <Read>
                 <Scope name="console:applications_view"/>
-                <Scope name="internal_cors_origins_view"/>
-                <Scope name="internal_application_mgt_view"/>
-                <Scope name="internal_claim_meta_view"/>
-                <Scope name="internal_role_mgt_view"/>
-                <Scope name="internal_userstore_view"/>
-                <Scope name="internal_idp_view"/>
-                <Scope name="internal_oidc_scope_mgt_view"/>
-                <Scope name="internal_organization_view"/>
-                <Scope name="internal_api_resource_view"/>
-                <Scope name="internal_role_mgt_view"/>
-                <Scope name="internal_governance_view"/>
-                <Scope name="internal_userstore_view"/>
-                <Scope name="internal_shared_application_view"/>
-                <Scope name="internal_secret_mgt_view"/>
-                <Scope name="internal_async_operation_status_view"/>
-                <Scope name="internal_config_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -884,30 +855,13 @@
             </Feature>
             <Update>
                 <Scope name="console:applications_edit"/>
-                <Scope name="internal_application_mgt_update"/>
             </Update>
-            <Delete>
-            </Delete>
             <Create>
                 <Scope name="internal_application_mgt_client_secret_create"/>
             </Create>
             <Read>
                 <Scope name="console:applications_view"/>
                 <Scope name="internal_application_mgt_client_secret_view"/>
-                <Scope name="internal_cors_origins_view"/>
-                <Scope name="internal_application_mgt_view"/>
-                <Scope name="internal_claim_meta_view"/>
-                <Scope name="internal_role_mgt_view"/>
-                <Scope name="internal_userstore_view"/>
-                <Scope name="internal_idp_view"/>
-                <Scope name="internal_oidc_scope_mgt_view"/>
-                <Scope name="internal_organization_view"/>
-                <Scope name="internal_api_resource_view"/>
-                <Scope name="internal_governance_view"/>
-                <Scope name="internal_shared_application_view"/>
-                <Scope name="internal_secret_mgt_view"/>
-                <Scope name="internal_async_operation_status_view"/>
-                <Scope name="internal_config_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -921,32 +875,10 @@
             </Feature>
             <Update>
                 <Scope name="console:applications_edit"/>
-                <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_application_internal_api_update"/>
-                <Scope name="internal_application_business_api_update"/>
             </Update>
-            <Delete>
-                <Scope name="internal_application_internal_api_update"/>
-                <Scope name="internal_application_business_api_update"/>
-            </Delete>
-            <Create>
-            </Create>
             <Read>
                 <Scope name="console:applications_view"/>
-                <Scope name="internal_cors_origins_view"/>
-                <Scope name="internal_application_mgt_view"/>
-                <Scope name="internal_claim_meta_view"/>
-                <Scope name="internal_role_mgt_view"/>
-                <Scope name="internal_userstore_view"/>
-                <Scope name="internal_idp_view"/>
-                <Scope name="internal_oidc_scope_mgt_view"/>
-                <Scope name="internal_organization_view"/>
-                <Scope name="internal_api_resource_view"/>
-                <Scope name="internal_governance_view"/>
-                <Scope name="internal_shared_application_view"/>
-                <Scope name="internal_secret_mgt_view"/>
-                <Scope name="internal_async_operation_status_view"/>
-                <Scope name="internal_config_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1840,28 +1772,9 @@
             <Update>
                 <Scope name="internal_org_application_script_update"/>
                 <Scope name="console:org:applications_edit"/>
-                <Scope name="internal_org_application_mgt_update"/>
-                <Scope name="internal_org_secret_mgt_update"/>
             </Update>
-            <Delete>
-                <Scope name="internal_org_application_mgt_delete"/>
-                <Scope name="internal_org_secret_mgt_delete"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_org_application_mgt_create"/>
-                <Scope name="internal_org_secret_mgt_add"/>
-            </Create>
             <Read>
                 <Scope name="console:org:applications_view"/>
-                <Scope name="internal_org_application_mgt_view"/>
-                <Scope name="internal_org_claim_meta_view"/>
-                <Scope name="internal_org_role_mgt_view"/>
-                <Scope name="internal_org_userstore_view"/>
-                <Scope name="internal_org_idp_view"/>
-                <Scope name="internal_org_async_operation_status_view"/>
-                <Scope name="internal_org_secret_mgt_view"/>
-                <Scope name="internal_org_config_view"/>
-                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1907,27 +1820,10 @@
             </Feature>
             <Update>
                 <Scope name="console:org:applications_edit"/>
-                <Scope name="internal_org_application_mgt_update"/>
-                <Scope name="internal_org_application_business_api_update"/>
                 <Scope name="internal_org_application_internal_api_update"/>
             </Update>
-            <Delete>
-                <Scope name="internal_org_application_mgt_delete"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_org_application_mgt_create"/>
-            </Create>
             <Read>
                 <Scope name="console:org:applications_view"/>
-                <Scope name="internal_org_application_mgt_view"/>
-                <Scope name="internal_org_claim_meta_view"/>
-                <Scope name="internal_org_role_mgt_view"/>
-                <Scope name="internal_org_userstore_view"/>
-                <Scope name="internal_org_idp_view"/>
-                <Scope name="internal_org_async_operation_status_view"/>
-                <Scope name="internal_org_secret_mgt_view"/>
-                <Scope name="internal_org_config_view"/>
-                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1941,25 +1837,13 @@
             </Feature>
             <Update>
                 <Scope name="console:org:applications_edit"/>
-                <Scope name="internal_org_application_mgt_update"/>
             </Update>
-            <Delete>
-            </Delete>
             <Create>
                 <Scope name="internal_org_application_mgt_client_secret_create"/>
             </Create>
             <Read>
                 <Scope name="console:org:applications_view"/>
                 <Scope name="internal_org_application_mgt_client_secret_view"/>
-                <Scope name="internal_org_application_mgt_view"/>
-                <Scope name="internal_org_claim_meta_view"/>
-                <Scope name="internal_org_role_mgt_view"/>
-                <Scope name="internal_org_userstore_view"/>
-                <Scope name="internal_org_idp_view"/>
-                <Scope name="internal_org_async_operation_status_view"/>
-                <Scope name="internal_org_secret_mgt_view"/>
-                <Scope name="internal_org_config_view"/>
-                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

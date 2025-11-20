@@ -1798,7 +1798,6 @@ public class IdentityUtil {
         return getSystemRolesWithScopes(false);
     }
 
-
     private static Map<String, Set<String>> getSystemRolesWithScopes(boolean requireLowerCaseScopes) {
 
         Map<String, Set<String>> systemRolesWithScopes = new HashMap<>(Collections.emptyMap());
