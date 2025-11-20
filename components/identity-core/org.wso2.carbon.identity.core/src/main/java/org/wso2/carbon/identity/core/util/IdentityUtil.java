@@ -1793,7 +1793,7 @@ public class IdentityUtil {
      *
      * @return A map of system roles against the scopes list.
      */
-    public static Map<String, Set<String>> getSystemRolesWithScopesOriginalCase() {
+    public static Map<String, Set<String>> getSystemRolesWithScopesInOriginalCase() {
 
         return getSystemRolesWithScopes(false);
     }
