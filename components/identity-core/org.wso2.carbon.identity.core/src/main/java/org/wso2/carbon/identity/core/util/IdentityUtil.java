@@ -1784,6 +1784,23 @@ public class IdentityUtil {
      */
     public static Map<String, Set<String>> getSystemRolesWithScopes() {
 
+        return getSystemRolesWithScopes(true);
+    }
+
+    /**
+     * This will return a map of system roles and the list of scopes configured for each system role
+     * in original case.
+     *
+     * @return A map of system roles against the scopes list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithScopesOriginalCase() {
+
+        return getSystemRolesWithScopes(false);
+    }
+
+
+    private static Map<String, Set<String>> getSystemRolesWithScopes(boolean requireLowerCaseScopes) {
+
         Map<String, Set<String>> systemRolesWithScopes = new HashMap<>(Collections.emptyMap());
         IdentityConfigParser configParser = IdentityConfigParser.getInstance();
         OMElement systemRolesConfig = configParser
@@ -1822,7 +1839,7 @@ public class IdentityUtil {
                 OMElement scopeIdentifierConfig = (OMElement) scopeIdentifierIterator.next();
                 String scopeName = scopeIdentifierConfig.getText();
                 if (StringUtils.isNotBlank(scopeName)) {
-                    scopes.add(scopeName.trim().toLowerCase());
+                    scopes.add(requireLowerCaseScopes ? scopeName.trim().toLowerCase() : scopeName.trim());
                 }
             }
             if (StringUtils.isNotBlank(roleName)) {
