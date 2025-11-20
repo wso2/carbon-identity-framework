@@ -58,8 +58,10 @@
   "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
+  "authenticationendpoint.authenticator_validation.enabled": false,
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
+  "recovery.v0_9_api.include_display_order_property_in_claims": false,
   "accounts.hostname": "$ref{server.hostname}",
   "accounts.path": "/accounts",
 
@@ -319,6 +321,7 @@
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
+  "oauth.callback.restrict_fragment_components": true,
   "oauth.impersonated_refresh_token.enable": true,
   "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
 
@@ -554,6 +557,8 @@
     "http://wso2.org/claims/identity/usedTOTPTimeWindows"
   ],
 
+  "identity_mgt.claims.add_userstore_domain_to_group_claims": false,
+
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
 
@@ -594,6 +599,7 @@
   "application_mgt.enable_role_validation": false,
   "application_mgt.trusted_app_consent_required": false,
   "application_mgt.trusted_app_max_thumbprint_count": "20",
+  "application_mgt.enable_cross_tenant_authorized_api_validation": true,
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,
@@ -1776,7 +1782,8 @@
   "console.users.enabled": true,
   "console.users.disabled_features": [
     "users.add.legacy",
-    "users.profile.legacy"
+    "users.profile.legacy",
+    "users.totalUserCount"
   ],
   "console.users.scopes.feature": ["console:users"],
   "console.users.scopes.create": ["internal_user_mgt_create", "internal_workflow_association_view"],
@@ -2105,6 +2112,13 @@
   "actions.types.pre_update_profile.version.latest": "v1",
   "actions.types.pre_update_password.version.latest": "v2",
 
+  "external_api_client.http_client.connection_timeout": "2000",
+  "external_api_client.http_client.read_timeout": "2000",
+  "external_api_client.http_client.request_timeout": "2000",
+  "external_api_client.http_client.connection_pool_size": "20",
+  "external_api_client.http_client.max_connection_per_route": "3",
+  "external_api_client.retry_count": "0",
+
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
   "outbound_adapters.httppublisher.httpReadTimeout": "5000",
@@ -2161,5 +2175,8 @@
   "notificationChannel.sms.custom.connection_timeout": "5000",
   "notificationChannel.sms.custom.connection_read_timeout": "20000",
 
-  "configs.endpoint.elevate_permission": true
+  "configs.endpoint.elevate_permission": true,
+
+  "identifier_first.preserve_case_sensitivity.enabled": true,
+  "pastr_cookie.max_age": "-1"
 }
