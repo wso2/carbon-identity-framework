@@ -112,6 +112,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                         "authentication steps to use basic auth only.");
             }
             sequenceConfig.getStepMap().clear();
+            sequenceConfig.setAuthenticationGraph(null);
             StepConfig stepConfig = new StepConfig();
             stepConfig.setOrder(1);
             IdentityProvider localIdp = new IdentityProvider();
