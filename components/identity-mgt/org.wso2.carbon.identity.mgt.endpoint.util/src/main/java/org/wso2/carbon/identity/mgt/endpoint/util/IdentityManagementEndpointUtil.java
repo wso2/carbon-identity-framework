@@ -41,7 +41,9 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
@@ -840,7 +842,18 @@ public class IdentityManagementEndpointUtil {
                 if (IdentityTenantUtil.shouldUseTenantQualifiedURLs()) {
                     basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
                             .getAbsoluteInternalURL();
-                    if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                    String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .getApplicationResidentOrganizationId();
+                    if (StringUtils.isNotBlank(basePath) && StringUtils.isNotBlank(appResidentOrgId)) {
+                        String subOrgAccessContext = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
+                                FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + appResidentOrgId;
+                        String appResidentTenantDomain = FrameworkUtils.
+                                resolveTenantDomainFromOrganizationId(appResidentOrgId);
+                        if (basePath.contains(subOrgAccessContext)) {
+                            basePath = basePath.replace(subOrgAccessContext,
+                                    FrameworkConstants.TENANT_CONTEXT_PREFIX + appResidentTenantDomain);
+                        }
+                    } else if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
                         String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                 .getOrganizationId();
                         basePath = basePath.replace(
@@ -864,7 +877,7 @@ public class IdentityManagementEndpointUtil {
                     basePath = serverUrl + context;
                 }
             }
-        } catch (URLBuilderException e) {
+        } catch (URLBuilderException | FrameworkException e) {
             throw new ApiException("Error while building url for context: " + context);
         }
         return basePath;

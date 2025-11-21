@@ -148,6 +148,9 @@ public class Constants {
         ERROR_CODE_FLOW_CONTEXT_CLEANUP_FAILURE("65028",
                 "Error while cleaning up expired flow contexts.",
                 "Error occurred while cleaning up expired flow contexts."),
+        ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE("65029",
+                "Error while resolving tenant domain.",
+                "Error occurred while resolving the tenant domain from the organization id: %s."),
 
 
         // Client errors.

@@ -2807,37 +2807,46 @@ public class IdPManagementDAO {
             oauth1AccessTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.ACCESS_TOKEN, true, true);
         }
 
-        oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, oauth2AuthzEPUrlV2,
-                tenantDomain);
-        oauth2ParEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.PAR, oauth2ParEPUrl, oauth2ParEPUrlV2, tenantDomain);
-        oauth2TokenEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, oauth2TokenEPUrlV2, tenantDomain);
-        oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, oauth2RevokeEPUrlV2,
-                tenantDomain);
-        oauth2IntrospectEpUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl, oauth2IntrospectEpUrlV2,
-                tenantDomain);
-        oauth2IntrospectEpUrl = addTenantPathParamInLegacyMode(oauth2IntrospectEpUrl, tenantDomain);
-        oauth2UserInfoEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl, oauth2UserInfoEPUrlV2,
-                        tenantDomain);
-        oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl,
-                oidcCheckSessionEPUrlV2,
-                tenantDomain);
-        oidcLogoutEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl, oidcLogoutEPUrlV2, tenantDomain);
-        oAuth2DCREPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl, oAuth2DCREPUrlV2, tenantDomain);
-        oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
-        oAuth2JWKSPage =
-                resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage, oAuth2JWKSPageV2, tenantDomain);
-        oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
-        oIDCDiscoveryEPUrl =
-                resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, oIDCDiscoveryEPUrlV2,
-                        tenantDomain);
-        oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
-        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, null, tenantDomain);
+        try {
+            // Initiating a tenant flow to resolve tenant qualified URLs. Here the tenant domain appending to the
+            // carbon context is the tenant domain where the configurations needs to be retrieved.
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+
+            oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, oauth2AuthzEPUrlV2,
+                    tenantDomain);
+            oauth2ParEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.PAR, oauth2ParEPUrl, oauth2ParEPUrlV2, tenantDomain);
+            oauth2TokenEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, oauth2TokenEPUrlV2, tenantDomain);
+            oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, oauth2RevokeEPUrlV2,
+                    tenantDomain);
+            oauth2IntrospectEpUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl, oauth2IntrospectEpUrlV2,
+                            tenantDomain);
+            oauth2IntrospectEpUrl = addTenantPathParamInLegacyMode(oauth2IntrospectEpUrl, tenantDomain);
+            oauth2UserInfoEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl, oauth2UserInfoEPUrlV2,
+                            tenantDomain);
+            oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl,
+                    oidcCheckSessionEPUrlV2,
+                    tenantDomain);
+            oidcLogoutEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl, oidcLogoutEPUrlV2, tenantDomain);
+            oAuth2DCREPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl, oAuth2DCREPUrlV2, tenantDomain);
+            oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
+            oAuth2JWKSPage =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage, oAuth2JWKSPageV2, tenantDomain);
+            oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
+            oIDCDiscoveryEPUrl =
+                    resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, oIDCDiscoveryEPUrlV2,
+                            tenantDomain);
+            oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
+            passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, null, tenantDomain);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
 
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {

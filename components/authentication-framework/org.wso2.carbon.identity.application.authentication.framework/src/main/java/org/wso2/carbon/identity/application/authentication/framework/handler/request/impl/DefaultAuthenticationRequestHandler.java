@@ -1074,7 +1074,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
         String path = null;
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
-            if (FrameworkUtils.isOrganizationQualifiedRequest()) {
+            String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .getApplicationResidentOrganizationId();
+            if (StringUtils.isNotBlank(appResidentOrgId)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Resolving cookie path for application resides in organization: "
+                            + appResidentOrgId + " by using the primary organization");
+                }
+                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
+                        MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                    path = "/";
+                } else {
+                    path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+                }
+            } else if (FrameworkUtils.isOrganizationQualifiedRequest()) {
                 // Handling the cookie path for requests coming with the path `/o/<org-id>`.
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
                 path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/";
