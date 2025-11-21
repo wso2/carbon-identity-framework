@@ -4387,6 +4387,11 @@
         {% endif %}
     </X509>
 
+    <!-- Configuration to use internal hostname for X509 certificate authenticator redirects. -->
+    {% if authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect is defined %}
+        <UseInternalHostnameForRedirect>{{authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect}}</UseInternalHostnameForRedirect>
+    {% endif %}
+
     <!-- This configuration specifies the claims that should be logged to "audit.log" upon changes. -->
     {% if audit.log.loggable_user_claim is defined %}
         {% if audit.log.loggable_user_claim.claims is defined %}
