@@ -51,6 +51,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTH_ENTITY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTH_ENTITY_AGENT;
+
 /**
  * Sequence Configuration loader, loads the sequence configuration from the database.
  * <p>
@@ -101,6 +104,20 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             sequenceConfig.setAuthenticationGraph(graph);
             graph.setStepMap(originalStepConfigMap);
         }
+
+        if (parameterMap.containsKey(AUTH_ENTITY) && parameterMap.get(AUTH_ENTITY).length > 0 &&
+                AUTH_ENTITY_AGENT.equals(parameterMap.get(AUTH_ENTITY)[0])) {
+            sequenceConfig.getStepMap().clear();
+            StepConfig stepConfig = new StepConfig();
+            stepConfig.setOrder(1);
+            IdentityProvider localIdp = new IdentityProvider();
+            localIdp.setIdentityProviderName(FrameworkConstants.LOCAL_IDP_NAME);
+            loadStepAuthenticator(stepConfig, localIdp, FrameworkConstants.BASIC_AUTHENTICATOR_CLASS, tenantDomain);
+            sequenceConfig.getStepMap().put(1, stepConfig);
+            context.setProperty(AUTH_ENTITY, AUTH_ENTITY_AGENT);
+            return sequenceConfig;
+        }
+
         return sequenceConfig;
     }
 
