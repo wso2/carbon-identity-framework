@@ -105,6 +105,9 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             graph.setStepMap(originalStepConfigMap);
         }
 
+        // If the request originates from an agent, the system currently overrides the configured authentication
+        // sequence and forces a basic authentication step. This approach should be refactored to
+        // introduce a dedicated authentication flow and execution graph specifically designed for agent requests.
         if (parameterMap.containsKey(AUTH_ENTITY) && parameterMap.get(AUTH_ENTITY).length > 0 &&
                 AUTH_ENTITY_AGENT.equals(parameterMap.get(AUTH_ENTITY)[0])) {
             if (log.isDebugEnabled()) {
