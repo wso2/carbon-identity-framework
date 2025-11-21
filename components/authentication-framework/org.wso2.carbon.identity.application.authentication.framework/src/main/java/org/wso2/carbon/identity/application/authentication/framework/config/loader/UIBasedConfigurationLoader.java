@@ -107,6 +107,10 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
         if (parameterMap.containsKey(AUTH_ENTITY) && parameterMap.get(AUTH_ENTITY).length > 0 &&
                 AUTH_ENTITY_AGENT.equals(parameterMap.get(AUTH_ENTITY)[0])) {
+            if (log.isDebugEnabled()) {
+                log.debug("Authentication request is from an agent. Overriding the configured " +
+                        "authentication steps to use basic auth only.");
+            }
             sequenceConfig.getStepMap().clear();
             StepConfig stepConfig = new StepConfig();
             stepConfig.setOrder(1);
