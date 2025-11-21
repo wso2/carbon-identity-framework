@@ -314,7 +314,9 @@
       "authenticationendpoint.authenticator_validation.enabled": false,
       "identifier_first.preserve_case_sensitivity.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
-      "oauth.callback.restrict_fragment_components": false
+      "oauth.callback.restrict_fragment_components": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled" : true
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -358,12 +360,16 @@
       "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
-      "oauth.callback.restrict_fragment_components": false
+      "oauth.callback.restrict_fragment_components": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled" : true
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
-      "oauth.callback.restrict_fragment_components": false
+      "oauth.callback.restrict_fragment_components": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled" : true
     }
   }
 }
