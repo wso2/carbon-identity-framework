@@ -49,6 +49,7 @@ public class IdentityContextCreatorValve extends ValveBase {
 
         try {
             initIdentityContext();
+            initRequest(request);
             initAccessTokenIssuedOrganization(request.getRequestURI());
             OrganizationResolver.getInstance().resolveOrganizationInContext(request);
             getNext().invoke(request, response);
@@ -102,5 +103,17 @@ public class IdentityContextCreatorValve extends ValveBase {
     public void initIdentityContext() {
 
         IdentityContext.getThreadLocalIdentityContext();
+    }
+
+    private void initRequest(Request request) {
+
+        if (request == null) {
+            LOG.debug("Http Request is null. Skipping request initialization in IdentityContext.");
+            return;
+        }
+
+        org.wso2.carbon.identity.core.context.model.Request requestToSetInContext =
+                new org.wso2.carbon.identity.core.context.model.Request.Builder().fromHttpRequest(request).build();
+        IdentityContext.getThreadLocalIdentityContext().setRequest(requestToSetInContext);
     }
 }
