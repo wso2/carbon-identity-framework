@@ -158,8 +158,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         if (IdentityTenantUtil.shouldUseTenantQualifiedURLs() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
-            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
-                setURL(resolvedUrlStringBuilder, tenantDomain);
+            String accessingOrganization =
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getApplicationResidentOrganizationId();
+            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain) ||
+                    StringUtils.isNotBlank(accessingOrganization)) {
+                setURL(resolvedUrlStringBuilder, tenantDomain, accessingOrganization);
             }
         }
 
@@ -516,7 +519,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
     }
 
-    private void setURL(StringBuilder resolvedUrlStringBuilder, String tenantDomain) {
+    private void setURL(StringBuilder resolvedUrlStringBuilder, String tenantDomain, String accessingOrganization) {
 
         // ####### Organization perspective resource URL building.
         // if organization ID is explicitly set, build an organization qualified URL.
@@ -541,6 +544,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
         if (StringUtils.isNotEmpty(organizationId)) {
             resolvedUrlStringBuilder.append("/o/").append(organizationId);
+            return;
+        } else if (StringUtils.isNotBlank(accessingOrganization)) {
+            resolvedUrlStringBuilder.append("/t/").append(tenantDomain).append("/o/").append(accessingOrganization);
             return;
         }
         // ####### Tenant perspective resource URL building.
