@@ -1141,11 +1141,21 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
             });
         } catch (DataAccessException e) {
-            if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+            Throwable cause = e.getCause();
+
+            if (cause instanceof SQLIntegrityConstraintViolationException) {
                 throw handleClientException(ERROR_CODE_RESOURCE_ALREADY_EXISTS, resource.getResourceName(), e);
-            } else {
-                throw e;
             }
+
+            if (cause instanceof SQLException) {
+                SQLException sqlEx = (SQLException) cause;
+                // PostgreSQL unique constraint violation: SQLState 23505
+                if (SQLConstants.POSTGRESQL_UNIQUE_CONSTRAINT_VIOLATION_ERROR_CODE.equals(sqlEx.getSQLState())) {
+                    throw handleClientException(ERROR_CODE_RESOURCE_ALREADY_EXISTS, resource.getResourceName(), e);
+                }
+            }
+
+            throw e;
         }
     }
 
