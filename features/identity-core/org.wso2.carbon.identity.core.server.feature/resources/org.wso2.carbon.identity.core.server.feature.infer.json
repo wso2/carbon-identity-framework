@@ -316,7 +316,7 @@
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
       "oauth.jwt_x5t_s256_enabled": false,
-      "oauth.jwt_x5t_enabled" : true
+      "oauth.jwt_x5t_enabled": true
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -362,14 +362,14 @@
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
       "oauth.jwt_x5t_s256_enabled": false,
-      "oauth.jwt_x5t_enabled" : true
+      "oauth.jwt_x5t_enabled": true
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
       "oauth.jwt_x5t_s256_enabled": false,
-      "oauth.jwt_x5t_enabled" : true
+      "oauth.jwt_x5t_enabled": true
     }
   }
 }
