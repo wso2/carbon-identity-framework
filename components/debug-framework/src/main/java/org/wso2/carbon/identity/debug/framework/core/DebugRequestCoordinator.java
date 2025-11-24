@@ -342,7 +342,7 @@ public class DebugRequestCoordinator implements DebugService {
 
         // If not found, create a new one for OAuth callback processing.
         if (context == null && code != null && state != null) {
-            context = createDebugContextForCallback(code, state, request);
+            context = createDebugContextForCallback(code, state);
         }
 
         return context;
@@ -528,11 +528,11 @@ public class DebugRequestCoordinator implements DebugService {
             }
             
         } catch (NoSuchMethodException e) {
-            String errorMsg = "processCallback method not found on processor class: " + processor.getClass().getName();
+            String errorMsg = "processCallback method not found " + processor.getClass().getName();
             LOG.error(errorMsg, e);
             throw new RuntimeException(errorMsg, e);
         } catch (IllegalAccessException e) {
-            String errorMsg = "Cannot access processCallback method on processor class: " + processor.getClass().getName();
+            String errorMsg = "Cannot access processCallback method  " + processor.getClass().getName();
             LOG.error(errorMsg, e);
             throw new RuntimeException(errorMsg, e);
         } catch (java.lang.reflect.InvocationTargetException e) {
@@ -558,10 +558,9 @@ public class DebugRequestCoordinator implements DebugService {
      * 
      * @param code OAuth authorization code.
      * @param state OAuth state parameter.
-     * @param request HttpServletRequest for additional context.
      * @return New AuthenticationContext configured for debug processing.
      */
-    private AuthenticationContext createDebugContextForCallback(String code, String state, HttpServletRequest request) {
+    private AuthenticationContext createDebugContextForCallback(String code, String state) {
 
         AuthenticationContext context = new AuthenticationContext();
         

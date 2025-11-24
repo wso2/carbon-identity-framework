@@ -43,6 +43,9 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_IDP_DESCRIPTION = "DEBUG_IDP_DESCRIPTION";
     public static final String DEBUG_REQUEST_URI = "DEBUG_REQUEST_URI";
     public static final String DEBUG_REMOTE_ADDR = "DEBUG_REMOTE_ADDR";
+    public static final String DEBUG_RESOURCE_ID = "DEBUG_RESOURCE_ID";
+    public static final String DEBUG_RESOURCE_TYPE = "DEBUG_RESOURCE_TYPE";
+        public static final String DEBUG_STATUS = "DEBUG_STATUS";
     public static final String DEBUG_USER_AGENT = "DEBUG_USER_AGENT";
 
     // OAuth2 Configuration Properties.

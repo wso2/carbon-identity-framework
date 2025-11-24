@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.debug.framework.handler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.debug.framework.core.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 
@@ -38,7 +39,9 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * Constructs an IdpDebugResourceHandler.
      */
     public IdpDebugResourceHandler() {
-
+        // No initialization required. This handler is stateless and does not maintain any
+        // instance-level state. All context is passed through method parameters, and logging
+        // is handled via the static LOG instance.
     }
 
     /**
@@ -77,99 +80,166 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         }
 
         try {
-            String resourceId = (String) debugRequestContext.get("resourceId");
+            String resourceId = validateAndExtractResourceId(debugRequestContext);
             String resourceType = (String) debugRequestContext.get("resourceType");
             
-            if (resourceId == null || resourceId.trim().isEmpty()) {
-                throw new DebugFrameworkException("Resource ID is required for IDP debug request");
-            }
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Processing IDP debug request for resourceId: " + resourceId);
-            }
-
-            // Build context map for protocol-specific handler
-            Map<String, Object> context = new HashMap<>(debugRequestContext);
+            debugLog("Processing IDP debug request for resourceId: " + resourceId);
             
-            // Add IDP-specific fields expected by DebugRequestCoordinator
-            if (!context.containsKey("idpId")) {
-                context.put("idpId", resourceId);
-            }
-            if (!context.containsKey("idpName")) {
-                context.put("idpName", resourceId);
-            }
-            
-            // Extract properties if they exist
-            @SuppressWarnings("unchecked")
-            Map<String, String> properties = (Map<String, String>) debugRequestContext.get("properties");
-            if (properties != null && !properties.isEmpty()) {
-                context.putAll(properties);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Added " + properties.size() + " properties to IDP debug context");
-                }
-            }
+            // Build and prepare context for protocol-specific handler
+            Map<String, Object> context = prepareDebugContext(debugRequestContext, resourceId, resourceType);
 
-            // Mark as resource debug request type
-            context.put("requestType", "RESOURCE_DEBUG_REQUEST");
-            context.put("resourceId", resourceId);
-            context.put("resourceType", resourceType);
+            // Resolve and execute through protocol-specific handlers
+            Object debugContext = resolveDebugContext(resourceId, context);
+            Object authUrlResult = executeDebugRequest(resourceId, debugContext);
 
-            // Get protocol-specific context resolver and executor
-            Object contextResolver = DebugProtocolRouter.getContextProviderForResource(resourceId);
-            if (contextResolver == null) {
-                throw new DebugFrameworkException("No suitable DebugContextProvider found for IDP: " + resourceId);
-            }
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully loaded context resolver for IDP: " + resourceId);
-            }
-
-            // Invoke resolveContext on the context resolver
-            Object debugContext = invokeContextResolverMethod(contextResolver, "resolveContext", context);
-            if (debugContext == null) {
-                throw new DebugFrameworkException("Failed to resolve debug context for IDP: " + resourceId);
-            }
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully resolved debug context for IDP: " + resourceId);
-            }
-
-            // Get protocol-specific executor
-            Object executor = DebugProtocolRouter.getExecutorForResource(resourceId);
-            if (executor == null) {
-                throw new DebugFrameworkException("No suitable DebugExecutor found for IDP: " + resourceId);
-            }
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully loaded executor for IDP: " + resourceId);
-            }
-
-            // Invoke execute on the executor
-            Object authUrlResult = invokeExecutorMethod(executor, "execute", debugContext);
-            if (authUrlResult == null) {
-                throw new DebugFrameworkException("Authorization URL generation failed for IDP: " + resourceId);
-            }
-
-            // Extract result
+            // Build and return result with metadata
             Map<String, Object> result = extractResultAsMap(authUrlResult);
+            addResultMetadata(result, resourceId, resourceType);
             
-            // Add metadata
-            result.put("timestamp", System.currentTimeMillis());
-            result.put("resourceId", resourceId);
-            result.put("resourceType", resourceType);
-            result.put("requestType", "RESOURCE_DEBUG_REQUEST");
-            result.put("status", "SUCCESS");
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully processed IDP debug request for resourceId: " + resourceId);
-            }
-
+            debugLog("Successfully processed IDP debug request for resourceId: " + resourceId);
             return result;
 
         } catch (DebugFrameworkException e) {
             throw e;
         } catch (Exception e) {
             throw new DebugFrameworkException("Error handling IDP debug request: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Validates and extracts the resource ID from the debug request context.
+     *
+     * @param debugRequestContext The debug request context map.
+     * @return The validated resource ID.
+     * @throws DebugFrameworkException If resource ID is null or empty.
+     */
+    private String validateAndExtractResourceId(Map<String, Object> debugRequestContext) 
+            throws DebugFrameworkException {
+        
+        String resourceId = (String) debugRequestContext.get("resourceId");
+        if (resourceId == null || resourceId.trim().isEmpty()) {
+            throw new DebugFrameworkException("Resource ID is required for IDP debug request");
+        }
+        return resourceId;
+    }
+
+    /**
+     * Prepares the debug context with IDP-specific fields and properties.
+     *
+     * @param debugRequestContext The original debug request context.
+     * @param resourceId The IDP resource ID.
+     * @param resourceType The resource type.
+     * @return A prepared context map with IDP-specific fields.
+     */
+    private Map<String, Object> prepareDebugContext(Map<String, Object> debugRequestContext, 
+                                                     String resourceId, String resourceType) {
+        
+        Map<String, Object> context = new HashMap<>(debugRequestContext);
+        
+        // Add IDP-specific fields expected by DebugRequestCoordinator
+        if (!context.containsKey("idpId")) {
+            context.put("idpId", resourceId);
+        }
+        if (!context.containsKey("idpName")) {
+            context.put("idpName", resourceId);
+        }
+        
+        // Extract and merge properties if they exist
+        @SuppressWarnings("unchecked")
+        Map<String, String> properties = (Map<String, String>) debugRequestContext.get("properties");
+        if (properties != null && !properties.isEmpty()) {
+            context.putAll(properties);
+            debugLog("Added " + properties.size() + " properties to IDP debug context");
+        }
+
+        // Mark as resource debug request type
+        context.put(DebugFrameworkConstants.DEBUG_RESOURCE_TYPE, "RESOURCE_DEBUG_REQUEST");
+        context.put(DebugFrameworkConstants.DEBUG_RESOURCE_ID, resourceId);
+        context.put(DebugFrameworkConstants.DEBUG_RESOURCE_TYPE, resourceType);
+
+        return context;
+    }
+
+    /**
+     * Resolves the debug context using the appropriate context provider.
+     *
+     * @param resourceId The IDP resource ID.
+     * @param context The prepared debug context.
+     * @return The resolved debug context object.
+     * @throws DebugFrameworkException If context provider is not found or resolution fails.
+     * @throws Exception If context resolution fails.
+     */
+    private Object resolveDebugContext(String resourceId, Map<String, Object> context) 
+            throws Exception {
+        
+        Object contextResolver = DebugProtocolRouter.getContextProviderForResource(resourceId);
+        if (contextResolver == null) {
+            throw new DebugFrameworkException("No suitable DebugContextProvider found for IDP: " + resourceId);
+        }
+
+        debugLog("Successfully loaded context resolver for IDP: " + resourceId);
+
+        Object debugContext = invokeContextResolverMethod(contextResolver, "resolveContext", context);
+        if (debugContext == null) {
+            throw new DebugFrameworkException("Failed to resolve debug context for IDP: " + resourceId);
+        }
+
+        debugLog("Successfully resolved debug context for IDP: " + resourceId);
+        return debugContext;
+    }
+
+    /**
+     * Executes the debug request using the appropriate executor.
+     *
+     * @param resourceId The IDP resource ID.
+     * @param debugContext The resolved debug context.
+     * @return The execution result object.
+     * @throws DebugFrameworkException If executor is not found or execution fails.
+     * @throws Exception If execution fails.
+     */
+    private Object executeDebugRequest(String resourceId, Object debugContext) 
+            throws Exception {
+        
+        Object executor = DebugProtocolRouter.getExecutorForResource(resourceId);
+        if (executor == null) {
+            throw new DebugFrameworkException("No suitable DebugExecutor found for IDP: " + resourceId);
+        }
+
+        debugLog("Successfully loaded executor for IDP: " + resourceId);
+
+        Object authUrlResult = invokeExecutorMethod(executor, "execute", debugContext);
+        if (authUrlResult == null) {
+            throw new DebugFrameworkException("Authorization URL generation failed for IDP: " + resourceId);
+        }
+
+        return authUrlResult;
+    }
+
+    /**
+     * Adds metadata to the result map.
+     *
+     * @param result The result map to augment with metadata.
+     * @param resourceId The IDP resource ID.
+     * @param resourceType The resource type.
+     */
+    private void addResultMetadata(Map<String, Object> result, String resourceId, String resourceType) {
+
+        result.put(DebugFrameworkConstants.DEBUG_TIMESTAMP, System.currentTimeMillis());
+        result.put(DebugFrameworkConstants.DEBUG_RESOURCE_ID, resourceId);
+        result.put(DebugFrameworkConstants.DEBUG_RESOURCE_TYPE, resourceType);
+        result.put(DebugFrameworkConstants.DEBUG_REQUEST_TYPE, "RESOURCE_DEBUG_REQUEST");
+        result.put(DebugFrameworkConstants.DEBUG_STATUS, "SUCCESS");
+    }
+
+    /**
+     * Logs a debug message if debug logging is enabled.
+     *
+     * @param message The message to log.
+     */
+    private void debugLog(String message) {
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(message);
         }
     }
 

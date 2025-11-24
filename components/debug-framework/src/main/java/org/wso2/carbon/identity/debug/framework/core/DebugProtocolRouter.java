@@ -176,24 +176,38 @@ public class DebugProtocolRouter {
 
             if (resource == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Resource not found: " + resourceId );
+                    LOG.debug("Resource not found: " + resourceId);
                 }
                 return DebugProtocolType.OAUTH2_OIDC;
             }
 
-            try {
-                return detectProtocolFromIdP(resource);
-            } catch (NullPointerException npe) {
-                LOG.warn("Resource configuration is corrupted for resource: " + resourceId +
-                        ". This may indicate data integrity issues.", npe);
-                return DebugProtocolType.OAUTH2_OIDC;
-            }
+            return detectProtocolWithCorruptionHandling(resource, resourceId);
 
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Error detecting protocol for resource " + resourceId + ": " + e.getMessage());
             }
             return DebugProtocolType.OAUTH2_OIDC;  // Default fallback
+        }
+    }
+
+    /**
+     * Detects protocol from IdP configuration with corruption handling.
+     * Handles NullPointerException that may occur due to corrupted resource configuration.
+     *
+     * @param resource The IdentityProvider resource.
+     * @param resourceId The resource ID (used for logging).
+     * @return Detected DebugProtocolType, defaults to OAUTH2_OIDC if corruption is detected.
+     */
+    private static DebugProtocolType detectProtocolWithCorruptionHandling(IdentityProvider resource, 
+            String resourceId) {
+
+        try {
+            return detectProtocolFromIdP(resource);
+        } catch (NullPointerException npe) {
+            LOG.warn("Resource configuration is corrupted for resource: " + resourceId +
+                    ". This may indicate data integrity issues.", npe);
+            return DebugProtocolType.OAUTH2_OIDC;
         }
     }
 

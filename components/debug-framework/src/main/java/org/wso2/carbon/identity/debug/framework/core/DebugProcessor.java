@@ -111,7 +111,8 @@ public abstract class DebugProcessor {
             LOG.error("Unexpected error processing OAuth 2.0 callback.", e);
             context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Unexpected error: " + e.getMessage());
             context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
-            if (e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null && LOG.isDebugEnabled()) {
+            if (e instanceof java.lang.reflect.InvocationTargetException 
+                && e.getCause() != null && LOG.isDebugEnabled()) {
                 LOG.debug("InvocationTargetException cause:", e.getCause());
             }
             redirectToDebugSuccess(response, state, resourceId);
