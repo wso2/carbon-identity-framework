@@ -41,6 +41,7 @@ public class DebugMetadata {
      * Constructs an empty DebugMetadata.
      */
     public DebugMetadata() {
+
         this.properties = new HashMap<>();
         this.createdAt = System.currentTimeMillis();
     }
@@ -51,6 +52,7 @@ public class DebugMetadata {
      * @param contextId Unique context identifier.
      */
     public DebugMetadata(String contextId) {
+
         this();
         this.contextId = contextId;
     }
@@ -61,6 +63,7 @@ public class DebugMetadata {
      * @return Context ID string.
      */
     public String getContextId() {
+
         return contextId;
     }
 
@@ -70,6 +73,7 @@ public class DebugMetadata {
      * @param contextId Context ID string.
      */
     public void setContextId(String contextId) {
+
         this.contextId = contextId;
     }
 
@@ -79,6 +83,7 @@ public class DebugMetadata {
      * @return IdP ID string.
      */
     public String getIdpId() {
+
         return idpId;
     }
 
@@ -88,6 +93,7 @@ public class DebugMetadata {
      * @param idpId IdP ID string.
      */
     public void setIdpId(String idpId) {
+
         this.idpId = idpId;
     }
 
@@ -97,6 +103,7 @@ public class DebugMetadata {
      * @return IdP name string.
      */
     public String getIdpName() {
+
         return idpName;
     }
 
@@ -106,6 +113,7 @@ public class DebugMetadata {
      * @param idpName IdP name string.
      */
     public void setIdpName(String idpName) {
+
         this.idpName = idpName;
     }
 
@@ -115,6 +123,7 @@ public class DebugMetadata {
      * @return Authenticator name string.
      */
     public String getAuthenticatorName() {
+
         return authenticatorName;
     }
 
@@ -124,6 +133,7 @@ public class DebugMetadata {
      * @param authenticatorName Authenticator name string.
      */
     public void setAuthenticatorName(String authenticatorName) {
+
         this.authenticatorName = authenticatorName;
     }
 
@@ -133,6 +143,7 @@ public class DebugMetadata {
      * @return Tenant domain string.
      */
     public String getTenantDomain() {
+
         return tenantDomain;
     }
 
@@ -142,6 +153,7 @@ public class DebugMetadata {
      * @param tenantDomain Tenant domain string.
      */
     public void setTenantDomain(String tenantDomain) {
+
         this.tenantDomain = tenantDomain;
     }
 
@@ -151,6 +163,7 @@ public class DebugMetadata {
      * @return Timestamp in milliseconds.
      */
     public long getCreatedAt() {
+
         return createdAt;
     }
 
@@ -160,6 +173,7 @@ public class DebugMetadata {
      * @param createdAt Timestamp in milliseconds.
      */
     public void setCreatedAt(long createdAt) {
+
         this.createdAt = createdAt;
     }
 
@@ -169,6 +183,7 @@ public class DebugMetadata {
      * @return Session ID string.
      */
     public String getSessionId() {
+
         return sessionId;
     }
 
@@ -178,6 +193,7 @@ public class DebugMetadata {
      * @param sessionId Session ID string.
      */
     public void setSessionId(String sessionId) {
+
         this.sessionId = sessionId;
     }
 
@@ -187,6 +203,7 @@ public class DebugMetadata {
      * @return Map of metadata properties.
      */
     public Map<String, String> getProperties() {
+
         return properties;
     }
 
@@ -196,6 +213,7 @@ public class DebugMetadata {
      * @param properties Map of metadata properties.
      */
     public void setProperties(Map<String, String> properties) {
+
         this.properties = properties != null ? properties : new HashMap<>();
     }
 
@@ -206,6 +224,7 @@ public class DebugMetadata {
      * @param value Property value.
      */
     public void addProperty(String key, String value) {
+
         if (this.properties == null) {
             this.properties = new HashMap<>();
         }
@@ -219,11 +238,13 @@ public class DebugMetadata {
      * @return Property value or null if not found.
      */
     public String getProperty(String key) {
+
         return this.properties != null ? this.properties.get(key) : null;
     }
 
     @Override
     public String toString() {
+        
         return "DebugMetadata{" +
                 "contextId='" + contextId + '\'' +
                 ", idpId='" + idpId + '\'' +

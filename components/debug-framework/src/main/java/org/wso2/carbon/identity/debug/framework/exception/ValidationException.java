@@ -33,6 +33,7 @@ public class ValidationException extends DebugFrameworkException {
      * @param message   Error message.
      */
     public ValidationException(String errorCode, String message) {
+
         super(errorCode, message);
     }
 
@@ -44,6 +45,7 @@ public class ValidationException extends DebugFrameworkException {
      * @param cause     Root cause exception.
      */
     public ValidationException(String errorCode, String message, Throwable cause) {
+
         super(errorCode, message, cause);
     }
 
@@ -53,6 +55,7 @@ public class ValidationException extends DebugFrameworkException {
      * @param message Error message.
      */
     public ValidationException(String message) {
+
         super("VALIDATION_ERROR", message);
     }
 
@@ -63,6 +66,7 @@ public class ValidationException extends DebugFrameworkException {
      * @param cause   Root cause exception.
      */
     public ValidationException(String message, Throwable cause) {
+        
         super("VALIDATION_ERROR", message, cause);
     }
 }

@@ -46,6 +46,7 @@ public final class DebugResultCache {
      * Internal cache entry holding result and expiry time.
      */
     private static class CacheEntry {
+
         final String result;
         final long expiryTime;
 
@@ -71,6 +72,7 @@ public final class DebugResultCache {
      * @param result The JSON-serialized debug result.
      */
     public static void add(String state, String result) {
+
         if (state == null || result == null) {
             LOG.warn("Cache.add: state and result cannot be null");
             return;
@@ -90,6 +92,7 @@ public final class DebugResultCache {
      * @return The JSON-serialized debug result or null if not found or expired.
      */
     public static String get(String state) {
+
         if (state == null) {
             return null;
         }
@@ -118,6 +121,7 @@ public final class DebugResultCache {
      * @param state The state parameter (cache key).
      */
     public static void remove(String state) {
+
         if (state == null) {
             return;
         }
@@ -131,6 +135,7 @@ public final class DebugResultCache {
      * Clears all debug results from the cache.
      */
     public static void clear() {
+
         CACHE.clear();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Debug result cache cleared");
@@ -143,6 +148,7 @@ public final class DebugResultCache {
      * @return Number of cached results.
      */
     public static int size() {
+
         return CACHE.size();
     }
 
@@ -150,6 +156,7 @@ public final class DebugResultCache {
      * Performs cache maintenance by removing expired entries.
      */
     private static void maintain() {
+
         try {
             int cleanedCount = 0;
             Iterator<Map.Entry<String, CacheEntry>> iterator = CACHE.entrySet().iterator();
@@ -172,6 +179,7 @@ public final class DebugResultCache {
      * Starts a background scheduler for periodic cache cleanup.
      */
     private static void startCleanupScheduler() {
+
         try {
             cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r);
@@ -208,6 +216,7 @@ public final class DebugResultCache {
     }
 
     private DebugResultCache() {
+        
         // Prevent instantiation.
     }
 }

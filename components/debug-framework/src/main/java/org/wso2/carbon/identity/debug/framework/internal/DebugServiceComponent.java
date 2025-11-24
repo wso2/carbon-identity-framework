@@ -46,6 +46,7 @@ public class DebugServiceComponent {
 
     @Activate
     protected void activate(ComponentContext context) {
+
         try {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Debug Framework OSGi component activating");
@@ -73,6 +74,7 @@ public class DebugServiceComponent {
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
+
         LOG.info("Debug Framework OSGi component deactivated");
     }
 
@@ -89,6 +91,7 @@ public class DebugServiceComponent {
             unbind = "unsetClaimMetadataManagementService"
     )
     protected void setClaimMetadataManagementService(ClaimMetadataManagementService service) {
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("ClaimMetadataManagementService set in DebugServiceComponent");
         }
@@ -101,6 +104,7 @@ public class DebugServiceComponent {
      * @param claimMetadataManagementService the ClaimMetadataManagementService instance
      */
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+        
         if (LOG.isDebugEnabled()) {
             LOG.debug("ClaimMetadataManagementService unset in DebugServiceComponent");
         }

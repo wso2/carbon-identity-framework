@@ -34,6 +34,7 @@ public class DebugFrameworkServiceDataHolder {
      * Private constructor to prevent instantiation.
      */
     private DebugFrameworkServiceDataHolder() {
+
     }
 
     /**
@@ -42,6 +43,7 @@ public class DebugFrameworkServiceDataHolder {
      * @return the singleton instance
      */
     public static DebugFrameworkServiceDataHolder getInstance() {
+
         return instance;
     }
 
@@ -51,6 +53,7 @@ public class DebugFrameworkServiceDataHolder {
      * @return the ClaimMetadataManagementService instance
      */
     public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
         return claimMetadataManagementService;
     }
 
@@ -60,6 +63,7 @@ public class DebugFrameworkServiceDataHolder {
      * @param claimMetadataManagementService the ClaimMetadataManagementService instance
      */
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+        
         this.claimMetadataManagementService = claimMetadataManagementService;
     }
 }

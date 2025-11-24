@@ -48,6 +48,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
      * Internal cache entry holding result and expiry time.
      */
     private static class CacheEntry {
+
         final Object data;
         final long expiryTime;
         final long createdAt;
@@ -67,6 +68,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
      * Constructs an InMemoryDebugResultCache with default expiry (15 minutes).
      */
     public InMemoryDebugResultCache() {
+
         this(DebugFrameworkConstants.CACHE_EXPIRY_MINUTES);
     }
 
@@ -76,6 +78,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
      * @param expiryMinutes Cache entry TTL in minutes.
      */
     public InMemoryDebugResultCache(int expiryMinutes) {
+
         this.cache = new ConcurrentHashMap<>();
         this.expiryMinutes = expiryMinutes;
         startCleanupScheduler();
@@ -83,6 +86,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
 
     @Override
     public void cache(String key, DebugResult result) throws CacheException {
+
         if (key == null || result == null) {
             throw new CacheException("INVALID_CACHE_PARAMS", "Cache key and result cannot be null");
         }
@@ -98,6 +102,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
 
     @Override
     public void cacheJson(String key, String json) throws CacheException {
+
         if (key == null || json == null) {
             throw new CacheException("INVALID_CACHE_PARAMS", "Cache key and JSON cannot be null");
         }
@@ -113,6 +118,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
 
     @Override
     public DebugResult getResult(String key) throws CacheException {
+
         if (key == null) {
             throw new CacheException("INVALID_KEY", "Cache key cannot be null");
         }
@@ -148,6 +154,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
 
     @Override
     public String getResultJson(String key) throws CacheException {
+
         if (key == null) {
             throw new CacheException("INVALID_KEY", "Cache key cannot be null");
         }
@@ -183,6 +190,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
 
     @Override
     public void remove(String key) throws CacheException {
+
         if (key == null) {
             throw new CacheException("INVALID_KEY", "Cache key cannot be null");
         }
@@ -198,6 +206,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
 
     @Override
     public void clear() throws CacheException {
+
         try {
             cache.clear();
             LOG.info("Debug result cache cleared");
@@ -208,6 +217,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
 
     @Override
     public boolean exists(String key) throws CacheException {
+
         if (key == null) {
             throw new CacheException("INVALID_KEY", "Cache key cannot be null");
         }
@@ -228,11 +238,13 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
 
     @Override
     public long getSize() {
+
         return cache.size();
     }
 
     @Override
     public void maintain() {
+
         try {
             int cleanedCount = 0;
             for (Map.Entry<String, CacheEntry> entry : cache.entrySet()) {
@@ -253,6 +265,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
      * Starts a background scheduler for periodic cache cleanup.
      */
     private void startCleanupScheduler() {
+        
         try {
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r);

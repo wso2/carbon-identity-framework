@@ -41,6 +41,7 @@ public class DebugResult {
      * Constructs an empty DebugResult.
      */
     public DebugResult() {
+
         this.resultData = new HashMap<>();
         this.metadata = new HashMap<>();
         this.timestamp = System.currentTimeMillis();
@@ -53,6 +54,7 @@ public class DebugResult {
      * @param resultId   Unique identifier for this result.
      */
     public DebugResult(boolean successful, String resultId) {
+
         this();
         this.successful = successful;
         this.resultId = resultId;
@@ -64,6 +66,7 @@ public class DebugResult {
      * @return true if successful, false otherwise.
      */
     public boolean isSuccessful() {
+
         return successful;
     }
 
@@ -73,6 +76,7 @@ public class DebugResult {
      * @param successful Success status.
      */
     public void setSuccessful(boolean successful) {
+
         this.successful = successful;
     }
 
@@ -82,6 +86,7 @@ public class DebugResult {
      * @return Result ID string.
      */
     public String getResultId() {
+
         return resultId;
     }
 
@@ -91,6 +96,7 @@ public class DebugResult {
      * @param resultId Result ID string.
      */
     public void setResultId(String resultId) {
+
         this.resultId = resultId;
     }
 
@@ -100,6 +106,7 @@ public class DebugResult {
      * @return Timestamp in milliseconds.
      */
     public long getTimestamp() {
+
         return timestamp;
     }
 
@@ -109,6 +116,7 @@ public class DebugResult {
      * @param timestamp Timestamp in milliseconds.
      */
     public void setTimestamp(long timestamp) {
+
         this.timestamp = timestamp;
     }
 
@@ -118,6 +126,7 @@ public class DebugResult {
      * @return Status string.
      */
     public String getStatus() {
+
         return status;
     }
 
@@ -127,6 +136,7 @@ public class DebugResult {
      * @param status Status string.
      */
     public void setStatus(String status) {
+
         this.status = status;
     }
 
@@ -136,6 +146,7 @@ public class DebugResult {
      * @return Error code string.
      */
     public String getErrorCode() {
+
         return errorCode;
     }
 
@@ -145,6 +156,7 @@ public class DebugResult {
      * @param errorCode Error code string.
      */
     public void setErrorCode(String errorCode) {
+
         this.errorCode = errorCode;
     }
 
@@ -154,6 +166,7 @@ public class DebugResult {
      * @return Error message string.
      */
     public String getErrorMessage() {
+
         return errorMessage;
     }
 
@@ -163,6 +176,7 @@ public class DebugResult {
      * @param errorMessage Error message string.
      */
     public void setErrorMessage(String errorMessage) {
+
         this.errorMessage = errorMessage;
     }
 
@@ -172,6 +186,7 @@ public class DebugResult {
      * @return Map containing result data.
      */
     public Map<String, Object> getResultData() {
+
         return resultData;
     }
 
@@ -181,6 +196,7 @@ public class DebugResult {
      * @param resultData Map containing result data.
      */
     public void setResultData(Map<String, Object> resultData) {
+
         this.resultData = resultData != null ? resultData : new HashMap<>();
     }
 
@@ -191,6 +207,7 @@ public class DebugResult {
      * @param value Data value.
      */
     public void addResultData(String key, Object value) {
+
         if (this.resultData == null) {
             this.resultData = new HashMap<>();
         }
@@ -203,6 +220,7 @@ public class DebugResult {
      * @return Map containing metadata.
      */
     public Map<String, Object> getMetadata() {
+
         return metadata;
     }
 
@@ -212,6 +230,7 @@ public class DebugResult {
      * @param metadata Map containing metadata.
      */
     public void setMetadata(Map<String, Object> metadata) {
+
         this.metadata = metadata != null ? metadata : new HashMap<>();
     }
 
@@ -222,6 +241,7 @@ public class DebugResult {
      * @param value Metadata value.
      */
     public void addMetadata(String key, Object value) {
+
         if (this.metadata == null) {
             this.metadata = new HashMap<>();
         }
@@ -230,6 +250,7 @@ public class DebugResult {
 
     @Override
     public String toString() {
+        
         return "DebugResult{" +
                 "successful=" + successful +
                 ", resultId='" + resultId + '\'' +

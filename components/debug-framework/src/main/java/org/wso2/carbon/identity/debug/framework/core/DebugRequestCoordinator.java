@@ -42,6 +42,7 @@ public class DebugRequestCoordinator implements DebugService {
     private static final Log LOG = LogFactory.getLog(DebugRequestCoordinator.class);
 
     public DebugRequestCoordinator() {
+
     }
 
     /**
@@ -55,6 +56,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @return Map containing debug result data, or null on failure.
      */
     public Map<String, Object> handleResourceDebugRequest(Map<String, Object> debugRequestContext) {
+
         if (debugRequestContext == null) {
             LOG.error("Debug request context is null");
             return null;
@@ -114,6 +116,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @return Result map from the handler, or null if invocation fails.
      */
     private Map<String, Object> invokeHandlerMethod(Object handler, Map<String, Object> debugRequestContext) {
+
         if (handler == null) {
             LOG.error("Handler instance is null");
             return null;
@@ -174,6 +177,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @throws IOException If processing fails.
      */
     public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
+
         try {
             // Check if this is a debug flow callback
             if (isDebugFlowCallback(request)) {
@@ -196,6 +200,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @return true if this is a debug flow callback, false otherwise.
      */
     private boolean isDebugFlowCallback(HttpServletRequest request) {
+
         String state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
         if (state == null || !state.startsWith(DebugFrameworkConstants.DEBUG_PREFIX)) {
             return false;
@@ -215,6 +220,7 @@ public class DebugRequestCoordinator implements DebugService {
      */
     @Override
     public boolean isDebugFlow(HttpServletRequest request) {
+
         return isDebugFlowCallback(request);
     }
 
@@ -226,6 +232,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @return Debug session ID if found, null otherwise.
      */
     private String extractDebugSessionIdFromState(String state) {
+
         if (state != null && state.startsWith(DebugFrameworkConstants.DEBUG_PREFIX)) {
             return state.substring(DebugFrameworkConstants.DEBUG_PREFIX.length());
         }
@@ -242,6 +249,7 @@ public class DebugRequestCoordinator implements DebugService {
      */
     private boolean handleDebugFlowCallback(HttpServletRequest request, HttpServletResponse response) 
             throws IOException {
+
         try {
             // Extract OAuth callback parameters.
             String code = request.getParameter(DebugFrameworkConstants.OAUTH2_CODE_PARAM);
@@ -317,6 +325,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @return DebugProcessor implementation if found, null otherwise.
      */
     private Object getProtocolSpecificProcessor(HttpServletRequest request, AuthenticationContext context) {
+
         try {
             String resourceId = null;
 
@@ -369,7 +378,8 @@ public class DebugRequestCoordinator implements DebugService {
      * @throws Exception If method invocation fails.
      */
     private void invokeProcessorCallback(Object processor, HttpServletRequest request, 
-                                        HttpServletResponse response, AuthenticationContext context) throws Exception {
+            HttpServletResponse response, AuthenticationContext context) throws Exception {
+
         if (processor == null) {
             throw new Exception("DebugProcessor is null");
         }
@@ -414,6 +424,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @return New AuthenticationContext configured for debug processing.
      */
     private AuthenticationContext createDebugContextForCallback(String code, String state, HttpServletRequest request) {
+
         AuthenticationContext context = new AuthenticationContext();
         
         // Generate or extract context identifier.
@@ -449,6 +460,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @return AuthenticationContext if found, null otherwise.
      */
     private AuthenticationContext retrieveDebugContextFromCache(String sessionDataKey) {
+
         try {
             AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);
             AuthenticationContextCacheEntry cacheEntry = 
@@ -472,6 +484,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @param context AuthenticationContext to cache.
      */
     private void cacheDebugContext(AuthenticationContext context) {
+
         try {
             AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(context.getContextIdentifier());
             AuthenticationContextCacheEntry cacheEntry = new AuthenticationContextCacheEntry(context);
@@ -495,6 +508,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @param errorMessage Detailed error message.
      */
     private void sendErrorResponse(HttpServletResponse response, String errorCode, String errorMessage) {
+
         try {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
@@ -527,6 +541,7 @@ public class DebugRequestCoordinator implements DebugService {
      * @param value String value to escape and append.
      */
     private void appendJsonString(StringBuilder builder, String value) {
+        
         builder.append("\"");
         if (value != null && !value.isEmpty()) {
             for (int i = 0; i < value.length(); i++) {

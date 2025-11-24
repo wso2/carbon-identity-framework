@@ -33,6 +33,7 @@ public class ContextResolutionException extends DebugFrameworkException {
      * @param message   Error message.
      */
     public ContextResolutionException(String errorCode, String message) {
+
         super(errorCode, message);
     }
 
@@ -44,6 +45,7 @@ public class ContextResolutionException extends DebugFrameworkException {
      * @param cause     Root cause exception.
      */
     public ContextResolutionException(String errorCode, String message, Throwable cause) {
+
         super(errorCode, message, cause);
     }
 
@@ -53,6 +55,7 @@ public class ContextResolutionException extends DebugFrameworkException {
      * @param message Error message.
      */
     public ContextResolutionException(String message) {
+
         super("CONTEXT_RESOLUTION_ERROR", message);
     }
 
@@ -63,6 +66,7 @@ public class ContextResolutionException extends DebugFrameworkException {
      * @param cause   Root cause exception.
      */
     public ContextResolutionException(String message, Throwable cause) {
+        
         super("CONTEXT_RESOLUTION_ERROR", message, cause);
     }
 }

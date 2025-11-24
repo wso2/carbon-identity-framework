@@ -48,6 +48,7 @@ public final class DebugFrameworkUtil {
      * @return true if null or empty, false otherwise.
      */
     public static boolean isBlank(String value) {
+
         return value == null || value.trim().isEmpty();
     }
 
@@ -58,6 +59,7 @@ public final class DebugFrameworkUtil {
      * @return true if not null and not empty, false otherwise.
      */
     public static boolean isNotBlank(String value) {
+
         return !isBlank(value);
     }
 
@@ -67,6 +69,7 @@ public final class DebugFrameworkUtil {
      * @return UUID-based session identifier.
      */
     public static String generateSessionId() {
+
         return "debug-" + java.util.UUID.randomUUID().toString();
     }
 
@@ -76,6 +79,7 @@ public final class DebugFrameworkUtil {
      * @return Random state string.
      */
     public static String generateStateParameter() {
+
         return java.util.UUID.randomUUID().toString();
     }
 
@@ -87,6 +91,7 @@ public final class DebugFrameworkUtil {
      * @throws IllegalArgumentException If encoding fails.
      */
     public static String encodeUrlParameter(String param) {
+
         if (param == null) {
             return null;
         }
@@ -106,6 +111,7 @@ public final class DebugFrameworkUtil {
      * @throws IllegalArgumentException If decoding fails.
      */
     public static String decodeUrlParameter(String param) {
+
         if (param == null) {
             return null;
         }
@@ -125,6 +131,7 @@ public final class DebugFrameworkUtil {
      * @return true if the email format is valid, false otherwise.
      */
     public static boolean isValidEmail(String email) {
+
         if (isBlank(email)) {
             return false;
         }
@@ -140,6 +147,7 @@ public final class DebugFrameworkUtil {
      * @return true if the UUID format is valid, false otherwise.
      */
     public static boolean isValidUUID(String uuid) {
+
         if (isBlank(uuid)) {
             return false;
         }
@@ -153,6 +161,7 @@ public final class DebugFrameworkUtil {
      * @return String representation or null.
      */
     public static String toSafeString(Object obj) {
+
         return obj != null ? obj.toString() : null;
     }
 
@@ -164,6 +173,7 @@ public final class DebugFrameworkUtil {
      * @param params Optional parameters for message formatting.
      */
     public static void debugLog(Log log, String msg, Object... params) {
+
         if (log.isDebugEnabled()) {
             if (params != null && params.length > 0) {
                 log.debug(String.format(msg, params));
@@ -180,6 +190,7 @@ public final class DebugFrameworkUtil {
      * @return Current system time in milliseconds since Unix epoch.
      */
     public static long getCurrentTimestamp() {
+
         return System.currentTimeMillis();
     }
 
@@ -191,6 +202,7 @@ public final class DebugFrameworkUtil {
      * @return Elapsed time in milliseconds since startTime.
      */
     public static long getElapsedTime(long startTime) {
+        
         return System.currentTimeMillis() - startTime;
     }
 }

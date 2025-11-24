@@ -34,6 +34,7 @@ public class DebugFrameworkException extends Exception {
      * @param message   Error message.
      */
     public DebugFrameworkException(String errorCode, String message) {
+
         super(message);
         this.errorCode = errorCode;
     }
@@ -46,6 +47,7 @@ public class DebugFrameworkException extends Exception {
      * @param cause     Root cause exception.
      */
     public DebugFrameworkException(String errorCode, String message, Throwable cause) {
+
         super(message, cause);
         this.errorCode = errorCode;
     }
@@ -56,6 +58,7 @@ public class DebugFrameworkException extends Exception {
      * @param message Error message.
      */
     public DebugFrameworkException(String message) {
+
         super(message);
         this.errorCode = "DEBUG_FRAMEWORK_ERROR";
     }
@@ -67,6 +70,7 @@ public class DebugFrameworkException extends Exception {
      * @param cause   Root cause exception.
      */
     public DebugFrameworkException(String message, Throwable cause) {
+
         super(message, cause);
         this.errorCode = "DEBUG_FRAMEWORK_ERROR";
     }
@@ -77,6 +81,7 @@ public class DebugFrameworkException extends Exception {
      * @return Error code string.
      */
     public String getErrorCode() {
+
         return errorCode;
     }
 
@@ -86,6 +91,7 @@ public class DebugFrameworkException extends Exception {
      * @param errorCode Error code string.
      */
     public void setErrorCode(String errorCode) {
+        
         this.errorCode = errorCode;
     }
 }

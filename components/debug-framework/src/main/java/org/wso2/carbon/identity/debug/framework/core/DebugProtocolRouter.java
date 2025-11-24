@@ -47,6 +47,7 @@ public class DebugProtocolRouter {
      * Enum representing different debug protocol types and their implementation classes.
      */
     public enum DebugProtocolType {
+
         OAUTH2_OIDC(
             "OAuth2/OIDC",
             "org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2ContextProvider",
@@ -68,7 +69,7 @@ public class DebugProtocolRouter {
         SAML(
             "SAML",
             "org.wso2.carbon.identity.application.authenticator.saml.debug.SAMLContextProvider",
-            null,  // SAML doesn't use DebugExecutor (synchronous flow)
+            null,  
             "org.wso2.carbon.identity.application.authenticator.saml.debug.SAMLDebugProcessor"
         );
 
@@ -79,6 +80,7 @@ public class DebugProtocolRouter {
 
         DebugProtocolType(String displayName, String contextProviderClass, 
                          String executorClass, String processorClass) {
+                            
             this.displayName = displayName;
             this.contextProviderClass = contextProviderClass;
             this.executorClass = executorClass;
@@ -86,18 +88,22 @@ public class DebugProtocolRouter {
         }
 
         public String getDisplayName() {
+
             return displayName;
         }
 
         public String getContextProviderClass() {
+
             return contextProviderClass;
         }
 
         public String getExecutorClass() {
+
             return executorClass;
         }
 
         public String getProcessorClass() {
+
             return processorClass;
         }
     }
@@ -110,6 +116,7 @@ public class DebugProtocolRouter {
      * @return Detected DebugProtocolType, defaults to OAUTH2_OIDC if detection fails.
      */
     public static DebugProtocolType detectProtocol(String resourceId) {
+
         if (StringUtils.isEmpty(resourceId)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Resource ID is empty, defaulting to OAuth2/OIDC");
@@ -164,6 +171,7 @@ public class DebugProtocolRouter {
      * @return Detected DebugProtocolType.
      */
     private static DebugProtocolType detectProtocolFromIdP(IdentityProvider resource) {
+
         // Defensive check: Resource itself should not be null, but add explicit check
         if (resource == null) {
             if (LOG.isDebugEnabled()) {
@@ -219,6 +227,7 @@ public class DebugProtocolRouter {
      * @return Detected DebugProtocolType or null if not recognized.
      */
     private static DebugProtocolType detectProtocolFromAuthenticator(String authenticatorName) {
+
         if (StringUtils.isEmpty(authenticatorName)) {
             return null;
         }
@@ -260,6 +269,7 @@ public class DebugProtocolRouter {
      * @return Fully qualified context provider class name.
      */
     public static String getContextProviderClass(DebugProtocolType protocolType) {
+
         return protocolType.getContextProviderClass();
     }
 
@@ -271,6 +281,7 @@ public class DebugProtocolRouter {
      * @return Fully qualified executor class name, or null if not applicable.
      */
     public static String getExecutorClass(DebugProtocolType protocolType) {
+
         return protocolType.getExecutorClass();
     }
 
@@ -281,6 +292,7 @@ public class DebugProtocolRouter {
      * @return Fully qualified processor class name.
      */
     public static String getProcessorClass(DebugProtocolType protocolType) {
+
         return protocolType.getProcessorClass();
     }
 
@@ -292,6 +304,7 @@ public class DebugProtocolRouter {
      * @return Fully qualified context provider class name.
      */
     public static String getContextProviderClassForResource(String resourceId) {
+
         DebugProtocolType type = detectProtocol(resourceId);
         return getContextProviderClass(type);
     }
@@ -304,6 +317,7 @@ public class DebugProtocolRouter {
      * @return Fully qualified executor class name, or null if not applicable.
      */
     public static String getExecutorClassForResource(String resourceId) {
+
         DebugProtocolType type = detectProtocol(resourceId);
         return getExecutorClass(type);
     }
@@ -316,6 +330,7 @@ public class DebugProtocolRouter {
      * @return Fully qualified processor class name.
      */
     public static String getProcessorClassForResource(String resourceId) {
+
         DebugProtocolType type = detectProtocol(resourceId);
         return getProcessorClass(type);
     }
@@ -328,6 +343,7 @@ public class DebugProtocolRouter {
      * @return Context provider instance, or null if not available.
      */
     public static Object getContextProviderForResource(String resourceId) {
+
         String className = getContextProviderClassForResource(resourceId);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Loading context provider class: " + className + " for resource: " + resourceId);
@@ -371,6 +387,7 @@ public class DebugProtocolRouter {
      * @return Executor instance, or null if not available or not applicable.
      */
     public static Object getExecutorForResource(String resourceId) {
+
         String className = getExecutorClassForResource(resourceId);
         if (className == null) {
             return null;
@@ -410,6 +427,7 @@ public class DebugProtocolRouter {
      * @return Processor instance, or null if not available.
      */
     public static Object getProcessorForResource(String resourceId) {
+
         String className = getProcessorClassForResource(resourceId);
         Object processor = loadServiceByClass(className);
         if (processor != null) {
@@ -446,6 +464,7 @@ public class DebugProtocolRouter {
      * @return DebugResourceHandler instance if available, null otherwise.
      */
     public static Object getDebugResourceHandler(String resourceType) {
+
         if (StringUtils.isEmpty(resourceType)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Resource type is empty, unable to route debug request");
@@ -508,6 +527,7 @@ public class DebugProtocolRouter {
      * @return Service instance, or null if not available.
      */
     private static Object loadServiceByClass(String className) {
+
         if (StringUtils.isEmpty(className)) {
             return null;
         }

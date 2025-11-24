@@ -38,6 +38,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * Constructs an IdpDebugResourceHandler.
      */
     public IdpDebugResourceHandler() {
+
     }
 
     /**
@@ -48,6 +49,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      */
     @Override
     public boolean canHandle(String resourceType) {
+
         if (resourceType == null) {
             return false;
         }
@@ -178,6 +180,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      */
     @Override
     public String getName() {
+
         return "IdpDebugResourceHandler";
     }
 
@@ -193,6 +196,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      */
     private Object invokeContextResolverMethod(Object contextResolver, String methodName, 
                                               Map<String, Object> context) throws Exception {
+
         if (contextResolver == null) {
             throw new IllegalArgumentException("Context resolver is null");
         }
@@ -243,6 +247,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @throws Exception If the method cannot be invoked or execution fails.
      */
     private Object invokeExecutorMethod(Object executor, String methodName, Object debugContext) throws Exception {
+
         if (executor == null) {
             throw new IllegalArgumentException("Executor is null");
         }
@@ -293,10 +298,11 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * Extracts result data as a Map from various result object types.
      * Handles both direct Map results and DebugResult-like objects with getResultData().
      *
-     * @param resultObject The result object from executor (can be null).
+     * @param resultObject The result object from executor (can be null).-
      * @return Map containing extracted result data, or empty Map if no data found.
      */
     private Map<String, Object> extractResultAsMap(Object resultObject) {
+
         if (resultObject == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Result object is null, returning empty map");
@@ -341,6 +347,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @throws Exception If the method cannot be found or invoked.
      */
     private Object invokeMethodByName(Object object, String methodName) throws Exception {
+        
         if (object == null) {
             throw new IllegalArgumentException("Object is null");
         }

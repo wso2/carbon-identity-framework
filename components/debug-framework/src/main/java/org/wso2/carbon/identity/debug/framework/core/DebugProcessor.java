@@ -133,8 +133,8 @@ public abstract class DebugProcessor {
      * @throws IOException If response cannot be sent.
      */
     protected boolean validateProtocolCallback(HttpServletRequest request, AuthenticationContext context,
-                                             HttpServletResponse response, String state, String resourceId) 
-            throws IOException {
+              HttpServletResponse response, String state, String resourceId) throws IOException {
+
         // Default implementation: validate basic OAuth parameters.
         String code = request.getParameter("code");
         String error = request.getParameter("error");
@@ -187,8 +187,8 @@ public abstract class DebugProcessor {
      * @throws IOException If response cannot be sent.
      */
     protected boolean exchangeAuthorizationForTokens(HttpServletRequest request, AuthenticationContext context,
-                                                   HttpServletResponse response, String state, String resourceId) 
-            throws IOException {
+              HttpServletResponse response, String state, String resourceId) throws IOException {
+
         LOG.error("exchangeAuthorizationForTokens not implemented in subclass");
         return false;
     }
@@ -216,8 +216,7 @@ public abstract class DebugProcessor {
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean isAuthorizationCodeAlreadyProcessed(String authorizationCode, HttpServletRequest request,
-                                                       AuthenticationContext context, HttpServletResponse response,
-                                                       String state, String resourceId) throws IOException;
+              AuthenticationContext context, HttpServletResponse response, String state, String resourceId) throws IOException;
 
     /**
      * Handles claim extraction result and validates successful extraction.
@@ -232,8 +231,7 @@ public abstract class DebugProcessor {
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean handleClaimsExtractionResult(Map<String, Object> claims, AuthenticationContext context,
-                                               HttpServletResponse response, String state, 
-                                               String resourceId) throws IOException;
+              HttpServletResponse response, String state, String resourceId) throws IOException;
 
     /**
      * Builds and caches the final debug result after successful authentication.
@@ -266,6 +264,6 @@ public abstract class DebugProcessor {
      * @param resourceId resource ID.
      * @throws IOException If response fails.
      */
-    protected abstract void redirectToDebugSuccess(HttpServletResponse 
-    response, String state, String resourceId) throws IOException;
+    protected abstract void redirectToDebugSuccess(HttpServletResponse response, String state, String resourceId)
+              throws IOException;
 }

@@ -33,6 +33,7 @@ public class ExecutionException extends DebugFrameworkException {
      * @param message   Error message.
      */
     public ExecutionException(String errorCode, String message) {
+
         super(errorCode, message);
     }
 
@@ -44,6 +45,7 @@ public class ExecutionException extends DebugFrameworkException {
      * @param cause     Root cause exception.
      */
     public ExecutionException(String errorCode, String message, Throwable cause) {
+
         super(errorCode, message, cause);
     }
 
@@ -53,6 +55,7 @@ public class ExecutionException extends DebugFrameworkException {
      * @param message Error message.
      */
     public ExecutionException(String message) {
+
         super("EXECUTION_ERROR", message);
     }
 
@@ -63,6 +66,7 @@ public class ExecutionException extends DebugFrameworkException {
      * @param cause   Root cause exception.
      */
     public ExecutionException(String message, Throwable cause) {
+        
         super("EXECUTION_ERROR", message, cause);
     }
 }

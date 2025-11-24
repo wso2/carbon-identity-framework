@@ -34,6 +34,7 @@ public class CacheException extends DebugFrameworkException {
      */
     public CacheException(String errorCode, String message) {
         super(errorCode, message);
+        
     }
 
     /**
@@ -44,6 +45,7 @@ public class CacheException extends DebugFrameworkException {
      * @param cause     Root cause exception.
      */
     public CacheException(String errorCode, String message, Throwable cause) {
+
         super(errorCode, message, cause);
     }
 
@@ -53,6 +55,7 @@ public class CacheException extends DebugFrameworkException {
      * @param message Error message.
      */
     public CacheException(String message) {
+
         super("CACHE_ERROR", message);
     }
 
@@ -63,6 +66,7 @@ public class CacheException extends DebugFrameworkException {
      * @param cause   Root cause exception.
      */
     public CacheException(String message, Throwable cause) {
+        
         super("CACHE_ERROR", message, cause);
     }
 }
