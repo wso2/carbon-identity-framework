@@ -358,12 +358,14 @@
       "oauth.allow_session_bound_tokens_after_idle_session_expiry": true,
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
-      "oauth.callback.restrict_fragment_components": false
+      "oauth.callback.restrict_fragment_components": false,
+      "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
-      "oauth.callback.restrict_fragment_components": false
+      "oauth.callback.restrict_fragment_components": false,
+      "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true
     }
   }
 }
