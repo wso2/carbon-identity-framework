@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 
 /**
  * OSGi service component for Debug Framework.
@@ -45,7 +46,7 @@ public class DebugServiceComponent {
     private static final Log LOG = LogFactory.getLog(DebugServiceComponent.class);
 
     @Activate
-    protected void activate(ComponentContext context) {
+    protected void activate(ComponentContext context) throws DebugFrameworkException {
 
         try {
             if (LOG.isDebugEnabled()) {
@@ -66,9 +67,9 @@ public class DebugServiceComponent {
                 LOG.debug("DebugRequestCoordinator registered as OSGi service");
             }
 
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.error("Debug Framework activation failed", e);
-            throw new RuntimeException("Debug Framework activation failed: " + e.getMessage(), e);
+            throw new DebugFrameworkException("Debug Framework activation failed: " + e.getMessage(), e);
         }
     }
 
@@ -104,7 +105,7 @@ public class DebugServiceComponent {
      * @param claimMetadataManagementService the ClaimMetadataManagementService instance
      */
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
-        
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("ClaimMetadataManagementService unset in DebugServiceComponent");
         }

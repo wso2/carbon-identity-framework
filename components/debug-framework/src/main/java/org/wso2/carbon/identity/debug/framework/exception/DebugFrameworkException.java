@@ -91,7 +91,7 @@ public class DebugFrameworkException extends Exception {
      * @param errorCode Error code string.
      */
     public void setErrorCode(String errorCode) {
-        
+
         this.errorCode = errorCode;
     }
 }

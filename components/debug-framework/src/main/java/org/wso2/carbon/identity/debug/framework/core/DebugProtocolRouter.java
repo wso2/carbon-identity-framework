@@ -570,16 +570,12 @@ public class DebugProtocolRouter {
     /**
      * Creates and returns an IDP debug resource handler instance.
      *
-     * @return IdpDebugResourceHandler instance if successfully created, null otherwise.
+     * @return IdpDebugResourceHandler instance.
      */
     private static Object createIdpDebugHandler() {
 
-        Object handler = new IdpDebugResourceHandler();
-        if (handler != null) {
-            logDebug("Loaded resource debug resource handler");
-            return handler;
-        }
-        return null;
+        logDebug("Loaded resource debug resource handler");
+        return new IdpDebugResourceHandler();
     }
 
     /**

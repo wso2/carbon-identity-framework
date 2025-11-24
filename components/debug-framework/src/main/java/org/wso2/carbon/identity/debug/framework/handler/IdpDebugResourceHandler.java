@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.core.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -167,10 +168,10 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @param context The prepared debug context.
      * @return The resolved debug context object.
      * @throws DebugFrameworkException If context provider is not found or resolution fails.
-     * @throws Exception If context resolution fails.
+     * @throws DebugFrameworkServerException If context resolution fails.
      */
     private Object resolveDebugContext(String resourceId, Map<String, Object> context) 
-            throws Exception {
+            throws DebugFrameworkException, DebugFrameworkServerException {
         
         Object contextResolver = DebugProtocolRouter.getContextProviderForResource(resourceId);
         if (contextResolver == null) {
@@ -195,10 +196,10 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @param debugContext The resolved debug context.
      * @return The execution result object.
      * @throws DebugFrameworkException If executor is not found or execution fails.
-     * @throws Exception If execution fails.
+     * @throws DebugFrameworkServerException If execution fails.
      */
     private Object executeDebugRequest(String resourceId, Object debugContext) 
-            throws Exception {
+            throws DebugFrameworkException, DebugFrameworkServerException {
         
         Object executor = DebugProtocolRouter.getExecutorForResource(resourceId);
         if (executor == null) {
@@ -262,10 +263,10 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @param methodName The method name to invoke.
      * @param context The debug context.
      * @return The resolved context object.
-     * @throws Exception If the method cannot be invoked or execution fails.
+     * @throws DebugFrameworkServerException If the method cannot be invoked or execution fails.
      */
     private Object invokeContextResolverMethod(Object contextResolver, String methodName, 
-                                              Map<String, Object> context) throws Exception {
+                                              Map<String, Object> context) throws DebugFrameworkServerException {
 
         if (contextResolver == null) {
             throw new IllegalArgumentException("Context resolver is null");
@@ -284,25 +285,25 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         } catch (NoSuchMethodException e) {
             String errorMsg = "Context resolver does not have method '" + methodName + "'";
             LOG.error(errorMsg + ": " + e.getMessage(), e);
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         } catch (IllegalAccessException e) {
             String errorMsg = "Cannot access context resolver method '" + methodName + "'";
             LOG.error(errorMsg + ": " + e.getMessage(), e);
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         } catch (java.lang.reflect.InvocationTargetException e) {
             Throwable cause = e.getCause();
             String errorMsg = "Error invoking context resolver method '" + methodName + "'";
             if (cause != null) {
                 LOG.error(errorMsg + ": " + cause.getMessage(), cause);
-                throw new Exception(errorMsg, cause);
+                throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, cause);
             } else {
                 LOG.error(errorMsg, e);
-                throw new Exception(errorMsg, e);
+                throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
             }
         } catch (SecurityException e) {
             String errorMsg = "Security error accessing context resolver method '" + methodName + "'";
             LOG.error(errorMsg + ": " + e.getMessage(), e);
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         }
     }
 
@@ -314,9 +315,9 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @param methodName The method name to invoke.
      * @param debugContext The debug context.
      * @return The execution result.
-     * @throws Exception If the method cannot be invoked or execution fails.
+     * @throws DebugFrameworkServerException If the method cannot be invoked or execution fails.
      */
-    private Object invokeExecutorMethod(Object executor, String methodName, Object debugContext) throws Exception {
+    private Object invokeExecutorMethod(Object executor, String methodName, Object debugContext) throws DebugFrameworkServerException {
 
         if (executor == null) {
             throw new IllegalArgumentException("Executor is null");
@@ -342,25 +343,25 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         } catch (NoSuchMethodException e) {
             String errorMsg = "Executor does not have method '" + methodName + "'";
             LOG.error(errorMsg + ": " + e.getMessage(), e);
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         } catch (IllegalAccessException e) {
             String errorMsg = "Cannot access executor method '" + methodName + "'";
             LOG.error(errorMsg + ": " + e.getMessage(), e);
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         } catch (java.lang.reflect.InvocationTargetException e) {
             Throwable cause = e.getCause();
             String errorMsg = "Error invoking executor method '" + methodName + "'";
             if (cause != null) {
                 LOG.error(errorMsg + ": " + cause.getMessage(), cause);
-                throw new Exception(errorMsg, cause);
+                throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, cause);
             } else {
                 LOG.error(errorMsg, e);
-                throw new Exception(errorMsg, e);
+                throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
             }
         } catch (SecurityException e) {
             String errorMsg = "Security error accessing executor method '" + methodName + "'";
             LOG.error(errorMsg + ": " + e.getMessage(), e);
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         }
     }
 
@@ -414,9 +415,9 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @param object The object on which to invoke the method (must not be null).
      * @param methodName The name of the method to invoke (must not be null or empty).
      * @return The result of the method invocation.
-     * @throws Exception If the method cannot be found or invoked.
+     * @throws DebugFrameworkServerException If the method cannot be found or invoked.
      */
-    private Object invokeMethodByName(Object object, String methodName) throws Exception {
+    private Object invokeMethodByName(Object object, String methodName) throws DebugFrameworkServerException {
         
         if (object == null) {
             throw new IllegalArgumentException("Object is null");
@@ -434,25 +435,25 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(errorMsg + ": " + e.getMessage());
             }
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         } catch (IllegalAccessException e) {
             String errorMsg = "Cannot access method '" + methodName + "'";
             LOG.error(errorMsg + ": " + e.getMessage(), e);
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         } catch (java.lang.reflect.InvocationTargetException e) {
             Throwable cause = e.getCause();
             String errorMsg = "Error invoking method '" + methodName + "'";
             if (cause != null) {
                 LOG.error(errorMsg + ": " + cause.getMessage(), cause);
-                throw new Exception(errorMsg, cause);
+                throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, cause);
             } else {
                 LOG.error(errorMsg, e);
-                throw new Exception(errorMsg, e);
+                throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
             }
         } catch (SecurityException e) {
             String errorMsg = "Security error accessing method '" + methodName + "'";
             LOG.error(errorMsg + ": " + e.getMessage(), e);
-            throw new Exception(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         }
     }
 }

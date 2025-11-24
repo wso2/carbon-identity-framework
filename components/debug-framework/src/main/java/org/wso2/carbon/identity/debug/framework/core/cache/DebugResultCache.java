@@ -40,7 +40,6 @@ public final class DebugResultCache {
     private static final Log LOG = LogFactory.getLog(DebugResultCache.class);
     private static final int DEFAULT_CACHE_EXPIRY_MINUTES = 15;
     private static final Map<String, CacheEntry> CACHE = new ConcurrentHashMap<>();
-    private static java.util.concurrent.ScheduledExecutorService cleanupExecutor;
 
     /**
      * Internal cache entry holding result and expiry time.
@@ -181,7 +180,8 @@ public final class DebugResultCache {
     private static void startCleanupScheduler() {
 
         try {
-            cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            final java.util.concurrent.ScheduledExecutorService cleanupExecutor = 
+                    Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r);
                 t.setName("DebugResultCache-Cleaner");
                 t.setDaemon(true);
@@ -216,7 +216,7 @@ public final class DebugResultCache {
     }
 
     private DebugResultCache() {
-        
+
         // Prevent instantiation.
     }
 }

@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -104,11 +105,6 @@ public class DebugRequestCoordinator implements DebugService {
             // Invoke handleDebugRequest on the handler using reflection
             Map<String, Object> result = invokeHandlerMethod(handler, debugRequestContext);
             
-            if (result == null) {
-                LOG.error("Handler returned null result for resourceType: " + resourceType);
-                return new java.util.HashMap<>();
-            }
-
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Successfully processed debug request for resourceType: " + resourceType);
             }
@@ -187,14 +183,14 @@ public class DebugRequestCoordinator implements DebugService {
      * @param request HttpServletRequest from /commonauth endpoint.
      * @param response HttpServletResponse.
      * @return true if request was handled as debug flow, false if it should be handled by regular authentication.
-     * @throws IOException If processing fails.
      */
     public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
 
         try {
             // Check if this is a debug flow callback
             if (isDebugFlowCallback(request)) {
-                return handleDebugFlowCallback(request, response);
+                handleDebugFlowCallback(request, response);
+                return true;
             } else {
                 return false; // Let regular authentication handle it
             }
@@ -254,14 +250,15 @@ public class DebugRequestCoordinator implements DebugService {
 
     /**
      * Handles debug flow callbacks by routing to DebugProcessor.
+     * 
+     * Extracts OAuth callback parameters, retrieves or creates authentication context,
+     * and routes to the appropriate protocol-specific processor. Handles all error
+     * cases by sending appropriate error responses.
      *
      * @param request HttpServletRequest containing callback parameters.
      * @param response HttpServletResponse.
-     * @return true if callback was processed, false otherwise.
-     * @throws IOException If processing fails.
      */
-    private boolean handleDebugFlowCallback(HttpServletRequest request, HttpServletResponse response) 
-            throws IOException {
+    private void handleDebugFlowCallback(HttpServletRequest request, HttpServletResponse response) {
 
         try {
             // Extract OAuth callback parameters.
@@ -272,15 +269,15 @@ public class DebugRequestCoordinator implements DebugService {
 
             // Handle OAuth error responses.
             if (handleOAuthError(error, response)) {
-                return true;
+                return;
             }
 
             // Retrieve or create authentication context.
-            AuthenticationContext context = retrieveOrCreateContext(code, state, sessionDataKey, request);
+            AuthenticationContext context = retrieveOrCreateContext(code, state, sessionDataKey);
             
             if (context == null) {
                 handleMissingContext(response);
-                return true;
+                return;
             }
 
             // Set OAuth callback parameters and route to processor.
@@ -290,14 +287,12 @@ public class DebugRequestCoordinator implements DebugService {
             if (processor != null && !response.isCommitted()) {
                 invokeProcessorCallback(processor, request, response, context);
             }
-            return true;
 
         } catch (Exception e) {
             LOG.error("Error processing debug flow callback", e);
             if (!response.isCommitted()) {
                 sendErrorResponse(response, "DEBUG_PROCESSING_ERROR", e.getMessage());
             }
-            return true;
         }
     }
 
@@ -327,11 +322,9 @@ public class DebugRequestCoordinator implements DebugService {
      * @param code OAuth authorization code.
      * @param state OAuth state parameter.
      * @param sessionDataKey Session data key for cache lookup.
-     * @param request HttpServletRequest.
      * @return AuthenticationContext if found or created, null otherwise.
      */
-    private AuthenticationContext retrieveOrCreateContext(String code, String state, String sessionDataKey, 
-            HttpServletRequest request) {
+    private AuthenticationContext retrieveOrCreateContext(String code, String state, String sessionDataKey) {
 
         AuthenticationContext context = null;
 
@@ -460,14 +453,17 @@ public class DebugRequestCoordinator implements DebugService {
         }
         
         String state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
-        if (state != null && LOG.isDebugEnabled()) {
+        if (state != null) {
             String debugSessionId = extractDebugSessionIdFromState(state);
             if (debugSessionId != null) {
-                LOG.debug("Debug session ID extracted from state: " + debugSessionId);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Debug session ID extracted from state: " + debugSessionId);
+                }
+                return debugSessionId;
             }
         }
         
-        return null; // Note: In a real scenario, you'd retrieve resource info from cache using debugSessionId
+        return null;
     }
 
     /**
@@ -503,10 +499,10 @@ public class DebugRequestCoordinator implements DebugService {
      * @param response HttpServletResponse for the callback.
      * @param context AuthenticationContext for the debug flow.
      * @throws IllegalArgumentException If processor is null.
-     * @throws RuntimeException If method invocation fails.
+     * @throws DebugFrameworkServerException If method invocation fails.
      */
     private void invokeProcessorCallback(Object processor, HttpServletRequest request, 
-            HttpServletResponse response, AuthenticationContext context) {
+            HttpServletResponse response, AuthenticationContext context) throws DebugFrameworkServerException {
 
         if (processor == null) {
             throw new IllegalArgumentException("DebugProcessor is null");
@@ -530,26 +526,26 @@ public class DebugRequestCoordinator implements DebugService {
         } catch (NoSuchMethodException e) {
             String errorMsg = "processCallback method not found " + processor.getClass().getName();
             LOG.error(errorMsg, e);
-            throw new RuntimeException(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         } catch (IllegalAccessException e) {
             String errorMsg = "Cannot access processCallback method  " + processor.getClass().getName();
             LOG.error(errorMsg, e);
-            throw new RuntimeException(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         } catch (java.lang.reflect.InvocationTargetException e) {
             Throwable cause = e.getCause();
             String errorMsg = "Error in processor callback";
             if (cause != null) {
                 errorMsg += " - actual error: " + cause.getMessage();
                 LOG.error(errorMsg, cause);
-                throw new RuntimeException(errorMsg, cause);
+                throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, cause);
             } else {
                 LOG.error(errorMsg, e);
-                throw new RuntimeException(errorMsg, e);
+                throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
             }
         } catch (SecurityException e) {
             String errorMsg = "Security exception accessing processCallback method: " + e.getMessage();
             LOG.error(errorMsg, e);
-            throw new RuntimeException(errorMsg, e);
+            throw new DebugFrameworkServerException("REFLECTION_ERROR", errorMsg, e);
         }
     }
 
