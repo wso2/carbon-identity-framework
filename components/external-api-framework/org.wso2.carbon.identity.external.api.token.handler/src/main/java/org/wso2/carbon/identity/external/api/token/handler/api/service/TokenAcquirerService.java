@@ -101,6 +101,31 @@ public class TokenAcquirerService extends AbstractAPIClientManager {
     }
 
     /**
+     * Get a new access token using the refresh token if provided, else using the configured grant type.
+     *
+     * @param refreshToken Refresh token.
+     * @return Token response.
+     * @throws TokenHandlerException TokenHandlerException.
+     */
+    public TokenInvocationResult getNewAccessToken(String refreshToken) throws TokenHandlerException {
+
+        /* Try to get a new access token using the refresh token grant if a refresh token is provided. If it fails,
+         fall back to the corresponding grant type. */
+        if (refreshToken != null) {
+            try {
+                return getNewAccessTokenFromRefreshGrant(refreshToken);
+            } catch (TokenHandlerException e) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Failed to retrieve access token using refresh token grant. " +
+                            "Falling back to configured grant type.", e);
+                }
+                return getNewAccessToken();
+            }
+        }
+        return getNewAccessToken();
+    }
+
+    /**
      * Get a new access token using the refresh token grant.
      *
      * @param refreshToken Refresh token.
