@@ -51,7 +51,7 @@ public abstract class DebugContextProvider {
      * @return Map containing resolved debug context data.
      * @throws ContextResolutionException If context resolution fails.
      */
-    public abstract Map<String, Object> resolveContext(String resourceId, String resourceIdType) 
+    public abstract Map<String, Object> resolveContext(String resourceId, String resourceType) 
             throws ContextResolutionException;
 
     /**

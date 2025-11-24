@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.debug.framework.handler.IdpDebugResourceHandler;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -44,47 +45,23 @@ public class DebugProtocolRouter {
     private static final Log LOG = LogFactory.getLog(DebugProtocolRouter.class);
 
     /**
-     * Enum representing different debug protocol types and their implementation classes.
+     * Enum representing different debug protocol types.
+     * Class names are derived dynamically using naming conventions.
      */
     public enum DebugProtocolType {
 
-        OAUTH2_OIDC(
-            "OAuth2/OIDC",
-            "org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2ContextProvider",
-            "org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2Executer",
-            "org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2DebugProcessor"
-        ),
-        GOOGLE(
-            "Google",
-            "org.wso2.carbon.identity.application.authenticator.google.debug.GoogleContextProvider",
-            "org.wso2.carbon.identity.application.authenticator.google.debug.GoogleExecuter",
-            "org.wso2.carbon.identity.application.authenticator.google.debug.GoogleDebugProcessor"
-        ),
-        GITHUB(
-            "GitHub",
-            "org.wso2.carbon.identity.application.authenticator.github.debug.GitHubContextProvider",
-            "org.wso2.carbon.identity.application.authenticator.github.debug.GitHubExecuter",
-            "org.wso2.carbon.identity.application.authenticator.github.debug.GitHubDebugProcessor"
-        ),
-        SAML(
-            "SAML",
-            "org.wso2.carbon.identity.application.authenticator.saml.debug.SAMLContextProvider",
-            null,  
-            "org.wso2.carbon.identity.application.authenticator.saml.debug.SAMLDebugProcessor"
-        );
+        OAUTH2_OIDC("OAuth2/OIDC", "oauth2"),
+        GOOGLE("Google", "google"),
+        GITHUB("GitHub", "github"),
+        SAML("SAML", "saml");
 
         private final String displayName;
-        private final String contextProviderClass;
-        private final String executorClass;
-        private final String processorClass;
+        private final String protocolKey;
 
-        DebugProtocolType(String displayName, String contextProviderClass, 
-                         String executorClass, String processorClass) {
-                            
+        DebugProtocolType(String displayName, String protocolKey) {
+
             this.displayName = displayName;
-            this.contextProviderClass = contextProviderClass;
-            this.executorClass = executorClass;
-            this.processorClass = processorClass;
+            this.protocolKey = protocolKey;
         }
 
         public String getDisplayName() {
@@ -92,19 +69,74 @@ public class DebugProtocolRouter {
             return displayName;
         }
 
+        public String getProtocolKey() {
+
+            return protocolKey;
+        }
+
+        /**
+         * Gets the context provider class name using naming convention.
+         * Returns null if class cannot be determined.
+         *
+         * @return Fully qualified class name or null.
+         */
         public String getContextProviderClass() {
 
-            return contextProviderClass;
+            return resolveDebugClass("ContextProvider");
         }
 
+        /**
+         * Gets the executor class name using naming convention.
+         * Returns null if class cannot be determined.
+         *
+         * @return Fully qualified class name or null.
+         */
         public String getExecutorClass() {
 
-            return executorClass;
+            return resolveDebugClass("Executer");
         }
 
+        /**
+         * Gets the processor class name using naming convention.
+         *
+         * @return Fully qualified class name or null.
+         */
         public String getProcessorClass() {
 
-            return processorClass;
+            return resolveDebugClass("DebugProcessor");
+        }
+
+        /**
+         * Resolves the fully qualified class name using naming convention.
+         *
+         * @param componentType Component type (e.g., "ContextProvider", "Executer", "DebugProcessor").
+         * @return Fully qualified class name.
+         */
+        private String resolveDebugClass(String componentType) {
+
+            if (this == OAUTH2_OIDC) {
+                // OAuth2/OIDC is in the OIDC module
+                return "org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2" + componentType;
+            }
+
+            // For other protocols: capitalize the protocol key and construct the class name
+            String capitalizedProtocol = capitalizeFirst(protocolKey);
+            return String.format("org.wso2.carbon.identity.application.authenticator.%s.debug.%s%s",
+                    protocolKey.toLowerCase(), capitalizedProtocol, componentType);
+        }
+
+        /**
+         * Capitalizes the first letter of a string.
+         *
+         * @param str String to capitalize.
+         * @return Capitalized string.
+         */
+        private String capitalizeFirst(String str) {
+
+            if (StringUtils.isEmpty(str)) {
+                return str;
+            }
+            return str.substring(0, 1).toUpperCase() + str.substring(1);
         }
     }
 
@@ -119,30 +151,32 @@ public class DebugProtocolRouter {
 
         if (StringUtils.isEmpty(resourceId)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Resource ID is empty, defaulting to OAuth2/OIDC");
+                LOG.debug("Resource ID is empty");
             }
             return DebugProtocolType.OAUTH2_OIDC;
         }
 
+        return detectProtocolWithFallback(resourceId);
+    }
+
+    /**
+     * Detects protocol type for a resource ID with fallback to OAuth2/OIDC on error.
+     * Loads the resource configuration and identifies the authenticator type.
+     * Provides comprehensive error handling for resource loading and configuration issues.
+     *
+     * @param resourceId Resource ID or name.
+     * @return Detected DebugProtocolType, defaults to OAUTH2_OIDC if detection fails.
+     */
+    private static DebugProtocolType detectProtocolWithFallback(String resourceId) {
+
         try {
             IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
             String tenantDomain = IdentityTenantUtil.resolveTenantDomain();
-            IdentityProvider resource = null;
-
-            // Try to get by resource ID first
-            try {
-                resource = idpManager.getIdPByResourceId(resourceId, tenantDomain, true);
-            } catch (IdentityProviderManagementException e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Resource not found by ID, trying by name: " + resourceId);
-                }
-                // Try by name
-                resource = idpManager.getIdPByName(resourceId, tenantDomain);
-            }
+            IdentityProvider resource = loadResourceConfiguration(idpManager, resourceId, tenantDomain);
 
             if (resource == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Resource not found: " + resourceId + ", defaulting to OAuth2/OIDC");
+                    LOG.debug("Resource not found: " + resourceId );
                 }
                 return DebugProtocolType.OAUTH2_OIDC;
             }
@@ -150,8 +184,8 @@ public class DebugProtocolRouter {
             try {
                 return detectProtocolFromIdP(resource);
             } catch (NullPointerException npe) {
-                LOG.warn("Resource configuration is corrupted (null federated authenticator configs) for resource: " + resourceId +
-                        ". Defaulting to OAuth2/OIDC. This may indicate data integrity issues.", npe);
+                LOG.warn("Resource configuration is corrupted for resource: " + resourceId +
+                        ". This may indicate data integrity issues.", npe);
                 return DebugProtocolType.OAUTH2_OIDC;
             }
 
@@ -164,6 +198,35 @@ public class DebugProtocolRouter {
     }
 
     /**
+     * Loads the resource configuration by ID or name with fallback.
+     * Attempts to load by resource ID first, then by name on failure.
+     *
+     * @param idpManager IdentityProviderManager instance.
+     * @param resourceId Resource ID or name.
+     * @param tenantDomain Tenant domain.
+     * @return IdentityProvider resource configuration, or null if not found.
+     * @throws IdentityProviderManagementException If loading by name fails.
+     */
+    private static IdentityProvider loadResourceConfiguration(IdentityProviderManager idpManager, 
+            String resourceId, String tenantDomain) throws IdentityProviderManagementException {
+
+        IdentityProvider resource = null;
+
+        // Try to get by resource ID first
+        try {
+            resource = idpManager.getIdPByResourceId(resourceId, tenantDomain, true);
+        } catch (IdentityProviderManagementException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Resource not found by ID, trying by name: " + resourceId);
+            }
+            // Try by name
+            resource = idpManager.getIdPByName(resourceId, tenantDomain);
+        }
+
+        return resource;
+    }
+
+    /**
      * Detects protocol type from resource configuration by analyzing authenticator names.
      * Handles cases where resource authenticator configs may be null due to data corruption.
      *
@@ -172,52 +235,79 @@ public class DebugProtocolRouter {
      */
     private static DebugProtocolType detectProtocolFromIdP(IdentityProvider resource) {
 
-        // Defensive check: Resource itself should not be null, but add explicit check
         if (resource == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Resource configuration is null, defaulting to OAuth2/OIDC");
-            }
+            logDebug("Resource configuration is null");
             return DebugProtocolType.OAUTH2_OIDC;
         }
         
         FederatedAuthenticatorConfig[] configs = resource.getFederatedAuthenticatorConfigs();
-        
-        // Handle case where authenticator configs are null or empty
-        // This can happen if the resource was not fully initialized or has corrupted data
-        if (configs == null || configs.length == 0) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No authenticators found for resource: " + resource.getIdentityProviderName() + 
-                         ", defaulting to OAuth2/OIDC");
-            }
+        if (!hasValidAuthenticators(configs)) {
+            logDebug("No authenticators found for resource: " + resource.getIdentityProviderName());
             return DebugProtocolType.OAUTH2_OIDC;
         }
 
-        // Check each enabled authenticator
+        DebugProtocolType detectedType = findProtocolFromAuthenticators(configs);
+        if (detectedType != null) {
+            return detectedType;
+        }
+
+        logDebug("No recognized authenticator found for resource: " + resource.getIdentityProviderName());
+        return DebugProtocolType.OAUTH2_OIDC;
+    }
+
+    /**
+     * Validates if authenticator configurations are available.
+     *
+     * @param configs Authenticator configurations array.
+     * @return true if configs is not null and not empty.
+     */
+    private static boolean hasValidAuthenticators(FederatedAuthenticatorConfig[] configs) {
+
+        return configs != null && configs.length > 0;
+    }
+
+    /**
+     * Finds protocol type from enabled authenticators in the configuration array.
+     *
+     * @param configs Authenticator configurations array.
+     * @return Detected DebugProtocolType or null if not found.
+     */
+    private static DebugProtocolType findProtocolFromAuthenticators(FederatedAuthenticatorConfig[] configs) {
+
         for (FederatedAuthenticatorConfig config : configs) {
-            if (config == null || !config.isEnabled()) {
-                continue;
-            }
-
-            String authName = config.getName();
-            if (StringUtils.isEmpty(authName)) {
-                continue;
-            }
-
-            DebugProtocolType type = detectProtocolFromAuthenticator(authName);
-            if (type != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Detected protocol: " + type.getDisplayName() + 
-                             " for authenticator: " + authName);
+            if (isValidAuthenticatorConfig(config)) {
+                String authName = config.getName();
+                DebugProtocolType type = detectProtocolFromAuthenticator(authName);
+                if (type != null) {
+                    logDebug("Detected protocol: " + type.getDisplayName() + " for authenticator: " + authName);
+                    return type;
                 }
-                return type;
             }
         }
+        return null;
+    }
+
+    /**
+     * Validates if an authenticator configuration is valid and enabled.
+     *
+     * @param config Authenticator configuration to validate.
+     * @return true if config is not null, enabled, and has a valid name.
+     */
+    private static boolean isValidAuthenticatorConfig(FederatedAuthenticatorConfig config) {
+
+        return config != null && config.isEnabled() && !StringUtils.isEmpty(config.getName());
+    }
+
+    /**
+     * Logs a debug message if debug logging is enabled.
+     *
+     * @param message Message to log.
+     */
+    private static void logDebug(String message) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("No recognized authenticator found for resource: " + resource.getIdentityProviderName() + 
-                     ", defaulting to OAuth2/OIDC");
+            LOG.debug(message);
         }
-        return DebugProtocolType.OAUTH2_OIDC;
     }
 
     /**
@@ -337,7 +427,6 @@ public class DebugProtocolRouter {
 
     /**
      * Loads and instantiates the context provider for the given resource ID.
-     * Falls back to OAuth2ContextProvider if protocol-specific provider is not available.
      *
      * @param resourceId Resource ID.
      * @return Context provider instance, or null if not available.
@@ -356,23 +445,6 @@ public class DebugProtocolRouter {
             return provider;
         }
         
-        // Fallback: Try OAuth2 provider if detected protocol provider is not available
-        DebugProtocolType detectedType = detectProtocol(resourceId);
-        if (detectedType != DebugProtocolType.OAUTH2_OIDC) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Protocol-specific context provider not available for " + detectedType.getDisplayName() + 
-                         ", falling back to OAuth2/OIDC provider");
-            }
-            String fallbackClassName = DebugProtocolType.OAUTH2_OIDC.getContextProviderClass();
-            Object fallbackProvider = loadServiceByClass(fallbackClassName);
-            if (fallbackProvider != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Loaded fallback context provider: " + fallbackProvider.getClass().getName());
-                }
-                return fallbackProvider;
-            }
-        }
-        
         if (LOG.isDebugEnabled()) {
             LOG.debug("Context provider not available for resource: " + resourceId);
         }
@@ -381,7 +453,6 @@ public class DebugProtocolRouter {
 
     /**
      * Loads and instantiates the executor for the given resource ID.
-     * Falls back to OAuth2Executer if protocol-specific executor is not available.
      *
      * @param resourceId resource ID.
      * @return Executor instance, or null if not available or not applicable.
@@ -400,28 +471,14 @@ public class DebugProtocolRouter {
             return executor;
         }
         
-        // Fallback: Try OAuth2 executor if detected protocol executor is not available
-        DebugProtocolType detectedType = detectProtocol(resourceId);
-        if (detectedType != DebugProtocolType.OAUTH2_OIDC) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Protocol-specific executor not available for " + detectedType.getDisplayName() + 
-                         ", falling back to OAuth2 executor");
-            }
-            String fallbackClassName = DebugProtocolType.OAUTH2_OIDC.getExecutorClass();
-            Object fallbackExecutor = loadServiceByClass(fallbackClassName);
-            if (fallbackExecutor != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Successfully loaded fallback executor: " + fallbackExecutor.getClass().getName());
-                }
-                return fallbackExecutor;
-            }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Executor not available for resource: " + resourceId);
         }
         return null;
     }
 
     /**
      * Loads and instantiates the processor for the given resource ID.
-     * Falls back to OAuth2DebugProcessor if protocol-specific processor is not available.
      *
      * @param resourceId Resource ID.
      * @return Processor instance, or null if not available.
@@ -437,21 +494,8 @@ public class DebugProtocolRouter {
             return processor;
         }
         
-        // Fallback: Try OAuth2 processor if detected protocol processor is not available
-        DebugProtocolType detectedType = detectProtocol(resourceId);
-        if (detectedType != DebugProtocolType.OAUTH2_OIDC) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Protocol-specific processor not available for " + detectedType.getDisplayName() + 
-                         ", falling back to OAuth2 processor");
-            }
-            String fallbackClassName = DebugProtocolType.OAUTH2_OIDC.getProcessorClass();
-            Object fallbackProcessor = loadServiceByClass(fallbackClassName);
-            if (fallbackProcessor != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Successfully loaded fallback processor: " + fallbackProcessor.getClass().getName());
-                }
-                return fallbackProcessor;
-            }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Processor not available for resource: " + resourceId);
         }
         return null;
     }
@@ -466,51 +510,17 @@ public class DebugProtocolRouter {
     public static Object getDebugResourceHandler(String resourceType) {
 
         if (StringUtils.isEmpty(resourceType)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Resource type is empty, unable to route debug request");
-            }
+            logDebug("Resource type is empty, unable to route debug request");
             return null;
         }
 
         try {
-            // Route based on resource type
-            String resourceTypeUpper = resourceType.toUpperCase().trim();
-            
-            if ("IDP".equals(resourceTypeUpper) || "IDENTITY_PROVIDER".equals(resourceTypeUpper) || "RESOURCE".equals(resourceTypeUpper)) {
-                // For resource resource type, load the resource debug resource handler
-                String handlerClassName = "org.wso2.carbon.identity.debug.framework.handler.IdpDebugResourceHandler";
-                Object handler = loadServiceByClass(handlerClassName);
-                if (handler != null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Loaded resource debug resource handler");
-                    }
-                    return handler;
-                }
-            } else if ("APPLICATION".equals(resourceTypeUpper)) {
-                // For APPLICATION resource type, load the application debug resource handler
-                String handlerClassName = "org.wso2.carbon.identity.debug.framework.handler.ApplicationDebugResourceHandler";
-                Object handler = loadServiceByClass(handlerClassName);
-                if (handler != null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Loaded APPLICATION debug resource handler");
-                    }
-                    return handler;
-                }
-            } else if ("CONNECTOR".equals(resourceTypeUpper)) {
-                // For CONNECTOR resource type, load the connector debug resource handler
-                String handlerClassName = "org.wso2.carbon.identity.debug.framework.handler.ConnectorDebugResourceHandler";
-                Object handler = loadServiceByClass(handlerClassName);
-                if (handler != null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Loaded CONNECTOR debug resource handler");
-                    }
-                    return handler;
-                }
+            String normalizedType = normalizeResourceType(resourceType);
+            if (isIdpResourceType(normalizedType)) {
+                return createIdpDebugHandler();
             }
             
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No handler available for resource type: " + resourceType);
-            }
+            logDebug("No handler available for resource type: " + resourceType);
             return null;
 
         } catch (Exception e) {
@@ -518,6 +528,44 @@ public class DebugProtocolRouter {
                      ", error: " + e.getMessage(), e);
             return null;
         }
+    }
+
+    /**
+     * Normalizes the resource type by converting to uppercase and trimming whitespace.
+     *
+     * @param resourceType The raw resource type string.
+     * @return Normalized resource type in uppercase.
+     */
+    private static String normalizeResourceType(String resourceType) {
+
+        return resourceType.toUpperCase().trim();
+    }
+
+    /**
+     * Checks if the normalized resource type represents an identity provider resource.
+     *
+     * @param normalizedType The normalized resource type in uppercase.
+     * @return true if the type matches IDP, IDENTITY_PROVIDER, or RESOURCE.
+     */
+    private static boolean isIdpResourceType(String normalizedType) {
+
+        return "IDP".equals(normalizedType) || "IDENTITY_PROVIDER".equals(normalizedType) 
+                || "RESOURCE".equals(normalizedType);
+    }
+
+    /**
+     * Creates and returns an IDP debug resource handler instance.
+     *
+     * @return IdpDebugResourceHandler instance if successfully created, null otherwise.
+     */
+    private static Object createIdpDebugHandler() {
+
+        Object handler = new IdpDebugResourceHandler();
+        if (handler != null) {
+            logDebug("Loaded resource debug resource handler");
+            return handler;
+        }
+        return null;
     }
 
     /**

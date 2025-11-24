@@ -111,10 +111,8 @@ public abstract class DebugProcessor {
             LOG.error("Unexpected error processing OAuth 2.0 callback.", e);
             context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Unexpected error: " + e.getMessage());
             context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
-            if (e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("InvocationTargetException cause:", e.getCause());
-                }
+            if (e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null && LOG.isDebugEnabled()) {
+                LOG.debug("InvocationTargetException cause:", e.getCause());
             }
             redirectToDebugSuccess(response, state, resourceId);
         }
@@ -216,7 +214,8 @@ public abstract class DebugProcessor {
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean isAuthorizationCodeAlreadyProcessed(String authorizationCode, HttpServletRequest request,
-              AuthenticationContext context, HttpServletResponse response, String state, String resourceId) throws IOException;
+              AuthenticationContext context, HttpServletResponse response, String state, String resourceId) 
+              throws IOException;
 
     /**
      * Handles claim extraction result and validates successful extraction.
