@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 
 /**
  * OSGi service component for Debug Framework.
@@ -48,6 +49,20 @@ public class DebugServiceComponent {
         try {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Debug Framework OSGi component activating");
+            }
+
+            // Register DebugRequestCoordinator as an OSGi service.
+            // This service handles protocol-agnostic routing of debug requests from both
+            // the API layer (initial debug requests) and /commonauth (OAuth callbacks).
+            DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
+            context.getBundleContext().registerService(
+                DebugRequestCoordinator.class.getName(),
+                requestCoordinator,
+                null
+            );
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugRequestCoordinator registered as OSGi service");
             }
 
         } catch (Throwable e) {

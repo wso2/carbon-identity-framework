@@ -42,7 +42,7 @@ public abstract class DebugExecutor {
 
     /**
      * Validates if this executor can handle the given context.
-     * Used to determine which executor to use for a specific IdP configuration.
+     * Used to determine which executor to use for a specific resource configuration.
      *
      * @param context Map to validate against.
      * @return true if this executor can handle the context, false otherwise.

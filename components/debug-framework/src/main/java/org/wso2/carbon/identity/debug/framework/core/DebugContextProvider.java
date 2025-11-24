@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
  * Extensions should implement specific context resolution logic for different authentication protocols.
  * Examples: OAuth2ContextResolver, SAMLContextResolver, etc.
  */
-public abstract class DebugContextResolver {
+public abstract class DebugContextProvider {
 
     /**
      * Resolves and creates a debug context from the given request.
@@ -46,20 +46,20 @@ public abstract class DebugContextResolver {
      * Resolves and creates a debug context with specific parameters.
      * Implementations should validate all required parameters and configurations.
      *
-     * @param idpId         Identity Provider resource ID.
-     * @param authenticator Optional authenticator name.
+     * @param resourceId   resource ID.
+     * @param resourceType Optional resource type.
      * @return Map containing resolved debug context data.
      * @throws ContextResolutionException If context resolution fails.
      */
-    public abstract Map<String, Object> resolveContext(String idpId, String authenticator) 
+    public abstract Map<String, Object> resolveContext(String resourceId, String resourceIdType) 
             throws ContextResolutionException;
 
     /**
-     * Validates if the resolver can handle the given request or IdP configuration.
+     * Validates if the resolver can handle the given request or resource configuration.
      * Used to determine which resolver to use in a chain of responsibility pattern.
      *
-     * @param idpId Identity Provider ID to check.
-     * @return true if this resolver can handle the IdP, false otherwise.
+     * @param resourceId Resource ID to check.
+     * @return true if this resolver can handle the resource, false otherwise.
      */
-    public abstract boolean canResolve(String idpId);
+    public abstract boolean canResolve(String resourceId);
 }

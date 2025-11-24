@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.C
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 
 import java.io.IOException;
 
@@ -56,7 +55,8 @@ public class CommonAuthenticationHandler {
     private boolean handleDebugFlow(HttpServletRequest request, HttpServletResponse response) {        
         try {
             // Load DebugRequestCoordinator via reflection to avoid hard dependency
-            Class<?> debugCoordinatorClass = Class.forName(DebugRequestCoordinator.class.getName());
+            Class<?> debugCoordinatorClass = Class.forName(
+                    "org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator");
             
             // Create instance of DebugRequestCoordinator
             Object debugCoordinator = debugCoordinatorClass.getDeclaredConstructor().newInstance();

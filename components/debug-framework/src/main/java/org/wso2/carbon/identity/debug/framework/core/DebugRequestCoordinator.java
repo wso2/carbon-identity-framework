@@ -24,8 +24,6 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2DebugProcessor;
-import org.wso2.carbon.identity.application.authenticator.oidc.debug.OAuth2UrlBuilder;
 
 import java.io.IOException;
 import java.util.Map;
@@ -35,26 +33,144 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Routes incoming authentication requests to appropriate handlers.
- * Inspects /commonauth requests to identify debug flow callbacks and routes them 
- * to DebugProcessor while passing regular authentication to default WSO2 RequestCoordinator.
+ * Handles two main flows:
+ * 1. Generic debug requests (POST /api/server/v1/debug) - routes based on resourceType
+ * 2. OAuth callback requests (/commonauth) - routes to protocol-specific DebugProcessor
  */
 public class DebugRequestCoordinator implements DebugService {
 
     private static final Log LOG = LogFactory.getLog(DebugRequestCoordinator.class);
 
-    /**
-     * Constructs a DebugRequestCoordinator.
-     */
     public DebugRequestCoordinator() {
     }
 
     /**
+     * Handles debug requests for any resource type (IDENTITY_PROVIDER, APPLICATION, CONNECTOR, etc.).
+     * Routes to appropriate handler based on resourceType and delegates processing.
+     *
+     * @param debugRequestContext Map containing:
+     *        - resourceId: Resource identifier (required).
+     *        - resourceType: Type of resource (e.g., "IDENTITY_PROVIDER", "APPLICATION", "CONNECTOR") (required).
+     *        - properties: Optional key-value properties for the debug request (Map<String, String>).
+     * @return Map containing debug result data, or null on failure.
+     */
+    public Map<String, Object> handleResourceDebugRequest(Map<String, Object> debugRequestContext) {
+        if (debugRequestContext == null) {
+            LOG.error("Debug request context is null");
+            return null;
+        }
+
+        try {
+            // Extract required parameters
+            String resourceId = (String) debugRequestContext.get("resourceId");
+            String resourceType = (String) debugRequestContext.get("resourceType");
+            
+            if (resourceId == null || resourceId.trim().isEmpty()) {
+                LOG.error("Resource ID is required in debug request context");
+                return null;
+            }
+            
+            if (resourceType == null || resourceType.trim().isEmpty()) {
+                LOG.error("Resource type is required in debug request context");
+                return null;
+            }
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Processing debug request for resourceId: " + resourceId + ", resourceType: " + resourceType);
+            }
+
+            // Get the appropriate handler for this resource type
+            Object handler = DebugProtocolRouter.getDebugResourceHandler(resourceType);
+            if (handler == null) {
+                LOG.error("No handler available for resource type: " + resourceType);
+                return null;
+            }
+
+            // Invoke handleDebugRequest on the handler using reflection
+            Map<String, Object> result = invokeHandlerMethod(handler, debugRequestContext);
+            
+            if (result == null) {
+                LOG.error("Handler returned null result for resourceType: " + resourceType);
+                return null;
+            }
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Successfully processed debug request for resourceType: " + resourceType);
+            }
+
+            return result;
+
+        } catch (Exception e) {
+            LOG.error("Error handling debug request: " + e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Invokes handleDebugRequest on a DebugResourceHandler using reflection.
+     *
+     * @param handler The handler instance.
+     * @param debugRequestContext The debug request context.
+     * @return Result map from the handler, or null if invocation fails.
+     */
+    private Map<String, Object> invokeHandlerMethod(Object handler, Map<String, Object> debugRequestContext) {
+        if (handler == null) {
+            LOG.error("Handler instance is null");
+            return null;
+        }
+
+        try {
+            Class<?> handlerClass = handler.getClass();
+            java.lang.reflect.Method method = handlerClass.getMethod("handleDebugRequest", Map.class);
+            Object result = method.invoke(handler, debugRequestContext);
+            
+            if (result == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Handler returned null result");
+                }
+                return null;
+            }
+
+            if (!(result instanceof Map)) {
+                LOG.error("Handler returned non-Map result: " + result.getClass().getName());
+                return null;
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> resultMap = (Map<String, Object>) result;
+            return resultMap;
+
+        } catch (NoSuchMethodException e) {
+            LOG.error("Handler class does not have handleDebugRequest method: " + e.getMessage(), e);
+            return null;
+        } catch (IllegalAccessException e) {
+            LOG.error("Cannot access handleDebugRequest method: " + e.getMessage(), e);
+            return null;
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            String errorMsg = "Error invoking handler's handleDebugRequest method";
+            if (cause != null) {
+                LOG.error(errorMsg + ": " + cause.getMessage(), cause);
+            } else {
+                LOG.error(errorMsg, e);
+            }
+            return null;
+        } catch (SecurityException e) {
+            LOG.error("Security error accessing handler method: " + e.getMessage(), e);
+            return null;
+        } catch (Exception e) {
+            LOG.error("Unexpected error invoking handler method: " + e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
      * Handles /commonauth requests with proper debug flow routing.
-     * This method should be called from the main WSO2 /commonauth handler.
+     * Checks if request is a debug flow callback and routes to DebugProcessor.
      *
      * @param request HttpServletRequest from /commonauth endpoint.
      * @param response HttpServletResponse.
-     * @return true if request was handled by debug processor, false if it should be handled by regular flow.
+     * @return true if request was handled as debug flow, false if it should be handled by regular authentication.
      * @throws IOException If processing fails.
      */
     public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
@@ -134,17 +250,15 @@ public class DebugRequestCoordinator implements DebugService {
             String sessionDataKey = request.getParameter(DebugFrameworkConstants.SESSION_DATA_KEY_PARAM);
 
             // Handle OAuth error responses.
-            // NOTE: Return true because debug flow handled the error - don't fall through to DefaultRequestCoordinator
             if (error != null) {
                 LOG.error("OAuth error in debug callback: " + error);
                 if (!response.isCommitted()) {
-                    sendErrorResponse(response, "OAUTH_ERROR",
-                            "OAuth error: " + error);
+                    sendErrorResponse(response, "OAUTH_ERROR", "OAuth error: " + error);
                 }
-                return true; // Debug flow handled the error response
+                return true;
             }
 
-            // Try to retrieve or create authentication context.
+            // Try to retrieve authentication context from cache.
             AuthenticationContext context = null;
 
             // First, try with sessionDataKey if available (framework cache).
@@ -152,41 +266,17 @@ public class DebugRequestCoordinator implements DebugService {
                 context = retrieveDebugContextFromCache(sessionDataKey);
             }
 
-            // If not found, try to retrieve from OAuth2UrlBuilder's DebugSessionCache using state parameter.
-            if (context == null && state != null) {
-                context = retrieveOAuth2DebugContext(state);
-                
-                if (context != null && LOG.isDebugEnabled()) {
-                    LOG.debug("Retrieved OAuth2 debug context from cache for state: " + 
-                        (state.length() > 50 ? state.substring(0, 50) + "..." : state));
-                }
+            // If not found, create a new one for OAuth callback processing.
+            if (context == null && code != null && state != null) {
+                context = createDebugContextForCallback(code, state, request);
             }
 
-            // If still no context found using cache lookups, try extracting from state parameter.
-            if (context == null && state != null) {
-                String debugSessionId = extractDebugSessionIdFromState(state);
-                if (debugSessionId != null) {
-                    context = retrieveDebugContextFromCache("debug-" + debugSessionId);
-                    if (context == null) {
-                        // Try without prefix.
-                        context = retrieveDebugContextFromCache(debugSessionId);
-                    }
-                }
-            }
-
-            // If still no context found, create a new one for OAuth callback processing.
             if (context == null) {
-                if (code != null && state != null) {
-                    context = createDebugContextForCallback(code, state, request);
-                } else {
-                    LOG.error("Cannot process debug callback: missing OAuth parameters and no cached context");
-                    if (!response.isCommitted()) {
-                        sendErrorResponse(response, "MISSING_CONTEXT_AND_PARAMS",
-
-                                "Authentication context not found and OAuth parameters missing");
-                    }
-                    return true; // Debug flow handled the error response
+                LOG.error("Cannot process debug callback: missing context and/or OAuth parameters");
+                if (!response.isCommitted()) {
+                    sendErrorResponse(response, "MISSING_CONTEXT", "Authentication context not found");
                 }
+                return true;
             }
 
             // Set OAuth callback parameters in context.
@@ -202,8 +292,7 @@ public class DebugRequestCoordinator implements DebugService {
             context.setProperty(DebugFrameworkConstants.DEBUG_CALLBACK_TIMESTAMP, System.currentTimeMillis());
             context.setProperty(DebugFrameworkConstants.DEBUG_CALLBACK_PROCESSED, DebugFrameworkConstants.TRUE);
 
-            // Route to protocol-specific DebugProcessor implementation via reflection.
-            // This ensures protocol-agnostic processing without hard dependency on specific protocol implementations.
+            // Route to protocol-specific DebugProcessor via reflection.
             Object processor = getProtocolSpecificProcessor(request, context);
             if (processor != null && !response.isCommitted()) {
                 invokeProcessorCallback(processor, request, response, context);
@@ -212,20 +301,16 @@ public class DebugRequestCoordinator implements DebugService {
 
         } catch (Exception e) {
             LOG.error("Error processing debug flow callback", e);
-            // Enhanced error logging for debugging InvocationTargetException root cause.
-            if (e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null) {
-                LOG.error("InvocationTargetException cause:", e.getCause());
-            }
             if (!response.isCommitted()) {
                 sendErrorResponse(response, "DEBUG_PROCESSING_ERROR", e.getMessage());
             }
-            return true; // Debug flow handled the error response - don't fall through to DefaultRequestCoordinator
+            return true;
         }
     }
 
     /**
-     * Gets the appropriate DebugProcessor implementation for the protocol detected in the request.
-     * Uses reflection to discover protocol-specific processors to avoid hard dependencies.
+     * Gets the appropriate DebugProcessor implementation for the protocol.
+     * Uses DebugProtocolRouter to detect protocol type and select appropriate processor.
      *
      * @param request HttpServletRequest to analyze for protocol detection.
      * @param context AuthenticationContext for additional protocol hints.
@@ -233,27 +318,40 @@ public class DebugRequestCoordinator implements DebugService {
      */
     private Object getProtocolSpecificProcessor(HttpServletRequest request, AuthenticationContext context) {
         try {
-            // Try to load OAuth2DebugProcessor via reflection from identity-outbound-auth-oidc
-            // This is the first place to check since OAuth callbacks are most common
-            String code = request.getParameter(DebugFrameworkConstants.OAUTH2_CODE_PARAM);
-            if (code != null) {
-                // This is likely an OAuth2 callback
-                String oauth2DebugProcessorClass = OAuth2DebugProcessor.class.getName();
-                return loadProcessorByClass(oauth2DebugProcessorClass);
+            String resourceId = null;
+
+            // Try to get resource ID from context properties
+            if (context != null) {
+                resourceId = (String) context.getProperty("resourceId");
+                if (resourceId == null) {
+                    resourceId = (String) context.getProperty("resourceName");
+                }
             }
 
-            // // Try to load SAMLDebugProcessor via reflection from SAML connector if available
-            // String samlResponse = request.getParameter("SAMLResponse");
-            // if (samlResponse != null) {
-            //     String samlDebugProcessorClass ="SAMLDebugProcessor";
-            //     return loadProcessorByClass(samlDebugProcessorClass);
-            // }
+            // If still not found and we have request, try to extract from state
+            if (resourceId == null && request != null) {
+                String state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
+                if (state != null) {
+                    // Note: In a real scenario, you'd retrieve resource info from cache using debugSessionId
+                    // For now, we default to OAuth2/OIDC
+                    if (LOG.isDebugEnabled()) {
+                        String debugSessionId = extractDebugSessionIdFromState(state);
+                        if (debugSessionId != null) {
+                            LOG.debug("Debug session ID extracted from state: " + debugSessionId);
+                        }
+                    }
+                }
+            }
 
-            // Default fallback - log and return null
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Unable to determine protocol type for debug processor - neither OAuth nor SAML detected");
+                LOG.debug("Routing processor for resource: " + (resourceId != null ? resourceId : "default (OAuth2/OIDC)"));
             }
-            return null;
+
+            Object processor = DebugProtocolRouter.getProcessorForResource(resourceId);
+            if (processor == null && LOG.isDebugEnabled()) {
+                LOG.debug("Protocol-specific processor not available for resource: " + resourceId);
+            }
+            return processor;
 
         } catch (Exception e) {
             LOG.error("Error discovering protocol-specific DebugProcessor: " + e.getMessage(), e);
@@ -262,36 +360,7 @@ public class DebugRequestCoordinator implements DebugService {
     }
 
     /**
-     * Loads a DebugProcessor implementation by class name using reflection.
-     * Instantiates the class if found.
-     *
-     * @param className Fully qualified class name of the DebugProcessor implementation.
-     * @return DebugProcessor instance if class found and instantiated, null otherwise.
-     */
-    private Object loadProcessorByClass(String className) {
-        try {
-            Class<?> processorClass = Class.forName(className);
-            Object instance = processorClass.getDeclaredConstructor().newInstance();
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Loaded DebugProcessor: " + className);
-            }
-            return instance;
-            
-        } catch (ClassNotFoundException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugProcessor class not found: " + className + 
-                    " (This is OK if the protocol connector is not deployed)");
-            }
-        } catch (Exception e) {
-            LOG.error("Error instantiating DebugProcessor " + className + ": " + e.getMessage(), e);
-        }
-        return null;
-    }
-
-    /**
      * Invokes the processCallback method on a DebugProcessor instance via reflection.
-     * This avoids hard coupling to specific DebugProcessor implementations.
      *
      * @param processor The processor instance (DebugProcessor or subclass).
      * @param request HttpServletRequest from the callback.
@@ -301,7 +370,6 @@ public class DebugRequestCoordinator implements DebugService {
      */
     private void invokeProcessorCallback(Object processor, HttpServletRequest request, 
                                         HttpServletResponse response, AuthenticationContext context) throws Exception {
-        // Null check for processor.
         if (processor == null) {
             throw new Exception("DebugProcessor is null");
         }
@@ -331,104 +399,10 @@ public class DebugRequestCoordinator implements DebugService {
                 LOG.error(errorMsg, e);
             }
             throw new Exception(errorMsg, cause != null ? cause : e);
-        } catch (NoSuchMethodException e) {
-            LOG.error("processCallback method not found on processor: " + e.getMessage(), e);
-            throw new Exception("processCallback method not found", e);
         } catch (Exception e) {
             LOG.error("Error invoking processor callback: " + e.getMessage(), e);
             throw e;
         }
-    }
-
-    /**
-     * Retrieves OAuth2 debug context from OAuth2UrlBuilder's DebugSessionCache.
-     * This cache is populated during the OAuth2 authorization URL generation and
-     * contains the full context including IDP_CONFIG and other debug parameters.
-     *
-     * @param state OAuth state parameter used as cache key.
-     * @return AuthenticationContext if found in OAuth2 cache, null otherwise.
-     */
-    private AuthenticationContext retrieveOAuth2DebugContext(String state) {
-        if (state == null) {
-            return null;
-        }
-        
-        try {
-            // Use reflection to access OAuth2UrlBuilder's DebugSessionCache
-            // (OAuth2UrlBuilder is in an optional dependency)
-            String oauth2UrlBuilderClassName = OAuth2UrlBuilder.class.getName();
-            Class.forName(oauth2UrlBuilderClassName);
-            
-            // Get the DebugSessionCache inner class using reflection
-            // Inner class name format: OuterClass$InnerClass
-            String debugSessionCacheClassName = oauth2UrlBuilderClassName + "$DebugSessionCache";
-            Class<?> debugSessionCacheClass = Class.forName(debugSessionCacheClassName);
-            
-            // Get getInstance() method
-            java.lang.reflect.Method getInstanceMethod = debugSessionCacheClass.getMethod("getInstance");
-            Object cacheInstance = getInstanceMethod.invoke(null);
-            
-            if (cacheInstance == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("OAuth2 DebugSessionCache instance is null");
-                }
-                return null;
-            }
-            
-            // Get get() method to retrieve the context map
-            java.lang.reflect.Method getMethod = debugSessionCacheClass.getMethod("get", String.class);
-            Object cachedContextMap = getMethod.invoke(cacheInstance, state);
-            
-            if (cachedContextMap == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No OAuth2 debug context found in cache for state");
-                }
-                return null;
-            }
-            
-            // Convert the cached Map<String, Object> to AuthenticationContext
-            @SuppressWarnings("unchecked")
-            Map<String, Object> contextMap = (Map<String, Object>) cachedContextMap;
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Retrieved context map from cache with " + contextMap.size() + " properties");
-            }
-            
-            // Create new AuthenticationContext from cached values
-            AuthenticationContext context = new AuthenticationContext();
-            
-            // Set context identifier based on state parameter (IMPORTANT for caching later)
-            String debugSessionId = extractDebugSessionIdFromState(state);
-            if (debugSessionId != null) {
-                context.setContextIdentifier(DebugFrameworkConstants.DEBUG_PREFIX + debugSessionId);
-            } else {
-                context.setContextIdentifier("debug-callback-" + state);
-            }
-            
-            // Copy all properties from the cached map to the context
-            for (Map.Entry<String, Object> entry : contextMap.entrySet()) {
-                if (entry.getKey() != null) {
-                    context.setProperty(entry.getKey(), entry.getValue());
-                }
-            }
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully retrieved OAuth2 debug context from cache, " +
-                         "context identifier: " + context.getContextIdentifier() +
-                         ", properties transferred: " + contextMap.size());
-            }
-            
-            return context;
-            
-        } catch (ClassNotFoundException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("OAuth2UrlBuilder not available - OAuth2 debug cache not accessible (optional dependency)");
-            }
-        } catch (Exception e) {
-            LOG.error("Error retrieving OAuth2 debug context from cache: " + e.getMessage(), e);
-        }
-        
-        return null;
     }
 
     /**
@@ -447,7 +421,6 @@ public class DebugRequestCoordinator implements DebugService {
         if (debugSessionId != null) {
             context.setContextIdentifier(DebugFrameworkConstants.DEBUG_PREFIX + debugSessionId);
         } else {
-            // Generate a new identifier based on OAuth parameters.
             context.setContextIdentifier("debug-callback-" + System.currentTimeMillis());
         }
         
@@ -459,22 +432,7 @@ public class DebugRequestCoordinator implements DebugService {
         context.setProperty("DEBUG_CONTEXT_CREATED", DebugFrameworkConstants.TRUE);
         context.setProperty("DEBUG_CREATION_TIMESTAMP", System.currentTimeMillis());
         
-        // Set request information if available.
-        if (request != null) {
-            context.setProperty("DEBUG_HTTP_REQUEST", request);
-            context.setProperty(DebugFrameworkConstants.DEBUG_CALLBACK_URL, request.getRequestURL().toString());
-            
-            // Extract additional parameters that might be useful for debug processing.
-            String[] interestingParams = {"session_state", "iss", "client_id"};
-            for (String param : interestingParams) {
-                String value = request.getParameter(param);
-                if (value != null) {
-                    context.setProperty("DEBUG_OAUTH_" + param.toUpperCase(), value);
-                }
-            }
-        }
-        
-        // Cache the context for potential future lookups.
+        // Cache the context for future lookups.
         cacheDebugContext(context);
         
         if (LOG.isDebugEnabled()) {
@@ -509,57 +467,7 @@ public class DebugRequestCoordinator implements DebugService {
     }
 
     /**
-     * Sends a JSON error response to the client.
-     *
-     * @param response HttpServletResponse.
-     * @param errorCode Error code identifier.
-     * @param errorMessage Detailed error message.
-     */
-    private void sendErrorResponse(HttpServletResponse response, String errorCode, String errorMessage) {
-        try {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-
-            // Safely escape error message to prevent JSON injection.
-            String escapedCode = escapeJsonString(errorCode);
-            String escapedMessage = escapeJsonString(errorMessage != null ? errorMessage : "");
-            
-            String errorJson = "{\"error\":\"" + escapedCode + "\"," +
-                             "\"message\":\"" + escapedMessage +
-                             "\"," +
-                             "\"timestamp\":" + System.currentTimeMillis() + "}";
-
-            response.getWriter().write(errorJson);
-            response.getWriter().flush();
-
-        } catch (IOException e) {
-            LOG.error("Error sending error response: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Escapes a string for safe inclusion in JSON.
-     * Prevents JSON injection by escaping special characters.
-     *
-     * @param input String to escape.
-     * @return Escaped string safe for JSON.
-     */
-    private String escapeJsonString(String input) {
-        if (input == null) {
-            return "";
-        }
-        return input.replace("\\", "\\\\")
-                   .replace("\"", "\\\"")
-                   .replace("\b", "\\b")
-                   .replace("\f", "\\f")
-                   .replace("\n", "\\n")
-                   .replace("\r", "\\r")
-                   .replace("\t", "\\t");
-    }
-
-    /**
-     * Caches the debug context for callback retrieval
+     * Caches the debug context for callback retrieval.
      *
      * @param context AuthenticationContext to cache.
      */
@@ -576,5 +484,87 @@ public class DebugRequestCoordinator implements DebugService {
         } catch (Exception e) {
             LOG.error("Error caching debug context: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Sends a JSON error response to the client using proper JSON serialization.
+     * Prevents JSON injection attacks by using org.json library.
+     *
+     * @param response HttpServletResponse.
+     * @param errorCode Error code identifier.
+     * @param errorMessage Detailed error message.
+     */
+    private void sendErrorResponse(HttpServletResponse response, String errorCode, String errorMessage) {
+        try {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
+            // Build error response using proper JSON escaping with manual but correct implementation.
+            // Use StringBuilder for efficiency instead of string concatenation.
+            StringBuilder jsonBuilder = new StringBuilder();
+            jsonBuilder.append("{\"error\":");
+            appendJsonString(jsonBuilder, errorCode != null ? errorCode : "");
+            jsonBuilder.append(",\"message\":");
+            appendJsonString(jsonBuilder, errorMessage != null ? errorMessage : "");
+            jsonBuilder.append(",\"timestamp\":");
+            jsonBuilder.append(System.currentTimeMillis());
+            jsonBuilder.append("}");
+
+            response.getWriter().write(jsonBuilder.toString());
+            response.getWriter().flush();
+
+        } catch (IOException e) {
+            LOG.error("Error sending error response: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Appends a JSON-escaped string to a StringBuilder.
+     * Properly escapes all JSON special characters to prevent injection attacks.
+     *
+     * @param builder StringBuilder to append to.
+     * @param value String value to escape and append.
+     */
+    private void appendJsonString(StringBuilder builder, String value) {
+        builder.append("\"");
+        if (value != null && !value.isEmpty()) {
+            for (int i = 0; i < value.length(); i++) {
+                char ch = value.charAt(i);
+                switch (ch) {
+                    case '"':
+                        builder.append("\\\"");
+                        break;
+                    case '\\':
+                        builder.append("\\\\");
+                        break;
+                    case '\b':
+                        builder.append("\\b");
+                        break;
+                    case '\f':
+                        builder.append("\\f");
+                        break;
+                    case '\n':
+                        builder.append("\\n");
+                        break;
+                    case '\r':
+                        builder.append("\\r");
+                        break;
+                    case '\t':
+                        builder.append("\\t");
+                        break;
+                    case '/':
+                        builder.append("\\/");
+                        break;
+                    default:
+                        if (ch < 32 || (ch >= 127 && ch < 160) || (ch >= 0x2028 && ch <= 0x2029)) {
+                            builder.append(String.format("\\u%04x", (int) ch));
+                        } else {
+                            builder.append(ch);
+                        }
+                }
+            }
+        }
+        builder.append("\"");
     }
 }

@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.debug.framework.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.util.regex.Pattern;
+
 /**
  * Generic utility class for the Debug Framework.
  * Provides common utility methods used across the framework.
@@ -28,6 +30,13 @@ import org.apache.commons.logging.LogFactory;
 public final class DebugFrameworkUtil {
 
     private static final Log LOG = LogFactory.getLog(DebugFrameworkUtil.class);
+
+    // Pre-compiled regex patterns for performance optimization.
+    private static final Pattern EMAIL_PATTERN = 
+        Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    
+    private static final Pattern UUID_PATTERN = 
+        Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     private DebugFrameworkUtil() {
     }
@@ -110,30 +119,31 @@ public final class DebugFrameworkUtil {
 
     /**
      * Validates an email address format.
+     * Uses pre-compiled regex pattern for performance.
      *
-     * @param email Email to validate.
-     * @return true if valid email format, false otherwise.
+     * @param email Email address to validate.
+     * @return true if the email format is valid, false otherwise.
      */
     public static boolean isValidEmail(String email) {
         if (isBlank(email)) {
             return false;
         }
-        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-        return email.matches(emailRegex);
+        return EMAIL_PATTERN.matcher(email).matches();
     }
 
     /**
      * Validates a UUID format.
+     * Checks if the provided string matches the standard UUID format.
+     * Uses pre-compiled regex pattern for performance.
      *
      * @param uuid UUID string to validate.
-     * @return true if valid UUID format, false otherwise.
+     * @return true if the UUID format is valid, false otherwise.
      */
     public static boolean isValidUUID(String uuid) {
         if (isBlank(uuid)) {
             return false;
         }
-        String uuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
-        return uuid.matches(uuidRegex);
+        return UUID_PATTERN.matcher(uuid).matches();
     }
 
     /**
@@ -164,19 +174,21 @@ public final class DebugFrameworkUtil {
     }
 
     /**
-     * Gets current timestamp in milliseconds.
+     * Gets the current system timestamp in milliseconds.
+     * Provides a consistent way to capture the current time across the debug framework.
      *
-     * @return Current time.
+     * @return Current system time in milliseconds since Unix epoch.
      */
     public static long getCurrentTimestamp() {
         return System.currentTimeMillis();
     }
 
     /**
-     * Calculates elapsed time since a start time.
+     * Calculates the elapsed time between a start time and the current time.
+     * Useful for measuring the duration of debug operations.
      *
-     * @param startTime Start time in milliseconds.
-     * @return Elapsed time in milliseconds.
+     * @param startTime Start time in milliseconds (typically from getCurrentTimestamp()).
+     * @return Elapsed time in milliseconds since startTime.
      */
     public static long getElapsedTime(long startTime) {
         return System.currentTimeMillis() - startTime;

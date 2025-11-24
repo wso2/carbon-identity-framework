@@ -87,7 +87,7 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_REQUEST_HANDLED = "debugRequestHandled";
 
     // IDP Configuration Property Keys.
-    public static final String IDP_CONFIG = "IDP_CONFIG";
+    public static final String RESOURCE_CONFIG = "RESOURCE_CONFIG";
 
     // OAuth2 Callback Parameters.
     public static final String OAUTH2_CODE_PARAM = "code";
