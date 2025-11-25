@@ -1566,6 +1566,25 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="userCredentialManagement" displayName="User Credential Management" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:user_credentials"/>
+                <Scope name="console:user_credentials_view"/>
+                <Scope name="console:user_credentials_edit"/>
+            </Feature>
+            <Update>
+            </Update>
+            <Delete>
+                <Scope name="internal_user_mgt_delete"/>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+                <Scope name="internal_user_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <!--    New Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>
@@ -2073,6 +2092,25 @@
             <Read>
                 <Scope name="internal_org_flow_view"/>
                 <Scope name="internal_org_governance_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_userCredentialManagement" displayName="User Credential Management" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:user_credentials"/>
+                <Scope name="console:org:user_credentials_view"/>
+                <Scope name="console:org:user_credentials_edit"/>
+            </Feature>
+            <Update>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_user_mgt_delete"/>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+                <Scope name="internal_org_user_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
