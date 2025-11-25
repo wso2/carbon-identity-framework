@@ -63,6 +63,7 @@ public class DebugServiceComponent {
                 null
             );
 
+            LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugRequestCoordinator registered as OSGi service");
             }
@@ -77,6 +78,56 @@ public class DebugServiceComponent {
     protected void deactivate(ComponentContext context) {
 
         LOG.info("Debug Framework OSGi component deactivated");
+    }
+
+    /**
+     * Sets the DebugProtocolProvider.
+     * Called by OSGi when a protocol module registers a DebugProtocolProvider.
+     * Multiple providers can be registered (one per protocol: OIDC, Google, SAML, etc.).
+     * 
+     * Uses 0..* cardinality (MULTIPLE is optional by default) so the framework
+     * can activate even if no providers are registered initially. Providers are
+     * discovered dynamically at runtime via OSGi service lookups.
+     *
+     * @param provider the DebugProtocolProvider instance
+     */
+    @Reference(
+            name = "debug.protocol.provider",
+            service = org.wso2.carbon.identity.debug.framework.core.DebugProtocolProvider.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugProtocolProvider"
+    )
+    protected void setDebugProtocolProvider(
+            org.wso2.carbon.identity.debug.framework.core.DebugProtocolProvider provider) {
+
+        if (provider != null) {
+            String protocolType = provider.getProtocolType();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugProtocolProvider registered for protocol: " + protocolType);
+            }
+            DebugFrameworkServiceDataHolder.getInstance().addDebugProtocolProvider(provider);
+            LOG.info("Successfully registered DebugProtocolProvider for protocol: " + protocolType);
+        }
+    }
+
+    /**
+     * Unsets the DebugProtocolProvider.
+     * Called by OSGi when a protocol module deactivates or unregisters its provider.
+     *
+     * @param provider the DebugProtocolProvider instance
+     */
+    protected void unsetDebugProtocolProvider(
+            org.wso2.carbon.identity.debug.framework.core.DebugProtocolProvider provider) {
+
+        if (provider != null) {
+            String protocolType = provider.getProtocolType();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugProtocolProvider unregistered for protocol: " + protocolType);
+            }
+            DebugFrameworkServiceDataHolder.getInstance().removeDebugProtocolProvider(provider);
+            LOG.info("Unregistered DebugProtocolProvider for protocol: " + protocolType);
+        }
     }
 
     /**

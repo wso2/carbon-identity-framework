@@ -19,16 +19,34 @@
 package org.wso2.carbon.identity.debug.framework.internal;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.debug.framework.core.DebugProtocolProvider;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Data holder for Debug Framework Service Component.
  * This holds references to OSGi services that are required by the debug framework.
+ * 
+ * Manages:
+ * - ClaimMetadataManagementService: Required for claim operations
+ * - DebugProtocolProvider services: Dynamically registered by protocol modules (OIDC, Google, etc.)
+ * 
+ * Protocol providers are stored in a thread-safe map for concurrent access during
+ * OSGi service binding/unbinding and request processing.
  */
 public class DebugFrameworkServiceDataHolder {
 
     private static final DebugFrameworkServiceDataHolder instance = new DebugFrameworkServiceDataHolder();
     
     private ClaimMetadataManagementService claimMetadataManagementService;
+    
+    /**
+     * Thread-safe map storing protocol providers indexed by protocol type.
+     * Key: Protocol type (e.g., "OAUTH2_OIDC", "GOOGLE", "SAML")
+     * Value: DebugProtocolProvider implementation
+     */
+    private final Map<String, DebugProtocolProvider> debugProtocolProviders = new ConcurrentHashMap<>();
 
     /**
      * Private constructor to prevent instantiation.
@@ -65,5 +83,65 @@ public class DebugFrameworkServiceDataHolder {
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
         
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * Adds a debug protocol provider to the registry.
+     * Called during OSGi service binding when a plugin registers a DebugProtocolProvider.
+     *
+     * @param provider The DebugProtocolProvider to register.
+     */
+    public void addDebugProtocolProvider(DebugProtocolProvider provider) {
+        
+        if (provider != null) {
+            String protocolType = provider.getProtocolType();
+            debugProtocolProviders.put(protocolType, provider);
+        }
+    }
+
+    /**
+     * Removes a debug protocol provider from the registry.
+     * Called during OSGi service unbinding when a plugin deactivates.
+     *
+     * @param provider The DebugProtocolProvider to unregister.
+     */
+    public void removeDebugProtocolProvider(DebugProtocolProvider provider) {
+        
+        if (provider != null) {
+            String protocolType = provider.getProtocolType();
+            debugProtocolProviders.remove(protocolType);
+        }
+    }
+
+    /**
+     * Gets a debug protocol provider by protocol type.
+     *
+     * @param protocolType The protocol type (e.g., "OAUTH2_OIDC").
+     * @return The DebugProtocolProvider for the type, or null if not registered.
+     */
+    public DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
+        
+        return debugProtocolProviders.get(protocolType);
+    }
+
+    /**
+     * Gets all registered debug protocol providers.
+     *
+     * @return Map of protocol type to DebugProtocolProvider (defensive copy).
+     */
+    public Map<String, DebugProtocolProvider> getAllDebugProtocolProviders() {
+        
+        return new ConcurrentHashMap<>(debugProtocolProviders);
+    }
+
+    /**
+     * Checks if a protocol provider is registered for the given type.
+     *
+     * @param protocolType The protocol type to check.
+     * @return true if a provider is registered, false otherwise.
+     */
+    public boolean hasDebugProtocolProvider(String protocolType) {
+        
+        return debugProtocolProviders.containsKey(protocolType);
     }
 }

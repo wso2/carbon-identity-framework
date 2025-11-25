@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.debug.framework.handler.IdpDebugResourceHandler;
+import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -43,6 +44,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 public class DebugProtocolRouter {
 
     private static final Log LOG = LogFactory.getLog(DebugProtocolRouter.class);
+    private static final String PROTOCOL_INFO_LOG = ", protocol: ";
 
     /**
      * Enum representing different debug protocol types.
@@ -195,7 +197,7 @@ public class DebugProtocolRouter {
      * Detects protocol from IdP configuration with corruption handling.
      * Handles NullPointerException that may occur due to corrupted resource configuration.
      *
-     * @param resource The IdentityProvider resource.
+     * @param resource The resource.
      * @param resourceId The resource ID (used for logging).
      * @return Detected DebugProtocolType, defaults to OAUTH2_OIDC if corruption is detected.
      */
@@ -367,96 +369,27 @@ public class DebugProtocolRouter {
     }
 
     /**
-     * Gets the context provider class name for the given protocol type.
-     *
-     * @param protocolType DebugProtocolType.
-     * @return Fully qualified context provider class name.
-     */
-    public static String getContextProviderClass(DebugProtocolType protocolType) {
-
-        return protocolType.getContextProviderClass();
-    }
-
-    /**
-     * Gets the executor class name for the given protocol type.
-     * Returns null for synchronous protocols like SAML.
-     *
-     * @param protocolType DebugProtocolType.
-     * @return Fully qualified executor class name, or null if not applicable.
-     */
-    public static String getExecutorClass(DebugProtocolType protocolType) {
-
-        return protocolType.getExecutorClass();
-    }
-
-    /**
-     * Gets the processor class name for the given protocol type.
-     *
-     * @param protocolType DebugProtocolType.
-     * @return Fully qualified processor class name.
-     */
-    public static String getProcessorClass(DebugProtocolType protocolType) {
-
-        return protocolType.getProcessorClass();
-    }
-
-    /**
-     * Gets the context provider class for the given resource ID.
-     * Automatically detects protocol and returns appropriate class.
+     * Gets the context provider for the given resource ID.
+     * Automatically detects protocol and returns appropriate provider.
      *
      * @param resourceId Resource ID.
-     * @return Fully qualified context provider class name.
+     * @return DebugContextProvider for the resource, or null if not available.
      */
-    public static String getContextProviderClassForResource(String resourceId) {
+    public static DebugContextProvider getContextProviderForResource(String resourceId) {
 
         DebugProtocolType type = detectProtocol(resourceId);
-        return getContextProviderClass(type);
-    }
-
-    /**
-     * Gets the executor class for the given resource ID.
-     * Automatically detects protocol and returns appropriate class.
-     *
-     * @param resourceId Resource ID.
-     * @return Fully qualified executor class name, or null if not applicable.
-     */
-    public static String getExecutorClassForResource(String resourceId) {
-
-        DebugProtocolType type = detectProtocol(resourceId);
-        return getExecutorClass(type);
-    }
-
-    /**
-     * Gets the processor class for the given resource ID.
-     * Automatically detects protocol and returns appropriate class.
-     *
-     * @param resourceId Resource ID.
-     * @return Fully qualified processor class name.
-     */
-    public static String getProcessorClassForResource(String resourceId) {
-
-        DebugProtocolType type = detectProtocol(resourceId);
-        return getProcessorClass(type);
-    }
-
-    /**
-     * Loads and instantiates the context provider for the given resource ID.
-     *
-     * @param resourceId Resource ID.
-     * @return Context provider instance, or null if not available.
-     */
-    public static Object getContextProviderForResource(String resourceId) {
-
-        String className = getContextProviderClassForResource(resourceId);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Loading context provider class: " + className + " for resource: " + resourceId);
+            LOG.debug("Detected protocol type for resource " + resourceId + ": " + type.getDisplayName() 
+                    + " (key: " + type.getProtocolKey() + ")");
         }
-        Object provider = loadServiceByClass(className);
+        DebugProtocolProvider provider = getDebugProtocolProvider(type.getDisplayName());
+        
         if (provider != null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully loaded context provider: " + provider.getClass().getName());
+                LOG.debug("Getting context provider for resource: " + resourceId + PROTOCOL_INFO_LOG 
+                        + type.getDisplayName());
             }
-            return provider;
+            return provider.getContextProvider();
         }
         
         if (LOG.isDebugEnabled()) {
@@ -466,23 +399,22 @@ public class DebugProtocolRouter {
     }
 
     /**
-     * Loads and instantiates the executor for the given resource ID.
+     * Gets the executor for the given resource ID.
+     * Automatically detects protocol and returns appropriate provider.
      *
-     * @param resourceId resource ID.
-     * @return Executor instance, or null if not available or not applicable.
+     * @param resourceId Resource ID.
+     * @return DebugExecutor for the resource, or null if not available or not applicable.
      */
-    public static Object getExecutorForResource(String resourceId) {
+    public static DebugExecutor getExecutorForResource(String resourceId) {
 
-        String className = getExecutorClassForResource(resourceId);
-        if (className == null) {
-            return null;
-        }
-        Object executor = loadServiceByClass(className);
-        if (executor != null) {
+        DebugProtocolType type = detectProtocol(resourceId);
+        DebugProtocolProvider provider = getDebugProtocolProvider(type.getDisplayName());
+        
+        if (provider != null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully loaded executor: " + executor.getClass().getName());
+                LOG.debug("Getting executor for resource: " + resourceId + PROTOCOL_INFO_LOG + type.getDisplayName());
             }
-            return executor;
+            return provider.getExecutor();
         }
         
         if (LOG.isDebugEnabled()) {
@@ -492,20 +424,22 @@ public class DebugProtocolRouter {
     }
 
     /**
-     * Loads and instantiates the processor for the given resource ID.
+     * Gets the processor for the given resource ID.
+     * Automatically detects protocol and returns appropriate provider.
      *
      * @param resourceId Resource ID.
-     * @return Processor instance, or null if not available.
+     * @return DebugProcessor for the resource, or null if not available.
      */
-    public static Object getProcessorForResource(String resourceId) {
+    public static DebugProcessor getProcessorForResource(String resourceId) {
 
-        String className = getProcessorClassForResource(resourceId);
-        Object processor = loadServiceByClass(className);
-        if (processor != null) {
+        DebugProtocolType type = detectProtocol(resourceId);
+        DebugProtocolProvider provider = getDebugProtocolProvider(type.getDisplayName());
+        
+        if (provider != null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully loaded processor: " + processor.getClass().getName());
+                LOG.debug("Getting processor for resource: " + resourceId + PROTOCOL_INFO_LOG + type.getDisplayName());
             }
-            return processor;
+            return provider.getProcessor();
         }
         
         if (LOG.isDebugEnabled()) {
@@ -579,34 +513,52 @@ public class DebugProtocolRouter {
     }
 
     /**
-     * Loads a service implementation by class name using reflection.
+     * Loads a service implementation by protocol type using OSGi service discovery.
+     * Replaces reflection-based Class.forName with OSGi service lookups.
      *
-     * @param className Fully qualified class name.
-     * @return Service instance, or null if not available.
+     * @param protocolType Protocol type (e.g., "OAUTH2_OIDC").
+     * @return DebugProtocolProvider for the protocol, or null if not registered.
      */
-    private static Object loadServiceByClass(String className) {
+    private static DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
 
-        if (StringUtils.isEmpty(className)) {
+        if (StringUtils.isEmpty(protocolType)) {
             return null;
         }
 
         try {
-            Class<?> serviceClass = Class.forName(className);
-            Object instance = serviceClass.getDeclaredConstructor().newInstance();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Loaded service: " + className);
+            DebugProtocolProvider provider = DebugFrameworkServiceDataHolder.getInstance()
+                    .getDebugProtocolProvider(protocolType);
+            
+            if (provider != null && LOG.isDebugEnabled()) {
+                LOG.debug("Retrieved protocol provider for type: " + protocolType);
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("Protocol provider not found for type: " + protocolType 
+                        + ". Available providers: " 
+                        + DebugFrameworkServiceDataHolder.getInstance().getAllDebugProtocolProviders().keySet());
             }
-            return instance;
+            return provider;
 
-        } catch (ClassNotFoundException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Service class not found: " + className + 
-                    " (This is OK if the protocol connector is not deployed)");
-            }
         } catch (Exception e) {
-            LOG.error("Error instantiating service " + className + ": " + e.getMessage(), e);
+            LOG.error("Error retrieving protocol provider for type: " + protocolType + ": " 
+                    + e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * Gets all registered protocol types.
+     * Used for diagnostics and logging.
+     *
+     * @return Collection of registered protocol type names.
+     */
+    public static java.util.Collection<String> getAllRegisteredProtocolTypes() {
+
+        try {
+            return DebugFrameworkServiceDataHolder.getInstance()
+                    .getAllDebugProtocolProviders().keySet();
+        } catch (Exception e) {
+            LOG.error("Error retrieving registered protocol types: " + e.getMessage(), e);
+            return java.util.Collections.emptySet();
+        }
     }
 }
