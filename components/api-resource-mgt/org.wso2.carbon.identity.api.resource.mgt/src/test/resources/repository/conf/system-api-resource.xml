@@ -1121,4 +1121,24 @@
                    description="Manage offline invitations from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Credential Management API" identifier="/api/server/v1/users/(.*)/credentials"
+                 requiresAuthorization="true"
+                 description="API representation of the User Credential Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Credential" name="internal_user_mgt_view"
+                   description="View credentials of end users in the organization"/>
+            <Scope displayName="Delete Credential" name="internal_user_mgt_delete"
+                   description="Delete credentials of end users in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Credential Management API" identifier="/o/api/server/v1/users/(.*)/credentials"
+                 requiresAuthorization="true"
+                 description="API representation of the User Credential Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Credential" name="internal_org_user_mgt_view"
+                   description="View credentials of end users in the organization"/>
+            <Scope displayName="Delete Credential" name="internal_org_user_mgt_delete"
+                   description="Delete credentials of end users in the organization"/>
+        </Scopes>
+    </APIResource>
 </APIResources>
