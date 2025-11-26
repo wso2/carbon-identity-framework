@@ -899,6 +899,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             for (String username : tempUserNamesList) {
                 User newUser = new User();
                 newUser.setUsername(username);
+                newUser.setPreferredUsername(username);
                 newUser.setTenantDomain(tenantDomain);
                 try {
                     newUser.setUserID(FrameworkUtils.resolveUserIdFromUsername(userStoreManager, username));
