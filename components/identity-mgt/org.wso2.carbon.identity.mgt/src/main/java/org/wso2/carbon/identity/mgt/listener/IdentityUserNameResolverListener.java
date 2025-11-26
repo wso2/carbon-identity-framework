@@ -901,6 +901,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
                 newUser.setUsername(username);
                 newUser.setPreferredUsername(username);
                 newUser.setTenantDomain(tenantDomain);
+                String userStoreDomain = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
+                newUser.setUserStoreDomain(userStoreDomain);
                 try {
                     newUser.setUserID(FrameworkUtils.resolveUserIdFromUsername(userStoreManager, username));
                 } catch (UserSessionException e) {
