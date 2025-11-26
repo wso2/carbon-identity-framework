@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.debug.framework.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
@@ -55,7 +56,6 @@ public class DebugRequestCoordinator implements DebugService {
      */
     public DebugRequestCoordinator() {
 
-        // Intentionally empty - this is a stateless service coordinator.
         // See class javadoc for details on the routing and delegation design.
     }
 
@@ -647,93 +647,17 @@ public class DebugRequestCoordinator implements DebugService {
             response.setCharacterEncoding("UTF-8");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
-            // Build error response using proper JSON escaping with manual but correct implementation.
-            // Use StringBuilder for efficiency instead of string concatenation.
-            StringBuilder jsonBuilder = new StringBuilder();
-            jsonBuilder.append("{\"error\":");
-            appendJsonString(jsonBuilder, errorCode != null ? errorCode : "");
-            jsonBuilder.append(",\"message\":");
-            appendJsonString(jsonBuilder, errorMessage != null ? errorMessage : "");
-            jsonBuilder.append(",\"timestamp\":");
-            jsonBuilder.append(System.currentTimeMillis());
-            jsonBuilder.append("}");
+            // Use org.json library for safe JSON serialization to prevent injection attacks.
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", errorCode != null ? errorCode : "");
+            errorResponse.put("message", errorMessage != null ? errorMessage : "");
+            errorResponse.put("timestamp", System.currentTimeMillis());
 
-            response.getWriter().write(jsonBuilder.toString());
+            response.getWriter().write(errorResponse.toString());
             response.getWriter().flush();
 
         } catch (IOException e) {
             LOG.error("Error sending error response: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Appends a JSON-escaped string to a StringBuilder.
-     * Properly escapes all JSON special characters to prevent injection attacks.
-     *
-     * @param builder StringBuilder to append to.
-     * @param value String value to escape and append.
-     */
-    private void appendJsonString(StringBuilder builder, String value) {
-        
-        builder.append("\"");
-        if (value != null && !value.isEmpty()) {
-            for (int i = 0; i < value.length(); i++) {
-                appendEscapedChar(builder, value.charAt(i));
-            }
-        }
-        builder.append("\"");
-    }
-
-    /**
-     * Appends a character to the builder with proper JSON escaping.
-     *
-     * @param builder StringBuilder to append to.
-     * @param ch Character to escape and append.
-     */
-    private void appendEscapedChar(StringBuilder builder, char ch) {
-
-        switch (ch) {
-            case '"':
-                builder.append("\\\"");
-                break;
-            case '\\':
-                builder.append("\\\\");
-                break;
-            case '\b':
-                builder.append("\\b");
-                break;
-            case '\f':
-                builder.append("\\f");
-                break;
-            case '\n':
-                builder.append("\\n");
-                break;
-            case '\r':
-                builder.append("\\r");
-                break;
-            case '\t':
-                builder.append("\\t");
-                break;
-            case '/':
-                builder.append("\\/");
-                break;
-            default:
-                appendCharacterOrUnicodeEscape(builder, ch);
-        }
-    }
-
-    /**
-     * Appends a character or its unicode escape sequence.
-     *
-     * @param builder StringBuilder to append to.
-     * @param ch Character to handle.
-     */
-    private void appendCharacterOrUnicodeEscape(StringBuilder builder, char ch) {
-
-        if (ch < 32 || (ch >= 127 && ch < 160) || (ch >= 0x2028 && ch <= 0x2029)) {
-            builder.append(String.format("\\u%04x", (int) ch));
-        } else {
-            builder.append(ch);
         }
     }
 }

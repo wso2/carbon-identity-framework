@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.debug.framework.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,27 +29,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Abstract base processor for protocol-specific Authorization Code callback handling.
- * Implements template method pattern for OAuth/OIDC authentication callback processing.
+ * Abstract base processor for debug flow callback handling.
+ * Implements template method pattern for generic authentication/authorization debug flow processing.
  * 
- * This class provides the generic orchestration flow:
- * 1. validateProtocolCallback() - protocol-specific validation
- * 2. exchangeAuthorizationForTokens() - protocol-specific token exchange
- * 3. extractUserClaims() - protocol-specific claim extraction
- * 4. Build authenticated user and cache result - delegated to subclass
+ * This framework is designed to be completely protocol-agnostic and resource-agnostic.
+ * It can be extended for debugging any authentication flow (OAuth2, SAML, OIDC, custom protocols, etc.)
+ * with any resource type (IdP, API, database, etc.).
  * 
- * Subclasses MUST implement:
- * - extractUserClaims(): Extract claims from protocol-specific tokens
- * - isAuthorizationCodeAlreadyProcessed(): Detect replay attacks
- * - handleClaimsExtractionResult(): Validate extracted claims
- * - buildAndCacheDebugResult(): Create final authenticated user and cache
- * - buildAndCacheTokenExchangeErrorResponse(): Handle token exchange errors
- * - redirectToDebugSuccess(): Send response to client
- * 
- * Subclasses MAY override:
- * - validateProtocolCallback(): Protocol-specific callback validation (default provided)
- * - exchangeAuthorizationForTokens(): Protocol-specific token exchange (default returns false)
- * 
+ * Generic orchestration flow:
+ * 1. validateCallback() - Validate callback parameters
+ * 2. processAuthentication() - Process authentication/authorization
+ * 3. extractDebugData() - Extract data for debugging
+ * 4. validateDebugData() - Validate extracted data
+ * 5. buildAndCacheDebugResult() - Build final debug result
+ * 6. sendDebugResponse() - Send response to client
+ *
+ * Subclasses MUST implement all abstract methods with their specific logic.
+ * Subclasses should NOT make assumptions about protocols or resource types.
  */
 
 public abstract class DebugProcessor {
@@ -58,212 +53,198 @@ public abstract class DebugProcessor {
     private static final Log LOG = LogFactory.getLog(DebugProcessor.class);
 
     /**
-     * Processes the OAuth 2.0 Authorization Code callback from external Resource.
-     * Template method that orchestrates: validation -> token exchange -> claim extraction -> response.
-     * Protocol-specific implementations are delegated to subclass methods.
+     * Processes the debug flow callback from external system.
+     * Template method that orchestrates: validation -> authentication -> data extraction -> response.
+     * All specific implementations are delegated to subclass methods.
      *
-     * @param request HttpServletRequest containing authorization code and state.
+     * @param request HttpServletRequest containing callback parameters.
      * @param response HttpServletResponse for sending results.
-     * @param context AuthenticationContext with stored PKCE parameters.
+     * @param context AuthenticationContext for storing and retrieving debug state.
      * @throws IOException If processing fails.
      */
     public void processCallback(HttpServletRequest request, HttpServletResponse response,
                                AuthenticationContext context) throws IOException {
-        // Extract callback parameters.
-        String authorizationCode = request.getParameter("code");
-        String state = request.getParameter("state");
-        String resourceId = "";
         
         try {
-            IdentityProvider resource = (IdentityProvider) context.getProperty(DebugFrameworkConstants.RESOURCE_CONFIG);
-            resourceId = resource != null ? resource.getResourceId() : "";
+            // Extract protocol-specific parameters (OAuth2: state, SAML: RelayState, etc.)
+            String state = request.getParameter("state");
+            if (state == null || state.trim().isEmpty()) {
+                state = (String) context.getProperty("DEBUG_STATE");
+            }
             
-            // Validate OAuth callback parameters (protocol-specific).
-            if (!validateProtocolCallback(request, context, response, state, resourceId)) {
+            // Extract resource identifier (IdP ID, API ID, etc.)
+            String resourceId = extractResourceId(context);
+            
+            // Step 1: Validate callback (protocol/resource-specific).
+            if (!validateCallback(request, context, response, state, resourceId)) {
                 return;
             }
             
-            // Check for duplicate authorization code (subclass specific).
-            if (isAuthorizationCodeAlreadyProcessed(authorizationCode, request, context, response, state, resourceId)) {
+            // Step 2: Process authentication/authorization (protocol/resource-specific).
+            if (!processAuthentication(request, context, response, state, resourceId)) {
+                // Authentication failed - error details already cached by subclass.
+                sendDebugResponse(response, state, resourceId);
                 return;
             }
             
-            // Exchange authorization code for tokens (protocol-specific).
-            if (!exchangeAuthorizationForTokens(request, context, response, state, resourceId)) {
-                // Token exchange failed - error details already cached by subclass.
-                // Redirect to success page to display the cached error result.
-                redirectToDebugSuccess(response, state, resourceId);
+            // Step 3: Extract debug data (protocol/resource-specific).
+            Map<String, Object> debugData = extractDebugData(context);
+            
+            // Step 4: Validate extracted data (protocol/resource-specific).
+            if (!validateDebugData(debugData, context, response, state, resourceId)) {
                 return;
             }
-            
-            // Extract user claims from tokens (protocol-specific, e.g., parse ID token).
-            Map<String, Object> claims = extractUserClaims(context);
-            if (!handleClaimsExtractionResult(claims, context, response, state, resourceId)) {
-                return;
-            }
-            
-            // Create authenticated user and build final response (subclass specific).
+
+            // Step 5: Build and cache final debug result (protocol/resource-specific).
             buildAndCacheDebugResult(context, state);
             
-            redirectToDebugSuccess(response, state, resourceId);
+            // Step 6: Send response to client.
+            sendDebugResponse(response, state, resourceId);
             
         } catch (Exception e) {
-            LOG.error("Unexpected error processing OAuth 2.0 callback.", e);
-            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Unexpected error: " + e.getMessage());
-            context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
-            if (e instanceof java.lang.reflect.InvocationTargetException 
-                && e.getCause() != null && LOG.isDebugEnabled()) {
-                LOG.debug("InvocationTargetException cause:", e.getCause());
+            LOG.error("Unexpected error processing debug callback.", e);
+            handleUnexpectedError(e, context);
+            
+            // Try to extract state for error response
+            String state = request.getParameter("state");
+            if (state == null || state.trim().isEmpty()) {
+                state = (String) context.getProperty("DEBUG_STATE");
             }
-            redirectToDebugSuccess(response, state, resourceId);
+            String resourceId = extractResourceId(context);
+            sendDebugResponse(response, state, resourceId);
         }
     }
 
     /**
-     * Validates OAuth/OIDC callback parameters for security and completeness.
-     * Default implementation performs basic validation; subclasses should add protocol-specific checks.
+     * Extracts resource identifier from context.
+     * Subclasses can override to extract resource ID in protocol-specific way.
+     * Default implementation tries common property names.
+     *
+     * @param context AuthenticationContext.
+     * @return Resource identifier or empty string if not found.
+     */
+    protected String extractResourceId(AuthenticationContext context) {
+        // Try common property names for resource ID
+        Object resourceId = context.getProperty("RESOURCE_ID");
+        if (resourceId == null) {
+            resourceId = context.getProperty("IDP_RESOURCE_ID");
+        }
+        if (resourceId == null) {
+            resourceId = context.getProperty("DEBUG_RESOURCE_ID");
+        }
+        return resourceId != null ? resourceId.toString() : "";
+    }
+
+    /**
+     * Validates callback parameters.
+     * Subclasses MUST implement with specific validation logic.
+     * 
+     * Examples:
+     * - OAuth2: Validate authorization code, state parameter, error responses
+     * - SAML: Validate SAMLResponse, RelayState
+     * - Custom: Validate any protocol-specific parameters
      *
      * @param request HttpServletRequest containing callback parameters.
-     * @param context AuthenticationContext.
+     * @param context AuthenticationContext for storing validation state.
      * @param response HttpServletResponse for error responses.
-     * @param state State parameter for CSRF protection.
-     * @param resourceId Resource ID.
-     * @return false if validation fails, true if validation passes.
+     * @return true if validation passes, false otherwise.
      * @throws IOException If response cannot be sent.
      */
-    protected boolean validateProtocolCallback(HttpServletRequest request, AuthenticationContext context,
-              HttpServletResponse response, String state, String resourceId) throws IOException {
+    protected abstract boolean validateCallback(HttpServletRequest request, AuthenticationContext context,
+              HttpServletResponse response, String state, String resourceId) throws IOException;
 
-        // Default implementation: validate basic OAuth parameters.
-        String code = request.getParameter("code");
-        String error = request.getParameter("error");
-        String errorDescription = request.getParameter("error_description");
-
-        // Handle OAuth error responses.
-        if (error != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Authorization error from Resource: " + error + " - " + errorDescription);
-            }
-            buildAndCacheTokenExchangeErrorResponse(error, errorDescription, "", state, context);
-            return false;
-        }
-
-        // Validate authorization code.
-        if (code == null || code.trim().isEmpty()) {
-            LOG.error("Authorization code missing in callback");
-            buildAndCacheTokenExchangeErrorResponse("NO_CODE", "Authorization code not received", "", state, context);
-            return false;
-        }
-
-        // Validate state parameter.
-        if (state == null || state.trim().isEmpty()) {
-            LOG.error("State parameter missing in callback");
-            buildAndCacheTokenExchangeErrorResponse("NO_STATE", "State parameter missing", "", state, context);
-            return false;
-        }
-
-        // Validate state matches stored value.
-        String storedState = (String) context.getProperty("DEBUG_STATE");
-        if (storedState != null && !state.equals(storedState)) {
-            LOG.error("State parameter mismatch - CSRF attack detected");
-            buildAndCacheTokenExchangeErrorResponse("STATE_MISMATCH", "State validation failed", "", state, context);
-            return false;
-        }
-
-        return true;
-    }
 
     /**
-     * Exchanges authorization code for tokens.
-     * Subclasses must override this method with protocol-specific token exchange logic.
+     * Processes the authentication/authorization flow.
+     * Subclasses MUST implement with specific authentication logic.
+     * 
+     * Examples:
+     * - OAuth2: Exchange authorization code for tokens
+     * - SAML: Validate and process SAML assertion
+     * - Custom: Implement protocol-specific authentication
      *
-     * @param request HttpServletRequest containing authorization code.
-     * @param context AuthenticationContext.
+     * @param request HttpServletRequest containing authentication parameters.
+     * @param context AuthenticationContext for storing authentication state.
      * @param response HttpServletResponse for error responses.
-     * @param state State parameter for session tracking.
-     * @param resourceId Resource ID.
-     * @return true if token exchange succeeds, false otherwise.
+     * @return true if authentication succeeds, false otherwise.
      * @throws IOException If response cannot be sent.
      */
-    protected boolean exchangeAuthorizationForTokens(HttpServletRequest request, AuthenticationContext context,
-              HttpServletResponse response, String state, String resourceId) throws IOException {
-
-        LOG.error("exchangeAuthorizationForTokens not implemented in subclass");
-        return false;
-    }
-
-    /**
-     * Extracts user claims from protocol-specific tokens.
-     * Subclasses MUST implement this method with protocol-specific token parsing logic.
-     *
-     * @param context AuthenticationContext containing tokens.
-     * @return Map of extracted claims, or empty map if no claims found, or null if extraction fails.
-     */
-    protected abstract Map<String, Object> extractUserClaims(AuthenticationContext context);
-
-    /**
-     * Checks if authorization code was already processed (replay attack prevention).
-     * Subclasses must implement this with appropriate session state tracking.
-     *
-     * @param authorizationCode The authorization code from callback.
-     * @param request HttpServletRequest.
-     * @param context AuthenticationContext.
-     * @param response HttpServletResponse.
-     * @param state State parameter for session tracking.
-     * @param resourceId Resource ID.
-     * @return true if duplicate code detected, false otherwise.
-     * @throws IOException If response cannot be sent.
-     */
-    protected abstract boolean isAuthorizationCodeAlreadyProcessed(String authorizationCode, HttpServletRequest request,
-              AuthenticationContext context, HttpServletResponse response, String state, String resourceId) 
-              throws IOException;
-
-    /**
-     * Handles claim extraction result and validates successful extraction.
-     * Subclasses must implement this with protocol-specific error handling.
-     *
-     * @param claims Map of extracted claims.
-     * @param context AuthenticationContext.
-     * @param response HttpServletResponse.
-     * @param state State parameter.
-     * @param resourceId Resource ID.
-     * @return true if claims extraction succeeded, false otherwise.
-     * @throws IOException If response cannot be sent.
-     */
-    protected abstract boolean handleClaimsExtractionResult(Map<String, Object> claims, AuthenticationContext context,
+    protected abstract boolean processAuthentication(HttpServletRequest request, AuthenticationContext context,
               HttpServletResponse response, String state, String resourceId) throws IOException;
 
     /**
-     * Builds and caches the final debug result after successful authentication.
-     * Subclasses must implement this to create and cache appropriate debug result.
+     * Extracts debug data from the authentication context.
+     * Subclasses MUST implement with specific data extraction logic.
+     * 
+     * Examples:
+     * - OAuth2: Extract claims from ID token and access token
+     * - SAML: Extract attributes from SAML assertion
+     * - Custom: Extract any protocol-specific debug data
      *
-     * @param context AuthenticationContext containing all debug information.
-     * @param state State parameter for session identification.
+     * @param context AuthenticationContext containing authentication results.
+     * @return Map of extracted debug data (key-value pairs).
+     */
+    protected abstract Map<String, Object> extractDebugData(AuthenticationContext context);
+
+    /**
+     * Validates the extracted debug data.
+     * Subclasses MUST implement with specific validation logic.
+     * 
+     * Examples:
+     * - OAuth2: Validate required claims are present
+     * - SAML: Validate required attributes are present
+     * - Custom: Validate protocol-specific data requirements
+     *
+     * @param debugData Map of extracted debug data.
+     * @param context AuthenticationContext.
+     * @param response HttpServletResponse for error responses.
+     * @return true if validation passes, false otherwise.
+     * @throws IOException If response cannot be sent.
+     */
+    protected abstract boolean validateDebugData(Map<String, Object> debugData, AuthenticationContext context,
+              HttpServletResponse response, String state, String resourceId) throws IOException;
+
+    /**
+     * Builds and caches the final debug result.
+     * Subclasses MUST implement to create and cache appropriate debug result.
+     * Result should be stored in a format that can be retrieved later.
+     *
+     * @param context AuthenticationContext containing all debug information and session identifiers.
      */
     protected abstract void buildAndCacheDebugResult(AuthenticationContext context, String state);
 
     /**
-     * Builds and caches token exchange error response with detailed error information.
-     * Protected method for subclasses to call with error details.
+     * Sends the debug response to the client.
+     * Subclasses MUST implement to send appropriate HTTP response.
+     * 
+     * Examples:
+     * - HTTP redirect to debug result page
+     * - JSON response with debug data
+     * - Custom response format
      *
-     * @param errorCode The error code from token exchange failure.
-     * @param errorDescription The error description/message.
-     * @param errorDetails Additional error details or stack trace.
-     * @param state The state parameter for session identification.
-     * @param context AuthenticationContext.
+     * @param response HttpServletResponse for sending the response.
+     * @param state 
+     * @param resourceId 
+     * @throws IOException If response cannot be sent.
      */
-    protected abstract void buildAndCacheTokenExchangeErrorResponse(String errorCode, String errorDescription,
-            String errorDetails, String state, AuthenticationContext context);
+    protected abstract void sendDebugResponse(HttpServletResponse response, String state, String resourceId)
+              throws IOException;
 
     /**
-     * Redirects to the debug success page after processing.
-     * Subclasses must implement this to send appropriate response to client.
+     * Handles unexpected errors during callback processing.
+     * Default implementation logs error and sets error properties in context.
+     * Subclasses MAY override to add custom error handling.
      *
-     * @param response HttpServletResponse for sending the redirect.
-     * @param state The state parameter for session identification.
-     * @param resourceId resource ID.
-     * @throws IOException If response fails.
+     * @param e The exception that occurred.
+     * @param context AuthenticationContext for storing error information.
      */
-    protected abstract void redirectToDebugSuccess(HttpServletResponse response, String state, String resourceId)
-              throws IOException;
+    protected void handleUnexpectedError(Exception e, AuthenticationContext context) {
+
+        context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Unexpected error: " + e.getMessage());
+        context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
+        if (e instanceof java.lang.reflect.InvocationTargetException 
+            && e.getCause() != null && LOG.isDebugEnabled()) {
+            LOG.debug("InvocationTargetException cause:", e.getCause());
+        }
+    }
 }
