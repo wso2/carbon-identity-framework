@@ -901,10 +901,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
                 newUser.setUsername(username);
                 newUser.setPreferredUsername(username);
                 newUser.setTenantDomain(tenantDomain);
-                String userStoreDomain = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
-                newUser.setUserStoreDomain(userStoreDomain);
                 try {
                     newUser.setUserID(FrameworkUtils.resolveUserIdFromUsername(userStoreManager, username));
+                    newUser.setUserStoreDomain(IdentityUtil.extractDomainFromName(username));
                 } catch (UserSessionException e) {
                     if (log.isDebugEnabled()) {
                         log.debug("Error occurred while resolving Id for the user: " + username, e);
