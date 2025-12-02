@@ -53,9 +53,9 @@ public class DebugServiceComponent {
                 LOG.debug("Debug Framework OSGi component activating");
             }
 
-            // Register DebugRequestCoordinator as an OSGi service.
-            // This service handles protocol-agnostic routing of debug requests from both
-            // the API layer (initial debug requests) and /commonauth (OAuth callbacks).
+            // Register DebugRequestCoordinator as an OSGi service for backward compatibility.
+            // This service is deprecated and delegates to DebugFlowOrchestrator internally.
+            @SuppressWarnings("deprecation")
             DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
             context.getBundleContext().registerService(
                 DebugRequestCoordinator.class.getName(),
@@ -65,7 +65,7 @@ public class DebugServiceComponent {
 
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugRequestCoordinator registered as OSGi service");
+                LOG.debug("DebugRequestCoordinator registered as OSGi service (deprecated, use DebugFlowOrchestrator)");
             }
 
         } catch (Exception e) {

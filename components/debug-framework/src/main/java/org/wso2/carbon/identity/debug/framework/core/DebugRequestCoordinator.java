@@ -38,6 +38,9 @@ import javax.servlet.http.HttpServletResponse;
  * Handles two main flows:
  * 1. Generic debug requests (POST /api/server/v1/debug) - routes based on resourceType
  * 2. OAuth callback requests (/commonauth) - routes to protocol-specific DebugProcessor
+ * 
+ * This is the main orchestrator for debug request handling using switch-case based routing
+ * for type-safe resource and protocol dispatching.
  */
 public class DebugRequestCoordinator implements DebugService {
 
@@ -61,118 +64,66 @@ public class DebugRequestCoordinator implements DebugService {
 
     /**
      * Handles debug requests for any resource type (IDENTITY_PROVIDER, APPLICATION, CONNECTOR, etc.).
-     * Routes to appropriate handler based on resourceType and delegates processing.
+     * Routes to appropriate handler based on resourceType using switch-case pattern.
+     * This is the main orchestration method for generic debug requests.
      *
      * @param debugRequestContext Map containing:
      *        - resourceId: Resource identifier (required).
-     *        - resourceType: Type of resource (e.g., "IDENTITY_PROVIDER", "APPLICATION", "CONNECTOR") (required).
+     *        - resourceType: Type of resource (e.g., "idp", "fraud_detection") (required).
      *        - properties: Optional key-value properties for the debug request (Map<String, String>).
-     * @return Map containing debug result data, or empty map on failure.
+     * @return Map containing debug result data, or error map on failure.
      */
     public Map<String, Object> handleResourceDebugRequest(Map<String, Object> debugRequestContext) {
 
         if (debugRequestContext == null) {
             LOG.error("Debug request context is null");
-            return new java.util.HashMap<>();
+            Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("status", "FAILURE");
+            errorResponse.put("message", "Debug request context cannot be null");
+            return errorResponse;
         }
 
         try {
-            // Extract required parameters
             String resourceId = (String) debugRequestContext.get("resourceId");
             String resourceType = (String) debugRequestContext.get("resourceType");
             
-            if (resourceId == null || resourceId.trim().isEmpty()) {
-                LOG.error("Resource ID is required in debug request context");
-                return new java.util.HashMap<>();
-            }
-            
-            if (resourceType == null || resourceType.trim().isEmpty()) {
-                LOG.error("Resource type is required in debug request context");
-                return new java.util.HashMap<>();
-            }
-
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Processing debug request for resourceId: " + resourceId + ", resourceType: " + resourceType);
+                LOG.debug("Orchestrating debug request for resourceId: " + resourceId + 
+                        ", resourceType: " + resourceType);
             }
 
-            // Get the appropriate handler for this resource type
-            Object handler = DebugProtocolRouter.getDebugResourceHandler(resourceType);
+            // Route by resource type using enum-based switch case
+            org.wso2.carbon.identity.debug.framework.core.enums.DebugResourceType type = 
+                org.wso2.carbon.identity.debug.framework.core.enums.DebugResourceType.fromString(resourceType);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Resolved resource type to: " + type.name());
+            }
+
+            // Get the handler for this resource type
+            org.wso2.carbon.identity.debug.framework.core.handler.DebugResourceHandler handler = 
+                type.getHandler(resourceId);
+            
             if (handler == null) {
-                LOG.error("No handler available for resource type: " + resourceType);
-                return new java.util.HashMap<>();
+                Map<String, Object> errorResponse = new java.util.HashMap<>();
+                errorResponse.put("status", "FAILURE");
+                errorResponse.put("message", "No handler available for resource type: " + resourceType);
+                return errorResponse;
             }
 
-            // Invoke handleDebugRequest on the handler using reflection
-            Map<String, Object> result = invokeHandlerMethod(handler, debugRequestContext);
-            
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully processed debug request for resourceType: " + resourceType);
+                LOG.debug("Delegating to handler: " + handler.getClass().getSimpleName());
             }
 
-            return result;
+            // Delegate to the resource-specific handler
+            return handler.handleDebugRequest(debugRequestContext);
 
         } catch (Exception e) {
-            LOG.error("Error handling debug request: " + e.getMessage(), e);
-            return new java.util.HashMap<>();
-        }
-    }
-
-    /**
-     * Invokes handleDebugRequest on a DebugResourceHandler using reflection.
-     *
-     * @param handler The handler instance.
-     * @param debugRequestContext The debug request context.
-     * @return Result map from the handler, or null if invocation fails.
-     */
-    private Map<String, Object> invokeHandlerMethod(Object handler, Map<String, Object> debugRequestContext) {
-
-        if (handler == null) {
-            LOG.error("Handler instance is null");
-            return new java.util.HashMap<>();
-        }
-
-        try {
-            Class<?> handlerClass = handler.getClass();
-            java.lang.reflect.Method method = handlerClass.getMethod("handleDebugRequest", Map.class);
-            Object result = method.invoke(handler, debugRequestContext);
-            
-            if (result == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Handler returned null result");
-                }
-                return new java.util.HashMap<>();
-            }
-
-            if (!(result instanceof Map)) {
-                LOG.error("Handler returned non-Map result: " + result.getClass().getName());
-                return new java.util.HashMap<>();
-            }
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> resultMap = (Map<String, Object>) result;
-            return resultMap;
-
-        } catch (NoSuchMethodException e) {
-            LOG.error("Handler class does not have handleDebugRequest method: " + e.getMessage(), e);
-            return new java.util.HashMap<>();
-        } catch (IllegalAccessException e) {
-            LOG.error("Cannot access handleDebugRequest method: " + e.getMessage(), e);
-            return new java.util.HashMap<>();
-        } catch (java.lang.reflect.InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            String errorMsg = "Error invoking handler's handleDebugRequest method";
-            if (cause != null) {
-                LOG.error(errorMsg + ": " + cause.getMessage(), cause);
-            } else {
-                LOG.error(errorMsg, e);
-            }
-            return new java.util.HashMap<>();
-        } catch (SecurityException e) {
-            LOG.error("Security error accessing handler method: " + e.getMessage(), e);
-            return new java.util.HashMap<>();
-        } catch (Exception e) {
-            LOG.error("Unexpected error invoking handler method: " + e.getMessage(), e);
-            return new java.util.HashMap<>();
+            LOG.error("Error in debug request orchestration: " + e.getMessage(), e);
+            Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("status", "FAILURE");
+            errorResponse.put("message", e.getMessage());
+            return errorResponse;
         }
     }
 
