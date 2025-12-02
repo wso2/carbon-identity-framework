@@ -124,6 +124,7 @@ public abstract class DebugProcessor {
      * @return Resource identifier or empty string if not found.
      */
     protected String extractResourceId(AuthenticationContext context) {
+
         // Try common property names for resource ID
         Object resourceId = context.getProperty("RESOURCE_ID");
         if (resourceId == null) {
@@ -152,7 +153,6 @@ public abstract class DebugProcessor {
      */
     protected abstract boolean validateCallback(HttpServletRequest request, AuthenticationContext context,
               HttpServletResponse response, String state, String resourceId) throws IOException;
-
 
     /**
      * Processes the authentication/authorization flow.
