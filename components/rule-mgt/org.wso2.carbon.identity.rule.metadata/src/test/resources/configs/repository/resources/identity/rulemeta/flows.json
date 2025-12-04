@@ -23,14 +23,6 @@
             {
               "name": "client_credentials",
               "displayName": "client credentials"
-            },
-            {
-              "name": "organization_switch",
-              "displayName": "organization switch"
-            },
-            {
-              "name": "device_code",
-              "displayName": "device code"
             }
           ]
         }
@@ -57,6 +49,14 @@
             {
               "name": "refresh_token",
               "displayName": "refresh token"
+            },
+            {
+              "name": "organization_switch",
+              "displayName": "organization switch"
+            },
+            {
+              "name": "device_code",
+              "displayName": "device code"
             }
           ]
         }
