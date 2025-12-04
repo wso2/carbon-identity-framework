@@ -4,7 +4,63 @@
       "fieldName": "application"
     },
     {
-      "fieldName": "grantType"
+      "fieldName": "grantType",
+      "overrides": {
+        "value": {
+          "values": [
+            {
+              "name": "authorization_code",
+              "displayName": "authorization code"
+            },
+            {
+              "name": "password",
+              "displayName": "password"
+            },
+            {
+              "name": "refresh_token",
+              "displayName": "refresh token"
+            },
+            {
+              "name": "client_credentials",
+              "displayName": "client credentials"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "preIssueIdToken": [
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType",
+      "overrides": {
+        "value": {
+          "values": [
+            {
+              "name": "authorization_code",
+              "displayName": "authorization code"
+            },
+            {
+              "name": "password",
+              "displayName": "password"
+            },
+            {
+              "name": "refresh_token",
+              "displayName": "refresh token"
+            },
+            {
+              "name": "organization_switch",
+              "displayName": "organization switch"
+            },
+            {
+              "name": "device_code",
+              "displayName": "device code"
+            }
+          ]
+        }
+      }
     }
   ],
   "preUpdatePassword": [

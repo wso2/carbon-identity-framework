@@ -2315,6 +2315,35 @@
                     </AllowedParameters>
                 </ActionRequest>
             </PreIssueAccessToken>
+            <PreIssueIdToken>
+                <Enable>{{actions.types.pre_issue_id_token.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_issue_id_token.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_issue_id_token.version.retired_up_to}}</RetiredUpTo>
+                </Version>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.pre_issue_id_token.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.pre_issue_id_token.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                    <AllowedHeaders>
+                        {% for header in actions.types.pre_issue_id_token.action_request.allowed_headers %}
+                            <Header>{{header}}</Header>
+                        {% endfor %}
+                    </AllowedHeaders>
+                    <AllowedParameters>
+                        {% for param in actions.types.pre_issue_id_token.action_request.allowed_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </AllowedParameters>
+                </ActionRequest>
+            </PreIssueIdToken>
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
                 <Version>
