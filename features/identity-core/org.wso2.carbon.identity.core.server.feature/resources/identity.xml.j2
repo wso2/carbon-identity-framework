@@ -4973,6 +4973,16 @@
                     Supported versions : IS 7.2.0 onwards
                 -->
                 <ConnectionReadTimeout>{{notificationChannel.sms.custom.connection_read_timeout}}</ConnectionReadTimeout>
+                <RetryCountAtAuthFailure>{{notificationChannel.sms.custom.retry_count_at_auth_failure}}</RetryCountAtAuthFailure>
+                <Authentication>
+                    <OauthTokenRetrieval>
+                        <HTTPConnectionTimeout>{{notificationChannel.sms.custom.authentication.http_client.connection_timeout}}</HTTPConnectionTimeout>
+                        <HTTPReadTimeout>{{notificationChannel.sms.custom.authentication.http_client.read_timeout}}</HTTPReadTimeout>
+                        <HTTPConnectionRequestTimeout>{{notificationChannel.sms.custom.authentication.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+                        <HTTPConnectionPoolSize>{{notificationChannel.sms.custom.authentication.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
+                        <HTTPConnectionMaxPerRoute>{{notificationChannel.sms.custom.authentication.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
+                    </OauthTokenRetrieval>
+                </Authentication>
             </Custom>
         </SMS>
     </NotificationChannel>
