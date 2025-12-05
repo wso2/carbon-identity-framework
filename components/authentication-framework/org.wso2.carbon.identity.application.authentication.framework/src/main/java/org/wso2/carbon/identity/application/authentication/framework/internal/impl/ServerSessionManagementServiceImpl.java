@@ -96,6 +96,9 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
     private void addAuditLogs(String sessionKey, String initiator, String authenticatedUser, String userTenantDomain,
                               String traceId, Long terminatedTimestamp) {
 
+        if (LoggerUtils.isEnableV2AuditLogs()) {
+            return;
+        }
         String initiatedUser = null;
         JSONObject auditData = new JSONObject();
         auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
