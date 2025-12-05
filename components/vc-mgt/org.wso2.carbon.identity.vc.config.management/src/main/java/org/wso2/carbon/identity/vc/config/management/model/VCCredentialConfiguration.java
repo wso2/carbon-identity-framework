@@ -44,11 +44,12 @@ public class VCCredentialConfiguration {
 
     private String type;
 
-    private Metadata metadata = new Metadata();
-
     private List<String> claims = new ArrayList<>();
 
     private Integer expiresIn;
+
+    // Backend-generated random UUID for credential offer. Null if no offer has been generated.
+    private String offerId;
 
     public String getId() {
         return id;
@@ -114,14 +115,6 @@ public class VCCredentialConfiguration {
         this.type = type;
     }
 
-    public Metadata getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Metadata metadata) {
-        this.metadata = metadata;
-    }
-
     public Integer getExpiresIn() {
         return expiresIn;
     }
@@ -131,18 +124,20 @@ public class VCCredentialConfiguration {
     }
 
     /**
-     * Credential metadata payload.
+     * Get the offer ID.
+     *
+     * @return Offer ID or null if no offer exists.
      */
-    public static class Metadata {
+    public String getOfferId() {
+        return offerId;
+    }
 
-        private String display;
-
-        public String getDisplay() {
-            return display;
-        }
-
-        public void setDisplay(String display) {
-            this.display = display;
-        }
+    /**
+     * Set the offer ID.
+     *
+     * @param offerId Offer ID.
+     */
+    public void setOfferId(String offerId) {
+        this.offerId = offerId;
     }
 }

@@ -58,6 +58,16 @@ public interface VCConfigMgtDAO {
     VCCredentialConfiguration getByIdentifier(String identifier, int tenantId) throws VCConfigMgtException;
 
     /**
+     * Get a configuration by offer ID.
+     *
+     * @param offerId Offer ID of the configuration.
+     * @param tenantId Tenant ID.
+     * @return Configuration or null if not found.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
+    VCCredentialConfiguration getByOfferId(String offerId, int tenantId) throws VCConfigMgtException;
+
+    /**
      * Check existence by identifier.
      *
      * @param identifier Identifier.
@@ -97,4 +107,15 @@ public interface VCConfigMgtDAO {
      * @throws VCConfigMgtException on deletion errors.
      */
     void delete(String id, int tenantId) throws VCConfigMgtException;
+
+    /**
+     * Update only the offerId field of a configuration.
+     * Used for offer generation, regeneration, and revocation.
+     *
+     * @param configId Configuration ID.
+     * @param offerId New offer ID (null to revoke).
+     * @param tenantId Tenant ID.
+     * @throws VCConfigMgtException on database errors.
+     */
+    void updateOfferId(String configId, String offerId, int tenantId) throws VCConfigMgtException;
 }

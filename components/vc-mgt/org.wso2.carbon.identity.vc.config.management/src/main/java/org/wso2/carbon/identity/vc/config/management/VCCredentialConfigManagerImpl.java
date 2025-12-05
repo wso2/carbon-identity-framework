@@ -98,6 +98,18 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
     }
 
     @Override
+    public VCCredentialConfiguration getByOfferId(String offerId, String tenantDomain)
+            throws VCConfigMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving VC credential configuration with offer ID: %s for tenant: %s",
+                    offerId, tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return dao.getByOfferId(offerId, tenantId);
+    }
+
+    @Override
     public VCCredentialConfiguration add(VCCredentialConfiguration configuration, String tenantDomain)
             throws VCConfigMgtException {
 
@@ -146,20 +158,11 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
 
         // Preserve identifier from existing configuration.
         configuration.setIdentifier(existing.getIdentifier());
-
-        String newDisplayName = configuration.getDisplayName();
-        if (StringUtils.isBlank(newDisplayName)) {
-            configuration.setDisplayName(existing.getDisplayName());
-        }
-
-        normalizeFormatForUpdate(configuration, existing);
-        configuration.setSigningAlgorithm(DEFAULT_SIGNING_ALGORITHM);
-        normalizeCredentialTypeForUpdate(configuration, existing);
-        normalizeMetadataForUpdate(configuration, existing);
-        normalizeExpiryInForUpdate(configuration, existing);
-        normalizeScopeForUpdate(configuration, existing);
+        validateDisplayName(configuration, tenantId);
+        validateFormat(configuration);
+        validateCredentialType(configuration.getType());
+        validateExpiry(configuration.getExpiresIn());
         validateScope(configuration.getScope(), tenantDomain);
-        normalizeClaimsForUpdate(configuration, existing);
         validateClaims(configuration.getClaims(), tenantDomain);
         return dao.update(id, configuration, tenantId);
     }
@@ -343,103 +346,61 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
     }
 
-    /**
-     * Normalize scope for update.
-     *
-     * @param configuration VC credential configuration.
-     * @param existing      Existing configuration.
-     * @throws VCConfigMgtClientException on validation errors.
-     */
-    private void normalizeScopeForUpdate(VCCredentialConfiguration configuration,
-                                          VCCredentialConfiguration existing) throws VCConfigMgtClientException {
+    @Override
+    public VCCredentialConfiguration generateOffer(String configId, String tenantDomain)
+            throws VCConfigMgtException {
 
-        if (StringUtils.isBlank(configuration.getScope())) {
-            configuration.setScope(existing.getScope());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Generating or regenerating credential offer for configuration: %s for tenant: %s",
+                    configId, tenantDomain));
         }
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        // Check if configuration exists.
+        VCCredentialConfiguration existing = dao.get(configId, tenantId);
+        if (existing == null) {
+            throw new VCConfigMgtClientException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getCode(),
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getMessage());
+        }
+
+        // Generate new offer ID (regardless of whether one exists - handles both generation and regeneration).
+        String offerId = java.util.UUID.randomUUID().toString();
+        dao.updateOfferId(configId, offerId, tenantId);
+
+        return dao.get(configId, tenantId);
     }
 
-    /**
-     * Normalize scope for update.
-     *
-     * @param configuration VC credential configuration.
-     * @param existing      Existing configuration.
-     * @throws VCConfigMgtClientException on validation errors.
-     */
-    private void normalizeFormatForUpdate(VCCredentialConfiguration configuration,
-                                          VCCredentialConfiguration existing) throws VCConfigMgtClientException {
+    @Override
+    public VCCredentialConfiguration revokeOffer(String configId, String tenantDomain)
+            throws VCConfigMgtException {
 
-        if (StringUtils.isBlank(configuration.getFormat())) {
-            configuration.setFormat(existing.getFormat());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Revoking credential offer for configuration: %s for tenant: %s",
+                    configId, tenantDomain));
         }
-        validateFormat(configuration);
-    }
 
-    /**
-     * Normalize credential type for update.
-     *
-     * @param configuration VC credential configuration.
-     * @param existing      Existing configuration.
-     * @throws VCConfigMgtClientException on validation errors.
-     */
-    private void normalizeCredentialTypeForUpdate(VCCredentialConfiguration configuration,
-                                                  VCCredentialConfiguration existing)
-            throws VCConfigMgtClientException {
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        String credentialType = configuration.getType();
-        if (StringUtils.isBlank(credentialType)) {
-            credentialType = existing.getType();
-            configuration.setType(credentialType);
+        // Check if configuration exists.
+        VCCredentialConfiguration existing = dao.get(configId, tenantId);
+        if (existing == null) {
+            throw new VCConfigMgtClientException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getCode(),
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getMessage());
         }
-        validateCredentialType(credentialType);
-    }
 
-    /**
-     * Normalize metadata for update.
-     *
-     * @param configuration VC credential configuration.
-     * @param existing      Existing configuration.
-     * @throws VCConfigMgtClientException on validation errors.
-     */
-    private void normalizeMetadataForUpdate(VCCredentialConfiguration configuration,
-                                            VCCredentialConfiguration existing) throws VCConfigMgtClientException {
-
-        VCCredentialConfiguration.Metadata metadata = configuration.getMetadata();
-        if (metadata == null) {
-            metadata = existing.getMetadata();
-            configuration.setMetadata(metadata);
+        // Check if offer exists.
+        if (existing.getOfferId() == null) {
+            throw new VCConfigMgtClientException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_OFFER_NOT_FOUND.getCode(),
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_OFFER_NOT_FOUND.getMessage());
         }
-    }
 
-    /**
-     * Normalize expiry for update.
-     *
-     * @param configuration VC credential configuration.
-     * @param existing      Existing configuration.
-     * @throws VCConfigMgtClientException on validation errors.
-     */
-    private void normalizeExpiryInForUpdate(VCCredentialConfiguration configuration,
-                                          VCCredentialConfiguration existing) throws VCConfigMgtClientException {
+        // Revoke offer by setting offerId to null.
+        dao.updateOfferId(configId, null, tenantId);
 
-        Integer expiry = configuration.getExpiresIn();
-        if (expiry == null) {
-            expiry = existing.getExpiresIn();
-            configuration.setExpiresIn(expiry);
-        }
-        validateExpiry(expiry);
-    }
-
-    /**
-     * Normalize claims for update.
-     *
-     * @param configuration VC credential configuration.
-     * @param existing      Existing configuration.
-     */
-    private void normalizeClaimsForUpdate(VCCredentialConfiguration configuration,
-                                         VCCredentialConfiguration existing) {
-
-        List<String> claims = configuration.getClaims();
-        if (claims == null || claims.isEmpty()) {
-            configuration.setClaims(existing.getClaims());
-        }
+        return dao.get(configId, tenantId);
     }
 }

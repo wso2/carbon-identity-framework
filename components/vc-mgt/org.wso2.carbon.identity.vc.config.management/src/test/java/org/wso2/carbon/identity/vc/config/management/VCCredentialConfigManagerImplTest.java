@@ -77,7 +77,6 @@ public class VCCredentialConfigManagerImplTest {
     @BeforeClass
     public void setUpClass() throws Exception {
 
-        // Initialize Mockito annotations before using @Mock fields.
         MockitoAnnotations.openMocks(this);
 
         configManager = VCCredentialConfigManagerImpl.getInstance();
@@ -102,7 +101,6 @@ public class VCCredentialConfigManagerImplTest {
         claimMetadataHandlerMock = mockStatic(ClaimMetadataHandler.class);
         claimMetadataHandlerMock.when(ClaimMetadataHandler::getInstance).thenReturn(mockClaimMetadataHandler);
 
-        // Create a set of ExternalClaim objects for mocking.
         Set<ExternalClaim> vcClaims = new HashSet<>();
         vcClaims.add(new ExternalClaim("http://wso2.org/vc", "email", "http://wso2.org/claims/emailaddress"));
         vcClaims.add(new ExternalClaim("http://wso2.org/vc", "name", "http://wso2.org/claims/fullname"));
@@ -217,7 +215,7 @@ public class VCCredentialConfigManagerImplTest {
                 TEST_TYPE,
                 TEST_FORMAT,
                 TEST_SCOPE,
-                59,  // Less than minimum allowed (MIN_EXPIRES_IN_SECONDS = 60).
+                59,
                 Arrays.asList("email")
         );
         configManager.add(config, TENANT_DOMAIN);
@@ -228,7 +226,7 @@ public class VCCredentialConfigManagerImplTest {
     public void testAddConfigurationWithDuplicateIdentifier() throws VCConfigMgtException {
 
         VCCredentialConfiguration config = createSampleConfiguration(
-                TEST_IDENTIFIER,  // Same identifier as sampleConfig.
+                TEST_IDENTIFIER,
                 "Different Display Name",
                 TEST_TYPE,
                 TEST_FORMAT,
@@ -247,7 +245,6 @@ public class VCCredentialConfigManagerImplTest {
         Assert.assertNotNull(configs, "Configuration list should not be null.");
         Assert.assertTrue(configs.size() >= 1, "Should have at least one configuration.");
 
-        // Verify the sample config exists in the list.
         boolean found = false;
         for (VCCredentialConfiguration config : configs) {
             if (sampleConfig.getId().equals(config.getId())) {
@@ -300,19 +297,18 @@ public class VCCredentialConfigManagerImplTest {
     @Test(priority = 11)
     public void testUpdateConfiguration() throws VCConfigMgtException {
 
+
         String updatedDisplayName = "Updated Employee Badge";
         List<String> updatedClaims = Arrays.asList("email", "name", "employee_id", "department");
 
-        VCCredentialConfiguration updatingConfig = new VCCredentialConfiguration();
-        // Note: Don't set identifier - it should be preserved from existing config.
-        updatingConfig.setDisplayName(updatedDisplayName);
-        updatingConfig.setType("UpdatedType");
-        updatingConfig.setExpiresIn(7200);
-        updatingConfig.setClaims(updatedClaims);
-        // Don't set format - it should be preserved from existing config.
+        sampleConfig.setIdentifier(null);
+        sampleConfig.setDisplayName(updatedDisplayName);
+        sampleConfig.setClaims(updatedClaims);
+        sampleConfig.setType("UpdatedType");
+        sampleConfig.setExpiresIn(7200);
 
         VCCredentialConfiguration updated = configManager.update(
-                sampleConfig.getId(), updatingConfig, TENANT_DOMAIN);
+                sampleConfig.getId(), sampleConfig, TENANT_DOMAIN);
 
         Assert.assertNotNull(updated, "Updated configuration should not be null.");
         Assert.assertEquals(updated.getId(), sampleConfig.getId(),
@@ -327,8 +323,6 @@ public class VCCredentialConfigManagerImplTest {
                 "Expires in should be updated.");
         Assert.assertEquals(updated.getClaims().size(), 4,
                 "Should have 4 claims after update.");
-
-        // Update sampleConfig reference for subsequent tests.
         sampleConfig = updated;
     }
 
@@ -367,7 +361,6 @@ public class VCCredentialConfigManagerImplTest {
     @Test(priority = 15)
     public void testDeleteConfiguration() throws VCConfigMgtException {
 
-        // Create a new configuration for deletion.
         VCCredentialConfiguration configToDelete = createSampleConfiguration(
                 "DeletableConfig-" + System.currentTimeMillis(),
                 "Deletable Configuration",
@@ -380,14 +373,11 @@ public class VCCredentialConfigManagerImplTest {
         VCCredentialConfiguration created = configManager.add(configToDelete, TENANT_DOMAIN);
         String idToDelete = created.getId();
 
-        // Verify it exists.
         VCCredentialConfiguration beforeDelete = configManager.get(idToDelete, TENANT_DOMAIN);
         Assert.assertNotNull(beforeDelete, "Configuration should exist before deletion.");
 
-        // Delete it.
         configManager.delete(idToDelete, TENANT_DOMAIN);
 
-        // Verify it no longer exists.
         VCCredentialConfiguration afterDelete = configManager.get(idToDelete, TENANT_DOMAIN);
         Assert.assertNull(afterDelete, "Configuration should not exist after deletion.");
     }
@@ -399,7 +389,7 @@ public class VCCredentialConfigManagerImplTest {
                 "DefaultFormatConfig-" + System.currentTimeMillis(),
                 "Default Format Configuration",
                 TEST_TYPE,
-                null,  // Format not provided.
+                null,
                 TEST_SCOPE,
                 TEST_EXPIRES_IN,
                 Arrays.asList("email")
@@ -421,7 +411,7 @@ public class VCCredentialConfigManagerImplTest {
                 "UnsupportedFormatConfig-" + System.currentTimeMillis(),
                 "Unsupported Format Configuration",
                 TEST_TYPE,
-                "ldp_vc",  // Unsupported format.
+                "ldp_vc",
                 TEST_SCOPE,
                 TEST_EXPIRES_IN,
                 Arrays.asList("email")
@@ -436,7 +426,7 @@ public class VCCredentialConfigManagerImplTest {
 
         List<String> invalidClaims = new ArrayList<>();
         invalidClaims.add("valid_claim");
-        invalidClaims.add("");  // Empty claim.
+        invalidClaims.add("");
         invalidClaims.add("another_claim");
 
         VCCredentialConfiguration config = createSampleConfiguration(
@@ -475,7 +465,6 @@ public class VCCredentialConfigManagerImplTest {
         config.setFormat(format);
         config.setScope(scope);
         config.setExpiresIn(expiresIn);
-        config.setMetadata(new VCCredentialConfiguration.Metadata());
         config.setClaims(claims);
         return config;
     }

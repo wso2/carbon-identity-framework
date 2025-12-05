@@ -32,29 +32,37 @@ public final class SQLQueries {
 
     public static final String GET_CONFIG_BY_ID =
             "SELECT ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, SIGNING_ALG, " +
-            "TYPE, METADATA, EXPIRES_IN " +
-            "FROM VC_CONFIG WHERE TENANT_ID = ? AND ID = ?";
+            "TYPE, EXPIRES_IN, OFFER_ID " +
+            "FROM VC_CONFIG WHERE ID = ? AND TENANT_ID = ?";
 
     public static final String GET_CONFIG_BY_IDENTIFIER =
             "SELECT ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, SIGNING_ALG, " +
-            "TYPE, METADATA, EXPIRES_IN " +
-            "FROM VC_CONFIG WHERE TENANT_ID = ? AND IDENTIFIER = ?";
+            "TYPE, EXPIRES_IN, OFFER_ID " +
+            "FROM VC_CONFIG WHERE IDENTIFIER = ? AND TENANT_ID = ?";
+
+    public static final String GET_CONFIG_BY_OFFER_ID =
+            "SELECT ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, SIGNING_ALG, " +
+            "TYPE, EXPIRES_IN, OFFER_ID " +
+            "FROM VC_CONFIG WHERE OFFER_ID = ? AND TENANT_ID = ?";
 
     public static final String EXISTS_BY_IDENTIFIER =
             "SELECT 1 FROM VC_CONFIG WHERE TENANT_ID = ? AND IDENTIFIER = ?";
 
     public static final String INSERT_CONFIG =
             "INSERT INTO VC_CONFIG (ID, TENANT_ID, IDENTIFIER, DISPLAY_NAME, SCOPE, FORMAT, " +
-            "SIGNING_ALG, TYPE, METADATA, EXPIRES_IN) VALUES " +
+            "SIGNING_ALG, TYPE, EXPIRES_IN, OFFER_ID) VALUES " +
             "(?,?,?,?,?,?,?,?,?,?)";
 
     public static final String UPDATE_CONFIG =
             "UPDATE VC_CONFIG SET IDENTIFIER = ?, DISPLAY_NAME = ?, SCOPE = ?, FORMAT = ?, " +
-            "SIGNING_ALG = ?, TYPE = ?, METADATA = ?, EXPIRES_IN = ? " +
+            "SIGNING_ALG = ?, TYPE = ?, EXPIRES_IN = ?, OFFER_ID = ? " +
             "WHERE TENANT_ID = ? AND ID = ?";
 
     public static final String DELETE_CONFIG =
             "DELETE FROM VC_CONFIG WHERE TENANT_ID = ? AND ID = ?";
+
+    public static final String UPDATE_OFFER_ID =
+            "UPDATE VC_CONFIG SET OFFER_ID = ? WHERE TENANT_ID = ? AND ID = ?";
 
     // VC_CONFIG_CLAIM
     public static final String LIST_CLAIMS_BY_CONFIG_PK =
@@ -65,33 +73,4 @@ public final class SQLQueries {
 
     public static final String DELETE_CLAIMS_BY_CONFIG_PK =
             "DELETE FROM VC_CONFIG_CLAIM WHERE CONFIG_ID = ?";
-
-    // VC_OFFER
-    public static final String LIST_OFFERS =
-            "SELECT OFFER_ID, DISPLAY_NAME FROM VC_OFFER WHERE TENANT_ID = ? ORDER BY CURSOR_KEY";
-
-    public static final String GET_OFFER_BY_ID =
-            "SELECT OFFER_ID, DISPLAY_NAME FROM VC_OFFER WHERE TENANT_ID = ? AND OFFER_ID = ?";
-
-    public static final String EXISTS_OFFER_BY_ID =
-            "SELECT 1 FROM VC_OFFER WHERE TENANT_ID = ? AND OFFER_ID = ?";
-
-    public static final String INSERT_OFFER =
-            "INSERT INTO VC_OFFER (OFFER_ID, TENANT_ID, DISPLAY_NAME) VALUES (?,?,?)";
-
-    public static final String UPDATE_OFFER =
-            "UPDATE VC_OFFER SET DISPLAY_NAME = ? WHERE TENANT_ID = ? AND OFFER_ID = ?";
-
-    public static final String DELETE_OFFER =
-            "DELETE FROM VC_OFFER WHERE TENANT_ID = ? AND OFFER_ID = ?";
-
-    // VC_OFFER_CREDENTIAL_CONFIG
-    public static final String LIST_CREDENTIAL_CONFIGS_BY_OFFER_ID =
-            "SELECT CONFIG_ID FROM VC_OFFER_CREDENTIAL_CONFIG WHERE OFFER_ID = ? AND TENANT_ID = ?";
-
-    public static final String INSERT_OFFER_CREDENTIAL_CONFIG =
-            "INSERT INTO VC_OFFER_CREDENTIAL_CONFIG (OFFER_ID, CONFIG_ID, TENANT_ID) VALUES (?,?,?)";
-
-    public static final String DELETE_OFFER_CREDENTIAL_CONFIGS_BY_OFFER_ID =
-            "DELETE FROM VC_OFFER_CREDENTIAL_CONFIG WHERE OFFER_ID = ? AND TENANT_ID = ?";
 }

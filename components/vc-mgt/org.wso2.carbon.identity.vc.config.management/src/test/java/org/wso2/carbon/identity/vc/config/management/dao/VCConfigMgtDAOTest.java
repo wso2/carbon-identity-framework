@@ -44,7 +44,6 @@ public class VCConfigMgtDAOTest {
 
         vcConfigMgtDAOImpl = new VCConfigMgtDAOImpl();
 
-        // Add initial data.
         List<String> claims = new ArrayList<>();
         claims.add("email");
         claims.add("given_name");
@@ -55,9 +54,7 @@ public class VCConfigMgtDAOTest {
     @DataProvider
     public Object[][] getVCCredentialConfigurationsData() {
         return new Object[][]{
-                // Valid tenant with 2 configurations.
                 {TENANT_ID, 2},
-                // Invalid tenant with no configurations.
                 {INVALID_TENANT_ID, 0},
         };
     }
@@ -79,8 +76,6 @@ public class VCConfigMgtDAOTest {
         Assert.assertEquals(configurations.size(), expectedCount,
                 "Expected " + expectedCount + " configurations for tenant " + tenantId);
 
-        // Validate configuration properties for valid tenant.
-        // Note: list() returns limited fields (id, identifier, displayName, scope only).
         if (expectedCount > 0) {
             for (VCCredentialConfiguration config : configurations) {
                 Assert.assertNotNull(config.getId(), "Configuration ID should not be null.");
@@ -94,13 +89,9 @@ public class VCConfigMgtDAOTest {
     @DataProvider
     public Object[][] getVCCredentialConfigurationByIdData() {
         return new Object[][]{
-                // Valid tenant and identifier - should return configuration.
                 {TENANT_ID, "EmployeeBadge", true},
-                // Valid tenant and different identifier - should return configuration.
                 {TENANT_ID, "NIC", true},
-                // Invalid tenant - should return null.
                 {INVALID_TENANT_ID, "EmployeeBadge", false},
-                // Valid tenant but non-existent identifier - should return null.
                 {TENANT_ID, "NonExistent", false},
         };
     }
@@ -135,13 +126,9 @@ public class VCConfigMgtDAOTest {
     @DataProvider
     public Object[][] tenantIsolationAttackData() {
         return new Object[][]{
-                // Attacker from INVALID_TENANT_ID tries to access TENANT_ID's config - should fail.
                 {TENANT_ID, INVALID_TENANT_ID},
-                // Attacker from different tenant tries to access another tenant's config - should fail.
                 {INVALID_TENANT_ID, TENANT_ID},
-                // Attacker tenant tries to access owner tenant's config - should fail.
                 {TENANT_ID, ATTACKER_TENANT_ID},
-                // Reverse scenario - owner tries to access attacker tenant's config - should fail.
                 {ATTACKER_TENANT_ID, TENANT_ID},
         };
     }
@@ -164,13 +151,11 @@ public class VCConfigMgtDAOTest {
     public void testTenantIsolation(int ownerTenantId, int attackerTenantId)
             throws Exception {
 
-        // Step 1: Create a VC configuration for the owner tenant.
         List<String> claims = new ArrayList<>();
         claims.add("email");
         claims.add("ssn");
         claims.add("salary");
 
-        // Add timestamp to ensure unique identifier for each test run.
         String uniqueIdentifier = "SensitiveConfig-" + ownerTenantId + "-" + System.currentTimeMillis();
         VCCredentialConfiguration ownerConfig = createVCCredentialConfiguration(
                 uniqueIdentifier,
@@ -179,27 +164,21 @@ public class VCConfigMgtDAOTest {
                 claims
         );
 
-        // Note: add() method has a bug - it calls getByConfigId with UUID instead of identifier.
-        // So we add the config and then fetch it manually using the identifier.
         vcConfigMgtDAOImpl.add(ownerConfig, ownerTenantId);
 
-        // Fetch the created configuration using the identifier.
         VCCredentialConfiguration createdConfig = vcConfigMgtDAOImpl.getByIdentifier(uniqueIdentifier, ownerTenantId);
         Assert.assertNotNull(createdConfig, "Configuration should be created for owner tenant.");
         Assert.assertNotNull(createdConfig.getId(), "Configuration ID (UUID) should not be null.");
 
         String configUuid = createdConfig.getId();
 
-        // Step 2: Attacker from different tenant tries to access using the UUID.
         VCCredentialConfiguration attackerAccessedConfig = vcConfigMgtDAOImpl.get(configUuid, attackerTenantId);
 
-        // Step 3: Security assertion - attacker should NOT be able to access the config.
         Assert.assertNull(attackerAccessedConfig,
                 "SECURITY VIOLATION: Configuration from tenant " + ownerTenantId +
                 " should NOT be accessible by tenant " + attackerTenantId +
                 " even with valid UUID: " + configUuid);
 
-        // Step 4: Verify owner tenant can still access their own configuration.
         VCCredentialConfiguration ownerAccessedConfig = vcConfigMgtDAOImpl.get(configUuid, ownerTenantId);
         Assert.assertNotNull(ownerAccessedConfig,
                 "Owner tenant " + ownerTenantId + " should be able to access their own configuration.");
@@ -212,11 +191,8 @@ public class VCConfigMgtDAOTest {
     @DataProvider
     public Object[][] addVCCredentialConfigurationData() {
         return new Object[][]{
-                // Valid tenant - should successfully add configuration.
                 {"AddVCConfigTest-1", TENANT_ID, true},
-                // Valid tenant with different postfix - should successfully add configuration.
                 {"AddVCConfigTest-2", TENANT_ID, true},
-                // Invalid tenant - should still add but to invalid tenant.
                 {"AddVCConfigTest-3", INVALID_TENANT_ID, true},
         };
     }
@@ -236,8 +212,6 @@ public class VCConfigMgtDAOTest {
         List<String> claims = new ArrayList<>();
         claims.add("email");
         claims.add("name");
-
-        // Add timestamp to ensure unique identifier for each test run.
         String uniqueIdentifier = "TestConfig-" + postfix + "-" + System.currentTimeMillis();
         VCCredentialConfiguration config = createVCCredentialConfiguration(
                 uniqueIdentifier,
@@ -266,13 +240,9 @@ public class VCConfigMgtDAOTest {
     @DataProvider
     public Object[][] checkVCCredentialConfigurationExistsData() {
         return new Object[][]{
-                // Existing configuration with valid tenant - should return true.
                 {TENANT_ID, "EmployeeBadge", true},
-                // Existing configuration with different identifier - should return true.
                 {TENANT_ID, "NIC", true},
-                // Non-existing configuration - should return false.
                 {TENANT_ID, "NonExistent", false},
-                // Existing configuration with invalid tenant - should return false.
                 {INVALID_TENANT_ID, "EmployeeBadge", false},
         };
     }
@@ -333,7 +303,6 @@ public class VCConfigMgtDAOTest {
         vcCredentialConfiguration.setFormat(format);
         vcCredentialConfiguration.setSigningAlgorithm("RS256");
         vcCredentialConfiguration.setExpiresIn(3600);
-        vcCredentialConfiguration.setMetadata(new VCCredentialConfiguration.Metadata());
         vcCredentialConfiguration.setScope(scope);
         vcCredentialConfiguration.setClaims(claims);
         return vcCredentialConfiguration;

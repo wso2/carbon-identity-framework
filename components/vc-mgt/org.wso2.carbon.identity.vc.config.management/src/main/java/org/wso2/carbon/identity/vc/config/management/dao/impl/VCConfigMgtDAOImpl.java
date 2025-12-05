@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.vc.config.management.dao.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -72,8 +71,8 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         String sql = SQLQueries.GET_CONFIG_BY_ID;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, tenantId);
-            ps.setString(2, id);
+            ps.setString(1, id);
+            ps.setInt(2, tenantId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return buildConfiguration(rs, conn);
@@ -92,8 +91,29 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         String sql = SQLQueries.GET_CONFIG_BY_IDENTIFIER;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, tenantId);
-            ps.setString(2, identifier);
+            ps.setString(1, identifier);
+            ps.setInt(2, tenantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return buildConfiguration(rs, conn);
+                }
+            }
+        } catch (SQLException e) {
+            throw new VCConfigMgtServerException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_RETRIEVAL_ERROR.getCode(),
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_RETRIEVAL_ERROR.getMessage(), e);
+        }
+        return null;
+    }
+
+    @Override
+    public VCCredentialConfiguration getByOfferId(String offerId, int tenantId) throws VCConfigMgtException {
+
+        String sql = SQLQueries.GET_CONFIG_BY_OFFER_ID;
+        try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, offerId);
+            ps.setInt(2, tenantId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return buildConfiguration(rs, conn);
@@ -133,8 +153,6 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(insertCfg)) {
             try {
-                String serializedMetadata = configuration.getMetadata() != null ?
-                        OBJECT_MAPPER.writeValueAsString(configuration.getMetadata()) : null;
                 String id = UUID.randomUUID().toString();
                 ps.setString(1, id);
                 ps.setInt(2, tenantId);
@@ -144,8 +162,8 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 ps.setString(6, configuration.getFormat());
                 ps.setString(7, configuration.getSigningAlgorithm());
                 ps.setString(8, configuration.getType());
-                ps.setString(9, serializedMetadata);
-                ps.setInt(10, configuration.getExpiresIn());
+                ps.setInt(9, configuration.getExpiresIn());
+                ps.setString(10, configuration.getOfferId());
                 ps.executeUpdate();
 
                 if (CollectionUtils.isNotEmpty(configuration.getClaims())) {
@@ -162,10 +180,6 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 throw new VCConfigMgtServerException(
                         VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
                         VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getMessage(), e);
-            } catch (JsonProcessingException e) {
-                throw new VCConfigMgtServerException(
-                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
-                        "Error serializing credential metadata.", e);
             }
         } catch (SQLException e) {
             throw new VCConfigMgtServerException(
@@ -182,15 +196,14 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(updateCfg)) {
             try {
-                String serializedMetadata = OBJECT_MAPPER.writeValueAsString(configuration.getMetadata());
                 ps.setString(1, configuration.getIdentifier());
                 ps.setString(2, configuration.getDisplayName());
                 ps.setString(3, configuration.getScope());
                 ps.setString(4, configuration.getFormat());
                 ps.setString(5, configuration.getSigningAlgorithm());
                 ps.setString(6, configuration.getType());
-                ps.setString(7, configuration.getMetadata() != null ? serializedMetadata : null);
-                ps.setInt(8, configuration.getExpiresIn());
+                ps.setInt(7, configuration.getExpiresIn());
+                ps.setString(8, configuration.getOfferId());
                 ps.setInt(9, tenantId);
                 ps.setString(10, id);
                 int updated = ps.executeUpdate();
@@ -215,10 +228,6 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
                 throw new VCConfigMgtServerException(
                         VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
                         VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getMessage(), e);
-            } catch (JsonProcessingException e) {
-                throw new VCConfigMgtServerException(
-                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
-                        "Error serializing credential metadata.", e);
             }
         } catch (SQLException e) {
             throw new VCConfigMgtServerException(
@@ -251,6 +260,39 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         }
     }
 
+    @Override
+    public void updateOfferId(String configId, String offerId, int tenantId) throws VCConfigMgtException {
+
+        String sql = SQLQueries.UPDATE_OFFER_ID;
+        try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            try {
+                ps.setString(1, offerId);
+                ps.setInt(2, tenantId);
+                ps.setString(3, configId);
+                int updated = ps.executeUpdate();
+                if (updated == 0) {
+                    throw new VCConfigMgtClientException(
+                            VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getCode(),
+                            VCConfigManagementConstants.ErrorMessages.ERROR_CODE_CONFIG_NOT_FOUND.getMessage());
+                }
+                IdentityDatabaseUtil.commitTransaction(conn);
+            } catch (SQLException | VCConfigMgtException e) {
+                IdentityDatabaseUtil.rollbackTransaction(conn);
+                if (e instanceof VCConfigMgtException) {
+                    throw (VCConfigMgtException) e;
+                }
+                throw new VCConfigMgtServerException(
+                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
+                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getMessage(), e);
+            }
+        } catch (SQLException e) {
+            throw new VCConfigMgtServerException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getMessage(), e);
+        }
+    }
+
     /**
      * Build VC credential configuration from result set.
      *
@@ -269,20 +311,13 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
         cfg.setFormat(rs.getString("FORMAT"));
         cfg.setSigningAlgorithm(rs.getString("SIGNING_ALG"));
         cfg.setType(rs.getString("TYPE"));
-        // Deserialize metadata
-        String metadataStr = rs.getString("METADATA");
-        if (!rs.wasNull() && metadataStr != null) {
-            try {
-                VCCredentialConfiguration.Metadata metadata =
-                        OBJECT_MAPPER.readValue(metadataStr, VCCredentialConfiguration.Metadata.class);
-                cfg.setMetadata(metadata);
-            } catch (JsonProcessingException e) {
-                throw new SQLException("Error deserializing credential metadata.", e);
-            }
-        }
         int expiresIn = rs.getInt("EXPIRES_IN");
         if (!rs.wasNull()) {
             cfg.setExpiresIn(expiresIn);
+        }
+        String offerId = rs.getString("OFFER_ID");
+        if (!rs.wasNull()) {
+            cfg.setOfferId(offerId);
         }
         cfg.setClaims(getClaimsByConfigId(conn, cfg.getId()));
         return cfg;

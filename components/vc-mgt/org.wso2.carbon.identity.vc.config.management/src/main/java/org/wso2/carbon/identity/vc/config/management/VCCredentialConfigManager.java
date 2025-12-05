@@ -58,6 +58,16 @@ public interface VCCredentialConfigManager {
     VCCredentialConfiguration getByIdentifier(String identifier, String tenantDomain) throws VCConfigMgtException;
 
     /**
+     * Get a configuration by offer ID.
+     *
+     * @param offerId Offer ID of the configuration.
+     * @param tenantDomain Tenant domain.
+     * @return Configuration or null if not found.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
+    VCCredentialConfiguration getByOfferId(String offerId, String tenantDomain) throws VCConfigMgtException;
+
+    /**
      * Add a new configuration.
      *
      * @param configuration Configuration payload.
@@ -88,5 +98,29 @@ public interface VCCredentialConfigManager {
      * @throws VCConfigMgtException on deletion errors.
      */
     void delete(String id, String tenantDomain) throws VCConfigMgtException;
+
+    /**
+     * Generate or regenerate a credential offer for a configuration.
+     * Creates a new random UUID for offerId.
+     * If an offer already exists, it will be regenerated with a new UUID.
+     *
+     * @param configId The configuration ID.
+     * @param tenantDomain Tenant domain.
+     * @return Updated configuration with offerId.
+     * @throws VCConfigMgtException if config not found.
+     */
+    VCCredentialConfiguration generateOffer(String configId, String tenantDomain) throws VCConfigMgtException;
+
+    /**
+     * Revoke/delete the credential offer for a configuration.
+     * Sets offerId to null.
+     * Returns 404 if no offer exists.
+     *
+     * @param configId The configuration ID.
+     * @param tenantDomain Tenant domain.
+     * @return Updated configuration with offerId = null.
+     * @throws VCConfigMgtException if config or offer not found.
+     */
+    VCCredentialConfiguration revokeOffer(String configId, String tenantDomain) throws VCConfigMgtException;
 }
 
