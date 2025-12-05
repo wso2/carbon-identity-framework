@@ -203,6 +203,8 @@ public class JDBCPersistenceManager {
                         dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
                     }
                 }
+            } else {
+                dbConnection.setAutoCommit(true);
             }
             return dbConnection;
         } catch (SQLException e) {
