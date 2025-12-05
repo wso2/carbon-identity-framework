@@ -2077,18 +2077,11 @@
          <Resource context="(.*)/api/server/v1/vc/credential-configurations(.*)" secured="true" http-method="DELETE">
              <Scopes>internal_vc_credential_config_delete</Scopes>
          </Resource>
-
-         <Resource context="(.*)/api/server/v1/vc/offers(.*)" secured="true" http-method="GET">
-             <Scopes>internal_vc_offer_view</Scopes>
+         <Resource context="(.*)/api/server/v1/vc/credential-configurations/(.*)/offer" secured="true" http-method="POST">
+             <Scopes>internal_vc_credential_config_update</Scopes>
          </Resource>
-         <Resource context="(.*)/api/server/v1/vc/offers(.*)" secured="true" http-method="POST">
-             <Scopes>internal_vc_offer_create</Scopes>
-         </Resource>
-         <Resource context="(.*)/api/server/v1/vc/offers(.*)" secured="true" http-method="PATCH">
-             <Scopes>internal_vc_offer_update</Scopes>
-         </Resource>
-         <Resource context="(.*)/api/server/v1/vc/offers(.*)" secured="true" http-method="DELETE">
-             <Scopes>internal_vc_offer_delete</Scopes>
+         <Resource context="(.*)/api/server/v1/vc/credential-configurations/(.*)/offer" secured="true" http-method="DELETE">
+             <Scopes>internal_vc_credential_config_update</Scopes>
          </Resource>
 
         <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
