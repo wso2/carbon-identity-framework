@@ -24,6 +24,7 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
@@ -60,6 +61,13 @@ import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleSe
 /**
  * Secret Manager service implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.secret.mgt.core.SecretManager",
+                "service.scope=singleton"
+        }
+)
 public class SecretManagerImpl implements SecretManager {
 
     private static final Log log = LogFactory.getLog(SecretManagerImpl.class);
