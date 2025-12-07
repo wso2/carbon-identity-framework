@@ -2239,5 +2239,6 @@
 
   "resolve_tenant_domain_from_username.enabled": false,
   "authentication.mark_step_completed_on_interrupt": true,
-  "api.filters.single_character_wildcard": "_"
+  "api.filters.single_character_wildcard": "_",
+  "identity_providers.support_multiple_certificate_export": true
 }

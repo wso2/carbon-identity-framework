@@ -322,7 +322,8 @@
       "identity_mgt.recovery.enable_normalized_retry_error_response": false,
       "outbound_provisioning_management.enable_scim_patch_for_updates": false,
       "outbound_provisioning_management.confidential_data_protection_enabled": false,
-      "scim2.enable_spec_compliant_email_handling": false
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -376,7 +377,8 @@
       "identity_mgt.recovery.enable_normalized_retry_error_response": false,
       "outbound_provisioning_management.enable_scim_patch_for_updates": false,
       "outbound_provisioning_management.confidential_data_protection_enabled": false,
-      "scim2.enable_spec_compliant_email_handling": false
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -391,7 +393,8 @@
       "identity_mgt.recovery.enable_normalized_retry_error_response": false,
       "outbound_provisioning_management.enable_scim_patch_for_updates": false,
       "outbound_provisioning_management.confidential_data_protection_enabled": false,
-      "scim2.enable_spec_compliant_email_handling": false
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false
     }
   }
 }
