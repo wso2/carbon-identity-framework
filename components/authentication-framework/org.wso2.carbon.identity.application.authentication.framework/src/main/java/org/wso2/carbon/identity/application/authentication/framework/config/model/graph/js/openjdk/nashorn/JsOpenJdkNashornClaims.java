@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -159,7 +160,7 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
     @Override
     public Object getMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 return getFederatedClaim(claimUri);
             } else {
@@ -172,7 +173,7 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
     @Override
     public boolean hasMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 return hasFederatedClaim(claimUri);
             } else {
@@ -185,7 +186,7 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
     @Override
     public void setMember(String claimUri, Object claimValue) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             if (isRemoteClaimRequest) {
                 setFederatedClaim(claimUri, claimValue);
                 return;
@@ -445,5 +446,11 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
             LOG.error("User id is not available for the user: " + authenticatedUser.getLoggableUserId(), e);
         }
         return null;
+    }
+
+    protected boolean isAuthenticatedUserInCurrentTenant() {
+
+        return authenticatedUser != null && StringUtils.equals(authenticatedUser.getTenantDomain(),
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 }

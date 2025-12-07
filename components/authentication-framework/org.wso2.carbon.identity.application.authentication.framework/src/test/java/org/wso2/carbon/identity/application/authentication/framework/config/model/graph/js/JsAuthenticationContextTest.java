@@ -18,8 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
@@ -60,6 +62,13 @@ public class JsAuthenticationContextTest {
     public void setUp() {
 
         scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain("carbon.super", true);
+    }
+
+    @AfterClass
+    public void tearDown() {
+
+        PrivilegedCarbonContext.destroyCurrentContext();
     }
 
     @Test
@@ -73,6 +82,7 @@ public class JsAuthenticationContextTest {
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.getUserAttributes().put(claimMapping1, "TestClaimVal1");
         authenticatedUser.getUserAttributes().put(claimMapping2, "TestClaimVal2");
+        authenticatedUser.setTenantDomain("carbon.super");
         AuthenticationContext authenticationContext = new AuthenticationContext();
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
@@ -117,6 +127,7 @@ public class JsAuthenticationContextTest {
     public void testRemoteAddition() throws ScriptException {
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setTenantDomain("carbon.super");
         AuthenticationContext authenticationContext = new AuthenticationContext();
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
