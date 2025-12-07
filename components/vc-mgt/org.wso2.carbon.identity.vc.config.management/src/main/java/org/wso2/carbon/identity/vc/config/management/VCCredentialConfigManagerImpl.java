@@ -21,13 +21,10 @@ package org.wso2.carbon.identity.vc.config.management;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
-import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
-import org.wso2.carbon.identity.application.common.model.APIResource;
-import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants;
 import org.wso2.carbon.identity.vc.config.management.dao.VCConfigMgtDAO;
@@ -35,14 +32,14 @@ import org.wso2.carbon.identity.vc.config.management.dao.impl.VCConfigMgtDAOImpl
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtClientException;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtException;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtServerException;
-import org.wso2.carbon.identity.vc.config.management.internal.VCConfigManagementServiceDataHolder;
+import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfigSearchResult;
 import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfiguration;
+import org.wso2.carbon.identity.vc.config.management.util.VCConfigFilterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.APIResourceTypes.VC;
 import static org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants.DEFAULT_SIGNING_ALGORITHM;
 import static org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants.VC_DIALECT;
 
@@ -72,6 +69,23 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.list(tenantId);
+    }
+
+    @Override
+    public VCCredentialConfigSearchResult listWithPagination(String after, String before, Integer limit,
+                                                             String filter, String sortOrder, String tenantDomain)
+            throws VCConfigMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving VC credential configurations with pagination for tenant: %s",
+                    tenantDomain));
+        }
+        VCCredentialConfigSearchResult result = new VCCredentialConfigSearchResult();
+        List<ExpressionNode> expressionNodes = VCConfigFilterUtil.getExpressionNodes(filter, after, before);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setTotalCount(dao.getConfigurationsCount(tenantId, expressionNodes));
+        result.setConfigurations(dao.list(limit, tenantId, sortOrder, expressionNodes));
+        return result;
     }
 
     @Override
@@ -271,6 +285,8 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
 
     /**
      * Validate that the scope exists and belongs to a VC-type API resource.
+     * Basic validation - only checks if scope is not empty.
+     * Note: Scope existence validation against API resources has been removed to avoid circular dependencies.
      *
      * @param scope        Scope name to validate.
      * @param tenantDomain Tenant domain.
@@ -278,36 +294,13 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
      */
     private void validateScope(String scope, String tenantDomain) throws VCConfigMgtException {
 
-
         if (StringUtils.isBlank(scope)) {
             throw new VCConfigMgtClientException(
                     VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
                     "Scope cannot be empty.");
         }
-
-        APIResourceManager apiResourceManager = VCConfigManagementServiceDataHolder.getInstance()
-                .getAPIResourceManager();
-        try {
-            Scope existingScope = apiResourceManager.getScopeByName(scope, tenantDomain);
-            if (existingScope == null) {
-                throw new VCConfigMgtClientException(
-                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                        "Scope does not exist: " + scope);
-            }
-
-            // Verify the scope belongs to a VC resource type
-            APIResource apiResource = apiResourceManager.getAPIResourceById(existingScope.getApiID(),
-                    tenantDomain);
-            if (apiResource == null || !VC.equals(apiResource.getType())) {
-                throw new VCConfigMgtClientException(
-                        VCConfigManagementConstants.ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode(),
-                        "Scope must belong to a VC resource type: " + scope);
-            }
-        } catch (APIResourceMgtException e) {
-            throw new VCConfigMgtServerException(
-                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_PERSISTENCE_ERROR.getCode(),
-                    "Error while validating scope: " + scope, e);
-        }
+        // Note: Advanced scope validation (checking if scope exists and belongs to VC resource type)
+        // should be done at the API/service layer that has access to API resource management.
     }
 
     /**

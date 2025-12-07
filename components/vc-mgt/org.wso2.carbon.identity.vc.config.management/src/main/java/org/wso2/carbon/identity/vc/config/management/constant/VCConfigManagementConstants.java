@@ -18,6 +18,16 @@
 
 package org.wso2.carbon.identity.vc.config.management.constant;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.wso2.carbon.identity.vc.config.management.constant.SQLConstants.CURSOR_KEY_COLUMN_NAME;
+import static org.wso2.carbon.identity.vc.config.management.constant.SQLConstants.DISPLAY_NAME_COLUMN_NAME;
+import static org.wso2.carbon.identity.vc.config.management.constant.SQLConstants.FORMAT_COLUMN_NAME;
+import static org.wso2.carbon.identity.vc.config.management.constant.SQLConstants.IDENTIFIER_COLUMN_NAME;
+import static org.wso2.carbon.identity.vc.config.management.constant.SQLConstants.SCOPE_COLUMN_NAME;
+import static org.wso2.carbon.identity.vc.config.management.constant.SQLConstants.TYPE_COLUMN_NAME;
+
 /**
  * Constants for VC Config Management.
  */
@@ -29,6 +39,37 @@ public class VCConfigManagementConstants {
     public static final int MIN_EXPIRES_IN_SECONDS = 60;
     public static final String DEFAULT_SIGNING_ALGORITHM = "RS256";
     public static final String VC_DIALECT = "http://wso2.org/vc/claim";
+
+    // Pagination constants.
+    public static final String AFTER = "after";
+    public static final String BEFORE = "before";
+    public static final String BEFORE_LT = "before lt ";
+    public static final String AFTER_GT = "after gt ";
+
+    // Filter operation constants.
+    public static final String EQ = "eq";
+    public static final String SW = "sw";
+    public static final String EW = "ew";
+    public static final String CO = "co";
+    public static final String GE = "ge";
+    public static final String LE = "le";
+    public static final String GT = "gt";
+    public static final String LT = "lt";
+
+    /**
+     * Attribute to database column mappings for filter expressions.
+     */
+    public static final Map<String, String> ATTRIBUTE_COLUMN_MAP = new HashMap<String, String>() {
+        {
+            put("identifier", IDENTIFIER_COLUMN_NAME);
+            put("displayName", DISPLAY_NAME_COLUMN_NAME);
+            put("scope", SCOPE_COLUMN_NAME);
+            put("type", TYPE_COLUMN_NAME);
+            put("format", FORMAT_COLUMN_NAME);
+            put(AFTER, CURSOR_KEY_COLUMN_NAME);
+            put(BEFORE, CURSOR_KEY_COLUMN_NAME);
+        }
+    };
 
     /**
      * Error message codes and default messages used in VC config management.

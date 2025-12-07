@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.vc.config.management;
 
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtException;
+import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfigSearchResult;
 import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfiguration;
 
 import java.util.List;
@@ -36,6 +37,22 @@ public interface VCCredentialConfigManager {
      * @throws VCConfigMgtException on retrieval errors.
      */
     List<VCCredentialConfiguration> list(String tenantDomain) throws VCConfigMgtException;
+
+    /**
+     * List VC credential configurations with pagination support.
+     *
+     * @param after        Get configurations after this cursor value.
+     * @param before       Get configurations before this cursor value.
+     * @param limit        Maximum number of configurations to retrieve.
+     * @param filter       Filter expression.
+     * @param sortOrder    Sort order (ASC or DESC).
+     * @param tenantDomain Tenant domain.
+     * @return VC credential configuration search result with pagination.
+     * @throws VCConfigMgtException If an error occurs while retrieving configurations.
+     */
+    VCCredentialConfigSearchResult listWithPagination(String after, String before, Integer limit, String filter,
+                                                      String sortOrder, String tenantDomain)
+            throws VCConfigMgtException;
 
     /**
      * Get a configuration by ID.

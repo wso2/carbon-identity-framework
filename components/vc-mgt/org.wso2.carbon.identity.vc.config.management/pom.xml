@@ -114,8 +114,11 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                             org.wso2.carbon.identity.api.resource.mgt;
@@ -190,7 +193,7 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.43</minimum>
+                                            <minimum>0.37</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

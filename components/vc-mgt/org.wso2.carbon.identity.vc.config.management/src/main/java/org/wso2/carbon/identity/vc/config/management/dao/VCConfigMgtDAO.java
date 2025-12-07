@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.vc.config.management.dao;
 
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtException;
 import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfiguration;
 
@@ -36,6 +37,30 @@ public interface VCConfigMgtDAO {
      * @throws VCConfigMgtException on retrieval errors.
      */
     List<VCCredentialConfiguration> list(int tenantId) throws VCConfigMgtException;
+
+    /**
+     * List VC credential configurations with pagination support.
+     *
+     * @param limit            Maximum number of configurations to retrieve.
+     * @param tenantId         Tenant ID.
+     * @param sortOrder        Sort order (ASC or DESC).
+     * @param expressionNodes  Filter expression nodes including after/before cursors.
+     * @return List of configurations.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
+    List<VCCredentialConfiguration> list(Integer limit, Integer tenantId, String sortOrder,
+                                         List<ExpressionNode> expressionNodes) throws VCConfigMgtException;
+
+    /**
+     * Get the count of VC credential configurations matching the filter.
+     *
+     * @param tenantId         Tenant ID.
+     * @param expressionNodes  Filter expression nodes (excluding after/before cursors).
+     * @return Total count of configurations.
+     * @throws VCConfigMgtException on retrieval errors.
+     */
+    Integer getConfigurationsCount(Integer tenantId, List<ExpressionNode> expressionNodes)
+            throws VCConfigMgtException;
 
     /**
      * Get a configuration by ID.

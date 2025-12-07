@@ -51,6 +51,9 @@ public class VCCredentialConfiguration {
     // Backend-generated random UUID for credential offer. Null if no offer has been generated.
     private String offerId;
 
+    // Cursor key for pagination support.
+    private Integer cursorKey;
+
     public String getId() {
         return id;
     }
@@ -139,5 +142,23 @@ public class VCCredentialConfiguration {
      */
     public void setOfferId(String offerId) {
         this.offerId = offerId;
+    }
+
+    /**
+     * Get the cursor key for pagination.
+     *
+     * @return Cursor key.
+     */
+    public Integer getCursorKey() {
+        return cursorKey;
+    }
+
+    /**
+     * Set the cursor key for pagination.
+     *
+     * @param cursorKey Cursor key.
+     */
+    public void setCursorKey(Integer cursorKey) {
+        this.cursorKey = cursorKey;
     }
 }

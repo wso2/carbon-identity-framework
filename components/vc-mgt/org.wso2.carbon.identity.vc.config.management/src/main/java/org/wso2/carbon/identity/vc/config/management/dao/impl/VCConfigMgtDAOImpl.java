@@ -18,16 +18,18 @@
 
 package org.wso2.carbon.identity.vc.config.management.dao.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.vc.config.management.constant.SQLConstants;
 import org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants;
-import org.wso2.carbon.identity.vc.config.management.dao.SQLQueries;
 import org.wso2.carbon.identity.vc.config.management.dao.VCConfigMgtDAO;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtClientException;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtException;
 import org.wso2.carbon.identity.vc.config.management.exception.VCConfigMgtServerException;
 import org.wso2.carbon.identity.vc.config.management.model.VCCredentialConfiguration;
+import org.wso2.carbon.identity.vc.config.management.util.VCConfigFilterQueryBuilder;
+import org.wso2.carbon.identity.vc.config.management.util.VCConfigFilterUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -35,20 +37,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import static org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants.AFTER;
+import static org.wso2.carbon.identity.vc.config.management.constant.VCConfigManagementConstants.BEFORE;
 
 /**
  * JDBC implementation of {@link VCConfigMgtDAO}.
  */
 public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     @Override
     public List<VCCredentialConfiguration> list(int tenantId) throws VCConfigMgtException {
 
         List<VCCredentialConfiguration> results = new ArrayList<>();
-        String sql = SQLQueries.LIST_CONFIGS;
+        String sql = SQLConstants.LIST_CONFIGS;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, tenantId);
@@ -66,9 +70,94 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     }
 
     @Override
+    public List<VCCredentialConfiguration> list(Integer limit, Integer tenantId, String sortOrder,
+                                                List<ExpressionNode> expressionNodes) throws VCConfigMgtException {
+
+        List<VCCredentialConfiguration> results = new ArrayList<>();
+        try {
+            VCConfigFilterQueryBuilder filterQueryBuilder =
+                    VCConfigFilterUtil.getFilterQueryBuilder(expressionNodes);
+            Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
+
+            try (Connection conn = IdentityDatabaseUtil.getDBConnection(false)) {
+                String databaseName = conn.getMetaData().getDatabaseProductName();
+                String sqlStmt = buildGetConfigurationsSqlStatement(databaseName, tenantId,
+                        filterQueryBuilder.getFilterQuery(), sortOrder, limit);
+                
+                try (PreparedStatement ps = conn.prepareStatement(sqlStmt)) {
+                    if (filterAttributeValue != null) {
+                        for (Map.Entry<Integer, String> entry : filterAttributeValue.entrySet()) {
+                            ps.setString(entry.getKey(), entry.getValue());
+                        }
+                    }
+                    
+                    try (ResultSet rs = ps.executeQuery()) {
+                        while (rs.next()) {
+                            VCCredentialConfiguration cfg = buildConfigurationListItem(rs);
+                            cfg.setCursorKey(rs.getInt("CURSOR_KEY"));
+                            results.add(cfg);
+                        }
+                    }
+                }
+            }
+        } catch (VCConfigMgtClientException e) {
+            throw e;
+        } catch (SQLException e) {
+            throw new VCConfigMgtServerException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_RETRIEVAL_ERROR.getCode(),
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_RETRIEVAL_ERROR.getMessage(), e);
+        }
+        return results;
+    }
+
+    @Override
+    public Integer getConfigurationsCount(Integer tenantId, List<ExpressionNode> expressionNodes)
+            throws VCConfigMgtException {
+
+        try {
+            // Remove after/before from expression nodes for count query.
+            List<ExpressionNode> expressionNodesCopy = new ArrayList<>(expressionNodes);
+            expressionNodesCopy.removeIf(expressionNode ->
+                    AFTER.equals(expressionNode.getAttributeValue()) ||
+                    BEFORE.equals(expressionNode.getAttributeValue()));
+
+            VCConfigFilterQueryBuilder filterQueryBuilder =
+                    VCConfigFilterUtil.getFilterQueryBuilder(expressionNodesCopy);
+            Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
+
+            String sqlStmt = SQLConstants.GET_VC_CONFIGS_COUNT + filterQueryBuilder.getFilterQuery() +
+                    SQLConstants.GET_VC_CONFIGS_COUNT_TAIL;
+
+            try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
+                 PreparedStatement ps = conn.prepareStatement(sqlStmt)) {
+                
+                if (filterAttributeValue != null) {
+                    for (Map.Entry<Integer, String> entry : filterAttributeValue.entrySet()) {
+                        ps.setString(entry.getKey(), entry.getValue());
+                    }
+                }
+                ps.setInt((filterAttributeValue != null ? filterAttributeValue.size() : 0) + 1, tenantId);
+                
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                }
+            }
+        } catch (VCConfigMgtClientException e) {
+            throw e;
+        } catch (SQLException e) {
+            throw new VCConfigMgtServerException(
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_RETRIEVAL_ERROR.getCode(),
+                    VCConfigManagementConstants.ErrorMessages.ERROR_CODE_RETRIEVAL_ERROR.getMessage(), e);
+        }
+        return 0;
+    }
+
+    @Override
     public VCCredentialConfiguration get(String id, int tenantId) throws VCConfigMgtException {
 
-        String sql = SQLQueries.GET_CONFIG_BY_ID;
+        String sql = SQLConstants.GET_CONFIG_BY_ID;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
@@ -88,7 +177,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
 
     @Override
     public VCCredentialConfiguration getByIdentifier(String identifier, int tenantId) throws VCConfigMgtException {
-        String sql = SQLQueries.GET_CONFIG_BY_IDENTIFIER;
+        String sql = SQLConstants.GET_CONFIG_BY_IDENTIFIER;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, identifier);
@@ -109,7 +198,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     @Override
     public VCCredentialConfiguration getByOfferId(String offerId, int tenantId) throws VCConfigMgtException {
 
-        String sql = SQLQueries.GET_CONFIG_BY_OFFER_ID;
+        String sql = SQLConstants.GET_CONFIG_BY_OFFER_ID;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, offerId);
@@ -130,7 +219,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     @Override
     public boolean existsByIdentifier(String identifier, int tenantId) throws VCConfigMgtException {
 
-        String sql = SQLQueries.EXISTS_BY_IDENTIFIER;
+        String sql = SQLConstants.EXISTS_BY_IDENTIFIER;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, tenantId);
@@ -149,7 +238,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     public VCCredentialConfiguration add(VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
-        String insertCfg = SQLQueries.INSERT_CONFIG;
+        String insertCfg = SQLConstants.INSERT_CONFIG;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(insertCfg)) {
             try {
@@ -192,7 +281,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     public VCCredentialConfiguration update(String id, VCCredentialConfiguration configuration, int tenantId)
             throws VCConfigMgtException {
 
-        String updateCfg = SQLQueries.UPDATE_CONFIG;
+        String updateCfg = SQLConstants.UPDATE_CONFIG;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(updateCfg)) {
             try {
@@ -239,7 +328,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     @Override
     public void delete(String id, int tenantId) throws VCConfigMgtException {
 
-        String deleteCfg = SQLQueries.DELETE_CONFIG;
+        String deleteCfg = SQLConstants.DELETE_CONFIG;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(deleteCfg)) {
             try {
@@ -263,7 +352,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     @Override
     public void updateOfferId(String configId, String offerId, int tenantId) throws VCConfigMgtException {
 
-        String sql = SQLQueries.UPDATE_OFFER_ID;
+        String sql = SQLConstants.UPDATE_OFFER_ID;
         try (Connection conn = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement ps = conn.prepareStatement(sql)) {
             try {
@@ -294,9 +383,33 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
     }
 
     /**
+     * Build SQL statement to get configurations with pagination.
+     *
+     * @param databaseName Database name.
+     * @param tenantId     Tenant ID.
+     * @param filterQuery  Filter query.
+     * @param sortOrder    Sort order.
+     * @param limit        Limit.
+     * @return SQL statement to retrieve configurations.
+     */
+    private String buildGetConfigurationsSqlStatement(String databaseName, Integer tenantId, String filterQuery,
+                                                      String sortOrder, Integer limit) {
+
+        if (databaseName.contains(SQLConstants.MICROSOFT)) {
+            return String.format(SQLConstants.GET_VC_CONFIGS_MSSQL, limit) + filterQuery +
+                    String.format(SQLConstants.GET_VC_CONFIGS_TAIL_MSSQL, tenantId, sortOrder);
+        } else if (databaseName.contains(SQLConstants.ORACLE)) {
+            return SQLConstants.GET_VC_CONFIGS + filterQuery +
+                    String.format(SQLConstants.GET_VC_CONFIGS_TAIL_ORACLE, tenantId, sortOrder, limit);
+        }
+        return SQLConstants.GET_VC_CONFIGS + filterQuery +
+                String.format(SQLConstants.GET_VC_CONFIGS_TAIL, tenantId, sortOrder, limit);
+    }
+
+    /**
      * Build VC credential configuration from result set.
      *
-     * @param rs Result set
+     * @param rs   Result set
      * @param conn DB connection
      * @return VC credential configuration
      * @throws SQLException on SQL errors
@@ -350,7 +463,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
      */
     private List<String> getClaimsByConfigId(Connection conn, String configId) throws SQLException {
 
-        String sql = SQLQueries.LIST_CLAIMS_BY_CONFIG_PK;
+        String sql = SQLConstants.LIST_CLAIMS_BY_CONFIG_PK;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, configId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -373,7 +486,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
      */
     private void addClaims(Connection conn, String configId, List<String> claims) throws SQLException {
 
-        String insert = SQLQueries.INSERT_CLAIM;
+        String insert = SQLConstants.INSERT_CLAIM;
         try (PreparedStatement ps = conn.prepareStatement(insert)) {
             for (String claim : claims) {
                 ps.setString(1, configId);
@@ -393,7 +506,7 @@ public class VCConfigMgtDAOImpl implements VCConfigMgtDAO {
      */
     private void deleteClaims(Connection conn, String configId) throws SQLException {
 
-        try (PreparedStatement ps = conn.prepareStatement(SQLQueries.DELETE_CLAIMS_BY_CONFIG_PK)) {
+        try (PreparedStatement ps = conn.prepareStatement(SQLConstants.DELETE_CLAIMS_BY_CONFIG_PK)) {
             ps.setString(1, configId);
             ps.executeUpdate();
         }
