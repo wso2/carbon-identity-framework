@@ -75,11 +75,14 @@ public class FlowServiceTest {
     @Mock
     private FlowExecutionEngine engineMock;
 
+    private AutoCloseable autoCloseable;
+
     private MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolderMockedStatic;
+
     @BeforeClass
     public void setup() throws Exception {
 
-        MockitoAnnotations.openMocks(this);
+        autoCloseable = MockitoAnnotations.openMocks(this);
         testFlowContext = initTestContext();
 
         ServiceURL serviceURL = mock(ServiceURL.class);
@@ -321,10 +324,14 @@ public class FlowServiceTest {
     }
 
     @AfterClass
-    public void teardown() {
+    public void teardown() throws Exception {
 
         if (frameworkServiceDataHolderMockedStatic != null) {
             frameworkServiceDataHolderMockedStatic.close();
+        }
+
+        if (autoCloseable != null) {
+            autoCloseable.close();
         }
     }
 }
