@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.cache;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
@@ -28,6 +30,9 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.store.FlowContextStore;
 
 import java.util.Optional;
+
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
 
 /**
  * Cache for FlowExecutionContext.
@@ -62,6 +67,15 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
     public void addToCache(FlowExecCtxCacheKey key, FlowExecCtxCacheEntry entry) throws FlowEngineException {
 
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                tenantName = FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrgId);
+            } catch (FrameworkException e) {
+                throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE, e, appResidentOrgId);
+            }
+        }
         if (tenantName != null) {
             super.addToCache(key, entry, tenantName);
             FlowContextStore.getInstance().storeContext(key.getContextId(), entry.getContext());
@@ -78,6 +92,15 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
     public FlowExecCtxCacheEntry getValueFromCache(FlowExecCtxCacheKey key) throws FlowEngineException {
 
         String tenantName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                tenantName = FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrgId);
+            } catch (FrameworkException e) {
+                throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE, e, appResidentOrgId);
+            }
+        }
         FlowExecCtxCacheEntry entry = super.getValueFromCache(key, tenantName);
         if (entry == null) {
             Optional<FlowExecutionContext> context = FlowContextStore.getInstance().getContext(key.getContextId());
