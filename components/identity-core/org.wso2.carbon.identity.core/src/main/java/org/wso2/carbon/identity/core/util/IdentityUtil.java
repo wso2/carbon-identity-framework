@@ -123,6 +123,8 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_A
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.SINGLE_CHARACTER_WILDCARD;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.UNDERSCORE;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
@@ -2370,5 +2372,34 @@ public class IdentityUtil {
             return;
         }
         log.debug("Validated JSON depth successfully.");
+    }
+
+    /**
+     * Handles SQL LIKE single-character wildcard based on 'api.filters.single_character_wildcard' configuration.
+     * - If configured to "_": underscore acts as the single-character wildcard (legacy behaviour).
+     * - If configured to any other single character: that character is used as the single-character wildcard
+     *   and actual underscores are escaped.
+     * - If configured to an empty value or left undefined: underscores are escaped.
+     *
+     * @param value The user input value to process.
+     * @return The processed value with wildcard handling applied.
+     */
+    public static String processSingleCharWildcard(String value) {
+
+        String wildcardChar = getProperty(SINGLE_CHARACTER_WILDCARD);
+        if (StringUtils.isBlank(value) || UNDERSCORE.equals(wildcardChar)) {
+            return value;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Processing single character wildcard for SQL LIKE operation.");
+        }
+        // Escape backslash first to avoid double-escaping.
+        String escaped = value.replace("\\", "\\\\");
+        escaped = escaped.replace(UNDERSCORE, "\\_");
+
+        if (StringUtils.isNotBlank(wildcardChar) && wildcardChar.length() == 1) {
+            escaped = escaped.replace(wildcardChar, UNDERSCORE);
+        }
+        return escaped;
     }
 }
