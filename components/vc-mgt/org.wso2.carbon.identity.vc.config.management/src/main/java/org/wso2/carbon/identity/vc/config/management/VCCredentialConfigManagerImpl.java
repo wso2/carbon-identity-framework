@@ -172,6 +172,7 @@ public class VCCredentialConfigManagerImpl implements VCCredentialConfigManager 
 
         // Preserve identifier from existing configuration.
         configuration.setIdentifier(existing.getIdentifier());
+        configuration.setSigningAlgorithm(DEFAULT_SIGNING_ALGORITHM);
         validateDisplayName(configuration, tenantId);
         validateFormat(configuration);
         validateCredentialType(configuration.getType());
