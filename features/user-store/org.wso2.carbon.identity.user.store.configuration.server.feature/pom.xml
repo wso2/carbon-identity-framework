@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-store-feature</artifactId>
-        <version>7.8.635</version>
+        <version>7.8.636-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
