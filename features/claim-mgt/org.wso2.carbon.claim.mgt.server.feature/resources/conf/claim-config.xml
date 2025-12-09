@@ -719,6 +719,24 @@
 				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
+                <ClaimURI>http://wso2.org/claims/identity/emailOtpResendAttempts</ClaimURI>
+                <DisplayName>Email OTP Resend Attempts</DisplayName>
+                <!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+                <AttributeID>emailOtpResendAttempts</AttributeID>
+                <Description>Claim to store Email OTP resend attempts of the user</Description>
+                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/claims/identity/emailOtpLastSentTime</ClaimURI>
+                <DisplayName>Email OTP Last Sent Time</DisplayName>
+                <!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+                <AttributeID>emailOtpLastSentTime</AttributeID>
+                <Description>Claim to store Email OTP last sent time of the user</Description>
+                <SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+            </Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedTotpAttempts</ClaimURI>
 				<DisplayName>Failed TOTP Attempts</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute
