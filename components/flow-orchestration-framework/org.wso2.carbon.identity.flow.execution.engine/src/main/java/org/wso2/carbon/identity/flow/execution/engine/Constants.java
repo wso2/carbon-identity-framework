@@ -49,6 +49,8 @@ public class Constants {
 
     public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
 
+    public static final String IS_USERNAME_VALIDATION_ENABLED = "InputValidation.Username.Enabled";
+
     private Constants() {
 
     }
