@@ -381,6 +381,7 @@ public class InputValidationService {
             boolean isUsernameValidationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
                     org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED));
             if (!isUsernameValidationEnabled) {
+                LOG.debug("Username validation is disabled. Skip adding validation rules for the username.");
                 return new ArrayList<>();
             }
 
