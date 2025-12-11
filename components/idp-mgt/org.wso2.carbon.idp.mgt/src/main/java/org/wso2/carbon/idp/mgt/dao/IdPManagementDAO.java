@@ -147,6 +147,7 @@ public class IdPManagementDAO {
     private final IdPSecretsProcessor idpSecretsProcessorService = new IdPSecretsProcessor();
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
+    private static final String USE_ENTITY_ID_AS_ISSUER = "OAuth.OpenIDConnect.UseEntityIdAsIssuer";
     private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
             = "OnDemandConfig.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
     private static final String ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED
@@ -2517,13 +2518,24 @@ public class IdPManagementDAO {
         Property property =
                 IdentityApplicationManagementUtil.getProperty(fedAuthnConfig.getProperties(), propertyName);
 
-        if (property == null || IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            // In tenant qualified mode we have to always give send the calculated URL and not the value stored in DB.
+        if (property == null) {
             property = new Property();
             property.setName(propertyName);
-            // Set the calculated SAML endpoint URL.
             property.setValue(epUrl);
         }
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            // In tenant qualified mode we have to always give send the calculated URL and not the value stored in DB.
+            String existingValue = property.getValue();
+            property = new Property();
+            property.setName(propertyName);
+            if (isUseEntityIDAsIssuerEnabled()) {
+                // If the flag to use entity ID as issuer is enabled, we give priority to the existing value in DB.
+                property.setValue(existingValue);
+            } else {
+                property.setValue(epUrl);
+            }
+        }
+
         return property;
     }
 
@@ -3007,8 +3019,16 @@ public class IdPManagementDAO {
         Property idPEntityIdProp;
         // When the tenant qualified urls are enabled, we need to see the oauth2 token endpoint.
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            idPEntityIdProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
-                    OPENID_IDP_ENTITY_ID);
+            if (isUseEntityIDAsIssuerEnabled()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Using the configured entity ID as the issuer in the " + tenantDomain+ " tenant.");
+                }
+                idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
+                        OPENID_IDP_ENTITY_ID);
+            } else {
+                idPEntityIdProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
+                        OPENID_IDP_ENTITY_ID);
+            }
         } else {
             idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn, OPENID_IDP_ENTITY_ID);
         }
@@ -3271,6 +3291,12 @@ public class IdPManagementDAO {
                     "Error occurred while retrieving IDP name from uuid: " + resourceId, e);
         }
         return idpName;
+    }
+
+    // Check whether config is enabled to configure Entity ID in Resident IDP
+    private boolean isUseEntityIDAsIssuerEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(USE_ENTITY_ID_AS_ISSUER));
     }
 
     /**
