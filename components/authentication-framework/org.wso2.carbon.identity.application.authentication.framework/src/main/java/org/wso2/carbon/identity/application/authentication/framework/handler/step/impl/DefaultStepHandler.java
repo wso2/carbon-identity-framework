@@ -902,6 +902,7 @@ public class DefaultStepHandler implements StepHandler {
 
             // This fix needs to be generalized and improved for non organization login flows as well.
             if (isLoggedInWithOrganizationLogin(authenticatorConfig)) {
+                authenticatorConfig = AuthenticatorConfig.deepCopy(authenticatorConfig);
                 handleDuplicateOrganizationAuthenticators(authenticatedIdPData, authenticatedUser, authenticatorConfig);
             }
 
