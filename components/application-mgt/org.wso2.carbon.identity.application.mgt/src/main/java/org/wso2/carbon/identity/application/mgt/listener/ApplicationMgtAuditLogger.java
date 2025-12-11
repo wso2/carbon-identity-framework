@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.json.JSONObject;
 import org.json.XML;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -47,6 +48,13 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUse
 /**
  * Audit log implementation for Application (Service Provider) changes.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener",
+                "service.scope=singleton"
+        }
+)
 public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
 
     private static final Log audit = CarbonConstants.AUDIT_LOG;
