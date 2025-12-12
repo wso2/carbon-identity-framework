@@ -510,7 +510,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                         resultSet.getString(SQLConstants.ID_COLUMN_NAME),
                         resultSet.getString(SQLConstants.NAME_COLUMN_NAME),
                         resultSet.getString(SQLConstants.DISPLAY_NAME_COLUMN_NAME),
-                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME)
+                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.SCOPE_API_ID_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.TENANT_ID_COLUMN_NAME)
                 );
             }
         } catch (SQLException e) {
@@ -545,7 +547,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                         resultSet.getString(SQLConstants.ID_COLUMN_NAME),
                         resultSet.getString(SQLConstants.NAME_COLUMN_NAME),
                         resultSet.getString(SQLConstants.DISPLAY_NAME_COLUMN_NAME),
-                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME)
+                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.SCOPE_API_ID_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.TENANT_ID_COLUMN_NAME)
                 );
             }
         } catch (SQLException e) {
