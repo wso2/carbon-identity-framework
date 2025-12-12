@@ -93,6 +93,8 @@ public class AuthServiceConstants {
                 "Application is disabled.",
                 "Application is disabled. Unable to proceed with authentication as application access " +
                         "is restricted."),
+        ERROR_INVALID_AUTHENTICATOR("60012", "Invalid authenticator.",
+                "Requested authenticator is invalid."),
         // Server Error starting from 650xx.
         /* The 65001 ERROR_UNABLE_TO_PROCEED is used as the default server error
          therefor be cautious if that is being changed.*/
