@@ -557,6 +557,8 @@ public class AuthenticationService {
                 return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL;
             case FrameworkConstants.ERROR_STATUS_APP_DISABLED:
                 return AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION;
+            case FrameworkConstants.ERROR_STATUS_INVALID_AUTHENTICATOR:
+                return AuthServiceConstants.ErrorMessage.ERROR_INVALID_AUTHENTICATOR;
             default:
                 return null;
         }
