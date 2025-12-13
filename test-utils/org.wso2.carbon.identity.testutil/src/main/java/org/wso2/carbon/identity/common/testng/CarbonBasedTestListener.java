@@ -345,9 +345,13 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener, I
             Class[] injectUMDataSourceTo = withRealmService.injectUMDataSourceTo();
             for (Class injectUMDataSource : injectUMDataSourceTo) {
                 Object instance = getSingletonInstance(injectUMDataSource);
-                DataSource dataSource = MockInitialContextFactory
-                        .initializeDatasource(UM_DB_JNDI_NAME, this.getClass(), new String[]{UM_DB_SQL_FILE});
-                setInstanceValue(dataSource, DataSource.class, injectUMDataSource, instance);
+                try {
+                    DataSource dataSource = MockInitialContextFactory
+                            .initializeDatasource(UM_DB_JNDI_NAME, this.getClass(), new String[]{UM_DB_SQL_FILE});
+                    setInstanceValue(dataSource, DataSource.class, injectUMDataSource, instance);
+                } catch (TestCreationException e) {
+                    log.error("Could not initialize UM data source for class: " + injectUMDataSource.getName(), e);
+                }
             }
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
@@ -459,24 +463,34 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener, I
         }
     }
 
+    /**
+     * Before invocation of each method, scan for fields with @WithRealmService and @InjectMicroservicePort 
+     * and set the values.
+     * 
+     * @param method Invoked method
+     * @param result Test result
+     */
     @Override
     public void beforeInvocation(IInvokedMethod method, ITestResult result) {
         Object instance = result.getInstance();
         if (instance == null) return;
 
         Class<?> clazz = instance.getClass();
-        while (clazz != null && clazz != Object.class) { // support inheritance
+        RealmService realmService = null;
+        while (clazz != null && clazz != Object.class) { // support inheritance.
             for (Field field : clazz.getDeclaredFields()) {
                 WithRealmService withRealmService = field.getAnnotation(WithRealmService.class);
                 if (withRealmService != null) {
 
                     try {
-                        RealmService realmService = createRealmService(withRealmService, true);
+                        if (realmService == null) {
+                            realmService = createRealmService(withRealmService, true);
+                        }
                         field.setAccessible(true);
-                        // handle static fields too
+                        // Handle static fields.
                         Object target = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? null : instance;
 
-                        // If the field is already set, skip setting it again
+                        // If the field is already set, skip setting it again.
                         if (field.get(target) != null) continue;
 
                         field.set(target, realmService);
@@ -496,11 +510,12 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener, I
                         MicroserviceServer microserviceServer = microserviceServerMap.get(clazz);
                         if (microserviceServer == null) continue;
                         field.setAccessible(true);
-                        // handle static fields too
+                        // handle static fields.
                         Object target = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? null : instance;
-                        
-                        // If the field is already set, skip setting it again
-                        if ((int) field.get(target) != 0) continue;
+
+                        // If the field is already set, skip setting it again.
+                        Object currentValue = field.get(target);
+                        if (currentValue != null && !currentValue.equals(0)) continue;
 
                         field.set(target, microserviceServer.getPort());
                     } catch (IllegalAccessException e) {
@@ -525,7 +540,6 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener, I
             microserviceServer.addService(instance);
             microserviceServer.start();
         }
-
     }
 
     /**
@@ -535,7 +549,6 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener, I
     private MicroserviceServer initMicroserviceServer(Object classObj) throws TestCreationException {
 
         try {
-
             ServerSocket s = new ServerSocket(0);
             int port = s.getLocalPort();
             s.close();
