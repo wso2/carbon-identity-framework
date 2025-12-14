@@ -154,6 +154,10 @@ public class IdentityConstants {
     public static final String UNKNOWN = "unknown";
     public static final String USER_IP = "user-ip";
 
+    // User-Agent header constants.
+    public static final String USER_AGENT = "User-Agent";
+    public static final String X_FORWARDED_USER_AGENT = "X-Forwarded-User-Agent";
+
     // Service provider constants
     public static final String SKIP_CONSENT_DISPLAY_NAME="Skip Consent";
     public static final String SKIP_CONSENT="skipConsent";
