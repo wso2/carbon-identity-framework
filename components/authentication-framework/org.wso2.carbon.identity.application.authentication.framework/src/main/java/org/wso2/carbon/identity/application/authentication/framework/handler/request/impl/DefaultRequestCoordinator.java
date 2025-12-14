@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -433,6 +434,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (!context.isLogoutRequest()) {
                     enteredFlow = enterFlow(Flow.Name.LOGIN);
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
+                    if (context.isOrgLoginContextUpdateRequired()) {
+                        log.debug("Updating the authentication context with the organization login data.");
+                        updateContextForOrganizationLogin(request, context);
+                        FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
+                    }
 
                     // Adding spId param to the redirect URL if it is not an external system call.
                     boolean isExternalCall = Boolean.TRUE.equals(
@@ -1565,5 +1571,41 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } else {
             return Flow.InitiatingPersona.USER;
         }
+    }
+
+    private void updateContextForOrganizationLogin(HttpServletRequest request, AuthenticationContext context)
+            throws FrameworkException {
+
+        OrganizationData organization = context.getOrganizationLoginData().getAccessingOrganization();
+        String accessingOrgTenantDomain = organization.getOrganizationHandle();
+        String accessingOrgId = organization.getId();
+        String sharedApplicationId = context.getOrganizationLoginData().getSharedApplicationId();
+
+        // Update the tenant information in context for organization login.
+        String primaryTenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String mainAppResidentTenantDomain = context.getTenantDomain();
+        context.getOrganizationLoginData().setPrimaryTenantDomain(primaryTenantDomain);
+        context.getOrganizationLoginData().setMainAppResidentTenantDomain(mainAppResidentTenantDomain);
+        context.setTenantDomain(accessingOrgTenantDomain);
+
+        // Setting the sequence config of the shared application to the context.
+        SequenceConfig sequenceConfig = getSharedAppSequenceConfig(context, request.getParameterMap(),
+                sharedApplicationId);
+        context.setSequenceConfig(sequenceConfig);
+
+        // Resetting the context parameters.
+        context.setCurrentStep(0);
+        context.setCurrentAuthenticator(null);
+        context.setCurrentAuthenticatedIdPs(new HashMap());
+        context.setPreviousAuthenticatedIdPs(new HashMap());
+        context.setExternalIdP(null);
+        context.setReturning(false);
+        context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, null);
+
+        // Reset org login context update required flag.
+        context.setOrgLoginContextUpdateRequired(false);
+
+        // Set the accessing organization id in the carbon context.
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setAccessingOrganizationId(accessingOrgId);
     }
 }

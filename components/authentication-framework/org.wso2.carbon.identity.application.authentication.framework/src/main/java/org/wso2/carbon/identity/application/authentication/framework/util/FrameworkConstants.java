@@ -165,6 +165,7 @@ public abstract class FrameworkConstants {
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
     public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
     public static final String ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER = "OrganizationSSO";
     public static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     public static final String ORG_ID_PARAMETER = "orgId";

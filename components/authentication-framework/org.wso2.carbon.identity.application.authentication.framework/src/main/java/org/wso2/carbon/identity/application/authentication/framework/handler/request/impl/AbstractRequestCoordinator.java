@@ -28,10 +28,15 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 
+import java.util.Arrays;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.StandardInboundProtocols.OAUTH2;
 
 /**
  * Abstract implementation for the request coordinator.
@@ -70,6 +75,30 @@ public abstract class AbstractRequestCoordinator implements RequestCoordinator {
     }
 
     /**
+     * Returns the sequence config for a shared application.
+     *
+     * @param context      Authentication Context.
+     * @param parameterMap Parameter Map, retrieved from (Http/etc) Request.
+     * @param sharedAppId  Shared Application Id.
+     * @return Generated Sequence Config.
+     * @throws FrameworkException If an error occurs while retrieving the sequence config.
+     */
+    public SequenceConfig getSharedAppSequenceConfig(AuthenticationContext context,
+                                                     Map<String, String[]> parameterMap, String sharedAppId)
+            throws FrameworkException {
+
+        String tenantDomain = context.getTenantDomain();
+        SequenceLoader sequenceBuilder = FrameworkServiceDataHolder.getInstance().getSequenceLoader();
+        if (sequenceBuilder != null) {
+            ServiceProvider sharedApp = getServiceProviderForSharedApp(sharedAppId, tenantDomain);
+            return sequenceBuilder.getSequenceConfig(context, parameterMap, sharedApp);
+        } else {
+            throw new FrameworkException("SequenceLoader is not available to load the sequence config for " +
+                    "shared app: " + sharedAppId);
+        }
+    }
+
+    /**
      * Returns the service provider form persistence layer.
      */
     protected ServiceProvider getServiceProvider(String reqType, String clientId, String tenantDomain)
@@ -91,5 +120,36 @@ public abstract class AbstractRequestCoordinator implements RequestCoordinator {
                     + " and tenant: " + tenantDomain, e);
         }
         return serviceProvider;
+    }
+
+    private ServiceProvider getServiceProviderForSharedApp(String sharedAppId, String sharedOrgTenantDomain)
+            throws FrameworkException {
+
+        ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
+        try {
+            ServiceProvider sharedApp =
+                    applicationManagementService.getApplicationByResourceId(sharedAppId, sharedOrgTenantDomain);
+            if (sharedApp == null) {
+                throw new FrameworkException("Shared application not found for organization with handle: " +
+                        sharedOrgTenantDomain + " and application id: " + sharedAppId);
+            }
+
+            InboundAuthenticationConfig inboundAuthConfig = sharedApp.getInboundAuthenticationConfig();
+            InboundAuthenticationRequestConfig inboundAuth =
+                    (inboundAuthConfig == null || inboundAuthConfig.getInboundAuthenticationRequestConfigs() == null)
+                            ? null
+                            : Arrays.stream(inboundAuthConfig.getInboundAuthenticationRequestConfigs())
+                            .filter(cfg -> OAUTH2.equals(cfg.getInboundAuthType()))
+                            .findAny()
+                            .orElse(null);
+
+            if (inboundAuth == null) {
+                throw new FrameworkException("Inbound authentication is not configured for appId: " + sharedAppId);
+            }
+            String clientId = inboundAuth.getInboundAuthKey();
+            return getServiceProvider(OAUTH2, clientId, sharedOrgTenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            throw new FrameworkException("Error while retrieving service provider for appId: " + sharedAppId, e);
+        }
     }
 }

@@ -209,6 +209,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // call step based sequence handler
                 FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
+                if (context.isOrgLoginContextUpdateRequired()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Context update is required for the organization login. " +
+                                "Hence, returning to Request Coordinator.");
+                    }
+                    return;
+                }
             }
         } catch (FrameworkException e) {
             // Remove nonce cookie after authentication failure.

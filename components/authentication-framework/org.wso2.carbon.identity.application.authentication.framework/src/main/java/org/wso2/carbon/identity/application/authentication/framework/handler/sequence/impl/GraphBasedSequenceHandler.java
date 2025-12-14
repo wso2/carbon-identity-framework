@@ -563,6 +563,13 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
 
         FrameworkUtils.getStepHandler().handle(request, response, context);
+        if (context.isOrgLoginContextUpdateRequired()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Context update is required for the organization login. " +
+                        "Hence, returning to Request Coordinator.");
+            }
+            return true;
+        }
 
         flowStatus = (AuthenticatorFlowStatus) request
                 .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
