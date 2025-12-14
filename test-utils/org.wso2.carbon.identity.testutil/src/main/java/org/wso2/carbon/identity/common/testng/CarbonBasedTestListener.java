@@ -454,7 +454,6 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener, I
     @Override
     public void onAfterClass(ITestClass iTestClass) {
 
-        MockInitialContextFactory.destroy();
         MicroserviceServer microserviceServer = microserviceServerMap.get(iTestClass.getRealClass());
         if (microserviceServer != null) {
             microserviceServer.stop();
