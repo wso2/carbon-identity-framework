@@ -2110,17 +2110,17 @@
                    description="Delete workflow instance"/>
         </Scopes>
     </APIResource>
-<!--    <APIResource name="VC Credential Configurations Management API" identifier="/api/server/v1/vc/credential-configurations"-->
+<!--    <APIResource name="VC Credential Configurations Management API" identifier="/api/server/v1/vc/templates"-->
 <!--                 requiresAuthorization="true"-->
 <!--                 description="API representation of the VC Credential Configurations Management API" type="TENANT">-->
 <!--        <Scopes>-->
-<!--            <Scope displayName="View VC Credential Configurations" name="internal_vc_credential_config_view"-->
+<!--            <Scope displayName="View VC Credential Configurations" name="internal_vc_template_view"-->
 <!--                   description="View VC Credential Configurations"/>-->
-<!--            <Scope displayName="Create VC Credential Configuration" name="internal_vc_credential_config_create"-->
+<!--            <Scope displayName="Create VC Credential Configuration" name="internal_vc_template_create"-->
 <!--                   description="Create new VC Credential Configuration"/>-->
-<!--            <Scope displayName="Update VC Credential Configuration" name="internal_vc_credential_config_update"-->
+<!--            <Scope displayName="Update VC Credential Configuration" name="internal_vc_template_update"-->
 <!--                   description="Update VC Credential Configuration"/>-->
-<!--            <Scope displayName="Delete VC Credential Configuration" name="internal_vc_credential_config_delete"-->
+<!--            <Scope displayName="Delete VC Credential Configuration" name="internal_vc_template_delete"-->
 <!--                   description="Delete VC Credential Configuration"/>-->
 <!--        </Scopes>-->
 <!--    </APIResource>-->
