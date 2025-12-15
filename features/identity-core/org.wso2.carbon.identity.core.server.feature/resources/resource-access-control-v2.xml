@@ -1882,7 +1882,6 @@
     </Resource>
 
     <!-- VC Credential Configuration Management API -->
-    <!-- VC Credential Configuration Management API -->
     <Resource context="(.*)/api/server/v1/vc/credential-configurations(.*)" secured="true" http-method="GET">
         <Scopes>internal_vc_credential_config_view</Scopes>
     </Resource>
