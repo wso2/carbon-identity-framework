@@ -835,6 +835,12 @@ public class DefaultStepHandler implements StepHandler {
                 context.getSubject().setAccessingOrganization(userResidentOrganization);
             }
 
+            if (context.getSubject() != null && context.isOrganizationLogin()) {
+                String accessingOrgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
+                context.getSubject().setAccessingOrganization(accessingOrgId);
+                context.getSubject().setUserResidentOrganization(accessingOrgId);
+            }
+
             if (authenticator instanceof FederatedApplicationAuthenticator) {
 
                 if (context.getSubject().getUserName() == null) {
