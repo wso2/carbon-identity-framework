@@ -99,7 +99,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVAlID_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
 /**
@@ -637,7 +637,7 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
 
-        // Get the requested authenticator parameter
+        // Get the requested authenticator name parameter.
         String requestedAuthenticator = request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR);
 
         AuthenticatorConfig stepAuthenticatorConfig = stepConfig.getAuthenticatorList().stream()
@@ -647,8 +647,8 @@ public class DefaultStepHandler implements StepHandler {
                             authenticator.getName().equalsIgnoreCase(requestedAuthenticator);
                 })
                 .findFirst()
-                .orElseThrow(() ->  new FrameworkClientException(ERROR_INVAlID_AUTHENTICATOR.getCode(),
-                String.format(ERROR_INVAlID_AUTHENTICATOR.getMessage(), requestedAuthenticator)));
+                .orElseThrow(() -> new FrameworkClientException(ERROR_INVALID_AUTHENTICATOR.getCode(),
+                String.format(ERROR_INVALID_AUTHENTICATOR.getMessage(), requestedAuthenticator)));
 
         if (StringUtils.isNotBlank(selectedIdp) && stepAuthenticatorConfig.getIdps().get(selectedIdp) == null) {
             if (LOG.isDebugEnabled()) {
