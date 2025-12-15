@@ -3399,7 +3399,19 @@ public class IdPManagementDAO {
                 // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
                 if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
                         federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
-                    federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
+                    try {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.startTenantFlow();
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                        }
+                        federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
+                    } finally {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.endTenantFlow();
+                        }
+                    }
                 }
 
                 if (defaultAuthenticatorName != null && federatedIdp.getFederatedAuthenticatorConfigs() != null) {
