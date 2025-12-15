@@ -31,6 +31,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
@@ -1593,5 +1594,43 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         context.setSequenceConfig(sequenceConfig);
 
         return context;
+    }
+
+    @DataProvider(name = "provideAppTenantDetails")
+    public Object[][] provideAppTenantDetails() {
+
+        return new Object[][]{
+                {true, "sam@sub001"},
+                {false, "sam@carbon.super"}
+        };
+    }
+
+    @Test(dataProvider = "provideAppTenantDetails")
+    public void testPreProcessUsernameWithServiceProvider(boolean isSubOrganizationAppLogin, String expected)
+            throws Exception {
+
+        try {
+            if (isSubOrganizationAppLogin) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .setApplicationResidentOrganizationId("1234-1234");
+                OrganizationManager organizationManager = mock(OrganizationManager.class);
+                FrameworkServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+                when(organizationManager.resolveTenantDomain("1234-1234")).thenReturn("sub001");
+            }
+            ServiceProvider serviceProvider = new ServiceProvider();
+            serviceProvider.setSaasApp(false);
+
+            org.wso2.carbon.identity.application.common.model.User appOwner =
+                    new org.wso2.carbon.identity.application.common.model.User();
+            appOwner.setTenantDomain("carbon.super");
+            serviceProvider.setOwner(appOwner);
+
+            String preprocessedUsername = FrameworkUtils
+                    .preprocessUsernameWithServiceProvider("sam", serviceProvider);
+            assertEquals(preprocessedUsername, expected);
+        } finally {
+            // Clean the PrivilegedCarbonContext
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setApplicationResidentOrganizationId(null);
+        }
     }
 }

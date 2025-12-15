@@ -4076,8 +4076,35 @@ public class FrameworkUtils {
      */
     public static String preprocessUsername(String username, ServiceProvider serviceProvider) {
 
-        boolean isSaaSApp = serviceProvider.isSaasApp();
         String appTenantDomain = serviceProvider.getOwner().getTenantDomain();
+        return getPreProcessedUsername(username, serviceProvider, appTenantDomain);
+    }
+
+    /**
+     * Pre-process user's username considering the service provider.
+     *
+     * @param username Username of the user.
+     * @param serviceProvider The service provider.
+     * @return preprocessed username
+     */
+    public static String preprocessUsernameWithServiceProvider(String username, ServiceProvider serviceProvider)
+            throws FrameworkException {
+
+        String appTenantDomain = serviceProvider.getOwner().getTenantDomain();
+        // Get the application tenant domain when the request is received from the tenant perspective.
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            appTenantDomain = resolveTenantDomainFromOrganizationId(appResidentOrgId);
+        }
+
+        return getPreProcessedUsername(username, serviceProvider, appTenantDomain);
+    }
+
+    private static String getPreProcessedUsername(String username, ServiceProvider serviceProvider,
+                                                  String appTenantDomain) {
+
+        boolean isSaaSApp = serviceProvider.isSaasApp();
 
         if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
             return username;
