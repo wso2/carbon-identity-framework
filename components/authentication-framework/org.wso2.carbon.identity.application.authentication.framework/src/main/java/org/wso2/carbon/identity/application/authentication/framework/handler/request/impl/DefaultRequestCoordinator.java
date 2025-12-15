@@ -514,7 +514,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     request.setAttribute(FrameworkConstants.RESTART_LOGIN_FLOW, "true");
                     throw new UserAssertionFailedException(((FrameworkException) e).getErrorCode(), e.getMessage());
                 }
-                if (FrameworkErrorConstants.ErrorMessages.ERROR_INVAlID_AUTHENTICATOR.getCode()
+                if (FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR.getCode()
                         .equals(((FrameworkException) e).getErrorCode())) {
                     errorMsg = e.getMessage();
                     status = FrameworkConstants.ERROR_STATUS_INVALID_AUTHENTICATOR;
