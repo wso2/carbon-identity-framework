@@ -367,7 +367,8 @@
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
       "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true,
-      "resolve_tenant_domain_from_username.enabled": true
+      "resolve_tenant_domain_from_username.enabled": true,
+
     }
   }
 }
