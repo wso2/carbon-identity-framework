@@ -2110,7 +2110,7 @@
                    description="Delete workflow instance"/>
         </Scopes>
     </APIResource>
-<!--    <APIResource name="VC Templates Management API" identifier="/api/server/v1/vc/templates"-->
+<!--    <APIResource name="VC Templates Management API" identifier="/api/server/v1/vc-templates"-->
 <!--                 requiresAuthorization="true"-->
 <!--                 description="API representation of the VC Templates Management API" type="TENANT">-->
 <!--        <Scopes>-->
