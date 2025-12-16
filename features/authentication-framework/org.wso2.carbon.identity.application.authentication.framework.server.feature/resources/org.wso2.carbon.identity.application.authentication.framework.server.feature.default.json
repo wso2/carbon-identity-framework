@@ -279,8 +279,6 @@
     "SYSTEM"
   ],
 
-  "oauth.remove_internal_org_scopes_for_root_org": true,
-
   "oauth.allow_disabled_application_credentials_for_authentication": false,
   "authentication.jit_provisioning.associating_to_existing_user": false,
   "authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association": false,
