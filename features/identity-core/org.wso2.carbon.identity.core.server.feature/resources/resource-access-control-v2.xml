@@ -1881,7 +1881,7 @@
         <Scopes>internal_workflow_instance_delete</Scopes>
     </Resource>
 
-    <!-- VC Credential Configuration Management API -->
+    <!-- VC Template Management API -->
     <Resource context="(.*)/api/server/v1/vc-templates/(.*)/offer" secured="true" http-method="POST">
         <Scopes>internal_vc_template_update</Scopes>
     </Resource>
@@ -1976,6 +1976,7 @@
     <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
     <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
     <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
+    <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
 
     <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
     <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
