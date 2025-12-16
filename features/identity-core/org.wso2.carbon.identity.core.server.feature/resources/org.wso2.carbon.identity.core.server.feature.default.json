@@ -843,7 +843,8 @@
     "/emailotpauthenticationendpoint/",
     "/smsotpauthenticationendpoint/",
     "/totpauthenticationendpoint/",
-    "/accounts/"
+    "/accounts/",
+    "/oid4vci/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
