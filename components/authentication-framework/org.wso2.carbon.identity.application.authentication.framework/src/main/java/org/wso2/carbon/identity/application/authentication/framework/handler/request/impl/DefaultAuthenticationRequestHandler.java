@@ -392,6 +392,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String authenticatedUserTenantDomain = getAuthenticatedUserTenantDomain(context, authenticationResult);
 
         authenticationResult.setSaaSApp(sequenceConfig.getApplicationConfig().isSaaSApp());
+        authenticationResult.setOrganizationLogin(context.isOrganizationLogin());
 
         if (isAuthenticated) {
 

@@ -35,6 +35,7 @@ public class AuthenticationResult implements Serializable {
     private String authenticatedIdPs;
     private String authenticatedAuthenticators;
     private boolean isSaaSApp;
+    private boolean isOrganizationLogin;
     private boolean loggedOut;
     private Map<String, String> claimMapping;
     /**
@@ -107,6 +108,16 @@ public class AuthenticationResult implements Serializable {
 
     public void setSaaSApp(boolean isSaaSApp) {
         this.isSaaSApp = isSaaSApp;
+    }
+
+    public boolean isOrganizationLogin() {
+
+        return isOrganizationLogin;
+    }
+
+    public void setOrganizationLogin(boolean organizationLogin) {
+
+        isOrganizationLogin = organizationLogin;
     }
 
     public void addProperty(String key, Object value) {
