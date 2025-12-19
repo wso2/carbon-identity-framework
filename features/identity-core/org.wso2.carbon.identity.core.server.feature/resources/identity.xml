@@ -808,7 +808,7 @@
             Default value : true
         -->
         <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
-        <RemoveInternalOrgScopesForRootOrg>true</RemoveInternalOrgScopesForRootOrg>
+        < DisableInternalOrgScopesIssuanceForRootOrg >true</DisableInternalOrgScopesIssuanceForRootOrg >
     </OAuth>
 
     <RestApiAuthentication>
