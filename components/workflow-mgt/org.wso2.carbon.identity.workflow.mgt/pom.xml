@@ -93,6 +93,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -166,7 +170,8 @@
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.database.utils.*; version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.user.core.model.*; version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon.user.core.model.*; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.evaluation.api.*; version="${carbon.identity.package.import.version.range}",
                         </Import-Package> 
                         <Export-Package>
                             !org.wso2.carbon.identity.workflow.mgt.internal,

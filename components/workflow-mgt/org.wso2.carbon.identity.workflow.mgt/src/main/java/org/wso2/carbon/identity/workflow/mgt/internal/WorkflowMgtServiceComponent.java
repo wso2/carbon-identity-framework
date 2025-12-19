@@ -32,6 +32,7 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImpl;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
@@ -108,6 +109,23 @@ public class WorkflowMgtServiceComponent {
     protected void setRealmService(RealmService realmService) {
 
         WorkflowServiceDataHolder.getInstance().setRealmService(realmService);
+    }
+
+    // Reference to Rule Evaluation Service
+    @Reference(
+            name = "rule.evaluation.service",
+            service = RuleEvaluationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRuleEvaluationService")
+    protected void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        WorkflowServiceDataHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
+    }
+
+    protected void unsetRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        WorkflowServiceDataHolder.getInstance().setRuleEvaluationService(null);
     }
 
     protected void unsetRealmService(RealmService realmService) {

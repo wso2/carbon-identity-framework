@@ -61,10 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 /**
  * WorkflowService class provides all the common functionality for the basic workflows.
  */
@@ -446,16 +442,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                     "event " + eventId + " with the same condition.");
         }
 
-        // Check for xpath syntax errors.
-        XPathFactory factory = XPathFactory.newInstance();
-        XPath xpath = factory.newXPath();
-        try {
-            xpath.compile(condition);
-            associationDAO.addAssociation(associationName, workflowId, eventId, condition);
-        } catch (XPathExpressionException e) {
-            log.error("The condition:" + condition + " is not an valid xpath expression.", e);
-            throw new WorkflowRuntimeException("The condition is not a valid xpath expression.");
-        }
+        associationDAO.addAssociation(associationName, workflowId, eventId, condition);
+
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostAddAssociation(associationName, workflowId, eventId, condition);
@@ -876,13 +864,16 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             association.setEventId(eventId);
         }
 
-        if (condition != null) {
-            if (WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition)) {
-                association.setCondition(condition);
-            } else {
-                log.error("Conditions are not supported. Provided condition: " + condition);
-                throw new WorkflowRuntimeException("Conditions are not supported.");
-            }
+//        if (condition != null) {
+//            if (WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition)) {
+//                association.setCondition(condition);
+//            } else {
+//                log.error("Conditions are not supported. Provided condition: " + condition);
+//                throw new WorkflowRuntimeException("Conditions are not supported.");
+//            }
+//        }
+        if (condition != null){
+            association.setCondition(condition);
         }
 
         List<Association> existingAssociations =

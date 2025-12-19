@@ -27,7 +27,12 @@ import org.apache.commons.logging.LogFactory;
 import org.jaxen.JaxenException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
+import org.wso2.carbon.identity.workflow.mgt.bean.RequestParameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.dao.RequestEntityRelationshipDAO;
@@ -46,6 +51,7 @@ import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -103,8 +109,49 @@ public class WorkFlowExecutorManager {
         boolean requestSaved = false;
         for (WorkflowAssociation association : associations) {
             try {
-                AXIOMXPath axiomxPath = new AXIOMXPath(association.getAssociationCondition());
-                if (axiomxPath.booleanValueOf(xmlRequest)) {
+                // AXIOMXPath axiomxPath = new AXIOMXPath(association.getAssociationCondition());
+
+                // RuleId to be evaluated is the condition from the association
+                String ruleIdForEvaluation = association.getAssociationCondition();
+                boolean ruleSatisfied = false;
+
+                // Check for Default Condition "boolean(1)"
+                if (StringUtils.isNotBlank(ruleIdForEvaluation) && "boolean(1)".equals(ruleIdForEvaluation.trim())) {
+                    // Default condition found, proceed without calling Rule Engine
+                    if (log.isDebugEnabled()) {
+                        log.debug("Default association condition found (boolean(1)). engaging workflow.");
+                    }
+                    ruleSatisfied = true;
+                }
+                // else treat it as a Rule ID and evaluate via Rule Engine
+                else {
+                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+                    Map<String, Object> ruleContextData = new HashMap<>();
+                    ruleContextData.put("eventType", workFlowRequest.getEventType());
+                    ruleContextData.put("uuid", workFlowRequest.getUuid());
+                    ruleContextData.put("tenantId", workFlowRequest.getTenantId());
+                    ruleContextData.put("tenantDomain", tenantDomain);
+
+                    // Add all request parameters as individual context entries.
+                    if (workFlowRequest.getRequestParameters() != null) {
+                        for (RequestParameter parameter : workFlowRequest.getRequestParameters()) {
+                            ruleContextData.put(parameter.getName(), parameter.getValue());
+                        }
+                    }
+
+                    FlowContext flowContext = new FlowContext(FlowType.WORKFLOW_RULES, ruleContextData);
+
+                    // Evaluate the rule using the ID stored in associationCondition
+                    RuleEvaluationResult result = WorkflowServiceDataHolder.getInstance()
+                            .getRuleEvaluationService()
+                            .evaluate(ruleIdForEvaluation, flowContext, tenantDomain);
+
+                    ruleSatisfied = result.isRuleSatisfied();
+                }
+
+                // If Rule is Satisfied (or Default), Engage Workflow
+                if (ruleSatisfied) {
                     workflowEngaged = true;
                     if (!requestSaved) {
                         WorkflowRequestDAO requestDAO = new WorkflowRequestDAO();
@@ -125,16 +172,20 @@ public class WorkFlowExecutorManager {
                             workFlowRequest
                                     .getUuid(), WorkflowRequestStatus.PENDING
                                     .toString(), workFlowRequest.getTenantId());
+                }else {
+                    // to do: remove the info level log and keep debug level log only
+                    if (log.isDebugEnabled()) {
+                        log.info("Workflow association with id: " + association.getAssociationId() +
+                                " not engaged for the request with id: " + workFlowRequest.getUuid() +
+                                " as the rule condition did not satisfy");
+                    }
                 }
-            } catch (JaxenException e) {
-                String errorMsg = "Error when executing the xpath expression:" + association.getAssociationCondition()
-                        + " , on " + xmlRequest;
-                log.error(errorMsg, e);
-                return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
             } catch (CloneNotSupportedException e) {
                 String errorMsg = "Error while cloning workflowRequest object at executor manager.";
                 log.error(errorMsg, e);
                 return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
+            } catch (RuleEvaluationException e) {
+                throw new RuntimeException(e);
             }
         }
 
