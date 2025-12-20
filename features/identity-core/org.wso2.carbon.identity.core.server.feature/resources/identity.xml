@@ -2942,5 +2942,6 @@
         </SMS>
     </NotificationChannel>
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
+    <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
 </Server>
