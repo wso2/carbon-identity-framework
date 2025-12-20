@@ -432,6 +432,9 @@ public abstract class FrameworkConstants {
          */
         public static final String SHOW_FAILURE_REASON = "JITProvisioning.ShowFailureReason";
 
+        public static final String SKIP_SUCCESS_ON_INVALID_AUTHENTICATION_STATUS =
+                "SkipSuccessOnInvalidAuthenticationStatus";
+
         private Config() {
         }
 

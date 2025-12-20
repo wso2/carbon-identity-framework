@@ -4997,4 +4997,15 @@ public class FrameworkUtils {
                     + appResidentOrgId + ".", e);
         }
     }
+
+    /**
+     * Check whether to skip success on invalid authentication status.
+     *
+     * @return true to skip success on invalid authentication status, false otherwise.
+     */
+    public static boolean skipSuccessOnInvalidAuthenticationStatus() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(FrameworkConstants.Config.SKIP_SUCCESS_ON_INVALID_AUTHENTICATION_STATUS));
+    }
 }
