@@ -2184,5 +2184,5 @@
   "pastr_cookie.max_age": "-1",
 
   "resolve_tenant_domain_from_username.enabled": false,
-  "authentication.skip_success_on_invalid_authentication_status": true
+  "authentication.mark_step_completed_on_interrupt": true
 }

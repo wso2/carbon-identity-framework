@@ -4999,13 +4999,13 @@ public class FrameworkUtils {
     }
 
     /**
-     * Check whether to skip success on invalid authentication status.
+     * Check whether to mark the step as completed on interrupt in an authentication flow.
      *
-     * @return true to skip success on invalid authentication status, false otherwise.
+     * @return true if enabled, false otherwise.
      */
-    public static boolean skipSuccessOnInvalidAuthenticationStatus() {
+    public static boolean markStepCompletedOnInterrupt() {
 
         return Boolean.parseBoolean(
-                IdentityUtil.getProperty(FrameworkConstants.Config.SKIP_SUCCESS_ON_INVALID_AUTHENTICATION_STATUS));
+                IdentityUtil.getProperty(FrameworkConstants.Config.MARK_STEP_COMPLETED_ON_INTERRUPT));
     }
 }

@@ -432,8 +432,10 @@ public abstract class FrameworkConstants {
          */
         public static final String SHOW_FAILURE_REASON = "JITProvisioning.ShowFailureReason";
 
-        public static final String SKIP_SUCCESS_ON_INVALID_AUTHENTICATION_STATUS =
-                "SkipSuccessOnInvalidAuthenticationStatus";
+        /**
+         * Configuration to mark the step as completed on interrupt.
+         */
+        public static final String MARK_STEP_COMPLETED_ON_INTERRUPT = "MarkStepCompletedOnInterrupt";
 
         private Config() {
         }
