@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -4003,7 +4003,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             default:
                 formattedFilterValue = searchValue;
         }
-
+        // Escape SQL wildcards for operations that use LIKE clause.
+        if (FILTER_STARTS_WITH.equals(searchOperation) || FILTER_ENDS_WITH.equals(searchOperation) ||
+                FILTER_CONTAINS.equals(searchOperation)) {
+            formattedFilterValue = IdentityUtil.processSingleCharWildcard(formattedFilterValue);
+        }
         return formattedFilterValue;
     }
 
