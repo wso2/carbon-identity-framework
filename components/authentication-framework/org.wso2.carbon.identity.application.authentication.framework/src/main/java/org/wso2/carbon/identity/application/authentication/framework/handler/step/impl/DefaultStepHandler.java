@@ -826,6 +826,7 @@ public class DefaultStepHandler implements StepHandler {
                  */
                 if (status != AuthenticatorFlowStatus.SUCCESS_COMPLETED) {
                     stepConfig.setCompleted(true);
+                    context.setRequestAuthenticated(false);
                     return;
                 }
             }
