@@ -3914,12 +3914,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         FilterData filterData = new FilterData();
 
         if (StringUtils.isBlank(filter) || filter.equals(ASTERISK)) {
-            filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
+            filterData.setFilterString("SP_APP.APP_NAME LIKE ? ESCAPE '\\'");
             filterData.addFilterValue("%");
         } else if (!(SUPPORTED_SEARCH_ATTRIBUTE_MAP.keySet().contains(filter.trim().split(" ")[0]))) {
             // This formatting is to facilitate the search bar in carbon/application/list-service-providers.
             if (filter.contains(ASTERISK)) {
-                filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
+                filterData.setFilterString("SP_APP.APP_NAME LIKE ? ESCAPE '\\'");
             } else {
                 filterData.setFilterString("SP_APP.APP_NAME = ?");
             }
@@ -3975,7 +3975,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (searchOperation.equals(FILTER_EQUALS)) {
             formattedFilterString = realSearchField + " = ?";
         } else {
-            formattedFilterString = realSearchField + " LIKE ?";
+            formattedFilterString = realSearchField + " LIKE ? ESCAPE '\\'";
         }
 
         if (CLIENT_ID_SP_PROPERTY_NAME.equals(searchField)) {

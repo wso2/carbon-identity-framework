@@ -1006,15 +1006,15 @@ public class IdPManagementDAO {
                         filterQueryBuilder.setFilterAttributeValue(value);
                     } else if (IdPManagementConstants.SW.equals(operation)) {
                         value = IdentityUtil.processSingleCharWildcard(value);
-                        filter.append(attributeName).append(" like ? AND ");
+                        filter.append(attributeName).append(" like ? ESCAPE '\\' AND ");
                         filterQueryBuilder.setFilterAttributeValue(value + "%");
                     } else if (IdPManagementConstants.EW.equals(operation)) {
                         value = IdentityUtil.processSingleCharWildcard(value);
-                        filter.append(attributeName).append(" like ? AND ");
+                        filter.append(attributeName).append(" like ? ESCAPE '\\' AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value);
                     } else if (IdPManagementConstants.CO.equals(operation)) {
                         value = IdentityUtil.processSingleCharWildcard(value);
-                        filter.append(attributeName).append(" like ? AND ");
+                        filter.append(attributeName).append(" like ? ESCAPE '\\' AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
                     } else {
                         String message = "Invalid filter value. filter: " + operation;
