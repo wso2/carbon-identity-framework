@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -184,6 +184,8 @@ public class ApplicationManagementServiceImplTest {
     private static final String APPLICATION_NAME_FILTER_1 = "name ew application1";
     private static final String APPLICATION_NAME_FILTER_2 = "name co 2";
     private static final String APPLICATION_NAME_FILTER_3 = "name ew application3";
+    private static final String APPLICATION_FILTER_VALUE_1 = "*application1";
+    private static final String APPLICATION_FILTER_VALUE_3 = "*application3";
     private static final String APPLICATION_CLIENT_ID_FILTER = "clientId co %s";
     private static final String APPLICATION_ISSUER_FILTER = "issuer co %s";
     private static final String APPLICATION_NAME_OR_CLIENT_ID_FILTER = "name co sampleAppName or clientId eq %s";
@@ -557,7 +559,9 @@ public class ApplicationManagementServiceImplTest {
 
         return new Object[][]{
                 {APPLICATION_NAME_FILTER_1, 1},
-                {APPLICATION_NAME_FILTER_3, 0}
+                {APPLICATION_NAME_FILTER_3, 0},
+                { APPLICATION_NAME_FILTER_1, APPLICATION_FILTER_VALUE_1, 1 },
+                { APPLICATION_NAME_FILTER_3, APPLICATION_FILTER_VALUE_3, 0 }
         };
     }
 
@@ -595,7 +599,8 @@ public class ApplicationManagementServiceImplTest {
     }
 
     @Test(dataProvider = "getAppsExcludingSystemPortalsDataProvider")
-    public void testGetApplicationBasicInfoWithFilterExcludingSystemPortals(String filter, int expectedResult)
+    public void testGetApplicationBasicInfoWithFilterExcludingSystemPortals(String filter, String filterValue,
+                                                                            int expectedResult)
             throws IdentityApplicationManagementException {
 
         setupExcludeSystemPortalsEnv();
@@ -603,6 +608,7 @@ public class ApplicationManagementServiceImplTest {
             List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
             identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
                     .thenReturn(systemApp);
+            identityUtil.when(() -> IdentityUtil.processSingleCharWildcard(anyString())).thenReturn(filterValue);
             ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
                     (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, filter, 0, 10, true);
             Assert.assertEquals(applicationBasicInfo.length, expectedResult);
@@ -629,7 +635,8 @@ public class ApplicationManagementServiceImplTest {
     }
 
     @Test(dataProvider = "getAppsExcludingSystemPortalsDataProvider")
-    public void testGetCountOfApplicationsWithFilterExcludingSystemPortals(String filter, int expectedResult)
+    public void testGetCountOfApplicationsWithFilterExcludingSystemPortals(String filter, String filterValue,
+                                                                           int expectedResult)
             throws IdentityApplicationManagementException {
 
         setupExcludeSystemPortalsEnv();
@@ -637,6 +644,7 @@ public class ApplicationManagementServiceImplTest {
             List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
             identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
                     .thenReturn(systemApp);
+            identityUtil.when(() -> IdentityUtil.processSingleCharWildcard(anyString())).thenReturn(filterValue);
             Assert.assertEquals(
                     applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
                             filter, true), expectedResult);
