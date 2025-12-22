@@ -27,6 +27,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.context.CarbonCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
@@ -98,6 +99,22 @@ public class SecretManagerComponent {
             log.debug("Purpose DAO is unregistered in SecretManager service.");
         }
         SecretManagerComponentDataHolder.getInstance().getSecretDAOS().remove(secretDAO);
+    }
+
+    @Reference(
+            name = "carbon.core.initialized.event",
+            service = CarbonCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetCarbonCoreInitializedEvent"
+    )
+    protected void setCarbonCoreInitializedEvent(CarbonCoreInitializedEvent ignored) {
+        
+        // Waiting for Carbon core to be initialized.
+    }
+
+    protected void unsetCarbonCoreInitializedEvent(CarbonCoreInitializedEvent ignored) {
+
     }
 
     private boolean isSecretManagementEnabled() {
