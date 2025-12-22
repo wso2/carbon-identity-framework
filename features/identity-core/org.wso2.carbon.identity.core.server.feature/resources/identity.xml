@@ -2940,6 +2940,11 @@
                 <ConnectionReadTimeout>20000</ConnectionReadTimeout>
             </Custom>
         </SMS>
+        <Email>
+            <v1>
+                <EnableStrictInputValidation>false</EnableStrictInputValidation>
+            </v1>
+        </Email>
     </NotificationChannel>
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>

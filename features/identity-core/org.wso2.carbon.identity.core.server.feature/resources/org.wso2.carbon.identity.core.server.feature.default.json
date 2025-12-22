@@ -2178,6 +2178,7 @@
 
   "notificationChannel.sms.custom.connection_timeout": "5000",
   "notificationChannel.sms.custom.connection_read_timeout": "20000",
+  "notificationChannel.email.v1.enable_strict_input_validation": false,
 
   "configs.endpoint.elevate_permission": true,
 

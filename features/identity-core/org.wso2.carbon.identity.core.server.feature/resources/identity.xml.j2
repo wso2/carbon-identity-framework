@@ -5015,6 +5015,11 @@
                 </Authentication>
             </Custom>
         </SMS>
+        <Email>
+            <v1>
+                <EnableStrictInputValidation>{{notificationChannel.email.v1.enable_strict_input_validation}}</EnableStrictInputValidation>
+            </v1>
+        </Email>
     </NotificationChannel>
     <PASTRCookieMaxAge>{{pastr_cookie.max_age}}</PASTRCookieMaxAge>
     <ResolveTenantDomainFromUsername>{{resolve_tenant_domain_from_username.enabled | default(false)}}</ResolveTenantDomainFromUsername>
